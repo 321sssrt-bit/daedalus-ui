@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>染缸 · 出一匹</title>
+  <style>
+    :root {
+      --vat: #3a1f4a;
+      --dye: #c43c6e;
+      --ink: #241428;
+      --paper: #f6eef4;
+      --ok: #2f5d3a;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #e8d8e4; color: var(--ink); font: 15px/1.45 "Segoe UI", "PingFang SC", sans-serif; }
+    .app { display: grid; grid-template-columns: 320px 1fr; min-height: 100vh; }
+    aside { background: var(--paper); padding: 20px; }
+    label { display: block; margin: 12px 0 4px; }
+    input[type="range"] { width: 100%; }
+    select, button { height: 38px; width: 100%; margin-top: 8px; font: inherit; }
+    .go { background: var(--dye); color: #fff; border: 0; cursor: pointer; }
+    .preview { display: grid; place-items: center; padding: 40px; }
+    .cloth { width: min(420px, 80%); height: 280px; display: grid; place-items: center; color: #fff; letter-spacing: 0.2em; }
+    .out { min-height: 24px; margin-top: 10px; }
+    @media (max-width: 768px) { .app { grid-template-columns: 1fr; } }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside>
+      <h1>染缸</h1>
+      <label>色相 <span id="hv">320</span></label>
+      <input id="h" type="range" min="0" max="360" value="320">
+      <label>浓度 <span id="sv">70</span></label>
+      <input id="s" type="range" min="20" max="90" value="70">
+      <label>图层</label>
+      <select id="layer">
+        <option value="静">静布</option>
+        <option value="动">动画图层</option>
+      </select>
+      <label>导出格式</label>
+      <select id="fmt">
+        <option>PNG 匹样</option>
+        <option>TIFF 印花</option>
+        <option>GIF 布纹</option>
+      </select>
+      <button class="go" id="ex" type="button">导出这匹</button>
+      <p class="out" id="out"></p>
+    </aside>
+    <main class="preview">
+      <div class="cloth" id="cloth">静布</div>
+    </main>
+  </div>
+  <script>
+    (function () {
+      function color() {
+        return "hsl(" + document.getElementById("h").value + ", " + document.getElementById("s").value + "%, 42%)";
+      }
+      function live() {
+        document.getElementById("hv").textContent = document.getElementById("h").value;
+        document.getElementById("sv").textContent = document.getElementById("s").value;
+        var cloth = document.getElementById("cloth");
+        cloth.style.background = color();
+        cloth.textContent = document.getElementById("layer").value === "动" ? "动画图层" : "静布";
+      }
+      ["h", "s", "layer"].forEach(function (id) {
+        document.getElementById(id).addEventListener("input", live);
+        document.getElementById(id).addEventListener("change", live);
+      });
+      document.getElementById("ex").addEventListener("click", function () {
+        var layer = document.getElementById("layer").value;
+        var fmt = document.getElementById("fmt").value;
+        var out = document.getElementById("out");
+        if (fmt.indexOf("TIFF") >= 0 && layer === "动") {
+          out.style.color = "#8b2e18";
+          out.textContent = "TIFF 印花不支持动画图层。请改静布或改 GIF / PNG。未导出。";
+          return;
+        }
+        out.style.color = "#2f5d3a";
+        out.textContent = "已导出「" + fmt + "」· " + layer + " · 色相 " + document.getElementById("h").value + "。匹样号 DY-" + document.getElementById("h").value + "。";
+      });
+      live();
+    })();
+  </script>
+</body>
+</html>

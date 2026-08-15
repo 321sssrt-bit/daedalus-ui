@@ -1,44 +1,83 @@
 # 024 午夜账房
 
-## 一句话气质
+## 规范元数据
 
-像在午夜精品账房里为一笔克制的订单落款。
+- 规范版本：2
+- 主视口：1280 × 800 px
+- 对应页面：`024-midnight-ledger.html`
+- 复现范围：复现该单文件页面的布局制度、设计令牌、核心组件状态与题定职责。
 
-## 适合用在哪种产品
+## 画布与区域布局
 
-设计家具、珠宝器物、限量收藏与高客单生活方式品牌的最终结账页。
+| 区域 | 边界与尺寸 | 布局与对齐 | 层级与滚动 |
+| --- | --- | --- | --- |
+| 页面画布 `body` | margin: 0; min-height: 100vh | 未单独声明 | background: var(--navy); color: var(--cream) |
+| 主要结构 `.shell` | max-width: 1260px; margin: auto; min-height: 100vh | display: grid; grid-template-columns: 1.05fr .95fr | 未单独声明 |
+| 关键内容区 `.seal` | width: 72px; height: 72px; margin: auto | display: grid; place-items: center | border: 1px solid var(--green); color: var(--green); border-radius: 50% |
 
-## 色板
+## 设计令牌
 
-| 角色 | 色号 | 用法 |
+### 色彩
+
+| 令牌 | 值 | 用途 |
 | --- | --- | --- |
-| 背景 | #071522 | 页面与成功遮罩的深夜底色 |
-| 表面 | #0D2233 | 支付区域和回执面板 |
-| 正文 | #F4EEDF | 订单名称、金额与确认信息 |
-| 次要文字 | #90A0AB | 规格、支付说明和安全提示 |
-| 强调 | #C9A65B | 金色边线、选择态和支付按钮 |
-| 成功 / 危险 | #72BA91 | 成功印章；危险提示使用 #D46F68 |
+| `--navy` | `#071522` | 品牌或局部强调 |
+| `--panel` | `#0d2233` | 容器与表面 |
+| `--cream` | `#f4eedf` | 品牌或局部强调 |
+| `--muted` | `#90a0ab` | 辅助文字与弱化信息 |
+| `--gold` | `#c9a65b` | 品牌或局部强调 |
+| `--green` | `#72ba91` | 成功反馈 |
+| `--red` | `#d46f68` | 错误与危险反馈 |
+| `--literal-8` | `#294052` | HTML 中直接声明的局部色 |
 
-## 字体和字号
+### 字体
 
-展示与订单内容使用 Georgia、Songti SC、SimSun，功能文字用 Arial、Microsoft YaHei。显示字 52px/400，分区标题 34px/400，商品标题 18px/400，正文 13–15px，合计数字 28px/700。
+| 角色 | 字体栈 | 字号 / 行高 | 字重 / 字距 |
+| --- | --- | --- | --- |
+| 页面正文 `body` | Georgia,"Songti SC","SimSun",serif | 16px / normal（浏览器默认） | 由 font 简写或继承确定 |
+| 显示字 `.order h1` | 继承页面字体 | font-size: 52px | font-weight: 400 |
+| 分区标题 `.item h2` | 继承页面字体 | font-size: 18px | font-weight: 400 |
+| 辅助文字 `.brand` | 700 11px Arial,"Microsoft YaHei",sans-serif | font 简写中声明 | letter-spacing: 4px |
 
-## 间距、圆角、阴影
+### 间距、圆角与层级
 
-双栏内距 28–74px，商品行纵向 22px，支付项间隔 10px；除编号与单选圆点外保持零圆角，不使用阴影，只靠深蓝层次与细金线营造材质。
+| 令牌 | 值 | 用途 |
+| --- | --- | --- |
+| 主要内距 | `54px clamp(28px,5vw,74px)` | `.order` 的 `padding` |
+| 布局间距 | `18px` | `.item` 的 `gap` |
+| 圆角 | `50%` | `.idx` 的 `border-radius` |
+| 边框或阴影 | `1px solid #294052` | `.order` 的 `border-right` |
 
-## 按钮 / 输入框 / 卡片
+## 组件规格与状态
 
-支付方式是大面积细线选项，选中后出现淡金底和金色实心圆；确认支付是平整金块。订单摘要采用账页式横线，不使用电商卡片。
+| 组件 | 结构与尺寸 | 默认样式 | 状态变化 |
+| --- | --- | --- | --- |
+| 主要操作 `.receipt button` | padding: 12px 24px | background: transparent; border: 1px solid var(--cream); color: var(--cream) | 未声明独立状态；保持默认样式 |
+| 输入、选择或次操作 `.method:has(input:checked)` | 未单独声明 | border-color: var(--gold); background: rgba(201,166,91,.08) | .method:focus-within,.confirm:focus-visible → outline: 3px solid var(--cream) |
+| 内容容器 `.item` | display: grid; padding: 22px 0 | border-bottom: 1px solid #294052 | 未声明独立状态；保持默认样式 |
 
-## 动效
+## 响应式规则
 
-选择支付方式即时变更描边；确认后以模态回执替换任务焦点。减少动态偏好下关闭颜色过渡。
+| 条件 | 布局变化 | 组件变化 |
+| --- | --- | --- |
+| 1280 × 800 px 主视口 | 按“画布与区域布局”保持完整结构 | 按“组件规格与状态”显示默认状态 |
+| `(max-width:850px)` | .shell → grid-template-columns: 1fr; .order → border-right: 0; border-bottom: 1px solid #294052; .order h1 → margin-top: 38px; .pay → min-height: 620px | 交互流程与内容顺序不变 |
 
-## 不要做什么
+## 内容与数据
 
-不要加入倒计时促销、优惠券轰炸、彩色支付 Logo 或亮白表单；不要用发光渐变破坏午夜账房的安静。
+必须保留的可见文案顺序包括：“午夜账房 · 结账” → “NOCTURNE HOUSE · SHANGHAI” → “订单终章” → “在落款之前，再核对一次你选择的物件。” → “月相黄铜台灯” → “拉丝黄铜 / 暖光 2700K / 1 件” → “¥ 1,860” → “II” → “黑檀木调光钮” → “替换配件 / 1 件” → “¥ 180” → “商品”。数值、日期和状态文字沿用页面初始值及其操作后的格式。
 
-## 复刻提示词
+## 动效与反馈
 
-设计深海军蓝双栏精品结账页，左侧像账册一样列订单与金色总额，右侧是三种细线支付方式和整块哑金确认按钮；使用衬线标题、极少圆角与成功印章，气质像高级器物品牌的午夜账房。
+| 触发 | 时长与缓动 | 可见反馈 | `prefers-reduced-motion` |
+| --- | --- | --- | --- |
+| 页面进入 | 0ms | 直接呈现最终状态 | * → transition: none!important |
+| 用户操作 | 0ms | 通过文案、颜色或显隐即时反馈 | * → transition: none!important |
+
+## 复现验收清单
+
+- [ ] 在 1280 × 800 px 下，body、.shell 与 .seal 的尺寸和排列符合布局表。
+- [ ] 规范登记的主色 `#0d2233`、`#72ba91`、`#071522`、`#c9a65b`、`#294052` 均来自 HTML，背景、正文、弱化与强调层级对应一致。
+- [ ] 主要操作 `.receipt button`、输入、选择或次操作 `.method:has(input:checked)` 与 内容容器 `.item` 的默认及状态样式可实际观察。
+- [ ] 在 `(max-width:850px)` 条件下，布局按响应式表变化且“午夜账房 · 结账”仍可操作。
+- [ ] 启用 `prefers-reduced-motion: reduce` 后，页面按动效表关闭或压缩非必要动画，同时保留状态反馈。

@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>邮戳 · 收件箱</title>
+<style>
+:root{
+  --cream:#f7f2e5;
+  --paper:#fffcf4;
+  --indigo:#2c3e70;
+  --indigo-deep:#1e2c52;
+  --ink:#2b3040;
+  --muted:#8d8672;
+  --line:#e3dac2;
+  --postmark:#b5453c;
+  --radius-card:12px;
+  --radius-ctl:8px;
+  --sp:8px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font:14px/1.6 "PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+  background:var(--cream);color:var(--ink);height:100vh;display:flex;flex-direction:column;overflow:hidden;
+}
+.topbar{
+  flex:0 0 54px;display:flex;align-items:center;justify-content:space-between;
+  padding:0 22px;background:var(--indigo);color:#f7f2e5;
+}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;letter-spacing:.18em}
+.brand .pm{
+  width:26px;height:26px;border:1.6px solid #f7f2e5;border-radius:50%;
+  display:grid;place-items:center;font-size:10px;letter-spacing:0;
+}
+.topbar .box{font:12px/1 ui-monospace,Consolas,monospace;opacity:.8}
+.panes{flex:1;display:flex;min-height:0}
+.folders{flex:0 0 176px;padding:18px 12px;border-right:1px solid var(--line)}
+.folders button{
+  width:100%;display:flex;align-items:center;gap:8px;padding:9px 12px;border:0;border-radius:var(--radius-ctl);
+  background:none;font:inherit;color:var(--ink);cursor:pointer;text-align:left;transition:background .13s ease;
+}
+.folders button:hover{background:#efe8d4}
+.folders button.on{background:var(--indigo);color:#f7f2e5;font-weight:600}
+.folders .n{margin-left:auto;font:11px/1 ui-monospace,Consolas,monospace;color:var(--muted)}
+.folders button.on .n{color:#c8d2ea}
+.list{flex:0 0 322px;border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:0}
+.filters{display:flex;gap:6px;padding:12px;border-bottom:1px solid var(--line)}
+.filters button{
+  border:1px solid var(--line);background:none;border-radius:999px;padding:4px 12px;font:inherit;
+  font-size:12px;color:var(--muted);cursor:pointer;transition:all .13s ease;
+}
+.filters button.on{background:var(--indigo);border-color:var(--indigo);color:#fff}
+.mails{overflow-y:auto;flex:1}
+.mail{
+  padding:12px 14px;border-bottom:1px solid var(--line);cursor:pointer;position:relative;
+  transition:background .12s ease;background:var(--paper);
+}
+.mail:hover{background:#f4eedd}
+.mail.sel{background:#ece7d3;box-shadow:inset 3px 0 0 var(--indigo)}
+.mail .row1{display:flex;align-items:center;gap:7px}
+.mail .from{font-weight:600;font-size:13.5px;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mail .time{font:11px/1 ui-monospace,Consolas,monospace;color:var(--muted)}
+.mail .subj{font-size:13px;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mail .prev{font-size:12px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mail.unread .from,.mail.unread .subj{font-weight:700}
+.udot{flex:0 0 8px;height:8px;border-radius:50%;background:var(--postmark)}
+.star{
+  border:0;background:none;cursor:pointer;font-size:15px;color:#c9c0a4;padding:2px;
+  transition:color .13s ease,transform .13s ease;
+}
+.star:hover{transform:scale(1.2)}
+.star.on{color:var(--postmark)}
+.empty{padding:36px 16px;text-align:center;color:var(--muted);font-size:13px}
+.read{flex:1;background:var(--paper);padding:28px 34px;overflow-y:auto;min-width:0}
+.read .placeholder{color:var(--muted);text-align:center;margin-top:120px;font-size:13.5px}
+.stamp-row{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px}
+.postmark{
+  width:74px;height:74px;border:2px solid var(--postmark);border-radius:50%;opacity:.75;
+  display:grid;place-items:center;text-align:center;font-size:9.5px;color:var(--postmark);
+  letter-spacing:.06em;transform:rotate(-8deg);line-height:1.5;
+}
+.read h1{font:700 20px/1.4 "Songti SC","STSong","SimSun",serif;margin-bottom:6px}
+.read .meta{color:var(--muted);font-size:12.5px;margin-bottom:20px;padding-bottom:14px;border-bottom:1px dashed var(--line)}
+.read .body{font-size:14.5px;line-height:2;max-width:560px}
+.read .body p{margin-bottom:14px}
+.actions{display:flex;gap:10px;margin-top:26px}
+.actions button{
+  border:1px solid var(--line);background:none;border-radius:var(--radius-ctl);padding:8px 18px;
+  font:inherit;font-size:13px;color:var(--ink);cursor:pointer;transition:all .13s ease;
+}
+.actions button:hover{border-color:var(--indigo);color:var(--indigo)}
+@media(max-width:960px){
+  .folders{flex-basis:56px;padding:12px 6px}
+  .folders .txt,.folders .n{display:none}
+  .list{flex:0 0 240px}
+}
+@media(prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand"><span class="pm" aria-hidden="true">邮</span>邮戳信箱</div>
+  <span class="box">qingyan@youchuo.cn · 今日已盖 3 枚戳</span>
+</header>
+<div class="panes">
+  <nav class="folders" aria-label="信箱分类">
+    <button class="on" type="button" data-f="inbox"><span class="txt">收件箱</span><span class="n" id="n-inbox">5</span></button>
+    <button type="button" data-f="star"><span class="txt">星标</span><span class="n" id="n-star">2</span></button>
+    <button type="button" data-f="arch"><span class="txt">已归档</span><span class="n" id="n-arch">1</span></button>
+  </nav>
+  <section class="list">
+    <div class="filters" role="tablist" aria-label="过滤">
+      <button class="on" type="button" data-flt="all">全部</button>
+      <button type="button" data-flt="unread">未读</button>
+      <button type="button" data-flt="star">星标</button>
+    </div>
+    <div class="mails" id="mails">
+      <div class="mail unread" data-id="1">
+        <div class="row1"><span class="udot"></span><span class="from">《晚点》编辑部</span><span class="time">08:12</span><button class="star" type="button" aria-label="星标">☆</button></div>
+        <div class="subj">你的专栏九月刊排期定了</div>
+        <div class="prev">清言老师，九月专栏排在第二个周四……</div>
+      </div>
+      <div class="mail unread" data-id="2">
+        <div class="row1"><span class="udot"></span><span class="from">杭州图书馆</span><span class="time">07:40</span><button class="star on" type="button" aria-label="星标">★</button></div>
+        <div class="subj">讲座确认：邮票上的民国建筑</div>
+        <div class="prev">您 8 月 23 日下午的讲座场地已定在一楼报告厅……</div>
+      </div>
+      <div class="mail unread" data-id="3">
+        <div class="row1"><span class="udot"></span><span class="from">母亲</span><span class="time">昨天</span><button class="star" type="button" aria-label="星标">☆</button></div>
+        <div class="subj">家里的桂花开了</div>
+        <div class="prev">你爸说今年的桂花比往年早了一个星期……</div>
+      </div>
+      <div class="mail" data-id="4">
+        <div class="row1"><span class="from">邮政储蓄银行</span><span class="time">昨天</span><button class="star" type="button" aria-label="星标">☆</button></div>
+        <div class="subj">八月对账单已生成</div>
+        <div class="prev">您尾号 6219 的账户八月对账单已生成……</div>
+      </div>
+      <div class="mail" data-id="5">
+        <div class="row1"><span class="from">旧友 阿灿</span><span class="time">周二</span><button class="star on" type="button" aria-label="星标">★</button></div>
+        <div class="subj">翻出一张 2009 年的明信片</div>
+        <div class="prev">整理书房翻出你当年从敦煌寄来的明信片……</div>
+      </div>
+    </div>
+  </section>
+  <main class="read" id="read"><p class="placeholder">挑一封信拆开。未读的信在左边带一枚红戳。</p></main>
+</div>
+<script>
+(function(){
+  var mails=[
+    {id:1,f:'inbox',from:'《晚点》编辑部',sub:'你的专栏九月刊排期定了',prev:'清言老师，九月专栏排在第二个周四……',time:'08:12',unread:true,star:false,
+     body:'清言老师：\n九月专栏排在第二个周四，主题沿用「城市里的旧邮局」。截稿 9 月 8 日，篇幅 2600 字上下。\n顺颂 编安'},
+    {id:2,f:'inbox',from:'杭州图书馆',sub:'讲座确认：邮票上的民国建筑',prev:'您 8 月 23 日下午的讲座场地已定在一楼报告厅……',time:'07:40',unread:true,star:true,
+     body:'周老师您好：\n8 月 23 日（周日）14:00，一楼报告厅，投影与翻页笔已备好。讲座后安排 20 分钟签赠。\n期待您的到来。'},
+    {id:3,f:'inbox',from:'母亲',sub:'家里的桂花开了',prev:'你爸说今年的桂花比往年早了一个星期……',time:'昨天',unread:true,star:false,
+     body:'囡囡：\n家里的桂花开了，比往年早。晒了一些，给你留着做桂花糖。\n不忙的时候打个电话。'},
+    {id:4,f:'inbox',from:'邮政储蓄银行',sub:'八月对账单已生成',prev:'您尾号 6219 的账户八月对账单已生成……',time:'昨天',unread:false,star:false,
+     body:'尊敬的客户：\n您尾号 6219 的账户八月对账单已生成，可在柜台或手机银行查看明细。\n本月无异常交易提醒。'},
+    {id:5,f:'inbox',from:'旧友 阿灿',sub:'翻出一张 2009 年的明信片',prev:'整理书房翻出你当年从敦煌寄来的明信片……',time:'周二',unread:false,star:true,
+     body:'清言：\n整理书房翻出你 2009 年从敦煌寄来的明信片，月牙泉的戳还清楚得很。\n下个月我去你那儿，带上它，咱们对着原件喝一杯。'},
+    {id:6,f:'arch',from:'出版社物流部',sub:'样书已寄出，单号备查',prev:'《书信里的中国》样书 12 册已于昨日寄出……',time:'8 月 9 日',unread:false,star:false,
+     body:'周老师：\n《书信里的中国》修订版样书 12 册昨日已寄出，预计三日内送达。\n收到后请回复确认。'}
+  ];
+  var folder='inbox',flt='all',selId=null;
+  var mailsEl=document.getElementById('mails');
+  var readEl=document.getElementById('read');
+  function findMail(id){
+    for(var i=0;i<mails.length;i++)if(mails[i].id===id)return mails[i];
+    return null;
+  }
+  function counts(){
+    var a=0,b=0,c=0;
+    for(var i=0;i<mails.length;i++){
+      if(mails[i].f==='inbox')a++;
+      if(mails[i].star)b++;
+      if(mails[i].f==='arch')c++;
+    }
+    document.getElementById('n-inbox').textContent=a;
+    document.getElementById('n-star').textContent=b;
+    document.getElementById('n-arch').textContent=c;
+  }
+  function rowHtml(m){
+    return '<div class="mail'+(m.unread?' unread':'')+(selId===m.id?' sel':'')+'" data-id="'+m.id+'">'+
+      '<div class="row1">'+(m.unread?'<span class="udot"></span>':'')+
+      '<span class="from">'+m.from+'</span><span class="time">'+m.time+'</span>'+
+      '<button class="star'+(m.star?' on':'')+'" type="button" aria-label="星标">'+(m.star?'★':'☆')+'</button></div>'+
+      '<div class="subj">'+m.sub+'</div><div class="prev">'+m.prev+'</div></div>';
+  }
+  function bindRows(){
+    var rows=mailsEl.querySelectorAll('.mail');
+    for(var i=0;i<rows.length;i++){
+      (function(el){
+        var id=Number(el.getAttribute('data-id'));
+        el.querySelector('.star').addEventListener('click',function(ev){
+          ev.stopPropagation();
+          var m=findMail(id);
+          m.star=!m.star;
+          renderList();
+        });
+        el.addEventListener('click',function(){
+          var m=findMail(id);
+          selId=id;m.unread=false;
+          renderList();renderRead(m);
+        });
+      })(rows[i]);
+    }
+  }
+  function renderList(){
+    counts();
+    var html='';
+    for(var i=0;i<mails.length;i++){
+      var m=mails[i];
+      if(folder==='star'&&!m.star)continue;
+      if(folder!=='star'&&m.f!==folder)continue;
+      if(flt==='unread'&&!m.unread)continue;
+      if(flt==='star'&&!m.star)continue;
+      html+=rowHtml(m);
+    }
+    mailsEl.innerHTML=html||'<div class="empty">这一格暂时是空的。</div>';
+    bindRows();
+  }
+  function renderRead(m){
+    var paras=m.body.split('\n');
+    var html='<div class="stamp-row"><div><h1>'+m.sub+'</h1><p class="meta">寄件人：'+m.from+' · 盖戳时间 '+m.time+'</p></div>'+
+      '<div class="postmark">POSTMARK<br>杭州 · 2026<br>已 验 讫</div></div><div class="body">';
+    for(var i=0;i<paras.length;i++)html+='<p>'+paras[i]+'</p>';
+    html+='</div><div class="actions"><button type="button" id="arc">归档这封信</button><button type="button" id="bs">回列表</button></div>';
+    readEl.innerHTML=html;
+    document.getElementById('arc').addEventListener('click',function(){
+      m.f='arch';m.unread=false;selId=null;
+      readEl.innerHTML='<p class="placeholder">已归档。信没有消失，只是放进了木抽屉。</p>';
+      renderList();
+    });
+    document.getElementById('bs').addEventListener('click',function(){renderList()});
+  }
+  var folderBtns=document.querySelectorAll('.folders button');
+  for(var i=0;i<folderBtns.length;i++){
+    (function(b){
+      b.addEventListener('click',function(){
+        for(var j=0;j<folderBtns.length;j++)folderBtns[j].classList.remove('on');
+        b.classList.add('on');
+        folder=b.getAttribute('data-f');
+        selId=null;
+        renderList();
+      });
+    })(folderBtns[i]);
+  }
+  var fltBtns=document.querySelectorAll('.filters button');
+  for(var k=0;k<fltBtns.length;k++){
+    (function(b){
+      b.addEventListener('click',function(){
+        for(var j=0;j<fltBtns.length;j++)fltBtns[j].classList.remove('on');
+        b.classList.add('on');
+        flt=b.getAttribute('data-flt');
+        renderList();
+      });
+    })(fltBtns[k]);
+  }
+  bindRows();
+  counts();
+})();
+</script>
+</body>
+</html>

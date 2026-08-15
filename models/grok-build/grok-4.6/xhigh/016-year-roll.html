@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>年册 · 名录</title>
+  <style>
+    :root {
+      --wine: #5a1822;
+      --gold: #d4b072;
+      --page: #f6efe2;
+      --ink: #2a1a16;
+      --card: #fff8ec;
+      --mute: #8a6a58;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--page); color: var(--ink); font: 15px/1.45 Georgia, "Songti SC", serif; }
+    header { background: var(--wine); color: var(--gold); padding: 18px 24px; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+    h1 { margin: 0; font-size: 22px; letter-spacing: 0.16em; }
+    select { height: 34px; background: #3f1018; color: var(--gold); border: 1px solid var(--gold); font: inherit; }
+    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; padding: 22px; }
+    .p { background: var(--card); padding: 16px; cursor: pointer; border-top: 6px solid var(--wine); }
+    .p:hover, .p.on { outline: 2px solid var(--gold); }
+    .ava { width: 48px; height: 48px; background: var(--wine); color: var(--gold); display: grid; place-items: center; font-size: 18px; }
+    .p h2 { margin: 10px 0 4px; font-size: 18px; }
+    .p p { margin: 0; color: var(--mute); font-size: 13px; }
+    .bio {
+      margin: 0 22px 32px; background: var(--wine); color: var(--page); padding: 20px 22px;
+      display: none;
+    }
+    .bio.on { display: block; }
+    @media (max-width: 768px) {
+      .grid { grid-template-columns: 1fr 1fr; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>年册 · 戊班</h1>
+    <label>分册
+      <select id="f">
+        <option value="all">全册</option>
+        <option value="港">北港</option>
+        <option value="席">绛席</option>
+        <option value="园">青圃</option>
+      </select>
+    </label>
+  </header>
+  <div class="grid" id="grid"></div>
+  <aside class="bio" id="bio"></aside>
+  <script>
+    (function () {
+      var people = [
+        { n: "陈衡", r: "晚刊订户", g: "港", b: "值夜读报的人。认得墨闸的暗号，不爱被叫用户。" },
+        { n: "林晚青", r: "青圃社员", g: "园", b: "认领南篱番茄。周末浇两次水，卡片打过孔。" },
+        { n: "沈纸年", r: "绛席持帖", g: "席", b: "帖号绛-184。带一位同伴，坐窗席。" },
+        { n: "顾北", r: "灯塔守", g: "港", b: "北港 3 号灯。报文从铜线匣进晨案。" },
+        { n: "吴苔", r: "货栈过磅", g: "港", b: "管三道门。种子袋受潮时会提前可出。" },
+        { n: "尹霜", r: "霜台值机", g: "席", b: "东厢试麦。离开房间就把权限撤掉。" }
+      ];
+      var pick = -1;
+      function render() {
+        var g = document.getElementById("f").value;
+        var grid = document.getElementById("grid");
+        grid.innerHTML = "";
+        people.forEach(function (p, i) {
+          if (g !== "all" && p.g !== g) return;
+          var el = document.createElement("article");
+          el.className = "p" + (pick === i ? " on" : "");
+          el.innerHTML = "<div class=\"ava\">" + p.n.slice(0, 1) + "</div><h2>" + p.n + "</h2><p>" + p.r + "</p>";
+          el.addEventListener("click", function () {
+            pick = i;
+            var bio = document.getElementById("bio");
+            bio.className = "bio on";
+            bio.innerHTML = "<strong>" + p.n + "</strong> · " + p.r + "<p>" + p.b + "</p>";
+            render();
+          });
+          grid.appendChild(el);
+        });
+      }
+      document.getElementById("f").addEventListener("change", function () { pick = -1; document.getElementById("bio").className = "bio"; render(); });
+      render();
+    })();
+  </script>
+</body>
+</html>

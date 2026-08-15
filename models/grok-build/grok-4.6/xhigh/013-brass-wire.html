@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>铜线匣 · 收报</title>
+  <style>
+    :root {
+      --brass: #b8893a;
+      --yellow: #f3e27a;
+      --wood: #3a2918;
+      --paper: #fff6c9;
+      --ink: #2a1d10;
+      --mute: #7a6240;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--wood); color: var(--ink); font: 15px/1.45 Georgia, "Songti SC", serif; }
+    .app { display: grid; grid-template-columns: 320px 1fr; min-height: 100vh; }
+    .list { background: #4a3420; color: var(--yellow); }
+    .tools { display: flex; gap: 8px; padding: 12px; }
+    .tools button { height: 32px; border: 1px solid var(--brass); background: transparent; color: var(--yellow); cursor: pointer; font: 12px inherit; }
+    .tools button.on { background: var(--brass); color: var(--wood); }
+    .item { padding: 12px 14px; border-top: 1px solid #5c4328; cursor: pointer; }
+    .item.unread { box-shadow: inset 3px 0 var(--yellow); }
+    .item.on { background: #5a4024; }
+    .item b { display: block; }
+    .read { background: var(--paper); padding: 28px 32px; }
+    .read h1 { margin: 0 0 8px; font-size: 26px; }
+    .meta { color: var(--mute); margin-bottom: 16px; }
+    .star { height: 36px; border: 1px solid var(--brass); background: #fff; cursor: pointer; }
+    @media (max-width: 768px) {
+      .app { grid-template-columns: 1fr; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="list">
+      <div class="tools">
+        <button class="on" id="all" type="button">全部</button>
+        <button id="unread" type="button">只看未读</button>
+      </div>
+      <div id="items"></div>
+    </aside>
+    <main class="read" id="pane"></main>
+  </div>
+  <script>
+    (function () {
+      var mails = [
+        { id: 1, from: "北港灯塔", t: "今夜偏东可航", body: "东风三级。三号灯仍亮。若要出港，在 02:00 前回复「可」。", unread: true, star: false },
+        { id: 2, from: "绛席门厅", t: "沈纸年已核帖", body: "帖号绛-184 对上。窗席留到亥时正。", unread: true, star: true },
+        { id: 3, from: "货栈", t: "种子袋受潮预警", body: "青圃那一袋在检列湿度偏高，建议提前可出。", unread: false, star: false },
+        { id: 4, from: "霜台", t: "麦已关", body: "东厢试麦结束，权限已按「仅此一次」撤掉。", unread: false, star: false }
+      ];
+      var filter = "all";
+      var cur = 1;
+      function render() {
+        var box = document.getElementById("items");
+        box.innerHTML = "";
+        mails.forEach(function (m) {
+          if (filter === "unread" && !m.unread) return;
+          var el = document.createElement("div");
+          el.className = "item" + (m.unread ? " unread" : "") + (m.id === cur ? " on" : "");
+          el.innerHTML = "<b>" + m.t + "</b><span>" + m.from + (m.star ? " · 已钉" : "") + "</span>";
+          el.addEventListener("click", function () { cur = m.id; m.unread = false; render(); });
+          box.appendChild(el);
+        });
+        var mail = mails.filter(function (m) { return m.id === cur; })[0];
+        document.getElementById("pane").innerHTML = "<h1>" + mail.t + "</h1><div class=\"meta\">来自 " + mail.from + "</div><p>" + mail.body + "</p><button class=\"star\" type=\"button\" id=\"star\">" + (mail.star ? "拔掉铜钉" : "钉在匣盖") + "</button>";
+        document.getElementById("star").addEventListener("click", function () { mail.star = !mail.star; render(); });
+      }
+      document.getElementById("all").addEventListener("click", function () {
+        filter = "all"; this.className = "on"; document.getElementById("unread").className = ""; render();
+      });
+      document.getElementById("unread").addEventListener("click", function () {
+        filter = "unread"; this.className = "on"; document.getElementById("all").className = ""; render();
+      });
+      render();
+    })();
+  </script>
+</body>
+</html>

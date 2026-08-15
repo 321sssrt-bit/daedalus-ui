@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>果园 · 今日步行</title>
+<style>
+:root{
+  --apple:#4caa4f;
+  --apple-deep:#3a8a3e;
+  --bg:#f2f7f0;
+  --card:#ffffff;
+  --ink:#26332a;
+  --muted:#7f8f83;
+  --line:#dde8da;
+  --danger:#d1584b;
+  --gold:#e8a13d;
+  --frame:#10151f;
+  --sp:8px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font:15px/1.65 "PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+  background:#262b34;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;
+}
+.stage{text-align:center}
+.device-label{color:#8b93a1;font-size:12px;letter-spacing:.2em;margin-bottom:14px}
+.phone{
+  width:390px;height:min(844px,calc(100vh - 90px));border-radius:38px;border:11px solid var(--frame);
+  background:var(--bg);overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.5);
+}
+.screen{height:100%;overflow-y:auto;padding:20px 18px 22px}
+.appbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.appbar h1{font-size:17px;letter-spacing:.1em}
+.appbar .d{font-size:11px;color:var(--muted)}
+.ring-card{
+  background:var(--card);border:1px solid var(--line);border-radius:18px;padding:20px;
+  display:flex;align-items:center;gap:20px;margin-bottom:14px;
+}
+.ring{position:relative;width:128px;height:128px;flex:0 0 128px}
+.ring svg{transform:rotate(-90deg)}
+.ring .hole{
+  position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+}
+.ring .hole b{font:700 24px/1 ui-monospace,Consolas,monospace;color:var(--apple-deep)}
+.ring .hole span{font-size:10px;color:var(--muted);margin-top:4px}
+.goal-info .gk{font-size:12px;color:var(--muted);letter-spacing:.1em}
+.goal-info .gv{font:700 16px/1.4 ui-monospace,Consolas,monospace;margin:2px 0 10px}
+.goal-info .hint{font-size:11.5px;color:var(--muted);line-height:1.8}
+.goal-info .hint b{color:var(--apple-deep)}
+.trend-card{
+  background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px 18px;margin-bottom:14px;
+}
+.trend-card h2,.log-card h2{font-size:13px;letter-spacing:.1em;margin-bottom:12px}
+.bars{display:flex;align-items:flex-end;gap:8px;height:88px}
+.bcol{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end}
+.bcol i{width:70%;border-radius:5px 5px 2px 2px;background:#cfe4cf;transition:height .3s ease}
+.bcol.today i{background:var(--apple)}
+.bcol span{font-size:9.5px;color:var(--muted);font-family:ui-monospace,Consolas,monospace}
+.log-card{
+  background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px 18px;
+}
+.frow{display:flex;gap:10px;margin-bottom:6px}
+.field{flex:1}
+.field label{display:block;font-size:12px;font-weight:600;margin-bottom:5px}
+.field label small{color:var(--muted);font-weight:400}
+.field input{
+  width:100%;height:44px;padding:0 13px;border:1.5px solid var(--line);border-radius:10px;
+  font:600 15px/1 ui-monospace,Consolas,monospace;color:var(--ink);background:#fbfefc;
+}
+.field input:focus{outline:none;border-color:var(--apple);box-shadow:0 0 0 3px rgba(76,170,79,.15)}
+.field.bad input{border-color:var(--danger);box-shadow:0 0 0 3px rgba(209,88,75,.12)}
+.field .msg{display:none;font-size:11px;color:var(--danger);margin-top:5px}
+.field.bad .msg{display:block}
+.save{
+  width:100%;height:48px;border:0;border-radius:12px;background:var(--apple);color:#fff;
+  font:inherit;font-weight:700;font-size:14.5px;letter-spacing:.18em;cursor:pointer;margin-top:10px;
+  transition:background .14s ease;
+}
+.save:hover{background:var(--apple-deep)}
+.notice{
+  display:none;background:#e8f4e9;border:1px solid #bcdcc0;border-radius:10px;padding:10px 13px;
+  font-size:12px;color:#2c6e38;margin-top:10px;line-height:1.8;
+}
+.notice.show{display:block}
+.notice.err{background:#fbeae5;border-color:#ecc5b8;color:#8c3a24}
+@media(max-width:520px){
+  body{padding:0}
+  .device-label{display:none}
+  .phone{width:100%;height:100vh;border:0;border-radius:0}
+}
+@media(prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+}
+</style>
+</head>
+<body>
+<div class="stage">
+  <p class="device-label">果 园 ORCHARD</p>
+  <div class="phone">
+    <div class="screen">
+      <div class="appbar"><h1>今日步行</h1><span class="d">8 月 14 日 · 周四</span></div>
+      <div class="ring-card">
+        <div class="ring">
+          <svg width="128" height="128" viewBox="0 0 128 128" fill="none">
+            <circle cx="64" cy="64" r="54" stroke="#e2eee2" stroke-width="13"/>
+            <circle id="arc" cx="64" cy="64" r="54" stroke="#4caa4f" stroke-width="13" stroke-linecap="round" stroke-dasharray="339.3" stroke-dashoffset="155.7"/>
+          </svg>
+          <div class="hole"><b id="pct">54%</b><span>今日目标</span></div>
+        </div>
+        <div class="goal-info">
+          <p class="gk">今日已走</p>
+          <p class="gv"><span id="steps-now">4,320</span> 步</p>
+          <p class="gk">目标</p>
+          <p class="gv">8,000 步</p>
+          <p class="hint">再走 <b id="left">3,680</b> 步，就能摘下今天的小苹果。</p>
+        </div>
+      </div>
+      <div class="trend-card">
+        <h2>近 7 天趋势</h2>
+        <div class="bars" id="bars">
+          <div class="bcol"><i style="height:46%"></i><span>五</span></div>
+          <div class="bcol"><i style="height:62%"></i><span>六</span></div>
+          <div class="bcol"><i style="height:38%"></i><span>日</span></div>
+          <div class="bcol"><i style="height:71%"></i><span>一</span></div>
+          <div class="bcol"><i style="height:55%"></i><span>二</span></div>
+          <div class="bcol"><i style="height:66%"></i><span>三</span></div>
+          <div class="bcol today"><i id="bar-today" style="height:54%"></i><span>今</span></div>
+        </div>
+      </div>
+      <div class="log-card">
+        <h2>补记一段步行</h2>
+        <div class="frow">
+          <div class="field" id="f-steps">
+            <label>步数 <small>合理范围 1–50,000</small></label>
+            <input id="in-steps" type="text" inputmode="numeric" placeholder="例如 2400">
+            <p class="msg">步数要在 1–50,000 之间，先不改你的进度。</p>
+          </div>
+          <div class="field" id="f-mins">
+            <label>时长（分钟） <small>1–600</small></label>
+            <input id="in-mins" type="text" inputmode="numeric" placeholder="例如 35">
+            <p class="msg">时长要在 1–600 分钟之间。</p>
+          </div>
+        </div>
+        <button class="save" id="save" type="button">存进今天</button>
+        <div class="notice" id="notice"></div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+(function(){
+  var GOAL=8000;
+  var steps=4320;
+  var arc=document.getElementById('arc');
+  var pct=document.getElementById('pct');
+  var stepsNow=document.getElementById('steps-now');
+  var left=document.getElementById('left');
+  var barToday=document.getElementById('bar-today');
+  var notice=document.getElementById('notice');
+  var inSteps=document.getElementById('in-steps');
+  var inMins=document.getElementById('in-mins');
+  var fSteps=document.getElementById('f-steps');
+  var fMins=document.getElementById('f-mins');
+  var CIRC=339.3;
+  function fmt(v){return (''+v).replace(/\B(?=(\d{3})+(?!\d))/g,',')}
+  function render(){
+    var ratio=Math.min(steps/GOAL,1);
+    arc.setAttribute('stroke-dashoffset',String(CIRC*(1-ratio)));
+    pct.textContent=Math.round(ratio*100)+'%';
+    stepsNow.textContent=fmt(steps);
+    left.textContent=fmt(Math.max(GOAL-steps,0));
+    barToday.style.height=Math.round(ratio*100)+'%';
+    if(steps>=GOAL){pct.textContent='达成';}
+  }
+  document.getElementById('save').addEventListener('click',function(){
+    var s=inSteps.value.replace(/[^\d]/g,'');
+    var m=inMins.value.replace(/[^\d]/g,'');
+    var okS=s!==''&&Number(s)>=1&&Number(s)<=50000;
+    var okM=m!==''&&Number(m)>=1&&Number(m)<=600;
+    if(okS){fSteps.classList.remove('bad')}else{fSteps.classList.add('bad')}
+    if(okM){fMins.classList.remove('bad')}else{fMins.classList.add('bad')}
+    if(!okS||!okM){
+      notice.className='notice err show';
+      notice.textContent='有数据超出页面标注的合理范围，错误的字段已标红——原有进度一步都没动。';
+      return;
+    }
+    steps+=Number(s);
+    render();
+    notice.className='notice show';
+    notice.textContent='已补记 '+fmt(Number(s))+' 步 / '+m+' 分钟。今日进度与趋势已重算。';
+    inSteps.value='';
+    inMins.value='';
+  });
+  render();
+})();
+</script>
+</body>
+</html>

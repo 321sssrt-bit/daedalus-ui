@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>节候 · 茶园日历</title>
+<style>
+:root{
+  --xuan:#f5f1e6;
+  --grain:#e9e2cf;
+  --dai:#2f4f43;
+  --dai-deep:#22392f;
+  --ink:#36423c;
+  --muted:#8b8f83;
+  --line:#ddd5c0;
+  --cinnabar:#b5583f;
+  --tea:#7a9b6d;
+  --radius-card:12px;
+  --radius-ctl:8px;
+  --sp:8px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font:14.5px/1.6 "PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+  background:var(--xuan);color:var(--ink);min-height:100vh;padding:28px 32px;
+}
+.head{display:flex;align-items:flex-end;justify-content:space-between;max-width:1120px;margin:0 auto 20px}
+.head .month{font:700 26px/1.2 "Songti SC","STSong","SimSun",serif;letter-spacing:.1em}
+.head .month small{display:block;font:400 12px/1.8 "PingFang SC","Microsoft YaHei",sans-serif;color:var(--muted);letter-spacing:.24em}
+.ctrl{display:flex;gap:8px}
+.ctrl button{
+  border:1px solid var(--line);background:#fbf8ef;border-radius:var(--radius-ctl);cursor:pointer;
+  padding:8px 16px;font:inherit;font-size:13px;color:var(--ink);transition:all .14s ease;
+}
+.ctrl button:hover{border-color:var(--dai);color:var(--dai)}
+.ctrl button:focus-visible{outline:3px solid rgba(47,79,67,.3)}
+.layout{max-width:1120px;margin:0 auto;display:flex;gap:20px;align-items:flex-start}
+.cal{flex:1;background:#fbf8ef;border:1px solid var(--line);border-radius:var(--radius-card);overflow:hidden}
+.dow{display:grid;grid-template-columns:repeat(7,1fr);background:var(--dai);color:#f5f1e6}
+.dow span{padding:9px 0;text-align:center;font-size:12px;letter-spacing:.3em;padding-left:.3em}
+.grid{display:grid;grid-template-columns:repeat(7,1fr)}
+.cell{
+  min-height:86px;padding:7px 8px;border-right:1px solid var(--grain);border-bottom:1px solid var(--grain);
+  cursor:pointer;position:relative;transition:background .13s ease;background:#fbf8ef;
+}
+.cell:nth-child(7n){border-right:0}
+.cell:hover{background:#f3eedd}
+.cell.dim{color:#b9b4a2;cursor:default;background:#f6f2e6}
+.cell.dim:hover{background:#f6f2e6}
+.cell .num{font:600 14px/1.2 ui-monospace,Consolas,monospace}
+.cell .lunar{font-size:10.5px;color:var(--muted);display:block;margin-top:1px}
+.cell .term{color:var(--cinnabar);font-weight:600}
+.cell.today{outline:2px solid var(--cinnabar);outline-offset:-2px}
+.cell.sel{background:#eef0e2}
+.ev{
+  display:block;margin-top:5px;padding:2px 6px;border-radius:5px;font-size:11px;line-height:1.5;
+  background:#e4ecdc;color:var(--dai-deep);border-left:3px solid var(--tea);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.ev.busy{background:#f6e3d9;color:#8c4a2f;border-left-color:var(--cinnabar)}
+.detail{
+  flex:0 0 292px;background:#fbf8ef;border:1px solid var(--line);border-radius:var(--radius-card);
+  padding:20px;position:sticky;top:28px;
+}
+.detail h2{font:700 17px/1.4 "Songti SC","STSong","SimSun",serif;letter-spacing:.08em;margin-bottom:4px}
+.detail .date{color:var(--muted);font-size:12px;letter-spacing:.12em;margin-bottom:14px}
+.detail .body{font-size:13.5px;color:var(--ink);line-height:1.9;min-height:120px}
+.detail .body .empty{color:var(--muted)}
+.tag-row{display:flex;gap:6px;margin-top:14px;flex-wrap:wrap}
+.tag-row span{font-size:11px;padding:3px 10px;border-radius:999px;background:var(--grain);color:var(--dai-deep)}
+@media(max-width:900px){
+  body{padding:18px 14px}
+  .layout{flex-direction:column}
+  .detail{flex:none;width:100%;position:static}
+  .cell{min-height:64px}
+}
+@media(prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+}
+</style>
+</head>
+<body>
+<header class="head">
+  <div class="month"><span id="month-name">八月</span><small id="month-sub">丙午年 · 丙申月 · 秋茶前奏</small></div>
+  <div class="ctrl">
+    <button id="prev" type="button">← 上一月</button>
+    <button id="next" type="button">下一月 →</button>
+  </div>
+</header>
+<div class="layout">
+  <main class="cal">
+    <div class="dow" aria-hidden="true"><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span></div>
+    <div class="grid" id="grid">
+      <div class="cell dim"><span class="num">27</span></div>
+      <div class="cell dim"><span class="num">28</span></div>
+      <div class="cell dim"><span class="num">29</span></div>
+      <div class="cell dim"><span class="num">30</span></div>
+      <div class="cell dim"><span class="num">31</span></div>
+      <div class="cell" data-day="1"><span class="num">1</span><span class="lunar">初一</span></div>
+      <div class="cell" data-day="2"><span class="num">2</span><span class="lunar">初二</span></div>
+      <div class="cell" data-day="3"><span class="num">3</span><span class="lunar">初三</span></div>
+      <div class="cell" data-day="4"><span class="num">4</span><span class="lunar">初四</span></div>
+      <div class="cell" data-day="5"><span class="num">5</span><span class="lunar">初五</span></div>
+      <div class="cell" data-day="6"><span class="num">6</span><span class="lunar">初六</span></div>
+      <div class="cell" data-day="7"><span class="num">7</span><span class="lunar term">立秋</span><span class="ev">立秋 · 打顶摘心</span></div>
+      <div class="cell" data-day="8"><span class="num">8</span><span class="lunar">初八</span></div>
+      <div class="cell" data-day="9"><span class="num">9</span><span class="lunar">初九</span></div>
+      <div class="cell" data-day="10"><span class="num">10</span><span class="lunar">初十</span></div>
+      <div class="cell" data-day="11"><span class="num">11</span><span class="lunar">十一</span></div>
+      <div class="cell" data-day="12"><span class="num">12</span><span class="lunar">十二</span><span class="ev">夏茶尾采</span></div>
+      <div class="cell" data-day="13"><span class="num">13</span><span class="lunar">十三</span></div>
+      <div class="cell today" data-day="14"><span class="num">14</span><span class="lunar">十四</span></div>
+      <div class="cell" data-day="15"><span class="num">15</span><span class="lunar">十五</span><span class="ev busy">茶园开放日</span></div>
+      <div class="cell" data-day="16"><span class="num">16</span><span class="lunar">十六</span></div>
+      <div class="cell" data-day="17"><span class="num">17</span><span class="lunar">十七</span></div>
+      <div class="cell" data-day="18"><span class="num">18</span><span class="lunar">十八</span></div>
+      <div class="cell" data-day="19"><span class="num">19</span><span class="lunar">十九</span></div>
+      <div class="cell" data-day="20"><span class="num">20</span><span class="lunar">二十</span></div>
+      <div class="cell" data-day="21"><span class="num">21</span><span class="lunar">廿一</span></div>
+      <div class="cell" data-day="22"><span class="num">22</span><span class="lunar">廿二</span></div>
+      <div class="cell" data-day="23"><span class="num">23</span><span class="lunar term">处暑</span><span class="ev">处暑 · 施秋肥</span></div>
+      <div class="cell" data-day="24"><span class="num">24</span><span class="lunar">廿四</span></div>
+      <div class="cell" data-day="25"><span class="num">25</span><span class="lunar">廿五</span></div>
+      <div class="cell" data-day="26"><span class="num">26</span><span class="lunar">廿六</span></div>
+      <div class="cell" data-day="27"><span class="num">27</span><span class="lunar">廿七</span></div>
+      <div class="cell" data-day="28"><span class="num">28</span><span class="lunar">廿八</span><span class="ev busy">炒青坊检修</span></div>
+      <div class="cell" data-day="29"><span class="num">29</span><span class="lunar">廿九</span></div>
+      <div class="cell" data-day="30"><span class="num">30</span><span class="lunar">三十</span></div>
+      <div class="cell" data-day="31"><span class="num">31</span><span class="lunar">初一</span></div>
+      <div class="cell dim"><span class="num">1</span></div>
+      <div class="cell dim"><span class="num">2</span></div>
+      <div class="cell dim"><span class="num">3</span></div>
+      <div class="cell dim"><span class="num">4</span></div>
+      <div class="cell dim"><span class="num">5</span></div>
+      <div class="cell dim"><span class="num">6</span></div>
+    </div>
+  </main>
+  <aside class="detail">
+    <h2 id="d-title">茶园记事</h2>
+    <p class="date" id="d-date">点一个有记号的日子</p>
+    <div class="body" id="d-body"><span class="empty">节气、采制与开放日都标在格子里。点开一件，看看那天茶园要做什么。</span></div>
+    <div class="tag-row" id="d-tags"></div>
+  </aside>
+</div>
+<script>
+(function(){
+  var months=[
+    {name:'八月',sub:'丙午年 · 丙申月 · 秋茶前奏',lead:[27,28,29,30,31],days:31,trail:6,today:14,
+     lunar:{7:'立秋',23:'处暑'},
+     events:{
+       7:{t:'立秋 · 打顶摘心',busy:false,body:'立秋一到，秋梢要控制长势。今天上午全员下地为龙井种打顶，留养秋茶芽头。',tags:['节气','全园']},
+       12:{t:'夏茶尾采',busy:false,body:'最后一批夏茶，只采一芽一叶，午后送炒青坊。量不大，手法照旧。',tags:['采收','东坡']},
+       15:{t:'茶园开放日',busy:true,body:'预约客人 46 位，分两场讲解。注意把观景台栏杆再检查一遍，茶歇备桂花引子。',tags:['接待','需人手']},
+       23:{t:'处暑 · 施秋肥',busy:false,body:'处暑施秋肥，菜籽饼每亩 120 斤，赶在月底前雨水前完成。',tags:['节气','农事']},
+       28:{t:'炒青坊检修',busy:true,body:'检修滚筒与热风炉，为白露开炒做准备。当日不炒茶。',tags:['设备','停工']}
+     }},
+    {name:'九月',sub:'丙午年 · 丁酉月 · 白露开炒',lead:[31],days:30,trail:11,today:0,
+     lunar:{7:'白露',23:'秋分'},
+     events:{
+       7:{t:'白露 · 秋茶开采',busy:true,body:'白露开采秋茶，今年预计 380 斤茶青。清晨 5:30 集合，头锅午后开炒。',tags:['节气','采收']},
+       12:{t:'茶青品鉴会',busy:false,body:'邀三位老师傅品今年秋茶青，定本季炒制火候。',tags:['品鉴']},
+       20:{t:'秋耕除草',busy:false,body:'行间浅耕除草，顺便检查滴灌带。',tags:['农事']},
+       26:{t:'中秋茶礼打包',busy:true,body:'茶礼 600 盒打包发出，物流 16:00 前装车。',tags:['发货','需人手']}
+     }}
+  ];
+  var LUNAR=['初一','初二','初三','初四','初五','初六','初七','初八','初九','初十','十一','十二','十三','十四','十五','十六','十七','十八','十九','二十','廿一','廿二','廿三','廿四','廿五','廿六','廿七','廿八','廿九','三十'];
+  var cur=0,selDay=null;
+  var grid=document.getElementById('grid');
+  var monthName=document.getElementById('month-name');
+  var monthSub=document.getElementById('month-sub');
+  var dTitle=document.getElementById('d-title');
+  var dDate=document.getElementById('d-date');
+  var dBody=document.getElementById('d-body');
+  var dTags=document.getElementById('d-tags');
+  function lunarFor(m,d){
+    if(m.lunar[d])return m.lunar[d];
+    return LUNAR[(d-1)%30];
+  }
+  function showDay(day){
+    var m=months[cur];
+    var ev=m.events[day];
+    var lunar=lunarFor(m,day);
+    selDay=day;
+    dTitle.textContent=ev?ev.t:(m.name+day+'日');
+    dDate.textContent='2026 年 '+m.name+day+'日 · 农历'+lunar+(m.today===day?' · 今天':'');
+    dBody.innerHTML=ev?ev.body:'<span class="empty">这一天茶园没有特别的安排，茶树照常生长。</span>';
+    dTags.innerHTML='';
+    if(ev){
+      for(var i=0;i<ev.tags.length;i++){
+        var s=document.createElement('span');
+        s.textContent=ev.tags[i];
+        dTags.appendChild(s);
+      }
+    }
+    var cells=grid.querySelectorAll('.cell');
+    for(var j=0;j<cells.length;j++){
+      var c=cells[j];
+      if(c.getAttribute('data-day')===String(day)){c.classList.add('sel')}else{c.classList.remove('sel')}
+    }
+  }
+  function cellHtml(m,day){
+    var isTerm=!!m.lunar[day];
+    var ev=m.events[day];
+    var html='<div class="cell'+(m.today===day?' today':'')+'" data-day="'+day+'"><span class="num">'+day+'</span><span class="lunar'+(isTerm?' term':'')+'">'+lunarFor(m,day)+'</span>';
+    if(ev)html+='<span class="ev'+(ev.busy?' busy':'')+'">'+ev.t+'</span>';
+    return html+'</div>';
+  }
+  function bindCells(){
+    var cells=grid.querySelectorAll('.cell[data-day]');
+    for(var i=0;i<cells.length;i++){
+      (function(c){
+        c.addEventListener('click',function(){showDay(Number(c.getAttribute('data-day')))});
+      })(cells[i]);
+    }
+  }
+  function render(){
+    var m=months[cur];
+    monthName.textContent=m.name;
+    monthSub.textContent=m.sub;
+    var html='';
+    for(var i=0;i<m.lead.length;i++)html+='<div class="cell dim"><span class="num">'+m.lead[i]+'</span></div>';
+    for(var d=1;d<=m.days;d++)html+=cellHtml(m,d);
+    for(var t=1;t<=m.trail;t++)html+='<div class="cell dim"><span class="num">'+t+'</span></div>';
+    grid.innerHTML=html;
+    bindCells();
+  }
+  document.getElementById('prev').addEventListener('click',function(){if(cur>0){cur-=1;selDay=null;render()}});
+  document.getElementById('next').addEventListener('click',function(){if(cur<months.length-1){cur+=1;selDay=null;render()}});
+  bindCells();
+})();
+</script>
+</body>
+</html>

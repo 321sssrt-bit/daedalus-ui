@@ -1,0 +1,339 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>车间 · 工单协作</title>
+<style>
+:root{
+  --oil:#37434f;
+  --oil-2:#2a333d;
+  --safe:#efc418;
+  --bg:#e9ebee;
+  --card:#ffffff;
+  --ink:#242b33;
+  --muted:#78828d;
+  --line:#d6dae0;
+  --danger:#c0483c;
+  --ok:#3e9e63;
+  --radius-card:10px;
+  --radius-ctl:7px;
+  --sp:8px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font:14px/1.6 "PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+  background:var(--bg);color:var(--ink);min-height:100vh;display:flex;flex-direction:column;
+}
+.topbar{
+  height:56px;flex:0 0 56px;background:var(--oil);color:#e9ebee;padding:0 24px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;letter-spacing:.16em}
+.brand .dot{width:10px;height:10px;background:var(--safe);border-radius:2px}
+.topbar .me{font-size:12px;color:#b9c2cc}
+.topbar .me b{color:var(--safe)}
+.main{flex:1;max-width:1180px;width:100%;margin:0 auto;padding:20px 24px 44px;display:grid;grid-template-columns:300px 1fr 300px;gap:16px;align-items:start}
+.col-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.col-h h2{font-size:13px;letter-spacing:.14em;color:var(--muted)}
+.new-btn{
+  border:0;border-radius:var(--radius-ctl);background:var(--safe);color:#2a2405;font:inherit;
+  font-weight:700;font-size:12.5px;padding:8px 14px;cursor:pointer;letter-spacing:.06em;
+}
+.new-btn:hover{background:#dbaf10}
+.task{
+  width:100%;text-align:left;background:var(--card);border:1px solid var(--line);border-left:4px solid var(--oil);
+  border-radius:var(--radius-card);padding:12px 14px;margin-bottom:9px;cursor:pointer;font:inherit;color:inherit;
+  transition:all .13s ease;
+}
+.task:hover{border-left-color:var(--safe)}
+.task.on{border-left-color:var(--safe);box-shadow:0 4px 14px rgba(42,51,61,.12)}
+.task.lock{border-left-color:#9aa4ae}
+.task h3{font-size:13.5px;display:flex;align-items:center;gap:7px}
+.task .meta{font-size:11.5px;color:var(--muted);margin-top:4px;font-family:ui-monospace,Consolas,monospace}
+.badge-restrict{font-size:10px;font-weight:700;color:#6b7480;background:#e3e7eb;border-radius:999px;padding:2px 8px;letter-spacing:.06em}
+.st{font-size:10.5px;font-weight:700;padding:2px 9px;border-radius:999px;white-space:nowrap}
+.st.todo{background:#e3e7eb;color:#5b6470}
+.st.doing{background:#fdf3d0;color:#96700a}
+.st.check{background:#e0e9f6;color:#3a5a9a}
+.st.done{background:#e2f4ec;color:var(--ok)}
+.detail{background:var(--card);border:1px solid var(--line);border-radius:var(--radius-card);padding:18px 20px;min-height:420px}
+.detail h1{font-size:17px;margin-bottom:4px}
+.detail .dmeta{font:11.5px/1.6 ui-monospace,Consolas,monospace;color:var(--muted);margin-bottom:16px}
+.f-row{display:flex;align-items:center;gap:12px;padding:11px 0;border-top:1px dashed var(--line)}
+.f-row .k{flex:0 0 88px;font-size:12px;color:var(--muted);letter-spacing:.1em}
+.f-row select{
+  height:36px;padding:0 10px;border:1px solid var(--line);border-radius:var(--radius-ctl);font:inherit;
+  font-size:13px;color:var(--ink);background:#fff;
+}
+.stepper{display:flex;align-items:center;gap:0;flex:1}
+.stepper .sp-step{
+  flex:1;text-align:center;font-size:11.5px;color:var(--muted);position:relative;padding-top:20px;
+}
+.stepper .sp-step::before{
+  content:"";position:absolute;top:0;left:50%;transform:translateX(-50%);width:14px;height:14px;
+  border-radius:50%;background:#fff;border:2px solid var(--line);
+}
+.stepper .sp-step::after{
+  content:"";position:absolute;top:7px;left:calc(-50% + 8px);right:calc(50% + 8px);height:2px;background:var(--line);
+}
+.stepper .sp-step:first-child::after{display:none}
+.stepper .sp-step.hit{color:var(--oil);font-weight:700}
+.stepper .sp-step.hit::before{background:var(--safe);border-color:var(--safe)}
+.stepper .sp-step.now::before{background:var(--oil);border-color:var(--oil)}
+.advance{
+  border:0;border-radius:var(--radius-ctl);background:var(--oil);color:#fff;padding:10px 22px;
+  font:inherit;font-weight:700;font-size:13px;letter-spacing:.1em;cursor:pointer;transition:background .14s ease;
+}
+.advance:hover:not(:disabled){background:var(--oil-2)}
+.advance:disabled{opacity:.4;cursor:not-allowed}
+.deny{
+  display:none;margin-top:14px;background:#fbeae8;border:1px solid #ecc5b8;border-radius:var(--radius-ctl);
+  padding:14px 16px;
+}
+.deny.show{display:block}
+.deny h3{color:var(--danger);font-size:14px;margin-bottom:6px}
+.deny p{font-size:12.5px;color:#7a3a30;line-height:1.9}
+.deny .acts{display:flex;gap:9px;margin-top:11px}
+.deny .ask{
+  border:0;border-radius:6px;background:var(--danger);color:#fff;padding:8px 16px;font:inherit;
+  font-size:12px;font-weight:700;cursor:pointer;
+}
+.deny .back2{border:1px solid #d9a8a0;background:none;color:#8c3a24;border-radius:6px;padding:8px 16px;font:inherit;font-size:12px;cursor:pointer}
+.newform{display:none;background:var(--card);border:1px solid var(--line);border-radius:var(--radius-card);padding:14px;margin-bottom:9px}
+.newform.show{display:block}
+.newform input,.newform select{
+  width:100%;height:36px;padding:0 11px;border:1px solid var(--line);border-radius:var(--radius-ctl);
+  font:inherit;font-size:13px;margin-bottom:8px;background:#fff;
+}
+.newform .rowb{display:flex;gap:8px}
+.newform .ok-b{flex:1;border:0;border-radius:6px;background:var(--oil);color:#fff;padding:9px 0;font:inherit;font-weight:700;font-size:12.5px;cursor:pointer}
+.newform .no-b{flex:1;border:1px solid var(--line);background:none;border-radius:6px;font:inherit;font-size:12.5px;cursor:pointer;color:var(--muted)}
+.feed{display:flex;flex-direction:column;gap:8px}
+.act{
+  background:var(--card);border:1px solid var(--line);border-radius:var(--radius-ctl);padding:10px 13px;
+  font-size:12px;line-height:1.7;
+}
+.act .tm{font:10.5px/1 ui-monospace,Consolas,monospace;color:var(--muted);display:block;margin-top:3px}
+.act b{color:var(--oil)}
+.act.denied{background:#fbeae8;border-color:#ecc5b8}
+.act.denied b{color:var(--danger)}
+.empty-feed{color:var(--muted);font-size:12px;text-align:center;padding:20px 0;border:1px dashed var(--line);border-radius:var(--radius-ctl)}
+.toast{
+  position:fixed;left:50%;bottom:30px;transform:translate(-50%,16px);opacity:0;pointer-events:none;
+  background:var(--oil-2);color:#e9ebee;padding:11px 24px;border-radius:999px;font-size:13px;transition:all .28s ease;z-index:9;
+}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+@media(max-width:1020px){.main{grid-template-columns:1fr 1fr}.feed-col{grid-column:1/-1}}
+@media(max-width:680px){.main{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand"><span class="dot" aria-hidden="true"></span>精工车间 · 工单协作</div>
+  <span class="me">当前身份：<b>机加班 · 班组长 老魏</b>（无设备科权限）</span>
+</header>
+<div class="main">
+  <section>
+    <div class="col-h"><h2>工单</h2><button class="new-btn" id="new-btn" type="button">＋ 新建工单</button></div>
+    <div class="newform" id="newform">
+      <input id="nt-title" type="text" placeholder="工单标题，例如：三号铣床换刀">
+      <select id="nt-who">
+        <option>机加班 · 小赵</option>
+        <option>机加班 · 大刘</option>
+        <option>机加班 · 老魏（我）</option>
+      </select>
+      <div class="rowb">
+        <button class="ok-b" id="nt-ok" type="button">开工单</button>
+        <button class="no-b" id="nt-no" type="button">算了</button>
+      </div>
+    </div>
+    <div id="tasks">
+      <button class="task on" type="button" data-t="0">
+        <h3>曲轴精磨批量件 <span class="st doing">进行中</span></h3>
+        <p class="meta">GD-1029 · 机加班 · 小赵</p>
+      </button>
+      <button class="task" type="button" data-t="1">
+        <h3>变速箱壳体去毛刺 <span class="st todo">待开工</span></h3>
+        <p class="meta">GD-1031 · 机加班 · 待分派</p>
+      </button>
+      <button class="task lock" type="button" data-t="2">
+        <h3>热处理炉检修 <span class="badge-restrict">设备科 · 受限</span></h3>
+        <p class="meta">GD-1034 · 设备科 · 主管专线</p>
+      </button>
+    </div>
+  </section>
+  <section class="detail" id="detail"></section>
+  <section class="feed-col">
+    <div class="col-h"><h2>活动记录</h2></div>
+    <div class="feed" id="feed">
+      <div class="act"><b>小赵</b>开始了「曲轴精磨批量件」的磨削工序<span class="tm">今天 09:20</span></div>
+      <div class="act"><b>老魏</b>创建了工单「变速箱壳体去毛刺」<span class="tm">今天 08:47</span></div>
+      <div class="empty-feed" id="feed-hint" style="display:none"></div>
+    </div>
+  </section>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+(function(){
+  var tasks=[
+    {id:'GD-1029',title:'曲轴精磨批量件',dept:'机加班',assignee:'小赵',stage:1,restricted:false},
+    {id:'GD-1031',title:'变速箱壳体去毛刺',dept:'机加班',assignee:'待分派',stage:0,restricted:false},
+    {id:'GD-1034',title:'热处理炉检修',dept:'设备科',assignee:'主管专线',stage:1,restricted:true}
+  ];
+  var stages=['待开工','进行中','待验收','完成'];
+  var stCls=['todo','doing','check','done'];
+  var cur=0;
+  var detail=document.getElementById('detail');
+  var feed=document.getElementById('feed');
+  var toast=document.getElementById('toast');
+  var timer=null;
+  function say(msg){
+    toast.textContent=msg;
+    toast.classList.add('show');
+    if(timer)clearTimeout(timer);
+    timer=setTimeout(function(){toast.classList.remove('show')},2200);
+  }
+  function now(){
+    var d=new Date();
+    return '今天 '+(d.getHours()<10?'0':'')+d.getHours()+':'+(d.getMinutes()<10?'0':'')+d.getMinutes();
+  }
+  function log(html,denied){
+    var el=document.createElement('div');
+    el.className='act'+(denied?' denied':'');
+    el.innerHTML=html+'<span class="tm">'+now()+'</span>';
+    feed.insertBefore(el,feed.firstChild);
+  }
+  function renderTasks(){
+    var rows=document.querySelectorAll('#tasks .task');
+    for(var i=0;i<rows.length;i++){
+      (function(row){
+        var t=tasks[Number(row.getAttribute('data-t'))];
+        if(!t.restricted){
+          var h=row.querySelector('h3');
+          h.innerHTML=t.title+' <span class="st '+stCls[t.stage]+'">'+stages[t.stage]+'</span>';
+          row.querySelector('.meta').textContent=t.id+' · '+t.dept+' · '+t.assignee;
+        }
+      })(rows[i]);
+    }
+  }
+  function renderDetail(){
+    var t=tasks[cur];
+    var stepsHtml='';
+    for(var i=0;i<stages.length;i++){
+      stepsHtml+='<div class="sp-step'+(i<t.stage?' hit':'')+(i===t.stage?' now':'')+'">'+stages[i]+'</div>';
+    }
+    var assignOpts='<option>机加班 · 小赵</option><option>机加班 · 大刘</option><option>机加班 · 老魏（我）</option>';
+    detail.innerHTML='<h1>'+t.title+'</h1>'+
+      '<p class="dmeta">'+t.id+' · '+t.dept+(t.restricted?' · <span style="color:#6b7480">受限工单</span>':'')+'</p>'+
+      '<div class="f-row"><span class="k">当前状态</span><div class="stepper">'+stepsHtml+'</div></div>'+
+      '<div class="f-row"><span class="k">负责人</span><select id="d-assign"'+(t.restricted?' disabled':'')+'>'+assignOpts+'</select>'+
+      '<span style="font-size:11.5px;color:var(--muted)">现：'+t.assignee+'</span></div>'+
+      '<div class="f-row"><span class="k">推进</span>'+
+      (t.stage>=3
+        ?'<span style="font-size:12.5px;color:var(--ok);font-weight:700">已完成，归档</span>'
+        :'<button class="advance" id="d-adv" type="button">推进到「'+stages[t.stage+1]+'」</button>')+
+      '</div>'+
+      '<div class="deny" id="deny">'+
+        '<h3>权限不足，这次推进没有写入</h3>'+
+        '<p>「'+t.title+'」属设备科主管专线。你的身份（机加班 · 班组长）缺少<b>「设备科 · 工单推进」</b>权限。本次操作未改变任何数据。</p>'+
+        '<div class="acts"><button class="ask" id="d-ask" type="button">向设备科主管申请权限</button><button class="back2" id="d-back" type="button">返回可操作工单</button></div>'+
+      '</div>';
+    var sel=document.getElementById('d-assign');
+    if(sel){
+      sel.addEventListener('change',function(){
+        t.assignee=sel.options[sel.selectedIndex].text.replace('机加班 · ','');
+        log('<b>老魏</b>把「'+t.title+'」分派给 <b>'+t.assignee+'</b>');
+        renderTasks();
+        renderDetail();
+        say('已分派给 '+t.assignee);
+      });
+    }
+    var adv=document.getElementById('d-adv');
+    if(adv){
+      adv.addEventListener('click',function(){
+        if(t.restricted){
+          document.getElementById('deny').classList.add('show');
+          return;
+        }
+        t.stage+=1;
+        log('<b>老魏</b>把「'+t.title+'」推进到 <b>'+stages[t.stage]+'</b>');
+        renderTasks();
+        renderDetail();
+        say('已推进到「'+stages[t.stage]+'」');
+      });
+    }
+    var ask=document.getElementById('d-ask');
+    if(ask){
+      ask.addEventListener('click',function(){
+        say('权限申请已发给设备科主管，批复前你无法改动该工单。');
+      });
+    }
+    var back2=document.getElementById('d-back');
+    if(back2){
+      back2.addEventListener('click',function(){
+        selectTask(0);
+      });
+    }
+  }
+  function selectTask(i){
+    cur=i;
+    var rows=document.querySelectorAll('#tasks .task');
+    for(var k=0;k<rows.length;k++){
+      if(Number(rows[k].getAttribute('data-t'))===i)rows[k].classList.add('on');
+      else rows[k].classList.remove('on');
+    }
+    renderDetail();
+  }
+  function bindTaskRows(){
+    var rows=document.querySelectorAll('#tasks .task');
+    for(var i=0;i<rows.length;i++){
+      (function(row){
+        row.addEventListener('click',function(){selectTask(Number(row.getAttribute('data-t')))});
+      })(rows[i]);
+    }
+  }
+  document.getElementById('new-btn').addEventListener('click',function(){
+    document.getElementById('newform').classList.add('show');
+    document.getElementById('nt-title').focus();
+  });
+  document.getElementById('nt-no').addEventListener('click',function(){
+    document.getElementById('newform').classList.remove('show');
+  });
+  document.getElementById('nt-ok').addEventListener('click',function(){
+    var title=document.getElementById('nt-title').value.replace(/^\s+|\s+$/g,'');
+    if(!title){document.getElementById('nt-title').focus();return}
+    var who=document.getElementById('nt-who');
+    var assignee=who.options[who.selectedIndex].text.replace('机加班 · ','');
+    var t={id:'GD-10'+(40+tasks.length),title:title,dept:'机加班',assignee:assignee,stage:0,restricted:false};
+    tasks.push(t);
+    var wrap=document.getElementById('tasks');
+    var btn=document.createElement('button');
+    btn.className='task';
+    btn.type='button';
+    btn.setAttribute('data-t',String(tasks.length-1));
+    btn.innerHTML='<h3></h3><p class="meta"></p>';
+    btn.querySelector('h3').textContent=t.title+' ';
+    var st=document.createElement('span');
+    st.className='st todo';
+    st.textContent='待开工';
+    btn.querySelector('h3').appendChild(st);
+    btn.querySelector('.meta').textContent=t.id+' · 机加班 · '+assignee;
+    wrap.appendChild(btn);
+    bindTaskRows();
+    document.getElementById('nt-title').value='';
+    document.getElementById('newform').classList.remove('show');
+    log('<b>老魏</b>创建工单「'+title+'」，分派给 <b>'+assignee+'</b>');
+    selectTask(tasks.length-1);
+    say('工单已开工号 '+t.id);
+  });
+  bindTaskRows();
+  renderDetail();
+})();
+</script>
+</body>
+</html>

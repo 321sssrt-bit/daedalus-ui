@@ -4,18 +4,19 @@
 
 ## 进门
 
-1. 读 `catalog/briefs.json`、`catalog/spec-template.md`、`catalog/quality.md`。
-2. 按「身份与并行」确定本次 `<harness>/<model>/<reasoning-effort>`，只进入自己的答卷目录。
-3. 对照题库检查自己的 `model.json`、HTML 和规范；已完成的题保留，只补缺项。
-4. 每题先自定方案名与视觉方向，再完成页面和规范。职责守题库，品味守 `catalog/quality.md`。
-5. 001–040 各交一个独立页面；041–050 各交一个单文件连续产品原型，完整实现题目的 `core_flow` 和 `exception`。
-6. 更新本次 `model.json` 和运行回执，并在 `models/_index.json` 登记本次三段身份。
-7. 运行 `python -m daedalus validate`。修复本次答卷导致的错误，直到验证通过或按「诚实弃权」收工。
-8. 验证通过后运行 `python -m daedalus build --output dist`。用户另有吩咐时，再做那件事。
+1. **先做身份预检**：向用户原样展示预计的 `<harness>/<model>/<reasoning-effort>`，等用户明确确认后才继续。未确认时不读题、不创建答卷目录、不登记报名。
+2. 读 `catalog/briefs.json`、`catalog/spec-template.md`、`catalog/intent-template.md`、`catalog/quality.md`。
+3. 按「身份与并行」进入已确认的答卷目录，只处理自己的答卷。
+4. 对照题库检查自己的 `model.json`、HTML、复现规范和设计意图；已完成的题保留，只补缺项。
+5. 每题先自定方案名与视觉方向，再完成页面、复现规范和设计意图。职责守题库，品味守 `catalog/quality.md`。
+6. 001–040 各交一个独立页面；041–050 各交一个单文件连续产品原型，完整实现题目的 `core_flow` 和 `exception`。
+7. 更新本次 `model.json` 和运行回执，并在 `models/_index.json` 登记本次三段身份。
+8. 运行 `python -m daedalus validate`。修复本次答卷导致的错误，直到验证通过或按「诚实弃权」收工。
+9. 验证通过后运行 `python -m daedalus build --output dist`。用户另有吩咐时，再做那件事。
 
 完成答卷必须同时满足：
 
-- 题库中的每个编号都有一份 HTML 和一份规范，且对应 piece 为 `complete`
+- 题库中的每个编号都有一份 HTML、一份复现规范和一份设计意图，且对应 piece 为 `complete`
 - 全部作品具有不同视觉身份，不是同一套皮肤换标题
 - 041–050 各自能走通正常闭环，也能主动触发题定异常、恢复并重新成功
 - 同一产品原型的全部状态使用同一个设计系统
@@ -29,6 +30,8 @@
 `models/<harness>/<model>/<reasoning-effort>/`
 
 三段分别表示运行框架、实际模型和思考档位；都用小写安全短名，空格转为 `-`，保留版本号里的点。任一项无法确认时，先问用户一次并给出推荐目录名。展示名称不能替代这三个可核对字段。
+
+平台、系统提示或运行环境报告的身份只能作为预检候选值。即使三项看起来明确，也必须在本次答卷开始前向用户展示并取得明确确认；不得先作答、后补确认。用户确认的是三段报名身份，不代表验收答卷质量。
 
 只在能够确认子 Agent 与主 Agent 使用**相同模型、相同思考档位**时并行。子 Agent 只用于加快互不重叠的题目，不能改变答卷能力来源。无法确认一致时由主 Agent 独立完成。
 
@@ -45,15 +48,18 @@
 ```text
 models/<harness>/<model>/<reasoning-effort>/<id>-<scheme>.html
 models/<harness>/<model>/<reasoning-effort>/<id>-<scheme>.spec.md
+models/<harness>/<model>/<reasoning-effort>/<id>-<scheme>.intent.md
 ```
 
 `<scheme>` 是本题独有的英文短名，使用小写和连字符。
 
 HTML 是可离线运行的单文件 H5，使用中文文案、系统字体和内嵌 CSS/SVG，不加载外网图片、字体、脚本或样式，不安装答题依赖。041–050 的正常状态、异常状态和恢复结果都放在同一个 HTML 中，且通过页面上的明确操作抵达。
 
-规范填写 `catalog/spec-template.md`。001–040 填视觉规范章节；041–050 继续填完产品原型补充章节。色号必须来自该题 HTML 的实际 CSS。
+复现规范填写 `catalog/spec-template.md`，只记录可量测、可操作、可验收的布局、令牌、组件状态和行为；001–040 填通用章节，041–050 继续填完产品原型补充章节。色号必须来自该题 HTML 的实际 CSS。
 
-`model.json` 为本次答卷真源：分别记录 `harness`、`model`、`reasoningEffort`，记录模型级 `status`、pieces 和运行回执。完整答卷的模型级状态为 `complete`。
+设计意图填写 `catalog/intent-template.md`，单独记录设计取舍、适用场景、非目标和辅助复刻提示词。不得用它替代复现规范，也不得把提示词重新塞回 `.spec.md`。
+
+`model.json` 为本次答卷真源：使用 `schemaVersion: 4` 与 `specVersion: 2`，分别记录 `harness`、`model`、`reasoningEffort`，并为每个 piece 登记 `file`、`spec`、`intent`、状态和运行回执。完整答卷的模型级状态为 `complete`。
 
 ## 诚实弃权
 

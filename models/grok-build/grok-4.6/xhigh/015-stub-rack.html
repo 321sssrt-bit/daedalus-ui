@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>票夹 · 刚发生的事</title>
+  <style>
+    :root {
+      --board: #f0e2c8;
+      --ink: #2b2116;
+      --perf: #c9b089;
+      --red: #c0392b;
+      --blue: #2c5f8a;
+      --green: #2f6b45;
+      --mute: #7a6a52;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #d8c4a0; color: var(--ink); font: 15px/1.45 "Trebuchet MS", "Microsoft YaHei", sans-serif; }
+    header { display: flex; justify-content: space-between; align-items: center; padding: 18px 24px; }
+    h1 { margin: 0; font-size: 24px; }
+    header button { height: 36px; background: var(--ink); color: var(--board); border: 0; padding: 0 12px; cursor: pointer; }
+    .rack { max-width: 760px; margin: 0 auto 40px; padding: 0 16px; }
+    .stub {
+      background: var(--board);
+      margin: 0 0 12px;
+      padding: 14px 16px 12px;
+      border-left: 8px solid var(--blue);
+      position: relative;
+    }
+    .stub::after {
+      content: "";
+      position: absolute; left: 0; right: 0; bottom: -6px; height: 6px;
+      background: repeating-linear-gradient(90deg, var(--board) 0 10px, transparent 10px 16px);
+    }
+    .stub.sys { border-left-color: var(--red); }
+    .stub.man { border-left-color: var(--green); }
+    .stub.read { opacity: 0.62; }
+    .top { display: flex; justify-content: space-between; gap: 12px; font-size: 12px; color: var(--mute); }
+    .stub h2 { margin: 6px 0; font-size: 17px; }
+    .more { display: none; color: #4a3b28; font-size: 14px; }
+    .stub.open .more { display: block; }
+    .stub button { margin-top: 8px; height: 30px; border: 1px solid var(--ink); background: transparent; cursor: pointer; }
+    @media (max-width: 768px) {
+      header { flex-direction: column; align-items: start; gap: 8px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>票夹</h1>
+    <button type="button" id="all">全部标已读</button>
+  </header>
+  <main class="rack" id="rack"></main>
+  <script>
+    (function () {
+      var items = [
+        { k: "sys", t: "灯塔偏北告警", s: "系统 · 02:11", d: "北港 3 号灯短暂熄了四十秒，现已复亮。无需回舱。", read: false },
+        { k: "man", t: "沈纸年改到窗席", s: "人工 · 01:40", d: "绛席门厅把人从中席挪到靠窗。帖号未变。", read: false },
+        { k: "job", t: "种子袋改列", s: "货栈 · 01:05", d: "在检 → 可出。湿度回落到安全线。", read: false },
+        { k: "sys", t: "巡号重发成功", s: "系统 · 00:52", d: "七号岗新巡号已由有线送出。", read: true },
+        { k: "man", t: "白垩室邻室开放", s: "人工 · 昨日", d: "参观只到下午四点。不要把未干石膏搬走。", read: false },
+        { k: "job", t: "潮位按旬切换", s: "脉镜 · 昨日", d: "有人把粒度改到按旬，告警数变成 2。", read: false }
+      ];
+      var open = -1;
+      function render() {
+        var box = document.getElementById("rack");
+        box.innerHTML = "";
+        items.forEach(function (it, i) {
+          var el = document.createElement("article");
+          el.className = "stub " + it.k + (it.read ? " read" : "") + (open === i ? " open" : "");
+          el.innerHTML = "<div class=\"top\"><span>" + it.s + "</span><span>" + (it.read ? "已读" : "未读") + "</span></div><h2>" + it.t + "</h2><div class=\"more\">" + it.d + "</div><button type=\"button\">" + (open === i ? "折上" : "展开这张") + "</button>";
+          el.querySelector("button").addEventListener("click", function () {
+            open = open === i ? -1 : i;
+            items[i].read = true;
+            render();
+          });
+          box.appendChild(el);
+        });
+      }
+      document.getElementById("all").addEventListener("click", function () {
+        items.forEach(function (it) { it.read = true; });
+        render();
+      });
+      render();
+    })();
+  </script>
+</body>
+</html>

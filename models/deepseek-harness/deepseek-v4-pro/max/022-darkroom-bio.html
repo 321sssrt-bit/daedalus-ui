@@ -1,0 +1,278 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>林墨 · 暗房摄影</title>
+<style>
+  :root{
+    --bg:#0b0b0d;
+    --panel:#131316;
+    --line:#232329;
+    --ink:#e8e6e0;
+    --muted:#8a8880;
+    --mat:#f4f1ea;
+    --red:#ff3b30;
+    --red-dark:#c22a24;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:-apple-system,"Segoe UI","Microsoft YaHei","PingFang SC","Helvetica Neue",sans-serif;
+    background:var(--bg);
+    color:var(--ink);
+    line-height:1.65;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:inherit;text-decoration:none}
+  button{font-family:inherit;cursor:pointer}
+
+  .topbar{
+    display:flex;align-items:center;gap:32px;
+    padding:20px 56px;
+    border-bottom:1px solid var(--line);
+  }
+  .brand{font-size:15px;letter-spacing:.18em;font-weight:600}
+  .brand b{color:var(--red);font-weight:600}
+  .nav{display:flex;gap:28px;margin-left:auto}
+  .nav a{font-size:14px;color:var(--muted);letter-spacing:.06em;transition:color .2s}
+  .nav a:hover{color:var(--ink)}
+  .status{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);letter-spacing:.08em}
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--red);box-shadow:0 0 0 0 rgba(255,59,48,.55);animation:pulse 2.2s ease-out infinite}
+
+  .wrap{max-width:1080px;margin:0 auto;padding:0 40px}
+
+  .hero{display:flex;gap:64px;padding:88px 0 72px;align-items:center}
+  .avatar{flex:0 0 auto}
+  .avatar .mat{background:var(--mat);padding:9px;box-shadow:0 14px 40px rgba(0,0,0,.5)}
+  .avatar .pic{
+    width:152px;height:152px;
+    background:
+      radial-gradient(circle at 50% 32%, #5b5b64 0 19%, transparent 19.6%),
+      radial-gradient(ellipse at 50% 86%, #2c2c31 0 30%, transparent 30.5%),
+      linear-gradient(158deg,#3b3b42 0%,#141417 72%);
+  }
+  .intro{max-width:620px}
+  .intro .kicker{font-size:12px;letter-spacing:.28em;color:var(--red);margin-bottom:18px}
+  .intro h1{font-size:44px;font-weight:600;letter-spacing:.02em;line-height:1.1;margin-bottom:14px}
+  .intro .tagline{font-size:18px;color:var(--ink);margin-bottom:12px}
+  .intro .meta{font-size:14px;color:var(--muted);margin-bottom:30px}
+  .stats{display:flex;gap:44px;padding:24px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin-bottom:30px}
+  .stats .n{font-size:22px;font-weight:600}
+  .stats .l{font-size:12px;color:var(--muted);letter-spacing:.1em;margin-top:2px}
+  .actions{display:flex;gap:14px}
+  .btn{
+    display:inline-flex;align-items:center;gap:8px;
+    padding:13px 28px;font-size:14px;letter-spacing:.08em;
+    border-radius:2px;transition:all .2s;
+  }
+  .btn-primary{background:var(--red);color:#fff;border:1px solid var(--red)}
+  .btn-primary:hover{background:var(--red-dark);border-color:var(--red-dark)}
+  .btn-ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+  .btn-ghost:hover{border-color:var(--ink)}
+  .btn-primary.followed{background:transparent;color:var(--red);border-color:var(--red)}
+
+  .contact{
+    display:none;margin-top:18px;padding:18px 20px;
+    background:var(--panel);border-left:2px solid var(--red);
+    font-size:13px;color:var(--muted);
+  }
+  .contact.open{display:block}
+  .contact div{margin:4px 0}
+  .contact b{color:var(--ink);font-weight:500}
+
+  .section{padding:0 0 96px}
+  .section-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:34px}
+  .section-head h2{font-size:20px;font-weight:600;letter-spacing:.12em}
+  .section-head .all{font-size:13px;color:var(--muted);letter-spacing:.06em}
+  .section-head .all:hover{color:var(--ink)}
+
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:40px 34px}
+  .work{cursor:pointer}
+  .work .mat{background:var(--mat);padding:10px;transition:transform .25s,box-shadow .25s}
+  .work:hover .mat{transform:translateY(-4px);box-shadow:0 16px 34px rgba(0,0,0,.55)}
+  .work .shot{height:212px;background-size:cover;background-position:center}
+  .work figcaption{margin-top:14px;font-size:13px;color:var(--ink)}
+  .work figcaption .series{color:var(--muted);margin-left:10px}
+
+  footer{border-top:1px solid var(--line);padding:34px 40px;text-align:center;font-size:12px;color:var(--muted);letter-spacing:.08em}
+
+  .lightbox{
+    position:fixed;inset:0;background:rgba(4,4,6,.92);
+    display:none;align-items:center;justify-content:center;z-index:50;padding:40px;
+  }
+  .lightbox.open{display:flex}
+  .lightbox .box{max-width:720px;width:100%}
+  .lightbox .mat{background:var(--mat);padding:14px}
+  .lightbox .shot{height:420px;background-size:cover;background-position:center}
+  .lightbox .cap{display:flex;justify-content:space-between;align-items:center;margin-top:16px;color:var(--muted);font-size:13px}
+  .lightbox .cap h3{color:var(--ink);font-size:16px;font-weight:500}
+  .lightbox .close{
+    background:transparent;border:1px solid var(--line);color:var(--ink);
+    width:40px;height:40px;border-radius:2px;font-size:18px;
+  }
+  .lightbox .close:hover{border-color:var(--ink)}
+
+  @keyframes pulse{
+    0%{box-shadow:0 0 0 0 rgba(255,59,48,.55)}
+    70%{box-shadow:0 0 0 9px rgba(255,59,48,0)}
+    100%{box-shadow:0 0 0 0 rgba(255,59,48,0)}
+  }
+
+  @media (max-width:768px){
+    .topbar{flex-wrap:wrap;gap:16px;padding:16px 20px}
+    .nav{gap:18px;margin-left:0;width:100%}
+    .wrap{padding:0 20px}
+    .hero{flex-direction:column;gap:34px;padding:48px 0 52px;align-items:flex-start}
+    .grid{grid-template-columns:1fr;gap:30px}
+    .intro h1{font-size:34px}
+    .stats{gap:28px}
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *,*::before,*::after{animation:none!important;transition:none!important}
+  }
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">DARKROOM<b>·</b>暗房</div>
+    <nav class="nav">
+      <a href="#">作品</a>
+      <a href="#">展览</a>
+      <a href="#">关于</a>
+      <a href="#">印相</a>
+    </nav>
+    <div class="status"><span class="dot"></span>正在冲印 · 3 卷</div>
+  </header>
+
+  <main class="wrap">
+    <section class="hero">
+      <div class="avatar"><div class="mat"><div class="pic"></div></div></div>
+      <div class="intro">
+        <div class="kicker">PHOTOGRAPHER</div>
+        <h1>林墨</h1>
+        <p class="tagline">暗房与街头之间，我只拍光。</p>
+        <p class="meta">上海 · 独立摄影师 · 从事摄影 11 年</p>
+        <div class="stats">
+          <div><div class="n">48</div><div class="l">作品</div></div>
+          <div><div class="n" id="followers">12.4k</div><div class="l">关注者</div></div>
+          <div><div class="n">3.8k</div><div class="l">收藏</div></div>
+        </div>
+        <div class="actions">
+          <button class="btn btn-primary" id="followBtn">关注</button>
+          <button class="btn btn-ghost" id="contactBtn">联系</button>
+        </div>
+        <div class="contact" id="contactPanel">
+          <div><b>邮箱</b>　hello@linmo.studio</div>
+          <div><b>微信</b>　linmo-darkroom</div>
+          <div><b>工作室</b>　上海市徐汇区安福路 322 号 2F</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <h2>作品精选</h2>
+        <a class="all" href="#">全部 48 件 →</a>
+      </div>
+      <div class="grid">
+        <figure class="work" data-title="夜航" data-series="城市系列" data-caption="凌晨的外滩，渡轮划开水面的一束光。">
+          <div class="mat"><div class="shot" style="background:linear-gradient(160deg,#2c3a4d 0%,#0d1117 60%),radial-gradient(circle at 70% 22%,#5d6f86 0 7%,transparent 7.4%)"></div></div>
+          <figcaption>夜航<span class="series">城市系列</span></figcaption>
+        </figure>
+        <figure class="work" data-title="雨巷" data-series="街头系列" data-caption="梅雨季的石库门弄堂，伞影落进积水。">
+          <div class="mat"><div class="shot" style="background:linear-gradient(170deg,#3a3f46 0%,#121418 70%),radial-gradient(circle at 30% 30%,#6b6f75 0 6%,transparent 6.4%)"></div></div>
+          <figcaption>雨巷<span class="series">街头系列</span></figcaption>
+        </figure>
+        <figure class="work" data-title="窗边" data-series="人像系列" data-caption="逆光里的人像，只留下一道轮廓。">
+          <div class="mat"><div class="shot" style="background:linear-gradient(150deg,#4a4641 0%,#161412 62%),radial-gradient(circle at 50% 40%,#8a8176 0 9%,transparent 9.4%)"></div></div>
+          <figcaption>窗边<span class="series">人像系列</span></figcaption>
+        </figure>
+        <figure class="work" data-title="孤峰" data-series="风景系列" data-caption="黄山清晨，雾从谷底漫上来。">
+          <div class="mat"><div class="shot" style="background:linear-gradient(155deg,#313b3a 0%,#0f1413 66%),radial-gradient(circle at 50% 18%,#7a8a86 0 5%,transparent 5.4%)"></div></div>
+          <figcaption>孤峰<span class="series">风景系列</span></figcaption>
+        </figure>
+        <figure class="work" data-title="静物 No.4" data-series="静物系列" data-caption="暗房里的一只量杯，红色安全灯打亮边缘。">
+          <div class="mat"><div class="shot" style="background:linear-gradient(160deg,#3d3030 0%,#140f0f 70%),radial-gradient(circle at 62% 34%,#ff3b30 0 4%,transparent 4.4%)"></div></div>
+          <figcaption>静物 No.4<span class="series">静物系列</span></figcaption>
+        </figure>
+        <figure class="work" data-title="凌晨四点" data-series="纪实系列" data-caption="菜场开门前的第一盏灯。">
+          <div class="mat"><div class="shot" style="background:linear-gradient(165deg,#3b4037 0%,#11140f 64%),radial-gradient(circle at 30% 26%,#8b8f6f 0 6%,transparent 6.4%)"></div></div>
+          <figcaption>凌晨四点<span class="series">纪实系列</span></figcaption>
+        </figure>
+      </div>
+    </section>
+  </main>
+
+  <footer>© 2025 林墨 · 暗房工作室　—　银盐 · 明胶 · 黑白</footer>
+
+  <div class="lightbox" id="lightbox" aria-hidden="true">
+    <div class="box">
+      <div class="mat"><div class="shot" id="lbShot"></div></div>
+      <div class="cap">
+        <h3 id="lbTitle"></h3>
+        <span id="lbCap"></span>
+        <button class="close" id="lbClose" aria-label="关闭">✕</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+  (function(){
+    var followed = false;
+    var followBtn = document.getElementById('followBtn');
+    var followers = document.getElementById('followers');
+    var contactBtn = document.getElementById('contactBtn');
+    var contactPanel = document.getElementById('contactPanel');
+    var lightbox = document.getElementById('lightbox');
+    var lbShot = document.getElementById('lbShot');
+    var lbTitle = document.getElementById('lbTitle');
+    var lbCap = document.getElementById('lbCap');
+    var lbClose = document.getElementById('lbClose');
+
+    followBtn.addEventListener('click', function(){
+      followed = !followed;
+      if (followed){
+        followBtn.textContent = '已关注';
+        followBtn.classList.add('followed');
+        followers.textContent = '12.5k';
+      } else {
+        followBtn.textContent = '关注';
+        followBtn.classList.remove('followed');
+        followers.textContent = '12.4k';
+      }
+    });
+
+    contactBtn.addEventListener('click', function(){
+      contactPanel.classList.toggle('open');
+      contactBtn.textContent = contactPanel.classList.contains('open') ? '收起联系' : '联系';
+    });
+
+    var works = document.querySelectorAll('.work');
+    works.forEach(function(w){
+      w.addEventListener('click', function(){
+        var shot = w.querySelector('.shot');
+        lbShot.style.background = shot.style.background;
+        lbTitle.textContent = w.getAttribute('data-title');
+        lbCap.textContent = w.getAttribute('data-series') + ' · ' + w.getAttribute('data-caption');
+        lightbox.classList.add('open');
+        lightbox.setAttribute('aria-hidden','false');
+      });
+    });
+
+    function closeLightbox(){
+      lightbox.classList.remove('open');
+      lightbox.setAttribute('aria-hidden','true');
+    }
+    lbClose.addEventListener('click', closeLightbox);
+    lightbox.addEventListener('click', function(e){
+      if (e.target === lightbox){ closeLightbox(); }
+    });
+    document.addEventListener('keydown', function(e){
+      if (e.key === 'Escape'){ closeLightbox(); }
+    });
+  })();
+</script>
+</body>
+</html>

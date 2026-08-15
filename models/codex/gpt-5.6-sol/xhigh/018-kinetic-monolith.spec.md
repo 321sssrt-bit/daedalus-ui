@@ -1,44 +1,83 @@
 # 018 动力方碑
 
-## 一句话气质
+## 规范元数据
 
-像瑞士工业目录撞上一张高饱和交通海报。
+- 规范版本：2
+- 主视口：1280 × 800 px
+- 对应页面：`018-kinetic-monolith.html`
+- 复现范围：复现该单文件页面的布局制度、设计令牌、核心组件状态与题定职责。
 
-## 适合用在哪种产品
+## 画布与区域布局
 
-小批量咖啡器具、桌面音响和独立工业设计品牌的高客单商品详情。
+| 区域 | 边界与尺寸 | 布局与对齐 | 层级与滚动 |
+| --- | --- | --- | --- |
+| 页面画布 `body` | margin: 0; min-height: 100vh | 未单独声明 | background: var(--paper); color: var(--ink) |
+| 主要结构 `.shell` | min-height: 100vh | display: grid; grid-template-columns: 88px 1fr | 未单独声明 |
+| 关键内容区 `.rail` | padding: 28px 0 | display: flex; flex-direction: column; align-items: center; justify-content: space-between | border-right: 1px solid var(--ink) |
 
-## 色板
+## 设计令牌
 
-| 角色 | 色号 | 用法 |
+### 色彩
+
+| 令牌 | 值 | 用途 |
 | --- | --- | --- |
-| 背景 | #F2EFE6 | 暖灰纸张底色 |
-| 表面 | #FFFDF6 | 机器亮面与选中项文字 |
-| 正文 | #11120F | 标题、边线和黑色机身 |
-| 次要文字 | #6B6C64 | 商品说明与辅助标注 |
-| 强调 | #2249FF | 环形主视觉和购买按钮 |
-| 成功 / 危险 | #EF3E2F | 版本贴纸、焦点与警示 |
+| `--paper` | `#f2efe6` | 容器与表面 |
+| `--ink` | `#11120f` | 主要文字与高对比边界 |
+| `--muted` | `#6b6c64` | 辅助文字与弱化信息 |
+| `--blue` | `#2249ff` | 品牌或局部强调 |
+| `--red` | `#ef3e2f` | 错误与危险反馈 |
+| `--line` | `#c9c7bd` | 描边与分隔 |
+| `--white` | `#fffdf6` | 品牌或局部强调 |
+| `--literal-8` | `#d7d3c4` | HTML 中直接声明的局部色 |
 
-## 字体和字号
+### 字体
 
-使用 Arial、Microsoft YaHei 系统字体；显示字 54–98px/900，标题 34px/900，正文 16px/400，辅助 11–13px/700，价格数字 34px/900。
+| 角色 | 字体栈 | 字号 / 行高 | 字重 / 字距 |
+| --- | --- | --- | --- |
+| 页面正文 `body` | Arial,"Microsoft YaHei",sans-serif | 16px / normal（浏览器默认） | 由 font 简写或继承确定 |
+| 显示字 `.details h1` | 继承页面字体 | font-size: clamp(54px,7vw,98px); line-height: .84 | letter-spacing: -7px |
+| 分区标题 `button` | inherit | font 简写中声明 | 由 font 简写或继承确定 |
+| 辅助文字 `.price small` | 继承页面字体 | font-size: 13px | font-weight: 500 |
 
-## 间距、圆角、阴影
+### 间距、圆角与层级
 
-主体留白 40–82px，控件间隔 8–26px；按钮和规格块保持硬直角，机器主体 16px 圆角；产品用 18×24px 硬边投影，按钮用 8×8px 黑色投影。
+| 令牌 | 值 | 用途 |
+| --- | --- | --- |
+| 主要内距 | `28px 0` | `.rail` 的 `padding` |
+| 布局间距 | `8px` | `.choices` 的 `gap` |
+| 圆角 | `50%` | `.halo` 的 `border-radius` |
+| 边框或阴影 | `1px solid var(--ink)` | `.rail` 的 `border-right` |
 
-## 按钮 / 输入框 / 卡片
+## 组件规格与状态
 
-规格按钮以一像素黑框和黑底选中态表达机械切换；圆形色样用双层描边；购买按钮为整块蓝色并带可按下的硬投影。页面不使用传统卡片，让产品舞台和参数区直接分栏。
+| 组件 | 结构与尺寸 | 默认样式 | 状态变化 |
+| --- | --- | --- | --- |
+| 主要操作 `button` | 未单独声明 | font: inherit | 未声明独立状态；保持默认样式 |
+| 输入、选择或次操作 `.buy` | margin-top: 26px; padding: 20px 24px | border: 0; background: var(--blue); color: white; font-weight: 900; box-shadow: 8px 8px 0 var(--ink) | .buy:hover → box-shadow: 5px 5px 0 var(--ink); .buy:focus-visible,.choice:focus-visible,.swatch:focus-visible → outline: 3px solid var(--red) |
+| 内容容器 `.details` | padding: clamp(40px,6vw,82px); display: flex | 未单独声明 | 未声明独立状态；保持默认样式 |
 
-## 动效
+## 响应式规则
 
-按钮按压在 180ms 内完成位移和投影收缩；配置切换即时完成。减少动态偏好下取消全部过渡，只保留文字反馈。
+| 条件 | 布局变化 | 组件变化 |
+| --- | --- | --- |
+| 1280 × 800 px 主视口 | 按“画布与区域布局”保持完整结构 | 按“组件规格与状态”显示默认状态 |
+| `(max-width:850px)` | .shell → grid-template-columns: 52px 1fr; .main → grid-template-columns: 1fr; .stage → min-height: 440px; .machine → height: 350px; .details → padding: 42px | 交互流程与内容顺序不变 |
 
-## 不要做什么
+## 内容与数据
 
-不要加入柔和渐变、玻璃拟态、圆润胶囊和生活方式照片；不要把夸张标题缩成普通电商字号。
+必须保留的可见文案顺序包括：“动力方碑 · ARC S1” → “A—1” → “OBJECTS FOR EVERY MORNING” → “018/050” → “2026 / EDITION 01” → “ARC OBJECTS” → “精密研磨器” → “ARC” → “S1” → “把清晨压缩成一枚准确的刻度。64 mm 平刀、零残粉风道与磁吸接粉杯，适合手冲和意式之间频繁切换。” → “¥ 2,680” → “含两年保修”。控件占位或辅助标签包括：“商品主视觉”、“ARC S1 磨豆机”、“曜石黑”、“信号红”、“岩灰”。数值、日期和状态文字沿用页面初始值及其操作后的格式。
 
-## 复刻提示词
+## 动效与反馈
 
-制作一张暖灰纸底的瑞士工业海报式商品页，用垂直编号轨道、超大紧缩标题、黑色几何产品和蓝红原色构图，参数控件像实体机器开关，购买按钮带黑色硬投影。
+| 触发 | 时长与缓动 | 可见反馈 | `prefers-reduced-motion` |
+| --- | --- | --- | --- |
+| `.buy` 状态变化 | transition: .18s transform,.18s box-shadow | 状态类或伪类改变对应 CSS 属性 | *,*::before,*::after → scroll-behavior: auto!important; transition: none!important |
+| `.buy` 状态变化 | transition: .18s transform,.18s box-shadow | 状态类或伪类改变对应 CSS 属性 | *,*::before,*::after → scroll-behavior: auto!important; transition: none!important |
+
+## 复现验收清单
+
+- [ ] 在 1280 × 800 px 下，body、.shell 与 .rail 的尺寸和排列符合布局表。
+- [ ] 规范登记的主色 `#6b6c64`、`#2249ff`、`#fffdf6`、`#ef3e2f`、`#11120f` 均来自 HTML，背景、正文、弱化与强调层级对应一致。
+- [ ] 主要操作 `button`、输入、选择或次操作 `.buy` 与 内容容器 `.details` 的默认及状态样式可实际观察。
+- [ ] 在 `(max-width:850px)` 条件下，布局按响应式表变化且“动力方碑 · ARC S1”仍可操作。
+- [ ] 启用 `prefers-reduced-motion: reduce` 后，页面按动效表关闭或压缩非必要动画，同时保留状态反馈。

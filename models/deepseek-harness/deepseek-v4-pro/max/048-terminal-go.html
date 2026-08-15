@@ -1,0 +1,693 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>航途出行 · 订票</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #e9eef2;
+    --card: #ffffff;
+    --ink: #1c2833;
+    --ink-2: #5b6b78;
+    --line: #d4dce2;
+    --accent: #1f7a8c;
+    --accent-deep: #155666;
+    --red: #d7263d;
+    --red-bg: #fdeef0;
+    --amber: #f0b429;
+    --amber-bg: #fdf3dc;
+    --pass: #123c4a;
+    --pass-2: #0f3340;
+  }
+  html, body { height: 100%; }
+  body {
+    font-family: -apple-system, "Segoe UI", "Microsoft YaHei", "PingFang SC", "Helvetica Neue", sans-serif;
+    background: linear-gradient(160deg, #dbe4ea 0%, #c3d0d8 100%);
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+  .stage { padding: 24px; }
+
+  /* 手机壳 */
+  .phone {
+    position: relative;
+    width: 390px;
+    height: 844px;
+    border-radius: 46px;
+    background: #101820;
+    padding: 10px;
+    box-shadow: 0 40px 80px rgba(16, 32, 44, 0.35), 0 8px 24px rgba(16, 32, 44, 0.22);
+  }
+  .screen-deck {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    border-radius: 38px;
+    overflow: hidden;
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* 状态栏 */
+  .statusbar {
+    height: 44px;
+    flex: 0 0 44px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 26px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink);
+    background: var(--bg);
+  }
+  .statusbar .icons { display: flex; align-items: center; gap: 7px; }
+  .statusbar svg { display: block; }
+
+  /* 顶栏 */
+  .appbar {
+    height: 48px;
+    flex: 0 0 48px;
+    display: flex;
+    align-items: center;
+    padding: 0 14px;
+    gap: 10px;
+    background: var(--bg);
+    border-bottom: 1px solid var(--line);
+  }
+  .appbar .back {
+    width: 34px; height: 34px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--card);
+    color: var(--ink);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    font-size: 0;
+  }
+  .appbar .back:hover { background: #eef3f6; }
+  .appbar .back:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .appbar .brand { display: flex; align-items: center; gap: 8px; }
+  .appbar .mark {
+    width: 26px; height: 26px; border-radius: 8px;
+    background: var(--accent); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 700;
+  }
+  .appbar .name { font-size: 16px; font-weight: 700; letter-spacing: 0.02em; }
+  .appbar .step-note { margin-left: auto; font-size: 12px; color: var(--ink-2); }
+
+  /* 步骤条 */
+  .progress { flex: 0 0 52px; padding: 12px 22px 8px; display: flex; align-items: center; background: var(--bg); }
+  .progress .step { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 5px; position: relative; }
+  .progress .dot {
+    width: 22px; height: 22px; border-radius: 50%;
+    border: 2px solid var(--line); background: var(--card);
+    color: var(--ink-2); font-size: 11px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.2s, border-color 0.2s, color 0.2s;
+    z-index: 1;
+  }
+  .progress .step .lbl { font-size: 11px; color: var(--ink-2); font-weight: 500; }
+  .progress .step.on .dot { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .progress .step.on .lbl { color: var(--accent); }
+  .progress .step.done .dot { background: #dff0f3; border-color: var(--accent); color: var(--accent); }
+  .progress .line { position: absolute; top: 10px; left: -50%; width: 100%; height: 2px; background: var(--line); z-index: 0; }
+  .progress .step:first-child .line { display: none; }
+  .progress .step.done .line, .progress .step.on .line { background: var(--accent); }
+
+  /* 内容区 */
+  .content { flex: 1 1 auto; position: relative; overflow: hidden; }
+  .screen {
+    position: absolute; inset: 0;
+    overflow-y: auto;
+    padding: 16px 18px 28px;
+    display: none;
+  }
+  .screen.active { display: block; }
+
+  .h1 { font-size: 20px; font-weight: 700; margin: 4px 0 2px; }
+  .sub { font-size: 13px; color: var(--ink-2); margin-bottom: 14px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 16px; }
+
+  /* 搜索表单 */
+  .field { margin-bottom: 12px; }
+  .field label { display: block; font-size: 12px; color: var(--ink-2); margin-bottom: 6px; font-weight: 500; }
+  .field .in { width: 100%; height: 46px; border: 1px solid var(--line); border-radius: 12px; padding: 0 14px; font-size: 15px; color: var(--ink); background: #fbfcfd; }
+  .field .in:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(31, 122, 140, 0.16); }
+  .row2 { display: flex; gap: 10px; }
+  .row2 .field { flex: 1; }
+  .swap-wrap { display: flex; justify-content: center; margin: -2px 0 4px; }
+  .swap {
+    width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--line);
+    background: var(--card); color: var(--accent); font-size: 15px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .swap:hover { background: #eef3f6; }
+
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 100%; height: 50px; border-radius: 13px; border: none;
+    background: var(--accent); color: #fff; font-size: 16px; font-weight: 700; cursor: pointer;
+    letter-spacing: 0.02em;
+    transition: background 0.15s, transform 0.05s;
+  }
+  .btn:hover { background: var(--accent-deep); }
+  .btn:active { transform: translateY(1px); }
+  .btn:focus-visible { outline: 2px solid var(--accent-deep); outline-offset: 2px; }
+  .btn.ghost { background: var(--card); color: var(--accent); border: 1px solid var(--accent); }
+  .btn.ghost:hover { background: #eef7f9; }
+  .btn[disabled] { background: #c6d0d6; color: #f2f5f7; cursor: not-allowed; }
+  .btn[disabled]:hover { background: #c6d0d6; }
+
+  .hint { font-size: 12px; color: var(--ink-2); line-height: 1.6; }
+  .error-note { display: none; margin-top: 10px; padding: 10px 12px; border-radius: 10px; background: var(--red-bg); color: var(--red); font-size: 13px; font-weight: 600; }
+
+  /* 班次列表 */
+  .route-chip {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--card); border: 1px solid var(--line); border-radius: 999px;
+    padding: 6px 12px; font-size: 13px; color: var(--ink-2);
+  }
+  .route-chip b { color: var(--ink); }
+  .flight { display: flex; flex-direction: column; gap: 12px; margin-bottom: 12px; }
+  .flight .top { display: flex; align-items: center; justify-content: space-between; }
+  .flight .times { display: flex; align-items: center; gap: 14px; }
+  .flight .t { text-align: center; }
+  .flight .t .hm { font-size: 22px; font-weight: 700; }
+  .flight .t .cd { font-size: 11px; color: var(--ink-2); margin-top: 2px; }
+  .flight .arrow { color: var(--ink-2); font-size: 13px; }
+  .flight .dur { font-size: 12px; color: var(--ink-2); text-align: center; margin-top: 3px; }
+  .flight .price { text-align: right; }
+  .flight .price .p { font-size: 18px; font-weight: 700; color: var(--accent-deep); }
+  .flight .price .p small { font-size: 12px; font-weight: 500; }
+  .flight .meta { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--ink-2); }
+  .flight .meta .tag { background: var(--amber-bg); color: #a9750a; padding: 2px 8px; border-radius: 6px; font-weight: 600; }
+  .flight .pick { align-self: flex-end; min-width: 96px; height: 40px; }
+
+  /* 座位 */
+  .seat-legend { display: flex; gap: 14px; font-size: 12px; color: var(--ink-2); margin: 12px 0; flex-wrap: wrap; }
+  .seat-legend span { display: inline-flex; align-items: center; gap: 5px; }
+  .swatch { width: 14px; height: 14px; border-radius: 4px; display: inline-block; }
+  .swatch.free { background: #fff; border: 1.5px solid var(--accent); }
+  .swatch.sold { background: #e4e9ed; }
+  .swatch.check { background: #fff; border: 1.5px solid var(--amber); }
+  .swatch.sel { background: var(--accent); }
+  .seat-map { display: flex; flex-direction: column; gap: 10px; }
+  .seat-row { display: flex; align-items: center; gap: 10px; }
+  .seat-row .rowno { width: 26px; font-size: 12px; color: var(--ink-2); text-align: center; flex: 0 0 26px; }
+  .seat-row .group { display: flex; gap: 10px; flex: 1; }
+  .seat-row .aisle { width: 18px; flex: 0 0 18px; }
+  .seat-btn {
+    flex: 1; height: 42px; border-radius: 10px; border: 1.5px solid var(--accent);
+    background: #fff; color: var(--accent); font-size: 13px; font-weight: 700; cursor: pointer;
+    position: relative;
+  }
+  .seat-btn:hover { background: #eef7f9; }
+  .seat-btn.sold { border-color: #e4e9ed; background: #e4e9ed; color: #b6c0c8; cursor: not-allowed; }
+  .seat-btn.check { border-color: var(--amber); color: #a9750a; }
+  .seat-btn.sel { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .seat-btn .mini { display: none; position: absolute; top: -8px; right: -4px; background: var(--amber); color: #fff; font-size: 9px; padding: 1px 4px; border-radius: 6px; }
+  .seat-btn.check .mini { display: block; }
+  .seat-note { font-size: 12px; color: var(--ink-2); margin-top: 12px; line-height: 1.6; }
+  .seat-note b { color: #a9750a; }
+  .sel-summary { display: flex; align-items: center; justify-content: space-between; margin-top: 14px; padding-top: 14px; border-top: 1px dashed var(--line); }
+  .sel-summary .lbl { font-size: 13px; color: var(--ink-2); }
+  .sel-summary .val { font-size: 15px; font-weight: 700; }
+
+  /* 确认 */
+  .kv { display: flex; justify-content: space-between; padding: 9px 0; font-size: 14px; border-bottom: 1px solid #eef1f4; }
+  .kv:last-child { border-bottom: none; }
+  .kv .k { color: var(--ink-2); }
+  .kv .v { font-weight: 600; text-align: right; }
+  .kv .v.strong { color: var(--accent-deep); font-size: 16px; }
+  .passenger { display: flex; align-items: center; gap: 12px; padding: 12px 0; }
+  .passenger .ava { width: 40px; height: 40px; border-radius: 50%; background: var(--accent); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; }
+  .passenger .who .n { font-weight: 700; font-size: 15px; }
+  .passenger .who .i { font-size: 12px; color: var(--ink-2); }
+
+  .banner { display: none; margin-bottom: 14px; padding: 14px; border-radius: 14px; background: var(--red-bg); border: 1px solid #f3c3ca; }
+  .banner.show { display: block; }
+  .banner .t { color: var(--red); font-weight: 700; font-size: 15px; margin-bottom: 6px; }
+  .banner .d { color: #8a2431; font-size: 13px; line-height: 1.6; margin-bottom: 12px; }
+  .banner .acts { display: flex; gap: 10px; }
+  .banner .acts .btn { height: 42px; font-size: 14px; }
+  .banner .acts .btn.ghost { color: var(--red); border-color: var(--red); }
+
+  /* 凭证 */
+  .success-head { display: flex; align-items: center; gap: 12px; margin: 6px 0 16px; }
+  .success-head .tick { width: 46px; height: 46px; border-radius: 50%; background: #1f8f4d; color: #fff; display: flex; align-items: center; justify-content: center; flex: 0 0 46px; }
+  .success-head .tt { font-size: 18px; font-weight: 700; }
+  .success-head .ts { font-size: 12px; color: var(--ink-2); margin-top: 2px; }
+
+  .pass-card { background: var(--pass); border-radius: 18px; overflow: hidden; color: #eaf3f6; box-shadow: 0 14px 30px rgba(18, 60, 74, 0.3); }
+  .pass-head { padding: 18px 18px 14px; display: flex; align-items: center; justify-content: space-between; }
+  .pass-head .air { font-size: 14px; font-weight: 700; letter-spacing: 0.04em; }
+  .pass-head .code { font-size: 12px; color: #9fc3ce; }
+  .pass-route { padding: 4px 18px 16px; display: flex; align-items: center; gap: 14px; }
+  .pass-route .ap { text-align: center; }
+  .pass-route .ap .city { font-size: 26px; font-weight: 700; }
+  .pass-route .ap .code3 { font-size: 12px; color: #9fc3ce; margin-top: 2px; letter-spacing: 0.08em; }
+  .pass-route .fly { flex: 1; display: flex; flex-direction: column; align-items: center; color: #9fc3ce; font-size: 11px; }
+  .pass-route .fly .l { width: 100%; height: 2px; background: linear-gradient(90deg, transparent, #5d93a3, transparent); position: relative; margin: 6px 0; }
+  .pass-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: rgba(255,255,255,0.08); border-top: 1px solid rgba(255,255,255,0.12); }
+  .pass-grid .cell { background: var(--pass-2); padding: 12px 18px; }
+  .pass-grid .cell .k { font-size: 11px; color: #9fc3ce; margin-bottom: 4px; }
+  .pass-grid .cell .v { font-size: 16px; font-weight: 700; }
+  .pass-stub { border-top: 2px dashed rgba(255,255,255,0.3); display: flex; align-items: center; gap: 14px; padding: 14px 18px 18px; }
+  .pass-stub .stub-info { flex: 1; }
+  .pass-stub .stub-info .k { font-size: 11px; color: #9fc3ce; }
+  .pass-stub .stub-info .v { font-size: 14px; font-weight: 700; margin-top: 3px; }
+  .barcode { background: #fff; padding: 8px 10px; border-radius: 8px; }
+
+  .toast {
+    position: fixed; left: 50%; bottom: 34px; transform: translateX(-50%) translateY(20px);
+    background: #1c2833; color: #fff; font-size: 13px; padding: 11px 18px; border-radius: 999px;
+    opacity: 0; pointer-events: none; transition: opacity 0.25s, transform 0.25s; z-index: 99;
+    box-shadow: 0 10px 24px rgba(0,0,0,0.25); max-width: 330px; text-align: center;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  @media (max-width: 430px) {
+    .stage { padding: 0; }
+    .phone { width: 100vw; height: 100vh; height: 100dvh; border-radius: 0; padding: 0; box-shadow: none; }
+    .screen-deck { border-radius: 0; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+  }
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="phone">
+    <div class="screen-deck">
+      <div class="statusbar">
+        <span>09:41</span>
+        <span class="icons">
+          <svg width="16" height="12" viewBox="0 0 16 12" aria-hidden="true"><rect x="0" y="8" width="3" height="4" rx="1" fill="#1c2833"/><rect x="4.5" y="6" width="3" height="6" rx="1" fill="#1c2833"/><rect x="9" y="3" width="3" height="9" rx="1" fill="#1c2833"/><rect x="13.5" y="0" width="3" height="12" rx="1" fill="#b6c0c8"/></svg>
+          <svg width="24" height="12" viewBox="0 0 24 12" aria-hidden="true"><rect x="0" y="1" width="19" height="10" rx="2.5" fill="none" stroke="#1c2833" stroke-width="1.2"/><rect x="2" y="3" width="13" height="6" rx="1" fill="#1c2833"/><rect x="21" y="4" width="2.6" height="4" rx="1" fill="#1c2833"/></svg>
+        </span>
+      </div>
+
+      <header class="appbar">
+        <button class="back" id="backBtn" aria-label="返回" type="button">
+          <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="M11.5 3.5 6 9l5.5 5.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <div class="brand">
+          <span class="mark">航</span>
+          <span class="name">航途出行</span>
+        </div>
+        <span class="step-note" id="appTitle">搜索路线</span>
+      </header>
+
+      <div class="progress" aria-hidden="true">
+        <div class="step on" id="step-1"><span class="line"></span><span class="dot">1</span><span class="lbl">搜索</span></div>
+        <div class="step" id="step-2"><span class="line"></span><span class="dot">2</span><span class="lbl">选择</span></div>
+        <div class="step" id="step-3"><span class="line"></span><span class="dot">3</span><span class="lbl">确认</span></div>
+        <div class="step" id="step-4"><span class="line"></span><span class="dot">4</span><span class="lbl">凭证</span></div>
+      </div>
+
+      <div class="content">
+        <!-- 1 搜索 -->
+        <section class="screen active" id="screen-search">
+          <h1 class="h1">订一张机票</h1>
+          <p class="sub">搜索班次，选择座位，几秒拿到登机凭证。</p>
+          <div class="card">
+            <div class="field">
+              <label for="fromCity">出发城市</label>
+              <input class="in" id="fromCity" type="text" value="北京" placeholder="如：北京">
+            </div>
+            <div class="swap-wrap">
+              <button class="swap" id="swapBtn" type="button" aria-label="交换出发与到达">⇅</button>
+            </div>
+            <div class="field">
+              <label for="toCity">到达城市</label>
+              <input class="in" id="toCity" type="text" value="上海" placeholder="如：上海">
+            </div>
+            <div class="row2">
+              <div class="field">
+                <label for="datePick">出发日期</label>
+                <input class="in" id="datePick" type="date" value="2025-06-18">
+              </div>
+              <div class="field">
+                <label for="cabinPick">舱位</label>
+                <select class="in" id="cabinPick">
+                  <option>经济舱</option>
+                  <option>公务舱</option>
+                </select>
+              </div>
+            </div>
+            <div class="error-note" id="searchError">请填写出发与到达城市，且两地不能相同。</div>
+            <button class="btn" id="searchBtn" type="button" style="margin-top:14px">搜索班次</button>
+          </div>
+          <p class="hint" style="margin-top:14px">演示提示：任选班次进入座位图后，选择标有「需校验」的 07A 座位再确认出票，可体验售罄拦截与改选恢复。</p>
+        </section>
+
+        <!-- 2 班次 -->
+        <section class="screen" id="screen-flights">
+          <h1 class="h1">选择班次</h1>
+          <div class="route-chip" id="flightsRoute">北京 → 上海 · 06月18日</div>
+          <div class="flight" id="flightList" style="margin-top:14px"></div>
+        </section>
+
+        <!-- 3 座位 -->
+        <section class="screen" id="screen-seats">
+          <h1 class="h1">选择座位</h1>
+          <p class="sub" id="seatsFlight">MU5137 · 10:15 起飞 · 经济舱</p>
+          <div class="card">
+            <div class="seat-legend">
+              <span><i class="swatch free"></i>可选</span>
+              <span><i class="swatch check"></i>需实时校验</span>
+              <span><i class="swatch sold"></i>已售罄</span>
+              <span><i class="swatch sel"></i>已选</span>
+            </div>
+            <div class="seat-map" id="seatMap"></div>
+            <p class="seat-note">标 <b>「需校验」</b> 的座位在确认出票时会进行实时余票检查；已售罄座位不可选择。</p>
+          </div>
+          <div class="card" style="margin-top:12px">
+            <div class="sel-summary">
+              <span class="lbl">已选座位</span>
+              <span class="val" id="selSeat">未选择</span>
+            </div>
+            <div class="kv"><span class="k">票价（含机建燃油 ¥90）</span><span class="v strong" id="seatPrice">¥ 630</span></div>
+          </div>
+          <button class="btn" id="toConfirmBtn" type="button" style="margin-top:14px">确认订单</button>
+        </section>
+
+        <!-- 4 确认 -->
+        <section class="screen" id="screen-confirm">
+          <h1 class="h1">确认订单</h1>
+          <p class="sub">核对无误后出票，出票后不可免费退改。</p>
+          <div class="banner" id="soldoutBanner">
+            <div class="t">座位已售罄</div>
+            <div class="d" id="soldoutDetail">您选择的座位 07A 已售罄，请改选其他座位。路线条件已保留。</div>
+            <div class="acts">
+              <button class="btn ghost" id="reSeatBtn" type="button">改选座位</button>
+              <button class="btn ghost" id="reFlightBtn" type="button">改选班次</button>
+            </div>
+          </div>
+          <div class="card">
+            <div class="passenger">
+              <span class="ava">林</span>
+              <div class="who">
+                <div class="n">林晓</div>
+                <div class="i">身份证 1101**********1234</div>
+              </div>
+            </div>
+          </div>
+          <div class="card" style="margin-top:12px">
+            <div class="kv"><span class="k">路线</span><span class="v" id="cfRoute">北京 → 上海</span></div>
+            <div class="kv"><span class="k">班次</span><span class="v" id="cfFlight">MU5137 · 10:15</span></div>
+            <div class="kv"><span class="k">座位</span><span class="v" id="cfSeat">07B</span></div>
+            <div class="kv"><span class="k">日期</span><span class="v" id="cfDate">06月18日</span></div>
+            <div class="kv"><span class="k">应付金额</span><span class="v strong" id="cfPrice">¥ 630</span></div>
+          </div>
+          <button class="btn" id="issueBtn" type="button" style="margin-top:14px">确认并出票</button>
+          <button class="btn ghost" id="confirmBackBtn" type="button" style="margin-top:10px">返回改选</button>
+        </section>
+
+        <!-- 5 凭证 -->
+        <section class="screen" id="screen-voucher">
+          <div class="success-head">
+            <span class="tick">
+              <svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><path d="M4 12l4.5 4.5L18 6.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </span>
+            <div>
+              <div class="tt">出票成功</div>
+              <div class="ts">行程凭证已生成，请凭此值机登机。</div>
+            </div>
+          </div>
+          <div class="pass-card">
+            <div class="pass-head">
+              <span class="air">航途航空 AIRROUTE</span>
+              <span class="code" id="vcCode">MU5137</span>
+            </div>
+            <div class="pass-route">
+              <div class="ap"><div class="city" id="vcFrom">北京</div><div class="code3" id="vcFromCode">PEK</div></div>
+              <div class="fly"><span>2 小时 35 分</span><span class="l"></span><span>直飞</span></div>
+              <div class="ap"><div class="city" id="vcTo">上海</div><div class="code3" id="vcToCode">SHA</div></div>
+            </div>
+            <div class="pass-grid">
+              <div class="cell"><div class="k">乘机人</div><div class="v">林晓</div></div>
+              <div class="cell"><div class="k">座位号</div><div class="v" id="vcSeat">07B</div></div>
+              <div class="cell"><div class="k">起飞时间</div><div class="v" id="vcTime">10:15</div></div>
+              <div class="cell"><div class="k">登机口</div><div class="v" id="vcGate">C12</div></div>
+            </div>
+            <div class="pass-stub">
+              <div class="stub-info">
+                <div class="k">票号 · 订单</div>
+                <div class="v" id="vcTicket">NO. 882 041 593 · AT-2601</div>
+              </div>
+              <div class="barcode">
+                <svg width="72" height="34" viewBox="0 0 72 34" aria-hidden="true">
+                  <rect x="0" y="0" width="2" height="34" fill="#123c4a"/><rect x="4" y="0" width="1" height="34" fill="#123c4a"/><rect x="7" y="0" width="3" height="34" fill="#123c4a"/><rect x="12" y="0" width="1" height="34" fill="#123c4a"/><rect x="15" y="0" width="2" height="34" fill="#123c4a"/><rect x="19" y="0" width="3" height="34" fill="#123c4a"/><rect x="24" y="0" width="1" height="34" fill="#123c4a"/><rect x="27" y="0" width="2" height="34" fill="#123c4a"/><rect x="31" y="0" width="1" height="34" fill="#123c4a"/><rect x="34" y="0" width="3" height="34" fill="#123c4a"/><rect x="39" y="0" width="2" height="34" fill="#123c4a"/><rect x="43" y="0" width="1" height="34" fill="#123c4a"/><rect x="46" y="0" width="2" height="34" fill="#123c4a"/><rect x="50" y="0" width="3" height="34" fill="#123c4a"/><rect x="55" y="0" width="1" height="34" fill="#123c4a"/><rect x="58" y="0" width="2" height="34" fill="#123c4a"/><rect x="62" y="0" width="1" height="34" fill="#123c4a"/><rect x="65" y="0" width="3" height="34" fill="#123c4a"/><rect x="70" y="0" width="2" height="34" fill="#123c4a"/>
+                </svg>
+              </div>
+            </div>
+          </div>
+          <button class="btn" id="doneBtn" type="button" style="margin-top:16px">完成</button>
+          <button class="btn ghost" id="againBtn" type="button" style="margin-top:10px">再订一单</button>
+        </section>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function () {
+  "use strict";
+  var FLIGHTS = [
+    { code: "CA1832", model: "空客 A320", dep: "09:40", arr: "12:05", dur: "2 小时 25 分", price: 620, left: 8, tag: "" },
+    { code: "MU5137", model: "波音 737", dep: "10:15", arr: "12:50", dur: "2 小时 35 分", price: 540, left: 3, tag: "仅剩 3 席" },
+    { code: "CA1850", model: "空客 A321", dep: "11:30", arr: "14:00", dur: "2 小时 30 分", price: 580, left: 12, tag: "" }
+  ];
+  var SEATS = [
+    { id: "05A", s: "free" }, { id: "05B", s: "free" }, { id: "05C", s: "sold" }, { id: "05D", s: "free" },
+    { id: "06A", s: "free" }, { id: "06B", s: "sold" }, { id: "06C", s: "free" }, { id: "06D", s: "free" },
+    { id: "07A", s: "check" }, { id: "07B", s: "free" }, { id: "07C", s: "free" }, { id: "07D", s: "free" },
+    { id: "08A", s: "sold" }, { id: "08B", s: "free" }, { id: "08C", s: "free" }, { id: "08D", s: "sold" }
+  ];
+  var CHECK_SEAT = "07A";
+
+  var state = {
+    from: "北京", to: "上海", date: "2025-06-18",
+    flight: null, seat: null
+  };
+
+  var $ = function (id) { return document.getElementById(id); };
+  var toastTimer = null;
+  function toast(msg) {
+    var el = $("toast");
+    el.textContent = msg;
+    el.classList.add("show");
+    if (toastTimer) { clearTimeout(toastTimer); }
+    toastTimer = setTimeout(function () { el.classList.remove("show"); }, 2200);
+  }
+
+  function fmtDate(iso) {
+    var p = (iso || "").split("-");
+    if (p.length !== 3) { return "06月18日"; }
+    return p[1] + "月" + p[2] + "日";
+  }
+
+  function setStep(n) {
+    for (var i = 1; i <= 4; i++) {
+      var s = $("step-" + i);
+      s.classList.remove("on", "done");
+      if (i < n) { s.classList.add("done"); }
+      else if (i === n) { s.classList.add("on"); }
+    }
+  }
+
+  function show(id, step, title, back) {
+    var screens = document.querySelectorAll(".screen");
+    for (var i = 0; i < screens.length; i++) { screens[i].classList.remove("active"); }
+    var target = $(id);
+    target.classList.add("active");
+    target.scrollTop = 0;
+    setStep(step);
+    $("appTitle").textContent = title;
+    $("backBtn").style.visibility = back ? "visible" : "hidden";
+  }
+
+  /* 搜索 */
+  $("swapBtn").addEventListener("click", function () {
+    var a = $("fromCity").value;
+    $("fromCity").value = $("toCity").value;
+    $("toCity").value = a;
+  });
+
+  $("searchBtn").addEventListener("click", function () {
+    var from = $("fromCity").value.trim();
+    var to = $("toCity").value.trim();
+    var date = $("datePick").value || "2025-06-18";
+    if (!from || !to || from === to) {
+      $("searchError").style.display = "block";
+      return;
+    }
+    $("searchError").style.display = "none";
+    state.from = from; state.to = to; state.date = date;
+    $("flightsRoute").innerHTML = "<b>" + from + "</b> → <b>" + to + "</b> · " + fmtDate(date);
+    renderFlights();
+    show("screen-flights", 2, "选择班次", true);
+  });
+
+  function renderFlights() {
+    var wrap = $("flightList");
+    var html = "";
+    for (var i = 0; i < FLIGHTS.length; i++) {
+      var f = FLIGHTS[i];
+      var tag = f.tag ? "<span class=\"tag\">" + f.tag + "</span>" : "";
+      html += "<div class=\"card flight\">" +
+        "<div class=\"top\">" +
+          "<div class=\"times\">" +
+            "<div class=\"t\"><div class=\"hm\">" + f.dep + "</div><div class=\"cd\">" + state.from + "</div></div>" +
+            "<div class=\"arrow\">→</div>" +
+            "<div class=\"t\"><div class=\"hm\">" + f.arr + "</div><div class=\"cd\">" + state.to + "</div></div>" +
+          "</div>" +
+          "<div class=\"price\"><div class=\"p\"><small>¥</small>" + f.price + "</div></div>" +
+        "</div>" +
+        "<div class=\"dur\">" + f.dur + " · 直飞</div>" +
+        "<div class=\"meta\"><span>" + f.code + "</span><span>·</span><span>" + f.model + "</span><span>·</span><span>余 " + f.left + " 席</span>" + tag + "</div>" +
+        "<button class=\"btn pick\" data-code=\"" + f.code + "\" type=\"button\">选择</button>" +
+      "</div>";
+    }
+    wrap.innerHTML = html;
+    var picks = wrap.querySelectorAll(".pick");
+    for (var j = 0; j < picks.length; j++) {
+      picks[j].addEventListener("click", function (e) {
+        var code = e.currentTarget.getAttribute("data-code");
+        for (var k = 0; k < FLIGHTS.length; k++) {
+          if (FLIGHTS[k].code === code) { state.flight = FLIGHTS[k]; break; }
+        }
+        state.seat = null;
+        renderSeats();
+        $("seatsFlight").textContent = state.flight.code + " · " + state.flight.dep + " 起飞 · 经济舱";
+        $("seatPrice").textContent = "¥ " + (state.flight.price + 90);
+        $("selSeat").textContent = "未选择";
+        show("screen-seats", 2, "选择座位", true);
+      });
+    }
+  }
+
+  function renderSeats() {
+    var wrap = $("seatMap");
+    var html = "";
+    var row = 5;
+    for (var i = 0; i < SEATS.length; i += 4) {
+      html += "<div class=\"seat-row\"><span class=\"rowno\">" + (row++) + " 排</span>" +
+        "<div class=\"group\">" + seatBtn(SEATS[i]) + seatBtn(SEATS[i + 1]) + "</div>" +
+        "<span class=\"aisle\"></span>" +
+        "<div class=\"group\">" + seatBtn(SEATS[i + 2]) + seatBtn(SEATS[i + 3]) + "</div></div>";
+    }
+    wrap.innerHTML = html;
+    var btns = wrap.querySelectorAll(".seat-btn:not(.sold)");
+    for (var j = 0; j < btns.length; j++) {
+      btns[j].addEventListener("click", function (e) {
+        var seat = e.currentTarget.getAttribute("data-seat");
+        state.seat = seat;
+        var all = wrap.querySelectorAll(".seat-btn");
+        for (var m = 0; m < all.length; m++) { all[m].classList.remove("sel"); }
+        e.currentTarget.classList.add("sel");
+        $("selSeat").textContent = seat;
+      });
+    }
+  }
+
+  function seatBtn(s) {
+    var cls = "seat-btn";
+    if (s.s === "sold") { cls += " sold"; }
+    else if (s.s === "check") { cls += " check"; }
+    var mini = s.s === "check" ? "<span class=\"mini\">校验</span>" : "";
+    return "<button class=\"" + cls + "\" data-seat=\"" + s.id + "\" type=\"button\"" +
+      (s.s === "sold" ? " disabled" : "") + ">" + s.id + mini + "</button>";
+  }
+
+  /* 座位 -> 确认 */
+  $("toConfirmBtn").addEventListener("click", function () {
+    if (!state.seat) { toast("请先选择一个座位"); return; }
+    fillConfirm();
+    $("soldoutBanner").classList.remove("show");
+    $("issueBtn").disabled = false;
+    $("issueBtn").textContent = "确认并出票";
+    show("screen-confirm", 3, "确认订单", true);
+  });
+
+  function fillConfirm() {
+    $("cfRoute").textContent = state.from + " → " + state.to;
+    $("cfFlight").textContent = state.flight.code + " · " + state.flight.dep;
+    $("cfSeat").textContent = state.seat;
+    $("cfDate").textContent = fmtDate(state.date);
+    $("cfPrice").textContent = "¥ " + (state.flight.price + 90);
+  }
+
+  /* 出票：售罄检查 */
+  $("issueBtn").addEventListener("click", function () {
+    if (state.seat === CHECK_SEAT) {
+      $("soldoutDetail").textContent = "您选择的座位 " + CHECK_SEAT + " 已售罄，请改选其他座位。路线条件已保留：" + state.from + " → " + state.to + " · " + fmtDate(state.date) + " · " + state.flight.code + " " + state.flight.dep + "。";
+      $("soldoutBanner").classList.add("show");
+      $("issueBtn").disabled = true;
+      $("issueBtn").textContent = "无法出票";
+      return;
+    }
+    renderVoucher();
+    show("screen-voucher", 4, "行程凭证", false);
+  });
+
+  function renderVoucher() {
+    $("vcCode").textContent = state.flight.code;
+    $("vcFrom").textContent = state.from;
+    $("vcTo").textContent = state.to;
+    $("vcSeat").textContent = state.seat;
+    $("vcTime").textContent = state.flight.dep;
+    $("vcTicket").textContent = "NO. 882 041 593 · AT-2601";
+  }
+
+  /* 售罄恢复：改选 */
+  $("reSeatBtn").addEventListener("click", function () {
+    state.seat = null;
+    renderSeats();
+    $("selSeat").textContent = "未选择";
+    show("screen-seats", 2, "选择座位", true);
+  });
+  $("reFlightBtn").addEventListener("click", function () {
+    state.seat = null;
+    show("screen-flights", 2, "选择班次", true);
+  });
+  $("confirmBackBtn").addEventListener("click", function () {
+    state.seat = null;
+    renderSeats();
+    $("selSeat").textContent = "未选择";
+    show("screen-seats", 2, "选择座位", true);
+  });
+
+  /* 返回按钮 */
+  $("backBtn").addEventListener("click", function () {
+    var act = document.querySelector(".screen.active");
+    if (act.id === "screen-flights") { show("screen-search", 1, "搜索路线", false); }
+    else if (act.id === "screen-seats") { show("screen-flights", 2, "选择班次", true); }
+    else if (act.id === "screen-confirm") { state.seat = null; renderSeats(); $("selSeat").textContent = "未选择"; show("screen-seats", 2, "选择座位", true); }
+  });
+
+  /* 完成 / 再订 */
+  $("doneBtn").addEventListener("click", function () { show("screen-search", 1, "搜索路线", false); });
+  $("againBtn").addEventListener("click", function () {
+    state.flight = null; state.seat = null;
+    show("screen-search", 1, "搜索路线", false);
+  });
+
+  renderFlights();
+})();
+</script>
+</body>
+</html>

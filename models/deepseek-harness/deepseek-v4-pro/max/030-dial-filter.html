@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>检测中心 · 设备筛选</title>
+<style>
+  :root{
+    --panel:#23272e;
+    --panel-mid:#3a4148;
+    --panel-soft:#eceff3;
+    --page:#e6e9ee;
+    --orange:#ff7a1a;
+    --orange-dark:#e06500;
+    --ink:#1f2429;
+    --blue:#2f6fb0;
+    --green:#2f8f4e;
+    --red:#c43a2e;
+    --white:#ffffff;
+    --line:#c3c9d1;
+    --muted:#6a727b;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:-apple-system,"Segoe UI","Microsoft YaHei","PingFang SC","Helvetica Neue",sans-serif;
+    background:var(--page);color:var(--ink);font-size:14px;line-height:1.5;min-height:100vh;
+  }
+  .topbar{
+    background:var(--panel);color:#fff;height:60px;padding:0 28px;display:flex;align-items:center;gap:12px;
+    box-shadow:0 2px 6px rgba(0,0,0,.16);
+  }
+  .topbar .dot{width:12px;height:12px;border-radius:50%;background:var(--orange);box-shadow:0 0 0 4px rgba(255,122,26,.25)}
+  .topbar h1{font-size:17px;font-weight:600;letter-spacing:.5px}
+  .topbar .sub{font-size:12px;color:#9aa3ad;margin-left:4px}
+  .wrap{display:grid;grid-template-columns:300px 1fr;gap:20px;max-width:1240px;margin:22px auto;padding:0 24px;align-items:start}
+  .panel{background:var(--white);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  .panel-head{background:var(--panel);color:#fff;padding:13px 16px;display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600}
+  .panel-head::before{content:"";width:4px;height:16px;background:var(--orange);border-radius:2px}
+  .filter-body{padding:16px}
+  .fgroup{margin-bottom:18px}
+  .fgroup:last-child{margin-bottom:0}
+  .fgroup label.gt{display:block;font-size:13px;font-weight:600;color:var(--ink);margin-bottom:8px}
+  .seg{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+  .seg button{
+    border:1px solid var(--line);background:var(--panel-soft);color:var(--muted);border-radius:6px;
+    padding:7px 0;font-size:12px;cursor:pointer;font-family:inherit;transition:all .14s ease;
+  }
+  .seg button.active{background:var(--panel);color:#fff;border-color:var(--panel)}
+  .dial-wrap{display:flex;align-items:center;gap:14px}
+  .dial-wrap svg{flex:0 0 auto}
+  .dial-val{font-size:22px;font-weight:700;color:var(--orange-dark)}
+  .dial-val small{font-size:12px;color:var(--muted);font-weight:400}
+  input[type=range]{width:100%;accent-color:var(--orange);cursor:pointer}
+  .checks{display:flex;flex-direction:column;gap:7px}
+  .checks label{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink);cursor:pointer}
+  .checks input{accent-color:var(--orange);width:15px;height:15px}
+  .textin{width:100%;padding:8px 11px;border:1px solid var(--line);border-radius:6px;font-size:13px;font-family:inherit}
+  .textin:focus{outline:none;border-color:var(--orange);box-shadow:0 0 0 3px rgba(255,122,26,.15)}
+  select.textin{cursor:pointer;background:var(--white)}
+  .panel-actions{display:flex;gap:10px;padding:0 16px 16px}
+  .btn{border:none;border-radius:7px;padding:9px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:background .14s ease}
+  .btn-clear{background:var(--panel);color:#fff;flex:1}
+  .btn-clear:hover{background:var(--panel-mid)}
+  .results{min-width:0}
+  .result-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding:0 2px}
+  .result-head .cnt{font-size:14px;color:var(--muted)}
+  .result-head .cnt b{color:var(--orange-dark);font-size:20px}
+  .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+  .dev{background:var(--white);border:1px solid var(--line);border-radius:9px;padding:13px 14px;position:relative;transition:box-shadow .15s ease}
+  .dev:hover{box-shadow:0 4px 14px rgba(31,36,41,.1)}
+  .dev .top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+  .dev .no{font-size:12px;color:var(--muted);letter-spacing:.4px}
+  .dev .model{font-size:15px;font-weight:600;margin-bottom:9px}
+  .badge{font-size:11px;font-weight:700;padding:2px 9px;border-radius:999px;color:#fff}
+  .badge.run{background:var(--green)}
+  .badge.wait{background:var(--blue)}
+  .badge.alarm{background:var(--red)}
+  .dev .specs{display:flex;gap:14px;font-size:12px;color:var(--muted)}
+  .dev .specs span b{color:var(--ink);font-weight:600}
+  .empty{display:none;text-align:center;color:var(--muted);padding:60px 0;font-size:14px}
+  .empty.show{display:block}
+  @media (max-width:768px){
+    .wrap{grid-template-columns:1fr;padding:0 16px}
+    .grid{grid-template-columns:1fr}
+    .topbar{padding:0 16px}
+  }
+  @media (prefers-reduced-motion: reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <span class="dot"></span>
+    <h1>检测中心 · 设备筛选</h1><span class="sub">计量台账 / 仪表筛选</span>
+  </header>
+
+  <div class="wrap">
+    <aside class="panel">
+      <div class="panel-head">筛选条件</div>
+      <div class="filter-body">
+        <div class="fgroup">
+          <label class="gt">设备状态</label>
+          <div class="seg" id="statusSeg">
+            <button type="button" data-v="all" class="active">全部</button>
+            <button type="button" data-v="run">运行中</button>
+            <button type="button" data-v="wait">待检测</button>
+            <button type="button" data-v="alarm">告警</button>
+          </div>
+        </div>
+        <div class="fgroup">
+          <label class="gt">量程上限（≤）</label>
+          <div class="dial-wrap">
+            <svg width="120" height="88" viewBox="0 0 160 100" aria-label="量程刻度盘">
+              <path d="M20 80 A60 60 0 0 1 140 80" fill="none" stroke="#3a4148" stroke-width="10" stroke-linecap="round"></path>
+              <g id="ticks"></g>
+              <line id="needle" x1="80" y1="80" x2="80" y2="34" stroke="#ff7a1a" stroke-width="3" stroke-linecap="round"></line>
+              <circle cx="80" cy="80" r="6" fill="#ff7a1a"></circle>
+              <circle cx="80" cy="80" r="2.5" fill="#23272e"></circle>
+            </svg>
+            <div class="dial-val"><span id="rangeVal">100</span><small>%</small></div>
+          </div>
+          <input type="range" id="rangeIn" min="0" max="100" value="100" aria-label="量程上限">
+        </div>
+        <div class="fgroup">
+          <label class="gt">精度等级</label>
+          <div class="checks" id="precChecks">
+            <label><input type="checkbox" value="0.1">0.1 级</label>
+            <label><input type="checkbox" value="0.2">0.2 级</label>
+            <label><input type="checkbox" value="0.5">0.5 级</label>
+          </div>
+        </div>
+        <div class="fgroup">
+          <label class="gt">关键字</label>
+          <input type="text" class="textin" id="kw" placeholder="按编号或型号检索，如 GY-1023">
+        </div>
+        <div class="fgroup">
+          <label class="gt">检测日期</label>
+          <select class="textin" id="dateSel">
+            <option value="all">全部时间</option>
+            <option value="7">近 7 天</option>
+            <option value="30">近 30 天</option>
+          </select>
+        </div>
+      </div>
+      <div class="panel-actions"><button class="btn btn-clear" id="clearBtn" type="button">清除全部筛选</button></div>
+    </aside>
+
+    <main class="results">
+      <div class="result-head">
+        <div class="cnt">符合条件：<b id="count">0</b> 台</div>
+        <div style="font-size:12px;color:var(--muted)">共 <span id="total">0</span> 台设备</div>
+      </div>
+      <div class="grid" id="grid"></div>
+      <div class="empty" id="empty">没有符合条件的设备，请放宽筛选条件。</div>
+    </main>
+  </div>
+
+<script>
+  var devices=[
+    {no:'GY-1023',model:'压力表',prec:'0.2',range:60,status:'run',days:3},
+    {no:'GY-1108',model:'温度计',prec:'0.1',range:40,status:'wait',days:1},
+    {no:'GY-0875',model:'流量计',prec:'0.5',range:90,status:'alarm',days:6},
+    {no:'GY-2041',model:'液位计',prec:'0.2',range:75,status:'run',days:2},
+    {no:'GY-1366',model:'转速表',prec:'0.1',range:100,status:'wait',days:12},
+    {no:'GY-1552',model:'温湿度计',prec:'0.5',range:55,status:'run',days:20},
+    {no:'GY-0904',model:'气压表',prec:'0.2',range:30,status:'alarm',days:5},
+    {no:'GY-2217',model:'电压表',prec:'0.1',range:80,status:'wait',days:9}
+  ];
+  var statusTxt={run:'运行中',wait:'待检测',alarm:'告警'};
+  function $(id){return document.getElementById(id);}
+  /* 生成刻度盘刻度与标签 */
+  (function(){
+    var g=$('ticks'),html='';
+    var labels=[['0',20,80],['25',41,46],['50',80,36],['75',119,46],['100',140,80]];
+    var ticks=[['-90',20,80,28,80],['-45',37.6,37.6,43.2,43.2],['0',80,20,80,28],['45',122.4,37.6,116.8,43.2],['90',140,80,132,80]];
+    ticks.forEach(function(t){html+='<line x1="'+t[1]+'" y1="'+t[2]+'" x2="'+t[3]+'" y2="'+t[4]+'" stroke="#eceff3" stroke-width="2"></line>';});
+    labels.forEach(function(l){html+='<text x="'+l[1]+'" y="'+l[2]+'" font-size="9" fill="#6a727b" text-anchor="middle">'+l[0]+'</text>';});
+    g.innerHTML=html;
+  })();
+  function angleOf(v){return (v/100*180)-90;}
+  function setNeedle(v){$('needle').setAttribute('transform','rotate('+angleOf(v)+' 80 80)');$('rangeVal').textContent=v;}
+  function readFilters(){
+    var status=document.querySelector('#statusSeg .active').getAttribute('data-v');
+    var range=parseInt($('rangeIn').value,10);
+    var precs=[];document.querySelectorAll('#precChecks input:checked').forEach(function(c){precs.push(c.value);});
+    var kw=($('kw').value||'').trim().toLowerCase();
+    var date=$('dateSel').value;
+    return {status:status,range:range,precs:precs,kw:kw,date:date};
+  }
+  function render(){
+    var f=readFilters();
+    var list=devices.filter(function(d){
+      if(f.status!=='all' && d.status!==f.status)return false;
+      if(d.range>f.range)return false;
+      if(f.precs.length && f.precs.indexOf(d.prec)<0)return false;
+      if(f.kw && (d.no.toLowerCase().indexOf(f.kw)<0 && d.model.indexOf(f.kw)<0))return false;
+      if(f.date!=='all' && d.days>parseInt(f.date,10))return false;
+      return true;
+    });
+    var g=$('grid');g.innerHTML='';
+    list.forEach(function(d){
+      var el=document.createElement('div');el.className='dev';
+      el.innerHTML='<div class="top"><span class="no">'+d.no+'</span><span class="badge '+d.status+'">'+statusTxt[d.status]+'</span></div>'+
+        '<div class="model">'+d.model+'</div>'+
+        '<div class="specs"><span>精度 <b>'+d.prec+' 级</b></span><span>量程 <b>'+d.range+'%</b></span><span>检测 <b>'+d.days+' 天前</b></span></div>';
+      g.appendChild(el);
+    });
+    $('count').textContent=list.length;
+    $('total').textContent=devices.length;
+    $('empty').classList.toggle('show',list.length===0);
+  }
+  document.querySelectorAll('#statusSeg button').forEach(function(b){
+    b.addEventListener('click',function(){
+      document.querySelectorAll('#statusSeg button').forEach(function(x){x.classList.remove('active');});
+      b.classList.add('active');render();
+    });
+  });
+  $('rangeIn').addEventListener('input',function(){setNeedle(this.value);render();});
+  document.querySelectorAll('#precChecks input').forEach(function(c){c.addEventListener('change',render);});
+  $('kw').addEventListener('input',render);
+  $('dateSel').addEventListener('change',render);
+  $('clearBtn').addEventListener('click',function(){
+    document.querySelectorAll('#statusSeg button').forEach(function(x){x.classList.toggle('active',x.getAttribute('data-v')==='all');});
+    $('rangeIn').value=100;setNeedle(100);
+    document.querySelectorAll('#precChecks input').forEach(function(c){c.checked=false;});
+    $('kw').value='';
+    $('dateSel').value='all';
+    render();
+  });
+  setNeedle(100);
+  render();
+</script>
+</body>
+</html>

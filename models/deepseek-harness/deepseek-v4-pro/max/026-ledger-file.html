@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>账单与订阅 · 账房</title>
+<style>
+:root{
+  --bg:#0d2a23;
+  --panel:#11352c;
+  --panel-2:#143c32;
+  --line:#2c5a4c;
+  --text:#eaf2ee;
+  --muted:#9db8ae;
+  --accent:#46a37c;
+  --gold:#d9a441;
+  --danger:#cf6b5a;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:-apple-system,"Segoe UI","Microsoft YaHei","PingFang SC","Helvetica Neue",sans-serif;
+  background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1120px;margin:0 auto;padding:28px 32px 60px}
+
+/* 顶栏 */
+.top{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px}
+.top h1{font-size:22px;font-weight:650;letter-spacing:.3px}
+.top .ledger{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:13px}
+.ledger .seal{width:34px;height:34px;border-radius:8px;border:2px solid var(--gold);color:var(--gold);display:grid;place-items:center;font-weight:700;font-size:14px}
+.crumb{color:var(--muted);font-size:12.5px;margin-bottom:6px}
+
+/* 当前方案 */
+.plan{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px 20px;display:flex;align-items:center;gap:20px;margin-bottom:16px}
+.plan .tier{flex:1;min-width:0}
+.plan .tier .tag{display:inline-block;font-size:11px;letter-spacing:.6px;color:var(--gold);border:1px solid var(--gold);border-radius:4px;padding:1px 7px;margin-bottom:8px;text-transform:uppercase}
+.plan .tier h2{font-size:19px;font-weight:650}
+.plan .tier .meta{color:var(--muted);font-size:13px;margin-top:4px}
+.plan .price{text-align:right;flex:none}
+.plan .price .amt{font-size:26px;font-weight:700;color:var(--gold);font-variant-numeric:tabular-nums}
+.plan .price .per{color:var(--muted);font-size:12.5px}
+.pay{display:flex;align-items:center;gap:10px;background:var(--panel-2);border:1px solid var(--line);border-radius:8px;padding:10px 14px;flex:none}
+.pay .chip{width:40px;height:26px;border-radius:4px;background:linear-gradient(135deg,#e8eef0,#9db8ae);position:relative}
+.pay .chip::after{content:'V';position:absolute;bottom:2px;right:3px;font-size:8px;color:#143c32;font-weight:700}
+.pay .ptxt b{display:block;font-size:13px;font-weight:600}
+.pay .ptxt span{color:var(--muted);font-size:12px}
+.btn{border:1px solid var(--accent);background:transparent;color:var(--accent);padding:8px 14px;border-radius:8px;font-size:13px;cursor:pointer;font-family:inherit}
+.btn:hover{background:rgba(70,163,124,.14)}
+.btn.solid{background:var(--accent);color:#0d2a23;border-color:var(--accent);font-weight:600}
+.btn.solid:hover{background:#5ab58e}
+.btn.ghost{border-color:var(--line);color:var(--muted)}
+.btn.ghost:hover{color:var(--text)}
+
+/* 统计条 */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 18px}
+.stat .k{color:var(--muted);font-size:12px;letter-spacing:.3px}
+.stat .v{font-size:20px;font-weight:700;font-variant-numeric:tabular-nums;margin-top:4px}
+.stat .v small{font-size:13px;color:var(--muted);font-weight:500}
+
+/* 表格 */
+.table-card{background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.table-head{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:2px solid var(--gold)}
+.table-head h3{font-size:15px;font-weight:650}
+.table-head .cnt{color:var(--muted);font-size:12.5px}
+table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+th,td{padding:11px 18px;text-align:left;font-size:13px;border-bottom:1px solid var(--line)}
+th{color:var(--muted);font-weight:600;font-size:12px;letter-spacing:.4px;text-transform:uppercase;background:var(--panel-2)}
+td.num,th.num{text-align:right}
+td.amt{text-align:right;font-weight:650;color:var(--text)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(70,163,124,.08)}
+.status{font-size:12px;padding:2px 8px;border-radius:999px}
+.status.paid{color:var(--accent);border:1px solid var(--accent)}
+.status.pending{color:var(--gold);border:1px solid var(--gold)}
+.status.fail{color:var(--danger);border:1px solid var(--danger)}
+.link{background:none;border:none;color:var(--gold);font-size:12.5px;cursor:pointer;font-family:inherit;padding:0;text-decoration:underline;text-underline-offset:3px}
+.link:hover{color:#e9c06a}
+.link.done{color:var(--muted);text-decoration:none;cursor:default}
+
+/* 弹层 */
+.mask{position:fixed;inset:0;background:rgba(5,16,13,.6);display:none;align-items:center;justify-content:center;z-index:20}
+.mask.show{display:flex}
+.modal{background:var(--panel);border:1px solid var(--line);border-radius:12px;width:420px;max-width:calc(100vw - 32px);padding:22px}
+.modal h3{font-size:17px;font-weight:650;margin-bottom:4px}
+.modal .sub{color:var(--muted);font-size:13px;margin-bottom:16px}
+.method{display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid var(--line);border-radius:8px;margin-bottom:10px;cursor:pointer}
+.method:hover{border-color:var(--accent)}
+.method.sel{border-color:var(--accent);background:rgba(70,163,124,.1)}
+.method .mark{width:18px;height:18px;border-radius:50%;border:2px solid var(--muted);flex:none;position:relative}
+.method.sel .mark{border-color:var(--accent)}
+.method.sel .mark::after{content:'';position:absolute;inset:3px;border-radius:50%;background:var(--accent)}
+.method b{display:block;font-size:14px;font-weight:600}
+.method span{color:var(--muted);font-size:12.5px}
+.modal .actions{display:flex;gap:10px;justify-content:flex-end;margin-top:16px}
+
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--gold);color:#0d2a23;padding:10px 18px;border-radius:8px;font-size:13px;font-weight:600;opacity:0;pointer-events:none;transition:opacity .2s ease,transform .2s ease;z-index:30}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+@media (max-width:768px){
+  .wrap{padding:18px 14px 40px}
+  .plan{flex-wrap:wrap}
+  .stats{grid-template-columns:1fr}
+  .table-card{overflow-x:auto}
+}
+@media (prefers-reduced-motion: reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div>
+      <div class="crumb">设置 / 账单与订阅</div>
+      <h1>账单与订阅</h1>
+    </div>
+    <div class="ledger"><span class="seal">账</span>账房 · 墨绿记簿</div>
+  </div>
+
+  <!-- 当前方案 -->
+  <div class="plan">
+    <div class="tier">
+      <span class="tag">当前方案</span>
+      <h2>团队版 · 年度</h2>
+      <div class="meta">12 个席位已用 9 个 · 下次续费 2025-05-18 · 可开发票</div>
+    </div>
+    <div class="pay">
+      <div class="chip"></div>
+      <div class="ptxt"><b>Visa · 尾号 4821</b><span>到期 2027/09</span></div>
+      <button class="btn ghost" id="changePay">更换支付方式</button>
+    </div>
+    <div class="price">
+      <div class="amt">¥1,188</div>
+      <div class="per">/ 年 · 含税</div>
+    </div>
+  </div>
+
+  <!-- 统计 -->
+  <div class="stats">
+    <div class="stat"><div class="k">本期账单</div><div class="v">¥1,188</div></div>
+    <div class="stat"><div class="k">本月累计支出</div><div class="v">¥2,430<small> · 3 笔</small></div></div>
+    <div class="stat"><div class="k">待开票金额</div><div class="v">¥596</div></div>
+  </div>
+
+  <!-- 账目表 -->
+  <div class="table-card">
+    <div class="table-head">
+      <h3>账目明细</h3>
+      <span class="cnt">共 6 笔记录</span>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>日期</th><th>发票号</th><th>项目</th><th class="num">金额</th><th>状态</th><th class="num">操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>2025-04-01</td><td>INV-250401-01</td><td>团队版年费 · 续费</td><td class="amt">¥1,188.00</td><td><span class="status paid">已支付</span></td><td class="num"><button class="link" data-row="1">下载发票</button></td>
+        </tr>
+        <tr>
+          <td>2025-03-12</td><td>INV-250312-07</td><td>扩容席位 ×4</td><td class="amt">¥760.00</td><td><span class="status paid">已支付</span></td><td class="num"><button class="link" data-row="2">下载发票</button></td>
+        </tr>
+        <tr>
+          <td>2025-02-20</td><td>INV-250220-03</td><td>存储扩容 200GB</td><td class="amt">¥298.00</td><td><span class="status paid">已支付</span></td><td class="num"><button class="link" data-row="3">下载发票</button></td>
+        </tr>
+        <tr>
+          <td>2025-01-08</td><td>INV-250108-12</td><td>自动化用量溢出</td><td class="amt">¥184.00</td><td><span class="status pending">待支付</span></td><td class="num"><button class="link" data-row="4">下载账单</button></td>
+        </tr>
+        <tr>
+          <td>2024-12-05</td><td>INV-241205-09</td><td>团队版年费 · 续费</td><td class="amt">¥1,188.00</td><td><span class="status paid">已支付</span></td><td class="num"><button class="link" data-row="5">下载发票</button></td>
+        </tr>
+        <tr>
+          <td>2024-11-16</td><td>INV-241116-02</td><td>API 调用超额补扣</td><td class="amt">¥96.00</td><td><span class="status fail">失败</span></td><td class="num"><button class="link" data-row="6">重试支付</button></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- 更换支付方式弹层 -->
+<div class="mask" id="mask">
+  <div class="modal">
+    <h3>更换支付方式</h3>
+    <div class="sub">选择用于后续扣款的支付方式，旧卡不会被立即删除。</div>
+    <div class="method" data-card="Visa · 尾号 4821">
+      <span class="mark"></span><div><b>Visa · 尾号 4821</b><span>到期 2027/09 · 当前使用</span></div>
+    </div>
+    <div class="method" data-card="Mastercard · 尾号 7750">
+      <span class="mark"></span><div><b>Mastercard · 尾号 7750</b><span>到期 2026/03</span></div>
+    </div>
+    <div class="method" data-card="企业转账 · 尾号 9031">
+      <span class="mark"></span><div><b>对公账户 · 尾号 9031</b><span>开户行 上海浦东发展银行</span></div>
+    </div>
+    <div class="actions">
+      <button class="btn ghost" id="cancelPay">取消</button>
+      <button class="btn solid" id="confirmPay">确认更换</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+var toastEl = document.getElementById('toast');
+var toastTimer = null;
+function showToast(msg){
+  toastEl.textContent = msg;
+  toastEl.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function(){ toastEl.classList.remove('show'); }, 2200);
+}
+
+/* 下载发票 / 账单 */
+document.querySelectorAll('.link').forEach(function(b){
+  b.addEventListener('click', function(){
+    var row = this.closest('tr');
+    var status = row.querySelector('.status');
+    var label = this.textContent;
+    if (label === '下载发票') {
+      this.textContent = '已下载';
+      this.classList.add('done');
+      showToast('发票已生成，保存到「下载」文件夹');
+    } else if (label === '下载账单') {
+      this.textContent = '已下载';
+      this.classList.add('done');
+      showToast('对账单已导出');
+    } else if (label === '重试支付') {
+      status.textContent = '已支付';
+      status.className = 'status paid';
+      this.textContent = '下载发票';
+      showToast('支付成功，¥96.00 已扣款');
+    }
+  });
+});
+
+/* 更换支付方式 */
+var mask = document.getElementById('mask');
+var methods = document.querySelectorAll('.method');
+var selected = 'Visa · 尾号 4821';
+document.getElementById('changePay').addEventListener('click', function(){
+  mask.classList.add('show');
+  methods.forEach(function(m){ m.classList.toggle('sel', m.getAttribute('data-card') === selected); });
+});
+document.getElementById('cancelPay').addEventListener('click', function(){ mask.classList.remove('show'); });
+methods.forEach(function(m){
+  m.addEventListener('click', function(){
+    methods.forEach(function(x){ x.classList.remove('sel'); });
+    this.classList.add('sel');
+    selected = this.getAttribute('data-card');
+  });
+});
+document.getElementById('confirmPay').addEventListener('click', function(){
+  mask.classList.remove('show');
+  var ptxt = document.querySelector('.pay .ptxt');
+  var cardName = selected.split(' · ')[0];
+  var cardTail = selected.match(/尾号\s*(\d+)/) ? selected.match(/尾号\s*(\d+)/)[1] : '0000';
+  ptxt.innerHTML = '<b>' + cardName + ' · 尾号 ' + cardTail + '</b><span>已设为默认扣款</span>';
+  showToast('支付方式已更新');
+});
+</script>
+</body>
+</html>

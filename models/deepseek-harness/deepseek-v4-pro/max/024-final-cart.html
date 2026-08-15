@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>环球免税 · 结账</title>
+<style>
+  :root{
+    --navy:#0e1b33;
+    --card:#16284a;
+    --line:#2c3d5f;
+    --gold:#d4af5e;
+    --gold-lite:#e8cd8a;
+    --ink:#f2ead6;
+    --muted:#9aa7c0;
+    --ok:#5fc98b;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:-apple-system,"Segoe UI","Microsoft YaHei","PingFang SC","Helvetica Neue",sans-serif;
+    background:var(--navy);
+    color:var(--ink);
+    line-height:1.6;
+  }
+  button{font-family:inherit;cursor:pointer}
+  .num{font-variant-numeric:tabular-nums}
+
+  .topbar{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:18px 56px;border-bottom:1px solid var(--line);
+  }
+  .brand{font-size:15px;letter-spacing:.14em;font-weight:600}
+  .brand b{color:var(--gold)}
+  .taxfree{
+    font-size:11px;letter-spacing:.18em;color:var(--gold);
+    border:1px solid var(--gold);padding:5px 12px;border-radius:2px;
+  }
+
+  .layout{
+    max-width:1120px;margin:0 auto;padding:40px 40px 80px;
+    display:grid;grid-template-columns:1.25fr 1fr;gap:36px;align-items:start;
+  }
+
+  .panel{
+    background:var(--card);border:1px solid var(--line);border-radius:4px;
+  }
+  .panel h2{
+    font-size:16px;font-weight:600;letter-spacing:.08em;
+    padding:20px 26px;border-bottom:1px solid var(--line);
+  }
+  .panel h2 span{color:var(--muted);font-weight:400;font-size:13px;margin-left:10px}
+
+  .summary{padding:8px 26px}
+  .receipt-head{
+    display:flex;justify-content:space-between;font-size:12px;color:var(--muted);
+    padding:10px 0 14px;letter-spacing:.06em;
+  }
+  .items{border-top:2px dashed var(--line);border-bottom:2px dashed var(--line)}
+  .item{
+    display:grid;grid-template-columns:1fr auto;gap:6px 18px;
+    padding:15px 0;border-bottom:1px solid var(--line);
+  }
+  .item:last-child{border-bottom:none}
+  .item .name{font-size:14px}
+  .item .spec{font-size:12px;color:var(--muted);margin-top:2px}
+  .item .price{font-size:14px;text-align:right}
+  .totals{padding:18px 0 6px}
+  .trow{display:flex;justify-content:space-between;font-size:13px;color:var(--muted);padding:7px 0}
+  .trow .discount{color:var(--gold)}
+  .grand{
+    display:flex;justify-content:space-between;align-items:baseline;
+    margin-top:14px;padding:16px 0 4px;border-top:2px dashed var(--line);
+  }
+  .grand .l{font-size:14px;color:var(--muted)}
+  .grand .amount{font-size:34px;font-weight:700;color:var(--gold)}
+  .grand .amount small{font-size:16px;font-weight:400;margin-right:4px}
+
+  .pay-body{padding:22px 26px 28px}
+  .pay-group{margin-bottom:8px}
+  .pm{
+    display:flex;align-items:center;gap:14px;width:100%;
+    background:transparent;border:1px solid var(--line);border-radius:4px;
+    padding:14px 16px;color:var(--ink);text-align:left;margin-bottom:10px;
+    transition:border-color .2s,background .2s;
+  }
+  .pm:hover{border-color:var(--gold)}
+  .pm.selected{border-color:var(--gold);background:rgba(212,175,94,.08)}
+  .pm .ic{
+    width:36px;height:36px;border-radius:50%;flex:0 0 auto;
+    display:flex;align-items:center;justify-content:center;
+    font-size:16px;font-weight:600;background:var(--line);color:var(--ink);
+  }
+  .pm.selected .ic{background:var(--gold);color:var(--navy)}
+  .pm .ttl{font-size:14px;font-weight:500}
+  .pm .desc{font-size:12px;color:var(--muted);margin-top:1px}
+  .pm .radio{margin-left:auto;width:18px;height:18px;border-radius:50%;border:2px solid var(--line);flex:0 0 auto}
+  .pm.selected .radio{border-color:var(--gold);box-shadow:inset 0 0 0 4px var(--navy),inset 0 0 0 9px var(--gold)}
+
+  .confirm{
+    width:100%;padding:17px 26px;margin-top:14px;
+    background:var(--gold);color:var(--navy);border:1px solid var(--gold);border-radius:4px;
+    font-size:15px;font-weight:600;letter-spacing:.12em;
+    display:flex;align-items:center;justify-content:center;gap:10px;
+    transition:background .2s;
+  }
+  .confirm:hover{background:var(--gold-lite);border-color:var(--gold-lite)}
+  .confirm:disabled{background:var(--line);border-color:var(--line);color:var(--muted);cursor:default}
+  .spinner{
+    width:16px;height:16px;border-radius:50%;flex:0 0 auto;
+    border:2px solid rgba(14,27,51,.35);border-top-color:var(--navy);
+    animation:spin .8s linear infinite;
+  }
+  .secure{font-size:12px;color:var(--muted);text-align:center;margin-top:16px;letter-spacing:.04em}
+
+  .overlay{
+    position:fixed;inset:0;background:rgba(5,10,20,.82);
+    display:none;align-items:center;justify-content:center;z-index:60;padding:30px;
+  }
+  .overlay.open{display:flex}
+  .receipt{
+    background:var(--card);border:1px solid var(--gold);border-radius:4px;
+    max-width:460px;width:100%;padding:0;position:relative;
+  }
+  .receipt .top{
+    padding:26px 30px 22px;text-align:center;border-bottom:2px dashed var(--line);
+  }
+  .receipt .check{
+    width:56px;height:56px;border-radius:50%;background:var(--ok);color:var(--navy);
+    display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:700;
+    margin:0 auto 14px;
+  }
+  .receipt h3{font-size:20px;font-weight:600;letter-spacing:.06em}
+  .receipt .note{font-size:13px;color:var(--muted);margin-top:6px}
+  .receipt .body{padding:18px 30px 24px}
+  .rc-row{display:flex;justify-content:space-between;font-size:13px;padding:8px 0;color:var(--muted)}
+  .rc-row b{color:var(--ink);font-weight:500}
+  .rc-total{
+    display:flex;justify-content:space-between;align-items:baseline;
+    border-top:2px dashed var(--line);margin-top:12px;padding-top:16px;
+  }
+  .rc-total .amount{font-size:30px;font-weight:700;color:var(--gold)}
+  .receipt .done{
+    width:100%;padding:15px 26px;background:var(--gold);color:var(--navy);
+    border:1px solid var(--gold);border-radius:0 0 4px 4px;font-size:15px;font-weight:600;letter-spacing:.12em;
+  }
+  .receipt .done:hover{background:var(--gold-lite);border-color:var(--gold-lite)}
+
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  @media (max-width:768px){
+    .topbar{padding:14px 20px}
+    .layout{grid-template-columns:1fr;padding:24px 20px 60px;gap:24px}
+    .grand .amount{font-size:28px}
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *,*::before,*::after{animation:none!important;transition:none!important}
+  }
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">GLOBAL<b>·</b>DUTY FREE 环球免税</div>
+    <span class="taxfree">TAX FREE · 免税</span>
+  </header>
+
+  <main class="layout">
+    <section class="panel">
+      <h2>订单摘要<span>共 4 件商品</span></h2>
+      <div class="summary">
+        <div class="receipt-head">
+          <span>订单号 DF-20250611-0842</span>
+          <span>提货点：T2 出发层 12 号柜台</span>
+        </div>
+        <div class="items">
+          <div class="item">
+            <div><div class="name">香奈儿 蔚蓝淡香精 50ml</div><div class="spec">美妆 · ×1</div></div>
+            <div class="price num">¥1,180.00</div>
+          </div>
+          <div class="item">
+            <div><div class="name">麦卡伦 12 年单一麦芽威士忌</div><div class="spec">酒类 · ×2</div></div>
+            <div class="price num">¥3,120.00</div>
+          </div>
+          <div class="item">
+            <div><div class="name">海蓝之谜 精华面霜 60ml</div><div class="spec">美妆 · ×1</div></div>
+            <div class="price num">¥1,546.00</div>
+          </div>
+        </div>
+        <div class="totals">
+          <div class="trow"><span>商品小计</span><span class="num">¥5,846.00</span></div>
+          <div class="trow"><span>免税优惠</span><span class="discount num">−¥1,560.00</span></div>
+          <div class="trow"><span>提货配送</span><span class="num">免费</span></div>
+          <div class="grand">
+            <span class="l">应付合计</span>
+            <span class="amount num"><small>¥</small>4,286.00</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>支付方式<span>请选择一种</span></h2>
+      <div class="pay-body">
+        <div class="pay-group">
+          <button class="pm selected" data-method="信用卡">
+            <span class="ic">卡</span>
+            <span><span class="ttl">信用卡</span><span class="desc">Visa · 尾号 4620</span></span>
+            <span class="radio"></span>
+          </button>
+          <button class="pm" data-method="支付宝">
+            <span class="ic">支</span>
+            <span><span class="ttl">支付宝</span><span class="desc">免密快捷支付</span></span>
+            <span class="radio"></span>
+          </button>
+          <button class="pm" data-method="Apple Pay">
+            <span class="ic">果</span>
+            <span><span class="ttl">Apple Pay</span><span class="desc">设备内快速支付</span></span>
+            <span class="radio"></span>
+          </button>
+          <button class="pm" data-method="银联">
+            <span class="ic">银</span>
+            <span><span class="ttl">银联</span><span class="desc">储蓄卡 / 信用卡</span></span>
+            <span class="radio"></span>
+          </button>
+        </div>
+        <button class="confirm" id="confirmBtn">确认支付 ¥4,286.00</button>
+        <div class="secure">本单已通过海关免税核验 · 支付信息加密传输</div>
+      </div>
+    </section>
+  </main>
+
+  <div class="overlay" id="overlay" aria-hidden="true">
+    <div class="receipt">
+      <div class="top">
+        <div class="check">✓</div>
+        <h3>支付成功</h3>
+        <div class="note" id="rcNote">已通过 信用卡 · Visa 尾号 4620 完成支付</div>
+      </div>
+      <div class="body">
+        <div class="rc-row"><span>订单号</span><b id="rcOrder">DF-20250611-0842</b></div>
+        <div class="rc-row"><span>提货点</span><b>T2 出发层 12 号柜台</b></div>
+        <div class="rc-row"><span>支付时间</span><b id="rcTime">2025-06-11 08:42</b></div>
+        <div class="rc-total">
+          <span style="color:var(--muted);font-size:13px">实付金额</span>
+          <span class="amount num">¥4,286.00</span>
+        </div>
+      </div>
+      <button class="done" id="doneBtn">完成 · 返回</button>
+    </div>
+  </div>
+
+<script>
+  (function(){
+    var pms = document.querySelectorAll('.pm');
+    var confirmBtn = document.getElementById('confirmBtn');
+    var overlay = document.getElementById('overlay');
+    var rcNote = document.getElementById('rcNote');
+    var doneBtn = document.getElementById('doneBtn');
+    var chosen = '信用卡';
+    var busy = false;
+
+    pms.forEach(function(pm){
+      pm.addEventListener('click', function(){
+        pms.forEach(function(x){ x.classList.remove('selected'); });
+        pm.classList.add('selected');
+        chosen = pm.getAttribute('data-method');
+      });
+    });
+
+    confirmBtn.addEventListener('click', function(){
+      if (busy){ return; }
+      busy = true;
+      confirmBtn.disabled = true;
+      confirmBtn.innerHTML = '<span class="spinner"></span>支付处理中…';
+      setTimeout(function(){
+        var now = new Date();
+        var pad = function(n){ return n < 10 ? '0' + n : String(n); };
+        document.getElementById('rcTime').textContent =
+          now.getFullYear() + '-' + pad(now.getMonth()+1) + '-' + pad(now.getDate()) + ' ' + pad(now.getHours()) + ':' + pad(now.getMinutes());
+        rcNote.textContent = '已通过 ' + chosen + ' 完成支付';
+        overlay.classList.add('open');
+        overlay.setAttribute('aria-hidden','false');
+      }, 1300);
+    });
+
+    doneBtn.addEventListener('click', function(){
+      overlay.classList.remove('open');
+      overlay.setAttribute('aria-hidden','true');
+      busy = false;
+      confirmBtn.disabled = false;
+      confirmBtn.textContent = '确认支付 ¥4,286.00';
+    });
+  })();
+</script>
+</body>
+</html>

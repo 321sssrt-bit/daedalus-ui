@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>舆图 · 新手引导</title>
+<style>
+:root{
+  --parchment:#f3ecd9;
+  --card:#fbf7ea;
+  --teal:#2e7d6b;
+  --teal-deep:#1f5c4e;
+  --ink:#33413c;
+  --muted:#7f8377;
+  --line:#d8ccb0;
+  --rust:#c96f3b;
+  --sand:#e9dfc4;
+  --radius-card:18px;
+  --radius-ctl:999px;
+  --sp:8px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font:15px/1.7 "PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+  background:var(--parchment);color:var(--ink);min-height:100vh;
+  display:flex;align-items:center;justify-content:center;padding:36px 20px;position:relative;
+}
+.contours{position:absolute;inset:0;width:100%;height:100%;opacity:.5;pointer-events:none}
+.card{
+  position:relative;width:min(640px,100%);background:var(--card);
+  border:1px solid var(--line);border-radius:var(--radius-card);
+  box-shadow:0 16px 44px rgba(51,65,60,.12);padding:34px 40px 30px;
+}
+.skip{
+  position:absolute;top:18px;right:22px;background:none;border:0;cursor:pointer;
+  color:var(--muted);font:inherit;font-size:13px;letter-spacing:.08em;padding:6px 8px;border-radius:8px;
+}
+.skip:hover{color:var(--teal-deep);background:var(--sand)}
+.skip:focus-visible{outline:3px solid rgba(46,125,107,.35)}
+.trail{display:flex;align-items:center;gap:0;margin:6px 0 26px;max-width:300px}
+.station{
+  flex:0 0 26px;height:26px;border-radius:50%;border:2px solid var(--line);background:var(--card);
+  display:grid;place-items:center;font-size:12px;font-weight:700;color:var(--muted);
+  transition:all .25s ease;z-index:1;
+}
+.station.on{border-color:var(--teal);background:var(--teal);color:#fff}
+.station.done{border-color:var(--teal);background:var(--card);color:var(--teal)}
+.path{flex:1;height:2px;background-image:linear-gradient(90deg,var(--line) 55%,transparent 45%);background-size:12px 2px}
+.path.done{background-image:linear-gradient(90deg,var(--teal) 55%,transparent 45%)}
+.viewport{overflow:hidden}
+.track{display:flex;transition:transform .38s ease}
+.panel{flex:0 0 100%;padding:4px 2px 6px;display:flex;gap:26px;align-items:center}
+.illus{flex:0 0 168px;height:168px;border-radius:14px;background:var(--sand);display:grid;place-items:center;border:1px solid var(--line)}
+.panel h2{font-size:21px;margin-bottom:10px;letter-spacing:.04em}
+.panel p{color:var(--muted);font-size:14px}
+.count{color:var(--rust);font-size:12px;letter-spacing:.2em;font-weight:700;margin-bottom:8px}
+.controls{display:flex;justify-content:space-between;align-items:center;margin-top:26px}
+.back{
+  border:1px solid var(--line);background:none;border-radius:var(--radius-ctl);cursor:pointer;
+  padding:10px 22px;font:inherit;font-size:14px;color:var(--ink);transition:all .16s ease;
+}
+.back:hover:not(:disabled){border-color:var(--teal);color:var(--teal-deep)}
+.back:disabled{opacity:.38;cursor:not-allowed}
+.next{
+  border:0;border-radius:var(--radius-ctl);cursor:pointer;padding:11px 28px;font:inherit;
+  font-size:14px;font-weight:700;color:#fff;background:var(--teal);letter-spacing:.1em;
+  transition:background .16s ease,transform .12s ease;
+}
+.next:hover{background:var(--teal-deep)}
+.next:active{transform:scale(.97)}
+.next:focus-visible,.back:focus-visible{outline:3px solid rgba(46,125,107,.4);outline-offset:2px}
+.finish{display:none;text-align:center;padding:30px 0 14px}
+.finish.show{display:block}
+.finish .stamp{
+  width:76px;height:76px;margin:0 auto 18px;border-radius:50%;background:var(--teal);
+  display:grid;place-items:center;box-shadow:0 10px 26px rgba(46,125,107,.35);
+}
+.finish h2{font-size:22px;margin-bottom:8px}
+.finish p{color:var(--muted);font-size:14px}
+@media(max-width:640px){
+  .card{padding:26px 20px 22px}
+  .panel{flex-direction:column;text-align:center;gap:16px}
+  .illus{flex-basis:130px;height:130px;width:130px}
+}
+@media(prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+}
+</style>
+</head>
+<body>
+<svg class="contours" viewBox="0 0 1280 800" preserveAspectRatio="none" aria-hidden="true">
+  <path d="M-20 180C220 120 420 240 660 190C900 140 1100 220 1300 170" fill="none" stroke="#d8ccb0" stroke-width="1.4" stroke-dasharray="7 6"/>
+  <path d="M-20 420C240 360 460 480 700 430C940 380 1120 460 1300 410" fill="none" stroke="#d8ccb0" stroke-width="1.4" stroke-dasharray="7 6"/>
+  <path d="M-20 650C260 600 480 700 720 660C960 620 1140 690 1300 640" fill="none" stroke="#d8ccb0" stroke-width="1.4" stroke-dasharray="7 6"/>
+</svg>
+<main class="card" id="card">
+  <button class="skip" id="skip" type="button">跳过引导</button>
+  <div id="wizard">
+    <div class="trail" id="trail" aria-label="引导进度">
+      <span class="station on" data-s="0">1</span><span class="path" data-p="0"></span>
+      <span class="station" data-s="1">2</span><span class="path" data-p="1"></span>
+      <span class="station" data-s="2">3</span>
+    </div>
+    <div class="viewport">
+      <div class="track" id="track">
+        <section class="panel" aria-label="第一步">
+          <div class="illus" aria-hidden="true">
+            <svg width="88" height="88" viewBox="0 0 88 88" fill="none">
+              <circle cx="44" cy="44" r="30" stroke="#2e7d6b" stroke-width="2.4"/>
+              <path d="M44 20V14M44 74V68M20 44H14M74 44H68" stroke="#2e7d6b" stroke-width="2.4" stroke-linecap="round"/>
+              <path d="M56 32L47 47L32 56L41 41L56 32Z" fill="#c96f3b"/>
+              <circle cx="44" cy="44" r="3.4" fill="#33413c"/>
+            </svg>
+          </div>
+          <div>
+            <p class="count">第 1 步 · 共 3 步</p>
+            <h2>在地图上钉下想去的地方</h2>
+            <p>搜一个地名，点一下，就是一枚钉。钉与钉之间，舆图自动连成一条顺路的线，走回头路会提醒你。</p>
+          </div>
+        </section>
+        <section class="panel" aria-label="第二步">
+          <div class="illus" aria-hidden="true">
+            <svg width="88" height="88" viewBox="0 0 88 88" fill="none">
+              <rect x="18" y="16" width="52" height="58" rx="6" stroke="#2e7d6b" stroke-width="2.4"/>
+              <path d="M18 30H70" stroke="#2e7d6b" stroke-width="2.4"/>
+              <rect x="26" y="38" width="16" height="10" rx="3" fill="#c96f3b"/>
+              <rect x="26" y="54" width="36" height="6" rx="3" fill="#d8ccb0"/>
+              <rect x="46" y="38" width="16" height="6" rx="3" fill="#d8ccb0"/>
+              <path d="M30 16V10M58 16V10" stroke="#2e7d6b" stroke-width="2.4" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div>
+            <p class="count">第 2 步 · 共 3 步</p>
+            <h2>把几天几夜排成一张行程</h2>
+            <p>早上去哪、午后去哪、晚上住哪，拖着卡片换顺序就行。每天的花销和路程，排完立刻算给你看。</p>
+          </div>
+        </section>
+        <section class="panel" aria-label="第三步">
+          <div class="illus" aria-hidden="true">
+            <svg width="88" height="88" viewBox="0 0 88 88" fill="none">
+              <circle cx="32" cy="34" r="10" stroke="#2e7d6b" stroke-width="2.4"/>
+              <circle cx="58" cy="38" r="8" stroke="#c96f3b" stroke-width="2.4"/>
+              <path d="M16 68C16 56 24 50 32 50C40 50 48 56 48 68" stroke="#2e7d6b" stroke-width="2.4" stroke-linecap="round"/>
+              <path d="M50 66C50 57 56 52 62 52C68 52 74 57 74 66" stroke="#c96f3b" stroke-width="2.4" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div>
+            <p class="count">第 3 步 · 共 3 步</p>
+            <h2>邀同伴进同一张图</h2>
+            <p>把行程链接发给同行的人，谁加了景点、谁改了住宿，都实时落在同一张舆图上，不用再截图接力。</p>
+          </div>
+        </section>
+      </div>
+    </div>
+    <div class="controls">
+      <button class="back" id="back" type="button" disabled>上一步</button>
+      <button class="next" id="next" type="button">下一步</button>
+    </div>
+  </div>
+  <div class="finish" id="finish">
+    <div class="stamp" aria-hidden="true">
+      <svg width="38" height="38" viewBox="0 0 38 38" fill="none">
+        <path d="M19 33S7 24.6 7 15.8C7 9.9 12.4 6 19 6C25.6 6 31 9.9 31 15.8C31 24.6 19 33 19 33Z" stroke="#fbf7ea" stroke-width="2.4" stroke-linejoin="round"/>
+        <circle cx="19" cy="16" r="4" fill="#fbf7ea"/>
+      </svg>
+    </div>
+    <h2>行囊已备好</h2>
+    <p>三张图已经讲完。现在，钉下你的第一个目的地吧。</p>
+  </div>
+</main>
+<script>
+(function(){
+  var step=0,total=3;
+  var track=document.getElementById('track');
+  var back=document.getElementById('back');
+  var next=document.getElementById('next');
+  var stations=document.querySelectorAll('.station');
+  var paths=document.querySelectorAll('.path');
+  function render(){
+    track.style.transform='translateX(-'+(step*100)+'%)';
+    back.disabled=step===0;
+    next.textContent=step===total-1?'开始规划':'下一步';
+    for(var i=0;i<stations.length;i++){
+      var s=stations[i];
+      if(i===step){s.classList.add('on')}else{s.classList.remove('on')}
+      if(i<step){s.classList.add('done')}else{s.classList.remove('done')}
+      s.textContent=i<step?'✓':String(i+1);
+    }
+    for(var j=0;j<paths.length;j++){
+      if(j<step){paths[j].classList.add('done')}else{paths[j].classList.remove('done')}
+    }
+  }
+  function close(){
+    document.getElementById('wizard').style.display='none';
+    document.getElementById('finish').classList.add('show');
+    document.getElementById('skip').style.display='none';
+  }
+  back.addEventListener('click',function(){if(step>0){step-=1;render()}});
+  next.addEventListener('click',function(){
+    if(step<total-1){step+=1;render()}else{close()}
+  });
+  document.getElementById('skip').addEventListener('click',close);
+  render();
+})();
+</script>
+</body>
+</html>

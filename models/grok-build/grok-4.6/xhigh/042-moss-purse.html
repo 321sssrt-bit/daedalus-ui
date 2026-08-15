@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>苔钱包 · 转一笔</title>
+  <style>
+    :root {
+      --moss: #2f4a32;
+      --leaf: #6d8a52;
+      --paper: #eef4e6;
+      --ink: #1c2a1c;
+      --warn: #8b2e18;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; background: #1a2a1c; display: grid; place-items: center; font: 15px/1.45 "Segoe UI", "PingFang SC", sans-serif; color: var(--ink); }
+    .phone { width: 390px; height: 844px; background: var(--paper); border-radius: 36px; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 0 0 10px #243428; }
+    header { background: var(--moss); color: #eef4e6; padding: 22px 18px 16px; }
+    .bal { font-size: 28px; }
+    .list { padding: 12px 16px; }
+    .p { padding: 10px; background: #fff; margin: 0 0 8px; cursor: pointer; }
+    .p.on { outline: 2px solid var(--leaf); }
+    .sheet { padding: 0 16px 16px; }
+    input { width: 100%; height: 44px; border: 1px solid var(--moss); padding: 0 10px; font: 20px inherit; }
+    button { height: 42px; width: 100%; margin-top: 8px; border: 0; cursor: pointer; font: inherit; }
+    .go { background: var(--moss); color: #eef4e6; }
+    .src { background: #fff; border: 1px solid var(--moss); }
+    .err { color: var(--warn); min-height: 20px; }
+    .ok { display: none; background: #fff; padding: 12px; margin-top: 8px; }
+    .ok.on { display: block; }
+    @media (max-width: 430px) {
+      body { display: block; background: var(--paper); }
+      .phone { width: 100%; height: 100vh; border-radius: 0; box-shadow: none; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="phone">
+    <header>
+      <div>苔钱包</div>
+      <div class="bal">零钱 ¥ <span id="bal">80.00</span></div>
+      <div>资金来源：<span id="srcn">零钱</span></div>
+    </header>
+    <div class="list" id="ps"></div>
+    <div class="sheet">
+      <label>金额</label>
+      <input id="amt" type="number" value="36">
+      <p class="err" id="err"></p>
+      <button class="src" id="src" type="button">改用备用金 ¥ 200</button>
+      <button class="go" id="go" type="button">核对并转出</button>
+      <div class="ok" id="ok"></div>
+    </div>
+  </div>
+  <script>
+    (function () {
+      var people = ["吴苔", "顾北", "林晚青"];
+      var who = 0;
+      var pocket = 80;
+      var reserve = 200;
+      var useReserve = false;
+      function avail() { return useReserve ? reserve : pocket; }
+      function drawP() {
+        var box = document.getElementById("ps");
+        box.innerHTML = "";
+        people.forEach(function (n, i) {
+          var el = document.createElement("div");
+          el.className = "p" + (i === who ? " on" : "");
+          el.textContent = n;
+          el.addEventListener("click", function () { who = i; drawP(); });
+          box.appendChild(el);
+        });
+      }
+      document.getElementById("src").addEventListener("click", function () {
+        useReserve = !useReserve;
+        document.getElementById("srcn").textContent = useReserve ? "备用金" : "零钱";
+        this.textContent = useReserve ? "改回零钱 ¥ 80" : "改用备用金 ¥ 200";
+        document.getElementById("err").textContent = "资金来源已换成" + (useReserve ? "备用金" : "零钱") + "，可用 ¥ " + avail().toFixed(2);
+      });
+      document.getElementById("go").addEventListener("click", function () {
+        var amt = Number(document.getElementById("amt").value);
+        var ok = document.getElementById("ok");
+        var err = document.getElementById("err");
+        ok.className = "ok";
+        if (!(amt > 0)) { err.textContent = "金额要大于 0。"; return; }
+        if (amt > avail()) {
+          err.textContent = "余额不足。当前「" + (useReserve ? "备用金" : "零钱") + "」可用 ¥ " + avail().toFixed(2) + "，拦下未转。";
+          return;
+        }
+        if (useReserve) reserve -= amt; else pocket -= amt;
+        err.textContent = "";
+        ok.className = "ok on";
+        ok.innerHTML = "<strong>转成了</strong><p>给 " + people[who] + " ¥ " + amt.toFixed(2) + "。凭证 TY-" + Math.round(amt * 100) + "。</p>";
+        document.getElementById("bal").textContent = pocket.toFixed(2);
+      });
+      drawP();
+    })();
+  </script>
+</body>
+</html>

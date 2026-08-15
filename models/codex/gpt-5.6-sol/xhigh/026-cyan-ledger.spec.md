@@ -1,44 +1,83 @@
 # 026 青光账单
 
-## 一句话气质
+## 规范元数据
 
-账单被放进一台干净、可信的青光运维终端。
+- 规范版本：2
+- 主视口：1280 × 800 px
+- 对应页面：`026-cyan-ledger.html`
+- 复现范围：复现该单文件页面的布局制度、设计令牌、核心组件状态与题定职责。
 
-## 适合用在哪种产品
+## 画布与区域布局
 
-开发者 API、云服务、自动化平台与按用量计费的技术型 SaaS 账单中心。
+| 区域 | 边界与尺寸 | 布局与对齐 | 层级与滚动 |
+| --- | --- | --- | --- |
+| 页面画布 `body` | margin: 0; min-height: 100vh | 未单独声明 | background: var(--black); color: var(--text) |
+| 主要结构 `.layout` | gap: 18px; margin-top: 18px | display: grid; grid-template-columns: 310px 1fr; gap: 18px | 未单独声明 |
+| 关键内容区 `.notice` | padding: 18px; margin-top: 24px; gap: 20px | display: flex; justify-content: space-between; gap: 20px | border: 1px solid var(--grid); color: var(--muted) |
 
-## 色板
+## 设计令牌
 
-| 角色 | 色号 | 用法 |
+### 色彩
+
+| 令牌 | 值 | 用途 |
 | --- | --- | --- |
-| 背景 | #061013 | 终端屏幕底色 |
-| 表面 | #0A1B20 | 当前方案与账单面板 |
-| 正文 | #D8FFF8 | 主标题、数据和表格正文 |
-| 次要文字 | #78A49D | 日期、单位与说明 |
-| 强调 | #45F3DA | 命令提示、进度和已支付状态 |
-| 成功 / 危险 | #FFC857 | 下载与交互反馈；危险为 #FF6B6B |
+| `--black` | `#061013` | 品牌或局部强调 |
+| `--panel` | `#0a1b20` | 容器与表面 |
+| `--grid` | `#17343b` | 品牌或局部强调 |
+| `--cyan` | `#45f3da` | 主要操作与强调状态 |
+| `--text` | `#d8fff8` | 主要文字与高对比边界 |
+| `--muted` | `#78a49d` | 辅助文字与弱化信息 |
+| `--amber` | `#ffc857` | 品牌或局部强调 |
+| `--red` | `#ff6b6b` | 错误与危险反馈 |
 
-## 字体和字号
+### 字体
 
-全页使用 Cascadia Mono、Consolas、Microsoft YaHei 系统等宽字体；方案标题 29px/700，账单标题 22px/700，金额 36px/700，正文 11–12px，表头 10px。
+| 角色 | 字体栈 | 字号 / 行高 | 字重 / 字距 |
+| --- | --- | --- | --- |
+| 页面正文 `body` | ui-monospace,"Cascadia Mono",Consolas,"Microsoft YaHei",monospace | 16px / normal（浏览器默认） | 由 font 简写或继承确定 |
+| 显示字 `.plan h1` | 继承页面字体 | font-size: 29px | 由 font 简写或继承确定 |
+| 分区标题 `.ledger h2` | 继承页面字体 | font-size: 22px | 由 font 简写或继承确定 |
+| 辅助文字 `.top` | 继承页面字体 | font-size: 12px | 由 font 简写或继承确定 |
 
-## 间距、圆角、阴影
+### 间距、圆角与层级
 
-屏幕边距 26px，面板间距 18px，面板内距 26px，表格行纵向 19px；全局零圆角、零阴影，以一像素青黑线和 24px 网格建立终端深度。
+| 令牌 | 值 | 用途 |
+| --- | --- | --- |
+| 主要内距 | `26px` | `.screen` 的 `padding` |
+| 布局间距 | `18px` | `.layout` 的 `gap` |
+| 圆角 | `0` | 全局保持直角 |
+| 边框或阴影 | `1px solid var(--grid)` | `.top` 的 `border` |
 
-## 按钮 / 输入框 / 卡片
+## 组件规格与状态
 
-方案更改是青色方括号描边命令，支付方式和发票下载是琥珀色文本命令；当前方案与交易记录只分成两块命令面板，避免普通仪表盘卡片化。
+| 组件 | 结构与尺寸 | 默认样式 | 状态变化 |
+| --- | --- | --- | --- |
+| 主要操作 `.method button` | padding: 0 | border: 0; background: transparent; color: var(--amber); font: inherit | 未声明独立状态；保持默认样式 |
+| 输入、选择或次操作 `.change` | width: 100%; padding: 12px; margin-top: 26px | border: 1px solid var(--cyan); background: transparent; color: var(--cyan); font: inherit | 未声明独立状态；保持默认样式 |
+| 内容容器 `.invoice` | padding: 5px | border: 0; background: transparent; color: var(--amber); font: inherit | .invoice:hover → text-decoration: underline |
 
-## 动效
+## 响应式规则
 
-命令触发后右下角即时显示青色反馈条，1.7 秒后消失；没有闪烁光标或扫描线动画，减少动态偏好下关闭过渡。
+| 条件 | 布局变化 | 组件变化 |
+| --- | --- | --- |
+| 1280 × 800 px 主视口 | 按“画布与区域布局”保持完整结构 | 按“组件规格与状态”显示默认状态 |
+| `(max-width:820px)` | .layout → grid-template-columns: 1fr; .table → min-width: 650px; .ledger → overflow: auto; .screen → padding: 14px | 交互流程与内容顺序不变 |
 
-## 不要做什么
+## 内容与数据
 
-不要用霓虹泛光把可读性变差，不要加入折线图、彩色信用卡拟物或消费类金融插画；终端语言必须克制而不是黑客电影化。
+必须保留的可见文案顺序包括：“青光账单 · Billing Console” → “NEONSTACK // BILLING” → “workspace: northstar-lab UTC+08:00” → “$ current_plan” → “PRO / 8 SEATS” → “团队自动化、共享运行记录与 90 天历史。” → “本周期运行” → “6,840 / 10,000” → “距重置还有 12 天” → “下次扣款 · 2026-09-01” → “¥ 1,280” → “含税 / 月付”。数值、日期和状态文字沿用页面初始值及其操作后的格式。
 
-## 复刻提示词
+## 动效与反馈
 
-制作黑青网格底的 SaaS 账单终端，左侧显示当前方案、配额条、下次金额与支付源，右侧用高密度等宽表格列四笔账单；青色表示已支付和命令提示，琥珀色只给可执行动作，所有边界硬直无圆角。
+| 触发 | 时长与缓动 | 可见反馈 | `prefers-reduced-motion` |
+| --- | --- | --- | --- |
+| 页面进入 | 0ms | 直接呈现最终状态 | * → transition: none!important |
+| 用户操作 | 0ms | 通过文案、颜色或显隐即时反馈 | * → transition: none!important |
+
+## 复现验收清单
+
+- [ ] 在 1280 × 800 px 下，body、.layout 与 .notice 的尺寸和排列符合布局表。
+- [ ] 规范登记的主色 `#0a1b20`、`#061013`、`#ffc857`、`#ff6b6b`、`#17343b` 均来自 HTML，背景、正文、弱化与强调层级对应一致。
+- [ ] 主要操作 `.method button`、输入、选择或次操作 `.change` 与 内容容器 `.invoice` 的默认及状态样式可实际观察。
+- [ ] 在 `(max-width:820px)` 条件下，布局按响应式表变化且“$ current_plan”仍可操作。
+- [ ] 启用 `prefers-reduced-motion: reduce` 后，页面按动效表关闭或压缩非必要动画，同时保留状态反馈。

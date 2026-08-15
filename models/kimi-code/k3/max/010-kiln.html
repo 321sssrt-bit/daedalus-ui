@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>窑火 · 工坊看板</title>
+<style>
+:root{
+  --clay:#b5512d;
+  --clay-deep:#93401f;
+  --cream:#f6efe2;
+  --card:#fffaf0;
+  --ink:#43332a;
+  --muted:#96867a;
+  --line:#e5d8c3;
+  --glaze:#5b7f7a;
+  --fire:#d98e3d;
+  --radius-card:10px;
+  --radius-col:14px;
+  --sp:8px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font:14.5px/1.6 "PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+  background:var(--cream);color:var(--ink);min-height:100vh;display:flex;flex-direction:column;
+}
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:18px 28px;border-bottom:1px solid var(--line);
+}
+.brand{display:flex;align-items:center;gap:12px;font-weight:700;font-size:17px;letter-spacing:.1em}
+.brand small{color:var(--muted);font-weight:400;font-size:12px;letter-spacing:.06em}
+.new-btn{
+  border:0;border-radius:999px;cursor:pointer;padding:10px 22px;
+  background:var(--clay);color:#fff;font:inherit;font-weight:700;font-size:13.5px;letter-spacing:.08em;
+  box-shadow:0 6px 16px rgba(181,81,45,.3);transition:background .15s ease;
+}
+.new-btn:hover{background:var(--clay-deep)}
+.new-btn:focus-visible{outline:3px solid rgba(181,81,45,.4);outline-offset:2px}
+.board{flex:1;display:flex;gap:18px;padding:22px 28px;align-items:flex-start;overflow-x:auto}
+.col{
+  flex:1 1 0;min-width:240px;background:#efe6d4;border:1px solid var(--line);
+  border-radius:var(--radius-col);padding:14px 12px 12px;
+}
+.col-head{display:flex;align-items:center;gap:8px;padding:2px 6px 12px;font-weight:700;font-size:14px}
+.col-head .n{
+  min-width:22px;height:22px;border-radius:999px;background:var(--card);border:1px solid var(--line);
+  display:grid;place-items:center;font:600 11.5px/1 ui-monospace,Consolas,monospace;color:var(--muted);
+}
+.col-head .heat{margin-left:auto;font-size:11.5px;color:var(--muted);font-weight:400;letter-spacing:.05em}
+.list{display:flex;flex-direction:column;gap:10px;min-height:60px}
+.kcard{
+  position:relative;background:var(--card);border:1px solid var(--line);border-radius:var(--radius-card);
+  padding:14px 14px 12px;box-shadow:0 2px 0 rgba(67,51,42,.06);cursor:pointer;
+  transition:transform .14s ease,box-shadow .14s ease;
+}
+.kcard::before{
+  content:"";position:absolute;top:-6px;left:50%;transform:translateX(-50%) rotate(-1.5deg);
+  width:64px;height:12px;background:rgba(217,142,61,.35);border-radius:2px;
+}
+.kcard:hover{transform:translateY(-2px);box-shadow:0 8px 18px rgba(67,51,42,.12)}
+.kcard.sel{outline:2px solid var(--clay);outline-offset:1px}
+.kcard h3{font-size:14px;margin-bottom:6px}
+.kcard .meta{color:var(--muted);font-size:12px;display:flex;gap:10px;flex-wrap:wrap}
+.kcard .tag{
+  display:inline-block;margin-top:9px;padding:2px 9px;border-radius:999px;font-size:11px;font-weight:600;
+  background:#e8efed;color:var(--glaze);
+}
+.kcard .tag.fire{background:#f9ead6;color:#b26a1a}
+.kcard .moves{display:flex;gap:6px;margin-top:10px}
+.moves button{
+  flex:1;border:1px solid var(--line);background:none;border-radius:7px;padding:5px 0;
+  font:inherit;font-size:12px;color:var(--muted);cursor:pointer;transition:all .13s ease;
+}
+.moves button:hover:not(:disabled){border-color:var(--clay);color:var(--clay)}
+.moves button:disabled{opacity:.35;cursor:not-allowed}
+.composer{background:var(--card);border:1px dashed var(--clay);border-radius:var(--radius-card);padding:12px;display:none}
+.composer.show{display:block}
+.composer input{
+  width:100%;height:38px;padding:0 11px;font:inherit;color:var(--ink);
+  background:#fffdf7;border:1px solid var(--line);border-radius:8px;margin-bottom:8px;
+}
+.composer input:focus{outline:none;border-color:var(--clay);box-shadow:0 0 0 3px rgba(181,81,45,.14)}
+.composer .row{display:flex;gap:8px}
+.composer .row button{flex:1;height:34px;border-radius:8px;font:inherit;font-size:12.5px;cursor:pointer}
+.add-ok{border:0;background:var(--clay);color:#fff}
+.add-ok:hover{background:var(--clay-deep)}
+.add-no{border:1px solid var(--line);background:none;color:var(--muted)}
+.empty-hint{color:var(--muted);font-size:12.5px;text-align:center;padding:14px 0 6px;border:1px dashed var(--line);border-radius:8px}
+@media(max-width:860px){.board{flex-direction:column}.col{min-width:0;width:100%}}
+@media(prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <svg width="26" height="26" viewBox="0 0 26 26" fill="none" aria-hidden="true">
+      <path d="M13 2C13 7 7 9 7 15C7 20 9.6 23.5 13 23.5C16.4 23.5 19 20 19 15C19 9 13 7 13 2Z" stroke="#b5512d" stroke-width="2" stroke-linejoin="round"/>
+      <path d="M13 12C13 15 10.5 16 10.5 18.5C10.5 21 11.8 22.5 13 22.5C14.2 22.5 15.5 21 15.5 18.5C15.5 16 13 15 13 12Z" fill="#d98e3d"/>
+    </svg>
+    窑火看板 <small>景德镇东河工坊 · 本周第 33 窑</small>
+  </div>
+  <button class="new-btn" id="new-btn" type="button">＋ 新建一件坯</button>
+</header>
+<main class="board" id="board">
+  <section class="col" data-col="0">
+    <div class="col-head"><span>拉坯</span><span class="n">2</span><span class="heat">常温 · 湿坯</span></div>
+    <div class="list">
+      <article class="kcard" data-id="1">
+        <h3>天青釉玉兰瓶</h3>
+        <div class="meta"><span>阿黎</span><span>拉坯 2 天</span></div>
+        <span class="tag">青釉</span>
+        <div class="moves"><button type="button" data-dir="-1" disabled>← 上一工序</button><button type="button" data-dir="1">下一工序 →</button></div>
+      </article>
+      <article class="kcard" data-id="2">
+        <h3>粗陶饭碗 · 一组六只</h3>
+        <div class="meta"><span>石头</span><span>返工第 2 次</span></div>
+        <span class="tag">化妆土</span>
+        <div class="moves"><button type="button" data-dir="-1" disabled>← 上一工序</button><button type="button" data-dir="1">下一工序 →</button></div>
+      </article>
+      <div class="composer">
+        <input class="nc-input" placeholder="作品名，例如：雨过天青盏" maxlength="20">
+        <div class="row"><button class="add-ok" type="button">放进拉坯列</button><button class="add-no" type="button">算了</button></div>
+      </div>
+    </div>
+  </section>
+  <section class="col" data-col="1">
+    <div class="col-head"><span>修坯上釉</span><span class="n">2</span><span class="heat">阴干房 · 18°C</span></div>
+    <div class="list">
+      <article class="kcard" data-id="3">
+        <h3>霁红茶海</h3>
+        <div class="meta"><span>温老师</span><span>待补水</span></div>
+        <span class="tag fire">霁红</span>
+        <div class="moves"><button type="button" data-dir="-1">← 上一工序</button><button type="button" data-dir="1">下一工序 →</button></div>
+      </article>
+      <article class="kcard" data-id="4">
+        <h3>手捏猫形筷架</h3>
+        <div class="meta"><span>小满</span><span>学员作品</span></div>
+        <span class="tag">无光白</span>
+        <div class="moves"><button type="button" data-dir="-1">← 上一工序</button><button type="button" data-dir="1">下一工序 →</button></div>
+      </article>
+    </div>
+  </section>
+  <section class="col" data-col="2">
+    <div class="col-head"><span>入窑烧制</span><span class="n">2</span><span class="heat">窑温 1,280°C</span></div>
+    <div class="list">
+      <article class="kcard" data-id="5">
+        <h3>柴烧侧把壶</h3>
+        <div class="meta"><span>阿黎</span><span>第 31 窑出品</span></div>
+        <span class="tag fire">柴烧</span>
+        <div class="moves"><button type="button" data-dir="-1">← 上一工序</button><button type="button" data-dir="1" disabled>下一工序 →</button></div>
+      </article>
+      <article class="kcard" data-id="6">
+        <h3>青花分水盘</h3>
+        <div class="meta"><span>温老师</span><span>待开窑检看</span></div>
+        <span class="tag">青花</span>
+        <div class="moves"><button type="button" data-dir="-1">← 上一工序</button><button type="button" data-dir="1" disabled>下一工序 →</button></div>
+      </article>
+    </div>
+  </section>
+</main>
+<script>
+(function(){
+  var colNames=['拉坯','修坯上釉','入窑烧制'];
+  var colHeat=['常温 · 湿坯','阴干房 · 18°C','窑温 1,280°C'];
+  var cards=[
+    {id:1,col:0,title:'天青釉玉兰瓶',meta:['阿黎','拉坯 2 天'],tag:'青釉',fire:false},
+    {id:2,col:0,title:'粗陶饭碗 · 一组六只',meta:['石头','返工第 2 次'],tag:'化妆土',fire:false},
+    {id:3,col:1,title:'霁红茶海',meta:['温老师','待补水'],tag:'霁红',fire:true},
+    {id:4,col:1,title:'手捏猫形筷架',meta:['小满','学员作品'],tag:'无光白',fire:false},
+    {id:5,col:2,title:'柴烧侧把壶',meta:['阿黎','第 31 窑出品'],tag:'柴烧',fire:true},
+    {id:6,col:2,title:'青花分水盘',meta:['温老师','待开窑检看'],tag:'青花',fire:false}
+  ];
+  var nextId=7;
+  var sel=null;
+  var board=document.getElementById('board');
+  function cardHtml(card,ci){
+    var metas='';
+    for(var i=0;i<card.meta.length;i++)metas+='<span>'+card.meta[i]+'</span>';
+    return '<article class="kcard'+(sel===card.id?' sel':'')+'" data-id="'+card.id+'"><h3>'+card.title+'</h3>'+
+      '<div class="meta">'+metas+'</div><span class="tag'+(card.fire?' fire':'')+'">'+card.tag+'</span>'+
+      '<div class="moves"><button type="button" data-dir="-1" '+(ci===0?'disabled':'')+'>← 上一工序</button>'+
+      '<button type="button" data-dir="1" '+(ci===2?'disabled':'')+'>下一工序 →</button></div></article>';
+  }
+  function composerHtml(){
+    return '<div class="composer"><input class="nc-input" placeholder="作品名，例如：雨过天青盏" maxlength="20">'+
+      '<div class="row"><button class="add-ok" type="button">放进拉坯列</button><button class="add-no" type="button">算了</button></div></div>';
+  }
+  function render(){
+    var html='';
+    for(var ci=0;ci<3;ci++){
+      var count=0,inner='';
+      for(var i=0;i<cards.length;i++){
+        if(cards[i].col===ci){count++;inner+=cardHtml(cards[i],ci)}
+      }
+      html+='<section class="col" data-col="'+ci+'"><div class="col-head"><span>'+colNames[ci]+'</span><span class="n">'+count+'</span><span class="heat">'+colHeat[ci]+'</span></div><div class="list">'+inner+
+        (ci===0?composerHtml():'')+
+        (count===0&&ci!==0?'<div class="empty-hint">暂无作品在此工序</div>':'')+
+        '</div></section>';
+    }
+    board.innerHTML=html;
+    bindAll();
+  }
+  function bindComposer(){
+    var composer=board.querySelector('.composer');
+    if(!composer)return;
+    composer.querySelector('.add-ok').addEventListener('click',addCard);
+    composer.querySelector('.add-no').addEventListener('click',function(){composer.classList.remove('show')});
+  }
+  function bindAll(){
+    var kcards=board.querySelectorAll('.kcard');
+    for(var i=0;i<kcards.length;i++){
+      (function(el){
+        el.addEventListener('click',function(ev){
+          var t=ev.target;
+          var dir=t.getAttribute?t.getAttribute('data-dir'):null;
+          if(dir!==null&&dir!==undefined&&t.tagName==='BUTTON'&&!t.disabled){
+            ev.stopPropagation();
+            var id=Number(el.getAttribute('data-id'));
+            for(var k=0;k<cards.length;k++){
+              if(cards[k].id===id){cards[k].col+=Number(dir)}
+            }
+            render();
+            return;
+          }
+          var id2=Number(el.getAttribute('data-id'));
+          sel=sel===id2?null:id2;
+          render();
+        });
+      })(kcards[i]);
+    }
+    bindComposer();
+  }
+  function addCard(){
+    var input=board.querySelector('.nc-input');
+    var v=input.value.replace(/^\s+|\s+$/g,'');
+    if(v){cards.push({id:nextId++,col:0,title:v,meta:['我','今天新拉'],tag:'未定釉',fire:false});render()}
+    else{input.focus()}
+  }
+  document.getElementById('new-btn').addEventListener('click',function(){
+    var composer=board.querySelector('.composer');
+    if(composer){composer.classList.add('show');composer.querySelector('.nc-input').focus()}
+  });
+  bindAll();
+})();
+</script>
+</body>
+</html>

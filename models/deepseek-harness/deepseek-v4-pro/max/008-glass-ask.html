@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>留声 · 权限请求</title>
+<style>
+  :root{
+    --stage:#f2f3f8;
+    --ink:#1b1b24;
+    --muted:#6f6f7a;
+    --accent:#5b6cff;
+    --blob-blue:#8fb6ff;
+    --blob-purple:#c8a8ff;
+    --blob-peach:#ffc9a8;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:-apple-system,"Segoe UI","Microsoft YaHei","PingFang SC","Helvetica Neue",sans-serif;
+    background:var(--stage);
+    color:var(--ink);
+    -webkit-font-smoothing:antialiased;
+  }
+  .stage{position:relative;height:100%;overflow:hidden;display:flex;align-items:center;justify-content:center;padding:24px}
+
+  /* 背景柔光 */
+  .blob{position:absolute;border-radius:50%;filter:blur(70px);opacity:.75}
+  .blob.a{width:440px;height:440px;left:-120px;top:-140px;background:var(--blob-blue)}
+  .blob.b{width:420px;height:420px;right:-120px;top:12%;background:var(--blob-purple)}
+  .blob.c{width:460px;height:460px;left:22%;bottom:-180px;background:var(--blob-peach)}
+
+  /* 玻璃卡片 */
+  .card{
+    position:relative;z-index:2;width:460px;max-width:100%;
+    background:rgba(255,255,255,.55);
+    -webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);
+    border:1px solid rgba(255,255,255,.72);
+    border-radius:24px;
+    box-shadow:0 24px 70px rgba(31,38,68,.20);
+    padding:38px 40px 36px;
+    transition:transform .22s ease,opacity .22s ease;
+  }
+  .card[hidden]{display:none}
+  .card .close{
+    position:absolute;right:20px;top:20px;width:30px;height:30px;
+    border:0;background:rgba(27,27,36,.06);border-radius:50%;
+    color:var(--muted);font-size:18px;line-height:1;cursor:pointer;
+  }
+  .card .close:hover{background:rgba(27,27,36,.12);color:var(--ink)}
+  .icon{
+    width:60px;height:60px;border-radius:18px;margin-bottom:20px;
+    background:linear-gradient(135deg,#8fb6ff,#5b6cff);
+    display:flex;align-items:center;justify-content:center;color:#ffffff;
+    box-shadow:0 10px 26px rgba(91,108,255,.35);
+  }
+  .icon svg{display:block}
+  h1{font-size:22px;font-weight:600;letter-spacing:.01em;margin-bottom:12px}
+  .why{font-size:14px;line-height:1.75;color:var(--muted);margin-bottom:16px}
+  .notes{list-style:none;margin-bottom:26px}
+  .notes li{
+    position:relative;padding-left:20px;font-size:13px;color:var(--ink);line-height:1.8;
+  }
+  .notes li::before{content:"";position:absolute;left:0;top:9px;width:7px;height:7px;border-radius:50%;background:var(--accent)}
+
+  .ask{display:flex;flex-direction:column;gap:10px}
+  .btn{
+    appearance:none;border:0;cursor:pointer;width:100%;height:46px;
+    font-family:inherit;font-size:14px;letter-spacing:.04em;border-radius:13px;
+    transition:background .18s ease,color .18s ease,transform .18s ease,box-shadow .18s ease;
+  }
+  .btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  .btn.primary{background:var(--accent);color:#ffffff;box-shadow:0 10px 24px rgba(91,108,255,.30)}
+  .btn.primary:hover{background:#4a5aef}
+  .btn.primary:active{transform:translateY(1px)}
+  .btn.soft{background:rgba(91,108,255,.14);color:var(--accent)}
+  .btn.soft:hover{background:rgba(91,108,255,.24)}
+  .btn.ghost{background:transparent;color:var(--muted)}
+  .btn.ghost:hover{background:rgba(27,27,36,.06);color:var(--ink)}
+
+  .result{text-align:center;padding:6px 0 2px}
+  .result[hidden]{display:none}
+  .result .result-icon{
+    width:52px;height:52px;border-radius:50%;margin:0 auto 14px;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .result .result-icon.ok{background:rgba(43,201,138,.16);color:#1f9e6c}
+  .result .result-icon.no{background:rgba(255,92,138,.14);color:#e04a75}
+  .result .result-text{font-size:15px;line-height:1.7;margin-bottom:16px}
+  .result .result-text .sub{display:block;font-size:13px;color:var(--muted);margin-top:4px}
+
+  .reopen{
+    position:absolute;z-index:2;bottom:40px;left:50%;transform:translateX(-50%);
+    background:rgba(255,255,255,.6);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+    border:1px solid rgba(255,255,255,.7);border-radius:999px;
+    padding:12px 22px;font-size:13px;color:var(--ink);cursor:pointer;
+    box-shadow:0 10px 28px rgba(31,38,68,.14);
+  }
+  .reopen[hidden]{display:none}
+
+  @media (max-width:768px){
+    .card{padding:28px 24px 26px}
+    h1{font-size:20px}
+    .why{font-size:13px}
+  }
+
+  @media (prefers-reduced-motion: reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+  <div class="stage">
+    <div class="blob a" aria-hidden="true"></div>
+    <div class="blob b" aria-hidden="true"></div>
+    <div class="blob c" aria-hidden="true"></div>
+
+    <div class="card" id="permCard" role="dialog" aria-modal="true" aria-labelledby="permTitle">
+      <button class="close" id="closeBtn" aria-label="关闭">×</button>
+      <div class="icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="9" y="3" width="6" height="11" rx="3"></rect>
+          <path d="M5 11a7 7 0 0 0 14 0"></path>
+          <line x1="12" y1="18" x2="12" y2="21"></line>
+          <line x1="8" y1="21" x2="16" y2="21"></line>
+        </svg>
+      </div>
+      <h1 id="permTitle">开启麦克风权限</h1>
+      <p class="why">留声需要访问麦克风，用于录制你的语音备忘，并在回放时自动去除背景噪声。音频只保存在本机，仅在你按下录音键时开始收音。</p>
+      <ul class="notes">
+        <li>仅在录音时开启麦克风</li>
+        <li>可随时在系统设置中关闭</li>
+      </ul>
+
+      <div class="ask" id="askRow">
+        <button class="btn primary" id="allowBtn">允许</button>
+        <button class="btn soft" id="onceBtn">仅此一次</button>
+        <button class="btn ghost" id="denyBtn">拒绝</button>
+      </div>
+
+      <div class="result" id="resultRow" hidden>
+        <div class="result-icon" id="resultIcon"></div>
+        <p class="result-text" id="resultText"></p>
+        <button class="btn ghost" id="retryBtn" hidden>重新申请</button>
+      </div>
+    </div>
+
+    <button class="reopen" id="reopenBtn" hidden>重新打开权限请求</button>
+  </div>
+
+  <script>
+    var card = document.getElementById('permCard');
+    var closeBtn = document.getElementById('closeBtn');
+    var reopenBtn = document.getElementById('reopenBtn');
+    var askRow = document.getElementById('askRow');
+    var resultRow = document.getElementById('resultRow');
+    var resultIcon = document.getElementById('resultIcon');
+    var resultText = document.getElementById('resultText');
+    var retryBtn = document.getElementById('retryBtn');
+
+    var checkSvg = '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="5 12 10 17 19 7"></polyline></svg>';
+    var crossSvg = '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="6" x2="18" y2="18"></line><line x1="18" y1="6" x2="6" y2="18"></line></svg>';
+
+    function showResult(ok, text, sub, canRetry){
+      askRow.hidden = true;
+      resultRow.hidden = false;
+      resultIcon.className = 'result-icon ' + (ok ? 'ok' : 'no');
+      resultIcon.innerHTML = ok ? checkSvg : crossSvg;
+      resultText.innerHTML = text + (sub ? '<span class="sub">' + sub + '</span>' : '');
+      retryBtn.hidden = !canRetry;
+    }
+
+    function resetToAsk(){
+      resultRow.hidden = true;
+      askRow.hidden = false;
+    }
+
+    document.getElementById('allowBtn').addEventListener('click', function(){
+      showResult(true, '已授权麦克风', '现在可以开始录音了', false);
+    });
+
+    document.getElementById('onceBtn').addEventListener('click', function(){
+      showResult(true, '已授权（仅此一次）', '本次会话结束后自动撤销', false);
+    });
+
+    document.getElementById('denyBtn').addEventListener('click', function(){
+      showResult(false, '已拒绝麦克风权限', '部分功能暂时不可用', true);
+    });
+
+    retryBtn.addEventListener('click', resetToAsk);
+
+    closeBtn.addEventListener('click', function(){
+      card.hidden = true;
+      reopenBtn.hidden = false;
+    });
+
+    reopenBtn.addEventListener('click', function(){
+      card.hidden = false;
+      reopenBtn.hidden = true;
+      resetToAsk();
+    });
+  </script>
+</body>
+</html>

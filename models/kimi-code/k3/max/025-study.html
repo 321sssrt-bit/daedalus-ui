@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>书房 · 账号设置</title>
+<style>
+:root{
+  --brown:#4a3423;
+  --brown-deep:#38271a;
+  --paper:#f6efdf;
+  --page:#efe6cf;
+  --ink:#33291c;
+  --muted:#93835f;
+  --line:#ddd0b2;
+  --brass:#b08d3e;
+  --radius-card:12px;
+  --radius-ctl:8px;
+  --sp:8px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font:14.5px/1.65 "PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+  background:var(--paper);color:var(--ink);min-height:100vh;display:flex;
+}
+.side{
+  flex:0 0 224px;background:var(--brown);color:#e8dcc4;display:flex;flex-direction:column;padding:22px 0;
+}
+.desk{padding:0 20px 18px;border-bottom:1px solid rgba(232,220,196,.16);display:flex;align-items:center;gap:11px;font-weight:700;letter-spacing:.16em}
+.nav{padding:14px 10px;flex:1}
+.nav button{
+  width:100%;display:flex;align-items:center;gap:9px;padding:10px 12px;margin-bottom:2px;border:0;
+  border-radius:var(--radius-ctl);background:none;color:inherit;font:inherit;font-size:13.5px;cursor:pointer;
+  text-align:left;transition:background .14s ease;
+}
+.nav button:hover{background:rgba(255,255,255,.08)}
+.nav button.on{background:var(--brass);color:#2c2116;font-weight:600}
+.side .foot{padding:14px 20px;border-top:1px solid rgba(232,220,196,.16);font-size:11.5px;color:#b9a888;line-height:1.8}
+.main{flex:1;padding:30px 36px;min-width:0;overflow-y:auto}
+.identity{
+  display:flex;align-items:center;gap:16px;background:var(--page);border:1px solid var(--line);
+  border-radius:var(--radius-card);padding:18px 22px;margin-bottom:24px;
+}
+.identity .seal{
+  width:58px;height:58px;border-radius:10px;background:var(--brown);color:#f6efdf;
+  display:grid;place-items:center;font:700 24px/1 "Songti SC","STSong","SimSun",serif;
+}
+.identity h1{font-size:18px}
+.identity .aff{color:var(--muted);font-size:12.5px;margin-top:3px}
+.identity .edit{
+  margin-left:auto;border:1px solid var(--line);background:none;border-radius:var(--radius-ctl);
+  padding:8px 18px;font:inherit;font-size:13px;color:var(--ink);cursor:pointer;transition:all .14s ease;
+}
+.identity .edit:hover{border-color:var(--brass);color:var(--brass)}
+.group{
+  background:var(--page);border:1px solid var(--line);border-radius:var(--radius-card);
+  margin-bottom:18px;overflow:hidden;
+}
+.group h2{
+  font-size:13px;letter-spacing:.18em;color:var(--muted);padding:14px 20px;border-bottom:1px solid var(--line);
+  background:rgba(74,52,35,.05);
+}
+.setrow{border-bottom:1px solid var(--line)}
+.setrow:last-child{border-bottom:0}
+.setrow .head{
+  width:100%;display:flex;align-items:center;gap:12px;padding:14px 20px;background:none;border:0;
+  font:inherit;color:inherit;cursor:pointer;text-align:left;transition:background .13s ease;
+}
+.setrow .head:hover{background:#f8f2e2}
+.setrow .k{font-weight:600;font-size:14px}
+.setrow .v{color:var(--muted);font-size:12.5px;margin-left:8px}
+.setrow .arr{margin-left:auto;color:var(--muted);transition:transform .18s ease;font-size:12px}
+.setrow.open .arr{transform:rotate(90deg);color:var(--brass)}
+.detail{display:none;padding:4px 20px 18px;border-top:1px dashed var(--line)}
+.setrow.open .detail{display:block}
+.detail .row{display:flex;align-items:center;gap:12px;padding:10px 0 0}
+.detail label{flex:0 0 84px;font-size:12.5px;color:var(--muted)}
+.detail input{
+  flex:1;max-width:300px;height:38px;padding:0 12px;font:inherit;font-size:13.5px;color:var(--ink);
+  background:#fbf7ea;border:1px solid var(--line);border-radius:var(--radius-ctl);
+}
+.detail input:focus{outline:none;border-color:var(--brass);box-shadow:0 0 0 3px rgba(176,141,62,.16)}
+.switch{
+  position:relative;width:44px;height:24px;border-radius:999px;border:1px solid var(--line);background:#ddd0b2;
+  cursor:pointer;transition:background .15s ease;padding:0;
+}
+.switch::after{
+  content:"";position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fffdf6;
+  transition:left .15s ease;box-shadow:0 1px 3px rgba(0,0,0,.25);
+}
+.switch[aria-checked="true"]{background:var(--brass);border-color:var(--brass)}
+.switch[aria-checked="true"]::after{left:22px}
+.save{
+  border:0;border-radius:var(--radius-ctl);background:var(--brown);color:#f6efdf;padding:9px 22px;
+  font:inherit;font-size:13px;font-weight:700;cursor:pointer;letter-spacing:.1em;margin-top:12px;
+  transition:background .14s ease;
+}
+.save:hover{background:var(--brown-deep)}
+.toast{
+  position:fixed;left:50%;bottom:30px;transform:translate(-50%,16px);opacity:0;pointer-events:none;
+  background:var(--ink);color:#f6efdf;padding:11px 24px;border-radius:999px;font-size:13.5px;transition:all .28s ease;
+}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+@media(max-width:880px){
+  .side{flex-basis:60px}
+  .side .txt,.side .foot{display:none}
+  .main{padding:20px 16px}
+}
+@media(prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+}
+</style>
+</head>
+<body>
+<aside class="side">
+  <div class="desk">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M5 4H19V20H5V4Z" stroke="#e8dcc4" stroke-width="1.8" stroke-linejoin="round"/>
+      <path d="M9 4V20M9 9H16M9 13H15" stroke="#e8dcc4" stroke-width="1.6"/>
+    </svg>
+    <span class="txt">书房设置</span>
+  </div>
+  <nav class="nav" aria-label="设置分组">
+    <button class="on" type="button"><span class="txt">个人资料</span></button>
+    <button type="button"><span class="txt">安全</span></button>
+    <button type="button"><span class="txt">通知</span></button>
+    <button type="button"><span class="txt">书房偏好</span></button>
+  </nav>
+  <div class="foot">书斋笔记 v4.2<br>账号开通于 2021 年春</div>
+</aside>
+<main class="main">
+  <div class="identity">
+    <div class="seal" aria-hidden="true">言</div>
+    <div>
+      <h1>周清言</h1>
+      <p class="aff">古典文献学 · 讲师 · 钱塘大学人文学院</p>
+    </div>
+    <button class="edit" id="edit-id" type="button">更换名章</button>
+  </div>
+  <section class="group">
+    <h2>个人资料</h2>
+    <div class="setrow">
+      <button class="head" type="button"><span class="k">姓名与单位</span><span class="v">对外显示在批注与共享里</span><span class="arr">→</span></button>
+      <div class="detail">
+        <div class="row"><label>姓名</label><input type="text" value="周清言"></div>
+        <div class="row"><label>单位</label><input type="text" value="钱塘大学人文学院"></div>
+        <button class="save" type="button">存进书房</button>
+      </div>
+    </div>
+    <div class="setrow">
+      <button class="head" type="button"><span class="k">研究方向</span><span class="v">用来推荐相近的札记</span><span class="arr">→</span></button>
+      <div class="detail">
+        <div class="row"><label>方向</label><input type="text" value="宋代刻书史"></div>
+        <div class="row"><label>关键词</label><input type="text" value="版本学；藏书印"></div>
+        <button class="save" type="button">存进书房</button>
+      </div>
+    </div>
+  </section>
+  <section class="group">
+    <h2>安全</h2>
+    <div class="setrow">
+      <button class="head" type="button"><span class="k">登录密码</span><span class="v">上次更换于 8 个月前</span><span class="arr">→</span></button>
+      <div class="detail">
+        <div class="row"><label>原密码</label><input type="password" placeholder="输入原密码"></div>
+        <div class="row"><label>新密码</label><input type="password" placeholder="至少 10 位，含字母与数字"></div>
+        <button class="save" type="button">更换密码</button>
+      </div>
+    </div>
+    <div class="setrow">
+      <button class="head" type="button"><span class="k">登录设备</span><span class="v">当前 3 台设备在线</span><span class="arr">→</span></button>
+      <div class="detail">
+        <div class="row"><label>本机</label><span style="font-size:13.5px">书房的 Windows 台式 · 当前在线</span></div>
+        <div class="row"><label>随身</label><span style="font-size:13.5px">iPad · 昨天 21:14 活跃</span></div>
+        <div class="row"><label>旧机</label><span style="font-size:13.5px">旧笔记本 · 5 月后未用 · <b style="color:#a83a32">建议下线</b></span></div>
+      </div>
+    </div>
+  </section>
+  <section class="group">
+    <h2>通知</h2>
+    <div class="setrow">
+      <button class="head" type="button"><span class="k">批注与共享提醒</span><span class="v">有人批注你的札记时</span><span class="arr">→</span></button>
+      <div class="detail">
+        <div class="row"><label>邮件提醒</label><button class="switch" type="button" role="switch" aria-checked="true" aria-label="邮件提醒"></button></div>
+        <div class="row"><label>站内提醒</label><button class="switch" type="button" role="switch" aria-checked="true" aria-label="站内提醒"></button></div>
+      </div>
+    </div>
+    <div class="setrow">
+      <button class="head" type="button"><span class="k">每周读书信</span><span class="v">周一早八点</span><span class="arr">→</span></button>
+      <div class="detail">
+        <div class="row"><label>订阅书信</label><button class="switch" type="button" role="switch" aria-checked="false" aria-label="订阅书信"></button></div>
+      </div>
+    </div>
+  </section>
+</main>
+<div class="toast" id="toast">已存进书房。</div>
+<script>
+(function(){
+  var rows=document.querySelectorAll('.setrow');
+  for(var i=0;i<rows.length;i++){
+    (function(row){
+      row.querySelector('.head').addEventListener('click',function(){
+        row.classList.contains('open')?row.classList.remove('open'):row.classList.add('open');
+      });
+    })(rows[i]);
+  }
+  var navs=document.querySelectorAll('.nav button');
+  for(var k=0;k<navs.length;k++){
+    (function(btn){
+      btn.addEventListener('click',function(){
+        for(var j=0;j<navs.length;j++)navs[j].classList.remove('on');
+        btn.classList.add('on');
+      });
+    })(navs[k]);
+  }
+  var switches=document.querySelectorAll('.switch');
+  for(var s=0;s<switches.length;s++){
+    (function(sw){
+      sw.addEventListener('click',function(){
+        var on=sw.getAttribute('aria-checked')==='true';
+        sw.setAttribute('aria-checked',String(!on));
+      });
+    })(switches[s]);
+  }
+  var toast=document.getElementById('toast');
+  var timer=null;
+  var saves=document.querySelectorAll('.save');
+  for(var v=0;v<saves.length;v++){
+    saves[v].addEventListener('click',function(){
+      toast.classList.add('show');
+      if(timer)clearTimeout(timer);
+      timer=setTimeout(function(){toast.classList.remove('show')},1800);
+    });
+  }
+  document.getElementById('edit-id').addEventListener('click',function(){
+    toast.textContent='名章重刻中，明早可取。';
+    toast.classList.add('show');
+    if(timer)clearTimeout(timer);
+    timer=setTimeout(function(){toast.classList.remove('show')},1800);
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,396 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>金库 VaultID · 二次验证</title>
+<style>
+  :root {
+    --bg: #0a1830;
+    --panel: #0f2240;
+    --raised: #142c4e;
+    --border: #2b4a72;
+    --accent: #4f7cc4;
+    --text: #eaf2ff;
+    --muted: #8aa3c4;
+    --danger: #ff5c5c;
+    --warn: #f0b429;
+    --ok: #34d399;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0; min-height: 100vh;
+    font-family: -apple-system, "Segoe UI", "Microsoft YaHei", "PingFang SC", "Helvetica Neue", sans-serif;
+    background:
+      linear-gradient(rgba(79,124,196,.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(79,124,196,.05) 1px, transparent 1px),
+      var(--bg);
+    background-size: 24px 24px;
+    color: var(--text);
+    display: flex; flex-direction: column;
+  }
+  .topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 24px; border-bottom: 1px solid var(--border);
+    background: var(--panel);
+  }
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .brand .mark {
+    width: 34px; height: 34px; border: 1px solid var(--accent);
+    display: inline-flex; align-items: center; justify-content: center;
+    font-weight: 800; color: var(--accent); font-size: 16px;
+  }
+  .brand .name { font-weight: 700; letter-spacing: .03em; }
+  .brand .sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .who { display: flex; align-items: center; gap: 14px; font-size: 13px; color: var(--muted); }
+  .who .chip {
+    padding: 6px 12px; border: 1px solid var(--border); background: var(--raised); color: var(--text);
+    font-weight: 600;
+  }
+  .who .exit { color: var(--muted); text-decoration: none; border: 1px solid var(--border); padding: 6px 12px; }
+  .who .exit:hover { color: var(--text); border-color: var(--accent); }
+  .who .exit:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .grid {
+    flex: 1; display: grid; grid-template-columns: 1.45fr .9fr; gap: 16px;
+    max-width: 1120px; width: 100%; margin: 0 auto; padding: 22px 24px 14px;
+    align-content: start;
+  }
+  .panel { border: 1px solid var(--border); background: var(--panel); }
+  .panel-head {
+    padding: 12px 16px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    font-size: 13px; letter-spacing: .04em; color: var(--muted); font-weight: 600;
+  }
+  .panel-head .tag { color: var(--accent); font-size: 12px; font-weight: 700; }
+  .panel-body { padding: 18px 18px; }
+
+  h1 { margin: 0 0 6px; font-size: 22px; }
+  .lead { margin: 0 0 20px; font-size: 13px; color: var(--muted); line-height: 1.6; }
+  .digits { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; max-width: 420px; }
+  .digits input {
+    width: 100%; height: 60px; text-align: center;
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+    font-size: 26px; font-weight: 700; color: var(--text);
+    background: var(--raised); border: 1px solid var(--border); border-radius: 0;
+    caret-color: var(--accent);
+  }
+  .digits input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px rgba(79,124,196,.25); }
+  .digits.shake { animation: shake .4s ease; }
+  @keyframes shake { 10%,90% { transform: translateX(-2px); } 20%,80% { transform: translateX(3px); } 30%,50%,70% { transform: translateX(-4px); } 40%,60% { transform: translateX(4px); } }
+
+  .alert { display: none; margin-top: 14px; padding: 11px 14px; border: 1px solid var(--border); font-size: 13px; line-height: 1.5; }
+  .alert.danger { border-color: var(--danger); color: #ffd9d9; background: rgba(255,92,92,.08); display: block; }
+  .alert.warn { border-color: var(--warn); color: #ffe9b8; background: rgba(240,180,41,.08); display: block; }
+  .alert.ok { border-color: var(--ok); color: #c9f5e3; background: rgba(52,211,153,.08); display: block; }
+
+  .actions { display: flex; align-items: center; gap: 14px; margin-top: 18px; }
+  .btn {
+    font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer;
+    border-radius: 2px; transition: background .15s ease, border-color .15s ease, transform .1s ease;
+  }
+  .btn-primary {
+    padding: 12px 26px; background: var(--accent); color: #06101f;
+    border: 1px solid var(--accent);
+  }
+  .btn-primary:hover { background: #6b96d6; transform: translateY(-1px); }
+  .btn-primary:focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
+  .btn-primary:disabled { background: #27446b; border-color: #27446b; color: #7c92b3; cursor: not-allowed; transform: none; }
+  .count { font-size: 13px; color: var(--muted); }
+  .count b { color: var(--warn); font-weight: 700; }
+  .btn-resend {
+    padding: 10px 16px; background: transparent; color: var(--accent); border: 1px solid var(--border);
+  }
+  .btn-resend:hover:not(:disabled) { border-color: var(--accent); background: rgba(79,124,196,.1); }
+  .btn-resend:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .btn-resend:disabled { color: #5a6f8f; border-color: var(--border); cursor: not-allowed; }
+
+  .info-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .info-table td { padding: 9px 10px; border: 1px solid var(--border); color: var(--muted); }
+  .info-table td:first-child { width: 88px; color: var(--muted); background: var(--raised); }
+  .info-table td:last-child { color: var(--text); }
+  .tips { list-style: none; margin: 0; padding: 0; font-size: 13px; color: var(--muted); line-height: 1.7; }
+  .tips li { padding: 8px 0; border-bottom: 1px solid var(--border); }
+  .tips li:last-child { border-bottom: none; }
+  .tips li::before { content: "▪"; color: var(--accent); margin-right: 8px; }
+  .log { list-style: none; margin: 0; padding: 0; font-size: 12px; font-family: "SFMono-Regular", Consolas, monospace; }
+  .log li { padding: 7px 10px; border-bottom: 1px solid var(--border); color: var(--muted); display: flex; justify-content: space-between; }
+  .log li:last-child { border-bottom: none; }
+  .log .fail { color: var(--danger); }
+  .log .lock { color: var(--warn); }
+
+  .lock-panel { display: none; margin-top: 14px; border: 1px solid var(--danger); background: rgba(255,92,92,.07); padding: 16px; text-align: center; }
+  .lock-panel.show { display: block; }
+  .lock-panel .lockic { font-size: 26px; }
+  .lock-panel .lt { margin: 6px 0 4px; font-size: 16px; font-weight: 700; color: var(--danger); }
+  .lock-panel .ls { font-size: 13px; color: var(--muted); }
+  .lock-panel .ls b { color: var(--warn); font-size: 15px; }
+
+  .foot {
+    padding: 12px 24px; border-top: 1px solid var(--border); background: var(--panel);
+    display: flex; justify-content: space-between; gap: 12px; font-size: 12px; color: var(--muted);
+  }
+  .foot span + span { margin-left: 18px; }
+  @media (max-width: 768px) {
+    .grid { grid-template-columns: 1fr; padding: 14px 14px; }
+    .topbar { flex-direction: column; align-items: flex-start; gap: 10px; }
+    .digits { gap: 6px; }
+    .digits input { height: 52px; font-size: 22px; }
+    .actions { flex-wrap: wrap; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+  }
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="mark">金</span>
+      <div><div class="name">金库 VaultID</div><div class="sub">身份验证中心 · 二次验证</div></div>
+    </div>
+    <div class="who">
+      <span class="chip">chen@vaultid.cn</span>
+      <a class="exit" id="logout" href="#">退出</a>
+    </div>
+  </header>
+
+  <main class="grid">
+    <section class="panel">
+      <div class="panel-head"><span>步骤 2 / 2 · 二次验证</span><span class="tag">安全通道</span></div>
+      <div class="panel-body" id="main-panel">
+        <h1>输入 6 位验证码</h1>
+        <p class="lead">密码已验证通过。为确认是你本人，请输入发送至你设备的验证码。</p>
+
+        <div class="digits" id="digits">
+          <input id="digit-0" type="text" inputmode="numeric" maxlength="1" autocomplete="off" aria-label="验证码第 1 位">
+          <input id="digit-1" type="text" inputmode="numeric" maxlength="1" autocomplete="off" aria-label="验证码第 2 位">
+          <input id="digit-2" type="text" inputmode="numeric" maxlength="1" autocomplete="off" aria-label="验证码第 3 位">
+          <input id="digit-3" type="text" inputmode="numeric" maxlength="1" autocomplete="off" aria-label="验证码第 4 位">
+          <input id="digit-4" type="text" inputmode="numeric" maxlength="1" autocomplete="off" aria-label="验证码第 5 位">
+          <input id="digit-5" type="text" inputmode="numeric" maxlength="1" autocomplete="off" aria-label="验证码第 6 位">
+        </div>
+
+        <div class="alert" id="alert"></div>
+        <div class="lock-panel" id="lock-panel">
+          <div class="lockic">🔒</div>
+          <div class="lt">尝试次数过多，已锁定</div>
+          <div class="ls">请稍候 <b id="lock-count">30s</b> 后重试，或联系管理员。</div>
+        </div>
+
+        <div class="actions">
+          <button class="btn btn-primary" id="verify-btn" type="button">验证并进入</button>
+          <span class="count">验证码 <b id="countdown">60s</b> 后失效</span>
+          <button class="btn btn-resend" id="resend-btn" type="button">重新发送</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head"><span>本次登录</span><span class="tag">信息</span></div>
+      <div class="panel-body">
+        <table class="info-table">
+          <tr><td>设备</td><td>MacBook Pro · Chrome</td></tr>
+          <tr><td>位置</td><td>中国 · 上海市</td></tr>
+          <tr><td>网络</td><td>203.0.113.24</td></tr>
+          <tr><td>时间</td><td id="now-time">2024-01-01 09:12:00</td></tr>
+        </table>
+      </div>
+      <div class="panel-head"><span>安全提示</span><span class="tag">须知</span></div>
+      <div class="panel-body">
+        <ul class="tips">
+          <li>验证码仅本人可用，请勿转发给任何人。</li>
+          <li>演示验证码：204862（用于测试通过）。</li>
+          <li>连续失败 3 次将锁定 30 秒。</li>
+          <li>锁定期不会清除你已输入的内容。</li>
+        </ul>
+      </div>
+      <div class="panel-head"><span>尝试记录</span><span class="tag">审计</span></div>
+      <div class="panel-body">
+        <ul class="log" id="attempt-log">
+          <li><span>—</span><span>暂无失败记录</span></li>
+        </ul>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <span>安全通道已建立 · 端到端加密</span>
+    <span>会话将在 30 分钟后过期</span>
+  </footer>
+
+<script>
+(function () {
+  var CODE = '204862';
+  var inputs = [0,1,2,3,4,5].map(function (i) { return document.getElementById('digit-' + i); });
+  var verifyBtn = document.getElementById('verify-btn');
+  var resendBtn = document.getElementById('resend-btn');
+  var countdownEl = document.getElementById('countdown');
+  var alertEl = document.getElementById('alert');
+  var digitsEl = document.getElementById('digits');
+  var lockPanel = document.getElementById('lock-panel');
+  var lockCount = document.getElementById('lock-count');
+  var attemptLog = document.getElementById('attempt-log');
+  var nowTime = document.getElementById('now-time');
+  var resendLeft = 60;
+  var lockLeft = 0;
+  var failures = 0;
+  var locked = false;
+  var resendTimer = null;
+  var lockTimer = null;
+
+  function pad(n) { return n < 10 ? '0' + n : '' + n; }
+  function clock() {
+    var d = new Date();
+    return d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate()) + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
+  }
+  nowTime.textContent = clock();
+  setInterval(function () { nowTime.textContent = clock(); }, 1000);
+
+  function setAlert(kind, msg) {
+    alertEl.className = 'alert';
+    if (kind) { alertEl.className = 'alert ' + kind; alertEl.textContent = msg; }
+    else { alertEl.textContent = ''; }
+  }
+
+  function log(msg, cls) {
+    var li = document.createElement('li');
+    var left = document.createElement('span');
+    var right = document.createElement('span');
+    left.textContent = msg;
+    if (cls) { left.className = cls; }
+    right.textContent = clock();
+    li.appendChild(left); li.appendChild(right);
+    if (attemptLog.firstChild && attemptLog.firstChild.textContent.indexOf('暂无') === 0) {
+      attemptLog.innerHTML = '';
+    }
+    attemptLog.insertBefore(li, attemptLog.firstChild);
+  }
+
+  function clearInputs() {
+    inputs.forEach(function (inp) { inp.value = ''; });
+    inputs[0].focus();
+  }
+  function readCode() {
+    return inputs.map(function (inp) { return inp.value; }).join('');
+  }
+
+  inputs.forEach(function (inp, idx) {
+    inp.addEventListener('input', function () {
+      var v = inp.value.replace(/\D/g, '');
+      inp.value = v.slice(0, 1);
+      if (v && idx < inputs.length - 1) { inputs[idx + 1].focus(); }
+    });
+    inp.addEventListener('keydown', function (e) {
+      if (e.key === 'Backspace' && !inp.value && idx > 0) { inputs[idx - 1].focus(); }
+    });
+    inp.addEventListener('paste', function (e) {
+      e.preventDefault();
+      var text = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g, '').slice(0, 6);
+      if (!text) { return; }
+      text.split('').forEach(function (ch, i) { inputs[i].value = ch; });
+      inputs[Math.min(text.length, 5)].focus();
+    });
+  });
+
+  function updateResend() {
+    if (resendLeft > 0) {
+      resendBtn.disabled = true;
+      countdownEl.textContent = resendLeft + 's';
+      resendBtn.textContent = '重新发送（' + resendLeft + 's）';
+    } else {
+      resendBtn.disabled = false;
+      countdownEl.textContent = '已过期';
+      resendBtn.textContent = '重新发送';
+    }
+  }
+  function startResend() {
+    resendLeft = 60;
+    updateResend();
+    if (resendTimer) { clearInterval(resendTimer); }
+    resendTimer = setInterval(function () {
+      resendLeft -= 1;
+      if (resendLeft <= 0) { clearInterval(resendTimer); resendTimer = null; }
+      updateResend();
+    }, 1000);
+  }
+
+  function startLock() {
+    locked = true;
+    lockLeft = 30;
+    lockPanel.classList.add('show');
+    lockCount.textContent = lockLeft + 's';
+    inputs.forEach(function (inp) { inp.disabled = true; });
+    verifyBtn.disabled = true;
+    resendBtn.disabled = true;
+    if (lockTimer) { clearInterval(lockTimer); }
+    lockTimer = setInterval(function () {
+      lockLeft -= 1;
+      if (lockLeft <= 0) {
+        clearInterval(lockTimer); lockTimer = null;
+        locked = false;
+        failures = 0;
+        lockPanel.classList.remove('show');
+        inputs.forEach(function (inp) { inp.disabled = false; });
+        verifyBtn.disabled = false;
+        updateResend();
+        setAlert('', '');
+        log('已解锁，可重新尝试', 'lock');
+      } else {
+        lockCount.textContent = lockLeft + 's';
+      }
+    }, 1000);
+  }
+
+  function shake() {
+    digitsEl.classList.remove('shake');
+    void digitsEl.offsetWidth;
+    digitsEl.classList.add('shake');
+  }
+
+  verifyBtn.addEventListener('click', function () {
+    if (locked) { return; }
+    var code = readCode();
+    if (code.length < 6) {
+      setAlert('warn', '请输入完整的 6 位验证码。');
+      shake();
+      return;
+    }
+    if (code === CODE) {
+      setAlert('ok', '验证通过，正在进入控制台…');
+      log('验证通过', 'ok');
+      verifyBtn.disabled = true;
+      return;
+    }
+    failures += 1;
+    log('验证失败', 'fail');
+    shake();
+    if (failures >= 3) {
+      setAlert('danger', '验证码连续错误 3 次，账号已锁定 30 秒。');
+      log('已锁定 30 秒', 'lock');
+      startLock();
+      return;
+    }
+    setAlert('danger', '验证码不正确，请重试（剩余 ' + (3 - failures) + ' 次机会）。');
+    clearInputs();
+  });
+
+  resendBtn.addEventListener('click', function () {
+    if (locked || resendLeft > 0) { return; }
+    startResend();
+    log('已重新发送验证码', '');
+    setAlert('', '');
+    clearInputs();
+  });
+
+  document.getElementById('logout').addEventListener('click', function (e) {
+    e.preventDefault();
+    setAlert('warn', '你已选择退出当前验证。');
+  });
+
+  startResend();
+})();
+</script>
+</body>
+</html>

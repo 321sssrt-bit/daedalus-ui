@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>石板堂 · 一课</title>
+  <style>
+    :root {
+      --slate: #2a3036;
+      --chalk: #e8efe6;
+      --line: #6a8a74;
+      --ink: #e8efe6;
+      --wrong: #d4a24c;
+      --ok: #7dcea0;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #1b1f24; color: var(--ink); font: 16px/1.55 "Georgia", "Songti SC", serif; }
+    .room { max-width: 900px; margin: 0 auto; min-height: 100vh; display: grid; grid-template-columns: 240px 1fr; }
+    nav { background: var(--slate); padding: 22px 16px; }
+    nav button { display: block; width: 100%; text-align: left; background: none; border: 0; color: #c5d0c8; padding: 8px 0; cursor: pointer; font: inherit; }
+    nav button.on { color: var(--ok); }
+    main { padding: 32px 36px; background: #32383e; }
+    h1 { margin: 0 0 8px; font-weight: 500; }
+    .q { font-size: 20px; margin: 16px 0; }
+    label { display: block; margin: 8px 0; cursor: pointer; }
+    button.go { height: 40px; padding: 0 16px; border: 0; background: var(--line); color: #102018; cursor: pointer; }
+    .exp { margin-top: 16px; min-height: 48px; }
+    .bad { color: var(--wrong); }
+    .good { color: var(--ok); }
+    @media (max-width: 768px) { .room { grid-template-columns: 1fr; } }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="room">
+    <nav>
+      <div>石板堂</div>
+      <button class="on" id="enter" type="button">第一课 · 潮</button>
+      <button id="drill" type="button">练习</button>
+    </nav>
+    <main>
+      <div id="lesson">
+        <h1>第一课 · 潮</h1>
+        <p>北港的潮用「按潮」看，不按钟点。高潮写在脉镜左上，黄点是告警。</p>
+        <button class="go" id="toq" type="button">去做练习</button>
+      </div>
+      <div id="quiz" hidden>
+        <h1>练习</h1>
+        <p class="q">北港现高潮该看哪一格粒度？</p>
+        <label><input type="radio" name="a" value="wrong"> 按日</label>
+        <label><input type="radio" name="a" value="wrong2"> 按旬</label>
+        <label><input type="radio" name="a" value="right"> 按潮</label>
+        <div style="margin-top:12px">
+          <button class="go" id="sub" type="button">交卷</button>
+          <button class="go" id="again" type="button" hidden>再做一次</button>
+        </div>
+        <div class="exp" id="exp"></div>
+      </div>
+    </main>
+  </div>
+  <script>
+    (function () {
+      var lesson = document.getElementById("lesson");
+      var quiz = document.getElementById("quiz");
+      function show(which) {
+        lesson.hidden = which !== "l";
+        quiz.hidden = which !== "q";
+        document.getElementById("enter").className = which === "l" ? "on" : "";
+        document.getElementById("drill").className = which === "q" ? "on" : "";
+      }
+      document.getElementById("enter").addEventListener("click", function () { show("l"); });
+      document.getElementById("drill").addEventListener("click", function () { show("q"); });
+      document.getElementById("toq").addEventListener("click", function () { show("q"); });
+      document.getElementById("sub").addEventListener("click", function () {
+        var picked = document.querySelector("input[name=a]:checked");
+        var exp = document.getElementById("exp");
+        var again = document.getElementById("again");
+        if (!picked) { exp.className = "exp bad"; exp.textContent = "先选一项。"; return; }
+        if (picked.value === "right") {
+          exp.className = "exp good";
+          exp.textContent = "订正成功。按潮才对，日和旬会把黄点抹平。";
+          again.hidden = true;
+        } else {
+          exp.className = "exp bad";
+          exp.textContent = "答错了。日和旬是平均后的线，看现高潮必须按潮。用解释再选一次。";
+          again.hidden = false;
+        }
+      });
+      document.getElementById("again").addEventListener("click", function () {
+        document.querySelectorAll("input[name=a]").forEach(function (r) { r.checked = false; });
+        document.getElementById("exp").textContent = "题目还在。选「按潮」。";
+        document.getElementById("exp").className = "exp";
+        this.hidden = true;
+      });
+    })();
+  </script>
+</body>
+</html>

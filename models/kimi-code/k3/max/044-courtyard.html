@@ -1,0 +1,282 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>院子 · 邻里动态</title>
+<style>
+:root{
+  --brick:#6e7f7a;
+  --brick-deep:#556861;
+  --sun:#e8a94e;
+  --paper:#f4f1e6;
+  --card:#fffdf5;
+  --ink:#30383a;
+  --muted:#8a938f;
+  --line:#dfe0d2;
+  --danger:#c0452e;
+  --frame:#10151f;
+  --sp:8px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font:15px/1.65 "PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+  background:#262b34;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;
+}
+.stage{text-align:center}
+.device-label{color:#8b93a1;font-size:12px;letter-spacing:.2em;margin-bottom:14px}
+.phone{
+  width:390px;height:min(844px,calc(100vh - 90px));border-radius:38px;border:11px solid var(--frame);
+  background:var(--paper);overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.5);
+}
+.screen{height:100%;overflow-y:auto;position:relative}
+.topbar{
+  position:sticky;top:0;z-index:5;background:var(--brick);color:#f4f1e6;padding:14px 18px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.topbar h1{font:700 17px/1 "Kaiti SC","STKaiti","KaiTi","Songti SC",serif;letter-spacing:.2em}
+.topbar .who{font-size:11px;opacity:.85}
+.feed{padding:14px}
+.draftbar{
+  display:none;background:#fdf3e0;border:1px solid #ecd9ac;border-radius:14px;padding:12px 14px;margin-bottom:12px;
+}
+.draftbar.show{display:block}
+.draftbar .dh{display:flex;align-items:center;gap:8px;font-size:12.5px;color:#8a5a10;font-weight:700;margin-bottom:6px}
+.draftbar .dp{font-size:12.5px;color:#6b5320;line-height:1.7;max-height:44px;overflow:hidden}
+.draftbar .dmeta{font-size:11px;color:#a08040;margin-top:5px}
+.draftbar .dacts{display:flex;gap:8px;margin-top:9px}
+.draftbar .dacts button{
+  flex:1;border-radius:9px;padding:8px 0;font:inherit;font-size:12.5px;font-weight:600;cursor:pointer;
+}
+.dretry{border:0;background:var(--sun);color:#3a2c10}
+.dretry:hover{background:#d9982f}
+.dedit{border:1px solid #d9bd84;background:none;color:#8a5a10}
+.post{
+  background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-bottom:11px;
+}
+.post .ph{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.post .av{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:700;font-size:13px}
+.post .nm{font-size:13.5px;font-weight:700}
+.post .mt{font-size:10.5px;color:var(--muted)}
+.post .scope-tag{
+  margin-left:auto;font-size:10px;color:var(--brick-deep);background:#e7ece8;border-radius:999px;padding:3px 9px;
+}
+.post p{font-size:13.5px;line-height:1.85;color:#3c4445}
+.post .acts{display:flex;gap:16px;margin-top:10px;font-size:12px;color:var(--muted)}
+.post .acts button{border:0;background:none;font:inherit;font-size:12px;color:var(--muted);cursor:pointer;padding:2px}
+.post .acts button.on{color:var(--sun);font-weight:700}
+.fab{
+  position:sticky;bottom:18px;margin:0 14px 16px auto;display:flex;align-items:center;gap:8px;
+  width:max-content;border:0;border-radius:999px;background:var(--sun);color:#3a2c10;
+  padding:13px 22px;font:inherit;font-weight:700;font-size:14px;letter-spacing:.08em;cursor:pointer;
+  box-shadow:0 10px 26px rgba(232,169,78,.45);z-index:6;
+}
+.fab:hover{background:#d9982f}
+.sheet-mask{position:absolute;inset:0;background:rgba(30,35,32,.42);display:none;z-index:8}
+.sheet-mask.show{display:block}
+.sheet{
+  position:absolute;left:0;right:0;bottom:0;background:var(--card);border-radius:22px 22px 0 0;
+  padding:18px 20px 24px;z-index:9;transform:translateY(105%);transition:transform .3s ease;
+}
+.sheet.show{transform:translateY(0)}
+.sheet h3{font-size:15.5px;margin-bottom:12px;letter-spacing:.06em}
+.sheet textarea{
+  width:100%;min-height:120px;border:1.5px solid var(--line);border-radius:12px;padding:12px 14px;
+  font:inherit;font-size:14px;line-height:1.8;color:var(--ink);background:var(--paper);resize:none;
+}
+.sheet textarea:focus{outline:none;border-color:var(--brick)}
+.scope-row{display:flex;align-items:center;gap:8px;margin:12px 0 6px;flex-wrap:wrap}
+.scope-row .sl{font-size:12px;color:var(--muted)}
+.scope-row button{
+  border:1px solid var(--line);background:none;border-radius:999px;padding:6px 13px;font:inherit;
+  font-size:12px;color:var(--ink);cursor:pointer;transition:all .13s ease;
+}
+.scope-row button.on{background:var(--brick);border-color:var(--brick);color:#fff;font-weight:600}
+.drill{display:flex;align-items:center;gap:8px;margin:8px 0 14px;font-size:11.5px;color:var(--muted)}
+.drill .sw{
+  width:36px;height:20px;border-radius:999px;border:1px solid var(--line);background:#dfe0d2;cursor:pointer;
+  position:relative;padding:0;transition:background .15s ease;
+}
+.drill .sw::after{content:"";position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:#fff;transition:left .15s ease}
+.drill .sw[aria-checked="true"]{background:var(--danger)}
+.drill .sw[aria-checked="true"]::after{left:18px}
+.pub{
+  width:100%;height:48px;border:0;border-radius:12px;background:var(--brick);color:#fff;
+  font:inherit;font-weight:700;font-size:14.5px;letter-spacing:.18em;cursor:pointer;transition:background .14s ease;
+}
+.pub:hover:not(:disabled){background:var(--brick-deep)}
+.pub:disabled{opacity:.4;cursor:not-allowed}
+.fail-note{
+  display:none;background:#fbeae5;border:1px solid #ecc5b8;border-radius:10px;padding:10px 13px;
+  font-size:12px;color:#8c3a24;margin-bottom:10px;line-height:1.8;
+}
+.fail-note.show{display:block}
+.toast{
+  position:fixed;left:50%;bottom:30px;transform:translate(-50%,16px);opacity:0;pointer-events:none;
+  background:var(--ink);color:#f4f1e6;padding:11px 24px;border-radius:999px;font-size:13px;transition:all .28s ease;z-index:10;
+}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+@media(max-width:520px){
+  body{padding:0}
+  .device-label{display:none}
+  .phone{width:100%;height:100vh;border:0;border-radius:0}
+}
+@media(prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+}
+</style>
+</head>
+<body>
+<div class="stage">
+  <p class="device-label">院 子 COURTYARD</p>
+  <div class="phone">
+    <div class="screen">
+      <div class="topbar"><h1>槐荫院子</h1><span class="who">3 号楼 · 晴</span></div>
+      <div class="feed" id="feed">
+        <div class="draftbar" id="draftbar">
+          <p class="dh">📮 有一条没发出去的动态</p>
+          <p class="dp" id="d-prev"></p>
+          <p class="dmeta" id="d-meta"></p>
+          <div class="dacts">
+            <button class="dretry" id="d-retry" type="button">再发一次</button>
+            <button class="dedit" id="d-edit" type="button">接着改</button>
+          </div>
+        </div>
+        <article class="post">
+          <div class="ph"><span class="av" style="background:#6e7f7a">槐</span><span><span class="nm">槐树下的赵姨</span><br><span class="mt">今天 18:02 · 3 号楼</span></span><span class="scope-tag">全院子</span></div>
+          <p>楼顶的丝瓜熟了，摘了六根，放在门房长凳上，谁路过谁拿，留一根给 502 的小猫闻闻就行。</p>
+          <div class="acts"><button type="button">👍 12</button><button type="button">💬 5</button></div>
+        </article>
+        <article class="post">
+          <div class="ph"><span class="av" style="background:#8a6a9a">棋</span><span><span class="nm">棋摊老钱</span><br><span class="mt">今天 15:40 · 传达室</span></span><span class="scope-tag">全院子</span></div>
+          <p>周六下午棋摊照常，新做了一副大子儿，眼神不好的也能看清。输了的剥毛豆。</p>
+          <div class="acts"><button type="button">👍 8</button><button type="button">💬 3</button></div>
+        </article>
+        <article class="post">
+          <div class="ph"><span class="av" style="background:#4a6fa5">修</span><span><span class="nm">物业小修</span><br><span class="mt">昨天 20:15 · 物业</span></span><span class="scope-tag">仅本楼</span></div>
+          <p>3 号楼二单元楼道灯已换新，比原来亮一档。还有觉得暗的楼层在这条下面说一声。</p>
+          <div class="acts"><button type="button">👍 21</button><button type="button">💬 9</button></div>
+        </article>
+        <article class="post">
+          <div class="ph"><span class="av" style="background:#c98a4a">桂</span><span><span class="nm">一楼桂姐</span><br><span class="mt">昨天 09:26 · 1 号楼</span></span><span class="scope-tag">全院子</span></div>
+          <p>院里的桂花开了第一茬，晨练走东边小路，一路都是香的。</p>
+          <div class="acts"><button type="button">👍 16</button><button type="button">💬 7</button></div>
+        </article>
+      </div>
+      <button class="fab" id="fab" type="button">✏️ 写一条</button>
+      <div class="sheet-mask" id="mask"></div>
+      <div class="sheet" id="sheet">
+        <h3>写条动态</h3>
+        <div class="fail-note" id="fail-note">这次没发出去：内容和可见范围都替你留着，点「再发一次」或收进动态顶部的草稿条。</div>
+        <textarea id="text" placeholder="院里最近有什么新鲜事……"></textarea>
+        <div class="scope-row" id="scopes">
+          <span class="sl">给谁看</span>
+          <button class="on" type="button" data-s="全院子">全院子</button>
+          <button type="button" data-s="仅本楼">仅本楼</button>
+          <button type="button" data-s="仅邻居组">仅邻居组</button>
+        </div>
+        <div class="drill">
+          <button class="sw" id="drill" type="button" role="switch" aria-checked="false" aria-label="发布演练"></button>
+          <span>发布演练：打开后这次发布会失败（用于确认草稿保留）</span>
+        </div>
+        <button class="pub" id="pub" type="button" disabled>发 到 院 子 里</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+(function(){
+  var fab=document.getElementById('fab');
+  var sheet=document.getElementById('sheet');
+  var mask=document.getElementById('mask');
+  var text=document.getElementById('text');
+  var pub=document.getElementById('pub');
+  var drill=document.getElementById('drill');
+  var failNote=document.getElementById('fail-note');
+  var draftbar=document.getElementById('draftbar');
+  var dPrev=document.getElementById('d-prev');
+  var dMeta=document.getElementById('d-meta');
+  var feed=document.getElementById('feed');
+  var toast=document.getElementById('toast');
+  var scope='全院子';
+  var drillOn=false;
+  var timer=null;
+  function say(msg){
+    toast.textContent=msg;
+    toast.classList.add('show');
+    if(timer)clearTimeout(timer);
+    timer=setTimeout(function(){toast.classList.remove('show')},2200);
+  }
+  function openSheet(){sheet.classList.add('show');mask.classList.add('show')}
+  function closeSheet(){sheet.classList.remove('show');mask.classList.remove('show')}
+  fab.addEventListener('click',openSheet);
+  mask.addEventListener('click',closeSheet);
+  text.addEventListener('input',function(){
+    pub.disabled=text.value.replace(/^\s+|\s+$/g,'').length<2;
+  });
+  var scopeBtns=document.querySelectorAll('#scopes button');
+  for(var i=0;i<scopeBtns.length;i++){
+    (function(b){
+      b.addEventListener('click',function(){
+        for(var j=0;j<scopeBtns.length;j++)scopeBtns[j].classList.remove('on');
+        b.classList.add('on');
+        scope=b.getAttribute('data-s');
+      });
+    })(scopeBtns[i]);
+  }
+  drill.addEventListener('click',function(){
+    drillOn=!drillOn;
+    drill.setAttribute('aria-checked',String(drillOn));
+  });
+  function publish(){
+    var body=text.value.replace(/^\s+|\s+$/g,'');
+    if(drillOn){
+      failNote.classList.add('show');
+      dPrev.textContent=body;
+      dMeta.textContent='可见范围：'+scope+' · 未发出';
+      closeSheet();
+      draftbar.classList.add('show');
+      say('没发出去，草稿已保留。');
+      return;
+    }
+    var art=document.createElement('article');
+    art.className='post';
+    art.innerHTML='<div class="ph"><span class="av" style="background:#c9761a">我</span><span><span class="nm">我</span><br><span class="mt">刚刚 · 3 号楼</span></span><span class="scope-tag">'+scope+'</span></div>'+
+      '<p></p><div class="acts"><button type="button">👍 0</button><button type="button">💬 0</button></div>';
+    art.querySelector('p').textContent=body;
+    feed.insertBefore(art,draftbar.nextSibling);
+    draftbar.classList.remove('show');
+    failNote.classList.remove('show');
+    text.value='';
+    pub.disabled=true;
+    closeSheet();
+    say('已发到院子里（'+scope+'）。');
+  }
+  pub.addEventListener('click',publish);
+  document.getElementById('d-retry').addEventListener('click',function(){
+    drillOn=false;
+    drill.setAttribute('aria-checked','false');
+    publish();
+  });
+  document.getElementById('d-edit').addEventListener('click',function(){
+    text.value=dPrev.textContent;
+    pub.disabled=false;
+    openSheet();
+  });
+  var likeBtns=document.querySelectorAll('.post .acts button');
+  for(var k=0;k<likeBtns.length;k++){
+    (function(b){
+      b.addEventListener('click',function(){
+        var parts=b.textContent.split(' ');
+        var n=parseInt(parts[1],10)||0;
+        if(b.classList.contains('on')){b.classList.remove('on');b.textContent=parts[0]+' '+(n-1)}
+        else{b.classList.add('on');b.textContent=parts[0]+' '+(n+1)}
+      });
+    })(likeBtns[k]);
+  }
+})();
+</script>
+</body>
+</html>

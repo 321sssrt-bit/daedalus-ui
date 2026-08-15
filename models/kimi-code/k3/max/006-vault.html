@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>金柜 · 二次验证</title>
+<style>
+:root{
+  --felt:#0e3527;
+  --panel:#12402e;
+  --brass:#c2a054;
+  --brass-deep:#96762f;
+  --cream:#f4ead2;
+  --muted:#9db3a3;
+  --line:#2a5a42;
+  --danger:#d96a4a;
+  --radius-ctl:6px;
+  --radius-box:10px;
+  --sp:8px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font:15px/1.6 "PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+  background:var(--felt);color:var(--cream);min-height:100vh;
+  display:flex;align-items:center;justify-content:center;padding:36px 20px;
+}
+.card{
+  width:min(420px,100%);background:var(--panel);
+  border:3px solid var(--brass);outline:1px solid var(--brass-deep);outline-offset:5px;
+  border-radius:var(--radius-box);padding:36px 34px 28px;text-align:center;
+  box-shadow:0 22px 60px rgba(0,0,0,.45);
+}
+.crest{width:64px;height:64px;margin:0 auto 16px;display:grid;place-items:center}
+h1{font:700 22px/1.3 "Songti SC","STSong","SimSun",serif;letter-spacing:.22em;padding-left:.22em}
+.lead{color:var(--muted);font-size:13px;margin:10px 0 24px}
+.lead b{color:var(--cream);font-family:ui-monospace,Consolas,monospace}
+.otp{display:flex;gap:9px;justify-content:center;margin-bottom:8px}
+.otp input{
+  width:50px;height:58px;text-align:center;font:700 24px/1 ui-monospace,Consolas,monospace;
+  color:var(--felt);background:var(--cream);border:2px solid transparent;border-radius:var(--radius-ctl);
+  transition:border-color .15s ease,transform .1s ease;caret-color:var(--brass-deep);
+}
+.otp input:focus{outline:none;border-color:var(--brass);transform:translateY(-2px)}
+.otp input.filled{border-color:var(--brass-deep)}
+.otp.err input{border-color:var(--danger);animation:shake .3s ease}
+@keyframes shake{25%{transform:translateX(-5px)}50%{transform:translateX(4px)}75%{transform:translateX(-2px)}}
+.feedback{min-height:22px;font-size:13px;color:var(--muted);margin:8px 0 16px}
+.feedback.err{color:var(--danger)}
+.actions{display:flex;flex-direction:column;gap:12px;align-items:center}
+.submit{
+  width:100%;height:48px;border:0;border-radius:var(--radius-ctl);cursor:pointer;
+  background:var(--brass);color:#241a05;font:inherit;font-weight:700;letter-spacing:.3em;padding-left:.3em;
+  transition:background .15s ease;
+}
+.submit:hover:not(:disabled){background:#d4b268}
+.submit:disabled{opacity:.45;cursor:not-allowed}
+.submit:focus-visible{outline:3px solid rgba(194,160,84,.5);outline-offset:2px}
+.resend{background:none;border:0;color:var(--muted);font:inherit;font-size:13px;cursor:pointer;letter-spacing:.06em}
+.resend:hover:not(:disabled){color:var(--brass)}
+.resend:disabled{cursor:not-allowed;color:var(--muted)}
+.resend b{font-family:ui-monospace,Consolas,monospace;color:var(--brass)}
+.foot{margin-top:22px;padding-top:16px;border-top:1px solid var(--line);color:var(--muted);font-size:12px;letter-spacing:.1em}
+.lock{display:none}
+.lock.show{display:block}
+.lock p{color:var(--muted);font-size:13.5px;margin-top:12px;line-height:1.8}
+.hint{margin-top:14px;font-size:12px;color:var(--muted)}
+.hint code{font-family:ui-monospace,Consolas,monospace;color:var(--brass)}
+@media(max-width:460px){.otp input{width:44px;height:52px}}
+@media(prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+}
+</style>
+</head>
+<body>
+<main class="card">
+  <div id="verify-view">
+    <div class="crest" aria-hidden="true">
+      <svg width="52" height="52" viewBox="0 0 52 52" fill="none">
+        <rect x="6" y="20" width="40" height="26" rx="4" stroke="#c2a054" stroke-width="2.2"/>
+        <path d="M16 20V14C16 8 20 4 26 4C32 4 36 8 36 14V20" stroke="#c2a054" stroke-width="2.2"/>
+        <circle cx="26" cy="32" r="5" stroke="#c2a054" stroke-width="2.2"/>
+        <path d="M26 34.5V39" stroke="#c2a054" stroke-width="2.2" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <h1>金库复核</h1>
+    <p class="lead">口令无误。复核码已发送至尾号 <b>7219</b> 的预留手机。</p>
+    <div class="otp" id="otp" aria-label="六位复核码">
+      <input type="text" inputmode="numeric" maxlength="1" aria-label="第 1 位">
+      <input type="text" inputmode="numeric" maxlength="1" aria-label="第 2 位">
+      <input type="text" inputmode="numeric" maxlength="1" aria-label="第 3 位">
+      <input type="text" inputmode="numeric" maxlength="1" aria-label="第 4 位">
+      <input type="text" inputmode="numeric" maxlength="1" aria-label="第 5 位">
+      <input type="text" inputmode="numeric" maxlength="1" aria-label="第 6 位">
+    </div>
+    <p class="feedback" id="feedback">复核码十分钟内有效，剩余尝试 3 次。</p>
+    <div class="actions">
+      <button class="submit" id="submit" type="button" disabled>开 库</button>
+      <button class="resend" id="resend" type="button" disabled><span id="lbl">重新发送</span><span id="cdwrap">（<b id="cd">45</b> 秒）</span></button>
+    </div>
+    <p class="hint">演示环境：复核码 <code>246810</code> 可开库</p>
+    <p class="foot">金柜银行 · 大额交易二次核验</p>
+  </div>
+  <div class="lock" id="lock-view">
+    <div class="crest" aria-hidden="true">
+      <svg width="52" height="52" viewBox="0 0 52 52" fill="none">
+        <circle cx="26" cy="26" r="21" stroke="#d96a4a" stroke-width="2.2"/>
+        <path d="M17 17L35 35" stroke="#d96a4a" stroke-width="2.2" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <h1>库门暂锁</h1>
+    <p>三次复核均未通过。为保护库内资产，<br>本账户已锁定十分钟。<br>紧急情况请致电金柜专线 95566 转 3。</p>
+  </div>
+</main>
+<script>
+(function(){
+  var inputs=Array.prototype.slice.call(document.querySelectorAll('#otp input'));
+  var otp=document.getElementById('otp');
+  var feedback=document.getElementById('feedback');
+  var submit=document.getElementById('submit');
+  var resend=document.getElementById('resend');
+  var cd=document.getElementById('cd');
+  var left=3,timer=null,cdLeft=45;
+  function value(){return inputs.map(function(i){return i.value}).join('')}
+  function refresh(){
+    var v=value();
+    submit.disabled=v.length!==6;
+    inputs.forEach(function(i){i.classList.toggle('filled',!!i.value)});
+  }
+  var lbl=document.getElementById('lbl');
+  var cdwrap=document.getElementById('cdwrap');
+  function countdown(){
+    resend.disabled=true;
+    cdLeft=45;
+    cd.textContent=cdLeft;
+    lbl.textContent='重新发送';
+    cdwrap.style.display='';
+    timer=setInterval(function(){
+      cdLeft-=1;
+      if(cdLeft<=0){clearInterval(timer);resend.disabled=false;lbl.textContent='重新发送复核码';cdwrap.style.display='none';return}
+      cd.textContent=cdLeft;
+    },1000);
+  }
+  inputs.forEach(function(input,idx){
+    input.addEventListener('input',function(){
+      input.value=input.value.replace(/\D/g,'').slice(0,1);
+      if(input.value&&idx<5)inputs[idx+1].focus();
+      otp.classList.remove('err');
+      refresh();
+    });
+    input.addEventListener('keydown',function(ev){
+      if(ev.key==='Backspace'&&!input.value&&idx>0)inputs[idx-1].focus();
+    });
+    input.addEventListener('paste',function(ev){
+      ev.preventDefault();
+      var digits=(ev.clipboardData.getData('text')||'').replace(/\D/g,'').slice(0,6);
+      digits.split('').forEach(function(d,i){inputs[i].value=d});
+      inputs[Math.min(digits.length,5)].focus();
+      refresh();
+    });
+  });
+  submit.addEventListener('click',function(){
+    if(value()==='246810'){
+      feedback.textContent='复核通过，库门已开。';
+      feedback.className='feedback';
+      submit.disabled=true;
+      inputs.forEach(function(i){i.disabled=true});
+      return;
+    }
+    left-=1;
+    otp.classList.add('err');
+    inputs.forEach(function(i){i.value='';i.classList.remove('filled')});
+    inputs[0].focus();
+    refresh();
+    if(left>0){
+      feedback.textContent='复核码不符，已清空重填。剩余尝试 '+left+' 次。';
+      feedback.className='feedback err';
+    }else{
+      document.getElementById('verify-view').style.display='none';
+      document.getElementById('lock-view').classList.add('show');
+    }
+  });
+  resend.addEventListener('click',function(){
+    countdown();
+    feedback.textContent='新的复核码已发出，旧码即刻作废。';
+    feedback.className='feedback';
+  });
+  countdown();
+})();
+</script>
+</body>
+</html>

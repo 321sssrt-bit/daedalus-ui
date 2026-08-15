@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>息图 · 记一笔</title>
+  <style>
+    :root {
+      --sage: #dce8d6;
+      --ink: #243028;
+      --leaf: #3d6b4a;
+      --warn: #8b2e18;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; background: #8aa080; display: grid; place-items: center; font: 15px/1.5 "Segoe UI", "PingFang SC", sans-serif; color: var(--ink); }
+    .phone { width: 390px; height: 844px; background: var(--sage); border-radius: 36px; overflow: auto; box-shadow: 0 0 0 10px #5a6a52; padding: 22px 16px; }
+    h1 { margin: 0 0 8px; }
+    label { display: block; margin-top: 10px; }
+    input { width: 100%; height: 40px; border: 1px solid var(--leaf); padding: 0 8px; font: inherit; }
+    button { width: 100%; height: 42px; margin-top: 12px; background: var(--leaf); color: #f4f8f0; border: 0; cursor: pointer; }
+    .bar { height: 10px; background: #c5d4c0; margin: 8px 0 16px; }
+    .bar i { display: block; height: 10px; background: var(--leaf); width: 40%; }
+    .err { color: var(--warn); min-height: 20px; }
+    .trend { height: 80px; display: flex; align-items: end; gap: 6px; }
+    .trend b { display: block; width: 18px; background: #6a8a62; }
+    @media (max-width: 430px) {
+      body { display: block; background: var(--sage); }
+      .phone { width: 100%; height: 100vh; border-radius: 0; box-shadow: none; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="phone">
+    <h1>息图</h1>
+    <p>今日目标 40 分钟。合理范围 1–120。</p>
+    <div>进度 <span id="pct">40</span>%</div>
+    <div class="bar"><i id="fill"></i></div>
+    <div class="trend" id="trend"></div>
+    <label>活动分钟 <input id="min" type="number" value="16"></label>
+    <p class="err" id="err"></p>
+    <button id="save" type="button">记下这口气</button>
+    <p id="ok"></p>
+  </div>
+  <script>
+    (function () {
+      var done = 16;
+      var hist = [8, 12, 10, 16];
+      function paint() {
+        var pct = Math.min(100, Math.round(done / 40 * 100));
+        document.getElementById("pct").textContent = String(pct);
+        document.getElementById("fill").style.width = pct + "%";
+        document.getElementById("trend").innerHTML = hist.map(function (n) {
+          return "<b style=\"height:" + (n * 4) + "px\"></b>";
+        }).join("");
+      }
+      document.getElementById("save").addEventListener("click", function () {
+        var v = Number(document.getElementById("min").value);
+        var err = document.getElementById("err");
+        if (!(v >= 1 && v <= 120)) {
+          err.textContent = "分钟要在 1–120。原进度 " + done + " 分钟未改。";
+          document.getElementById("ok").textContent = "";
+          return;
+        }
+        err.textContent = "";
+        done += v;
+        hist.push(v);
+        paint();
+        document.getElementById("ok").textContent = "已记 " + v + " 分钟。累计 " + done + "，进度已重算。";
+      });
+      paint();
+    })();
+  </script>
+</body>
+</html>

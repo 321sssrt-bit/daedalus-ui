@@ -1,0 +1,308 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>唱片机 · 正在播放</title>
+<style>
+  :root {
+    --page: #180b0f;
+    --shell: #261218;
+    --surface: #3a151b;
+    --red: #7a1f2c;
+    --gold: #c99a5b;
+    --cream: #eeddcb;
+    --muted: #a97f78;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: -apple-system, "Segoe UI", "Microsoft YaHei", "PingFang SC", "Helvetica Neue", sans-serif;
+    background: radial-gradient(circle at 50% 20%, #301019 0%, var(--page) 62%);
+    display: flex; align-items: center; justify-content: center;
+    min-height: 100vh; padding: 20px; color: var(--cream);
+  }
+  /* 手机壳 */
+  .phone {
+    width: 390px; height: 844px;
+    background: var(--shell);
+    border: 1px solid #4a2029;
+    border-radius: 46px;
+    box-shadow: 0 30px 80px rgba(0,0,0,.6), 0 4px 18px rgba(0,0,0,.4);
+    overflow: hidden; position: relative;
+  }
+  .screen { height: 100%; overflow-y: auto; padding: 0 24px 32px; position: relative; }
+
+  /* 状态栏 */
+  .statusbar {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 16px 6px 0; font-size: 13px; color: var(--muted);
+    letter-spacing: .5px;
+  }
+  .sb-icons { font-size: 12px; letter-spacing: 1px; }
+
+  /* 顶栏 */
+  .topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    margin: 8px 0 4px;
+  }
+  .icon-btn {
+    width: 38px; height: 38px; border-radius: 50%;
+    background: transparent; border: none; color: var(--cream);
+    font-size: 22px; line-height: 1; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .icon-btn:active { background: rgba(255,255,255,.08); }
+  .top-title { font-size: 15px; color: var(--muted); letter-spacing: 3px; }
+
+  /* 唱盘主视觉 */
+  .visual { display: flex; justify-content: center; padding: 26px 0 18px; position: relative; }
+  .platter { position: relative; width: 292px; height: 292px; }
+  .vinyl {
+    position: absolute; inset: 0; border-radius: 50%;
+    background:
+      radial-gradient(circle at 50% 50%, var(--red) 0 44px, #1c0e12 45px 48px, transparent 49px),
+      repeating-radial-gradient(circle at 50% 50%, #140b0e 0 1.5px, #24141a 1.5px 3px);
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,.55), 0 16px 40px rgba(0,0,0,.55);
+    animation: spin 3.2s linear infinite;
+    animation-play-state: paused;
+  }
+  .vinyl::after {
+    content: ""; position: absolute; inset: 0; border-radius: 50%;
+    background: linear-gradient(112deg, transparent 38%, rgba(255,255,255,.07) 50%, transparent 62%);
+  }
+  .label {
+    position: absolute; top: 50%; left: 50%; width: 88px; height: 88px;
+    transform: translate(-50%, -50%); border-radius: 50%;
+    background: radial-gradient(circle at 50% 35%, #8f2a38, var(--red) 70%);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center; color: #f3e4cf; box-shadow: inset 0 0 0 2px #6a1b26;
+  }
+  .label-artist { font-size: 12px; font-weight: 600; letter-spacing: 1px; }
+  .label-side { font-size: 9px; color: #e6c9a8; margin-top: 4px; letter-spacing: 1px; }
+  .hole { position: absolute; top: 50%; left: 50%; width: 10px; height: 10px; transform: translate(-50%,-50%); border-radius: 50%; background: #080507; z-index: 3; }
+  .tonearm {
+    position: absolute; top: 8px; right: 10px; width: 118px; height: 118px;
+    transform-origin: 86% 12%; transform: rotate(-38deg);
+    transition: transform .6s cubic-bezier(.4,0,.2,1);
+  }
+  .playing .tonearm { transform: rotate(-16deg); }
+  .arm-base { position: absolute; top: 0; right: 0; width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(145deg,#4a252c,#2a1418); box-shadow: 0 3px 8px rgba(0,0,0,.5); }
+  .arm { position: absolute; top: 16px; right: 22px; width: 96px; height: 5px; border-radius: 3px; background: linear-gradient(180deg,#6b6b6b,#3a3a3a); transform: rotate(8deg); transform-origin: right center; box-shadow: 0 1px 2px rgba(0,0,0,.5); }
+  .head { position: absolute; top: 30px; right: 6px; width: 22px; height: 14px; border-radius: 4px; background: #222; transform: rotate(8deg); }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .playing .vinyl { animation-play-state: running; }
+
+  /* 曲目信息 */
+  .track { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .track h1 { font-size: 22px; font-weight: 700; letter-spacing: .5px; }
+  .track .meta { flex: 1; min-width: 0; }
+  .track .artist { font-size: 14px; color: var(--muted); margin-top: 4px; }
+  .fav {
+    width: 40px; height: 40px; border-radius: 50%; border: none; cursor: pointer;
+    background: var(--surface); color: var(--muted); flex: 0 0 auto;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .fav svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; }
+  .fav.on { color: var(--gold); }
+  .fav.on svg { fill: var(--gold); }
+
+  /* 进度 */
+  .progress { margin: 22px 0 4px; }
+  .progressbar {
+    position: relative; height: 4px; border-radius: 2px; background: #4a2029; cursor: pointer;
+  }
+  .fill { position: absolute; left: 0; top: 0; height: 100%; width: 0; border-radius: 2px; background: var(--gold); }
+  .knob {
+    position: absolute; top: 50%; width: 14px; height: 14px; border-radius: 50%;
+    background: var(--cream); transform: translate(-50%,-50%); left: 0;
+    box-shadow: 0 1px 4px rgba(0,0,0,.5);
+  }
+  .times { display: flex; justify-content: space-between; margin-top: 8px; font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+  /* 控制区 */
+  .controls { display: flex; align-items: center; justify-content: space-between; margin: 20px 6px 0; }
+  .ctl { width: 48px; height: 48px; border-radius: 50%; border: none; cursor: pointer; background: transparent; color: var(--cream); display: flex; align-items: center; justify-content: center; }
+  .ctl svg { width: 20px; height: 20px; fill: currentColor; }
+  .ctl:active { background: rgba(255,255,255,.08); }
+  .ctl.main {
+    width: 70px; height: 70px; background: var(--red); color: #fff0e6;
+    box-shadow: 0 10px 24px rgba(122,31,44,.45);
+  }
+  .ctl.main:active { transform: scale(.96); }
+  .ctl.main svg { width: 30px; height: 30px; fill: currentColor; }
+  .ctl.dim { color: var(--muted); }
+
+  /* 队列提示 */
+  .queue { margin-top: 26px; }
+  .queue-label { font-size: 12px; color: var(--muted); letter-spacing: 2px; margin-bottom: 10px; }
+  .qrow {
+    display: flex; justify-content: space-between; align-items: center;
+    background: var(--surface); border-radius: 14px; padding: 13px 16px;
+    font-size: 14px;
+  }
+  .qrow .qlen { color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+
+  @media (max-width: 430px) {
+    body { padding: 0; }
+    .phone { width: 100vw; height: 100vh; border: none; border-radius: 0; box-shadow: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+  }
+</style>
+</head>
+<body>
+  <div class="phone" id="phone">
+    <div class="screen">
+      <div class="statusbar"><span>21:47</span><span class="sb-icons">▲▲ &nbsp;●&nbsp; ▮▮</span></div>
+      <header class="topbar">
+        <button class="icon-btn" id="backBtn" aria-label="返回">‹</button>
+        <span class="top-title">正在播放</span>
+        <button class="icon-btn" id="moreBtn" aria-label="更多">•••</button>
+      </header>
+
+      <section class="visual">
+        <div class="platter">
+          <div class="vinyl" id="vinyl"></div>
+          <div class="label" id="label">
+            <span class="label-artist">沉船电台</span>
+            <span class="label-side">A 面 · 45 RPM</span>
+          </div>
+          <div class="hole"></div>
+          <div class="tonearm" id="tonearm">
+            <div class="arm-base"></div>
+            <div class="arm"></div>
+            <div class="head"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="track">
+        <div class="meta">
+          <h1 id="trackTitle">雾中来信</h1>
+          <p class="artist" id="trackArtist">沉船电台 · 单曲</p>
+        </div>
+        <button class="fav" id="favBtn" aria-label="收藏">
+          <svg viewBox="0 0 24 24"><path d="M12 21s-7.5-4.6-9.5-9.2C1 8.2 3.2 5 6.6 5c2 0 3.4 1 4.4 2.3C12 6 13.4 5 15.4 5 18.8 5 21 8.2 21.5 11.8 19.5 16.4 12 21 12 21z"/></svg>
+        </button>
+      </section>
+
+      <section class="progress">
+        <div class="progressbar" id="progressbar">
+          <div class="fill" id="fill"></div>
+          <div class="knob" id="knob"></div>
+        </div>
+        <div class="times"><span id="curTime">0:00</span><span id="totTime">4:12</span></div>
+      </section>
+
+      <section class="controls">
+        <button class="ctl dim" id="shuffleBtn" aria-label="随机播放">
+          <svg viewBox="0 0 24 24"><path d="M3 6h3.5l2 3.2M3 18h3.5l6-9.6M13 15.2l1.2 1.9a2 2 0 0 0 1.7.9H21M13 6h8m0 0-2.5-2.5M21 6l-2.5 2.5M3 6h0"/></svg>
+        </button>
+        <button class="ctl" id="prevBtn" aria-label="上一首">
+          <svg viewBox="0 0 24 24"><path d="M6 5h2v14H6zM20 5v14l-11-7z"/></svg>
+        </button>
+        <button class="ctl main" id="playBtn" aria-label="播放">
+          <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z" id="playIcon"/></svg>
+        </button>
+        <button class="ctl" id="nextBtn" aria-label="下一首">
+          <svg viewBox="0 0 24 24"><path d="M16 5h2v14h-2zM4 5v14l11-7z"/></svg>
+        </button>
+        <button class="ctl dim" id="repeatBtn" aria-label="循环">
+          <svg viewBox="0 0 24 24"><path d="M4 12V8a4 4 0 0 1 4-4h9M20 12v4a4 4 0 0 1-4 4H7m-3-4 3-3 3 3M17 4l3 3-3 3"/></svg>
+        </button>
+      </section>
+
+      <section class="queue">
+        <p class="queue-label">接下来</p>
+        <div class="qrow"><span id="nextTitle">潮汐观测</span><span class="qlen" id="nextLen">3:47</span></div>
+      </section>
+    </div>
+  </div>
+
+<script>
+  /* 内置三首曲目，实现真实播放/切歌/进度 */
+  var tracks = [
+    { title: '雾中来信', artist: '沉船电台 · 单曲', dur: 252 },
+    { title: '潮汐观测', artist: '沉船电台 · 单曲', dur: 227 },
+    { title: '夜航日志', artist: '海岸线四重奏', dur: 198 }
+  ];
+  var idx = 0, playing = false, t = 0, timer = null;
+  var phone = document.getElementById('phone');
+  var playBtn = document.getElementById('playBtn');
+  var playIcon = document.getElementById('playIcon');
+  var titleEl = document.getElementById('trackTitle');
+  var artistEl = document.getElementById('trackArtist');
+  var labelArtist = document.querySelector('.label-artist');
+  var curTime = document.getElementById('curTime');
+  var totTime = document.getElementById('totTime');
+  var fill = document.getElementById('fill');
+  var knob = document.getElementById('knob');
+  var nextTitle = document.getElementById('nextTitle');
+  var nextLen = document.getElementById('nextLen');
+  var favBtn = document.getElementById('favBtn');
+  var progressbar = document.getElementById('progressbar');
+
+  function fmt(s) { var m = Math.floor(s / 60), r = Math.floor(s % 60); return m + ':' + (r < 10 ? '0' : '') + r; }
+  function track(n) { return tracks[(n % tracks.length + tracks.length) % tracks.length]; }
+  function render() {
+    titleEl.textContent = track(idx).title;
+    artistEl.textContent = track(idx).artist;
+    labelArtist.textContent = track(idx).title;
+    totTime.textContent = fmt(track(idx).dur);
+    var pct = track(idx).dur ? (t / track(idx).dur) * 100 : 0;
+    fill.style.width = pct + '%';
+    knob.style.left = pct + '%';
+    curTime.textContent = fmt(t);
+    nextTitle.textContent = track(idx + 1).title;
+    nextLen.textContent = fmt(track(idx + 1).dur);
+  }
+  function playPause() {
+    playing = !playing;
+    phone.classList.toggle('playing', playing);
+    if (playing) {
+      playIcon.setAttribute('d', 'M6 5h4v14H6zM14 5h4v14h-4z');
+      if (t >= track(idx).dur) t = 0;
+      timer = setInterval(function () {
+        t++;
+        if (t >= track(idx).dur) { next(); }
+        render();
+      }, 1000);
+    } else {
+      playIcon.setAttribute('d', 'M8 5v14l11-7z');
+      clearInterval(timer);
+    }
+    render();
+  }
+  function next() { idx = (idx + 1) % tracks.length; t = 0; render(); }
+  function prev() { idx = (idx - 1 + tracks.length) % tracks.length; t = 0; render(); }
+
+  playBtn.addEventListener('click', playPause);
+  document.getElementById('nextBtn').addEventListener('click', next);
+  document.getElementById('prevBtn').addEventListener('click', prev);
+
+  progressbar.addEventListener('click', function (e) {
+    var rect = progressbar.getBoundingClientRect();
+    var ratio = Math.min(1, Math.max(0, (e.clientX - rect.left) / rect.width));
+    t = ratio * track(idx).dur;
+    render();
+  });
+
+  favBtn.addEventListener('click', function () {
+    favBtn.classList.toggle('on');
+  });
+
+  document.getElementById('shuffleBtn').addEventListener('click', function () {
+    idx = Math.floor(Math.random() * tracks.length);
+    t = 0; render();
+  });
+  document.getElementById('repeatBtn').addEventListener('click', function () {
+    this.classList.toggle('dim');
+  });
+
+  render();
+</script>
+</body>
+</html>

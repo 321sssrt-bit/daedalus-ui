@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>墨课 · 永字八法</title>
+<style>
+:root{
+  --ink:#1e1c1a;
+  --ink-soft:#3a362f;
+  --paper:#f5f1e8;
+  --card:#fbf8ef;
+  --zhu:#b23c2a;
+  --zhu-deep:#932e1e;
+  --muted:#847c6e;
+  --line:#d8d0bc;
+  --ok:#3e7d4f;
+  --radius-card:12px;
+  --radius-ctl:8px;
+  --sp:8px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font:15px/1.75 "PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+  background:var(--ink);min-height:100vh;display:flex;flex-direction:column;
+}
+.topbar{
+  height:56px;flex:0 0 56px;display:flex;align-items:center;justify-content:space-between;
+  padding:0 26px;border-bottom:1px solid #38342d;color:var(--paper);
+}
+.brand{font:700 17px/1 "Kaiti SC","STKaiti","KaiTi","Songti SC",serif;letter-spacing:.3em}
+.topbar .term{font-size:12px;color:#a49a86;letter-spacing:.1em}
+.main{flex:1;display:flex;min-height:0;background:var(--paper)}
+.syllabus{
+  flex:0 0 262px;border-right:1px solid var(--line);padding:20px 14px;overflow-y:auto;
+}
+.syllabus h2{font-size:11.5px;letter-spacing:.22em;color:var(--muted);padding:0 10px 12px}
+.lesson{
+  width:100%;text-align:left;background:none;border:1px solid transparent;border-radius:var(--radius-ctl);
+  padding:11px 12px;margin-bottom:6px;cursor:pointer;font:inherit;color:var(--ink);
+  transition:all .13s ease;
+}
+.lesson:hover{background:#efe9d8}
+.lesson.on{background:var(--card);border-color:var(--line);box-shadow:0 3px 10px rgba(60,50,30,.08)}
+.lesson .lt{font-size:13.5px;font-weight:700;display:flex;justify-content:space-between;align-items:center}
+.lesson .lp{font-size:11px;color:var(--muted);margin-top:3px}
+.lesson .done-tag{font-size:10px;color:var(--ok);font-weight:700}
+.lesson .cur-tag{font-size:10px;color:var(--zhu);font-weight:700}
+.classroom{flex:1;padding:24px 30px;overflow-y:auto;min-width:0}
+.scroll-card{
+  max-width:660px;margin:0 auto;background:var(--card);border:1px solid var(--line);
+  border-radius:var(--radius-card);padding:26px 30px;box-shadow:0 12px 34px rgba(60,50,30,.12);
+}
+.k-title{font:700 24px/1.4 "Kaiti SC","STKaiti","KaiTi","Songti SC",serif;letter-spacing:.1em}
+.k-sub{color:var(--muted);font-size:12.5px;margin:6px 0 18px}
+.lesson-body{font-size:14px;line-height:2.1;color:var(--ink-soft);margin-bottom:20px}
+.lesson-body b{color:var(--ink)}
+.yong{
+  float:right;width:104px;height:104px;margin:0 0 10px 18px;border:1px solid var(--line);
+  border-radius:8px;display:grid;place-items:center;background:#fff;
+  font:400 84px/1 "Kaiti SC","STKaiti","KaiTi",serif;color:var(--ink);
+}
+.quiz{border-top:2px solid var(--ink);padding-top:18px}
+.quiz h3{font-size:14px;letter-spacing:.12em;margin-bottom:4px}
+.quiz .qq{font-size:15.5px;font-weight:700;margin:10px 0 14px;line-height:1.8}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.opt{
+  border:1.5px solid var(--line);background:#fff;border-radius:var(--radius-ctl);padding:13px 16px;
+  font:inherit;font-size:14px;color:var(--ink);cursor:pointer;text-align:left;transition:all .14s ease;
+  display:flex;align-items:center;gap:10px;
+}
+.opt .abc{
+  flex:0 0 26px;height:26px;border-radius:50%;border:1.5px solid var(--line);display:grid;place-items:center;
+  font:700 12px/1 ui-monospace,Consolas,monospace;color:var(--muted);
+}
+.opt:hover{border-color:var(--ink)}
+.opt.sel{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.opt.right{border-color:var(--ok);background:#eef5ee}
+.opt.right .abc{background:var(--ok);border-color:var(--ok);color:#fff}
+.opt.wrong{border-color:var(--zhu);background:#f9ece8}
+.opt.wrong .abc{background:var(--zhu);border-color:var(--zhu);color:#fff}
+.opt:disabled{cursor:default}
+.submit-row{display:flex;gap:10px;align-items:center}
+.answer-btn{
+  border:0;border-radius:var(--radius-ctl);background:var(--ink);color:var(--paper);padding:12px 30px;
+  font:inherit;font-weight:700;font-size:14px;letter-spacing:.2em;cursor:pointer;transition:background .14s ease;
+}
+.answer-btn:hover:not(:disabled){background:#000}
+.answer-btn:disabled{opacity:.4;cursor:not-allowed}
+.retry-btn{
+  border:1.5px solid var(--zhu);background:none;border-radius:var(--radius-ctl);color:var(--zhu);
+  padding:11px 24px;font:inherit;font-weight:700;font-size:13.5px;letter-spacing:.12em;cursor:pointer;
+}
+.retry-btn:hover{background:#f9ece8}
+.mark-panel{margin-top:16px;display:none}
+.mark-panel.show{display:block}
+.verdict{
+  border:1.5px solid var(--zhu);border-radius:var(--radius-ctl);padding:14px 18px;position:relative;
+  background:#fdf9f2;
+}
+.verdict::before{
+  content:"朱批";position:absolute;top:-11px;left:14px;background:var(--zhu);color:#fdf9f2;
+  font-size:10.5px;font-weight:700;letter-spacing:.2em;padding:2px 9px;border-radius:4px;
+}
+.verdict h4{font:700 15px/1.5 "Kaiti SC","STKaiti","KaiTi","Songti SC",serif;color:var(--zhu);margin-bottom:6px}
+.verdict p{font-size:13.5px;line-height:2;color:var(--ink-soft)}
+.verdict.good{border-color:var(--ok)}
+.verdict.good::before{background:var(--ok);content:"订正"}
+.verdict.good h4{color:var(--ok)}
+.progress-line{
+  max-width:660px;margin:16px auto 0;display:flex;justify-content:space-between;align-items:center;
+  font-size:12px;color:var(--muted);
+}
+.progress-line .bar{flex:1;height:6px;border-radius:3px;background:#e4dcc6;margin-left:14px;overflow:hidden}
+.progress-line .bar i{display:block;height:100%;background:var(--zhu);width:33%;transition:width .4s ease}
+@media(max-width:920px){
+  .syllabus{flex-basis:200px}
+  .opts{grid-template-columns:1fr}
+}
+@media(prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">墨 课</div>
+  <span class="term">楷书筑基 · 第二期</span>
+</header>
+<div class="main">
+  <aside class="syllabus">
+    <h2>课程目录</h2>
+    <button class="lesson" type="button">
+      <span class="lt">第一课 · 执笔与中锋 <span class="done-tag">已结业</span></span>
+      <span class="lp">执笔五字法 · 中锋行笔</span>
+    </button>
+    <button class="lesson on" type="button">
+      <span class="lt">第二课 · 永字八法 <span class="cur-tag">学习中</span></span>
+      <span class="lp">八法名实 · 侧勒努趯策掠啄磔</span>
+    </button>
+    <button class="lesson" type="button">
+      <span class="lt">第三课 · 间架结构</span>
+      <span class="lp">未开课 · 先过第二课练习</span>
+    </button>
+  </aside>
+  <main class="classroom">
+    <div class="scroll-card">
+      <p class="k-title">永字八法 · 侧为第一</p>
+      <p class="k-sub">讲义 · 五分钟读完，随后一题小试</p>
+      <div class="lesson-body">
+        <span class="yong">永</span>
+        「永」字八笔，暗合楷法全部笔法。<b>点为「侧」</b>，如鸟翻然侧下，取斜势；<b>横为「勒」</b>，如勒马缰，贵收贵涩；竖为「努」，直中见曲；钩为「趯」，蹲锋后跃出；挑为「策」，仰笔而进；长撇为「掠」，如篦之掠发；短撇为「啄」，如鸟啄食；捺为「磔」，一波三折。<br>八法之中，侧法居首——起笔一點，定全字精神。
+      </div>
+      <div class="quiz" id="quiz">
+        <h3>随堂小试</h3>
+        <p class="qq">「永字八法」中，「侧」法指的是哪一笔？</p>
+        <div class="opts" id="opts">
+          <button class="opt" type="button" data-a="a"><span class="abc">A</span>横画（勒）</button>
+          <button class="opt" type="button" data-a="b"><span class="abc">B</span>点画（侧）</button>
+          <button class="opt" type="button" data-a="c"><span class="abc">C</span>竖画（努）</button>
+          <button class="opt" type="button" data-a="d"><span class="abc">D</span>捺画（磔）</button>
+        </div>
+        <div class="submit-row">
+          <button class="answer-btn" id="answer" type="button" disabled>交 卷</button>
+          <button class="retry-btn" id="retry" type="button" style="display:none">返回题目，再答一次</button>
+        </div>
+        <div class="mark-panel" id="mark"></div>
+      </div>
+    </div>
+    <div class="progress-line">
+      <span id="prog-text">第二课练习：0 / 1 题通过</span>
+      <span class="bar"><i id="prog-bar"></i></span>
+    </div>
+  </main>
+</div>
+<script>
+(function(){
+  var sel=null;
+  var answered=false;
+  var opts=document.querySelectorAll('#opts .opt');
+  var answer=document.getElementById('answer');
+  var retry=document.getElementById('retry');
+  var mark=document.getElementById('mark');
+  var progText=document.getElementById('prog-text');
+  var progBar=document.getElementById('prog-bar');
+  for(var i=0;i<opts.length;i++){
+    (function(btn){
+      btn.addEventListener('click',function(){
+        if(answered)return;
+        for(var j=0;j<opts.length;j++)opts[j].classList.remove('sel');
+        btn.classList.add('sel');
+        sel=btn.getAttribute('data-a');
+        answer.disabled=false;
+      });
+    })(opts[i]);
+  }
+  answer.addEventListener('click',function(){
+    if(!sel||answered)return;
+    answered=true;
+    for(var j=0;j<opts.length;j++){
+      opts[j].disabled=true;
+      if(opts[j].getAttribute('data-a')==='b')opts[j].classList.add('right');
+      if(opts[j].getAttribute('data-a')===sel&&sel!=='b')opts[j].classList.add('wrong');
+    }
+    if(sel==='b'){
+      mark.className='mark-panel show';
+      mark.innerHTML='<div class="verdict good"><h4>订正成功 · 正是点画</h4><p>「侧」者，点也。如鸟翻然侧下，取斜势而精神足。第二课练习通过，第三课「间架结构」已可预约。</p></div>';
+      progText.textContent='第二课练习：1 / 1 题通过';
+      progBar.style.width='100%';
+      answer.style.display='none';
+    }else{
+      mark.className='mark-panel show';
+      mark.innerHTML='<div class="verdict"><h4>答错了 · 再想想「侧」</h4><p>先生批语：你所选非「侧」。回看讲义——点为侧，如鸟翻然侧下；横为勒，如勒马缰。把「起笔一点定全字精神」一句再读一遍，然后回来再答。</p></div>';
+      answer.style.display='none';
+      retry.style.display='';
+    }
+  });
+  retry.addEventListener('click',function(){
+    answered=false;
+    sel=null;
+    for(var j=0;j<opts.length;j++){
+      opts[j].disabled=false;
+      opts[j].classList.remove('sel','wrong','right');
+    }
+    mark.classList.remove('show');
+    retry.style.display='none';
+    answer.style.display='';
+    answer.disabled=true;
+    answer.textContent='交 卷';
+  });
+})();
+</script>
+</body>
+</html>

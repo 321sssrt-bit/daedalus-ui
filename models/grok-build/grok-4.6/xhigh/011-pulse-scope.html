@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>脉镜 · 潮位</title>
+  <style>
+    :root {
+      --mint: #b7e3d0;
+      --lab: #0f1c1a;
+      --grid: #1c3330;
+      --glow: #3dffc5;
+      --paper: #d7f3e6;
+      --warn: #e8c15a;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--lab); color: var(--paper); font: 14px/1.45 "Segoe UI", "Microsoft YaHei", sans-serif; }
+    header { padding: 18px 24px 8px; display: flex; justify-content: space-between; align-items: end; }
+    h1 { margin: 0; font-size: 22px; letter-spacing: 0.16em; }
+    .grain { display: flex; gap: 6px; }
+    .grain button { height: 32px; border: 1px solid #2f5a52; background: transparent; color: var(--mint); padding: 0 10px; cursor: pointer; }
+    .grain button.on { background: var(--glow); color: #0f1c1a; border-color: var(--glow); }
+    .kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 12px 24px; }
+    .kpis article { background: var(--grid); padding: 12px; }
+    .kpis b { display: block; font-size: 28px; color: var(--glow); }
+    .scope { margin: 8px 24px 24px; background: var(--grid); padding: 16px; min-height: 320px; }
+    .scope h2 { margin: 0 0 10px; font-size: 13px; color: var(--mint); letter-spacing: 0.14em; }
+    svg { width: 100%; height: 260px; display: block; background:
+      repeating-linear-gradient(0deg, transparent, transparent 25px, #24554c 26px),
+      repeating-linear-gradient(90deg, transparent, transparent 39px, #24554c 40px); }
+    @media (max-width: 768px) {
+      .kpis { grid-template-columns: 1fr; }
+      header { flex-direction: column; align-items: start; gap: 10px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <div style="color:#7aa89c;font-size:12px;letter-spacing:.2em">PULSE SCOPE</div>
+      <h1>北港潮位</h1>
+    </div>
+    <div class="grain" id="grain">
+      <button class="on" data-g="潮">按潮</button>
+      <button data-g="日">按日</button>
+      <button data-g="旬">按旬</button>
+    </div>
+  </header>
+  <section class="kpis">
+    <article>现高潮<b id="k1">3.4 m</b></article>
+    <article>平均流速<b id="k2">1.2 kn</b></article>
+    <article>告警<b id="k3">1</b></article>
+  </section>
+  <section class="scope">
+    <h2 id="cap">主图 · 按潮</h2>
+    <svg viewBox="0 0 640 260" aria-label="潮位曲线" id="chart">
+      <polyline fill="none" stroke="#3dffc5" stroke-width="2" points="10,180 70,120 130,150 190,80 250,110 310,70 370,130 430,90 490,140 550,60 630,100"></polyline>
+      <circle cx="550" cy="60" r="5" fill="#e8c15a"></circle>
+    </svg>
+  </section>
+  <script>
+    (function () {
+      var sets = {
+        "潮": { k: ["3.4 m", "1.2 kn", "1"], p: "10,180 70,120 130,150 190,80 250,110 310,70 370,130 430,90 490,140 550,60 630,100", c: "550,60" },
+        "日": { k: ["2.9 m", "0.8 kn", "0"], p: "10,150 70,140 130,146 190,132 250,138 310,128 370,142 430,120 490,130 550,110 630,118", c: "550,110" },
+        "旬": { k: ["3.8 m", "1.6 kn", "2"], p: "10,200 80,90 150,170 220,60 300,150 380,40 460,120 540,80 630,90", c: "380,40" }
+      };
+      document.getElementById("grain").addEventListener("click", function (event) {
+        var btn = event.target.closest("button");
+        if (!btn) return;
+        document.querySelectorAll(".grain button").forEach(function (b) { b.className = ""; });
+        btn.className = "on";
+        var g = btn.getAttribute("data-g");
+        var s = sets[g];
+        document.getElementById("cap").textContent = "主图 · 按" + g;
+        var ks = ["k1", "k2", "k3"];
+        s.k.forEach(function (v, i) { document.getElementById(ks[i]).textContent = v; });
+        document.querySelector("polyline").setAttribute("points", s.p);
+        var c = s.c.split(",");
+        document.querySelector("circle").setAttribute("cx", c[0]);
+        document.querySelector("circle").setAttribute("cy", c[1]);
+      });
+    })();
+  </script>
+</body>
+</html>

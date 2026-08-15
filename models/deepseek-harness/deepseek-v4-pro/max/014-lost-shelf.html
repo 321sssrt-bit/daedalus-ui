@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>失物书架 · 馆藏检索</title>
+<style>
+  :root{
+    --paper:#f6ecd9;
+    --paper2:#fbf4e6;
+    --text:#43321f;
+    --muted:#8a7357;
+    --accent:#a64b2a;
+    --line:#dcc8a2;
+    --spine-green:#6f7d54;
+    --spine-blue:#4a6b86;
+    --spine-tan:#b08a4f;
+    --spine-plum:#7d5a78;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:-apple-system,"Segoe UI","Microsoft YaHei","PingFang SC","Helvetica Neue",sans-serif;
+    background:var(--paper);
+    color:var(--text);
+    font-size:15px;
+    line-height:1.6;
+    min-height:100vh;
+  }
+  .page{
+    max-width:1280px;
+    min-height:800px;
+    margin:0 auto;
+    display:grid;
+    grid-template-columns:236px 1fr;
+    border-left:1px solid var(--line);
+    border-right:1px solid var(--line);
+    background:var(--paper2);
+  }
+  .rail{
+    padding:28px 22px;
+    border-right:1px solid var(--line);
+  }
+  .logo{
+    font-family:Georgia,"Times New Roman","Songti SC","SimSun",serif;
+    font-size:22px;font-weight:700;letter-spacing:2px;color:var(--accent);
+    margin-bottom:4px;
+  }
+  .logo-sub{font-size:12px;color:var(--muted);letter-spacing:3px;margin-bottom:28px}
+  .cat-label{
+    font-size:11px;letter-spacing:2px;color:var(--muted);
+    margin-bottom:10px;text-transform:uppercase;
+  }
+  .cat{
+    display:flex;align-items:center;gap:10px;padding:9px 12px;
+    border-radius:6px;color:var(--text);font-size:14px;cursor:pointer;
+  }
+  .cat:hover{background:rgba(166,75,42,.07)}
+  .cat .n{margin-left:auto;font-size:12px;color:var(--muted)}
+  .rail .note{
+    margin-top:36px;padding:14px;border:1px dashed var(--line);
+    border-radius:8px;font-size:12px;color:var(--muted);line-height:1.7;
+  }
+  .main{padding:40px 48px}
+  .crumbs{font-size:12px;color:var(--muted);margin-bottom:26px;letter-spacing:1px}
+  .head-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:26px;gap:16px}
+  .head-row h1{
+    font-family:Georgia,"Times New Roman","Songti SC","SimSun",serif;
+    font-size:30px;font-weight:700;color:var(--text);
+  }
+  .search{
+    display:flex;align-items:center;gap:12px;width:100%;max-width:620px;
+    background:#ffffff;border:1px solid var(--line);border-radius:10px;
+    padding:14px 18px;box-shadow:0 2px 10px rgba(67,50,31,.06);
+  }
+  .search .mag{flex:none;color:var(--accent)}
+  .search input{
+    flex:1;border:none;outline:none;font-size:16px;color:var(--text);
+    font-family:inherit;background:transparent;
+  }
+  .search .clear{
+    border:none;background:none;color:var(--muted);font-size:18px;
+    cursor:pointer;line-height:1;padding:2px 6px;border-radius:4px;
+  }
+  .search .clear:hover{background:var(--paper);color:var(--text)}
+  .search .go{
+    border:none;background:var(--accent);color:#ffffff;border-radius:7px;
+    padding:9px 20px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;
+    transition:background .15s;
+  }
+  .search .go:hover{background:#8a3d22}
+  .search .go:focus-visible{outline:2px solid var(--spine-blue);outline-offset:2px}
+  .empty{
+    margin-top:34px;
+    display:grid;grid-template-columns:minmax(280px,380px) 1fr;
+    gap:40px;align-items:center;
+  }
+  .shelf{position:relative;padding:30px 8px 8px}
+  .shelf .glass{
+    position:absolute;top:6px;right:2px;color:var(--muted);opacity:.55;
+  }
+  .board{
+    position:relative;height:14px;border-radius:3px;
+    background:linear-gradient(#c69a5f,#a9824c);
+    margin-bottom:34px;
+    box-shadow:0 3px 6px rgba(67,50,31,.18);
+  }
+  .board .shelf-label{
+    position:absolute;left:10px;top:-18px;font-size:11px;letter-spacing:2px;
+    color:var(--muted);
+  }
+  .books{position:absolute;bottom:10px;left:12px;display:flex;align-items:flex-end;gap:3px}
+  .book{border-radius:3px 3px 0 0;width:26px;height:78px;position:relative;box-shadow:inset -4px 0 0 rgba(0,0,0,.14)}
+  .book.tall{height:96px}
+  .book.short{height:62px}
+  .book b{position:absolute;top:8px;left:0;right:0;text-align:center;font-size:8px;color:rgba(255,255,255,.85);font-weight:600;letter-spacing:1px}
+  .g{background:var(--spine-green)}
+  .bl{background:var(--spine-blue)}
+  .t{background:var(--spine-tan)}
+  .p{background:var(--spine-plum)}
+  .r{background:var(--accent)}
+  .gap-tag{
+    display:inline-flex;align-items:center;gap:8px;
+    background:#fffdf6;border:1px solid var(--line);border-radius:8px;
+    padding:7px 14px;font-size:13px;color:var(--text);
+    transform:rotate(-3deg);box-shadow:0 2px 6px rgba(67,50,31,.1);
+  }
+  .gap-tag .hole{width:9px;height:9px;border-radius:50%;background:var(--line)}
+  .desc .eyebrow{font-size:12px;letter-spacing:3px;color:var(--muted);margin-bottom:10px}
+  .desc h2{
+    font-family:Georgia,"Times New Roman","Songti SC","SimSun",serif;
+    font-size:24px;font-weight:700;color:var(--text);margin-bottom:12px;
+  }
+  .desc .query{
+    color:var(--accent);background:rgba(166,75,42,.09);
+    border-radius:5px;padding:1px 8px;font-family:Georgia,serif;
+  }
+  .desc p.lead{color:var(--muted);font-size:15px;max-width:460px;margin-bottom:26px}
+  .suggest-label{
+    font-size:12px;letter-spacing:2px;color:var(--muted);margin-bottom:12px;
+  }
+  .suggest{display:flex;flex-direction:column;gap:10px;max-width:460px}
+  .sug{
+    display:flex;align-items:center;gap:14px;
+    background:#fffdf6;border:1px solid var(--line);border-radius:10px;
+    padding:13px 16px;cursor:pointer;transition:border-color .15s,transform .15s;
+  }
+  .sug:hover{border-color:var(--accent);transform:translateX(4px)}
+  .sug .dot{width:10px;height:10px;border-radius:2px;background:var(--spine-green);flex:none}
+  .sug .txt{flex:1}
+  .sug .txt b{display:block;font-size:15px;font-weight:600;color:var(--text)}
+  .sug .txt span{font-size:12px;color:var(--muted)}
+  .sug .arrow{color:var(--muted)}
+  .toast{
+    position:fixed;left:50%;bottom:30px;transform:translateX(-50%);
+    background:#43321f;color:#f6ecd9;padding:10px 20px;border-radius:8px;
+    font-size:13px;opacity:0;pointer-events:none;transition:opacity .2s;
+  }
+  .toast.show{opacity:1}
+  @media (max-width:768px){
+    .page{grid-template-columns:1fr}
+    .rail{border-right:none;border-bottom:1px solid var(--line);display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:16px}
+    .rail .logo-sub,.rail .cat-label,.rail .note{display:none}
+    .rail .cat{padding:6px 10px}
+    .main{padding:24px 18px}
+    .empty{grid-template-columns:1fr}
+    .head-row{flex-direction:column;align-items:flex-start}
+  }
+  @media (prefers-reduced-motion: reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+  <div class="page">
+    <aside class="rail">
+      <div class="logo">失物书架</div>
+      <div class="logo-sub">市立图书馆 · 馆藏检索</div>
+      <div class="cat-label">分类浏览</div>
+      <div class="cat">工程技术<span class="n">1,284</span></div>
+      <div class="cat">人文社科<span class="n">3,107</span></div>
+      <div class="cat">自然科学<span class="n">2,356</span></div>
+      <div class="cat">艺术设计<span class="n">892</span></div>
+      <div class="cat">期刊杂志<span class="n">460</span></div>
+      <div class="note">馆内检索暂未收录 2010 年以前的部分旧版馆藏。如需查阅，请到二楼古籍阅览室咨询馆员。</div>
+    </aside>
+
+    <main class="main">
+      <div class="crumbs">首页 / 馆藏检索</div>
+      <div class="head-row">
+        <h1>检索馆藏</h1>
+        <div class="search" role="search">
+          <svg class="mag" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+          <input id="q" type="text" value="机械设计手册" autocomplete="off" aria-label="检索关键词">
+          <button class="clear" id="clearBtn" type="button" aria-label="清空">×</button>
+          <button class="go" id="goBtn" type="button">检索</button>
+        </div>
+      </div>
+
+      <div class="empty">
+        <div class="shelf" aria-hidden="true">
+          <svg class="glass" viewBox="0 0 24 24" width="72" height="72" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/><path d="M8 11h6"/></svg>
+          <div class="board">
+            <span class="shelf-label">A · 工程技术</span>
+            <div class="books">
+              <span class="book g tall"><b>机械<br>图集</b></span>
+              <span class="book t"><b>原理</b></span>
+              <span class="book r short"><b>制图</b></span>
+            </div>
+          </div>
+          <div class="board">
+            <span class="shelf-label">B · 自然科学</span>
+            <div class="books">
+              <span class="book bl"><b>力学</b></span>
+              <span class="book p tall"><b>材料</b></span>
+            </div>
+          </div>
+          <div class="board">
+            <span class="shelf-label">C · 综合</span>
+          </div>
+          <span class="gap-tag"><span class="hole"></span>暂无此馆藏</span>
+        </div>
+
+        <div class="desc">
+          <div class="eyebrow">未找到结果</div>
+          <h2>架上没有 <span class="query" id="queryShown">“机械设计手册”</span></h2>
+          <p class="lead">我们翻遍了工程技术区的书架，暂时没有与这个词完全匹配的馆藏。可能是书名写法略有出入，试试下面的相近检索：</p>
+          <div class="suggest-label">建议改搜</div>
+          <div class="suggest" id="suggestList">
+            <div class="sug" data-q="机械设计图集">
+              <span class="dot"></span>
+              <span class="txt"><b>机械设计图集</b><span>工程技术 · 常见工具书</span></span>
+              <span class="arrow">›</span>
+            </div>
+            <div class="sug" data-q="机械原理">
+              <span class="dot" style="background:var(--spine-blue)"></span>
+              <span class="txt"><b>机械原理</b><span>基础理论类 · 借阅量高</span></span>
+              <span class="arrow">›</span>
+            </div>
+            <div class="sug" data-q="机械制图规范">
+              <span class="dot" style="background:var(--accent)"></span>
+              <span class="txt"><b>机械制图规范</b><span>标准类 · 有馆藏</span></span>
+              <span class="arrow">›</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+  <div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  var q = document.getElementById("q");
+  var queryShown = document.getElementById("queryShown");
+  var clearBtn = document.getElementById("clearBtn");
+  var goBtn = document.getElementById("goBtn");
+  var suggestList = document.getElementById("suggestList");
+  var toast = document.getElementById("toast");
+
+  function showToast(t){
+    toast.textContent = t;
+    toast.classList.add("show");
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(function(){ toast.classList.remove("show"); }, 2000);
+  }
+
+  function reflectQuery(){
+    var v = q.value.trim();
+    queryShown.textContent = v ? "“" + v + "”" : "（未输入关键词）";
+  }
+
+  suggestList.addEventListener("click", function(e){
+    var sug = e.target.closest(".sug");
+    if(!sug) return;
+    var kw = sug.getAttribute("data-q");
+    q.value = kw;
+    reflectQuery();
+    showToast("已按「" + kw + "」重新检索，暂未找到结果");
+  });
+
+  clearBtn.addEventListener("click", function(){
+    q.value = "";
+    q.focus();
+    reflectQuery();
+    showToast("已清空检索词，请输入新关键词");
+  });
+
+  goBtn.addEventListener("click", function(){
+    var v = q.value.trim();
+    if(!v){ showToast("请先输入检索关键词"); return; }
+    reflectQuery();
+    showToast("已检索「" + v + "」，仍无匹配馆藏");
+  });
+
+  q.addEventListener("input", reflectQuery);
+})();
+</script>
+</body>
+</html>

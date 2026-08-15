@@ -1,44 +1,83 @@
 # 033 掌中潮汐
 
-## 一句话气质
+## 规范元数据
 
-余额和流水像潮水，落在一张温暖的掌中账页上。
+- 规范版本：2
+- 主视口：390 × 844 px
+- 对应页面：`033-pocket-tide.html`
+- 复现范围：复现该单文件页面的布局制度、设计令牌、核心组件状态与题定职责。
 
-## 适合用在哪种产品
+## 画布与区域布局
 
-个人零钱钱包、社区金融账户、生活预算与小额转账应用的手机首页。
+| 区域 | 边界与尺寸 | 布局与对齐 | 层级与滚动 |
+| --- | --- | --- | --- |
+| 页面画布 `body` | margin: 0; min-height: 100vh; padding: 24px | display: grid; place-items: center | background: #cbbca4; color: var(--ink) |
+| 主要结构 `.phone` | width: min(390px,100%); height: min(820px,calc(100vh - 32px)); min-height: 680px | position: relative | background: var(--sand); border: 8px solid var(--ink); border-radius: 42px; overflow: hidden; box-shadow: 0 24px 60px rgba(36,50,45,.3) |
+| 关键内容区 `.balance` | margin: 12px 16px 0; padding: 24px 22px 20px | position: relative | background: var(--paper); border: 2px solid var(--ink); box-shadow: 5px 6px 0 var(--ink) |
 
-## 色板
+## 设计令牌
 
-| 角色 | 色号 | 用法 |
+### 色彩
+
+| 令牌 | 值 | 用途 |
 | --- | --- | --- |
-| 背景 | #EFE1CA | 手机内暖沙色环境 |
-| 表面 | #FFF8E8 | 余额票据、流水图标与底栏 |
-| 正文 | #24322D | 手机边框、金额与主要文字 |
-| 次要文字 | #7B817A | 时间、分类和说明 |
-| 强调 | #D7643A | 转出入口、焦点和主操作 |
-| 成功 / 危险 | #347659 | 收入和转出核对；危险为 #B84C45 |
+| `--sand` | `#efe1ca` | 品牌或局部强调 |
+| `--paper` | `#fff8e8` | 容器与表面 |
+| `--ink` | `#24322d` | 主要文字与高对比边界 |
+| `--muted` | `#7b817a` | 辅助文字与弱化信息 |
+| `--orange` | `#d7643a` | 品牌或局部强调 |
+| `--mint` | `#9fc9b2` | 品牌或局部强调 |
+| `--green` | `#347659` | 成功反馈 |
+| `--red` | `#b84c45` | 错误与危险反馈 |
 
-## 字体和字号
+### 字体
 
-使用 Avenir Next、Microsoft YaHei、Arial，金额与分区标题使用 Georgia。余额 42px/700，分区标题 22px/400，交易名 13px/700，正文与辅助 10–11px。
+| 角色 | 字体栈 | 字号 / 行高 | 字重 / 字距 |
+| --- | --- | --- | --- |
+| 页面正文 `body` | "Avenir Next","Microsoft YaHei",Arial,sans-serif | 16px / normal（浏览器默认） | 由 font 简写或继承确定 |
+| 显示字 `.top b` | 继承页面字体 | font-size: 18px | 由 font 简写或继承确定 |
+| 分区标题 `.flow h2` | 22px Georgia,serif | font 简写中声明 | 由 font 简写或继承确定 |
+| 辅助文字 `.amount small` | 14px Arial,sans-serif | font 简写中声明 | 由 font 简写或继承确定 |
 
-## 间距、圆角、阴影
+### 间距、圆角与层级
 
-手机宽 390px、外壳圆角 42px；余额票据边距 16px、内距 24px，操作间距 10px，流水行纵向 12px；余额块为 2px 深线和 5×6px 硬影，操作按钮圆角 18px。
+| 令牌 | 值 | 用途 |
+| --- | --- | --- |
+| 主要内距 | `24px` | `body` 的 `padding` |
+| 布局间距 | `10px` | `.actions` 的 `gap` |
+| 圆角 | `42px` | `.phone` 的 `border-radius` |
+| 边框或阴影 | `8px solid var(--ink)` | `.phone` 的 `border` |
 
-## 按钮 / 输入框 / 卡片
+## 组件规格与状态
 
-余额是一张纸币式票据，三枚操作像实体钱包快捷键；流水不用独立卡片，只按日期与细线排列。转出从底部拉出纸页，包含收款人、金额和明确核对反馈；底部导航固定四项。
+| 组件 | 结构与尺寸 | 默认样式 | 状态变化 |
+| --- | --- | --- | --- |
+| 主要操作 `.flow-head button` | 未单独声明 | border: 0; background: transparent; color: var(--orange); font-size: 11px | 未声明独立状态；保持默认样式 |
+| 输入、选择或次操作 `.sheet input` | width: 100%; padding: 12px; margin-top: 6px | border: 1px solid var(--ink); background: white | .sheet.show → transform: none |
+| 内容容器 `.message` | min-height: 16px; margin-top: 8px | font-size: 11px; color: var(--green) | 未声明独立状态；保持默认样式 |
 
-## 动效
+## 响应式规则
 
-转出纸页在 250ms 内自底部进入；余额和流水不做滚动动画。减少动态偏好下取消纸页位移过渡。
+| 条件 | 布局变化 | 组件变化 |
+| --- | --- | --- |
+| 390 × 844 px 主视口 | 按“画布与区域布局”保持完整结构 | 按“组件规格与状态”显示默认状态 |
+| `(max-width:430px)` | body → padding: 0; .phone → width: 100%; height: 100vh; border: 0; border-radius: 0 | 交互流程与内容顺序不变 |
 
-## 不要做什么
+## 内容与数据
 
-不要使用蓝紫渐变银行卡、收益曲线、理财促销或玻璃拟态；不要把日常钱包变成投资看板。
+必须保留的可见文案顺序包括：“掌中潮汐 · 钱包” → “潮汐钱包” → “可用余额” → “8,642.50” → “↑ 本月净流入 ¥ 1,280” → “转出” → “收款” → “银行卡” → “最近潮汐” → “查看全部” → “今天 · 8 月 14 日” → “渡口咖啡”。控件占位或辅助标签包括：“转出资金”、“关闭”、“姓名或手机号”、“0.00”。数值、日期和状态文字沿用页面初始值及其操作后的格式。
 
-## 复刻提示词
+## 动效与反馈
 
-以 390px 手机框制作暖沙色生活钱包，余额放在奶油纸币式硬边票据上，转出、收款、银行卡是三枚圆角快捷键；最近流水按日期自然排列，橙色负责动作、深绿负责收入与确认，底部固定四项导航并有可操作转出底页。
+| 触发 | 时长与缓动 | 可见反馈 | `prefers-reduced-motion` |
+| --- | --- | --- | --- |
+| `.sheet` 状态变化 | transition: .25s transform | 状态类或伪类改变对应 CSS 属性 | * → transition: none!important |
+| `.sheet` 状态变化 | transition: .25s transform | 状态类或伪类改变对应 CSS 属性 | * → transition: none!important |
+
+## 复现验收清单
+
+- [ ] 在 390 × 844 px 下，body、.phone 与 .balance 的尺寸和排列符合布局表。
+- [ ] 规范登记的主色 `#7b817a`、`#fff8e8`、`#347659`、`#9fc9b2`、`#b84c45` 均来自 HTML，背景、正文、弱化与强调层级对应一致。
+- [ ] 主要操作 `.flow-head button`、输入、选择或次操作 `.sheet input` 与 内容容器 `.message` 的默认及状态样式可实际观察。
+- [ ] 在 `(max-width:430px)` 条件下，布局按响应式表变化且“掌中潮汐 · 钱包”仍可操作。
+- [ ] 启用 `prefers-reduced-motion: reduce` 后，页面按动效表关闭或压缩非必要动画，同时保留状态反馈。

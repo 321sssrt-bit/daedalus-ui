@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>安宠诊所 · 初诊登记</title>
+<style>
+:root{
+  --mint:#43b08c;
+  --mint-deep:#2f9371;
+  --bg:#f2faf6;
+  --card:#ffffff;
+  --ink:#23413a;
+  --muted:#75908a;
+  --line:#d8ebe2;
+  --danger:#d1584b;
+  --radius-card:14px;
+  --radius-ctl:9px;
+  --sp:8px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font:14.5px/1.65 "PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+  background:var(--bg);color:var(--ink);min-height:100vh;
+}
+.topbar{
+  background:var(--card);border-bottom:1px solid var(--line);padding:14px 28px;
+  display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:5;
+}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:16px;letter-spacing:.1em}
+.brand .cross{width:24px;height:24px;border-radius:8px;background:var(--mint);color:#fff;display:grid;place-items:center;font-size:15px}
+.topbar .no{color:var(--muted);font:12px/1 ui-monospace,Consolas,monospace}
+.layout{max-width:1040px;margin:0 auto;padding:24px 28px 60px;display:flex;gap:24px;align-items:flex-start}
+.anchor{
+  flex:0 0 188px;position:sticky;top:84px;background:var(--card);border:1px solid var(--line);
+  border-radius:var(--radius-card);padding:14px 10px;
+}
+.anchor span{display:block;font-size:11.5px;color:var(--muted);letter-spacing:.16em;padding:2px 12px 10px}
+.anchor a{
+  display:flex;align-items:center;gap:9px;padding:9px 12px;border-radius:9px;color:var(--ink);
+  text-decoration:none;font-size:13.5px;transition:background .13s ease;
+}
+.anchor a i{
+  font-style:normal;width:20px;height:20px;border-radius:50%;background:var(--bg);color:var(--mint-deep);
+  font-size:11px;display:grid;place-items:center;font-weight:700;
+}
+.anchor a:hover{background:var(--bg)}
+.anchor a.on{background:var(--mint);color:#fff}
+.anchor a.on i{background:rgba(255,255,255,.25);color:#fff}
+.form{flex:1;min-width:0}
+.sec{
+  background:var(--card);border:1px solid var(--line);border-radius:var(--radius-card);
+  padding:22px 24px;margin-bottom:18px;scroll-margin-top:84px;
+}
+.sec h2{font-size:16px;margin-bottom:4px;display:flex;align-items:center;gap:9px}
+.sec h2 .tag{font-size:11px;color:var(--mint-deep);background:var(--bg);border-radius:999px;padding:3px 10px;letter-spacing:.1em}
+.sec .lead{color:var(--muted);font-size:12.5px;margin-bottom:16px}
+.frow{display:flex;gap:14px;margin-bottom:14px;flex-wrap:wrap}
+.field{flex:1;min-width:180px}
+.field label{display:block;font-size:12.5px;font-weight:600;margin-bottom:6px}
+.req{color:var(--danger);margin-left:2px}
+.field input,.field select,.field textarea{
+  width:100%;padding:0 13px;font:inherit;font-size:13.5px;color:var(--ink);
+  background:#fbfefd;border:1.5px solid var(--line);border-radius:var(--radius-ctl);height:42px;
+  transition:border-color .14s ease,box-shadow .14s ease;
+}
+.field textarea{height:auto;min-height:96px;padding:10px 13px;resize:vertical;line-height:1.7}
+.field input:hover,.field select:hover,.field textarea:hover{border-color:#b3d8c8}
+.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--mint);box-shadow:0 0 0 3px rgba(67,176,140,.16)}
+.field.bad input,.field.bad textarea{border-color:var(--danger);box-shadow:0 0 0 3px rgba(209,88,75,.12)}
+.field .msg{display:none;font-size:11.5px;color:var(--danger);margin-top:5px}
+.field.bad .msg{display:block}
+.radios,.checks{display:flex;gap:9px;flex-wrap:wrap}
+.radios label,.checks label{
+  display:inline-flex;align-items:center;gap:7px;padding:9px 16px;border:1.5px solid var(--line);
+  border-radius:999px;font-size:13px;cursor:pointer;transition:all .13s ease;background:#fbfefd;
+}
+.radios input,.checks input{accent-color:var(--mint)}
+.radios label:has(input:checked),.checks label:has(input:checked){border-color:var(--mint);background:#e8f6ef;color:var(--mint-deep);font-weight:600}
+.actions{
+  position:sticky;bottom:0;background:var(--card);border:1px solid var(--line);border-radius:var(--radius-card);
+  padding:14px 20px;display:flex;align-items:center;gap:12px;box-shadow:0 -6px 22px rgba(35,65,58,.06);
+}
+.actions .hint{font-size:12px;color:var(--muted)}
+.draft{
+  margin-left:auto;border:1.5px solid var(--line);background:none;border-radius:var(--radius-ctl);
+  padding:11px 22px;font:inherit;font-size:13.5px;color:var(--ink);cursor:pointer;transition:all .14s ease;
+}
+.draft:hover{border-color:var(--mint);color:var(--mint-deep)}
+.submit{
+  border:0;border-radius:var(--radius-ctl);background:var(--mint);color:#fff;padding:12px 34px;
+  font:inherit;font-weight:700;font-size:14px;letter-spacing:.14em;cursor:pointer;transition:background .14s ease;
+}
+.submit:hover{background:var(--mint-deep)}
+.submit:focus-visible,.draft:focus-visible{outline:3px solid rgba(67,176,140,.4);outline-offset:2px}
+.toast{
+  position:fixed;left:50%;bottom:30px;transform:translate(-50%,16px);opacity:0;pointer-events:none;
+  background:var(--ink);color:#f2faf6;padding:11px 24px;border-radius:999px;font-size:13.5px;transition:all .28s ease;z-index:9;
+}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+@media(max-width:840px){
+  .layout{flex-direction:column}
+  .anchor{position:static;flex:none;width:100%;display:flex;overflow-x:auto}
+  .anchor span{display:none}
+}
+@media(prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand"><span class="cross">✚</span>安宠诊所 · 初诊登记</div>
+  <span class="no">登记单 AP-0814-033</span>
+</header>
+<div class="layout">
+  <nav class="anchor" aria-label="分节导航">
+    <span>四节内容</span>
+    <a href="#s1" class="on" data-s="s1"><i>1</i>就诊信息</a>
+    <a href="#s2" data-s="s2"><i>2</i>宠物档案</a>
+    <a href="#s3" data-s="s3"><i>3</i>主诉与病史</a>
+    <a href="#s4" data-s="s4"><i>4</i>联系方式</a>
+  </nav>
+  <main class="form" id="form">
+    <section class="sec" id="s1">
+      <h2>就诊信息 <span class="tag">1 / 4</span></h2>
+      <p class="lead">带星号的为必填项，先约科室与时间。</p>
+      <div class="frow">
+        <div class="field">
+          <label>就诊科室<i class="req">*</i></label>
+          <select><option>全科门诊</option><option>皮肤科</option><option>骨科</option><option>口腔</option><option>眼科</option></select>
+        </div>
+        <div class="field">
+          <label>期望日期<i class="req">*</i></label>
+          <input type="text" value="2026-08-16 上午">
+        </div>
+      </div>
+      <div class="field">
+        <label>就诊类型</label>
+        <div class="radios">
+          <label><input type="radio" name="visit" checked>初诊</label>
+          <label><input type="radio" name="visit">复诊（带过病历）</label>
+          <label><input type="radio" name="visit">体检</label>
+        </div>
+      </div>
+    </section>
+    <section class="sec" id="s2">
+      <h2>宠物档案 <span class="tag">2 / 4</span></h2>
+      <p class="lead">第一次来本院的小家伙，先建一份档案。</p>
+      <div class="frow">
+        <div class="field" data-req="请给小家伙写个名字">
+          <label>昵称<i class="req">*</i></label>
+          <input type="text" id="f-nick" placeholder="例如：年糕">
+          <p class="msg"></p>
+        </div>
+        <div class="field">
+          <label>种类<i class="req">*</i></label>
+          <select><option>猫</option><option>犬</option><option>兔</option><option>其他小宠</option></select>
+        </div>
+      </div>
+      <div class="frow">
+        <div class="field">
+          <label>年龄</label>
+          <input type="text" placeholder="例如：2 岁 3 个月">
+        </div>
+        <div class="field">
+          <label>体重（kg）</label>
+          <input type="text" placeholder="例如：4.6">
+        </div>
+      </div>
+    </section>
+    <section class="sec" id="s3">
+      <h2>主诉与病史 <span class="tag">3 / 4</span></h2>
+      <p class="lead">越具体，医生越快判断要不要紧。</p>
+      <div class="field" data-req="主诉不能为空，哪怕一句也好">
+        <label>主诉<i class="req">*</i></label>
+        <textarea id="f-note" placeholder="例如：这两天不爱吃粮，喝水正常，精神还可以……"></textarea>
+        <p class="msg"></p>
+      </div>
+      <div class="field">
+        <label>已完成免疫（可多选）</label>
+        <div class="checks">
+          <label><input type="checkbox" checked>核心疫苗</label>
+          <label><input type="checkbox">狂犬疫苗</label>
+          <label><input type="checkbox">体内外驱虫</label>
+          <label><input type="checkbox">绝育</label>
+        </div>
+      </div>
+    </section>
+    <section class="sec" id="s4">
+      <h2>联系方式 <span class="tag">4 / 4</span></h2>
+      <p class="lead">挂号回执与到诊提醒会发到这里。</p>
+      <div class="frow">
+        <div class="field" data-req="请填写家长称呼">
+          <label>家长称呼<i class="req">*</i></label>
+          <input type="text" id="f-owner" placeholder="例如：林女士">
+          <p class="msg"></p>
+        </div>
+        <div class="field" data-req="手机号应为 11 位数字">
+          <label>手机号<i class="req">*</i></label>
+          <input type="text" id="f-phone" placeholder="11 位手机号" inputmode="numeric">
+          <p class="msg"></p>
+        </div>
+      </div>
+    </section>
+    <div class="actions">
+      <span class="hint">带 <i class="req">*</i> 为必填 · 草稿存在本机</span>
+      <button class="draft" id="draft" type="button">保存草稿</button>
+      <button class="submit" id="submit" type="button">提交挂号</button>
+    </div>
+  </main>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+(function(){
+  var toast=document.getElementById('toast');
+  var timer=null;
+  function say(msg){
+    toast.textContent=msg;
+    toast.classList.add('show');
+    if(timer)clearTimeout(timer);
+    timer=setTimeout(function(){toast.classList.remove('show')},2200);
+  }
+  var links=document.querySelectorAll('.anchor a');
+  var secs=[];
+  for(var i=0;i<links.length;i++){
+    secs.push(document.getElementById(links[i].getAttribute('data-s')));
+    (function(a){
+      a.addEventListener('click',function(ev){
+        ev.preventDefault();
+        var t=document.getElementById(a.getAttribute('data-s'));
+        t.scrollIntoView({behavior:'smooth',block:'start'});
+      });
+    })(links[i]);
+  }
+  function spy(){
+    var pos=window.scrollY+120;
+    var cur=0;
+    for(var i=0;i<secs.length;i++){
+      if(secs[i].offsetTop<=pos)cur=i;
+    }
+    for(var j=0;j<links.length;j++){
+      if(j===cur)links[j].classList.add('on');else links[j].classList.remove('on');
+    }
+  }
+  window.addEventListener('scroll',spy);
+  document.getElementById('draft').addEventListener('click',function(){
+    say('草稿已存好，随时回来接着填。');
+  });
+  document.getElementById('submit').addEventListener('click',function(){
+    var bad=null;
+    function check(fieldId,test){
+      var input=document.getElementById(fieldId);
+      var wrap=input.parentNode;
+      var ok=test(input.value.replace(/^\s+|\s+$/g,''));
+      wrap.querySelector('.msg').textContent=wrap.getAttribute('data-req');
+      if(ok){wrap.classList.remove('bad')}else{wrap.classList.add('bad');if(!bad)bad=wrap}
+    }
+    check('f-nick',function(v){return v.length>=1});
+    check('f-note',function(v){return v.length>=4});
+    check('f-owner',function(v){return v.length>=1});
+    check('f-phone',function(v){return /^1\d{10}$/.test(v)});
+    if(bad){
+      bad.scrollIntoView({behavior:'smooth',block:'center'});
+      say('还有必填项没写好，已在表单里标红。');
+      return;
+    }
+    say('挂号提交成功，回执会短信发给你。');
+  });
+})();
+</script>
+</body>
+</html>

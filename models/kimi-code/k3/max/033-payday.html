@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>发薪日 · 钱包</title>
+<style>
+:root{
+  --navy:#1c2b4a;
+  --navy-2:#14203a;
+  --gold:#f5c42e;
+  --gold-deep:#d9a91a;
+  --ink:#232a38;
+  --muted:#7d8697;
+  --line:#e6e9ef;
+  --ok:#2f9e6e;
+  --bg-app:#f4f6f9;
+  --frame:#10151f;
+  --sp:8px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font:15px/1.6 "PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+  background:#262b34;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;
+}
+.stage{text-align:center}
+.device-label{color:#8b93a1;font-size:12px;letter-spacing:.2em;margin-bottom:14px}
+.phone{
+  width:390px;height:min(844px,calc(100vh - 90px));border-radius:38px;border:11px solid var(--frame);
+  background:var(--bg-app);overflow:hidden;position:relative;
+  box-shadow:0 30px 80px rgba(0,0,0,.5);
+}
+.screen{height:100%;overflow-y:auto;display:flex;flex-direction:column}
+.wallet-head{
+  background:linear-gradient(160deg,var(--navy) 0%,var(--navy-2) 100%);color:#eef1f7;
+  padding:22px 22px 26px;border-radius:0 0 26px 26px;
+}
+.w-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+.w-top .hi{font-size:13px;color:#aab4cc}
+.w-top .bell{width:34px;height:34px;border-radius:50%;background:rgba(245,196,46,.16);display:grid;place-items:center}
+.bal-label{font-size:12px;color:#aab4cc;display:flex;align-items:center;gap:8px;letter-spacing:.1em}
+.eye{background:none;border:0;color:#aab4cc;cursor:pointer;font-size:13px;padding:2px}
+.bal{font:700 38px/1.2 ui-monospace,Consolas,monospace;color:var(--gold);margin:8px 0 4px}
+.bal-sub{font-size:11.5px;color:#8b96b0}
+.w-actions{display:flex;gap:12px;margin-top:18px}
+.wa{
+  flex:1;display:flex;align-items:center;justify-content:center;gap:8px;height:48px;border-radius:14px;
+  border:0;font:inherit;font-weight:700;font-size:14.5px;cursor:pointer;letter-spacing:.1em;transition:all .14s ease;
+}
+.wa.out{background:var(--gold);color:#1c2b4a}
+.wa.out:hover{background:var(--gold-deep)}
+.wa.in{background:rgba(238,241,247,.12);color:#eef1f7;border:1px solid rgba(238,241,247,.25)}
+.wa.in:hover{background:rgba(238,241,247,.2)}
+.flows{flex:1;padding:18px 18px 12px}
+.f-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
+.f-head h2{font-size:15px}
+.f-head span{font-size:11.5px;color:var(--muted)}
+.flow{
+  display:flex;align-items:center;gap:12px;background:#fff;border:1px solid var(--line);
+  border-radius:14px;padding:13px 14px;margin-bottom:9px;transition:transform .13s ease;
+}
+.flow:active{transform:scale(.99)}
+.f-ic{flex:0 0 38px;height:38px;border-radius:12px;display:grid;place-items:center;font-size:15px;font-weight:700}
+.f-ic.in-c{background:#e5f4ec;color:var(--ok)}
+.f-ic.out-c{background:#fdf0e0;color:#c9761a}
+.flow .nm{font-size:13.5px;font-weight:600}
+.flow .tm{font-size:11px;color:var(--muted);font-family:ui-monospace,Consolas,monospace}
+.flow .amt{margin-left:auto;font:700 15px/1 ui-monospace,Consolas,monospace}
+.amt.plus{color:var(--ok)}
+.amt.minus{color:var(--ink)}
+.navbar{
+  display:flex;background:#fff;border-top:1px solid var(--line);padding:8px 0 14px;
+}
+.navbar button{
+  flex:1;border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:3px;
+  font:inherit;font-size:10.5px;color:var(--muted);cursor:pointer;padding:4px 0;
+}
+.navbar button .ic{font-size:17px}
+.navbar button.on{color:var(--navy);font-weight:700}
+.navbar button.on .ic{color:var(--gold-deep)}
+.sheet-mask{
+  position:absolute;inset:0;background:rgba(16,21,31,.45);display:none;z-index:8;
+}
+.sheet-mask.show{display:block}
+.sheet{
+  position:absolute;left:0;right:0;bottom:0;background:#fff;border-radius:22px 22px 0 0;
+  padding:20px 22px 26px;z-index:9;transform:translateY(105%);transition:transform .3s ease;
+}
+.sheet.show{transform:translateY(0)}
+.sheet h3{font-size:16px;margin-bottom:4px}
+.sheet .tip{font-size:12px;color:var(--muted);margin-bottom:16px}
+.amt-in{display:flex;align-items:baseline;gap:6px;border-bottom:2px solid var(--navy);padding-bottom:8px;margin-bottom:16px}
+.amt-in span{font-size:22px;font-weight:700}
+.amt-in input{flex:1;border:0;font:700 30px/1 ui-monospace,Consolas,monospace;color:var(--ink);min-width:0}
+.amt-in input:focus{outline:none}
+.sheet .go{
+  width:100%;height:48px;border:0;border-radius:14px;background:var(--navy);color:#fff;
+  font:inherit;font-weight:700;font-size:14.5px;letter-spacing:.14em;cursor:pointer;
+}
+.sheet .go:hover{background:var(--navy-2)}
+.sheet .x{position:absolute;top:14px;right:16px;border:0;background:none;font-size:16px;color:var(--muted);cursor:pointer}
+@media(max-width:520px){
+  body{padding:0}
+  .device-label{display:none}
+  .phone{width:100%;height:100vh;border:0;border-radius:0}
+}
+@media(prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+  .sheet{transition:none!important}
+}
+</style>
+</head>
+<body>
+<div class="stage">
+  <p class="device-label">发 薪 日 PAYDAY</p>
+  <div class="phone">
+    <div class="screen">
+      <div class="wallet-head">
+        <div class="w-top">
+          <span class="hi">晚上好，老周</span>
+          <span class="bell" aria-hidden="true">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 2C5.5 2 4 4 4 6V9L2.5 11.5H13.5L12 9V6C12 4 10.5 2 8 2Z" stroke="#f5c42e" stroke-width="1.4" stroke-linejoin="round"/><path d="M6.5 13C6.8 14 7.4 14.5 8 14.5C8.6 14.5 9.2 14 9.5 13" stroke="#f5c42e" stroke-width="1.4" stroke-linecap="round"/></svg>
+          </span>
+        </div>
+        <p class="bal-label">本月已发工钱<button class="eye" id="eye" type="button" aria-label="隐藏或显示余额">👁</button></p>
+        <p class="bal" id="bal">¥ 4,860.50</p>
+        <p class="bal-sub">工友卡（尾号 7788）· 昨日结息 ¥0.12</p>
+        <div class="w-actions">
+          <button class="wa out" id="btn-out" type="button">转出去</button>
+          <button class="wa in" id="btn-in" type="button">收工钱</button>
+        </div>
+      </div>
+      <div class="flows">
+        <div class="f-head"><h2>最近进出</h2><span>本周</span></div>
+        <div class="flow"><span class="f-ic in-c">入</span><span><span class="nm">8 月工钱 · 金诚劳务</span><br><span class="tm">08-10 09:12</span></span><span class="amt plus">+4,850.00</span></div>
+        <div class="flow"><span class="f-ic out-c">出</span><span><span class="nm">转给 · 家里</span><br><span class="tm">08-11 20:03</span></span><span class="amt minus">−2,000.00</span></div>
+        <div class="flow"><span class="f-ic out-c">出</span><span><span class="nm">食堂饭卡充值</span><br><span class="tm">08-12 11:47</span></span><span class="amt minus">−100.00</span></div>
+        <div class="flow"><span class="f-ic in-c">入</span><span><span class="nm">高温补贴</span><br><span class="tm">08-13 15:26</span></span><span class="amt plus">+300.00</span></div>
+        <div class="flow"><span class="f-ic out-c">出</span><span><span class="nm">工友群 AA 聚餐</span><br><span class="tm">08-13 21:08</span></span><span class="amt minus">−58.50</span></div>
+      </div>
+      <nav class="navbar" aria-label="底部导航">
+        <button class="on" type="button"><span class="ic">◈</span>钱包</button>
+        <button type="button"><span class="ic">≡</span>明细</button>
+        <button type="button"><span class="ic">☰</span>服务</button>
+        <button type="button"><span class="ic">◉</span>我的</button>
+      </nav>
+    </div>
+    <div class="sheet-mask" id="mask"></div>
+    <div class="sheet" id="sheet">
+      <button class="x" id="sheet-x" type="button" aria-label="关闭">✕</button>
+      <h3 id="sheet-t">转出到工友卡</h3>
+      <p class="tip">实时到账 · 今日免手续费额度还剩 ¥5,000</p>
+      <div class="amt-in"><span>¥</span><input id="amt" type="text" inputmode="decimal" placeholder="0.00"></div>
+      <button class="go" id="go" type="button">确认转出</button>
+    </div>
+  </div>
+</div>
+<script>
+(function(){
+  var eye=document.getElementById('eye');
+  var bal=document.getElementById('bal');
+  var hidden=false;
+  eye.addEventListener('click',function(){
+    hidden=!hidden;
+    bal.textContent=hidden?'¥ ****.**':'¥ 4,860.50';
+  });
+  var navs=document.querySelectorAll('.navbar button');
+  for(var i=0;i<navs.length;i++){
+    (function(b){
+      b.addEventListener('click',function(){
+        for(var j=0;j<navs.length;j++)navs[j].classList.remove('on');
+        b.classList.add('on');
+      });
+    })(navs[i]);
+  }
+  var sheet=document.getElementById('sheet');
+  var mask=document.getElementById('mask');
+  var title=document.getElementById('sheet-t');
+  var go=document.getElementById('go');
+  function openSheet(t,g){
+    title.textContent=t;
+    go.textContent=g;
+    sheet.classList.add('show');
+    mask.classList.add('show');
+  }
+  function closeSheet(){
+    sheet.classList.remove('show');
+    mask.classList.remove('show');
+  }
+  document.getElementById('btn-out').addEventListener('click',function(){openSheet('转出到工友卡','确认转出')});
+  document.getElementById('btn-in').addEventListener('click',function(){openSheet('出示收款码','保存收款码')});
+  document.getElementById('sheet-x').addEventListener('click',closeSheet);
+  mask.addEventListener('click',closeSheet);
+  go.addEventListener('click',function(){
+    var v=document.getElementById('amt').value;
+    closeSheet();
+    if(v&&Number(v)>0){
+      bal.textContent=hidden?'¥ ****.**':'¥ '+(''+(4860.5-Number(v)).toFixed(2)).replace(/\B(?=(\d{3})+(?!\d))/g,',');
+      document.getElementById('amt').value='';
+    }
+  });
+})();
+</script>
+</body>
+</html>

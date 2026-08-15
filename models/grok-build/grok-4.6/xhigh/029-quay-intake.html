@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>码头收 · 入库</title>
+  <style>
+    :root {
+      --sea: #1b3a4a;
+      --deck: #d8c3a0;
+      --ink: #1a140e;
+      --mark: #c45b1a;
+      --ok: #2f6b45;
+      --wait: #8a6a28;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--sea); color: var(--ink); font: 15px/1.45 "Trebuchet MS", "Microsoft YaHei", sans-serif; }
+    .dock { max-width: 800px; margin: 28px auto; background: var(--deck); padding: 22px; }
+    h1 { margin: 0 0 8px; letter-spacing: 0.12em; }
+    .drop { border: 2px dashed var(--sea); min-height: 110px; display: grid; place-items: center; margin: 12px 0; cursor: pointer; }
+    .drop:focus { outline: 2px solid var(--mark); }
+    table { width: 100%; border-collapse: collapse; }
+    td, th { border-bottom: 1px solid #c4aa80; padding: 8px 4px; text-align: left; }
+    button { height: 32px; padding: 0 10px; cursor: pointer; font: inherit; }
+    .go { height: 40px; background: var(--sea); color: #e8f0f4; border: 0; margin-top: 12px; }
+    .st { font-size: 13px; color: var(--wait); }
+    @media (max-width: 768px) { .dock { margin: 0; } }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <main class="dock">
+    <h1>码头收</h1>
+    <p>把货单放进虚线区。下面已经有两票在列。</p>
+    <div class="drop" id="drop" tabindex="0">拖到这里，或点这里加一票演示单</div>
+    <table>
+      <thead><tr><th>唛头</th><th>大小</th><th>状态</th><th></th></tr></thead>
+      <tbody id="tb"></tbody>
+    </table>
+    <button class="go" id="go" type="button">开始过磅</button>
+    <p id="msg"></p>
+  </main>
+  <script>
+    (function () {
+      var files = [
+        { n: "BH-09 灯油单", s: "128 KB", st: "在列" },
+        { n: "QP-02 种子袋", s: "64 KB", st: "在列" }
+      ];
+      function draw() {
+        var tb = document.getElementById("tb");
+        tb.innerHTML = "";
+        files.forEach(function (f, i) {
+          var tr = document.createElement("tr");
+          tr.innerHTML = "<td>" + f.n + "</td><td>" + f.s + "</td><td class=\"st\">" + f.st + "</td><td><button type=\"button\" data-i=\"" + i + "\">卸下</button></td>";
+          tb.appendChild(tr);
+        });
+      }
+      document.getElementById("tb").addEventListener("click", function (event) {
+        var btn = event.target.closest("button");
+        if (!btn) return;
+        files.splice(Number(btn.getAttribute("data-i")), 1);
+        draw();
+      });
+      document.getElementById("drop").addEventListener("click", function () {
+        files.push({ n: "临时唛 " + (files.length + 1), s: "32 KB", st: "在列" });
+        draw();
+      });
+      document.getElementById("go").addEventListener("click", function () {
+        if (!files.length) { document.getElementById("msg").textContent = "列是空的，过磅秤不转。"; return; }
+        files.forEach(function (f) { f.st = "过磅中"; });
+        draw();
+        document.getElementById("msg").textContent = "已开始处理 " + files.length + " 票。码头铃响过一次。";
+      });
+      draw();
+    })();
+  </script>
+</body>
+</html>

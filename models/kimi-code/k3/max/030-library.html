@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>藏书楼 · 检索</title>
+<style>
+:root{
+  --pine:#1f4a44;
+  --pine-deep:#16352f;
+  --silk:#f0e8d4;
+  --card:#faf5e8;
+  --ink:#2a2f2b;
+  --muted:#8a8776;
+  --line:#ddd3b8;
+  --cinnabar:#b0452e;
+  --radius-card:10px;
+  --radius-ctl:6px;
+  --sp:8px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font:14px/1.65 "PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+  background:var(--silk);color:var(--ink);min-height:100vh;display:flex;flex-direction:column;
+}
+.topbar{
+  background:var(--pine);color:var(--silk);padding:16px 28px;
+  display:flex;align-items:center;gap:24px;
+}
+.brand{font:700 19px/1 "Songti SC","STSong","SimSun",serif;letter-spacing:.3em;white-space:nowrap}
+.search{
+  flex:1;display:flex;background:rgba(240,232,212,.14);border:1px solid rgba(240,232,212,.35);
+  border-radius:var(--radius-ctl);padding:4px 4px 4px 16px;max-width:520px;
+}
+.search input{flex:1;border:0;background:none;font:inherit;color:var(--silk);min-width:0}
+.search input::placeholder{color:rgba(240,232,212,.55)}
+.search input:focus{outline:none}
+.search button{
+  border:0;border-radius:5px;background:var(--silk);color:var(--pine);padding:8px 20px;
+  font:inherit;font-size:13px;font-weight:700;cursor:pointer;letter-spacing:.12em;
+}
+.layout{flex:1;display:flex;min-height:0;max-width:1180px;width:100%;margin:0 auto;padding:22px 26px;gap:20px}
+.facets{flex:0 0 236px}
+.fgroup{background:var(--card);border:1px solid var(--line);border-radius:var(--radius-card);margin-bottom:14px;overflow:hidden}
+.fgroup h2{
+  font-size:12px;letter-spacing:.22em;color:var(--pine);padding:11px 16px;border-bottom:1px solid var(--line);
+  background:rgba(31,74,68,.06);
+}
+.fgroup label{
+  display:flex;align-items:center;gap:9px;padding:9px 16px;font-size:13.5px;cursor:pointer;
+  transition:background .12s ease;
+}
+.fgroup label:hover{background:#f3edda}
+.fgroup input{accent-color:var(--pine)}
+.fgroup .c{margin-left:auto;font:11px/1 ui-monospace,Consolas,monospace;color:var(--muted)}
+.clear{
+  width:100%;border:1.5px solid var(--pine);background:none;border-radius:var(--radius-ctl);
+  padding:10px 0;font:inherit;font-size:13px;font-weight:600;color:var(--pine);cursor:pointer;
+  letter-spacing:.14em;transition:all .13s ease;
+}
+.clear:hover{background:var(--pine);color:var(--silk)}
+.clear:disabled{opacity:.4;cursor:not-allowed}
+.results{flex:1;min-width:0}
+.r-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:12px}
+.r-head .count{font-size:13.5px;color:var(--muted)}
+.r-head .count b{color:var(--cinnabar);font-family:ui-monospace,Consolas,monospace;font-size:16px}
+.book{
+  background:var(--card);border:1px solid var(--line);border-left:4px solid var(--pine);
+  border-radius:var(--radius-card);padding:14px 18px;margin-bottom:10px;
+  display:flex;align-items:center;gap:16px;transition:transform .13s ease,box-shadow .13s ease;
+}
+.book:hover{transform:translateX(3px);box-shadow:0 6px 16px rgba(42,47,43,.1)}
+.book .t{font:700 16px/1.4 "Songti SC","STSong","SimSun",serif}
+.book .a{font-size:12px;color:var(--muted);margin-top:3px}
+.book .tags{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.book .tags span{
+  font-size:11px;padding:3px 10px;border-radius:999px;background:#ece4cc;color:var(--pine-deep);
+  border:1px solid var(--line);white-space:nowrap;
+}
+.book .tags .st-ok{background:#e0efe2;color:#2c6e46;border-color:#bcd8c2}
+.book .tags .st-no{background:#f3e0d6;color:#a04428;border-color:#e3c4ae}
+.book .tags .st-fix{background:#f4ecd0;color:#8a6a1a;border-color:#e2d3a0}
+.none{
+  display:none;text-align:center;color:var(--muted);padding:44px 0;font-size:13.5px;
+  border:1px dashed var(--line);border-radius:var(--radius-card);
+}
+.none.show{display:block}
+@media(max-width:880px){
+  .layout{flex-direction:column}
+  .facets{flex:none;width:100%}
+}
+@media(prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">藏 书 楼</div>
+  <div class="search">
+    <input id="q" type="text" placeholder="检书名、撰者、馆藏号……" aria-label="检索">
+    <button id="go" type="button">检 索</button>
+  </div>
+</header>
+<div class="layout">
+  <aside class="facets" aria-label="筛选">
+    <div class="fgroup">
+      <h2>朝代</h2>
+      <label><input type="checkbox" data-g="dyn" value="宋">宋<span class="c">2</span></label>
+      <label><input type="checkbox" data-g="dyn" value="明">明<span class="c">2</span></label>
+      <label><input type="checkbox" data-g="dyn" value="清">清<span class="c">2</span></label>
+      <label><input type="checkbox" data-g="dyn" value="民国">民国<span class="c">1</span></label>
+    </div>
+    <div class="fgroup">
+      <h2>版本</h2>
+      <label><input type="checkbox" data-g="ver" value="刻本">刻本<span class="c">3</span></label>
+      <label><input type="checkbox" data-g="ver" value="抄本">抄本<span class="c">2</span></label>
+      <label><input type="checkbox" data-g="ver" value="稿本">稿本<span class="c">1</span></label>
+      <label><input type="checkbox" data-g="ver" value="石印">石印<span class="c">1</span></label>
+    </div>
+    <div class="fgroup">
+      <h2>藏区</h2>
+      <label><input type="checkbox" data-g="reg" value="江浙">江浙<span class="c">3</span></label>
+      <label><input type="checkbox" data-g="reg" value="两淮">两淮<span class="c">2</span></label>
+      <label><input type="checkbox" data-g="reg" value="闽中">闽中<span class="c">2</span></label>
+    </div>
+    <div class="fgroup">
+      <h2>状态</h2>
+      <label><input type="checkbox" data-g="st" value="可借阅">可借阅<span class="c">3</span></label>
+      <label><input type="checkbox" data-g="st" value="仅存目">仅存目<span class="c">2</span></label>
+      <label><input type="checkbox" data-g="st" value="修复中">修复中<span class="c">2</span></label>
+    </div>
+    <button class="clear" id="clear" type="button" disabled>清 除 全 部 筛 选</button>
+  </aside>
+  <main class="results">
+    <div class="r-head">
+      <span class="count">命中 <b id="n">7</b> 种</span>
+      <span class="count">按馆藏号排序</span>
+    </div>
+    <div id="list">
+      <article class="book" data-dyn="宋" data-ver="刻本" data-reg="江浙" data-st="可借阅" data-t="咸淳临安志">
+        <div><div class="t">咸淳临安志 · 存二十六卷</div><div class="a">宋 · 潜说友纂修 · 馆藏号 ZJ-0482</div></div>
+        <div class="tags"><span>宋</span><span>刻本</span><span>江浙</span><span class="st-ok">可借阅</span></div>
+      </article>
+      <article class="book" data-dyn="宋" data-ver="抄本" data-reg="闽中" data-st="修复中" data-t="吴郡图经续记">
+        <div><div class="t">吴郡图经续记 · 三卷</div><div class="a">宋 · 朱长文撰 · 馆藏号 MJ-0117</div></div>
+        <div class="tags"><span>宋</span><span>抄本</span><span>闽中</span><span class="st-fix">修复中</span></div>
+      </article>
+      <article class="book" data-dyn="明" data-ver="刻本" data-reg="两淮" data-st="可借阅" data-t="天工开物">
+        <div><div class="t">天工开物 · 初刻三卷</div><div class="a">明 · 宋应星撰 · 馆藏号 LH-0209</div></div>
+        <div class="tags"><span>明</span><span>刻本</span><span>两淮</span><span class="st-ok">可借阅</span></div>
+      </article>
+      <article class="book" data-dyn="明" data-ver="刻本" data-reg="江浙" data-st="仅存目" data-t="本草纲目">
+        <div><div class="t">本草纲目 · 金陵本残帙</div><div class="a">明 · 李时珍撰 · 馆藏号 ZJ-0056</div></div>
+        <div class="tags"><span>明</span><span>刻本</span><span>江浙</span><span class="st-no">仅存目</span></div>
+      </article>
+      <article class="book" data-dyn="清" data-ver="抄本" data-reg="江浙" data-st="修复中" data-t="越绝书">
+        <div><div class="t">越绝书 · 十五卷精抄</div><div class="a">清 · 无名氏抄 · 馆藏号 ZJ-0341</div></div>
+        <div class="tags"><span>清</span><span>抄本</span><span>江浙</span><span class="st-fix">修复中</span></div>
+      </article>
+      <article class="book" data-dyn="清" data-ver="稿本" data-reg="两淮" data-st="仅存目" data-t="扬州画派见闻录">
+        <div><div class="t">扬州画派见闻录 · 未刊稿</div><div class="a">清 · 汪鋆稿 · 馆藏号 LH-0088</div></div>
+        <div class="tags"><span>清</span><span>稿本</span><span>两淮</span><span class="st-no">仅存目</span></div>
+      </article>
+      <article class="book" data-dyn="民国" data-ver="石印" data-reg="闽中" data-st="可借阅" data-t="闽中海错疏">
+        <div><div class="t">闽中海错疏 · 石印三册</div><div class="a">民国 · 佚名辑 · 馆藏号 MJ-0273</div></div>
+        <div class="tags"><span>民国</span><span>石印</span><span>闽中</span><span class="st-ok">可借阅</span></div>
+      </article>
+    </div>
+    <div class="none" id="none">这组条件下一册也没有。松松条件，或换几个字再检。</div>
+  </main>
+</div>
+<script>
+(function(){
+  var list=document.getElementById('list');
+  var books=list.querySelectorAll('.book');
+  var n=document.getElementById('n');
+  var clear=document.getElementById('clear');
+  var none=document.getElementById('none');
+  var q=document.getElementById('q');
+  var boxes=document.querySelectorAll('.facets input[type=checkbox]');
+  function apply(){
+    var active={dyn:[],ver:[],reg:[],st:[]};
+    var anyChecked=false;
+    for(var i=0;i<boxes.length;i++){
+      if(boxes[i].checked){
+        anyChecked=true;
+        active[boxes[i].getAttribute('data-g')].push(boxes[i].value);
+      }
+    }
+    var kw=q.value.replace(/^\s+|\s+$/g,'');
+    var shown=0;
+    for(var j=0;j<books.length;j++){
+      var b=books[j];
+      var ok=true;
+      for(var g in active){
+        if(active[g].length&&active[g].indexOf(b.getAttribute('data-'+g))<0)ok=false;
+      }
+      if(kw&&b.getAttribute('data-t').indexOf(kw)<0)ok=false;
+      b.style.display=ok?'':'none';
+      if(ok)shown++;
+    }
+    n.textContent=shown;
+    if(shown===0){none.classList.add('show')}else{none.classList.remove('show')}
+    clear.disabled=!anyChecked&&!kw;
+  }
+  for(var i=0;i<boxes.length;i++)boxes[i].addEventListener('change',apply);
+  clear.addEventListener('click',function(){
+    for(var j=0;j<boxes.length;j++)boxes[j].checked=false;
+    q.value='';
+    apply();
+  });
+  document.getElementById('go').addEventListener('click',apply);
+  q.addEventListener('keydown',function(ev){if(ev.key==='Enter')apply()});
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>净廊健康云 · 找回密码</title>
+<style>
+  :root {
+    --bg: #f2f7f8;
+    --card: #ffffff;
+    --primary: #0e9f95;
+    --deep: #0b6e77;
+    --ink: #16373a;
+    --muted: #5f7a7d;
+    --line: #d8e8e7;
+    --ok: #1fae7a;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0; min-height: 100vh;
+    font-family: -apple-system, "Segoe UI", "Microsoft YaHei", "PingFang SC", "Helvetica Neue", sans-serif;
+    color: var(--ink);
+    background:
+      radial-gradient(900px 500px at 12% -8%, rgba(14,159,149,.08), transparent 60%),
+      var(--bg);
+    display: flex; align-items: center; justify-content: center;
+    padding: 40px 20px;
+  }
+  .shell { width: 100%; max-width: 560px; }
+  .sign {
+    display: flex; align-items: center; gap: 12px;
+    background: var(--deep); color: #fff;
+    padding: 16px 22px; border-radius: 14px 14px 0 0;
+  }
+  .sign .mark {
+    width: 34px; height: 34px; border-radius: 9px;
+    background: #fff; color: var(--deep);
+    display: inline-flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 18px;
+  }
+  .sign .name { font-weight: 700; letter-spacing: .02em; }
+  .sign .sub { font-size: 13px; opacity: .82; margin-top: 2px; }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-top: none; border-radius: 0 0 14px 14px;
+    box-shadow: 0 18px 44px rgba(22,55,58,.08);
+    overflow: hidden;
+  }
+  .record {
+    display: flex; justify-content: space-between; gap: 12px;
+    padding: 12px 22px; font-size: 13px; color: var(--muted);
+    background: #f7fbfb; border-bottom: 1px solid var(--line);
+  }
+  .record b { color: var(--ink); font-weight: 600; }
+  .body { padding: 26px 28px 30px; }
+  h1 { margin: 0 0 6px; font-size: 24px; font-weight: 700; }
+  .lead { margin: 0 0 22px; font-size: 14px; color: var(--muted); line-height: 1.6; }
+  .tabs {
+    display: flex; border: 1px solid var(--line); border-radius: 10px;
+    overflow: hidden; margin-bottom: 20px;
+  }
+  .tab {
+    flex: 1; text-align: center; padding: 11px 0; font-size: 14px; font-weight: 600;
+    color: var(--muted); background: #f7fbfb; cursor: pointer; border: none;
+    transition: background .16s ease, color .16s ease;
+  }
+  .tab + .tab { border-left: 1px solid var(--line); }
+  .tab:hover { color: var(--deep); }
+  .tab.active { background: #fff; color: var(--deep); }
+  .tab:focus-visible { outline: 2px solid var(--primary); outline-offset: -2px; }
+  .sheet { border: 1px solid var(--line); border-radius: 10px; overflow: hidden; margin-bottom: 18px; }
+  .row { display: flex; align-items: center; gap: 14px; padding: 14px 16px; }
+  .row + .row { border-top: 1px solid var(--line); }
+  .row-label { flex: 0 0 88px; font-size: 14px; font-weight: 600; color: var(--ink); }
+  input[type="text"], input[type="email"] {
+    flex: 1; min-width: 0; font-family: inherit; font-size: 15px; color: var(--ink);
+    padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px;
+    background: #fbfdfd; transition: border-color .16s ease, box-shadow .16s ease;
+  }
+  input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(14,159,149,.16); }
+  input.invalid { border-color: #d9534f; box-shadow: 0 0 0 3px rgba(217,83,79,.14); }
+  .row-help { padding: 10px 16px; background: #f7fbfb; font-size: 13px; color: var(--muted); border-top: 1px solid var(--line); }
+  .error { display: none; margin: -8px 0 14px; font-size: 13px; color: #c03b37; }
+  .error.show { display: block; }
+  .btn {
+    display: block; width: 100%; font-family: inherit; font-size: 16px; font-weight: 600;
+    padding: 13px; border-radius: 10px; border: 1px solid transparent; cursor: pointer;
+    transition: background .16s ease, transform .1s ease, box-shadow .16s ease;
+  }
+  .btn-primary { background: var(--primary); color: #fff; box-shadow: 0 8px 20px rgba(14,159,149,.28); }
+  .btn-primary:hover { background: var(--deep); transform: translateY(-1px); }
+  .btn-primary:focus-visible { outline: 2px solid var(--deep); outline-offset: 2px; }
+  .btn-primary:disabled { background: #a9cfcb; box-shadow: none; cursor: not-allowed; }
+  .back { display: block; text-align: center; margin-top: 16px; font-size: 14px; color: var(--deep); text-decoration: none; }
+  .back:hover { text-decoration: underline; }
+  .back:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+
+  /* 已发送等待态 */
+  .sent { display: none; text-align: center; padding: 8px 0 2px; }
+  .sent.show { display: block; }
+  .tick {
+    width: 64px; height: 64px; margin: 0 auto 18px; border-radius: 50%;
+    background: var(--ok); color: #fff; display: flex; align-items: center; justify-content: center;
+    font-size: 30px; box-shadow: 0 10px 26px rgba(31,174,122,.3);
+  }
+  .sent h2 { margin: 0 0 8px; font-size: 22px; }
+  .sent .where { margin: 0 0 6px; font-size: 15px; color: var(--ink); }
+  .sent .where b { color: var(--deep); }
+  .sent .hint { margin: 0 0 22px; font-size: 14px; color: var(--muted); line-height: 1.6; }
+  .resend { margin-top: 12px; background: #fff; color: var(--deep); border: 1px solid var(--line); }
+  .resend:hover:not(:disabled) { border-color: var(--primary); background: #f0f9f8; }
+  .resend:disabled { color: #9db6b4; border-color: var(--line); background: #f4f8f8; cursor: not-allowed; }
+  .toast {
+    position: fixed; left: 50%; bottom: 32px; transform: translateX(-50%) translateY(10px);
+    padding: 12px 20px; border-radius: 10px; background: var(--deep); color: #fff;
+    font-size: 14px; opacity: 0; pointer-events: none;
+    transition: opacity .22s ease, transform .22s ease;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  @media (max-width: 768px) {
+    body { padding: 24px 14px; }
+    .row { flex-direction: column; align-items: stretch; gap: 8px; }
+    .row-label { flex: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+  }
+</style>
+</head>
+<body>
+  <div class="shell">
+    <div class="sign">
+      <span class="mark">净</span>
+      <div><div class="name">净廊健康云</div><div class="sub">账户服务 · 找回访问入口</div></div>
+    </div>
+    <div class="card">
+      <div class="record">
+        <span>当前账户：<b>chen****</b></span>
+        <span>上次登录：<b>今天 09:12</b></span>
+      </div>
+      <div class="body">
+        <div id="form-panel">
+          <h1>找回访问密码</h1>
+          <p class="lead">请选择你登记过的联系方式，我们会把重置入口发过去。若长时间未收到，请检查垃圾邮件。</p>
+
+          <div class="tabs" role="tablist">
+            <button class="tab active" id="tab-phone" type="button">手机号</button>
+            <button class="tab" id="tab-email" type="button">邮箱</button>
+          </div>
+
+          <div class="sheet">
+            <div class="row">
+              <label class="row-label" id="contact-label" for="contact-input">手机号</label>
+              <input type="text" id="contact-input" placeholder="请输入手机号" autocomplete="off">
+            </div>
+            <div class="row-help" id="contact-help">重置链接将以短信形式发送，通常几秒内到达。</div>
+          </div>
+
+          <div class="error" id="error-msg">请输入有效的联系方式后再发送。</div>
+
+          <button class="btn btn-primary" id="send-btn" type="button">发送重置链接</button>
+          <a class="back" id="back-login-1" href="#">返回登录</a>
+        </div>
+
+        <div class="sent" id="sent-panel">
+          <div class="tick">✓</div>
+          <h2>重置链接已发出</h2>
+          <p class="where">已发送至 <b id="sent-to">138****2234</b></p>
+          <p class="hint">入口在 30 分钟内有效。若没有收到，请稍候重新发送，或改用另一种联系方式。</p>
+          <button class="btn btn-primary" id="back-login-2" type="button">返回登录</button>
+          <button class="btn resend" id="resend-btn" type="button">重新发送</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" role="status"></div>
+
+<script>
+(function () {
+  var tabPhone = document.getElementById('tab-phone');
+  var tabEmail = document.getElementById('tab-email');
+  var label = document.getElementById('contact-label');
+  var input = document.getElementById('contact-input');
+  var help = document.getElementById('contact-help');
+  var sendBtn = document.getElementById('send-btn');
+  var errorMsg = document.getElementById('error-msg');
+  var formPanel = document.getElementById('form-panel');
+  var sentPanel = document.getElementById('sent-panel');
+  var sentTo = document.getElementById('sent-to');
+  var resendBtn = document.getElementById('resend-btn');
+  var toast = document.getElementById('toast');
+  var method = 'phone';
+  var cooldown = 0;
+  var timer = null;
+  var toastTimer = null;
+
+  function showToast(msg) {
+    toast.textContent = msg;
+    toast.classList.add('show');
+    if (toastTimer) { clearTimeout(toastTimer); }
+    toastTimer = setTimeout(function () { toast.classList.remove('show'); }, 2000);
+  }
+
+  function setMethod(m) {
+    method = m;
+    var isPhone = m === 'phone';
+    tabPhone.classList.toggle('active', isPhone);
+    tabEmail.classList.toggle('active', !isPhone);
+    label.textContent = isPhone ? '手机号' : '邮箱';
+    input.type = isPhone ? 'text' : 'email';
+    input.placeholder = isPhone ? '请输入手机号' : 'name@hospital.cn';
+    help.textContent = isPhone ? '重置链接将以短信形式发送，通常几秒内到达。' : '重置链接将发送到该邮箱，请留意收件箱与垃圾邮件。';
+    input.value = '';
+    errorMsg.classList.remove('show');
+    input.classList.remove('invalid');
+    input.focus();
+  }
+
+  function maskContact(v) {
+    if (method === 'phone') {
+      if (v.length >= 7) { return v.slice(0, 3) + '****' + v.slice(-4); }
+      return v.slice(0, 3) + '****';
+    }
+    var at = v.indexOf('@');
+    if (at > 1) { return v[0] + '****' + v.slice(at); }
+    return v[0] + '****';
+  }
+
+  function startCooldown() {
+    cooldown = 60;
+    updateResend();
+    if (timer) { clearInterval(timer); }
+    timer = setInterval(function () {
+      cooldown -= 1;
+      if (cooldown <= 0) { clearInterval(timer); timer = null; }
+      updateResend();
+    }, 1000);
+  }
+
+  function updateResend() {
+    if (cooldown > 0) {
+      resendBtn.disabled = true;
+      resendBtn.textContent = '重新发送（' + cooldown + 's）';
+    } else {
+      resendBtn.disabled = false;
+      resendBtn.textContent = '重新发送';
+    }
+  }
+
+  tabPhone.addEventListener('click', function () { setMethod('phone'); });
+  tabEmail.addEventListener('click', function () { setMethod('email'); });
+
+  sendBtn.addEventListener('click', function () {
+    var v = input.value.trim();
+    if (!v) {
+      errorMsg.classList.add('show');
+      input.classList.add('invalid');
+      input.focus();
+      return;
+    }
+    errorMsg.classList.remove('show');
+    input.classList.remove('invalid');
+    sentTo.textContent = maskContact(v);
+    formPanel.style.display = 'none';
+    sentPanel.classList.add('show');
+    startCooldown();
+    showToast('重置链接已发送');
+  });
+
+  resendBtn.addEventListener('click', function () {
+    if (cooldown > 0) { return; }
+    startCooldown();
+    showToast('已重新发送重置链接');
+  });
+
+  document.getElementById('back-login-1').addEventListener('click', function (e) {
+    e.preventDefault();
+    showToast('已返回登录页');
+  });
+  document.getElementById('back-login-2').addEventListener('click', function (e) {
+    e.preventDefault();
+    formPanel.style.display = 'block';
+    sentPanel.classList.remove('show');
+    showToast('已返回登录页');
+  });
+
+  updateResend();
+})();
+</script>
+</body>
+</html>

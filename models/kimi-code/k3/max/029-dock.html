@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>码头 · 单证上传</title>
+<style>
+:root{
+  --steel:#2f6b7a;
+  --steel-deep:#245561;
+  --bg:#edf1f2;
+  --card:#ffffff;
+  --safe:#f08030;
+  --safe-deep:#d96a1a;
+  --ink:#233338;
+  --muted:#71828a;
+  --line:#d3dcde;
+  --ok:#3e9e63;
+  --radius-card:12px;
+  --radius-ctl:7px;
+  --sp:8px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font:14.5px/1.6 "PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+  background:var(--bg);color:var(--ink);min-height:100vh;
+}
+.topbar{
+  background:var(--steel);color:#e8f0f2;padding:0 26px;height:54px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;letter-spacing:.16em}
+.topbar .lane{font:11.5px/1 ui-monospace,Consolas,monospace;color:#a9c3ca;letter-spacing:.1em}
+.wrap{max-width:860px;margin:0 auto;padding:26px 26px 56px}
+.drop{
+  background:var(--card);border:2.5px dashed var(--steel);border-radius:var(--radius-card);
+  padding:40px 24px;text-align:center;cursor:pointer;transition:all .16s ease;margin-bottom:20px;
+}
+.drop:hover,.drop.over{border-color:var(--safe);background:#fdf4ea}
+.drop .ic{width:56px;height:56px;margin:0 auto 12px}
+.drop h1{font-size:17px;letter-spacing:.06em}
+.drop p{color:var(--muted);font-size:12.5px;margin-top:6px}
+.drop .fmt{margin-top:12px;display:inline-block;font:11px/1 ui-monospace,Consolas,monospace;color:var(--steel);background:#e8f0f2;padding:5px 12px;border-radius:999px}
+.q-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.q-head h2{font-size:15px;letter-spacing:.06em}
+.q-head .n{font:12px/1 ui-monospace,Consolas,monospace;color:var(--muted)}
+.queue{display:flex;flex-direction:column;gap:10px;margin-bottom:20px}
+.frow{
+  display:flex;align-items:center;gap:14px;background:var(--card);border:1px solid var(--line);
+  border-radius:var(--radius-card);padding:13px 16px;
+}
+.frow .fi{flex:0 0 38px;height:38px;border-radius:9px;background:#e8f0f2;display:grid;place-items:center}
+.frow .nm{font-size:13.5px;font-weight:600}
+.frow .sz{font:11.5px/1.4 ui-monospace,Consolas,monospace;color:var(--muted)}
+.frow .stat{margin-left:auto;flex:0 0 92px;text-align:right;font-size:12px;font-weight:600}
+.frow .stat.wait{color:var(--muted)}
+.frow .stat.run{color:var(--safe-deep)}
+.frow .stat.done{color:var(--ok)}
+.prog{flex:0 0 130px;height:7px;border-radius:4px;background:#e4e9ea;overflow:hidden}
+.prog i{display:block;height:100%;width:0;background:var(--safe);transition:width .2s linear;border-radius:4px}
+.frow.done .prog i{background:var(--ok)}
+.rm{
+  flex:0 0 28px;height:28px;border-radius:7px;border:1px solid var(--line);background:none;
+  color:var(--muted);cursor:pointer;font-size:13px;transition:all .13s ease;
+}
+.rm:hover{color:#c0483c;border-color:#c0483c}
+.actions{display:flex;align-items:center;gap:14px}
+.start{
+  border:0;border-radius:var(--radius-ctl);background:var(--safe);color:#fff;padding:13px 38px;
+  font:inherit;font-weight:700;font-size:14.5px;letter-spacing:.16em;cursor:pointer;
+  box-shadow:0 8px 20px rgba(240,128,48,.32);transition:background .14s ease;
+}
+.start:hover:not(:disabled){background:var(--safe-deep)}
+.start:disabled{opacity:.45;cursor:not-allowed}
+.start:focus-visible{outline:3px solid rgba(240,128,48,.4);outline-offset:2px}
+.actions .note{font-size:12px;color:var(--muted)}
+.toast{
+  position:fixed;left:50%;bottom:30px;transform:translate(-50%,16px);opacity:0;pointer-events:none;
+  background:var(--steel-deep);color:#e8f0f2;padding:11px 24px;border-radius:999px;font-size:13px;transition:all .28s ease;z-index:9;
+}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+@media(prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
+      <path d="M3 18H19M5 18V9H11V18M11 12H17V18" stroke="#e8f0f2" stroke-width="1.8" stroke-linejoin="round"/>
+      <path d="M5 9L8 5H13L17 9" stroke="#f08030" stroke-width="1.8" stroke-linejoin="round"/>
+    </svg>
+    码头单证台
+  </div>
+  <span class="lane">进口舱单 · 甬舟港三期</span>
+</header>
+<div class="wrap">
+  <div class="drop" id="drop" role="button" tabindex="0" aria-label="拖放或点击选择文件">
+    <svg class="ic" viewBox="0 0 56 56" fill="none" aria-hidden="true">
+      <path d="M28 40V16M28 16L19 25M28 16L37 25" stroke="#2f6b7a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M10 42H46V50H10V42Z" stroke="#f08030" stroke-width="3" stroke-linejoin="round"/>
+    </svg>
+    <h1>把舱单、装箱单拖进这里</h1>
+    <p>或者点一下选择文件 · 单次最多 20 份，单份不超过 50MB</p>
+    <span class="fmt">PDF / XLSX / JPG</span>
+  </div>
+  <div class="q-head">
+    <h2>待处理队列</h2>
+    <span class="n" id="qcount">3 份在排队</span>
+  </div>
+  <div class="queue" id="queue">
+    <div class="frow" data-id="1">
+      <span class="fi"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M5 2H12L15 5V18H5V2Z" stroke="#2f6b7a" stroke-width="1.6" stroke-linejoin="round"/><path d="M12 2V5H15" stroke="#2f6b7a" stroke-width="1.6"/></svg></span>
+      <span><span class="nm">MSKU-4821 进口舱单.pdf</span><br><span class="sz">2.4 MB</span></span>
+      <span class="stat wait">待处理</span>
+      <span class="prog"><i></i></span>
+      <button class="rm" type="button" aria-label="删除">✕</button>
+    </div>
+    <div class="frow" data-id="2">
+      <span class="fi"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M5 2H12L15 5V18H5V2Z" stroke="#2f6b7a" stroke-width="1.6" stroke-linejoin="round"/><path d="M12 2V5H15" stroke="#2f6b7a" stroke-width="1.6"/></svg></span>
+      <span><span class="nm">三期装箱清单-0814.xlsx</span><br><span class="sz">864 KB</span></span>
+      <span class="stat wait">待处理</span>
+      <span class="prog"><i></i></span>
+      <button class="rm" type="button" aria-label="删除">✕</button>
+    </div>
+    <div class="frow" data-id="3">
+      <span class="fi"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="3" y="4" width="14" height="12" rx="2" stroke="#2f6b7a" stroke-width="1.6"/><circle cx="8" cy="9" r="1.6" stroke="#2f6b7a" stroke-width="1.4"/><path d="M3 14L8 11L12 14L15 12L17 14" stroke="#2f6b7a" stroke-width="1.4"/></svg></span>
+      <span><span class="nm">冻柜温度照片-现场.jpg</span><br><span class="sz">5.1 MB</span></span>
+      <span class="stat wait">待处理</span>
+      <span class="prog"><i></i></span>
+      <button class="rm" type="button" aria-label="删除">✕</button>
+    </div>
+  </div>
+  <div class="actions">
+    <button class="start" id="start" type="button">开 始 处 理</button>
+    <span class="note">处理即解析、校验并归档到对应航次</span>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+(function(){
+  var queue=document.getElementById('queue');
+  var qcount=document.getElementById('qcount');
+  var start=document.getElementById('start');
+  var toast=document.getElementById('toast');
+  var drop=document.getElementById('drop');
+  var timer=null;
+  var extra=0;
+  function say(msg){
+    toast.textContent=msg;
+    toast.classList.add('show');
+    if(timer)clearTimeout(timer);
+    timer=setTimeout(function(){toast.classList.remove('show')},2200);
+  }
+  function refreshCount(){
+    var n=queue.querySelectorAll('.frow').length;
+    qcount.textContent=n+' 份在排队';
+    start.disabled=n===0;
+  }
+  function bindRm(){
+    var rms=queue.querySelectorAll('.rm');
+    for(var i=0;i<rms.length;i++){
+      (function(btn){
+        btn.onclick=function(){
+          var row=btn.parentNode;
+          if(row.getAttribute('data-busy')==='1')return;
+          queue.removeChild(row);
+          refreshCount();
+        };
+      })(rms[i]);
+    }
+  }
+  function addFile(){
+    extra++;
+    var names=['冷藏箱巡检记录-0814.pdf','出口报关草单-HD2271.pdf','甲板系固照片-02.jpg'];
+    var nm=names[(extra-1)%names.length];
+    var row=document.createElement('div');
+    row.className='frow';
+    row.innerHTML='<span class="fi"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M5 2H12L15 5V18H5V2Z" stroke="#2f6b7a" stroke-width="1.6" stroke-linejoin="round"/><path d="M12 2V5H15" stroke="#2f6b7a" stroke-width="1.6"/></svg></span>'+
+      '<span><span class="nm">'+nm+'</span><br><span class="sz">'+(1.1+extra*0.7).toFixed(1)+' MB</span></span>'+
+      '<span class="stat wait">待处理</span><span class="prog"><i></i></span>'+
+      '<button class="rm" type="button" aria-label="删除">✕</button>';
+    queue.appendChild(row);
+    bindRm();
+    refreshCount();
+    say('已入列：'+nm);
+  }
+  drop.addEventListener('click',addFile);
+  drop.addEventListener('keydown',function(ev){if(ev.key==='Enter'||ev.key===' '){ev.preventDefault();addFile()}});
+  drop.addEventListener('dragover',function(ev){ev.preventDefault();drop.classList.add('over')});
+  drop.addEventListener('dragleave',function(){drop.classList.remove('over')});
+  drop.addEventListener('drop',function(ev){ev.preventDefault();drop.classList.remove('over');addFile()});
+  function process(row,done){
+    row.setAttribute('data-busy','1');
+    var bar=row.querySelector('.prog i');
+    var stat=row.querySelector('.stat');
+    stat.className='stat run';
+    stat.textContent='解析中';
+    var p=0;
+    var t=setInterval(function(){
+      p+=4+Math.floor(Math.random()*7);
+      if(p>=100){
+        p=100;
+        clearInterval(t);
+        stat.className='stat done';
+        stat.textContent='已归档';
+        row.classList.add('done');
+        done();
+      }
+      bar.style.width=p+'%';
+    },90);
+  }
+  start.addEventListener('click',function(){
+    var rows=queue.querySelectorAll('.frow');
+    var pending=[];
+    for(var i=0;i<rows.length;i++){
+      if(rows[i].querySelector('.stat').className.indexOf('done')<0)pending.push(rows[i]);
+    }
+    if(!pending.length){say('队列里都是已归档的单证。');return}
+    start.disabled=true;
+    var idx=0;
+    function next(){
+      if(idx>=pending.length){
+        start.disabled=false;
+        say('全部处理完，单证已归入对应航次。');
+        return;
+      }
+      process(pending[idx],function(){idx++;next()});
+    }
+    next();
+  });
+  bindRm();
+  refreshCount();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>门廊社 · 动态</title>
+  <style>
+    :root {
+      --porch: #f3d7b5;
+      --wood: #6b3a22;
+      --ink: #2a1810;
+      --sun: #e07a3d;
+      --paper: #fff6ea;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; background: #8a5a38; display: grid; place-items: center; font: 15px/1.45 "Trebuchet MS", "Microsoft YaHei", sans-serif; color: var(--ink); }
+    .phone { width: 390px; height: 844px; background: var(--porch); border-radius: 36px; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 0 0 10px #5a3220; }
+    header { padding: 16px 16px 8px; font-size: 20px; }
+    .feed { flex: 1; overflow: auto; padding: 0 16px; }
+    .post { background: var(--paper); padding: 12px; margin: 0 0 8px; }
+    .comp { padding: 8px 16px 16px; background: #e8c49a; }
+    textarea { width: 100%; min-height: 64px; border: 1px solid var(--wood); font: inherit; }
+    select, button { height: 36px; margin-top: 6px; font: inherit; }
+    button.go { width: 100%; background: var(--wood); color: #fff6ea; border: 0; cursor: pointer; }
+    .err { color: #8b2e18; min-height: 18px; }
+    @media (max-width: 430px) {
+      body { display: block; background: var(--porch); }
+      .phone { width: 100%; height: 100vh; border-radius: 0; box-shadow: none; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="phone">
+    <header>门廊社</header>
+    <div class="feed" id="feed"></div>
+    <div class="comp">
+      <textarea id="t">西边的风把灯油味送过来了。</textarea>
+      <label>可见范围
+        <select id="vis">
+          <option>门廊里</option>
+          <option>整条街</option>
+          <option>仅自己</option>
+        </select>
+      </label>
+      <label><input id="boom" type="checkbox"> 本次发布失败</label>
+      <p class="err" id="err"></p>
+      <button class="go" id="go" type="button">贴到门廊</button>
+    </div>
+  </div>
+  <script>
+    (function () {
+      var feed = [
+        { who: "尹霜", vis: "门廊里", t: "东厢的麦已经关了。" },
+        { who: "吴苔", vis: "整条街", t: "青石还是湿的，早市延到巳时。" }
+      ];
+      var draftKept = false;
+      function draw() {
+        document.getElementById("feed").innerHTML = feed.map(function (p) {
+          return "<article class=\"post\"><b>" + p.who + "</b> · " + p.vis + "<p>" + p.t + "</p></article>";
+        }).join("");
+      }
+      document.getElementById("go").addEventListener("click", function () {
+        var t = document.getElementById("t").value;
+        var vis = document.getElementById("vis").value;
+        var err = document.getElementById("err");
+        if (document.getElementById("boom").checked) {
+          draftKept = true;
+          err.textContent = "门廊钉子松了，没贴上去。草稿和可见范围都还在编辑框里。";
+          document.getElementById("boom").checked = false;
+          return;
+        }
+        if (!t.trim()) { err.textContent = "空纸贴不住。"; return; }
+        feed.unshift({ who: "我", vis: vis, t: t });
+        err.textContent = draftKept ? "这次贴上了。刚才那张草稿也一起见了人。" : "已贴在门廊最上面。";
+        draftKept = false;
+        document.getElementById("t").value = "";
+        draw();
+      });
+      draw();
+    })();
+  </script>
+</body>
+</html>

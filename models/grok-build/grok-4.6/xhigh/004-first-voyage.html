@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>北港航图 · 初航</title>
+  <style>
+    :root {
+      --navy: #16324a;
+      --fog: #e7eef2;
+      --paper: #f7f4ec;
+      --brass: #c47a3a;
+      --slate: #5d7c8c;
+      --deep: #0e1c28;
+      --line: #b7c6cf;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        repeating-linear-gradient(90deg, transparent, transparent 39px, #d5e0e6 40px),
+        repeating-linear-gradient(0deg, transparent, transparent 39px, #d5e0e6 40px),
+        var(--fog);
+      color: var(--deep);
+      font: 16px/1.5 "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+    .wrap {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 36px 28px 48px;
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 28px;
+    }
+    .legend {
+      background: var(--navy);
+      color: var(--paper);
+      padding: 28px 22px;
+      min-height: 520px;
+    }
+    .compass {
+      width: 72px; height: 72px; border: 2px solid var(--brass);
+      border-radius: 50%; display: grid; place-items: center;
+      color: var(--brass); letter-spacing: 0.2em; font-size: 12px;
+    }
+    h1 { font-size: 28px; margin: 18px 0 8px; }
+    .legend p { color: #c5d4dc; font-size: 14px; }
+    ol { padding-left: 18px; color: #d7e4ea; }
+    ol li { margin: 8px 0; }
+    ol li.is-on { color: var(--brass); }
+    .board {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      min-height: 520px;
+      padding: 32px 36px;
+      display: flex;
+      flex-direction: column;
+    }
+    .step h2 { margin: 0 0 8px; font-size: 26px; }
+    .step p { color: var(--slate); max-width: 36em; }
+    .chart {
+      margin: 22px 0;
+      height: 180px;
+      border: 1px dashed var(--slate);
+      background:
+        linear-gradient(#c47a3a22 1px, transparent 1px),
+        linear-gradient(90deg, #c47a3a22 1px, transparent 1px);
+      background-size: 24px 24px;
+      display: grid;
+      place-items: center;
+      color: var(--navy);
+      letter-spacing: 0.12em;
+    }
+    .nav {
+      margin-top: auto;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    button {
+      height: 42px;
+      padding: 0 16px;
+      font: 14px/1 inherit;
+      cursor: pointer;
+    }
+    .next { background: var(--navy); color: var(--paper); border: 0; }
+    .next:hover { background: #214864; }
+    .prev { background: transparent; border: 1px solid var(--navy); color: var(--navy); }
+    .prev:disabled, .next:disabled { opacity: 0.4; cursor: not-allowed; }
+    .skip, .go { border: 0; background: none; color: var(--brass); text-decoration: underline; }
+    .done { color: var(--navy); font-weight: 700; }
+    @media (max-width: 768px) {
+      .wrap { grid-template-columns: 1fr; padding: 20px 14px; }
+      .legend { min-height: 0; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <aside class="legend">
+      <div class="compass">N</div>
+      <h1>北港航图</h1>
+      <p>第一次出海只要记住三件事：看风、记港、回舱。</p>
+      <ol id="toc">
+        <li class="is-on">看风向</li>
+        <li>记下母港</li>
+        <li>学会回舱</li>
+      </ol>
+    </aside>
+    <main class="board">
+      <section class="step" id="panel"></section>
+      <div class="nav">
+        <button class="prev" id="prev" type="button">上一港</button>
+        <button class="next" id="next" type="button">下一港</button>
+        <button class="skip" id="skip" type="button">跳过初航</button>
+        <button class="go" id="start" type="button" hidden>开始用航图</button>
+      </div>
+    </main>
+  </div>
+  <script>
+    (function () {
+      var steps = [
+        { t: "先看风向", d: "北港的风写在左上角黄铜盘。箭头偏东就可以出港，偏北则在栈桥再等一潮。", c: "东风三级 · 可航" },
+        { t: "记下你的母港", d: "所有回程都以北港 3 号灯塔为准。把灯塔编号写进航图封面，以后迷航先找它。", c: "母港：北港 · 灯塔 3" },
+        { t: "回舱只要一键", d: "任何一张海图的左下角都有「回舱」。按下去会回到这张总图，不会把你丢在外海。", c: "回舱锚点已钉住" }
+      ];
+      var i = 0;
+      var panel = document.getElementById("panel");
+      var toc = document.getElementById("toc").children;
+      var prev = document.getElementById("prev");
+      var next = document.getElementById("next");
+      var skip = document.getElementById("skip");
+      var start = document.getElementById("start");
+      function draw() {
+        var s = steps[i];
+        panel.innerHTML = "<h2>" + s.t + "</h2><p>" + s.d + "</p><div class=\"chart\">" + s.c + "</div>";
+        for (var n = 0; n < toc.length; n++) toc[n].className = n === i ? "is-on" : "";
+        prev.disabled = i === 0;
+        next.hidden = i === steps.length - 1;
+        start.hidden = i !== steps.length - 1;
+      }
+      next.addEventListener("click", function () { if (i < steps.length - 1) { i += 1; draw(); } });
+      prev.addEventListener("click", function () { if (i > 0) { i -= 1; draw(); } });
+      skip.addEventListener("click", function () {
+        panel.innerHTML = "<h2>已跳过初航</h2><p>你可以直接进海图柜。左下角回舱仍然有效。</p><p class=\"done\">航图已解锁。</p>";
+        next.hidden = true;
+        start.hidden = false;
+      });
+      start.addEventListener("click", function () {
+        panel.innerHTML = "<h2>开航</h2><p>三件事记住了。现在可以把第一张实测图钉上。</p><p class=\"done\">进入北港工作台。</p>";
+      });
+      draw();
+    })();
+  </script>
+</body>
+</html>

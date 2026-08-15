@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>火漆信 · 重开闸口</title>
+  <style>
+    :root {
+      --rose: #b75a63;
+      --paper: #f6efe4;
+      --fold: #e7d8c6;
+      --ink: #3a2a28;
+      --wax: #8e2a32;
+      --mute: #8a7368;
+      --ok: #3f5d3a;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: linear-gradient(180deg, #d9c4b4, #c9b09c);
+      color: var(--ink);
+      font: 16px/1.6 Georgia, "Noto Serif SC", "Songti SC", serif;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+    }
+    .letter {
+      width: min(640px, 100%);
+      background:
+        linear-gradient(180deg, transparent 46px, var(--fold) 47px, transparent 48px),
+        var(--paper);
+      padding: 48px 52px 36px;
+      box-shadow: 0 22px 40px #3a2a2833, inset 0 0 0 1px #fff8;
+      position: relative;
+    }
+    .letter::before, .letter::after {
+      content: "";
+      position: absolute;
+      left: 0; right: 0; height: 18px;
+      background: repeating-linear-gradient(90deg, #c9b09c 0 12px, #d8c3b0 12px 24px);
+    }
+    .letter::before { top: 0; }
+    .letter::after { bottom: 0; }
+    .from { font-size: 13px; color: var(--mute); letter-spacing: 0.08em; }
+    h1 { font-size: 30px; margin: 8px 0 10px; font-weight: 500; }
+    p { margin: 0 0 16px; }
+    label { display: block; font-size: 13px; margin-bottom: 6px; }
+    input {
+      width: 100%;
+      height: 44px;
+      border: 0;
+      border-bottom: 1px solid var(--ink);
+      background: transparent;
+      font: inherit;
+      color: inherit;
+    }
+    input:focus { outline: none; border-bottom-width: 2px; border-bottom-color: var(--wax); }
+    .waxbtn {
+      margin-top: 22px;
+      width: 84px; height: 84px;
+      border-radius: 50%;
+      border: 0;
+      background: radial-gradient(circle at 35% 30%, #c44752, var(--wax));
+      color: #f6efe4;
+      font: 14px/1.2 inherit;
+      letter-spacing: 0.08em;
+      cursor: pointer;
+      box-shadow: 0 6px 0 #5c151c;
+    }
+    .waxbtn:hover { transform: translateY(1px); box-shadow: 0 5px 0 #5c151c; }
+    .waxbtn:disabled { background: #a89086; box-shadow: none; cursor: not-allowed; }
+    .wait { display: none; margin-top: 20px; padding: 14px 16px; background: #efe2d2; font-size: 14px; }
+    .wait.on { display: block; }
+    .back { margin-top: 18px; background: none; border: 0; color: var(--wax); text-decoration: underline; font: inherit; cursor: pointer; }
+    @media (max-width: 768px) {
+      .letter { padding: 40px 22px 28px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <main class="letter">
+    <div class="from">值夜编辑室 · 致进不了闸的人</div>
+    <h1>把新钥匙寄回去</h1>
+    <p>口令丢了不要砸闸。写下还能收到信的地址，我们会把一封火漆信送出去。</p>
+    <form id="send">
+      <label for="addr">能收到信的地址</label>
+      <input id="addr" type="text" value="chenheng@晚刊.信柜">
+      <button class="waxbtn" id="seal" type="submit">封<br>火漆</button>
+    </form>
+    <div class="wait" id="wait">信已送出。火漆还没干，大约一刻钟后才能拆。请守在原地址，不要连点。</div>
+    <button class="back" type="button" id="back">回到入闸</button>
+  </main>
+  <script>
+    (function () {
+      var wait = document.getElementById("wait");
+      var seal = document.getElementById("seal");
+      document.getElementById("send").addEventListener("submit", function (event) {
+        event.preventDefault();
+        var addr = document.getElementById("addr").value.trim();
+        if (!addr) {
+          wait.className = "wait on";
+          wait.style.color = "#8e2a32";
+          wait.textContent = "没有地址，火漆盖在空桌上也寄不走。";
+          return;
+        }
+        wait.style.color = "#3f5d3a";
+        wait.className = "wait on";
+        wait.textContent = "信已送出到「" + addr + "」。火漆还没干，大约一刻钟后才能拆。请守在原地址，不要连点。";
+        seal.disabled = true;
+        seal.textContent = "已封";
+      });
+      document.getElementById("back").addEventListener("click", function () {
+        wait.className = "wait on";
+        wait.style.color = "#3a2a28";
+        wait.textContent = "折返回闸口。若信还在路上，新口令稍后才能用。";
+      });
+    })();
+  </script>
+</body>
+</html>

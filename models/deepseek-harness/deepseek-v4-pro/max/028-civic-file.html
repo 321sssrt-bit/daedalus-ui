@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>市民服务 · 在线申报</title>
+<style>
+  :root{
+    --blue:#0b4f9e;
+    --blue-dark:#073a78;
+    --blue-soft:#eef4fb;
+    --blue-line:#c9d6e8;
+    --ink:#1f2a3a;
+    --muted:#5b6b82;
+    --white:#ffffff;
+    --red:#c62828;
+    --green:#1e8e3e;
+    --line:#dfe6ef;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:-apple-system,"Segoe UI","Microsoft YaHei","PingFang SC","Helvetica Neue",sans-serif;
+    background:#f2f5f9;color:var(--ink);font-size:15px;line-height:1.6;
+  }
+  .topbar{
+    background:var(--blue);color:#fff;padding:0 32px;height:64px;
+    display:flex;align-items:center;justify-content:space-between;
+    box-shadow:0 2px 8px rgba(7,58,120,.18);
+  }
+  .topbar .brand{display:flex;align-items:center;gap:12px;font-size:18px;font-weight:600;letter-spacing:.5px}
+  .topbar .brand .seal{
+    width:34px;height:34px;border:2px solid rgba(255,255,255,.9);border-radius:6px;
+    display:grid;place-items:center;font-size:17px;font-weight:700;background:rgba(255,255,255,.1);
+  }
+  .topbar .crumb{font-size:13px;opacity:.85}
+  .layout{display:grid;grid-template-columns:252px 1fr;gap:24px;max-width:1180px;margin:28px auto;padding:0 24px;align-items:start}
+  .sidenav{background:var(--white);border:1px solid var(--line);border-radius:10px;overflow:hidden;position:sticky;top:28px}
+  .sidenav h3{padding:16px 18px;font-size:14px;color:var(--muted);border-bottom:1px solid var(--line);font-weight:600}
+  .nav-item{
+    display:flex;align-items:center;gap:12px;padding:16px 18px;cursor:pointer;border-left:3px solid transparent;
+    border-bottom:1px solid var(--line);transition:background .15s ease,border-color .15s ease;
+  }
+  .nav-item:last-child{border-bottom:none}
+  .nav-item:hover{background:var(--blue-soft)}
+  .nav-item.active{border-left-color:var(--blue);background:var(--blue-soft)}
+  .nav-item .num{
+    width:26px;height:26px;border-radius:50%;border:1px solid var(--blue-line);color:var(--blue);
+    display:grid;place-items:center;font-size:13px;font-weight:700;background:var(--white);flex:0 0 auto;
+  }
+  .nav-item.active .num{background:var(--blue);color:#fff;border-color:var(--blue)}
+  .nav-item .t{font-size:14px;color:var(--ink);flex:1}
+  .nav-item .ck{color:var(--green);font-weight:700;opacity:0;transition:opacity .15s ease}
+  .nav-item .ck.show{opacity:1}
+  .main{min-width:0}
+  .progress{display:flex;align-items:center;gap:12px;margin-bottom:16px;font-size:13px;color:var(--muted)}
+  .progress .bar{flex:1;height:6px;background:var(--line);border-radius:999px;overflow:hidden}
+  .progress .bar i{display:block;height:100%;width:0;background:var(--green);border-radius:999px;transition:width .3s ease}
+  .progress b{color:var(--blue);font-weight:600}
+  .error-summary{display:none;background:#fdf0f0;border:1px solid #f0c6c6;color:var(--red);border-radius:8px;padding:12px 16px;margin-bottom:16px;font-size:13px}
+  .error-summary.show{display:block}
+  .section-card{background:var(--white);border:1px solid var(--line);border-radius:10px;padding:24px 26px;margin-bottom:20px}
+  .section-head{display:flex;align-items:baseline;gap:12px;margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid var(--line)}
+  .section-head .tag{font-size:15px;font-weight:700;color:var(--blue)}
+  .section-head h2{font-size:18px;font-weight:600}
+  .section-head .req{font-size:12px;color:var(--muted);margin-left:auto}
+  .field{margin-bottom:16px}
+  .field label{display:block;font-size:13px;color:var(--ink);margin-bottom:6px;font-weight:500}
+  .field label .req-star{color:var(--red);margin-left:2px}
+  .field input,.field select,.field textarea{
+    width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:7px;font-size:14px;
+    font-family:inherit;color:var(--ink);background:var(--white);transition:border-color .15s ease,box-shadow .15s ease;
+  }
+  .field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(11,79,158,.14)}
+  .field input.error,.field select.error,.field textarea.error{border-color:var(--red);background:#fdf5f5}
+  .field .err-msg{display:none;font-size:12px;color:var(--red);margin-top:4px}
+  .field .err-msg.show{display:block}
+  .field textarea{min-height:92px;resize:vertical}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .radio-line{display:flex;gap:24px;padding-top:4px}
+  .radio-line label{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:400;margin:0;cursor:pointer}
+  .foot-nav{display:flex;justify-content:space-between;margin-top:4px}
+  .btn{
+    border:none;border-radius:7px;padding:11px 22px;font-size:14px;font-weight:600;cursor:pointer;
+    font-family:inherit;transition:background .15s ease,opacity .15s ease;letter-spacing:.3px;
+  }
+  .btn-primary{background:var(--blue);color:#fff}
+  .btn-primary:hover{background:var(--blue-dark)}
+  .btn-ghost{background:var(--white);color:var(--blue);border:1px solid var(--blue)}
+  .btn-ghost:hover{background:var(--blue-soft)}
+  .btn-white{background:#fff;color:var(--blue)}
+  .btn-white:hover{background:#e6eef9}
+  .btn-outline-white{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.6)}
+  .btn-outline-white:hover{background:rgba(255,255,255,.14)}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+  .toast{
+    position:fixed;left:50%;top:84px;transform:translateX(-50%) translateY(-8px);background:var(--ink);color:#fff;
+    padding:11px 20px;border-radius:8px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .25s ease,transform .25s ease;
+    box-shadow:0 6px 18px rgba(0,0,0,.22);z-index:50;
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .success{display:none;background:var(--white);border:1px solid var(--line);border-radius:10px;padding:40px;text-align:center}
+  .success.show{display:block}
+  .success .big{width:64px;height:64px;margin:0 auto 18px;border-radius:50%;background:var(--green);color:#fff;display:grid;place-items:center;font-size:32px}
+  .success h2{font-size:20px;margin-bottom:8px}
+  .success .no{font-size:26px;font-weight:700;color:var(--blue);margin:10px 0}
+  .success p{color:var(--muted);font-size:14px}
+  @media (max-width:768px){
+    .layout{grid-template-columns:1fr;padding:0 16px}
+    .sidenav{position:static;display:flex;overflow-x:auto}
+    .sidenav h3{display:none}
+    .nav-item{flex:0 0 auto;border-left:none;border-bottom:none;border-right:1px solid var(--line)}
+    .row2{grid-template-columns:1fr}
+    .topbar{padding:0 16px}
+  }
+  @media (prefers-reduced-motion: reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="seal">办</span>市民服务 · 在线申报</div>
+    <div style="display:flex;align-items:center;gap:12px">
+      <span class="crumb">办事大厅 / 个人事项 / 长表单申报</span>
+      <button class="btn btn-outline-white" id="draftBtn" type="button">保存草稿</button>
+      <button class="btn btn-white" id="submitBtn" type="button">提交申请</button>
+    </div>
+  </header>
+
+  <div class="layout">
+    <nav class="sidenav" id="sidenav">
+      <h3>申报进度</h3>
+      <div class="nav-item active" data-target="sec-1"><span class="num">01</span><span class="t">基本信息</span><span class="ck" id="ck-1">✓</span></div>
+      <div class="nav-item" data-target="sec-2"><span class="num">02</span><span class="t">联系方式</span><span class="ck" id="ck-2">✓</span></div>
+      <div class="nav-item" data-target="sec-3"><span class="num">03</span><span class="t">申报事项</span><span class="ck" id="ck-3">✓</span></div>
+    </nav>
+
+    <main class="main" id="formWrap">
+      <div class="progress"><span>已完成</span><div class="bar"><i id="pbar"></i></div><span><b id="pcount">0</b>/3 节</span></div>
+      <div class="error-summary" id="errSummary"></div>
+
+      <section class="section-card" id="sec-1">
+        <div class="section-head"><span class="tag">一、</span><h2>基本信息</h2><span class="req">带 <span style="color:var(--red)">*</span> 为必填项</span></div>
+        <div class="field">
+          <label>姓名<span class="req-star">*</span></label>
+          <input type="text" id="f-name" data-required="1" placeholder="请输入与证件一致的姓名">
+          <div class="err-msg" id="em-name">请填写姓名</div>
+        </div>
+        <div class="row2">
+          <div class="field">
+            <label>证件类型</label>
+            <select id="f-idtype"><option>居民身份证</option><option>护照</option><option>港澳居民来往内地通行证</option></select>
+          </div>
+          <div class="field">
+            <label>证件号码<span class="req-star">*</span></label>
+            <input type="text" id="f-idno" data-required="1" placeholder="请输入 18 位证件号码">
+            <div class="err-msg" id="em-idno">请填写证件号码</div>
+          </div>
+        </div>
+        <div class="foot-nav"><span></span><button class="btn btn-ghost" type="button" data-next="sec-2">下一节 →</button></div>
+      </section>
+
+      <section class="section-card" id="sec-2">
+        <div class="section-head"><span class="tag">二、</span><h2>联系方式</h2><span class="req">带 <span style="color:var(--red)">*</span> 为必填项</span></div>
+        <div class="row2">
+          <div class="field">
+            <label>手机号码<span class="req-star">*</span></label>
+            <input type="text" id="f-phone" data-required="1" placeholder="用于接收办理进度短信">
+            <div class="err-msg" id="em-phone">请填写手机号码</div>
+          </div>
+          <div class="field">
+            <label>电子邮箱</label>
+            <input type="text" id="f-email" placeholder="选填，用于接收回执">
+          </div>
+        </div>
+        <div class="field">
+          <label>常住地址</label>
+          <input type="text" id="f-addr" placeholder="省 / 市 / 区 / 街道 / 门牌号">
+        </div>
+        <div class="foot-nav"><button class="btn btn-ghost" type="button" data-next="sec-1">← 上一节</button><button class="btn btn-ghost" type="button" data-next="sec-3">下一节 →</button></div>
+      </section>
+
+      <section class="section-card" id="sec-3">
+        <div class="section-head"><span class="tag">三、</span><h2>申报事项</h2><span class="req">带 <span style="color:var(--red)">*</span> 为必填项</span></div>
+        <div class="field">
+          <label>申报类别<span class="req-star">*</span></label>
+          <select id="f-cat" data-required="1">
+            <option value="">请选择申报类别</option>
+            <option>社保补贴申请</option><option>住房补贴申请</option><option>生育津贴申请</option>
+          </select>
+          <div class="err-msg" id="em-cat">请选择申报类别</div>
+        </div>
+        <div class="field">
+          <label>事由说明</label>
+          <textarea id="f-desc" placeholder="简要说明申报事由，200 字以内"></textarea>
+        </div>
+        <div class="field">
+          <label>是否邮寄纸质回执</label>
+          <div class="radio-line">
+            <label><input type="radio" name="mail" value="需要" checked>需要</label>
+            <label><input type="radio" name="mail" value="不需要">不需要</label>
+          </div>
+        </div>
+        <div class="foot-nav"><button class="btn btn-ghost" type="button" data-next="sec-2">← 上一节</button><button class="btn btn-primary" type="button" id="submitBtn2">提交申请</button></div>
+      </section>
+
+      <div class="success" id="successBox">
+        <div class="big">✓</div>
+        <h2>申报已受理</h2>
+        <p>您的申请材料已提交，请留意短信通知。</p>
+        <div class="no" id="receiptNo">SQA-2025-028417</div>
+        <p id="receiptTime"></p>
+        <p style="margin-top:22px"><button class="btn btn-ghost" type="button" id="backBtn">返回修改</button></p>
+      </div>
+    </main>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+<script>
+  var REQUIRED = {1:['f-name','f-idno'],2:['f-phone'],3:['f-cat']};
+  function $(id){return document.getElementById(id);}
+  function showToast(msg){
+    var t=$('toast');t.textContent=msg;t.classList.add('show');
+    clearTimeout(t._timer);t._timer=setTimeout(function(){t.classList.remove('show');},2200);
+  }
+  function reqValue(id){var el=$(id);return (el.value||'').trim();}
+  function sectionDone(n){
+    return REQUIRED[n].every(function(id){return reqValue(id)!=='';});
+  }
+  function refreshProgress(){
+    var done=0;for(var n=1;n<=3;n++){var ok=sectionDone(n);if(ok)done++;var ck=$('ck-'+n);ck.classList.toggle('show',ok);}
+    $('pcount').textContent=done;
+    $('pbar').style.width=(done/3*100)+'%';
+  }
+  function clearError(id){$(id).classList.remove('error');var m=$('em-'+id.replace('f-',''));if(m)m.classList.remove('show');}
+  function jump(id){
+    document.getElementById(id).scrollIntoView({behavior:'smooth',block:'start'});
+    document.querySelectorAll('.nav-item').forEach(function(el){el.classList.toggle('active',el.getAttribute('data-target')===id);});
+  }
+  document.querySelectorAll('.nav-item').forEach(function(el){
+    el.addEventListener('click',function(){jump(el.getAttribute('data-target'));});
+  });
+  document.querySelectorAll('[data-next]').forEach(function(el){
+    el.addEventListener('click',function(){jump(el.getAttribute('data-next'));});
+  });
+  document.querySelectorAll('input[data-required],select[data-required]').forEach(function(el){
+    el.addEventListener('input',function(){clearError(el.id);refreshProgress();});
+  });
+  document.querySelectorAll('input,select,textarea').forEach(function(el){
+    el.addEventListener('input',function(){if($('errSummary').classList.contains('show'))$('errSummary').classList.remove('show');});
+  });
+
+  function saveDraft(){
+    var now=new Date();
+    var hh=('0'+now.getHours()).slice(-2),mm=('0'+now.getMinutes()).slice(-2);
+    showToast('草稿已保存 '+hh+':'+mm);
+    refreshProgress();
+  }
+  function doSubmit(){
+    var missing=[];
+    for(var n=1;n<=3;n++){
+      REQUIRED[n].forEach(function(id){
+        if(reqValue(id)===''){$(id).classList.add('error');var m=$('em-'+id.replace('f-',''));if(m)m.classList.add('show');missing.push(id);}
+      });
+    }
+    if(missing.length>0){
+      $('errSummary').textContent='还有 '+(missing.length)+' 项必填内容未填写，请补充后重试。';
+      $('errSummary').classList.add('show');
+      return;
+    }
+    $('errSummary').classList.remove('show');
+    $('formWrap').querySelectorAll('.section-card,.progress,.error-summary').forEach(function(el){el.style.display='none';});
+    $('successBox').classList.add('show');
+    var now=new Date();
+    var hh=('0'+now.getHours()).slice(-2),mm=('0'+now.getMinutes()).slice(-2);
+    $('receiptTime').textContent='提交时间：'+now.getFullYear()+' 年 '+(now.getMonth()+1)+' 月 '+now.getDate()+' 日 '+hh+':'+mm;
+  }
+  $('draftBtn').addEventListener('click',saveDraft);
+  $('submitBtn').addEventListener('click',doSubmit);
+  $('submitBtn2').addEventListener('click',doSubmit);
+  $('backBtn').addEventListener('click',function(){
+    $('successBox').classList.remove('show');
+    $('formWrap').querySelectorAll('.section-card,.progress').forEach(function(el){el.style.display='';});
+    refreshProgress();
+  });
+  refreshProgress();
+</script>
+</body>
+</html>

@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>灯笼 · 夜市导览</title>
+<style>
+:root{
+  --night:#101a2e;
+  --night-2:#1a2740;
+  --lantern:#e0463c;
+  --lantern-deep:#b73229;
+  --gold:#e8b45a;
+  --paper:#f9f3e4;
+  --ink:#33302a;
+  --muted:#8b8474;
+  --line:#e5dbc2;
+  --muted-on-night:#93a0b8;
+  --radius-sheet:24px;
+  --radius-ctl:999px;
+  --sp:8px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font:15px/1.65 "PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+  background:var(--night);color:#f2ede2;min-height:100vh;position:relative;overflow:hidden;
+  display:flex;flex-direction:column;
+}
+.scene{flex:1;position:relative}
+.scene svg{position:absolute;inset:0;width:100%;height:100%}
+.map-note{
+  position:absolute;left:24px;top:20px;font-size:12.5px;color:var(--muted-on-night);letter-spacing:.14em;
+}
+.stall{opacity:0;transition:opacity .5s ease}
+body.lit .stall{opacity:1}
+.lit-note{
+  position:absolute;left:50%;top:44%;transform:translate(-50%,-50%);text-align:center;
+  color:var(--gold);font-size:14px;letter-spacing:.2em;opacity:0;transition:opacity .5s ease .2s;
+}
+body.lit .lit-note{opacity:1}
+.sheet{
+  position:relative;z-index:2;width:min(560px,100%);margin:0 auto;background:var(--paper);color:var(--ink);
+  border-radius:var(--radius-sheet) var(--radius-sheet) 0 0;padding:14px 30px 30px;
+  box-shadow:0 -18px 50px rgba(0,0,0,.4);
+}
+.handle{width:44px;height:5px;border-radius:3px;background:var(--line);margin:0 auto 20px}
+.ask{display:flex;gap:18px;align-items:flex-start}
+.ask .icon{
+  flex:0 0 54px;height:54px;border-radius:18px;background:#fbe6d9;display:grid;place-items:center;
+}
+.ask h1{font-size:19px;line-height:1.4}
+.ask .why{color:var(--muted);font-size:13.5px;margin-top:8px;line-height:1.8}
+.choices{display:flex;flex-direction:column;gap:12px;margin-top:22px}
+.allow{
+  border:0;border-radius:var(--radius-ctl);cursor:pointer;height:50px;
+  background:var(--lantern);color:#fff;font:inherit;font-weight:700;font-size:15.5px;letter-spacing:.1em;
+  box-shadow:0 8px 22px rgba(224,70,60,.35);transition:background .15s ease;
+}
+.allow:hover{background:var(--lantern-deep)}
+.allow:focus-visible{outline:3px solid rgba(224,70,60,.4);outline-offset:2px}
+.once{
+  border:1.5px solid var(--line);border-radius:var(--radius-ctl);cursor:pointer;height:46px;
+  background:transparent;color:var(--ink);font:inherit;font-size:14px;letter-spacing:.06em;
+  transition:border-color .15s ease;
+}
+.once:hover{border-color:var(--lantern);color:var(--lantern-deep)}
+.deny{
+  background:none;border:0;cursor:pointer;color:var(--muted);font:inherit;font-size:13px;
+  padding:4px;letter-spacing:.06em;align-self:center;
+}
+.deny:hover{color:var(--ink)}
+.privacy{margin-top:18px;text-align:center;color:var(--muted);font-size:12px;letter-spacing:.04em}
+.result{display:none;text-align:center;padding:6px 0 2px}
+.result.show{display:block}
+.result h2{font-size:18px;margin-bottom:8px}
+.result p{color:var(--muted);font-size:13.5px;line-height:1.8}
+.result .again{margin-top:14px;background:none;border:0;cursor:pointer;color:var(--lantern-deep);font:inherit;font-size:13px;border-bottom:1px dashed var(--lantern-deep);padding-bottom:1px}
+@media(max-width:600px){.sheet{padding:12px 20px 24px}}
+@media(prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+}
+</style>
+</head>
+<body>
+<div class="scene" aria-hidden="true">
+  <svg viewBox="0 0 1280 560" preserveAspectRatio="xMidYMid slice">
+    <path d="M0 120C320 80 960 80 1280 120" stroke="#26324d" stroke-width="1.4" fill="none"/>
+    <path d="M0 200C320 160 960 160 1280 200" stroke="#26324d" stroke-width="1.4" fill="none"/>
+    <g stroke="#e8b45a" stroke-width="1.2" fill="#e0463c">
+      <circle cx="180" cy="112" r="9"/><circle cx="420" cy="98" r="9"/><circle cx="660" cy="94" r="9"/>
+      <circle cx="900" cy="98" r="9"/><circle cx="1140" cy="112" r="9"/>
+      <circle cx="300" cy="192" r="8"/><circle cx="620" cy="182" r="8"/><circle cx="980" cy="188" r="8"/>
+    </g>
+    <g fill="#1a2740">
+      <rect x="120" y="320" width="180" height="120" rx="8"/>
+      <rect x="360" y="300" width="220" height="140" rx="8"/>
+      <rect x="640" y="330" width="170" height="110" rx="8"/>
+      <rect x="870" y="306" width="230" height="134" rx="8"/>
+    </g>
+    <g class="stall" fill="#e8b45a">
+      <rect x="150" y="336" width="26" height="18" rx="3"/><rect x="196" y="336" width="26" height="18" rx="3"/>
+      <rect x="396" y="318" width="26" height="18" rx="3"/><rect x="442" y="318" width="26" height="18" rx="3"/>
+      <rect x="488" y="318" width="26" height="18" rx="3"/><rect x="672" y="346" width="26" height="18" rx="3"/>
+      <rect x="906" y="322" width="26" height="18" rx="3"/><rect x="952" y="322" width="26" height="18" rx="3"/>
+      <rect x="998" y="322" width="26" height="18" rx="3"/>
+    </g>
+    <g class="stall" stroke="#ff7a5c" stroke-width="2" fill="none">
+      <path d="M163 320V306M409 302V288M685 330V316M919 306V292"/>
+      <circle cx="163" cy="300" r="5" fill="#ff7a5c" stroke="none"/>
+      <circle cx="409" cy="282" r="5" fill="#ff7a5c" stroke="none"/>
+      <circle cx="685" cy="310" r="5" fill="#ff7a5c" stroke="none"/>
+      <circle cx="919" cy="286" r="5" fill="#ff7a5c" stroke="none"/>
+    </g>
+  </svg>
+  <p class="map-note">LANTERN WALK · 附近 3 公里</p>
+  <p class="lit-note" id="lit-note">三条夜市已点亮</p>
+</div>
+<div class="sheet" id="sheet">
+  <div class="handle" aria-hidden="true"></div>
+  <div id="ask-view">
+    <div class="ask">
+      <div class="icon" aria-hidden="true">
+        <svg width="30" height="30" viewBox="0 0 30 30" fill="none">
+          <ellipse cx="15" cy="15" rx="9" ry="10.5" stroke="#e0463c" stroke-width="2"/>
+          <path d="M15 4.5V2M15 28V25.5M8 8C10 10 20 10 22 8M8 22C10 20 20 20 22 22" stroke="#e0463c" stroke-width="1.6" stroke-linecap="round"/>
+          <path d="M15 6C12.5 9 12.5 21 15 24C17.5 21 17.5 9 15 6Z" fill="#e0463c" opacity=".28"/>
+        </svg>
+      </div>
+      <div>
+        <h1>想知道附近哪条夜市还热闹？</h1>
+        <p class="why">「灯笼」需要你的<b>位置权限</b>，用来标出步行可达的夜市、摊位排队情况和末班摆渡车时间。位置只在导览时使用，不会上传保存。</p>
+      </div>
+    </div>
+    <div class="choices">
+      <button class="allow" id="allow" type="button">允许使用我的位置</button>
+      <button class="once" id="once" type="button">仅这一次允许</button>
+      <button class="deny" id="deny" type="button">暂不需要，我自己逛</button>
+    </div>
+    <p class="privacy">位置数据仅留在本机 · 随时可在系统设置里收回</p>
+  </div>
+  <div class="result" id="result-view">
+    <h2 id="result-title"></h2>
+    <p id="result-text"></p>
+    <button class="again" id="again" type="button">重新选择</button>
+  </div>
+</div>
+<script>
+(function(){
+  var ask=document.getElementById('ask-view');
+  var result=document.getElementById('result-view');
+  var title=document.getElementById('result-title');
+  var text=document.getElementById('result-text');
+  function show(t,x,lit){
+    ask.style.display='none';
+    result.classList.add('show');
+    title.textContent=t;
+    text.innerHTML=x;
+    document.body.classList.toggle('lit',lit);
+  }
+  document.getElementById('allow').addEventListener('click',function(){
+    show('夜市亮起来了','已获取常驻位置权限。附近三条夜市、十二个还开着的摊位，都标在图上了。',true);
+  });
+  document.getElementById('once').addEventListener('click',function(){
+    show('这次先替你看着','只允许了这一次。下次打开「灯笼」，还会再问你一遍。',true);
+  });
+  document.getElementById('deny').addEventListener('click',function(){
+    show('不打搅，随你逛','没关系。没有位置也能用：顶部搜索城市与夜市名，一样能查摊位和营业时间。',false);
+  });
+  document.getElementById('again').addEventListener('click',function(){
+    result.classList.remove('show');
+    ask.style.display='block';
+    document.body.classList.remove('lit');
+  });
+})();
+</script>
+</body>
+</html>

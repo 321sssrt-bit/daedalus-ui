@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>卡片筛 · 检索</title>
+  <style>
+    :root {
+      --oak: #5a3c24;
+      --card: #f3e6c8;
+      --ink: #23180f;
+      --rule: #c4a47a;
+      --accent: #8b1e1e;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #3a2818; color: var(--ink); font: 15px/1.45 Georgia, "Songti SC", serif; }
+    .lib { max-width: 1000px; margin: 0 auto; display: grid; grid-template-columns: 260px 1fr; min-height: 100vh; }
+    aside { background: var(--oak); color: var(--card); padding: 20px 16px; }
+    label { display: block; margin: 10px 0 4px; font-size: 13px; }
+    select, input { width: 100%; height: 34px; border: 1px solid #d8c09a; background: #4a3220; color: var(--card); font: inherit; }
+    .clear { margin-top: 16px; width: 100%; height: 36px; background: transparent; color: var(--card); border: 1px solid var(--card); cursor: pointer; }
+    main { background: #f0e2c4; padding: 20px; }
+    h1 { margin: 0 0 8px; }
+    .count { color: var(--accent); }
+    .hit { background: var(--card); padding: 12px; margin: 0 0 8px; border-left: 4px solid var(--oak); }
+    @media (max-width: 768px) { .lib { grid-template-columns: 1fr; } }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="lib">
+    <aside>
+      <div>目录柜</div>
+      <label>地点</label>
+      <select id="place"><option value="">不限</option><option>北港</option><option>绛席</option><option>青圃</option></select>
+      <label>物类</label>
+      <select id="kind"><option value="">不限</option><option>货</option><option>文</option><option>人</option></select>
+      <label>时令</label>
+      <select id="time"><option value="">不限</option><option>上旬</option><option>昨夜</option></select>
+      <label>含字</label>
+      <input id="q" placeholder="灯 / 苔 / 帖">
+      <button class="clear" id="clear" type="button">清除卡片</button>
+    </aside>
+    <main>
+      <h1>卡片筛</h1>
+      <p>命中 <span class="count" id="n">0</span> 张</p>
+      <div id="hits"></div>
+    </main>
+  </div>
+  <script>
+    (function () {
+      var cards = [
+        { t: "3 号灯报文", p: "北港", k: "文", m: "昨夜", x: "灯 潮" },
+        { t: "青苔石皂", p: "青圃", k: "货", m: "上旬", x: "苔 皂" },
+        { t: "绛-184", p: "绛席", k: "人", m: "昨夜", x: "帖 沈纸年" },
+        { t: "种子袋", p: "北港", k: "货", m: "上旬", x: "苔 潮 袋" },
+        { t: "线装目 01", p: "北港", k: "文", m: "上旬", x: "灯 文" },
+        { t: "窗席", p: "绛席", k: "人", m: "昨夜", x: "帖 席" }
+      ];
+      function draw() {
+        var p = document.getElementById("place").value;
+        var k = document.getElementById("kind").value;
+        var m = document.getElementById("time").value;
+        var q = document.getElementById("q").value.trim();
+        var hits = cards.filter(function (c) {
+          return (!p || c.p === p) && (!k || c.k === k) && (!m || c.m === m) && (!q || (c.t + c.x).indexOf(q) >= 0);
+        });
+        document.getElementById("n").textContent = String(hits.length);
+        document.getElementById("hits").innerHTML = hits.map(function (c) {
+          return "<article class=\"hit\"><b>" + c.t + "</b><div>" + c.p + " · " + c.k + " · " + c.m + "</div></article>";
+        }).join("") || "<p>柜里没有这张卡。可改条件或清除。</p>";
+      }
+      ["place", "kind", "time", "q"].forEach(function (id) {
+        document.getElementById(id).addEventListener("input", draw);
+        document.getElementById(id).addEventListener("change", draw);
+      });
+      document.getElementById("clear").addEventListener("click", function () {
+        document.getElementById("place").value = "";
+        document.getElementById("kind").value = "";
+        document.getElementById("time").value = "";
+        document.getElementById("q").value = "";
+        draw();
+      });
+      draw();
+    })();
+  </script>
+</body>
+</html>

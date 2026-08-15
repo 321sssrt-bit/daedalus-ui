@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>巢 · 家庭记账</title>
+<style>
+:root{
+  --shell:#f7f1e6;
+  --card:#fffdf6;
+  --warm:#8a6844;
+  --warm-deep:#6e5236;
+  --ink:#3b2f24;
+  --muted:#a08d75;
+  --line:#e7dcc8;
+  --ok:#5b8c5a;
+  --frame:#10151f;
+  --sp:8px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font:15px/1.65 "PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+  background:#262b34;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;
+}
+.stage{text-align:center}
+.device-label{color:#8b93a1;font-size:12px;letter-spacing:.2em;margin-bottom:14px}
+.phone{
+  width:390px;height:min(844px,calc(100vh - 90px));border-radius:38px;border:11px solid var(--frame);
+  background:var(--shell);overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.5);
+}
+.screen{height:100%;display:flex;flex-direction:column}
+.appbar{padding:18px 22px 10px;display:flex;justify-content:space-between;align-items:center}
+.appbar h1{font-size:18px;letter-spacing:.08em}
+.appbar .mo{font:11.5px/1 ui-monospace,Consolas,monospace;color:var(--muted)}
+.main{flex:1;overflow-y:auto;padding:8px 22px 16px}
+.empty{display:flex;flex-direction:column;align-items:center;text-align:center;padding-top:56px}
+.empty.hide{display:none}
+.nest-ic{width:130px;height:110px;margin-bottom:20px}
+.empty h2{font-size:18px;margin-bottom:8px;letter-spacing:.06em}
+.empty p{color:var(--muted);font-size:13px;max-width:250px;line-height:1.9;margin-bottom:26px}
+.create{
+  border:0;border-radius:999px;background:var(--warm);color:#f7f1e6;padding:14px 42px;
+  font:inherit;font-weight:700;font-size:15px;letter-spacing:.14em;cursor:pointer;
+  box-shadow:0 10px 24px rgba(138,104,68,.35);transition:background .15s ease;
+}
+.create:hover{background:var(--warm-deep)}
+.create:focus-visible{outline:3px solid rgba(138,104,68,.4);outline-offset:2px}
+.sub-act{margin-top:14px;background:none;border:0;color:var(--muted);font:inherit;font-size:12.5px;cursor:pointer;border-bottom:1px dashed var(--muted);padding-bottom:1px}
+.sub-act:hover{color:var(--warm-deep)}
+.entries{display:none}
+.entries.show{display:block}
+.entry{
+  display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);
+  border-radius:14px;padding:13px 14px;margin-bottom:9px;
+}
+.entry .ic{flex:0 0 36px;height:36px;border-radius:11px;background:#f3e9d2;display:grid;place-items:center;font-size:14px}
+.entry .nm{font-size:13.5px;font-weight:600}
+.entry .tm{font-size:11px;color:var(--muted)}
+.entry .amt{margin-left:auto;font:700 14.5px/1 ui-monospace,Consolas,monospace;color:var(--ink)}
+.navbar{
+  display:flex;background:var(--card);border-top:1px solid var(--line);padding:8px 0 14px;
+}
+.navbar button{
+  flex:1;border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:3px;
+  font:inherit;font-size:10.5px;color:var(--muted);cursor:pointer;padding:4px 0;
+}
+.navbar button .ic{font-size:17px}
+.navbar button.on{color:var(--warm-deep);font-weight:700}
+.sheet-mask{position:absolute;inset:0;background:rgba(30,24,16,.4);display:none;z-index:8}
+.sheet-mask.show{display:block}
+.sheet{
+  position:absolute;left:0;right:0;bottom:0;background:var(--card);border-radius:22px 22px 0 0;
+  padding:20px 22px 26px;z-index:9;transform:translateY(105%);transition:transform .3s ease;
+}
+.sheet.show{transform:translateY(0)}
+.sheet h3{font-size:15.5px;margin-bottom:14px}
+.cats{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.cats button{
+  border:1px solid var(--line);background:none;border-radius:999px;padding:7px 15px;font:inherit;
+  font-size:12.5px;color:var(--ink);cursor:pointer;transition:all .13s ease;
+}
+.cats button.on{background:var(--warm);border-color:var(--warm);color:#fff;font-weight:600}
+.amt-in{display:flex;align-items:baseline;gap:6px;border-bottom:2px solid var(--warm);padding-bottom:8px;margin-bottom:16px}
+.amt-in span{font-size:20px;font-weight:700}
+.amt-in input{flex:1;border:0;font:700 28px/1 ui-monospace,Consolas,monospace;color:var(--ink);min-width:0;background:none}
+.amt-in input:focus{outline:none}
+.sheet .go{
+  width:100%;height:46px;border:0;border-radius:12px;background:var(--warm);color:#fff;
+  font:inherit;font-weight:700;font-size:14px;letter-spacing:.14em;cursor:pointer;
+}
+.sheet .go:disabled{opacity:.4;cursor:not-allowed}
+@media(max-width:520px){
+  body{padding:0}
+  .device-label{display:none}
+  .phone{width:100%;height:100vh;border:0;border-radius:0}
+}
+@media(prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+}
+</style>
+</head>
+<body>
+<div class="stage">
+  <p class="device-label">巢 NEST</p>
+  <div class="phone">
+    <div class="screen">
+      <div class="appbar"><h1>咱家的巢</h1><span class="mo">8 月</span></div>
+      <div class="main">
+        <div class="empty" id="empty">
+          <svg class="nest-ic" viewBox="0 0 130 110" fill="none" aria-hidden="true">
+            <path d="M15 62C15 40 40 26 65 26C90 26 115 40 115 62C115 82 92 96 65 96C38 96 15 82 15 62Z" fill="#e3cfa8"/>
+            <path d="M15 62C15 40 40 26 65 26M25 78C35 88 50 92 65 92M105 78C95 88 80 92 65 92M22 52C32 42 48 38 65 38M108 52C98 42 82 38 65 38" stroke="#b08d5a" stroke-width="2" stroke-linecap="round"/>
+            <ellipse cx="65" cy="60" rx="13" ry="16" fill="#fffdf6" stroke="#cbb37f" stroke-width="1.8"/>
+          </svg>
+          <h2>账本还是空的</h2>
+          <p>柴米贵知道，日子才不慌。从今天的一笔早饭钱开始，把巢一点一点垫起来。</p>
+          <button class="create" id="create" type="button">记第一笔</button>
+          <button class="sub-act" id="import" type="button">上个月是纸质账？拍照导入</button>
+        </div>
+        <div class="entries" id="entries"></div>
+      </div>
+      <nav class="navbar" aria-label="底栏">
+        <button class="on" type="button"><span class="ic">▤</span>账本</button>
+        <button type="button"><span class="ic">◔</span>盘算</button>
+        <button type="button"><span class="ic">✿</span>家务</button>
+        <button type="button"><span class="ic">◉</span>我的</button>
+      </nav>
+    </div>
+    <div class="sheet-mask" id="mask"></div>
+    <div class="sheet" id="sheet">
+      <h3>记一笔</h3>
+      <div class="cats" id="cats">
+        <button class="on" type="button" data-c="早饭">🍚 早饭</button>
+        <button type="button" data-c="买菜">🥬 买菜</button>
+        <button type="button" data-c="出行">🚌 出行</button>
+        <button type="button" data-c="孩子">🎒 孩子</button>
+        <button type="button" data-c="日用">🧻 日用</button>
+      </div>
+      <div class="amt-in"><span>¥</span><input id="amt" type="text" inputmode="decimal" placeholder="0.00"></div>
+      <button class="go" id="go" type="button" disabled>记到账上</button>
+    </div>
+  </div>
+</div>
+<script>
+(function(){
+  var empty=document.getElementById('empty');
+  var entries=document.getElementById('entries');
+  var sheet=document.getElementById('sheet');
+  var mask=document.getElementById('mask');
+  var amt=document.getElementById('amt');
+  var go=document.getElementById('go');
+  var cat='早饭';
+  function openSheet(){sheet.classList.add('show');mask.classList.add('show')}
+  function closeSheet(){sheet.classList.remove('show');mask.classList.remove('show')}
+  document.getElementById('create').addEventListener('click',openSheet);
+  document.getElementById('import').addEventListener('click',openSheet);
+  mask.addEventListener('click',closeSheet);
+  var catBtns=document.querySelectorAll('#cats button');
+  for(var i=0;i<catBtns.length;i++){
+    (function(b){
+      b.addEventListener('click',function(){
+        for(var j=0;j<catBtns.length;j++)catBtns[j].classList.remove('on');
+        b.classList.add('on');
+        cat=b.getAttribute('data-c');
+      });
+    })(catBtns[i]);
+  }
+  amt.addEventListener('input',function(){
+    go.disabled=!(Number(amt.value)>0);
+  });
+  go.addEventListener('click',function(){
+    var v=Number(amt.value);
+    var row=document.createElement('div');
+    row.className='entry';
+    row.innerHTML='<span class="ic">✎</span><span><span class="nm">'+cat+'</span><br><span class="tm">今天 刚刚</span></span><span class="amt">−'+v.toFixed(2)+'</span>';
+    entries.insertBefore(row,entries.firstChild);
+    empty.classList.add('hide');
+    entries.classList.add('show');
+    amt.value='';
+    go.disabled=true;
+    closeSheet();
+  });
+  var navs=document.querySelectorAll('.navbar button');
+  for(var k=0;k<navs.length;k++){
+    (function(b){
+      b.addEventListener('click',function(){
+        for(var j=0;j<navs.length;j++)navs[j].classList.remove('on');
+        b.classList.add('on');
+      });
+    })(navs[k]);
+  }
+})();
+</script>
+</body>
+</html>

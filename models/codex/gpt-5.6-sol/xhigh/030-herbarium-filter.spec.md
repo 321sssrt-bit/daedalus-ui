@@ -1,44 +1,84 @@
 # 030 植物标本筛
 
-## 一句话气质
+## 规范元数据
 
-像在一册亚麻纸植物志中收窄真实的野外标本。
+- 规范版本：2
+- 主视口：1280 × 800 px
+- 对应页面：`030-herbarium-filter.html`
+- 复现范围：复现该单文件页面的布局制度、设计令牌、核心组件状态与题定职责。
 
-## 适合用在哪种产品
+## 画布与区域布局
 
-自然观察数据库、园艺选品、博物馆藏品检索和物种教育目录。
+| 区域 | 边界与尺寸 | 布局与对齐 | 层级与滚动 |
+| --- | --- | --- | --- |
+| 页面画布 `body` | margin: 0; min-height: 100vh | 未单独声明 | background: var(--linen); color: var(--ink) |
+| 主要结构 `.layout` | max-width: 1300px; margin: auto; min-height: calc(100vh - 91px) | display: grid; grid-template-columns: 270px 1fr | 未单独声明 |
+| 关键内容区 `.plate` | height: 160px | position: relative; display: grid; place-items: center | background: #e2e5d3; overflow: hidden |
 
-## 色板
+## 设计令牌
 
-| 角色 | 色号 | 用法 |
+### 色彩
+
+| 令牌 | 值 | 用途 |
 | --- | --- | --- |
-| 背景 | #ECE8D8 | 亚麻纸环境 |
-| 表面 | #FAF8ED | 标本卡与筛选输入 |
-| 正文 | #263329 | 标题、结构线和植物图形 |
-| 次要文字 | #738074 | 拉丁名以外的辅助信息 |
-| 强调 | #315B3C | 物种拉丁名、计数和叶片 |
-| 成功 / 危险 | #BE8A3C | 花蕊与焦点；清除为 #A94F45 |
+| `--linen` | `#ece8d8` | 描边与分隔 |
+| `--paper` | `#faf8ed` | 容器与表面 |
+| `--ink` | `#263329` | 主要文字与高对比边界 |
+| `--muted` | `#738074` | 辅助文字与弱化信息 |
+| `--forest` | `#315b3c` | 品牌或局部强调 |
+| `--ochre` | `#be8a3c` | 品牌或局部强调 |
+| `--red` | `#a94f45` | 错误与危险反馈 |
+| `--line` | `#c8c6b7` | 描边与分隔 |
 
-## 字体和字号
+### 字体
 
-内容使用 Georgia、Songti SC、SimSun，筛选控件用 Arial、Microsoft YaHei。品牌 28px/400，结果标题 32px/400，物种名 19px/400，正文 12px，标签 10px。
+| 角色 | 字体栈 | 字号 / 行高 | 字重 / 字距 |
+| --- | --- | --- | --- |
+| 页面正文 `body` | Georgia,"Songti SC","SimSun",serif | 16px / normal（浏览器默认） | 由 font 简写或继承确定 |
+| 显示字 `.filters h1` | 继承页面字体 | font-size: 21px | 由 font 简写或继承确定 |
+| 分区标题 `.filter label.title` | 700 11px Arial,"Microsoft YaHei",sans-serif | font 简写中声明 | letter-spacing: 1px |
+| 辅助文字 `.brand` | 继承页面字体 | font-size: 28px | letter-spacing: 4px |
 
-## 间距、圆角、阴影
+### 间距、圆角与层级
 
-筛选栏宽 270px、内距 28–34px，结果区内距 34px，标本网格间隔 18px；全局零圆角、零阴影，用一像素标本框和纸色层次区隔。
+| 令牌 | 值 | 用途 |
+| --- | --- | --- |
+| 主要内距 | `28px clamp(24px,5vw,70px)` | `.header` 的 `padding` |
+| 布局间距 | `18px` | `.grid` 的 `gap` |
+| 圆角 | `0` | 全局保持直角 |
+| 边框或阴影 | `1px solid var(--ink)` | `.header` 的 `border-bottom` |
 
-## 按钮 / 输入框 / 卡片
+## 组件规格与状态
 
-四类筛选包括名称、生境、特征复选和株高范围，结果计数即时变化；卡片像科学标本纸，内置简化 SVG 植株、编号、拉丁名和属性签。清除是低权重红色文字操作。
+| 组件 | 结构与尺寸 | 默认样式 | 状态变化 |
+| --- | --- | --- | --- |
+| 主要操作 `.clear` | padding: 8px 0 | border: 0; background: transparent; color: var(--red); font: 700 12px Arial,"Microsoft YaHei",sans-serif | input:focus-visible,select:focus-visible,.clear:focus-visible → outline: 3px solid var(--ochre) |
+| 输入、选择或次操作 `.filter select,.filter input[type=search]` | width: 100%; padding: 10px | border: 1px solid var(--muted); background: var(--paper); color: var(--ink) | 未声明独立状态；保持默认样式 |
+| 内容容器 `body` | margin: 0; min-height: 100vh | background: var(--linen); color: var(--ink) | 未声明独立状态；保持默认样式 |
 
-## 动效
+## 响应式规则
 
-所有筛选即时重绘结果和计数，不使用过场或骨架动画；减少动态偏好下关闭过渡。
+| 条件 | 布局变化 | 组件变化 |
+| --- | --- | --- |
+| 1280 × 800 px 主视口 | 按“画布与区域布局”保持完整结构 | 按“组件规格与状态”显示默认状态 |
+| `(max-width:950px)` | .grid → grid-template-columns: repeat(2,1fr) | 交互流程与内容顺序不变 |
+| `(max-width:720px)` | .layout → grid-template-columns: 1fr; .filters → border-right: 0; border-bottom: 1px solid var(--ink); .grid → grid-template-columns: 1fr; .header p → display: none | 交互流程与内容顺序不变 |
 
-## 不要做什么
+## 内容与数据
 
-不要用通用商品筛选抽屉、照片瀑布和促销标签；不要把科学目录做成暗色数据仪表盘。
+必须保留的可见文案顺序包括：“植物标本筛 · 筛选检索” → “北纬三十度植物志” → “FIELD NOTES / 2026 夏季采集” → “缩小标本范围” → “找到 6 份记录” → “名称检索” → “生境” → “全部生境” → “林下” → “水岸” → “岩隙” → “特征”。控件占位或辅助标签包括：“中文名或拉丁名”。数值、日期和状态文字沿用页面初始值及其操作后的格式。
 
-## 复刻提示词
+## 动效与反馈
 
-设计亚麻纸植物志式筛选页，左侧固定四类条件，右侧三列标本纸卡；每卡用内嵌 SVG 画一株简化植物，配编号、中文名、斜体拉丁名和生境标签，以森林绿、赭黄和极细线营造可信的野外记录感。
+| 触发 | 时长与缓动 | 可见反馈 | `prefers-reduced-motion` |
+| --- | --- | --- | --- |
+| 页面进入 | 0ms | 直接呈现最终状态 | * → transition: none!important |
+| 用户操作 | 0ms | 通过文案、颜色或显隐即时反馈 | * → transition: none!important |
+
+## 复现验收清单
+
+- [ ] 在 1280 × 800 px 下，body、.layout 与 .plate 的尺寸和排列符合布局表。
+- [ ] 规范登记的主色 `#be8a3c`、`#a94f45`、`#faf8ed`、`#263329`、`#c8c6b7` 均来自 HTML，背景、正文、弱化与强调层级对应一致。
+- [ ] 主要操作 `.clear`、输入、选择或次操作 `.filter select,.filter input[type=search]` 与 内容容器 `body` 的默认及状态样式可实际观察。
+- [ ] 在 `(max-width:950px)` 条件下，布局按响应式表变化且“植物标本筛 · 筛选检索”仍可操作。
+- [ ] 启用 `prefers-reduced-motion: reduce` 后，页面按动效表关闭或压缩非必要动画，同时保留状态反馈。

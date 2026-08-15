@@ -1,44 +1,83 @@
 # 009 北辰调度台
 
-## 一句话气质
+## 规范元数据
 
-高密度但安静的实时任务指挥屏。
+- 规范版本：2
+- 主视口：1280 × 800 px
+- 对应页面：`009-mission-grid.html`
+- 复现范围：复现该单文件页面的布局制度、设计令牌、核心组件状态与题定职责。
 
-## 适合用在哪种产品
+## 画布与区域布局
 
-运维与交付团队管理当天任务、成员和风险的调度系统。
+| 区域 | 边界与尺寸 | 布局与对齐 | 层级与滚动 |
+| --- | --- | --- | --- |
+| 页面画布 `body` | margin: 0; min-height: 100vh | 未单独声明 | background: var(--bg); color: var(--text) |
+| 主要结构 `.app` | min-height: 100vh | display: grid; grid-template-columns: 78px 1fr | 未单独声明 |
+| 关键内容区 `.panel` | 未单独声明 | 未单独声明 | border: 1px solid var(--line); background: var(--surface); border-radius: 14px; overflow: hidden |
 
-## 色板
+## 设计令牌
 
-| 角色 | 色号 | 用法 |
+### 色彩
+
+| 令牌 | 值 | 用途 |
 | --- | --- | --- |
-| 背景 | #0B1114 | 全局深黑底 |
-| 表面 | #111B20 | 数据面板 |
-| 正文 | #E8F2ED | 标题与关键数字 |
-| 次要文字 | #72858A | 标签和日志 |
-| 强调 | #48E49E | 在线状态、筛选与负载 |
-| 成功 / 危险 | #48E49E / #FF6868 | 正常趋势与风险 |
+| `--bg` | `#0b1114` | 页面或区域背景 |
+| `--surface` | `#111b20` | 容器与表面 |
+| `--text` | `#e8f2ed` | 主要文字与高对比边界 |
+| `--muted` | `#72858a` | 辅助文字与弱化信息 |
+| `--accent` | `#48e49e` | 主要操作与强调状态 |
+| `--danger` | `#ff6868` | 错误与危险反馈 |
+| `--amber` | `#ffc65c` | 品牌或局部强调 |
+| `--line` | `#223239` | 描边与分隔 |
 
-## 字体和字号
+### 字体
 
-使用 `Inter, ui-sans-serif, system-ui, Microsoft YaHei`，时钟使用 `ui-monospace`。标题 28px/700，关键数字 30px/800，正文 13–15px/500，辅助 10–12px/600，时钟 24px/800。
+| 角色 | 字体栈 | 字号 / 行高 | 字重 / 字距 |
+| --- | --- | --- | --- |
+| 页面正文 `body` | Inter,ui-sans-serif,system-ui,"Microsoft YaHei",sans-serif | 16px / normal（浏览器默认） | 由 font 简写或继承确定 |
+| 显示字 `.head h1` | 继承页面字体 | font-size: 28px | 由 font 简写或继承确定 |
+| 分区标题 `.ph h2` | 继承页面字体 | font-size: 15px | 由 font 简写或继承确定 |
+| 辅助文字 `.logo` | 继承页面字体 | 16px / normal（浏览器默认） | font-weight: 1000 |
 
-## 间距、圆角、阴影
+### 间距、圆角与层级
 
-页面内距 28×34px，面板间距 14–16px；面板 14px、统计卡 12px、筛选胶囊 20px 圆角；不使用大阴影，以细线和深浅表面分层。
+| 令牌 | 值 | 用途 |
+| --- | --- | --- |
+| 主要内距 | `20px 12px` | `.rail` 的 `padding` |
+| 布局间距 | `14px` | `.icons` 的 `gap` |
+| 圆角 | `12px` | `.logo` 的 `border-radius` |
+| 边框或阴影 | `1px solid var(--line)` | `.rail` 的 `border-right` |
 
-## 按钮 / 输入框 / 卡片
+## 组件规格与状态
 
-导航使用 42px 方形图标按钮，选中呈深表面绿字；筛选是小胶囊，选中绿色反黑；队列表格整行可悬停，状态用紧凑标签。
+| 组件 | 结构与尺寸 | 默认样式 | 状态变化 |
+| --- | --- | --- | --- |
+| 主要操作 `.filters button` | border-radius: 20px; padding: 6px 11px | border: 1px solid var(--line); background: transparent; color: var(--muted); border-radius: 20px; font-size: 11px | .filters button.active → color: #07100c; background: var(--accent) |
+| 输入、选择或次操作 `.icon` | width: 42px; height: 42px; border-radius: 10px | border: 0; border-radius: 10px; background: transparent; color: var(--muted); font-size: 18px | .icon.active,.icon:hover → background: var(--surface); color: var(--accent) |
+| 内容容器 `.panel` | border-radius: 14px | border: 1px solid var(--line); background: var(--surface); border-radius: 14px | 未声明独立状态；保持默认样式 |
 
-## 动效
+## 响应式规则
 
-时钟每秒更新，筛选行即时显隐，悬停颜色 120ms；减少动态模式取消过渡，数据更新仍保留。
+| 条件 | 布局变化 | 组件变化 |
+| --- | --- | --- |
+| 1280 × 800 px 主视口 | 按“画布与区域布局”保持完整结构 | 按“组件规格与状态”显示默认状态 |
+| `(max-width:900px)` | .stats → grid-template-columns: 1fr 1fr; .grid → grid-template-columns: 1fr; .app → grid-template-columns: 60px 1fr; .content → padding: 22px 16px; .queue th:nth-child(3),.queue td:nth-child(3) → display: none | 交互流程与内容顺序不变 |
 
-## 不要做什么
+## 内容与数据
 
-不要使用大面积装饰渐变、夸张 3D 图表、低信息密度欢迎卡或无意义 KPI。
+必须保留的可见文案顺序包括：“北辰调度台 · 工作总览” → “2026 年 8 月 14 日 · 星期五” → “早上好，林队长。系统等你下令。” → “09:42:16” → “今日待调度” → “18” → “↑ 3 个新到” → “按时完成率” → “94%” → “↑ 6% 本周” → “在线成员” → “12”。控件占位或辅助标签包括：“主导航”、“总览”、“任务”、“信号”、“团队”。数值、日期和状态文字沿用页面初始值及其操作后的格式。
 
-## 复刻提示词
+## 动效与反馈
 
-设计一块深色实时调度台：窄图标轨、四个紧凑 KPI、主任务队列和侧边负载环；黑青底只用荧光薄荷绿与少量红黄表达状态，密集但秩序明确。
+| 触发 | 时长与缓动 | 可见反馈 | `prefers-reduced-motion` |
+| --- | --- | --- | --- |
+| 页面进入 | 0ms | 直接呈现最终状态 | * → transition: none!important; animation: none!important |
+| 用户操作 | 0ms | 通过文案、颜色或显隐即时反馈 | * → transition: none!important; animation: none!important |
+
+## 复现验收清单
+
+- [ ] 在 1280 × 800 px 下，body、.app 与 .panel 的尺寸和排列符合布局表。
+- [ ] 规范登记的主色 `#111b20`、`#ff6868`、`#72858a`、`#223239`、`#e8f2ed` 均来自 HTML，背景、正文、弱化与强调层级对应一致。
+- [ ] 主要操作 `.filters button`、输入、选择或次操作 `.icon` 与 内容容器 `.panel` 的默认及状态样式可实际观察。
+- [ ] 在 `(max-width:900px)` 条件下，布局按响应式表变化且“北辰调度台 · 工作总览”仍可操作。
+- [ ] 启用 `prefers-reduced-motion: reduce` 后，页面按动效表关闭或压缩非必要动画，同时保留状态反馈。

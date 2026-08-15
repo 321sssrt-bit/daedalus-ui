@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>放映厅 · 老电影</title>
+<style>
+:root{
+  --reel:#14100c;
+  --reel-2:#1e1812;
+  --ticket:#e8c25a;
+  --cream:#f2ead6;
+  --muted:#9a8f7c;
+  --line:#342a1e;
+  --danger:#d96a4a;
+  --radius-card:12px;
+  --radius-ctl:8px;
+  --sp:8px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font:14.5px/1.6 "PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+  background:var(--reel);color:var(--cream);min-height:100vh;display:flex;flex-direction:column;
+}
+.topbar{
+  height:56px;flex:0 0 56px;display:flex;align-items:center;justify-content:space-between;
+  padding:0 24px;border-bottom:1px solid var(--line);background:var(--reel-2);
+}
+.brand{display:flex;align-items:center;gap:10px;font:700 16px/1 "Songti SC","STSong","SimSun",serif;letter-spacing:.26em;color:var(--ticket)}
+.topbar .hall{font:11px/1 ui-monospace,Consolas,monospace;color:var(--muted);letter-spacing:.14em}
+.main{flex:1;display:flex;min-height:0}
+.wall{flex:0 0 400px;padding:20px;border-right:1px solid var(--line);overflow-y:auto}
+.wall h2{font-size:12px;letter-spacing:.22em;color:var(--muted);margin-bottom:14px}
+.films{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.film{
+  border:1px solid var(--line);border-radius:var(--radius-card);overflow:hidden;cursor:pointer;
+  background:var(--reel-2);text-align:left;font:inherit;color:inherit;padding:0;transition:all .15s ease;
+}
+.film:hover{border-color:var(--ticket);transform:translateY(-2px)}
+.film.on{border-color:var(--ticket);box-shadow:0 0 0 1px var(--ticket)}
+.poster{height:92px;display:grid;place-items:center;position:relative}
+.poster span{font:700 17px/1.3 "Songti SC","STSong","SimSun",serif;color:rgba(242,234,214,.92);letter-spacing:.14em;text-align:center}
+.p1{background:linear-gradient(140deg,#6b4a2a,#2c1e10)}
+.p2{background:linear-gradient(140deg,#2a4a5b,#101e2c)}
+.p3{background:linear-gradient(140deg,#5b2a3a,#2c1018)}
+.p4{background:linear-gradient(140deg,#3a5b2a,#162c10)}
+.p5{background:linear-gradient(140deg,#4a3a6b,#1e1030)}
+.p6{background:linear-gradient(140deg,#6b622a,#2c2810)}
+.film .fi{padding:9px 11px}
+.film .fi h3{font-size:13px}
+.film .fi p{font-size:10.5px;color:var(--muted);font-family:ui-monospace,Consolas,monospace;margin-top:2px}
+.theater{flex:1;padding:20px 24px;display:flex;flex-direction:column;min-width:0}
+.screen{
+  position:relative;border-radius:var(--radius-card);overflow:hidden;background:#000;
+  aspect-ratio:16/8.2;border:1px solid var(--line);
+}
+.screen .titlecard{
+  position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;
+  background:radial-gradient(ellipse at center,#241c12 0%,#000 75%);
+}
+.screen .titlecard .ft{font:700 30px/1.3 "Songti SC","STSong","SimSun",serif;letter-spacing:.3em;color:var(--cream)}
+.screen .titlecard .fs{font:11px/1 ui-monospace,Consolas,monospace;color:var(--muted);letter-spacing:.3em}
+.screen .grain{
+  position:absolute;inset:0;opacity:.14;pointer-events:none;
+  background-image:radial-gradient(rgba(242,234,214,.5) 1px,transparent 1.2px);background-size:7px 7px;
+}
+.netoff{
+  position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;gap:12px;
+  background:rgba(10,8,5,.9);text-align:center;z-index:3;
+}
+.netoff.show{display:flex}
+.netoff h2{font-size:17px;color:var(--danger);letter-spacing:.12em}
+.netoff p{font-size:12.5px;color:var(--muted)}
+.netoff p b{color:var(--cream);font-family:ui-monospace,Consolas,monospace}
+.reconn{
+  border:0;border-radius:var(--radius-ctl);background:var(--ticket);color:#14100c;padding:10px 26px;
+  font:inherit;font-weight:700;font-size:13px;letter-spacing:.14em;cursor:pointer;
+}
+.reconn:hover{background:#f0d078}
+.controls{display:flex;align-items:center;gap:14px;margin-top:14px}
+.cbtn{
+  width:46px;height:46px;border-radius:50%;border:1px solid var(--line);background:var(--reel-2);color:var(--cream);
+  cursor:pointer;display:grid;place-items:center;transition:all .14s ease;
+}
+.cbtn:hover{border-color:var(--ticket);color:var(--ticket)}
+.cbtn.main{width:56px;height:56px;background:var(--ticket);color:#14100c;border-color:var(--ticket)}
+.cbtn.main:hover{background:#f0d078;color:#14100c}
+.prog-zone{flex:1;display:flex;align-items:center;gap:12px}
+.prog{flex:1;height:6px;border-radius:3px;background:var(--line);cursor:pointer;position:relative}
+.prog i{position:absolute;left:0;top:0;bottom:0;width:0;background:var(--ticket);border-radius:3px}
+.tcode{font:11.5px/1 ui-monospace,Consolas,monospace;color:var(--muted);white-space:nowrap}
+.net-toggle{
+  display:flex;align-items:center;gap:7px;border:1px solid var(--line);border-radius:999px;padding:7px 13px;
+  background:var(--reel-2);color:var(--muted);font:inherit;font-size:11.5px;cursor:pointer;
+}
+.net-toggle .sw{width:28px;height:16px;border-radius:999px;background:#3f3423;position:relative;transition:background .15s ease}
+.net-toggle .sw::after{content:"";position:absolute;top:2px;left:2px;width:12px;height:12px;border-radius:50%;background:var(--cream);transition:left .15s ease}
+.net-toggle[aria-checked="true"]{color:var(--cream)}
+.net-toggle[aria-checked="true"] .sw{background:#5b8c5a}
+.net-toggle[aria-checked="true"] .sw::after{left:14px}
+.status-line{
+  margin-top:14px;padding:11px 16px;border:1px dashed var(--line);border-radius:var(--radius-ctl);
+  font:12px/1.7 ui-monospace,Consolas,monospace;color:var(--muted);
+}
+.status-line b{color:var(--ticket)}
+.queue{margin-top:14px}
+.queue h2{font-size:12px;letter-spacing:.22em;color:var(--muted);margin-bottom:10px}
+.qrow{
+  display:flex;align-items:center;gap:12px;padding:9px 12px;border:1px solid var(--line);border-radius:var(--radius-ctl);
+  margin-bottom:8px;font-size:13px;cursor:pointer;transition:all .13s ease;background:var(--reel-2);
+}
+.qrow:hover{border-color:var(--ticket)}
+.qrow.playing{border-color:var(--ticket);color:var(--ticket)}
+.qrow .qn{font:10.5px/1 ui-monospace,Consolas,monospace;color:var(--muted)}
+.qrow .qd{margin-left:auto;font:11px/1 ui-monospace,Consolas,monospace;color:var(--muted)}
+@media(max-width:960px){
+  .main{flex-direction:column}
+  .wall{flex:none;width:100%;border-right:0;border-bottom:1px solid var(--line)}
+}
+@media(prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">放 映 厅</div>
+  <span class="hall">3 号厅 · 今晚怀旧场</span>
+</header>
+<div class="main">
+  <aside class="wall">
+    <h2>今晚片单</h2>
+    <div class="films" id="films">
+      <button class="film on" type="button" data-i="0">
+        <div class="poster p1"><span>城南旧事</span></div>
+        <div class="fi"><h3>城南旧事</h3><p>1983 · 91 min</p></div>
+      </button>
+      <button class="film" type="button" data-i="1">
+        <div class="poster p2"><span>庐山恋</span></div>
+        <div class="fi"><h3>庐山恋</h3><p>1980 · 82 min</p></div>
+      </button>
+      <button class="film" type="button" data-i="2">
+        <div class="poster p3"><span>芙蓉镇</span></div>
+        <div class="fi"><h3>芙蓉镇</h3><p>1986 · 130 min</p></div>
+      </button>
+      <button class="film" type="button" data-i="3">
+        <div class="poster p4"><span>那山那人那狗</span></div>
+        <div class="fi"><h3>那山那人那狗</h3><p>1999 · 93 min</p></div>
+      </button>
+      <button class="film" type="button" data-i="4">
+        <div class="poster p5"><span>马路天使</span></div>
+        <div class="fi"><h3>马路天使</h3><p>1937 · 91 min</p></div>
+      </button>
+      <button class="film" type="button" data-i="5">
+        <div class="poster p6"><span>小花</span></div>
+        <div class="fi"><h3>小花</h3><p>1979 · 96 min</p></div>
+      </button>
+    </div>
+  </aside>
+  <main class="theater">
+    <div class="screen">
+      <div class="titlecard">
+        <span class="ft" id="sc-title">城南旧事</span>
+        <span class="fs" id="sc-sub">1983 · 北京电影制片厂</span>
+      </div>
+      <div class="grain" aria-hidden="true"></div>
+      <div class="netoff" id="netoff">
+        <h2>网络中断，放映暂停</h2>
+        <p>进度已为你保留在 <b id="kept">00:00</b>，胶片没丢。</p>
+        <button class="reconn" id="reconn" type="button">重新连接</button>
+      </div>
+    </div>
+    <div class="controls">
+      <button class="cbtn main" id="play" type="button" aria-label="播放或暂停">
+        <svg id="ic-play" width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M7 4.5L17 11L7 17.5V4.5Z" fill="currentColor"/></svg>
+        <svg id="ic-pause" width="20" height="20" viewBox="0 0 20 20" fill="none" style="display:none"><path d="M6 4V16M14 4V16" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg>
+      </button>
+      <div class="prog-zone">
+        <div class="prog" id="prog"><i id="bar"></i></div>
+        <span class="tcode"><span id="cur">00:00</span> / <span id="dur">91:00</span></span>
+      </div>
+      <button class="net-toggle" id="net" type="button" role="switch" aria-checked="true"><span>网络</span><span class="sw" aria-hidden="true"></span></button>
+    </div>
+    <div class="status-line" id="status">当前状态：<b>暂停</b> · 《城南旧事》停在 <b>00:00</b></div>
+    <div class="queue">
+      <h2>放映队列</h2>
+      <div class="qrow playing" data-i="0"><span class="qn">01</span>城南旧事<span class="qd">91 min</span></div>
+      <div class="qrow" data-i="1"><span class="qn">02</span>庐山恋<span class="qd">82 min</span></div>
+      <div class="qrow" data-i="2"><span class="qn">03</span>芙蓉镇<span class="qd">130 min</span></div>
+      <div class="qrow" data-i="3"><span class="qn">04</span>那山那人那狗<span class="qd">93 min</span></div>
+    </div>
+  </main>
+</div>
+<script>
+(function(){
+  var films=[
+    {name:'城南旧事',sub:'1983 · 北京电影制片厂',dur:91*60},
+    {name:'庐山恋',sub:'1980 · 上海电影制片厂',dur:82*60},
+    {name:'芙蓉镇',sub:'1986 · 上海电影制片厂',dur:130*60},
+    {name:'那山那人那狗',sub:'1999 · 潇湘电影制片厂',dur:93*60},
+    {name:'马路天使',sub:'1937 · 明星影片公司',dur:91*60},
+    {name:'小花',sub:'1979 · 北京电影制片厂',dur:96*60}
+  ];
+  var idx=0,pos=0,playing=false,online=true,timer=null;
+  var scTitle=document.getElementById('sc-title');
+  var scSub=document.getElementById('sc-sub');
+  var cur=document.getElementById('cur');
+  var dur=document.getElementById('dur');
+  var bar=document.getElementById('bar');
+  var status=document.getElementById('status');
+  var netoff=document.getElementById('netoff');
+  var kept=document.getElementById('kept');
+  var icPlay=document.getElementById('ic-play');
+  var icPause=document.getElementById('ic-pause');
+  function fmt(s){var m=Math.floor(s/60),ss=s%60;return (m<10?'0':'')+m+':'+(ss<10?'0':'')+ss}
+  function fmtDur(s){return Math.floor(s/60)+':00'}
+  function renderStatus(){
+    var st=online?(playing?'正在放映':'暂停'):'网络中断';
+    status.innerHTML='当前状态：<b>'+st+'</b> · 《'+films[idx].name+'》停在 <b>'+fmt(pos)+'</b>';
+  }
+  function render(){
+    cur.textContent=fmt(pos);
+    dur.textContent=fmtDur(films[idx].dur);
+    bar.style.width=(pos/films[idx].dur*100)+'%';
+    renderStatus();
+  }
+  function load(i){
+    idx=i;pos=0;playing=false;
+    scTitle.textContent=films[i].name;
+    scSub.textContent=films[i].sub;
+    icPlay.style.display='';icPause.style.display='none';
+    var rows=document.querySelectorAll('.qrow');
+    for(var k=0;k<rows.length;k++){
+      if(Number(rows[k].getAttribute('data-i'))===i)rows[k].classList.add('playing');
+      else rows[k].classList.remove('playing');
+    }
+    var cards=document.querySelectorAll('.film');
+    for(var j=0;j<cards.length;j++){
+      if(Number(cards[j].getAttribute('data-i'))===i)cards[j].classList.add('on');
+      else cards[j].classList.remove('on');
+    }
+    render();
+  }
+  function tick(){
+    if(!playing||!online)return;
+    pos+=1;
+    if(pos>=films[idx].dur){load((idx+1)%films.length)}
+    render();
+  }
+  timer=setInterval(tick,1000);
+  document.getElementById('play').addEventListener('click',function(){
+    if(!online)return;
+    playing=!playing;
+    icPlay.style.display=playing?'none':'';
+    icPause.style.display=playing?'':'none';
+    renderStatus();
+  });
+  document.getElementById('prog').addEventListener('click',function(ev){
+    var r=ev.currentTarget.getBoundingClientRect();
+    pos=Math.round(films[idx].dur*Math.min(Math.max((ev.clientX-r.left)/r.width,0),1));
+    render();
+  });
+  var net=document.getElementById('net');
+  net.addEventListener('click',function(){
+    online=!online;
+    net.setAttribute('aria-checked',String(online));
+    if(!online){
+      playing=false;
+      icPlay.style.display='';icPause.style.display='none';
+      kept.textContent=fmt(pos);
+      netoff.classList.add('show');
+    }else{
+      netoff.classList.remove('show');
+    }
+    renderStatus();
+  });
+  document.getElementById('reconn').addEventListener('click',function(){
+    online=true;
+    net.setAttribute('aria-checked','true');
+    netoff.classList.remove('show');
+    playing=true;
+    icPlay.style.display='none';icPause.style.display='';
+    renderStatus();
+  });
+  var cards=document.querySelectorAll('.film');
+  for(var i=0;i<cards.length;i++){
+    (function(c){
+      c.addEventListener('click',function(){load(Number(c.getAttribute('data-i')))});
+    })(cards[i]);
+  }
+  var qrows=document.querySelectorAll('.qrow');
+  for(var q=0;q<qrows.length;q++){
+    (function(row){
+      row.addEventListener('click',function(){load(Number(row.getAttribute('data-i')))});
+    })(qrows[q]);
+  }
+  render();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>温室 · 定价</title>
+<style>
+:root{
+  --bg:#eaf5ec;
+  --glass:rgba(255,255,255,.55);
+  --green:#3e9e63;
+  --green-deep:#2c7a4a;
+  --ink:#23402e;
+  --muted:#6f8a78;
+  --line:rgba(46,110,70,.16);
+  --amber:#e8963c;
+  --radius-card:20px;
+  --radius-ctl:999px;
+  --sp:8px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font:15px/1.7 "PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+  background:var(--bg);color:var(--ink);min-height:100vh;position:relative;overflow-x:hidden;
+  padding:44px 24px 60px;
+}
+.blob{position:absolute;border-radius:50%;filter:blur(70px);pointer-events:none}
+.blob.a{width:380px;height:380px;left:-80px;top:-60px;background:#cdeed4}
+.blob.b{width:320px;height:320px;right:-60px;top:30%;background:#d8ecc9}
+.blob.c{width:280px;height:280px;left:30%;bottom:-120px;background:#cfe6e8}
+.stage{position:relative;z-index:1;max-width:1080px;margin:0 auto}
+.head{text-align:center;margin-bottom:34px}
+.brand{font-size:13px;letter-spacing:.44em;padding-left:.44em;color:var(--green-deep);font-weight:700;margin-bottom:16px}
+h1{font-size:30px;letter-spacing:.04em}
+.head p{color:var(--muted);margin-top:10px}
+.cycle{
+  display:inline-flex;background:rgba(255,255,255,.6);border:1px solid rgba(255,255,255,.8);
+  border-radius:var(--radius-ctl);padding:4px;margin-top:22px;backdrop-filter:blur(10px);
+}
+.cycle button{
+  border:0;background:none;border-radius:999px;padding:8px 20px;font:inherit;font-size:13px;color:var(--muted);
+  cursor:pointer;transition:all .15s ease;
+}
+.cycle button.on{background:var(--green);color:#fff;font-weight:700}
+.cycle .save{color:var(--amber);font-weight:700}
+.tiers{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;align-items:stretch}
+.tier{
+  background:var(--glass);border:1px solid rgba(255,255,255,.75);border-radius:var(--radius-card);
+  padding:28px 26px;backdrop-filter:blur(14px);display:flex;flex-direction:column;
+  box-shadow:0 16px 40px rgba(44,122,74,.10);transition:transform .16s ease,box-shadow .16s ease;
+}
+.tier:hover{transform:translateY(-4px);box-shadow:0 24px 50px rgba(44,122,74,.16)}
+.tier.hot{
+  background:rgba(255,255,255,.78);border:1.5px solid var(--green);position:relative;
+  box-shadow:0 22px 54px rgba(44,122,74,.20);
+}
+.hot-badge{
+  position:absolute;top:-13px;left:50%;transform:translateX(-50%);
+  background:var(--green);color:#fff;font-size:11.5px;font-weight:700;letter-spacing:.14em;
+  padding:5px 16px;border-radius:999px;white-space:nowrap;
+}
+.tier h2{font-size:16.5px;letter-spacing:.06em}
+.tier .for{font-size:12.5px;color:var(--muted);margin:4px 0 18px}
+.price{font:700 38px/1 ui-monospace,Consolas,monospace}
+.price small{font:400 13px/1 "PingFang SC",sans-serif;color:var(--muted);margin-left:6px}
+.bill-note{font-size:11.5px;color:var(--muted);margin:6px 0 18px;min-height:18px}
+.feats{list-style:none;flex:1;margin-bottom:22px}
+.feats li{display:flex;gap:9px;align-items:flex-start;font-size:13.5px;padding:6px 0;color:var(--ink)}
+.feats li::before{
+  content:"✓";flex:0 0 18px;height:18px;border-radius:50%;background:rgba(62,158,99,.16);color:var(--green-deep);
+  font-size:11px;font-weight:700;display:grid;place-items:center;margin-top:2px;
+}
+.feats li.no{color:var(--muted)}
+.feats li.no::before{content:"—";background:rgba(111,138,120,.12);color:var(--muted)}
+.go{
+  width:100%;height:46px;border-radius:var(--radius-ctl);cursor:pointer;font:inherit;font-weight:700;font-size:14px;
+  letter-spacing:.1em;transition:all .15s ease;border:1.5px solid var(--green);background:transparent;color:var(--green-deep);
+}
+.go:hover{background:rgba(62,158,99,.1)}
+.go.solid{background:var(--green);color:#fff;border-color:var(--green)}
+.go.solid:hover{background:var(--green-deep)}
+.go:focus-visible{outline:3px solid rgba(62,158,99,.35);outline-offset:2px}
+.foot{margin-top:26px;text-align:center;color:var(--muted);font-size:12.5px}
+.toast{
+  position:fixed;left:50%;bottom:30px;transform:translate(-50%,16px);opacity:0;pointer-events:none;
+  background:var(--ink);color:#eaf5ec;padding:11px 24px;border-radius:999px;font-size:13.5px;transition:all .28s ease;z-index:9;
+}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+@media(max-width:900px){.tiers{grid-template-columns:1fr;max-width:440px;margin:0 auto}}
+@media(prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+}
+</style>
+</head>
+<body>
+<div class="blob a" aria-hidden="true"></div>
+<div class="blob b" aria-hidden="true"></div>
+<div class="blob c" aria-hidden="true"></div>
+<main class="stage">
+  <div class="head">
+    <p class="brand">温 室 GREENHOUSE</p>
+    <h1>给你的植物挑一份监护方案</h1>
+    <p>从阳台一盆到庄园千亩，探针都是一样的认真。</p>
+    <div class="cycle" role="tablist" aria-label="付费周期">
+      <button class="on" id="cy-m" type="button">按月付</button>
+      <button id="cy-y" type="button">按年付 <span class="save">省 20%</span></button>
+    </div>
+  </div>
+  <div class="tiers">
+    <section class="tier">
+      <h2>花房版</h2>
+      <p class="for">阳台与窗台，两三盆绿植</p>
+      <p class="price">¥0<small>/ 月</small></p>
+      <p class="bill-note">永久免费</p>
+      <ul class="feats">
+        <li>接入 1 支土壤探针</li>
+        <li>湿度与光照日报</li>
+        <li>浇水提醒推送</li>
+        <li class="no">历史趋势回看</li>
+        <li class="no">多人共享花房</li>
+      </ul>
+      <button class="go" type="button" data-t="花房版">免费开始</button>
+    </section>
+    <section class="tier hot">
+      <span class="hot-badge">最 多 花 友 选</span>
+      <h2>温室专业版</h2>
+      <p class="for">温室大棚与重度花友</p>
+      <p class="price" data-m="¥99" data-y="¥79">¥99<small>/ 月</small></p>
+      <p class="bill-note" data-m="按月付，随时退订" data-y="按年付 ¥948/年，含 2 个月减免">按月付，随时退订</p>
+      <ul class="feats">
+        <li>接入 12 支探针</li>
+        <li>温湿光肥四项实时曲线</li>
+        <li>异常短信告警</li>
+        <li>365 天历史趋势回看</li>
+        <li>3 人共享与操作日志</li>
+      </ul>
+      <button class="go solid" type="button" data-t="温室专业版">立即订阅</button>
+    </section>
+    <section class="tier">
+      <h2>庄园版</h2>
+      <p class="for">基地、庄园与科研棚区</p>
+      <p class="price" data-m="¥399" data-y="¥319">¥399<small>/ 月</small></p>
+      <p class="bill-note" data-m="按月付，含上门部署一次" data-y="按年付 ¥3,828/年，含季度巡检">按月付，含上门部署一次</p>
+      <ul class="feats">
+        <li>探针不限量，分区管理</li>
+        <li>联动灌溉与卷帘控制</li>
+        <li>开放数据接口</li>
+        <li>专属农艺顾问</li>
+        <li>7×24 电话值班</li>
+      </ul>
+      <button class="go" type="button" data-t="庄园版">联系顾问</button>
+    </section>
+  </div>
+  <p class="foot">价格均含税 · 探针硬件另计 · 支持对公转账与开票</p>
+</main>
+<div class="toast" id="toast"></div>
+<script>
+(function(){
+  var cyM=document.getElementById('cy-m');
+  var cyY=document.getElementById('cy-y');
+  var toast=document.getElementById('toast');
+  var timer=null;
+  function setCycle(yearly){
+    if(yearly){cyY.classList.add('on');cyM.classList.remove('on')}
+    else{cyM.classList.add('on');cyY.classList.remove('on')}
+    var prices=document.querySelectorAll('.price[data-m]');
+    for(var i=0;i<prices.length;i++){
+      var p=prices[i];
+      p.innerHTML=(yearly?p.getAttribute('data-y'):p.getAttribute('data-m'))+'<small>/ 月</small>';
+    }
+    var notes=document.querySelectorAll('.bill-note[data-m]');
+    for(var j=0;j<notes.length;j++){
+      var n=notes[j];
+      n.textContent=yearly?n.getAttribute('data-y'):n.getAttribute('data-m');
+    }
+  }
+  cyM.addEventListener('click',function(){setCycle(false)});
+  cyY.addEventListener('click',function(){setCycle(true)});
+  var gos=document.querySelectorAll('.go');
+  for(var k=0;k<gos.length;k++){
+    (function(btn){
+      btn.addEventListener('click',function(){
+        var t=btn.getAttribute('data-t');
+        var msg=t==='庄园版'?'顾问会在一个工作日内回电，先给你发一份部署清单。':t+' 已开通试用，第一支探针等你来配对。';
+        toast.textContent=msg;
+        toast.classList.add('show');
+        if(timer)clearTimeout(timer);
+        timer=setTimeout(function(){toast.classList.remove('show')},2200);
+      });
+    })(gos[k]);
+  }
+})();
+</script>
+</body>
+</html>

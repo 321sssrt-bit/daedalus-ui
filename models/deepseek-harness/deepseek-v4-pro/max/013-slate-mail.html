@@ -1,0 +1,467 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>石板邮局 · 收件箱</title>
+<style>
+  :root{
+    --bg:#eef1f5;
+    --panel:#ffffff;
+    --sidebar:#22303c;
+    --sidebar-text:#aebccb;
+    --accent:#3d6ea8;
+    --accent-soft:#dbe7f3;
+    --border:#d4dbe3;
+    --text:#26323e;
+    --muted:#7b8896;
+    --star:#e8a13c;
+    --hover:#e5eaf0;
+    --unread:#0f1a26;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:-apple-system,"Segoe UI","Microsoft YaHei","PingFang SC","Helvetica Neue",sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    font-size:14px;
+    line-height:1.55;
+  }
+  .app{
+    display:grid;
+    grid-template-columns:232px 404px 1fr;
+    height:100vh;
+    min-height:800px;
+  }
+  /* 侧栏 */
+  .side{
+    background:var(--sidebar);
+    color:var(--sidebar-text);
+    display:flex;
+    flex-direction:column;
+    padding:20px 14px;
+  }
+  .brand{
+    display:flex;align-items:center;gap:10px;
+    color:#f2f5f8;font-weight:600;font-size:16px;
+    letter-spacing:1px;margin-bottom:18px;
+  }
+  .brand .mark{
+    width:30px;height:30px;border-radius:6px;
+    background:var(--accent);
+    display:grid;place-items:center;
+    color:#fff;font-weight:700;
+  }
+  .compose{
+    display:flex;align-items:center;justify-content:center;gap:8px;
+    background:var(--accent);color:#ffffff;
+    border:none;border-radius:8px;padding:10px 14px;
+    font-size:14px;font-weight:600;cursor:pointer;
+    margin-bottom:16px;transition:background .15s ease;
+  }
+  .compose:hover{background:#335f8f}
+  .compose:focus-visible{outline:2px solid #9fc1e0;outline-offset:2px}
+  .nav{display:flex;flex-direction:column;gap:2px}
+  .nav-item{
+    display:flex;align-items:center;gap:10px;
+    padding:9px 10px;border-radius:7px;cursor:pointer;
+    color:var(--sidebar-text);font-size:14px;
+  }
+  .nav-item:hover{background:rgba(255,255,255,.06)}
+  .nav-item.active{background:var(--accent);color:#ffffff}
+  .nav-item .ic{width:16px;height:16px;flex:none;opacity:.9}
+  .nav-item .cnt{margin-left:auto;font-size:12px;opacity:.8}
+  .side .foot{
+    margin-top:auto;padding-top:16px;border-top:1px solid rgba(255,255,255,.12);
+    font-size:12px;color:#8b98a6;
+  }
+  /* 列表栏 */
+  .list-col{
+    background:var(--panel);
+    border-right:1px solid var(--border);
+    display:flex;flex-direction:column;
+    min-width:0;
+  }
+  .list-head{
+    padding:14px 16px;border-bottom:1px solid var(--border);
+  }
+  .list-head h1{font-size:18px;font-weight:600;margin-bottom:10px}
+  .tools{display:flex;gap:8px;align-items:center}
+  .search{
+    flex:1;display:flex;align-items:center;gap:8px;
+    background:var(--bg);border:1px solid var(--border);
+    border-radius:7px;padding:7px 10px;color:var(--muted);
+  }
+  .search input{
+    border:none;background:transparent;outline:none;width:100%;
+    font-size:13px;color:var(--text);font-family:inherit;
+  }
+  .filter{
+    border:1px solid var(--border);background:#ffffff;color:var(--muted);
+    border-radius:7px;padding:7px 12px;font-size:13px;cursor:pointer;
+    white-space:nowrap;font-family:inherit;
+  }
+  .filter:hover{background:var(--hover)}
+  .filter.on{
+    background:var(--accent);border-color:var(--accent);color:#ffffff;
+  }
+  .list{overflow-y:auto;flex:1}
+  .msg{
+    display:flex;gap:12px;padding:13px 16px;border-bottom:1px solid var(--border);
+    cursor:pointer;align-items:flex-start;
+  }
+  .msg:hover{background:var(--hover)}
+  .msg.selected{background:var(--accent-soft)}
+  .msg .avatar{
+    width:34px;height:34px;border-radius:50%;flex:none;
+    background:#c7d3e0;color:#4b5d70;font-weight:600;
+    display:grid;place-items:center;font-size:13px;
+  }
+  .msg .body{flex:1;min-width:0}
+  .msg .row1{display:flex;align-items:center;gap:8px}
+  .msg .from{font-size:14px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .msg .from.dim{font-weight:500;color:var(--muted)}
+  .msg .time{margin-left:auto;font-size:12px;color:var(--muted);white-space:nowrap;flex:none}
+  .msg .subj{font-size:13px;color:var(--text);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .msg .subj.dim{color:var(--muted)}
+  .msg .preview{font-size:12px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .msg .dot{width:8px;height:8px;border-radius:50%;background:var(--accent);flex:none;margin-top:6px}
+  .msg .star{
+    color:var(--star);flex:none;margin-top:4px;font-size:15px;
+    opacity:0;transition:opacity .15s;
+  }
+  .msg.starred .star, .msg:hover .star{opacity:1}
+  .empty-list{padding:40px 20px;text-align:center;color:var(--muted);font-size:13px}
+  /* 阅读区 */
+  .read{
+    background:#fbfcfe;display:flex;flex-direction:column;min-width:0;
+  }
+  .read-top{
+    display:flex;align-items:center;gap:10px;
+    padding:14px 24px;border-bottom:1px solid var(--border);background:#ffffff;
+  }
+  .read-top .subj{font-size:17px;font-weight:600;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .act{
+    border:1px solid var(--border);background:#ffffff;color:var(--text);
+    border-radius:7px;padding:7px 14px;font-size:13px;cursor:pointer;
+    display:inline-flex;align-items:center;gap:6px;font-family:inherit;
+  }
+  .act:hover{background:var(--hover)}
+  .act.star-btn.starred{color:var(--star);border-color:#ecc27f}
+  .act.archive-btn{color:var(--muted)}
+  .read-body{overflow-y:auto;flex:1;padding:26px 32px}
+  .read-meta{display:flex;align-items:center;gap:12px;margin-bottom:20px}
+  .read-meta .avatar{width:42px;height:42px;border-radius:50%;background:#c7d3e0;color:#4b5d70;font-weight:600;display:grid;place-items:center;font-size:16px}
+  .read-meta .who{font-size:14px;font-weight:600}
+  .read-meta .to{font-size:12px;color:var(--muted)}
+  .read-meta .when{margin-left:auto;font-size:12px;color:var(--muted)}
+  .read-content p{font-size:14px;color:var(--text);margin-bottom:14px;max-width:640px}
+  .read-content .sign{margin-top:22px;color:var(--muted);font-size:13px}
+  .read-empty{flex:1;display:grid;place-items:center;color:var(--muted);font-size:14px}
+  .toast{
+    position:fixed;left:50%;bottom:28px;transform:translateX(-50%);
+    background:var(--unread);color:#ffffff;padding:9px 18px;border-radius:8px;
+    font-size:13px;opacity:0;pointer-events:none;transition:opacity .2s;
+  }
+  .toast.show{opacity:1}
+  @media (max-width:768px){
+    .app{grid-template-columns:1fr;height:auto;min-height:100vh}
+    .side{flex-direction:row;align-items:center;flex-wrap:wrap;gap:6px}
+    .side .nav{flex-direction:row;flex-wrap:wrap}
+    .side .foot{display:none}
+    .list-col,.read{min-height:60vh}
+    .read-body{padding:20px 16px}
+    .read-top{padding:12px 16px;flex-wrap:wrap}
+  }
+  @media (prefers-reduced-motion: reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+  <div class="app">
+    <aside class="side">
+      <div class="brand"><span class="mark">石</span>石板邮局</div>
+      <button class="compose" id="composeBtn" type="button">
+        <svg class="ic" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+        写邮件
+      </button>
+      <nav class="nav" id="nav">
+        <div class="nav-item active" data-folder="inbox">
+          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 6l-10 6L2 6"/><rect x="2" y="4" width="20" height="16" rx="2"/></svg>
+          收件箱<span class="cnt" id="inboxCnt">0</span>
+        </div>
+        <div class="nav-item" data-folder="starred">
+          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.8 6.2 20.9l1.1-6.5L2.6 9.8l6.5-.9Z"/></svg>
+          星标
+        </div>
+        <div class="nav-item" data-folder="sent">
+          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4Z"/></svg>
+          已发送
+        </div>
+        <div class="nav-item" data-folder="draft">
+          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+          草稿<span class="cnt">2</span>
+        </div>
+        <div class="nav-item" data-folder="archive">
+          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="5" rx="1"/><path d="M4 8v12h16V8"/><path d="M10 12h4"/></svg>
+          归档
+        </div>
+      </nav>
+      <div class="foot">3.2 GB 已用 · 共 15 GB</div>
+    </aside>
+
+    <section class="list-col">
+      <div class="list-head">
+        <h1>收件箱</h1>
+        <div class="tools">
+          <div class="search">
+            <svg class="ic" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+            <input id="searchInput" type="text" placeholder="搜索邮件" autocomplete="off">
+          </div>
+          <button class="filter" id="unreadFilter" type="button">只看未读</button>
+        </div>
+      </div>
+      <div class="list" id="msgList"></div>
+    </section>
+
+    <section class="read">
+      <div class="read-top" id="readTop">
+        <span class="subj" id="readSubj"></span>
+        <button class="act star-btn" id="starBtn" type="button">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.8 6.2 20.9l1.1-6.5L2.6 9.8l6.5-.9Z"/></svg>
+          <span id="starLabel">星标</span>
+        </button>
+        <button class="act archive-btn" id="archiveBtn" type="button">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="5" rx="1"/><path d="M4 8v12h16V8"/></svg>
+          归档
+        </button>
+      </div>
+      <div class="read-body" id="readBody"></div>
+    </section>
+  </div>
+  <div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  var messages = [
+    {id:1, from:"陈总监", subject:"Q3 产品路线评审会纪要", preview:"会上确认了下一季度三个重点项目……", body:"各位好，\n\n会上确认了下一季度三个重点项目：桌面端收件箱重构、移动端离线同步、以及数据看板的权限体系。请各负责人周五前把排期发我，逾期默认按会上的初步计划推进。\n\n另：原型评审改到周三下午三点，会议室不变。", time:"09:42", read:false, starred:false, archived:false},
+    {id:2, from:"设计组 · 林小满", subject:"石板主题色微调建议（附对比图）", preview:"深色侧栏的对比度在低亮屏上有点低……", body:"老赵，\n\n深色侧栏 #22303c 在低亮度屏幕上和主内容区的对比偏弱，建议侧栏再压暗一档，未读强调色保持 #3d6ea8 不变。附了两种方案的对比，麻烦看一眼。", time:"09:15", read:false, starred:true, archived:false},
+    {id:3, from:"系统通知", subject:"你的登录设备已更新", preview:"检测到新设备于 2025-06-18 08:57 登录……", body:"我们检测到你的账号于 2025-06-18 08:57 在新设备「Windows 桌面端」上登录。\n\n如果这是你本人操作，无需任何处理。如果不是，请立即前往「账号与安全」撤销该设备。", time:"08:57", read:true, starred:false, archived:false},
+    {id:4, from:"运维值班 · 周启", subject:"凌晨发布窗口确认（6/21 02:00）", preview:"本周六凌晨的发布需要你提前确认……", body:"本周六凌晨 02:00–04:00 有一个存储层升级的发布窗口，期间收件服务可能短暂不可用，建议你提前把重要邮件同步到本地。\n\n确认收到即可，无需回执。", time:"昨天", read:true, starred:false, archived:false},
+    {id:5, from:"人力行政", subject:"六月团建报名最后一天", preview:"还没报名的同学请今天下班前完成……", body:"六月团建定在本周五，主题是城市徒步 + 晚宴。还没报名的同学请今天 18:00 前完成报名，便于统计人数和订餐。", time:"昨天", read:true, starred:false, archived:false},
+    {id:6, from:"客户成功 · 苏航", subject:"华东区某客户想要离线能力", preview:"他们门店网络不稳定，希望有离线队列……", body:"华东区连锁客户反馈门店网络经常断，希望移动端能有离线排队、恢复后自动补传的能力。我把需求文档附在下面，麻烦评估一下排期。", time:"周一", read:true, starred:true, archived:false},
+    {id:7, from:"财务部", subject:"差旅报销单据退回", preview:"你上月的两笔打车发票抬头有误……", body:"你上月的两笔打车发票抬头写成了个人，需要改成公司抬头后重新提交。具体金额和单号见报销系统。", time:"周一", read:true, starred:false, archived:false}
+  ];
+
+  var currentFolder = "inbox";
+  var unreadOnly = false;
+  var currentId = null;
+
+  var listEl = document.getElementById("msgList");
+  var readSubj = document.getElementById("readSubj");
+  var readBody = document.getElementById("readBody");
+  var starBtn = document.getElementById("starBtn");
+  var starLabel = document.getElementById("starLabel");
+  var archiveBtn = document.getElementById("archiveBtn");
+  var toastEl = document.getElementById("toast");
+  var inboxCnt = document.getElementById("inboxCnt");
+  var searchInput = document.getElementById("searchInput");
+  var unreadFilter = document.getElementById("unreadFilter");
+
+  function folderMessages(){
+    return messages.filter(function(m){
+      if(currentFolder === "starred") return !m.archived && m.starred;
+      return !m.archived;
+    });
+  }
+
+  function visibleMessages(){
+    var q = searchInput.value.trim().toLowerCase();
+    return folderMessages().filter(function(m){
+      if(unreadOnly && m.read) return false;
+      if(q && (m.from+" "+m.subject+" "+m.preview).toLowerCase().indexOf(q) < 0) return false;
+      return true;
+    });
+  }
+
+  function updateInboxCount(){
+    var n = messages.filter(function(m){return !m.archived && !m.read;}).length;
+    inboxCnt.textContent = String(n);
+  }
+
+  function renderList(){
+    var list = visibleMessages();
+    listEl.innerHTML = "";
+    if(list.length === 0){
+      var e = document.createElement("div");
+      e.className = "empty-list";
+      e.textContent = unreadOnly ? "没有未读邮件了" : "这里没有匹配的邮件";
+      listEl.appendChild(e);
+      return;
+    }
+    list.forEach(function(m){
+      var row = document.createElement("div");
+      row.className = "msg" + (m.starred ? " starred" : "") + (m.id === currentId ? " selected" : "");
+      row.setAttribute("data-id", m.id);
+
+      var av = document.createElement("div");
+      av.className = "avatar";
+      av.textContent = m.from.charAt(0);
+
+      var body = document.createElement("div");
+      body.className = "body";
+
+      var r1 = document.createElement("div");
+      r1.className = "row1";
+      var from = document.createElement("span");
+      from.className = "from" + (m.read ? " dim" : "");
+      from.textContent = m.from;
+      var time = document.createElement("span");
+      time.className = "time";
+      time.textContent = m.time;
+      r1.appendChild(from);
+      r1.appendChild(time);
+
+      var subj = document.createElement("div");
+      subj.className = "subj" + (m.read ? " dim" : "");
+      subj.textContent = m.subject;
+
+      var prev = document.createElement("div");
+      prev.className = "preview";
+      prev.textContent = m.preview;
+
+      body.appendChild(r1);
+      body.appendChild(subj);
+      body.appendChild(prev);
+
+      var star = document.createElement("span");
+      star.className = "star";
+      star.textContent = m.starred ? "★" : "☆";
+
+      row.appendChild(av);
+      row.appendChild(body);
+      if(!m.read){ var dot = document.createElement("span"); dot.className = "dot"; row.appendChild(dot); }
+      row.appendChild(star);
+
+      row.addEventListener("click", function(){ openMessage(m.id); });
+      listEl.appendChild(row);
+    });
+  }
+
+  function openMessage(id){
+    var m = messages.find(function(x){return x.id === id;});
+    if(!m) return;
+    if(!m.read){ m.read = true; updateInboxCount(); }
+    currentId = id;
+    readSubj.textContent = m.subject;
+    starBtn.classList.toggle("starred", m.starred);
+    starLabel.textContent = m.starred ? "已星标" : "星标";
+
+    readBody.innerHTML = "";
+    var meta = document.createElement("div");
+    meta.className = "read-meta";
+    var av = document.createElement("div");
+    av.className = "avatar";
+    av.textContent = m.from.charAt(0);
+    var whoWrap = document.createElement("div");
+    var who = document.createElement("div");
+    who.className = "who";
+    who.textContent = m.from;
+    var to = document.createElement("div");
+    to.className = "to";
+    to.textContent = "发至：我";
+    whoWrap.appendChild(who);
+    whoWrap.appendChild(to);
+    var when = document.createElement("span");
+    when.className = "when";
+    when.textContent = m.time;
+    meta.appendChild(av);
+    meta.appendChild(whoWrap);
+    meta.appendChild(when);
+
+    var content = document.createElement("div");
+    content.className = "read-content";
+    var paras = m.body.split("\n\n");
+    paras.forEach(function(p){
+      var pp = document.createElement("p");
+      pp.textContent = p;
+      content.appendChild(pp);
+    });
+    var sign = document.createElement("div");
+    sign.className = "sign";
+    sign.textContent = "—— " + m.from;
+    content.appendChild(sign);
+
+    readBody.appendChild(meta);
+    readBody.appendChild(content);
+    renderList();
+  }
+
+  function showToast(t){
+    toastEl.textContent = t;
+    toastEl.classList.add("show");
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(function(){ toastEl.classList.remove("show"); }, 1800);
+  }
+
+  starBtn.addEventListener("click", function(){
+    var m = messages.find(function(x){return x.id === currentId;});
+    if(!m) return;
+    m.starred = !m.starred;
+    starBtn.classList.toggle("starred", m.starred);
+    starLabel.textContent = m.starred ? "已星标" : "星标";
+    showToast(m.starred ? "已加星标" : "已取消星标");
+    renderList();
+  });
+
+  archiveBtn.addEventListener("click", function(){
+    var m = messages.find(function(x){return x.id === currentId;});
+    if(!m) return;
+    m.archived = true;
+    var next = visibleMessages().find(function(x){return x.id !== currentId;});
+    showToast("已归档「" + m.subject + "」");
+    if(next){ openMessage(next.id); }
+    else {
+      currentId = null;
+      readSubj.textContent = "";
+      readBody.innerHTML = '<div class="read-empty">没有更多邮件</div>';
+      starBtn.classList.remove("starred");
+      renderList();
+    }
+  });
+
+  unreadFilter.addEventListener("click", function(){
+    unreadOnly = !unreadOnly;
+    unreadFilter.classList.toggle("on", unreadOnly);
+    unreadFilter.textContent = unreadOnly ? "显示全部" : "只看未读";
+    renderList();
+  });
+
+  searchInput.addEventListener("input", renderList);
+
+  var navEl = document.getElementById("nav");
+  navEl.addEventListener("click", function(e){
+    var item = e.target.closest(".nav-item");
+    if(!item) return;
+    var folder = item.getAttribute("data-folder");
+    if(folder === "sent" || folder === "draft"){ showToast("该文件夹暂无内容（演示聚焦收件箱）"); return; }
+    currentFolder = folder;
+    currentId = null;
+    readSubj.textContent = "";
+    readBody.innerHTML = '<div class="read-empty">选择一封邮件开始阅读</div>';
+    starBtn.classList.remove("starred");
+    var items = navEl.querySelectorAll(".nav-item");
+    items.forEach(function(it){ it.classList.toggle("active", it === item); });
+    renderList();
+  });
+
+  var composeBtn = document.getElementById("composeBtn");
+  composeBtn.addEventListener("click", function(){ showToast("写信功能为演示占位，未真正发送"); });
+
+  updateInboxCount();
+  renderList();
+  openMessage(1);
+})();
+</script>
+</body>
+</html>

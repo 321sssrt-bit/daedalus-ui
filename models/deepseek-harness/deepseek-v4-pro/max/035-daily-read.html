@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>晨钟日报 · 要闻详情</title>
+<style>
+  :root {
+    --paper: #f3ede0;
+    --ink: #2b2620;
+    --muted: #8a7f70;
+    --accent: #b23a2c;
+    --rule: #d8cfbc;
+    --sepia: #6f6252;
+    --body-size: 14px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: -apple-system, "Segoe UI", "Microsoft YaHei", "PingFang SC", "Helvetica Neue", sans-serif;
+    background: radial-gradient(circle at 50% 15%, #ece2cf 0%, #cfc3ac 100%);
+    display: flex; align-items: center; justify-content: center;
+    min-height: 100vh; padding: 20px; color: var(--ink);
+  }
+  .phone {
+    width: 390px; height: 844px;
+    background: var(--paper);
+    border: 1px solid #b8a98c;
+    border-radius: 46px;
+    box-shadow: 0 30px 80px rgba(60,50,30,.35), 0 4px 18px rgba(60,50,30,.2);
+    overflow: hidden; position: relative;
+  }
+  .screen { height: 100%; overflow-y: auto; padding: 0 24px 40px; }
+
+  .statusbar {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 16px 4px 6px; font-size: 13px; color: var(--sepia); letter-spacing: .5px;
+  }
+  .sb-icons { font-size: 12px; letter-spacing: 1px; }
+
+  /* 报头 */
+  .masthead { text-align: center; padding: 14px 0 10px; border-top: 3px double var(--ink); border-bottom: 1px solid var(--ink); }
+  .masthead .name { font-size: 34px; font-weight: 800; letter-spacing: 8px; font-family: "Songti SC", "SimSun", serif; }
+  .masthead .meta { display: flex; justify-content: center; gap: 12px; font-size: 11px; color: var(--muted); margin-top: 6px; letter-spacing: 1px; }
+
+  /* 标题 */
+  .headline { font-size: 24px; line-height: 1.35; font-weight: 700; margin: 20px 0 8px; letter-spacing: .5px; }
+  .byline { font-size: 12px; color: var(--muted); padding-bottom: 12px; border-bottom: 1px solid var(--rule); }
+  .byline b { color: var(--ink); }
+
+  /* 主图 */
+  .figure { margin: 16px 0 6px; }
+  .figure .pic {
+    height: 168px; border-radius: 2px; overflow: hidden; position: relative;
+    background: linear-gradient(160deg, #ddd3bd 0%, #c9bc9f 100%);
+    border: 1px solid var(--rule);
+  }
+  .figure .pic svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .figcap { font-size: 11px; color: var(--muted); margin-top: 6px; letter-spacing: .5px; }
+
+  /* 正文 */
+  .article { font-size: var(--body-size); line-height: 1.9; margin-top: 14px; }
+  .lead { margin-bottom: 14px; text-align: justify; }
+  .lead .dropcap {
+    float: left; font-size: 3.2em; line-height: .86; padding: 2px 8px 0 0;
+    font-weight: 700; color: var(--accent); font-family: "Songti SC", "SimSun", serif;
+  }
+  .columns {
+    column-count: 2; column-gap: 16px; column-rule: 1px solid var(--rule);
+    text-align: justify; orphans: 2; widows: 2;
+  }
+  .columns p { margin-bottom: 12px; }
+  .columns p.quote { color: var(--sepia); font-weight: 600; column-span: all; font-size: 1.05em; padding: 4px 0 4px 12px; border-left: 3px solid var(--accent); }
+
+  /* 工具条 */
+  .toolbar {
+    position: sticky; bottom: 0; margin: 18px -24px -40px; padding: 12px 16px;
+    background: linear-gradient(180deg, rgba(243,237,224,.85), rgba(243,237,224,1));
+    backdrop-filter: blur(4px);
+    display: flex; align-items: center; justify-content: space-between;
+    border-top: 1px solid var(--rule);
+  }
+  .sizer { display: flex; align-items: center; gap: 6px; }
+  .sizer .sz-label { font-size: 12px; color: var(--muted); letter-spacing: 1px; }
+  .sizer button {
+    width: 34px; height: 34px; border-radius: 8px; cursor: pointer;
+    border: 1px solid var(--rule); background: #fbf7ee; color: var(--ink);
+    font-size: 15px; font-weight: 600;
+  }
+  .sizer button:active { background: var(--rule); }
+  .sizer .sz-val { font-size: 12px; color: var(--sepia); min-width: 22px; text-align: center; font-variant-numeric: tabular-nums; }
+  .save {
+    display: flex; align-items: center; gap: 6px; cursor: pointer;
+    border: 1px solid var(--rule); background: #fbf7ee; color: var(--ink);
+    border-radius: 999px; padding: 8px 14px; font-size: 13px;
+  }
+  .save svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; }
+  .save.on { color: #fff; background: var(--accent); border-color: var(--accent); }
+  .save.on svg { fill: #fff; }
+
+  .toast {
+    position: absolute; left: 50%; bottom: 90px; transform: translateX(-50%) translateY(8px);
+    background: var(--ink); color: var(--paper); font-size: 13px; padding: 10px 18px;
+    border-radius: 999px; opacity: 0; pointer-events: none; transition: opacity .25s, transform .25s;
+    white-space: nowrap;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  @media (max-width: 430px) {
+    body { padding: 0; }
+    .phone { width: 100vw; height: 100vh; border: none; border-radius: 0; box-shadow: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+  }
+</style>
+</head>
+<body>
+  <div class="phone">
+    <div class="screen">
+      <div class="statusbar"><span>06:30</span><span class="sb-icons">▲▲ &nbsp;●&nbsp; ▮▮</span></div>
+
+      <header class="masthead">
+        <div class="name">晨钟日报</div>
+        <div class="meta"><span>2024年11月4日</span><span>第 284 期</span><span>要闻版</span></div>
+      </header>
+
+      <h1 class="headline">旧码头改建计划本周进入全民投票</h1>
+      <p class="byline">本报记者 <b>沈若澜</b> · 摄影 <b>周砚</b> · 字数 1,208</p>
+
+      <figure class="figure">
+        <div class="pic">
+          <svg viewBox="0 0 342 168" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+            <rect width="342" height="168" fill="#d8cfbc"/>
+            <path d="M0 132 L342 120 L342 168 L0 168 Z" fill="#b7a988"/>
+            <path d="M40 132 L52 96 L64 132 Z M58 100 L150 106 L166 100 M140 132 L148 88 L158 132" fill="#6f6252"/>
+            <path d="M250 128 L262 84 L276 128 Z" fill="#6f6252"/>
+            <path d="M0 96 L342 78" stroke="#6f6252" stroke-width="2" fill="none" opacity=".55"/>
+            <circle cx="60" cy="52" r="22" fill="#b23a2c" opacity=".85"/>
+          </svg>
+        </div>
+        <figcaption class="figcap">图：旧码头栈桥现状，改建后将保留三座吊机作为景观。</figcaption>
+      </figure>
+
+      <article class="article">
+        <p class="lead"><span class="dropcap">市</span>政部门昨日确认，滨江旧码头改建方案已完成公众意见征集，将于本周五至周日开放全民投票。这是本市首次就公共岸线改造启动全城表决，结果将直接决定码头地块的最终用途。</p>
+        <div class="columns" id="columns">
+          <p>方案共三套：其一保留货运功能、仅加固栈桥；其二改建为文化码头，引入剧场与市集；其三整体改造为滨江公园。规划局介绍，三套方案总投资在四亿至九亿元之间。</p>
+          <p class="quote">“我们希望把选择权交回给每天从这座码头经过的人。”——规划局负责人</p>
+          <p>投票通过市民云与线下站点同步进行，需实名登记。年满十八周岁的本市居民均可参与，每户限投一票。</p>
+          <p>此前征集的四万七千份意见中，六成支持保留码头历史构件。吊机、轨道与旧仓库外墙将被列为不可拆除部分。</p>
+          <p>投票结果预计于下周三公布，并随即启动设计深化与环评程序。</p>
+        </div>
+      </article>
+
+      <div class="toast" id="toast">已加入收藏</div>
+    </div>
+
+    <div class="toolbar">
+      <div class="sizer">
+        <span class="sz-label">字号</span>
+        <button id="szMinus" aria-label="减小字号">A−</button>
+        <span class="sz-val" id="szVal">中</span>
+        <button id="szPlus" aria-label="增大字号">A+</button>
+      </div>
+      <button class="save" id="saveBtn" aria-label="收藏本文">
+        <svg viewBox="0 0 24 24"><path d="M12 21s-7.5-4.6-9.5-9.2C1 8.2 3.2 5 6.6 5c2 0 3.4 1 4.4 2.3C12 6 13.4 5 15.4 5 18.8 5 21 8.2 21.5 11.8 19.5 16.4 12 21 12 21z"/></svg>
+        <span id="saveLabel">收藏</span>
+      </button>
+    </div>
+  </div>
+
+<script>
+  /* 字号三档调节 + 收藏切换 */
+  var sizes = [
+    { label: '小', px: 13 },
+    { label: '中', px: 14 },
+    { label: '大', px: 16 }
+  ];
+  var level = 1;
+  var root = document.documentElement;
+  var szVal = document.getElementById('szVal');
+  var saveBtn = document.getElementById('saveBtn');
+  var saveLabel = document.getElementById('saveLabel');
+  var toast = document.getElementById('toast');
+  var toastTimer = null;
+
+  function apply() {
+    root.style.setProperty('--body-size', sizes[level].px + 'px');
+    szVal.textContent = sizes[level].label;
+  }
+  document.getElementById('szMinus').addEventListener('click', function () {
+    if (level > 0) { level--; apply(); }
+  });
+  document.getElementById('szPlus').addEventListener('click', function () {
+    if (level < sizes.length - 1) { level++; apply(); }
+  });
+
+  saveBtn.addEventListener('click', function () {
+    var on = saveBtn.classList.toggle('on');
+    saveLabel.textContent = on ? '已收藏' : '收藏';
+    toast.textContent = on ? '已加入收藏' : '已取消收藏';
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { toast.classList.remove('show'); }, 1400);
+  });
+
+  apply();
+</script>
+</body>
+</html>

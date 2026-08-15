@@ -1,0 +1,540 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>胶片社 · 动态</title>
+<style>
+  :root{
+    --bg:#1b1526;
+    --surface:#f4f0f7;
+    --surface-2:#2a2140;
+    --line:#e5def0;
+    --accent:#7b4bd1;
+    --accent-soft:#b48cff;
+    --text:#241d33;
+    --muted:#8b82a3;
+    --error:#e0506a;
+    --ok:#3fbf8f;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:-apple-system,"Segoe UI","Microsoft YaHei","PingFang SC","Helvetica Neue",sans-serif;
+    background:#0e0b16;
+    color:var(--text);
+    -webkit-font-smoothing:antialiased;
+    display:flex;align-items:center;justify-content:center;
+    min-height:100vh;
+  }
+  /* 手机壳 */
+  .phone{
+    width:390px;height:844px;
+    background:var(--bg);
+    border-radius:44px;
+    border:10px solid #0c0913;
+    box-shadow:0 30px 70px rgba(0,0,0,.55), inset 0 0 0 1px rgba(255,255,255,.05);
+    overflow:hidden;
+    display:flex;flex-direction:column;
+    position:relative;
+  }
+  @media (max-width:430px){
+    body{align-items:stretch}
+    .phone{width:100vw;height:100vh;border-radius:0;border:none;box-shadow:none}
+  }
+  .statusbar{
+    height:44px;flex:0 0 auto;
+    display:flex;align-items:center;justify-content:space-between;
+    padding:0 22px;color:#d9d2ec;font-size:13px;font-weight:600;
+    letter-spacing:.2px;
+  }
+  .statusbar .clock{letter-spacing:.5px}
+  .statusbar .icons{display:flex;gap:6px;align-items:center}
+  .appbar{
+    flex:0 0 auto;
+    padding:10px 18px 12px;
+    display:flex;align-items:center;justify-content:space-between;
+  }
+  .brand{display:flex;align-items:center;gap:9px}
+  .brand .spool{
+    width:28px;height:28px;border-radius:8px;
+    background:linear-gradient(135deg,var(--accent),var(--accent-soft));
+    display:flex;align-items:center;justify-content:center;
+  }
+  .brand .spool svg{display:block}
+  .brand h1{font-size:19px;font-weight:800;color:#efe9fb;letter-spacing:.5px}
+  .brand .sub{font-size:11px;color:var(--muted);margin-top:1px}
+  .iconbtn{
+    width:36px;height:36px;border-radius:50%;
+    background:var(--surface-2);border:none;color:#d9d2ec;
+    display:flex;align-items:center;justify-content:center;cursor:pointer;
+    transition:background .18s ease;
+  }
+  .iconbtn:hover{background:#372c55}
+  .iconbtn:focus-visible{outline:2px solid var(--accent-soft);outline-offset:2px}
+  .chips{
+    flex:0 0 auto;
+    display:flex;gap:8px;padding:2px 18px 12px;overflow-x:auto;scrollbar-width:none;
+  }
+  .chips::-webkit-scrollbar{display:none}
+  .chip{
+    flex:0 0 auto;padding:7px 14px;border-radius:999px;font-size:13px;font-weight:600;
+    background:var(--surface-2);color:#c8bfdf;border:1px solid transparent;cursor:pointer;
+    transition:all .18s ease;
+  }
+  .chip.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .chip:hover{border-color:var(--accent-soft)}
+  .feed{
+    flex:1 1 auto;overflow-y:auto;padding:2px 16px 90px;
+    scrollbar-width:none;
+  }
+  .feed::-webkit-scrollbar{display:none}
+  .card{
+    background:var(--surface);
+    border-radius:16px;margin-bottom:18px;
+    overflow:hidden;
+    box-shadow:0 10px 26px rgba(0,0,0,.32);
+    animation:rise .38s cubic-bezier(.2,.7,.3,1) both;
+  }
+  @keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+  .card .head{display:flex;align-items:center;gap:10px;padding:12px 14px 10px}
+  .avatar{
+    width:38px;height:38px;border-radius:50%;flex:0 0 auto;
+    display:flex;align-items:center;justify-content:center;
+    color:#fff;font-weight:800;font-size:14px;
+  }
+  .meta{min-width:0}
+  .meta .name{font-size:14px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:6px}
+  .meta .time{font-size:11px;color:var(--muted);margin-top:2px}
+  .vis-badge{
+    font-size:10px;font-weight:700;padding:2px 7px;border-radius:999px;
+    background:#efe7fb;color:var(--accent);border:1px solid #e0d2f5;
+  }
+  .photo{
+    position:relative;margin:0 14px;
+    height:212px;border-radius:10px;overflow:hidden;
+    background:linear-gradient(160deg,#3a2b5e,#6a4ab0 55%,#b48cff);
+  }
+  .photo .stamp{
+    position:absolute;right:10px;top:10px;
+    font-size:10px;font-weight:800;color:rgba(255,255,255,.92);
+    background:rgba(0,0,0,.28);padding:3px 8px;border-radius:6px;letter-spacing:1px;
+  }
+  .photo svg{position:absolute;left:0;bottom:0;width:100%;height:100%}
+  .caption{padding:11px 14px 14px}
+  .caption p{font-size:14px;line-height:1.55;color:var(--text)}
+  .caption p b{color:var(--accent)}
+  .actions{
+    display:flex;align-items:center;gap:4px;padding:0 8px 12px 8px;
+  }
+  .act{
+    display:flex;align-items:center;gap:6px;border:none;background:none;
+    color:var(--muted);font-size:12px;font-weight:600;cursor:pointer;
+    padding:7px 10px;border-radius:10px;transition:all .16s ease;
+  }
+  .act:hover{background:#ece5f6;color:var(--text)}
+  .act.liked{color:var(--accent)}
+  .act svg{display:block}
+  .act .n{margin-left:1px}
+  /* 底栏 */
+  .navbar{
+    flex:0 0 auto;height:72px;
+    background:var(--surface-2);
+    border-top:1px solid rgba(255,255,255,.06);
+    display:flex;align-items:center;justify-content:space-around;
+    position:relative;
+  }
+  .nav{
+    border:none;background:none;color:#9a90b8;font-size:11px;font-weight:600;
+    display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;
+    padding:6px 0;width:72px;transition:color .16s ease;
+  }
+  .nav.active{color:var(--accent-soft)}
+  .nav svg{display:block}
+  .fab{
+    position:absolute;top:-26px;left:50%;transform:translateX(-50%);
+    width:56px;height:56px;border-radius:50%;
+    background:linear-gradient(135deg,var(--accent),var(--accent-soft));
+    border:4px solid var(--surface-2);color:#fff;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:0 8px 20px rgba(123,75,209,.45);
+    transition:transform .16s ease, box-shadow .16s ease;
+  }
+  .fab:hover{transform:translateX(-50%) scale(1.05);box-shadow:0 10px 24px rgba(123,75,209,.6)}
+  .fab:focus-visible{outline:2px solid #fff;outline-offset:2px}
+  /* 发布浮层 */
+  .sheet{
+    position:absolute;inset:0;z-index:40;
+    display:flex;flex-direction:column;
+    background:var(--bg);
+    transform:translateY(100%);
+    transition:transform .3s cubic-bezier(.2,.7,.3,1);
+  }
+  .sheet.open{transform:translateY(0)}
+  .sheet .top{
+    flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;
+    padding:52px 18px 10px;
+  }
+  .sheet .top h2{font-size:17px;font-weight:800;color:#efe9fb}
+  .sheet .body{flex:1 1 auto;overflow-y:auto;padding:8px 18px 20px;scrollbar-width:none}
+  .sheet .body::-webkit-scrollbar{display:none}
+  .photo-pick{display:flex;gap:10px;margin-bottom:16px;overflow-x:auto;scrollbar-width:none}
+  .photo-pick::-webkit-scrollbar{display:none}
+  .swatch{
+    width:76px;height:76px;border-radius:12px;flex:0 0 auto;cursor:pointer;
+    border:3px solid transparent;position:relative;transition:transform .15s ease;
+  }
+  .swatch:hover{transform:scale(1.04)}
+  .swatch.sel{border-color:var(--accent-soft)}
+  .swatch .check{
+    position:absolute;right:6px;bottom:6px;width:20px;height:20px;border-radius:50%;
+    background:var(--accent);color:#fff;display:none;align-items:center;justify-content:center;
+  }
+  .swatch.sel .check{display:flex}
+  .swatch.s1{background:linear-gradient(150deg,#3a2b5e,#8a5fd0)}
+  .swatch.s2{background:linear-gradient(150deg,#241d33,#6a4ab0)}
+  .swatch.s3{background:linear-gradient(150deg,#50337e,#b48cff)}
+  textarea{
+    width:100%;min-height:120px;resize:vertical;
+    background:var(--surface);border:1px solid var(--line);border-radius:14px;
+    padding:14px;font-family:inherit;font-size:15px;line-height:1.6;color:var(--text);
+    outline:none;transition:border-color .16s ease, box-shadow .16s ease;
+  }
+  textarea::placeholder{color:var(--muted)}
+  textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(123,75,209,.18)}
+  .counter{text-align:right;font-size:11px;color:var(--muted);margin-top:4px}
+  .section{margin-top:18px}
+  .section .label{font-size:12px;font-weight:700;color:#c8bfdf;margin-bottom:9px;letter-spacing:.3px}
+  .vis-group{display:flex;gap:8px}
+  .vis{
+    flex:1;padding:11px 8px;border-radius:12px;border:1px solid var(--surface-2);
+    background:var(--surface-2);color:#c8bfdf;font-size:13px;font-weight:600;
+    cursor:pointer;text-align:center;transition:all .16s ease;
+  }
+  .vis:hover{border-color:var(--accent-soft)}
+  .vis.sel{background:var(--accent);border-color:var(--accent);color:#fff}
+  .vis .hint{display:block;font-size:10px;font-weight:400;opacity:.75;margin-top:2px}
+  .row-toggle{
+    display:flex;align-items:center;justify-content:space-between;
+    background:var(--surface-2);border:1px solid var(--surface-2);
+    border-radius:12px;padding:12px 14px;
+  }
+  .row-toggle .t{font-size:13px;color:#d9d2ec;font-weight:600}
+  .row-toggle .t small{display:block;font-size:11px;color:var(--muted);font-weight:400;margin-top:2px}
+  .switch{
+    position:relative;width:46px;height:26px;border-radius:999px;border:none;cursor:pointer;
+    background:#443a63;transition:background .18s ease;flex:0 0 auto;
+  }
+  .switch::after{
+    content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;
+    background:#fff;transition:transform .18s ease;
+  }
+  .switch.on{background:var(--error)}
+  .switch.on::after{transform:translateX(20px)}
+  .switch:focus-visible{outline:2px solid var(--accent-soft);outline-offset:2px}
+  .error-box{
+    display:none;align-items:flex-start;gap:10px;margin-top:14px;
+    background:rgba(224,80,106,.12);border:1px solid rgba(224,80,106,.5);
+    border-radius:12px;padding:12px 14px;
+  }
+  .error-box.show{display:flex;animation:shake .4s ease}
+  @keyframes shake{0%,100%{transform:none}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+  .error-box svg{flex:0 0 auto;margin-top:1px}
+  .error-box .et{font-size:13px;font-weight:700;color:#ffd7de}
+  .error-box .ed{font-size:12px;color:#f4b4c0;margin-top:3px;line-height:1.5}
+  .sheet .foot{
+    flex:0 0 auto;padding:12px 18px 26px;
+    background:var(--bg);border-top:1px solid rgba(255,255,255,.06);
+  }
+  .publish{
+    width:100%;padding:15px;border-radius:14px;border:none;cursor:pointer;
+    background:linear-gradient(135deg,var(--accent),var(--accent-soft));
+    color:#fff;font-size:15px;font-weight:800;letter-spacing:1px;
+    transition:transform .15s ease, opacity .15s ease;
+  }
+  .publish:hover{opacity:.94}
+  .publish:active{transform:scale(.985)}
+  .publish:focus-visible{outline:2px solid #fff;outline-offset:2px}
+  .publish:disabled{opacity:.45;cursor:not-allowed}
+  /* 提示条 */
+  .toast{
+    position:absolute;left:50%;top:86px;transform:translateX(-50%) translateY(-8px);
+    z-index:60;background:#efe7fb;color:var(--text);
+    padding:11px 18px;border-radius:12px;font-size:13px;font-weight:700;
+    box-shadow:0 12px 30px rgba(0,0,0,.4);opacity:0;pointer-events:none;
+    transition:opacity .22s ease, transform .22s ease;max-width:320px;text-align:center;
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .toast.ok{background:var(--ok);color:#fff}
+  .toast.err{background:var(--error);color:#fff}
+  @media (prefers-reduced-motion: reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="phone">
+  <!-- 状态栏 -->
+  <div class="statusbar">
+    <span class="clock">09:41</span>
+    <span class="icons">
+      <svg width="16" height="12" viewBox="0 0 16 12" fill="none"><path d="M1 9.5h2.4l1.6-6 2.4 8 1.7-5 1.3 3H15" stroke="#d9d2ec" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <svg width="16" height="12" viewBox="0 0 18 12" fill="none"><rect x="1" y="1" width="11" height="10" rx="2.5" stroke="#d9d2ec" stroke-width="1.3"/><rect x="13.5" y="3.5" width="3" height="5" rx="1" fill="#d9d2ec"/></svg>
+    </span>
+  </div>
+
+  <!-- 顶栏 -->
+  <div class="appbar">
+    <div class="brand">
+      <div class="spool"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="#fff" stroke-width="1.6"/><circle cx="8" cy="8" r="2" fill="#fff"/></svg></div>
+      <div><h1>胶片社</h1><div class="sub">把日子冲印出来</div></div>
+    </div>
+    <button class="iconbtn" aria-label="消息通知"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M4 13h10l-1.6-2V8.5a3.4 3.4 0 0 0-6.8 0V11L4 13z" stroke="#d9d2ec" stroke-width="1.5" stroke-linejoin="round"/><circle cx="9" cy="3" r="1.5" fill="#d9d2ec"/></svg></button>
+  </div>
+
+  <!-- 话题条 -->
+  <div class="chips">
+    <button class="chip active">关注</button>
+    <button class="chip">同城</button>
+    <button class="chip">胶片相机</button>
+    <button class="chip">暗房手记</button>
+    <button class="chip">扫街</button>
+  </div>
+
+  <!-- 动态流 -->
+  <div class="feed" id="feed">
+    <article class="card">
+      <div class="head">
+        <span class="avatar" style="background:linear-gradient(135deg,#6a4ab0,#b48cff)">禾</span>
+        <div class="meta">
+          <div class="name">禾野 <span class="vis-badge">公开</span></div>
+          <div class="time">8 分钟前 · 京都站前</div>
+        </div>
+      </div>
+      <div class="photo" style="background:linear-gradient(160deg,#3a2b5e,#8a5fd0 55%,#e0b7ff)">
+        <span class="stamp">FUJI 400</span>
+        <svg viewBox="0 0 360 212" preserveAspectRatio="none" aria-hidden="true"><path d="M0 160 L90 96 L170 150 L260 70 L360 130 V212 H0 Z" fill="rgba(0,0,0,.22)"/></svg>
+      </div>
+      <div class="caption"><p>出差顺路带的半格机，一卷还没拍完就舍不得了。<b>#胶片日常</b></p></div>
+      <div class="actions">
+        <button class="act"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 13.5S2.5 10 2.5 6A2.9 2.9 0 0 1 8 4.6 2.9 2.9 0 0 1 13.5 6c0 4-5.5 7.5-5.5 7.5z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg><span class="n">214</span></button>
+        <button class="act"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 7.5h12M8 2.5v12" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg><span class="n">38</span></button>
+      </div>
+    </article>
+
+    <article class="card">
+      <div class="head">
+        <span class="avatar" style="background:linear-gradient(135deg,#241d33,#6a4ab0)">澄</span>
+        <div class="meta">
+          <div class="name">澄子 <span class="vis-badge">好友</span></div>
+          <div class="time">32 分钟前 · 屋顶天台</div>
+        </div>
+      </div>
+      <div class="photo" style="background:linear-gradient(160deg,#241d33,#50337e 55%,#b48cff)">
+        <span class="stamp">ACROS 100</span>
+        <svg viewBox="0 0 360 212" preserveAspectRatio="none" aria-hidden="true"><circle cx="250" cy="70" r="34" fill="rgba(255,255,255,.28)"/><path d="M0 176 L120 120 L240 170 L360 110 V212 H0 Z" fill="rgba(0,0,0,.26)"/></svg>
+      </div>
+      <div class="caption"><p>天台的风把云吹成一张底片，黑白也藏不住蓝。<b>#黑白 #天空</b></p></div>
+      <div class="actions">
+        <button class="act"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 13.5S2.5 10 2.5 6A2.9 2.9 0 0 1 8 4.6 2.9 2.9 0 0 1 13.5 6c0 4-5.5 7.5-5.5 7.5z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg><span class="n">96</span></button>
+        <button class="act"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 7.5h12M8 2.5v12" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg><span class="n">12</span></button>
+      </div>
+    </article>
+
+    <article class="card">
+      <div class="head">
+        <span class="avatar" style="background:linear-gradient(135deg,#8a5fd0,#50337e)">鹿</span>
+        <div class="meta">
+          <div class="name">鹿鸣 <span class="vis-badge">公开</span></div>
+          <div class="time">1 小时前 · 江边</div>
+        </div>
+      </div>
+      <div class="photo" style="background:linear-gradient(160deg,#50337e,#8a5fd0 55%,#d9c4ff)">
+        <span class="stamp">PROVIA 100</span>
+        <svg viewBox="0 0 360 212" preserveAspectRatio="none" aria-hidden="true"><path d="M0 150 Q90 90 180 130 T360 90 V212 H0 Z" fill="rgba(0,0,0,.2)"/></svg>
+      </div>
+      <div class="caption"><p>傍晚的江面像一条晾着的胶卷，一格一格发亮。<b>#晚霞</b></p></div>
+      <div class="actions">
+        <button class="act"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 13.5S2.5 10 2.5 6A2.9 2.9 0 0 1 8 4.6 2.9 2.9 0 0 1 13.5 6c0 4-5.5 7.5-5.5 7.5z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg><span class="n">153</span></button>
+        <button class="act"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 7.5h12M8 2.5v12" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg><span class="n">21</span></button>
+      </div>
+    </article>
+  </div>
+
+  <!-- 底栏 -->
+  <div class="navbar">
+    <button class="nav active"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M3 10l7-6 7 6v7H5v-4h2v4" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>动态</button>
+    <button class="nav" id="navDiscover"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.6"/><circle cx="10" cy="10" r="2" fill="currentColor"/></svg>发现</button>
+    <div style="width:72px"></div>
+    <button class="nav" id="navMsg"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M4 16l-2 2V5a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>消息</button>
+    <button class="nav" id="navMe"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="7" r="3.2" stroke="currentColor" stroke-width="1.6"/><path d="M4 17c.5-3 3-4.5 6-4.5s5.5 1.5 6 4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>我的</button>
+    <button class="fab" id="openComposer" aria-label="发布动态"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/></svg></button>
+  </div>
+
+  <!-- 发布浮层 -->
+  <div class="sheet" id="composer">
+    <div class="top">
+      <h2>发布动态</h2>
+      <button class="iconbtn" id="closeComposer" aria-label="关闭"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 3l10 10M13 3L3 13" stroke="#d9d2ec" stroke-width="1.8" stroke-linecap="round"/></svg></button>
+    </div>
+    <div class="body">
+      <div class="photo-pick" id="photoPick">
+        <button class="swatch s1 sel" data-p="1" aria-label="选择照片一"><span class="check"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2.5 6.5L5 9l4.5-6" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span></button>
+        <button class="swatch s2" data-p="2" aria-label="选择照片二"><span class="check"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2.5 6.5L5 9l4.5-6" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span></button>
+        <button class="swatch s3" data-p="3" aria-label="选择照片三"><span class="check"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2.5 6.5L5 9l4.5-6" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span></button>
+      </div>
+      <textarea id="draft" placeholder="这一刻，你想冲印点什么……" maxlength="140"></textarea>
+      <div class="counter" id="counter">0 / 140</div>
+
+      <div class="section">
+        <div class="label">谁可以看</div>
+        <div class="vis-group" id="visGroup">
+          <button class="vis sel" data-v="公开"><span>公开</span><span class="hint">所有人可见</span></button>
+          <button class="vis" data-v="好友"><span>好友</span><span class="hint">互相关注</span></button>
+          <button class="vis" data-v="仅自己"><span>仅自己</span><span class="hint">私人底片</span></button>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="label">发布环境</div>
+        <div class="row-toggle">
+          <div class="t">模拟断网<small>开启后，本次发布将失败（用于演示恢复）</small></div>
+          <button class="switch" id="offlineToggle" role="switch" aria-checked="false" aria-label="模拟断网"></button>
+        </div>
+      </div>
+
+      <div class="error-box" id="errorBox">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="7.5" stroke="#ffd7de" stroke-width="1.5"/><path d="M9 5.5v4M9 12.2v.2" stroke="#ffd7de" stroke-width="1.6" stroke-linecap="round"/></svg>
+        <div><div class="et">发布未完成，网络似乎断开了</div><div class="ed">别担心，你的文字与「可见范围」都已完整保留，关掉断网后重试即可。</div></div>
+      </div>
+    </div>
+    <div class="foot">
+      <button class="publish" id="publishBtn">发布</button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>
+  (function(){
+    var feed = document.getElementById('feed');
+    var composer = document.getElementById('composer');
+    var openBtn = document.getElementById('openComposer');
+    var closeBtn = document.getElementById('closeComposer');
+    var draft = document.getElementById('draft');
+    var counter = document.getElementById('counter');
+    var publishBtn = document.getElementById('publishBtn');
+    var offlineToggle = document.getElementById('offlineToggle');
+    var errorBox = document.getElementById('errorBox');
+    var toast = document.getElementById('toast');
+    var photoPick = document.getElementById('photoPick');
+    var visGroup = document.getElementById('visGroup');
+
+    var chosenPhoto = 1;
+    var chosenVis = '公开';
+    var offline = false;
+
+    function showToast(msg, kind){
+      toast.textContent = msg;
+      toast.className = 'toast show ' + (kind || '');
+      clearTimeout(showToast._t);
+      showToast._t = setTimeout(function(){ toast.className = 'toast'; }, 2400);
+    }
+
+    function openComposer(){
+      composer.classList.add('open');
+      setTimeout(function(){ draft.focus(); }, 300);
+    }
+    function closeComposer(){
+      composer.classList.remove('open');
+    }
+    openBtn.addEventListener('click', openComposer);
+    closeBtn.addEventListener('click', closeComposer);
+
+    draft.addEventListener('input', function(){
+      counter.textContent = draft.value.length + ' / 140';
+      publishBtn.disabled = draft.value.trim().length === 0;
+    });
+
+    photoPick.addEventListener('click', function(e){
+      var sw = e.target.closest('.swatch');
+      if(!sw) return;
+      Array.prototype.forEach.call(photoPick.querySelectorAll('.swatch'), function(s){ s.classList.remove('sel'); });
+      sw.classList.add('sel');
+      chosenPhoto = parseInt(sw.getAttribute('data-p'), 10);
+    });
+
+    visGroup.addEventListener('click', function(e){
+      var v = e.target.closest('.vis');
+      if(!v) return;
+      Array.prototype.forEach.call(visGroup.querySelectorAll('.vis'), function(s){ s.classList.remove('sel'); });
+      v.classList.add('sel');
+      chosenVis = v.getAttribute('data-v');
+    });
+
+    offlineToggle.addEventListener('click', function(){
+      offline = !offline;
+      offlineToggle.classList.toggle('on', offline);
+      offlineToggle.setAttribute('aria-checked', offline ? 'true' : 'false');
+      if(!offline) errorBox.classList.remove('show');
+    });
+
+    function publish(){
+      var text = draft.value.trim();
+      if(!text){
+        showToast('先写点什么吧', 'err');
+        return;
+      }
+      if(offline){
+        errorBox.classList.add('show');
+        showToast('发布失败，草稿已保留', 'err');
+        return;
+      }
+      // 成功：在动态流顶部插入新卡
+      var grad = ['linear-gradient(160deg,#3a2b5e,#8a5fd0 55%,#e0b7ff)',
+                  'linear-gradient(160deg,#241d33,#50337e 55%,#b48cff)',
+                  'linear-gradient(160deg,#50337e,#8a5fd0 55%,#d9c4ff)'][chosenPhoto-1];
+      var stamp = ['FUJI 400','ACROS 100','PROVIA 100'][chosenPhoto-1];
+      var card = document.createElement('article');
+      card.className = 'card';
+      card.innerHTML =
+        '<div class="head">' +
+          '<span class="avatar" style="background:linear-gradient(135deg,#7b4bd1,#b48cff)">我</span>' +
+          '<div class="meta"><div class="name">我 <span class="vis-badge">' + chosenVis + '</span></div>' +
+          '<div class="time">刚刚 · 手机端</div></div>' +
+        '</div>' +
+        '<div class="photo" style="background:' + grad + '">' +
+          '<span class="stamp">' + stamp + '</span>' +
+          '<svg viewBox="0 0 360 212" preserveAspectRatio="none" aria-hidden="true"><path d="M0 158 L96 98 L180 148 L270 72 L360 132 V212 H0 Z" fill="rgba(0,0,0,.2)"/></svg>' +
+        '</div>' +
+        '<div class="caption"><p>' + escapeHtml(text) + '</p></div>' +
+        '<div class="actions">' +
+          '<button class="act"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 13.5S2.5 10 2.5 6A2.9 2.9 0 0 1 8 4.6 2.9 2.9 0 0 1 13.5 6c0 4-5.5 7.5-5.5 7.5z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg><span class="n">0</span></button>' +
+          '<button class="act"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 7.5h12M8 2.5v12" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg><span class="n">0</span></button>' +
+        '</div>';
+      feed.insertBefore(card, feed.firstChild);
+      // 复位草稿
+      draft.value = '';
+      counter.textContent = '0 / 140';
+      publishBtn.disabled = true;
+      errorBox.classList.remove('show');
+      closeComposer();
+      showToast('已发布，动态已更新', 'ok');
+    }
+    function escapeHtml(s){
+      return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+    publishBtn.addEventListener('click', publish);
+
+    // 点赞交互（动态卡）
+    feed.addEventListener('click', function(e){
+      var act = e.target.closest('.act');
+      if(!act) return;
+      var n = act.querySelector('.n');
+      var cur = parseInt(n.textContent, 10);
+      var liked = act.classList.toggle('liked');
+      n.textContent = liked ? cur + 1 : cur - 1;
+    });
+  })();
+</script>
+</body>
+</html>

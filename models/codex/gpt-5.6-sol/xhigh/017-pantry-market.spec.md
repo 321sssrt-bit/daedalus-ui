@@ -1,44 +1,85 @@
 # 017 坡上食集
 
-## 一句话气质
+## 规范元数据
 
-像一本有产地温度的当代山野食物目录。
+- 规范版本：2
+- 主视口：1280 × 800 px
+- 对应页面：`017-pantry-market.html`
+- 复现范围：复现该单文件页面的布局制度、设计令牌、核心组件状态与题定职责。
 
-## 适合用在哪种产品
+## 画布与区域布局
 
-销售小批次果酱、调味酱与地方慢食的精选商店。
+| 区域 | 边界与尺寸 | 布局与对齐 | 层级与滚动 |
+| --- | --- | --- | --- |
+| 页面画布 `body` | margin: 0; min-height: 100vh | 未单独声明 | background: var(--bg); color: var(--text) |
+| 主要结构 `.header` | padding: 22px 34px | display: grid; grid-template-columns: 1fr auto 1fr; align-items: center | background: var(--surface); border-bottom: 1px solid #cfc3aa |
+| 关键内容区 `.products` | gap: 18px | display: grid; grid-template-columns: repeat(3,1fr); gap: 18px | 未单独声明 |
 
-## 色板
+## 设计令牌
 
-| 角色 | 色号 | 用法 |
+### 色彩
+
+| 令牌 | 值 | 用途 |
 | --- | --- | --- |
-| 背景 | #F3EAD8 | 暖麦色商店底 |
-| 表面 | #FFFAF0 | 导航与商品卡 |
-| 正文 | #2D3A2D | 标题和边框 |
-| 次要文字 | #7B7A68 | 规格与产地说明 |
-| 强调 | #C64F32 | 季节标签、收藏与提示 |
-| 成功 / 危险 | #397453 / #B53D36 | 加购结果与异常 |
+| `--bg` | `#f3ead8` | 页面或区域背景 |
+| `--surface` | `#fffaf0` | 容器与表面 |
+| `--text` | `#2d3a2d` | 主要文字与高对比边界 |
+| `--muted` | `#7b7a68` | 辅助文字与弱化信息 |
+| `--accent` | `#c64f32` | 主要操作与强调状态 |
+| `--success` | `#397453` | 成功反馈 |
+| `--danger` | `#b53d36` | 错误与危险反馈 |
+| `--olive` | `#697b45` | 品牌或局部强调 |
+| `--mustard` | `#d9ad45` | 品牌或局部强调 |
 
-## 字体和字号
+### 字体
 
-使用 `ui-sans-serif, system-ui, Microsoft YaHei`，品牌与商品名用 `Georgia, Songti SC, serif`。显示字 54–96px/500，栏目 38px/500，商品名 20px/600，正文 12–16px/400，价格 16px/900。
+| 角色 | 字体栈 | 字号 / 行高 | 字重 / 字距 |
+| --- | --- | --- | --- |
+| 页面正文 `body` | ui-sans-serif,system-ui,"Microsoft YaHei",sans-serif | 16px / normal（浏览器默认） | 由 font 简写或继承确定 |
+| 显示字 `.herocopy h1` | 500 clamp(54px,7vw,96px)/.9 Georgia,"Songti SC",serif | font 简写中声明 | letter-spacing: -.06em |
+| 分区标题 `.cathead h2` | 500 38px Georgia,"Songti SC",serif | font 简写中声明 | 由 font 简写或继承确定 |
+| 辅助文字 `.eyebrow` | 继承页面字体 | font-size: 11px | font-weight: 900; letter-spacing: .13em |
 
-## 间距、圆角、阴影
+### 间距、圆角与层级
 
-页面左右内距 34px，商品网格间距 18px，卡片内距 18px；器皿 12–24px、加购和收藏为圆形，商品卡保持直角；不用阴影，通过边线和大色块构成。
+| 令牌 | 值 | 用途 |
+| --- | --- | --- |
+| 主要内距 | `22px 34px` | `.header` 的 `padding` |
+| 布局间距 | `26px` | `.nav` 的 `gap` |
+| 圆角 | `50%` | `.circle` 的 `border-radius` |
+| 边框或阴影 | `1px solid #cfc3aa` | `.header` 的 `border-bottom` |
 
-## 按钮 / 输入框 / 卡片
+## 组件规格与状态
 
-六件商品各用不同柔和背景与 CSS 罐子插画；加购为圆形加号，成功后反黑打勾并更新购物袋数量；收藏心形独立悬浮在商品图上。
+| 组件 | 结构与尺寸 | 默认样式 | 状态变化 |
+| --- | --- | --- | --- |
+| 主要操作 `.add` | width: 38px; height: 38px; border-radius: 50% | border: 1px solid var(--text); border-radius: 50%; background: transparent; font-size: 22px | .add:hover,.add.added → background: var(--text); color: white |
+| 输入、选择或次操作 `.save` | width: 36px; height: 36px; border-radius: 50% | border: 0; border-radius: 50%; background: #fffaf0cc; font-size: 18px | .save.saved → color: var(--accent) |
+| 内容容器 `.product` | 未单独声明 | background: var(--surface); border: 1px solid #d5c8ad | 未声明独立状态；保持默认样式 |
 
-## 动效
+## 响应式规则
 
-加购与收藏 150ms 反色，底部回执 200ms 滑入并在 1.5–1.8 秒后收起；减少动态偏好直接显示回执，不进行位移。
+| 条件 | 布局变化 | 组件变化 |
+| --- | --- | --- |
+| 1280 × 800 px 主视口 | 按“画布与区域布局”保持完整结构 | 按“组件规格与状态”显示默认状态 |
+| `(max-width:900px)` | .products → grid-template-columns: 1fr 1fr; .hero → grid-template-columns: 1fr; .stilllife → min-height: 360px; .nav → display: none; .header → grid-template-columns: 1fr auto | 交互流程与内容顺序不变 |
+| `(max-width:560px)` | .products → grid-template-columns: 1fr; .catalog → padding: 34px 16px; .header → padding: 18px; .herocopy → padding: 46px 24px | 交互流程与内容顺序不变 |
 
-## 不要做什么
+## 内容与数据
 
-不要使用通用电商轮播、外网商品照、促销红标签海洋、复杂优惠券或统一白底商品缩略图。
+必须保留的可见文案顺序包括：“坡上食集 · 商店首页” → “坡上食集” → “HILLSIDE PANTRY” → “本周鲜到” → “山野调味” → “慢食礼盒” → “AUGUST HARVEST · 08” → “把山坡上的” → “八月带回家。” → “这一季的番茄、香草和小果实，被做成耐放却仍有新鲜气息的日常食物。每一罐都能追到产地和制作人。” → “逛本周新鲜到货 ↓” → “产地：云南大理 · 本周制作”。控件占位或辅助标签包括：“搜索”、“购物袋”、“收藏”、“加入购物袋”。数值、日期和状态文字沿用页面初始值及其操作后的格式。
 
-## 复刻提示词
+## 动效与反馈
 
-把精选食品商店做成山野食物年鉴：暖麦色、深橄榄绿、珊瑚红，左侧大幅编辑标题，右侧 CSS 静物；商品网格像罐头目录，强调产地、口味和可追溯的小批次感。
+| 触发 | 时长与缓动 | 可见反馈 | `prefers-reduced-motion` |
+| --- | --- | --- | --- |
+| `.toast` 状态变化 | transition: .2s | 状态类或伪类改变对应 CSS 属性 | * → transition: none!important; animation: none!important; .toast → display: none; .toast.show → display: block |
+| `.toast` 状态变化 | transition: .2s | 状态类或伪类改变对应 CSS 属性 | * → transition: none!important; animation: none!important; .toast → display: none; .toast.show → display: block |
+
+## 复现验收清单
+
+- [ ] 在 1280 × 800 px 下，body、.header 与 .products 的尺寸和排列符合布局表。
+- [ ] 规范登记的主色 `#d9ad45`、`#397453`、`#7b7a68`、`#fffaf0`、`#b53d36` 均来自 HTML，背景、正文、弱化与强调层级对应一致。
+- [ ] 主要操作 `.add`、输入、选择或次操作 `.save` 与 内容容器 `.product` 的默认及状态样式可实际观察。
+- [ ] 在 `(max-width:900px)` 条件下，布局按响应式表变化且“坡上食集 · 商店首页”仍可操作。
+- [ ] 启用 `prefers-reduced-motion: reduce` 后，页面按动效表关闭或压缩非必要动画，同时保留状态反馈。

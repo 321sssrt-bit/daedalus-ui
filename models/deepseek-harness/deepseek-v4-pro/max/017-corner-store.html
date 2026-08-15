@@ -1,0 +1,363 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>街角杂货铺 · 小满市集</title>
+<style>
+  :root {
+    --bg: #f7f0e3;
+    --paper: #ffffff;
+    --ink: #4a3323;
+    --muted: #8a6b52;
+    --wood-dark: #8a5a3b;
+    --wood-mid: #b8835a;
+    --wood-light: #c9a06a;
+    --tan: #e07b39;
+    --price: #c24a24;
+    --leaf: #3f7d4e;
+    --heart: #d1493f;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, "Segoe UI", "Microsoft YaHei", "PingFang SC", "Helvetica Neue", sans-serif;
+    background: var(--bg); color: var(--ink);
+    min-height: 100vh;
+  }
+
+  /* 木头顶栏 */
+  .topbar {
+    background-color: var(--wood-dark);
+    background-image:
+      repeating-linear-gradient(90deg, rgba(74,51,35,.22) 0 1px, transparent 1px 54px),
+      linear-gradient(180deg, var(--wood-mid), var(--wood-dark));
+    color: #fff;
+    padding: 16px 32px;
+    display: flex; align-items: center; gap: 18px;
+    box-shadow: 0 4px 14px rgba(74,51,35,.28);
+  }
+  .sign { display: flex; align-items: center; gap: 12px; }
+  .sign-badge { width: 46px; height: 46px; flex: 0 0 auto; }
+  .sign h1 { font-size: 22px; font-weight: 800; letter-spacing: 2px; }
+  .sign p { font-size: 12px; color: #f3dfc0; margin-top: 3px; letter-spacing: 1px; }
+  .spacer { flex: 1 1 auto; }
+  .open-tag {
+    font-size: 12px; font-weight: 700; background: var(--leaf); color: #fff;
+    padding: 6px 12px; border-radius: 999px; letter-spacing: 1px;
+  }
+  .cart-btn {
+    position: relative; display: flex; align-items: center; gap: 8px;
+    background: #fff; color: var(--ink); border: 0; cursor: pointer;
+    font: inherit; font-size: 14px; font-weight: 700;
+    padding: 10px 16px; border-radius: 12px;
+  }
+  .cart-btn svg { width: 20px; height: 20px; }
+  .cart-count {
+    position: absolute; top: -8px; right: -8px;
+    background: var(--tan); color: #fff; font-size: 12px; font-weight: 800;
+    min-width: 20px; height: 20px; border-radius: 999px;
+    display: flex; align-items: center; justify-content: center; padding: 0 5px;
+  }
+
+  /* 早市横幅 */
+  .banner {
+    margin: 24px 32px 0; max-width: 1200px; margin-left: auto; margin-right: auto;
+    background: var(--wood-light); color: #fff; border-radius: 14px;
+    padding: 14px 20px; display: flex; align-items: center; gap: 12px;
+  }
+  .banner svg { width: 22px; height: 22px; flex: 0 0 auto; }
+  .banner b { font-size: 15px; }
+  .banner span { font-size: 13px; color: #fdf1dc; margin-left: 8px; }
+
+  .wrap { max-width: 1200px; margin: 0 auto; padding: 24px 32px 64px; }
+
+  /* 栏目 chips */
+  .cats { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 6px; }
+  .cat {
+    border: 1px dashed var(--wood-mid); background: var(--paper); color: var(--ink);
+    font: inherit; font-size: 14px; font-weight: 700;
+    padding: 8px 18px; border-radius: 999px; cursor: pointer;
+    transition: transform .15s ease, box-shadow .15s ease;
+  }
+  .cat:hover { box-shadow: 0 4px 12px rgba(74,51,35,.12); transform: translateY(-1px); }
+  .cat.active { background: var(--wood-dark); color: #fff; border-style: solid; border-color: var(--wood-dark); }
+  .note { font-size: 13px; color: var(--muted); margin: 6px 0 8px; }
+
+  /* 货架 */
+  .shelf { margin-top: 28px; }
+  .shelf-head { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+  .shelf-head .plank {
+    flex: 1 1 auto; height: 16px; border-radius: 4px;
+    background: linear-gradient(180deg, var(--wood-mid), var(--wood-dark));
+    box-shadow: 0 3px 0 rgba(74,51,35,.18);
+  }
+  .shelf-head h2 {
+    font-size: 18px; font-weight: 800; letter-spacing: 1px; white-space: nowrap;
+  }
+  .hand-label {
+    border: 1px dashed var(--wood-mid); background: var(--paper);
+    color: var(--wood-dark); font-size: 12px; font-weight: 700;
+    padding: 5px 12px; border-radius: 8px; transform: rotate(-2deg);
+    box-shadow: 0 1px 2px rgba(74,51,35,.12);
+  }
+  .cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
+  .product {
+    background: var(--paper); border: 1px solid #ecdcc2; border-radius: 14px;
+    padding: 16px; position: relative; display: flex; flex-direction: column;
+    transition: transform .16s ease, box-shadow .16s ease;
+  }
+  .product:hover { transform: translateY(-3px); box-shadow: 0 10px 22px rgba(74,51,35,.14); }
+  .p-icon { height: 68px; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; }
+  .p-icon svg { width: 60px; height: 60px; }
+  .p-name { font-size: 15px; font-weight: 800; }
+  .p-unit { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .p-foot { display: flex; align-items: flex-end; justify-content: space-between; margin-top: 14px; }
+  .price-tag {
+    background: var(--paper); border: 1px dashed var(--wood-mid);
+    border-radius: 8px; padding: 5px 10px; transform: rotate(-3deg);
+    box-shadow: 0 1px 2px rgba(74,51,35,.12); position: relative;
+  }
+  .price-tag .hole { position: absolute; left: 50%; top: -4px; transform: translateX(-50%); width: 7px; height: 7px; border-radius: 50%; background: var(--bg); }
+  .price-tag .p { font-size: 16px; font-weight: 800; color: var(--price); }
+  .price-tag .u { font-size: 11px; color: var(--muted); }
+  .p-actions { display: flex; gap: 8px; }
+  .fav {
+    width: 36px; height: 36px; border-radius: 10px; border: 1px solid #ecdcc2;
+    background: var(--bg); cursor: pointer; display: flex; align-items: center; justify-content: center;
+  }
+  .fav svg { width: 18px; height: 18px; }
+  .fav .heart-full { display: none; }
+  .fav.on .heart-empty { display: none; }
+  .fav.on .heart-full { display: block; }
+  .add {
+    border: 0; cursor: pointer; background: var(--tan); color: #fff;
+    font: inherit; font-size: 13px; font-weight: 800; padding: 8px 14px; border-radius: 10px;
+  }
+  .add:hover { background: var(--price); }
+  .add:active { transform: translateY(1px); }
+
+  .toast {
+    position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(20px);
+    background: var(--wood-dark); color: #fff; font-size: 14px;
+    padding: 12px 20px; border-radius: 12px; opacity: 0; pointer-events: none;
+    transition: opacity .25s ease, transform .25s ease; z-index: 60;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  @media (max-width: 980px) { .cards { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 560px) {
+    .topbar { padding: 14px 16px; flex-wrap: wrap; }
+    .wrap { padding: 18px 16px 48px; }
+    .banner { margin: 18px 16px 0; }
+    .cards { grid-template-columns: 1fr; }
+    .shelf-head h2 { font-size: 16px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+  }
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="sign">
+    <svg class="sign-badge" viewBox="0 0 46 46" aria-hidden="true">
+      <rect x="3" y="3" width="40" height="40" rx="9" fill="#f7f0e3"/>
+      <path d="M14 30c6 0 6-4 12-4" fill="none" stroke="#3f7d4e" stroke-width="3" stroke-linecap="round"/>
+      <circle cx="23" cy="16" r="6" fill="#e07b39"/>
+      <path d="M23 12v-3M29 16h-3" stroke="#3f7d4e" stroke-width="2" stroke-linecap="round"/>
+    </svg>
+    <div>
+      <h1>街角杂货铺</h1>
+      <p>小满市集 · 转角那家老店</p>
+    </div>
+  </div>
+  <div class="spacer"></div>
+  <span class="open-tag">今日营业中 8:00–22:00</span>
+  <button class="cart-btn" type="button" id="cartBtn">
+    <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 5h2l2.2 9.2a1.5 1.5 0 0 0 1.5 1.2h6.5a1.5 1.5 0 0 0 1.4-1.1L18.5 8H6" fill="none" stroke="#4a3323" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="9" cy="18.5" r="1.3" fill="#4a3323"/><circle cx="15.5" cy="18.5" r="1.3" fill="#4a3323"/></svg>
+    购物篮
+    <span class="cart-count" id="cartCount">0</span>
+  </button>
+</header>
+
+<div class="banner">
+  <svg viewBox="0 0 22 22" aria-hidden="true"><path d="M11 2l2.6 6.2 6.4.4-4.9 4.2 1.5 6.3-5.6-3.4-5.6 3.4 1.5-6.3L1.8 8.6l6.4-.4z" fill="#f7f0e3"/></svg>
+  <b>今日鲜货</b><span>早上刚到的苹果与番茄，会员价立减 2 元，先到先得。</span>
+</div>
+
+<div class="wrap">
+  <nav class="cats" role="group" aria-label="商品栏目">
+    <button class="cat active" type="button" data-cat="全部">全部</button>
+    <button class="cat" type="button" data-cat="蔬果">新鲜蔬果</button>
+    <button class="cat" type="button" data-cat="粮油">粮油干货</button>
+    <button class="cat" type="button" data-cat="饮品">饮品乳品</button>
+    <button class="cat" type="button" data-cat="日用">日用百货</button>
+  </nav>
+  <p class="note">点「加入」把货放进购物篮，点红心收藏喜欢的常买品。</p>
+
+  <section class="shelf" data-cat="蔬果">
+    <div class="shelf-head"><h2>新鲜蔬果</h2><span class="hand-label">今日现采</span><div class="plank"></div></div>
+    <div class="cards">
+      <article class="product">
+        <div class="p-icon"><svg viewBox="0 0 60 60" aria-hidden="true"><circle cx="30" cy="34" r="18" fill="#c24a24"/><path d="M30 18c-1-8 6-10 8-4" fill="none" stroke="#3f7d4e" stroke-width="3" stroke-linecap="round"/><path d="M30 16c-4-2-6 1-6 4" fill="none" stroke="#3f7d4e" stroke-width="2.5" stroke-linecap="round"/><path d="M22 32c4 3 12 3 16 0" fill="none" stroke="#f7f0e3" stroke-width="2"/></svg></div>
+        <div class="p-name">山东红富士苹果</div><div class="p-unit">脆甜多汁 · 约 3 个</div>
+        <div class="p-foot">
+          <span class="price-tag"><span class="hole"></span><span class="p">¥6.9</span><span class="u"> /斤</span></span>
+          <span class="p-actions">
+            <button class="fav" type="button" aria-label="收藏"><svg class="heart-empty" viewBox="0 0 18 18" aria-hidden="true"><path d="M9 15.5S2.5 11 2.5 6.8C2.5 4.6 4.2 3 6.3 3c1.1 0 2.1.5 2.7 1.4C9.6 3.5 10.6 3 11.7 3c2.1 0 3.8 1.6 3.8 3.8C15.5 11 9 15.5 9 15.5z" fill="none" stroke="#d1493f" stroke-width="1.6" stroke-linejoin="round"/></svg><svg class="heart-full" viewBox="0 0 18 18" aria-hidden="true"><path d="M9 15.5S2.5 11 2.5 6.8C2.5 4.6 4.2 3 6.3 3c1.1 0 2.1.5 2.7 1.4C9.6 3.5 10.6 3 11.7 3c2.1 0 3.8 1.6 3.8 3.8C15.5 11 9 15.5 9 15.5z" fill="#d1493f"/></svg></button>
+            <button class="add" type="button" data-name="山东红富士苹果">加入</button>
+          </span>
+        </div>
+      </article>
+      <article class="product">
+        <div class="p-icon"><svg viewBox="0 0 60 60" aria-hidden="true"><circle cx="30" cy="36" r="17" fill="#c24a24"/><path d="M30 21l-4-4M30 21l4-4M24 25l-3-1M36 25l3-1" stroke="#3f7d4e" stroke-width="3" stroke-linecap="round"/></svg></div>
+        <div class="p-name">云南小番茄</div><div class="p-unit">酸甜爆汁 · 250g</div>
+        <div class="p-foot">
+          <span class="price-tag"><span class="hole"></span><span class="p">¥8.8</span><span class="u"> /盒</span></span>
+          <span class="p-actions">
+            <button class="fav" type="button" aria-label="收藏"><svg class="heart-empty" viewBox="0 0 18 18" aria-hidden="true"><path d="M9 15.5S2.5 11 2.5 6.8C2.5 4.6 4.2 3 6.3 3c1.1 0 2.1.5 2.7 1.4C9.6 3.5 10.6 3 11.7 3c2.1 0 3.8 1.6 3.8 3.8C15.5 11 9 15.5 9 15.5z" fill="none" stroke="#d1493f" stroke-width="1.6" stroke-linejoin="round"/></svg><svg class="heart-full" viewBox="0 0 18 18" aria-hidden="true"><path d="M9 15.5S2.5 11 2.5 6.8C2.5 4.6 4.2 3 6.3 3c1.1 0 2.1.5 2.7 1.4C9.6 3.5 10.6 3 11.7 3c2.1 0 3.8 1.6 3.8 3.8C15.5 11 9 15.5 9 15.5z" fill="#d1493f"/></svg></button>
+            <button class="add" type="button" data-name="云南小番茄">加入</button>
+          </span>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <section class="shelf" data-cat="粮油">
+    <div class="shelf-head"><h2>粮油干货</h2><span class="hand-label">整箱更划算</span><div class="plank"></div></div>
+    <div class="cards">
+      <article class="product">
+        <div class="p-icon"><svg viewBox="0 0 60 60" aria-hidden="true"><path d="M16 14h28l-2 32H18z" fill="#c9a06a" stroke="#4a3323" stroke-width="2"/><rect x="24" y="26" width="12" height="12" rx="2" fill="#f7f0e3" stroke="#4a3323" stroke-width="1.5"/><path d="M20 18v-4M40 18v-4" stroke="#4a3323" stroke-width="2" stroke-linecap="round"/></svg></div>
+        <div class="p-name">五常大米 5kg</div><div class="p-unit">当季新米 · 真空装</div>
+        <div class="p-foot">
+          <span class="price-tag"><span class="hole"></span><span class="p">¥49.9</span><span class="u"> /袋</span></span>
+          <span class="p-actions">
+            <button class="fav" type="button" aria-label="收藏"><svg class="heart-empty" viewBox="0 0 18 18" aria-hidden="true"><path d="M9 15.5S2.5 11 2.5 6.8C2.5 4.6 4.2 3 6.3 3c1.1 0 2.1.5 2.7 1.4C9.6 3.5 10.6 3 11.7 3c2.1 0 3.8 1.6 3.8 3.8C15.5 11 9 15.5 9 15.5z" fill="none" stroke="#d1493f" stroke-width="1.6" stroke-linejoin="round"/></svg><svg class="heart-full" viewBox="0 0 18 18" aria-hidden="true"><path d="M9 15.5S2.5 11 2.5 6.8C2.5 4.6 4.2 3 6.3 3c1.1 0 2.1.5 2.7 1.4C9.6 3.5 10.6 3 11.7 3c2.1 0 3.8 1.6 3.8 3.8C15.5 11 9 15.5 9 15.5z" fill="#d1493f"/></svg></button>
+            <button class="add" type="button" data-name="五常大米 5kg">加入</button>
+          </span>
+        </div>
+      </article>
+      <article class="product">
+        <div class="p-icon"><svg viewBox="0 0 60 60" aria-hidden="true"><ellipse cx="24" cy="40" rx="12" ry="14" fill="#f7f0e3" stroke="#c9a06a" stroke-width="2"/><ellipse cx="38" cy="40" rx="12" ry="14" fill="#f7f0e3" stroke="#c9a06a" stroke-width="2"/><ellipse cx="31" cy="38" rx="11" ry="13" fill="#e9c98a" stroke="#c9a06a" stroke-width="2"/></svg></div>
+        <div class="p-name">农家土鸡蛋 10枚</div><div class="p-unit">散养 · 当日送达</div>
+        <div class="p-foot">
+          <span class="price-tag"><span class="hole"></span><span class="p">¥15.8</span><span class="u"> /盒</span></span>
+          <span class="p-actions">
+            <button class="fav" type="button" aria-label="收藏"><svg class="heart-empty" viewBox="0 0 18 18" aria-hidden="true"><path d="M9 15.5S2.5 11 2.5 6.8C2.5 4.6 4.2 3 6.3 3c1.1 0 2.1.5 2.7 1.4C9.6 3.5 10.6 3 11.7 3c2.1 0 3.8 1.6 3.8 3.8C15.5 11 9 15.5 9 15.5z" fill="none" stroke="#d1493f" stroke-width="1.6" stroke-linejoin="round"/></svg><svg class="heart-full" viewBox="0 0 18 18" aria-hidden="true"><path d="M9 15.5S2.5 11 2.5 6.8C2.5 4.6 4.2 3 6.3 3c1.1 0 2.1.5 2.7 1.4C9.6 3.5 10.6 3 11.7 3c2.1 0 3.8 1.6 3.8 3.8C15.5 11 9 15.5 9 15.5z" fill="#d1493f"/></svg></button>
+            <button class="add" type="button" data-name="农家土鸡蛋 10枚">加入</button>
+          </span>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <section class="shelf" data-cat="饮品">
+    <div class="shelf-head"><h2>饮品乳品</h2><span class="hand-label">冷藏保鲜</span><div class="plank"></div></div>
+    <div class="cards">
+      <article class="product">
+        <div class="p-icon"><svg viewBox="0 0 60 60" aria-hidden="true"><path d="M20 14h20l4 20v10a3 3 0 0 1-3 3H19a3 3 0 0 1-3-3V34z" fill="#ffffff" stroke="#4a3323" stroke-width="2"/><path d="M20 14l4-8h12l4 8" fill="#3f7d4e" stroke="#4a3323" stroke-width="2"/></svg></div>
+        <div class="p-name">高原纯牛奶 250ml×12</div><div class="p-unit">整箱 · 全脂</div>
+        <div class="p-foot">
+          <span class="price-tag"><span class="hole"></span><span class="p">¥45.0</span><span class="u"> /箱</span></span>
+          <span class="p-actions">
+            <button class="fav" type="button" aria-label="收藏"><svg class="heart-empty" viewBox="0 0 18 18" aria-hidden="true"><path d="M9 15.5S2.5 11 2.5 6.8C2.5 4.6 4.2 3 6.3 3c1.1 0 2.1.5 2.7 1.4C9.6 3.5 10.6 3 11.7 3c2.1 0 3.8 1.6 3.8 3.8C15.5 11 9 15.5 9 15.5z" fill="none" stroke="#d1493f" stroke-width="1.6" stroke-linejoin="round"/></svg><svg class="heart-full" viewBox="0 0 18 18" aria-hidden="true"><path d="M9 15.5S2.5 11 2.5 6.8C2.5 4.6 4.2 3 6.3 3c1.1 0 2.1.5 2.7 1.4C9.6 3.5 10.6 3 11.7 3c2.1 0 3.8 1.6 3.8 3.8C15.5 11 9 15.5 9 15.5z" fill="#d1493f"/></svg></button>
+            <button class="add" type="button" data-name="高原纯牛奶">加入</button>
+          </span>
+        </div>
+      </article>
+      <article class="product">
+        <div class="p-icon"><svg viewBox="0 0 60 60" aria-hidden="true"><path d="M24 12h12l4 6v28a3 3 0 0 1-3 3H23a3 3 0 0 1-3-3V18z" fill="#3f7d4e" opacity=".85" stroke="#4a3323" stroke-width="2"/><rect x="26" y="24" width="8" height="12" rx="2" fill="#f7f0e3" stroke="#4a3323" stroke-width="1.5"/></svg></div>
+        <div class="p-name">青柠气泡水 330ml</div><div class="p-unit">无糖 · 冰镇更爽</div>
+        <div class="p-foot">
+          <span class="price-tag"><span class="hole"></span><span class="p">¥4.5</span><span class="u"> /瓶</span></span>
+          <span class="p-actions">
+            <button class="fav" type="button" aria-label="收藏"><svg class="heart-empty" viewBox="0 0 18 18" aria-hidden="true"><path d="M9 15.5S2.5 11 2.5 6.8C2.5 4.6 4.2 3 6.3 3c1.1 0 2.1.5 2.7 1.4C9.6 3.5 10.6 3 11.7 3c2.1 0 3.8 1.6 3.8 3.8C15.5 11 9 15.5 9 15.5z" fill="none" stroke="#d1493f" stroke-width="1.6" stroke-linejoin="round"/></svg><svg class="heart-full" viewBox="0 0 18 18" aria-hidden="true"><path d="M9 15.5S2.5 11 2.5 6.8C2.5 4.6 4.2 3 6.3 3c1.1 0 2.1.5 2.7 1.4C9.6 3.5 10.6 3 11.7 3c2.1 0 3.8 1.6 3.8 3.8C15.5 11 9 15.5 9 15.5z" fill="#d1493f"/></svg></button>
+            <button class="add" type="button" data-name="青柠气泡水">加入</button>
+          </span>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <section class="shelf" data-cat="日用">
+    <div class="shelf-head"><h2>日用百货</h2><span class="hand-label">居家常备</span><div class="plank"></div></div>
+    <div class="cards">
+      <article class="product">
+        <div class="p-icon"><svg viewBox="0 0 60 60" aria-hidden="true"><rect x="16" y="20" width="28" height="26" rx="4" fill="#f7f0e3" stroke="#4a3323" stroke-width="2"/><path d="M16 28h28M16 36h28" stroke="#3f7d4e" stroke-width="2"/></svg></div>
+        <div class="p-name">竹纤维抹布 3片</div><div class="p-unit">吸水快干 · 可机洗</div>
+        <div class="p-foot">
+          <span class="price-tag"><span class="hole"></span><span class="p">¥9.9</span><span class="u"> /包</span></span>
+          <span class="p-actions">
+            <button class="fav" type="button" aria-label="收藏"><svg class="heart-empty" viewBox="0 0 18 18" aria-hidden="true"><path d="M9 15.5S2.5 11 2.5 6.8C2.5 4.6 4.2 3 6.3 3c1.1 0 2.1.5 2.7 1.4C9.6 3.5 10.6 3 11.7 3c2.1 0 3.8 1.6 3.8 3.8C15.5 11 9 15.5 9 15.5z" fill="none" stroke="#d1493f" stroke-width="1.6" stroke-linejoin="round"/></svg><svg class="heart-full" viewBox="0 0 18 18" aria-hidden="true"><path d="M9 15.5S2.5 11 2.5 6.8C2.5 4.6 4.2 3 6.3 3c1.1 0 2.1.5 2.7 1.4C9.6 3.5 10.6 3 11.7 3c2.1 0 3.8 1.6 3.8 3.8C15.5 11 9 15.5 9 15.5z" fill="#d1493f"/></svg></button>
+            <button class="add" type="button" data-name="竹纤维抹布">加入</button>
+          </span>
+        </div>
+      </article>
+      <article class="product">
+        <div class="p-icon"><svg viewBox="0 0 60 60" aria-hidden="true"><rect x="26" y="10" width="8" height="26" rx="3" fill="#b8835a" stroke="#4a3323" stroke-width="2"/><path d="M24 40h12v6a3 3 0 0 1-3 3h-6a3 3 0 0 1-3-3z" fill="#8a5a3b" stroke="#4a3323" stroke-width="2"/><path d="M24 40l-2 8M36 40l2 8" stroke="#4a3323" stroke-width="2" stroke-linecap="round"/></svg></div>
+        <div class="p-name">木柄锅刷</div><div class="p-unit">天然椰棕 · 耐用</div>
+        <div class="p-foot">
+          <span class="price-tag"><span class="hole"></span><span class="p">¥12.8</span><span class="u"> /个</span></span>
+          <span class="p-actions">
+            <button class="fav" type="button" aria-label="收藏"><svg class="heart-empty" viewBox="0 0 18 18" aria-hidden="true"><path d="M9 15.5S2.5 11 2.5 6.8C2.5 4.6 4.2 3 6.3 3c1.1 0 2.1.5 2.7 1.4C9.6 3.5 10.6 3 11.7 3c2.1 0 3.8 1.6 3.8 3.8C15.5 11 9 15.5 9 15.5z" fill="none" stroke="#d1493f" stroke-width="1.6" stroke-linejoin="round"/></svg><svg class="heart-full" viewBox="0 0 18 18" aria-hidden="true"><path d="M9 15.5S2.5 11 2.5 6.8C2.5 4.6 4.2 3 6.3 3c1.1 0 2.1.5 2.7 1.4C9.6 3.5 10.6 3 11.7 3c2.1 0 3.8 1.6 3.8 3.8C15.5 11 9 15.5 9 15.5z" fill="#d1493f"/></svg></button>
+            <button class="add" type="button" data-name="木柄锅刷">加入</button>
+          </span>
+        </div>
+      </article>
+    </div>
+  </section>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  (function () {
+    var cats = Array.prototype.slice.call(document.querySelectorAll('.cat'));
+    var shelves = Array.prototype.slice.call(document.querySelectorAll('.shelf'));
+    var count = 0;
+    var toastTimer = null;
+
+    cats.forEach(function (chip) {
+      chip.addEventListener('click', function () {
+        cats.forEach(function (x) { x.classList.remove('active'); });
+        chip.classList.add('active');
+        var c = chip.getAttribute('data-cat');
+        shelves.forEach(function (s) {
+          var show = (c === "全部" || s.getAttribute('data-cat') === c);
+          s.style.display = show ? "" : "none";
+        });
+      });
+    });
+
+    function showToast(msg) {
+      var t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      if (toastTimer) { clearTimeout(toastTimer); }
+      toastTimer = setTimeout(function () { t.classList.remove('show'); }, 2200);
+    }
+
+    Array.prototype.slice.call(document.querySelectorAll('.add')).forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        count++;
+        document.getElementById('cartCount').textContent = String(count);
+        showToast("已把「" + btn.getAttribute('data-name') + "」放进购物篮");
+      });
+    });
+
+    Array.prototype.slice.call(document.querySelectorAll('.fav')).forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        btn.classList.toggle('on');
+        var liked = btn.classList.contains('on');
+        showToast(liked ? "已收藏，下次常买里能找到" : "已取消收藏");
+      });
+    });
+
+    document.getElementById('cartBtn').addEventListener('click', function () {
+      if (count === 0) { showToast("购物篮还是空的，先挑点喜欢的吧"); }
+      else { showToast("购物篮里已有 " + count + " 件商品，去结账"); }
+    });
+  })();
+</script>
+</body>
+</html>

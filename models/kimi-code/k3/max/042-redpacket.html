@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>红封 · 亲友转账</title>
+<style>
+:root{
+  --wall:#a63a2e;
+  --wall-deep:#8c2d23;
+  --gold:#e8c47c;
+  --paper:#faf3e6;
+  --card:#fffdf6;
+  --ink:#3a2620;
+  --muted:#a08a76;
+  --line:#ecdfc8;
+  --danger:#c0452e;
+  --ok:#3e7d4f;
+  --frame:#10151f;
+  --sp:8px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font:15px/1.65 "PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+  background:#262b34;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;
+}
+.stage{text-align:center}
+.device-label{color:#8b93a1;font-size:12px;letter-spacing:.2em;margin-bottom:14px}
+.phone{
+  width:390px;height:min(844px,calc(100vh - 90px));border-radius:38px;border:11px solid var(--frame);
+  background:var(--paper);overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.5);
+}
+.screen{height:100%;overflow-y:auto;position:relative}
+.view{padding:22px 20px 26px;display:none;flex-direction:column;min-height:100%}
+.view.on{display:flex}
+.v-head{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+.v-head .bk{
+  width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:var(--card);
+  color:var(--ink);font-size:15px;cursor:pointer;
+}
+.v-head h1{font-size:17px;letter-spacing:.1em}
+.v-head .r{margin-left:auto;font-size:11px;color:var(--muted)}
+.peeps{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px}
+.peep{
+  background:var(--card);border:1.5px solid var(--line);border-radius:14px;padding:14px 6px 10px;
+  cursor:pointer;text-align:center;font:inherit;color:inherit;transition:all .14s ease;
+}
+.peep .av{
+  width:46px;height:46px;border-radius:50%;margin:0 auto 8px;display:grid;place-items:center;
+  font:700 16px/1 "Kaiti SC","STKaiti","KaiTi",serif;color:#fff;
+}
+.peep .nm{font-size:12.5px;font-weight:600}
+.peep .rl{font-size:10px;color:var(--muted)}
+.peep:hover{border-color:var(--gold)}
+.peep.on{border-color:var(--wall);background:#fbf0e4;box-shadow:0 0 0 1px var(--wall)}
+.recent{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:6px 16px}
+.recent .rt{font-size:11.5px;color:var(--muted);letter-spacing:.12em;padding:8px 0 4px}
+.rrow{display:flex;align-items:center;gap:11px;padding:10px 0;border-top:1px dashed var(--line);font-size:13px;cursor:pointer}
+.rrow:hover .nm2{color:var(--wall)}
+.rrow .amt{margin-left:auto;font-family:ui-monospace,Consolas,monospace;color:var(--muted);font-size:12px}
+.hero-card{
+  background:linear-gradient(150deg,var(--wall),var(--wall-deep));border-radius:18px;color:#faf3e6;
+  padding:20px;margin-bottom:18px;position:relative;overflow:hidden;
+}
+.hero-card::after{content:"封";position:absolute;right:-8px;bottom:-26px;font:700 110px/1 "Kaiti SC","STKaiti","KaiTi",serif;color:rgba(232,196,124,.16)}
+.hero-card .to{font-size:12px;opacity:.85;letter-spacing:.1em}
+.hero-card .who{font-size:19px;font-weight:700;margin-top:3px;letter-spacing:.06em}
+.amt-zone{margin:6px 0 16px}
+.amt-zone .lab{font-size:12px;color:var(--muted);letter-spacing:.1em;margin-bottom:6px}
+.amt-in{display:flex;align-items:baseline;gap:8px;border-bottom:2px solid var(--wall);padding-bottom:10px}
+.amt-in span{font-size:24px;font-weight:700;color:var(--wall)}
+.amt-in input{flex:1;border:0;background:none;font:700 38px/1 ui-monospace,Consolas,monospace;color:var(--ink);min-width:0}
+.amt-in input:focus{outline:none}
+.bless{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.bless button{
+  border:1px solid var(--line);background:var(--card);border-radius:999px;padding:7px 15px;
+  font:inherit;font-size:12.5px;color:var(--ink);cursor:pointer;transition:all .13s ease;
+}
+.bless button.on{background:var(--wall);border-color:var(--wall);color:#fff}
+.src{
+  background:var(--card);border:1px solid var(--line);border-radius:14px;padding:13px 15px;margin-bottom:10px;
+}
+.src .sh{font-size:11.5px;color:var(--muted);letter-spacing:.12em;margin-bottom:8px}
+.srcrow{
+  width:100%;display:flex;align-items:center;gap:10px;padding:10px 12px;border:1.5px solid var(--line);
+  border-radius:10px;background:none;font:inherit;color:inherit;cursor:pointer;text-align:left;margin-bottom:8px;
+  transition:all .13s ease;
+}
+.srcrow:last-child{margin-bottom:0}
+.srcrow.on{border-color:var(--wall);background:#fbf0e4}
+.srcrow .nm{font-size:13.5px;font-weight:600}
+.srcrow .bl{font-size:11px;color:var(--muted);font-family:ui-monospace,Consolas,monospace}
+.srcrow .dot{margin-left:auto;width:15px;height:15px;border-radius:50%;border:2px solid var(--line)}
+.srcrow.on .dot{border-color:var(--wall);background:radial-gradient(circle,var(--wall) 0 5px,transparent 6px)}
+.err{
+  display:none;background:#fbeae5;border:1px solid #ecc5b8;border-radius:12px;padding:12px 15px;
+  font-size:12.5px;color:#8c3a24;line-height:1.9;margin-bottom:12px;
+}
+.err.show{display:block}
+.err b{font-family:ui-monospace,Consolas,monospace}
+.cta{
+  margin-top:auto;width:100%;height:52px;border:0;border-radius:14px;background:var(--wall);color:#faf3e6;
+  font:inherit;font-weight:700;font-size:15px;letter-spacing:.22em;cursor:pointer;transition:background .15s ease;
+}
+.cta:hover:not(:disabled){background:var(--wall-deep)}
+.cta:disabled{opacity:.4;cursor:not-allowed}
+.confirm-box{
+  background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;margin-bottom:14px;
+}
+.confirm-box .amt-big{font:700 34px/1.2 ui-monospace,Consolas,monospace;color:var(--wall);text-align:center;margin:8px 0 14px}
+.kv{display:flex;justify-content:space-between;font-size:13px;padding:8px 0;border-top:1px dashed var(--line)}
+.kv .k{color:var(--muted)}
+.cert{
+  background:linear-gradient(160deg,var(--wall),var(--wall-deep));border-radius:18px;color:#faf3e6;
+  padding:26px 22px;text-align:center;position:relative;overflow:hidden;margin-bottom:16px;
+}
+.cert::before{content:"";position:absolute;inset:8px;border:1.5px solid rgba(232,196,124,.5);border-radius:12px;pointer-events:none}
+.cert .fh{font:700 44px/1 "Kaiti SC","STKaiti","KaiTi",serif;color:var(--gold)}
+.cert h2{font-size:18px;letter-spacing:.2em;margin:10px 0 4px}
+.cert .cno{font:12px/1.7 ui-monospace,Consolas,monospace;color:var(--gold)}
+.cert .cinfo{font-size:12.5px;opacity:.92;line-height:2;margin-top:10px}
+.again2{
+  width:100%;height:46px;border:1.5px solid var(--wall);background:none;border-radius:12px;color:var(--wall);
+  font:inherit;font-weight:600;font-size:13.5px;letter-spacing:.12em;cursor:pointer;
+}
+.again2:hover{background:#fbf0e4}
+@media(max-width:520px){
+  body{padding:0}
+  .device-label{display:none}
+  .phone{width:100%;height:100vh;border:0;border-radius:0}
+}
+@media(prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+}
+</style>
+</head>
+<body>
+<div class="stage">
+  <p class="device-label">红 封 REDPACKET</p>
+  <div class="phone">
+    <div class="screen">
+      <section class="view on" id="v-to">
+        <div class="v-head"><h1>给谁包个红封</h1><span class="r">亲友录</span></div>
+        <div class="peeps" id="peeps">
+          <button class="peep" type="button" data-n="老妈" data-r="妈妈"><span class="av" style="background:#a63a2e">妈</span><span class="nm">老妈</span><br><span class="rl">妈妈</span></button>
+          <button class="peep" type="button" data-n="老爸" data-r="爸爸"><span class="av" style="background:#4a6fa5">爸</span><span class="nm">老爸</span><br><span class="rl">爸爸</span></button>
+          <button class="peep" type="button" data-n="外婆" data-r="外婆"><span class="av" style="background:#7a8a4a">婆</span><span class="nm">外婆</span><br><span class="rl">外婆</span></button>
+          <button class="peep" type="button" data-n="表弟" data-r="亲戚"><span class="av" style="background:#8a5a9a">弟</span><span class="nm">表弟</span><br><span class="rl">亲戚</span></button>
+        </div>
+        <div class="recent">
+          <p class="rt">最近往来</p>
+          <div class="rrow" data-n="老妈"><span>🧧</span><span class="nm2">老妈收 · 生日红封</span><span class="amt">¥666.00</span></div>
+          <div class="rrow" data-n="表弟"><span>🧧</span><span class="nm2">表弟收 · 升学红封</span><span class="amt">¥200.00</span></div>
+        </div>
+      </section>
+      <section class="view" id="v-amt">
+        <div class="v-head"><button class="bk" type="button" data-back="v-to">←</button><h1>包多少</h1><span class="r">02 / 03</span></div>
+        <div class="hero-card">
+          <p class="to">红封给</p>
+          <p class="who" id="h-who">老妈</p>
+        </div>
+        <div class="amt-zone">
+          <p class="lab">金额（元）</p>
+          <div class="amt-in"><span>¥</span><input id="amt" type="text" inputmode="decimal" placeholder="0.00"></div>
+        </div>
+        <div class="bless" id="bless">
+          <button class="on" type="button">身体健康</button>
+          <button type="button">生日快乐</button>
+          <button type="button">学业进步</button>
+          <button type="button">心想事成</button>
+        </div>
+        <div class="src">
+          <p class="sh">从哪出</p>
+          <button class="srcrow on" type="button" data-src="零钱" data-bal="2000">
+            <span><span class="nm">零钱</span><br><span class="bl">可用 ¥2,000.00</span></span>
+            <span class="dot" aria-hidden="true"></span>
+          </button>
+          <button class="srcrow" type="button" data-src="工商银行储蓄卡" data-bal="50000">
+            <span><span class="nm">工商银行储蓄卡（尾号 3355）</span><br><span class="bl">可用 ¥50,000.00</span></span>
+            <span class="dot" aria-hidden="true"></span>
+          </button>
+        </div>
+        <div class="err" id="err"></div>
+        <button class="cta" id="to-confirm" type="button">写好，去核对</button>
+      </section>
+      <section class="view" id="v-cfm">
+        <div class="v-head"><button class="bk" type="button" data-back="v-amt">←</button><h1>核对红封</h1><span class="r">03 / 03</span></div>
+        <div class="confirm-box">
+          <p style="text-align:center;font-size:12px;color:var(--muted)">红封金额</p>
+          <p class="amt-big" id="c-amt">¥0.00</p>
+          <div class="kv"><span class="k">收封人</span><span id="c-who">老妈</span></div>
+          <div class="kv"><span class="k">祝福</span><span id="c-bless">身体健康</span></div>
+          <div class="kv"><span class="k">出自</span><span id="c-src">零钱</span></div>
+        </div>
+        <div class="err" id="err2"></div>
+        <button class="cta" id="do-pay" type="button">核对无误，包出去</button>
+      </section>
+      <section class="view" id="v-done">
+        <div class="v-head"><h1>红封已发出</h1></div>
+        <div class="cert">
+          <p class="fh">福</p>
+          <h2>红封已送达</h2>
+          <p class="cno" id="d-no"></p>
+          <p class="cinfo" id="d-info"></p>
+        </div>
+        <button class="again2" id="again2" type="button">再包一个</button>
+      </section>
+    </div>
+  </div>
+</div>
+<script>
+(function(){
+  var who='老妈';
+  var bless='身体健康';
+  var src='零钱';
+  var srcBal=2000;
+  var views=['v-to','v-amt','v-cfm','v-done'];
+  function go(id){
+    for(var i=0;i<views.length;i++){
+      var v=document.getElementById(views[i]);
+      if(views[i]===id){v.classList.add('on')}else{v.classList.remove('on')}
+    }
+  }
+  var peeps=document.querySelectorAll('.peep');
+  for(var i=0;i<peeps.length;i++){
+    (function(p){
+      p.addEventListener('click',function(){
+        for(var j=0;j<peeps.length;j++)peeps[j].classList.remove('on');
+        p.classList.add('on');
+        who=p.getAttribute('data-n');
+        document.getElementById('h-who').textContent=who;
+        document.getElementById('c-who').textContent=who;
+        go('v-amt');
+      });
+    })(peeps[i]);
+  }
+  var rrows=document.querySelectorAll('.rrow');
+  for(var r=0;r<rrows.length;r++){
+    (function(row){
+      row.addEventListener('click',function(){
+        who=row.getAttribute('data-n');
+        document.getElementById('h-who').textContent=who;
+        document.getElementById('c-who').textContent=who;
+        go('v-amt');
+      });
+    })(rrows[r]);
+  }
+  var blessBtns=document.querySelectorAll('#bless button');
+  for(var b=0;b<blessBtns.length;b++){
+    (function(btn){
+      btn.addEventListener('click',function(){
+        for(var j=0;j<blessBtns.length;j++)blessBtns[j].classList.remove('on');
+        btn.classList.add('on');
+        bless=btn.textContent;
+        document.getElementById('c-bless').textContent=bless;
+      });
+    })(blessBtns[b]);
+  }
+  var srcBtns=document.querySelectorAll('.srcrow');
+  for(var s=0;s<srcBtns.length;s++){
+    (function(btn){
+      btn.addEventListener('click',function(){
+        for(var j=0;j<srcBtns.length;j++)srcBtns[j].classList.remove('on');
+        btn.classList.add('on');
+        src=btn.getAttribute('data-src');
+        srcBal=Number(btn.getAttribute('data-bal'));
+        document.getElementById('c-src').textContent=src;
+        hideErr();
+      });
+    })(srcBtns[s]);
+  }
+  var amt=document.getElementById('amt');
+  var err=document.getElementById('err');
+  var err2=document.getElementById('err2');
+  function hideErr(){err.classList.remove('show');err2.classList.remove('show')}
+  function fmtInput(){
+    var v=amt.value.replace(/[^\d.]/g,'');
+    amt.value=v;
+    hideErr();
+  }
+  amt.addEventListener('input',fmtInput);
+  document.getElementById('to-confirm').addEventListener('click',function(){
+    var v=Number(amt.value);
+    if(!(v>0)){
+      err.textContent='先写个金额，哪怕一块也是心意。';
+      err.classList.add('show');
+      return;
+    }
+    document.getElementById('c-amt').textContent='¥'+v.toFixed(2);
+    go('v-cfm');
+  });
+  document.getElementById('do-pay').addEventListener('click',function(){
+    var v=Number(amt.value);
+    if(v>srcBal){
+      err2.innerHTML='余额不足，红封没包出去：<b>'+src+'</b>可用 <b>¥'+srcBal.toFixed(2)+'</b>，还差 ¥'+(v-srcBal).toFixed(2)+'。<br>回去把金额改小，或换成储蓄卡出。';
+      err2.classList.add('show');
+      return;
+    }
+    document.getElementById('d-no').textContent='红封编号 HF-2026-0814-'+(1000+Math.floor(Math.random()*9000));
+    document.getElementById('d-info').textContent=who+' 已收下 ¥'+v.toFixed(2)+'（'+bless+'）· 出自'+src+' · 今天 21:0'+Math.floor(Math.random()*10)+' 送达';
+    go('v-done');
+  });
+  var backs=document.querySelectorAll('.bk');
+  for(var k=0;k<backs.length;k++){
+    (function(btn){
+      btn.addEventListener('click',function(){go(btn.getAttribute('data-back'))});
+    })(backs[k]);
+  }
+  document.getElementById('again2').addEventListener('click',function(){
+    amt.value='';
+    hideErr();
+    go('v-to');
+  });
+})();
+</script>
+</body>
+</html>

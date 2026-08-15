@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>路轨台 · 任务</title>
+  <style>
+    :root {
+      --steel: #2c3338;
+      --rail: #c45b1a;
+      --paper: #e8eaec;
+      --ink: #1c2226;
+      --ok: #2f5d3a;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #d5d8dc; color: var(--ink); font: 14px/1.45 "Segoe UI", "Microsoft YaHei", sans-serif; }
+    header { background: var(--steel); color: #e8eaec; padding: 14px 18px; display: flex; justify-content: space-between; }
+    .app { display: grid; grid-template-columns: 1fr 280px; gap: 12px; padding: 14px; }
+    label { display: block; margin-top: 8px; }
+    input, select { width: 100%; height: 34px; }
+    button { height: 36px; margin-top: 8px; cursor: pointer; }
+    .go { background: var(--rail); color: #fff; border: 0; width: 100%; }
+    table { width: 100%; background: #fff; border-collapse: collapse; }
+    td, th { border-bottom: 1px solid #cfd4d8; padding: 8px; text-align: left; }
+    .log { background: #fff; padding: 10px; min-height: 180px; font-size: 13px; }
+    .err { color: #8b2e18; }
+    @media (max-width: 768px) { .app { grid-template-columns: 1fr; } }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <strong>路轨台</strong>
+    <span>当前身份：调度</span>
+  </header>
+  <div class="app">
+    <div>
+      <table>
+        <thead><tr><th>任务</th><th>成员</th><th>状态</th><th></th></tr></thead>
+        <tbody id="tb"></tbody>
+      </table>
+      <section>
+        <h2>新开一条轨</h2>
+        <label>标题 <input id="title" value="把种子袋改到可出"></label>
+        <label>分派
+          <select id="who"><option>吴苔</option><option>顾北</option><option>陈衡</option></select>
+        </label>
+        <button class="go" id="create" type="button">创建任务</button>
+      </section>
+    </div>
+    <aside>
+      <h2>活动记录</h2>
+      <div class="log" id="log"></div>
+      <p class="err" id="err"></p>
+      <button id="ask" type="button">申请账房权限</button>
+    </aside>
+  </div>
+  <script>
+    (function () {
+      var tasks = [
+        { t: "北港灯油补位", who: "顾北", st: "进行中", lock: false },
+        { t: "财务封存·七月", who: "账房", st: "锁定", lock: true }
+      ];
+      var logs = ["台已打开。调度只能动非封存轨。"];
+      var canFinance = false;
+      function draw() {
+        var tb = document.getElementById("tb");
+        tb.innerHTML = "";
+        tasks.forEach(function (tk, i) {
+          var tr = document.createElement("tr");
+          tr.innerHTML = "<td>" + tk.t + (tk.lock ? "（封存）" : "") + "</td><td>" + tk.who + "</td><td>" + tk.st + "</td><td><button type=\"button\" data-i=\"" + i + "\">推进状态</button></td>";
+          tb.appendChild(tr);
+        });
+        document.getElementById("log").innerHTML = logs.map(function (l) { return "<div>" + l + "</div>"; }).join("");
+      }
+      document.getElementById("tb").addEventListener("click", function (event) {
+        var btn = event.target.closest("button");
+        if (!btn) return;
+        var tk = tasks[Number(btn.getAttribute("data-i"))];
+        var err = document.getElementById("err");
+        if (tk.lock && !canFinance) {
+          err.textContent = "权限不足：财务封存轨需要账房章。这次推进没有写入。";
+          return;
+        }
+        var order = ["待办", "进行中", "完成"];
+        var n = order.indexOf(tk.st);
+        tk.st = order[Math.min(order.length - 1, n + 1)] || "完成";
+        logs.unshift("推进「" + tk.t + "」→ " + tk.st);
+        err.textContent = "";
+        draw();
+      });
+      document.getElementById("create").addEventListener("click", function () {
+        var t = document.getElementById("title").value.trim();
+        var who = document.getElementById("who").value;
+        if (!t) return;
+        tasks.push({ t: t, who: who, st: "待办", lock: false });
+        logs.unshift("创建「" + t + "」分派给 " + who);
+        document.getElementById("err").textContent = "";
+        draw();
+      });
+      document.getElementById("ask").addEventListener("click", function () {
+        canFinance = true;
+        document.getElementById("err").textContent = "";
+        logs.unshift("已申请并临时获得账房章。封存轨可推进。也可回去动普通轨。");
+        draw();
+      });
+      draw();
+    })();
+  </script>
+</body>
+</html>

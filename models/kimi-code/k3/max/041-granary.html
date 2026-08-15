@@ -1,0 +1,350 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>谷仓 · 粮油杂货</title>
+<style>
+:root{
+  --earth:#7a5230;
+  --earth-deep:#5e3f22;
+  --wheat:#f0d489;
+  --bg:#f4ecdc;
+  --card:#fffaf0;
+  --ink:#3a2e20;
+  --muted:#97876c;
+  --line:#e4d7bc;
+  --danger:#c0452e;
+  --ok:#3e7d4f;
+  --radius-card:12px;
+  --radius-ctl:8px;
+  --sp:8px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font:14.5px/1.6 "PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+  background:var(--bg);color:var(--ink);min-height:100vh;display:flex;flex-direction:column;
+}
+.topbar{
+  background:var(--earth);color:#f4ecdc;padding:0 26px;height:58px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.brand{display:flex;align-items:center;gap:11px;font:700 17px/1 "Songti SC","STSong","SimSun",serif;letter-spacing:.22em}
+.topbar .note{font-size:12px;color:#d8c6a4}
+.steps-bar{display:flex;gap:8px;align-items:center;justify-content:center;padding:12px;background:#ece1c8;border-bottom:1px solid var(--line);font-size:12px;color:var(--muted)}
+.steps-bar b{color:var(--earth-deep);font-weight:700}
+.steps-bar .sep{color:#c9b890}
+.wrap{flex:1;max-width:1120px;width:100%;margin:0 auto;padding:22px 26px 46px;display:flex;gap:20px;align-items:flex-start}
+.shelf{flex:1;display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+.prod{
+  background:var(--card);border:1px solid var(--line);border-radius:var(--radius-card);padding:16px;
+}
+.prod h2{font:700 15.5px/1.4 "Songti SC","STSong","SimSun",serif;display:flex;justify-content:space-between;align-items:baseline}
+.prod h2 .prc{font:700 15px/1 ui-monospace,Consolas,monospace;color:var(--earth-deep)}
+.prod .from{font-size:11.5px;color:var(--muted);margin:3px 0 12px}
+.specs{display:flex;gap:7px;margin-bottom:12px}
+.spec{
+  border:1px solid var(--line);background:none;border-radius:var(--radius-ctl);padding:7px 12px;
+  font:inherit;font-size:12.5px;color:var(--ink);cursor:pointer;transition:all .13s ease;position:relative;
+}
+.spec:hover{border-color:var(--earth)}
+.spec.on{border-color:var(--earth);background:#f6ecd2;box-shadow:inset 0 0 0 1px var(--earth)}
+.spec .low{
+  position:absolute;top:-8px;right:-6px;background:var(--danger);color:#fff;font-size:9.5px;
+  padding:2px 6px;border-radius:999px;letter-spacing:.05em;
+}
+.add{
+  width:100%;height:40px;border:0;border-radius:var(--radius-ctl);background:var(--earth);color:#fffaf0;
+  font:inherit;font-weight:700;font-size:13px;letter-spacing:.14em;cursor:pointer;transition:background .14s ease;
+}
+.add:hover{background:var(--earth-deep)}
+.cart{
+  flex:0 0 360px;background:var(--card);border:1px solid var(--line);border-radius:var(--radius-card);
+  position:sticky;top:20px;overflow:hidden;
+}
+.cart-h{padding:14px 18px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+.cart-h h2{font-size:15px}
+.cart-h .n{font:11.5px/1 ui-monospace,Consolas,monospace;color:var(--muted)}
+.cart-empty{padding:34px 18px;text-align:center;color:var(--muted);font-size:13px}
+.cline{padding:12px 18px;border-bottom:1px solid var(--line)}
+.cline.bad{background:#fbeae5;box-shadow:inset 3px 0 0 var(--danger)}
+.cline .r1{display:flex;justify-content:space-between;font-size:13.5px;font-weight:600}
+.cline .r1 .sp{font-weight:400;color:var(--muted);font-size:12px;margin-left:6px}
+.cline .r1 .amt{font-family:ui-monospace,Consolas,monospace}
+.cline .r2{display:flex;align-items:center;gap:10px;margin-top:8px}
+.cline .stock-warn{font-size:11.5px;color:var(--danger);margin-top:6px;display:none}
+.cline.bad .stock-warn{display:block}
+.qty{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:6px;background:#fff}
+.qty button{width:26px;height:26px;border:0;background:none;font:inherit;cursor:pointer;color:var(--ink)}
+.qty button:hover:not(:disabled){color:var(--earth)}
+.qty button:disabled{opacity:.3;cursor:not-allowed}
+.qty .n{min-width:30px;text-align:center;font:600 12.5px/1 ui-monospace,Consolas,monospace}
+.cline .rm{margin-left:auto;border:0;background:none;color:var(--muted);font:inherit;font-size:12px;cursor:pointer;border-bottom:1px dashed var(--muted)}
+.cline .rm:hover{color:var(--danger);border-bottom-color:var(--danger)}
+.alert{
+  display:none;margin:12px 18px 0;background:#fbeae5;border:1px solid #ecc5b8;border-radius:var(--radius-ctl);
+  padding:11px 14px;font-size:12.5px;color:#8c3a24;line-height:1.8;
+}
+.alert.show{display:block}
+.cart-f{padding:14px 18px 16px}
+.sum-row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px}
+.sum-row .k{font-size:12.5px;color:var(--muted)}
+.sum-row .v{font:700 26px/1 ui-monospace,Consolas,monospace;color:var(--earth-deep)}
+.submit{
+  width:100%;height:48px;border:0;border-radius:var(--radius-ctl);background:var(--earth-deep);color:#f4ecdc;
+  font:inherit;font-weight:700;font-size:14.5px;letter-spacing:.2em;cursor:pointer;transition:background .14s ease;
+}
+.submit:hover:not(:disabled){background:#4c3319}
+.submit:disabled{opacity:.45;cursor:not-allowed}
+.receipt{display:none;padding:26px 22px;text-align:center}
+.receipt.show{display:block}
+.receipt .ok-ic{width:64px;height:64px;margin:0 auto 14px}
+.receipt h2{font:700 19px/1.4 "Songti SC","STSong","SimSun",serif;letter-spacing:.1em}
+.receipt .ono{font:700 14px/1 ui-monospace,Consolas,monospace;color:var(--earth-deep);margin:10px 0 4px}
+.receipt .inf{font-size:12.5px;color:var(--muted);line-height:2;margin-bottom:16px}
+.receipt .list{
+  text-align:left;border-top:1px dashed var(--line);padding-top:12px;margin-bottom:18px;font-size:13px;
+}
+.receipt .list div{display:flex;justify-content:space-between;padding:4px 0}
+.again{
+  border:1.5px solid var(--earth);background:none;border-radius:var(--radius-ctl);padding:11px 26px;
+  font:inherit;font-weight:600;font-size:13px;color:var(--earth-deep);cursor:pointer;
+}
+.again:hover{background:#f6ecd2}
+.toast{
+  position:fixed;left:50%;bottom:30px;transform:translate(-50%,16px);opacity:0;pointer-events:none;
+  background:var(--ink);color:#f4ecdc;padding:11px 24px;border-radius:999px;font-size:13px;transition:all .28s ease;z-index:9;
+}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+@media(max-width:960px){
+  .wrap{flex-direction:column}
+  .cart{flex:none;width:100%;position:static}
+  .shelf{grid-template-columns:1fr;width:100%}
+}
+@media(prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">谷 仓</div>
+  <span class="note">粮油杂货 · 当日现碾 · 满 ¥59 送到家</span>
+</header>
+<div class="steps-bar"><b>挑货</b><span class="sep">→</span><b>选规格数量</b><span class="sep">→</span><b>核对篮子</b><span class="sep">→</span><b>提交订单</b><span class="sep">→</span><b>拿回执</b></div>
+<div class="wrap">
+  <main class="shelf" id="shelf">
+    <div class="prod" data-name="小榨菜籽油" data-price="58.00">
+      <h2>小榨菜籽油 <span class="prc">¥58.00</span></h2>
+      <p class="from">皖南油坊 · 头道物理压榨</p>
+      <div class="specs">
+        <button class="spec on" type="button" data-sp="5L 装" data-stock="1">5L 装<span class="low">仅剩 1</span></button>
+        <button class="spec" type="button" data-sp="1.8L 装" data-stock="24">1.8L 装</button>
+      </div>
+      <button class="add" type="button">放进篮子</button>
+    </div>
+    <div class="prod" data-name="新米 · 南粳 46" data-price="32.50">
+      <h2>新米 · 南粳 46 <span class="prc">¥32.50</span></h2>
+      <p class="from">江苏兴化 · 5kg 袋装今秋头茬</p>
+      <div class="specs">
+        <button class="spec on" type="button" data-sp="5kg 袋装" data-stock="40">5kg 袋装</button>
+        <button class="spec" type="button" data-sp="10kg 袋装" data-stock="15">10kg 袋装 ¥62</button>
+      </div>
+      <button class="add" type="button">放进篮子</button>
+    </div>
+    <div class="prod" data-name="古法龙须面" data-price="12.80">
+      <h2>古法龙须面 <span class="prc">¥12.80</span></h2>
+      <p class="from">手工盘条 · 日晒六小时</p>
+      <div class="specs">
+        <button class="spec on" type="button" data-sp="500g 束" data-stock="60">500g 束</button>
+        <button class="spec" type="button" data-sp="1kg 礼盒" data-stock="22">1kg 礼盒 ¥24</button>
+      </div>
+      <button class="add" type="button">放进篮子</button>
+    </div>
+    <div class="prod" data-name="石磨玉米糁" data-price="9.90">
+      <h2>石磨玉米糁 <span class="prc">¥9.90</span></h2>
+      <p class="from">太行山区 · 粗糁熬粥香</p>
+      <div class="specs">
+        <button class="spec on" type="button" data-sp="1kg 袋" data-stock="35">1kg 袋</button>
+        <button class="spec" type="button" data-sp="2.5kg 袋" data-stock="18">2.5kg 袋 ¥22</button>
+      </div>
+      <button class="add" type="button">放进篮子</button>
+    </div>
+    <div class="prod" data-name="小磨香油" data-price="26.00">
+      <h2>小磨香油 <span class="prc">¥26.00</span></h2>
+      <p class="from">驻马店白芝麻 · 水代法</p>
+      <div class="specs">
+        <button class="spec on" type="button" data-sp="250ml" data-stock="28">250ml</button>
+        <button class="spec" type="button" data-sp="500ml" data-stock="12">500ml ¥46</button>
+      </div>
+      <button class="add" type="button">放进篮子</button>
+    </div>
+    <div class="prod" data-name="红皮花生" data-price="15.60">
+      <h2>红皮花生 <span class="prc">¥15.60</span></h2>
+      <p class="from">胶东沙地 · 当年新果</p>
+      <div class="specs">
+        <button class="spec on" type="button" data-sp="1kg 袋" data-stock="44">1kg 袋</button>
+        <button class="spec" type="button" data-sp="2kg 袋" data-stock="20">2kg 袋 ¥29</button>
+      </div>
+      <button class="add" type="button">放进篮子</button>
+    </div>
+  </main>
+  <aside class="cart">
+    <div class="cart-h"><h2>菜篮子</h2><span class="n" id="c-n">空着</span></div>
+    <div class="alert" id="alert"></div>
+    <div id="c-lines">
+      <div class="cart-empty" id="c-empty">篮子还空着，去左边挑几样。</div>
+    </div>
+    <div class="cart-f" id="c-foot" style="display:none">
+      <div class="sum-row"><span class="k">合计（满 ¥59 免送费）</span><span class="v" id="c-total">¥0.00</span></div>
+      <button class="submit" id="submit" type="button">提 交 订 单</button>
+    </div>
+    <div class="receipt" id="receipt">
+      <svg class="ok-ic" viewBox="0 0 64 64" fill="none" aria-hidden="true">
+        <circle cx="32" cy="32" r="28" stroke="#3e7d4f" stroke-width="2.6"/>
+        <path d="M20 33L28.5 41.5L45 23.5" stroke="#3e7d4f" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <h2>订单已入仓</h2>
+      <p class="ono" id="r-ono"></p>
+      <p class="inf" id="r-inf"></p>
+      <div class="list" id="r-list"></div>
+      <button class="again" id="again" type="button">再挑一单</button>
+    </div>
+  </aside>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+(function(){
+  var cart=[];
+  var lineSeq=0;
+  var cLines=document.getElementById('c-lines');
+  var cEmpty=document.getElementById('c-empty');
+  var cFoot=document.getElementById('c-foot');
+  var cTotal=document.getElementById('c-total');
+  var cN=document.getElementById('c-n');
+  var alertBox=document.getElementById('alert');
+  var receipt=document.getElementById('receipt');
+  var toast=document.getElementById('toast');
+  var timer=null;
+  function say(msg){
+    toast.textContent=msg;
+    toast.classList.add('show');
+    if(timer)clearTimeout(timer);
+    timer=setTimeout(function(){toast.classList.remove('show')},2000);
+  }
+  function fmt(v){return '¥'+v.toFixed(2)}
+  function renderCart(){
+    var html='';
+    for(var i=0;i<cart.length;i++){
+      var l=cart[i];
+      html+='<div class="cline'+(l.bad?' bad':'')+'" data-id="'+l.id+'">'+
+        '<div class="r1"><span>'+l.name+'<span class="sp">'+l.spec+'</span></span><span class="amt">'+fmt(l.price*l.qty)+'</span></div>'+
+        '<div class="r2"><span class="qty"><button type="button" data-a="m">−</button><span class="n">'+l.qty+'</span><button type="button" data-a="p">＋</button></span>'+
+        '<button class="rm" type="button">拿出去</button></div>'+
+        '<p class="stock-warn">「'+l.name+' '+l.spec+'」库存只剩 '+l.stock+' 件，超出的装不了。</p></div>';
+    }
+    cLines.innerHTML=html||'<div class="cart-empty">篮子还空着，去左边挑几样。</div>';
+    var total=0,n=0;
+    for(var j=0;j<cart.length;j++){total+=cart[j].price*cart[j].qty;n+=cart[j].qty}
+    cTotal.textContent=fmt(total);
+    cN.textContent=n?n+' 件':'空着';
+    cFoot.style.display=cart.length?'':'none';
+    bindLines();
+  }
+  function bindLines(){
+    var rows=cLines.querySelectorAll('.cline');
+    for(var i=0;i<rows.length;i++){
+      (function(row){
+        var id=Number(row.getAttribute('data-id'));
+        var line=null;
+        for(var k=0;k<cart.length;k++)if(cart[k].id===id)line=cart[k];
+        var btns=row.querySelectorAll('.qty button');
+        btns[0].addEventListener('click',function(){
+          if(line.qty>1){line.qty-=1;line.bad=false;renderCart()}
+        });
+        btns[1].addEventListener('click',function(){
+          if(line.qty<99){line.qty+=1;renderCart()}
+        });
+        row.querySelector('.rm').addEventListener('click',function(){
+          cart=cart.filter(function(x){return x.id!==id});
+          renderCart();
+        });
+      })(rows[i]);
+    }
+  }
+  var prods=document.querySelectorAll('.prod');
+  for(var i=0;i<prods.length;i++){
+    (function(card){
+      var specs=card.querySelectorAll('.spec');
+      for(var j=0;j<specs.length;j++){
+        (function(sp){
+          sp.addEventListener('click',function(){
+            for(var m=0;m<specs.length;m++)specs[m].classList.remove('on');
+            sp.classList.add('on');
+          });
+        })(specs[j]);
+      }
+      card.querySelector('.add').addEventListener('click',function(){
+        var on=card.querySelector('.spec.on');
+        var specName=on.getAttribute('data-sp');
+        var stock=Number(on.getAttribute('data-stock'));
+        var name=card.getAttribute('data-name');
+        var price=Number(card.getAttribute('data-price'));
+        var spTxt=on.textContent;
+        var m=spTxt.match(/¥(\d+)/);
+        if(m)price=Number(m[1]);
+        var found=null;
+        for(var k=0;k<cart.length;k++){
+          if(cart[k].name===name&&cart[k].spec===specName)found=cart[k];
+        }
+        if(found){found.qty+=1}
+        else{cart.push({id:++lineSeq,name:name,spec:specName,price:price,qty:1,stock:stock,bad:false})}
+        alertBox.classList.remove('show');
+        renderCart();
+        say(name+'（'+specName+'）已进篮子');
+      });
+    })(prods[i]);
+  }
+  document.getElementById('submit').addEventListener('click',function(){
+    var problems=[];
+    for(var i=0;i<cart.length;i++){
+      var l=cart[i];
+      l.bad=l.qty>l.stock;
+      if(l.bad)problems.push(l);
+    }
+    if(problems.length){
+      var msg='库存不足，先别提交：';
+      for(var j=0;j<problems.length;j++){
+        msg+='「'+problems[j].name+' '+problems[j].spec+'」只剩 '+problems[j].stock+' 件；';
+      }
+      msg+='请在篮子里减量，或回货架改选其他规格。';
+      alertBox.textContent=msg;
+      alertBox.classList.add('show');
+      renderCart();
+      return;
+    }
+    alertBox.classList.remove('show');
+    var total=0,items='';
+    for(var k=0;k<cart.length;k++){
+      total+=cart[k].price*cart[k].qty;
+      items+='<div><span>'+cart[k].name+' '+cart[k].spec+' × '+cart[k].qty+'</span><span>'+fmt(cart[k].price*cart[k].qty)+'</span></div>';
+    }
+    document.getElementById('r-ono').textContent='订单号 GR-2026-0814-'+(1000+Math.floor(Math.random()*9000));
+    document.getElementById('r-inf').textContent='合计 '+fmt(total)+' · 今天 17:00 前从谷仓发出，傍晚送达';
+    document.getElementById('r-list').innerHTML=items;
+    cLines.style.display='none';
+    cFoot.style.display='none';
+    alertBox.classList.remove('show');
+    receipt.classList.add('show');
+  });
+  document.getElementById('again').addEventListener('click',function(){
+    cart=[];
+    receipt.classList.remove('show');
+    cLines.style.display='';
+    renderCart();
+  });
+})();
+</script>
+</body>
+</html>

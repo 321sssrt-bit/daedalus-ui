@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>墨池 · 登录</title>
+<style>
+:root{
+  --paper:#f7f1e3;
+  --paper-deep:#efe4cc;
+  --card:#fffdf6;
+  --ink:#182a3e;
+  --ink-soft:#3f5872;
+  --muted:#8b8474;
+  --line:#ddd2b8;
+  --cinnabar:#b5402a;
+  --cinnabar-deep:#93331f;
+  --gold:#c19a4b;
+  --ok:#3d7a4f;
+  --danger:#b5402a;
+  --radius-ctl:8px;
+  --radius-box:14px;
+  --sp:8px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font:15px/1.65 "PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+  background:var(--paper);color:var(--ink);min-height:100vh;
+}
+.stage{display:flex;min-height:100vh}
+/* 左侧书房 */
+.brand{
+  width:44%;min-width:380px;background:var(--ink);color:var(--paper);
+  padding:52px 48px;display:flex;flex-direction:column;justify-content:space-between;
+  position:relative;overflow:hidden;
+}
+.brand::after{
+  content:"";position:absolute;right:-140px;bottom:-140px;width:420px;height:420px;
+  border-radius:50%;border:1px solid rgba(193,154,75,.35);
+}
+.brand::before{
+  content:"";position:absolute;right:-60px;bottom:-60px;width:420px;height:420px;
+  border-radius:50%;border:1px solid rgba(193,154,75,.18);
+}
+.brand-top{display:flex;align-items:center;gap:16px}
+.seal{
+  width:64px;height:64px;background:var(--cinnabar);color:var(--paper);
+  border-radius:10px;display:grid;place-items:center;
+  font:700 34px/1 "Songti SC","STSong","SimSun",serif;
+  box-shadow:0 6px 18px rgba(0,0,0,.35);
+}
+.brand-name{font:700 22px/1.2 "Songti SC","STSong","SimSun",serif;letter-spacing:.14em}
+.brand-sub{color:var(--gold);font-size:12px;letter-spacing:.3em;margin-top:6px}
+.verse{
+  writing-mode:vertical-rl;font:400 26px/2 "Songti SC","STSong","SimSun",serif;
+  letter-spacing:.34em;color:#e8dfc8;height:280px;
+}
+.verse em{font-style:normal;color:var(--gold)}
+.brand-foot{color:rgba(247,241,227,.55);font-size:13px;position:relative;z-index:1}
+/* 右侧表单 */
+.panel{flex:1;display:flex;align-items:center;justify-content:center;padding:48px 24px}
+.card{width:min(388px,100%)}
+.card h1{font:700 30px/1.3 "Songti SC","STSong","SimSun",serif;letter-spacing:.06em}
+.card .lead{color:var(--muted);margin:10px 0 28px}
+.tabs{display:flex;gap:24px;border-bottom:1px solid var(--line);margin-bottom:26px}
+.tab{
+  appearance:none;border:0;background:none;cursor:pointer;font:inherit;color:var(--muted);
+  padding:10px 2px;position:relative;letter-spacing:.08em;
+}
+.tab[aria-selected="true"]{color:var(--ink);font-weight:700}
+.tab[aria-selected="true"]::after{
+  content:"";position:absolute;left:0;right:0;bottom:-1px;height:3px;
+  background:var(--cinnabar);border-radius:2px;
+}
+.tab:focus-visible{outline:3px solid rgba(181,64,42,.35);outline-offset:2px}
+.field{margin-bottom:18px}
+.field label{display:block;font-size:13px;color:var(--ink-soft);margin-bottom:7px;letter-spacing:.05em}
+.control{position:relative}
+.control input{
+  width:100%;height:46px;padding:0 14px;font:inherit;color:var(--ink);
+  background:var(--card);border:1px solid var(--line);border-radius:var(--radius-ctl);
+  transition:border-color .18s ease,box-shadow .18s ease;
+}
+.control input::placeholder{color:#b6ac96}
+.control input:hover{border-color:#c9bb9c}
+.control input:focus{outline:none;border-color:var(--cinnabar);box-shadow:0 0 0 3px rgba(181,64,42,.16)}
+.ghost-btn{
+  position:absolute;right:6px;top:50%;transform:translateY(-50%);
+  border:0;background:none;color:var(--cinnabar);font-size:13px;cursor:pointer;
+  padding:6px 8px;border-radius:6px;letter-spacing:.05em;
+}
+.ghost-btn:hover{background:rgba(181,64,42,.08)}
+.ghost-btn:disabled{color:var(--muted);cursor:not-allowed;background:none}
+.code-row{display:flex;gap:10px}
+.code-row .control{flex:1}
+.send-btn{
+  flex:0 0 118px;height:46px;border:1px solid var(--line);border-radius:var(--radius-ctl);
+  background:var(--paper-deep);color:var(--ink);font:inherit;font-size:13px;cursor:pointer;
+  transition:border-color .18s ease;
+}
+.send-btn:hover:not(:disabled){border-color:var(--cinnabar);color:var(--cinnabar)}
+.send-btn:disabled{color:var(--muted);cursor:not-allowed}
+.notice{
+  display:none;border:1px solid var(--line);border-left:4px solid var(--danger);
+  background:#fdf6ec;color:var(--cinnabar-deep);border-radius:var(--radius-ctl);
+  padding:11px 14px;font-size:13.5px;margin-bottom:18px;
+}
+.notice.show{display:block;animation:shake .32s ease}
+.notice.ok{border-left-color:var(--ok);color:var(--ok);animation:none}
+@keyframes shake{25%{transform:translateX(-5px)}50%{transform:translateX(4px)}75%{transform:translateX(-2px)}}
+.submit{
+  width:100%;height:48px;border:0;border-radius:var(--radius-ctl);cursor:pointer;
+  background:var(--cinnabar);color:#fdf6ec;font:inherit;font-weight:700;letter-spacing:.34em;
+  padding-left:.34em;transition:background .18s ease,transform .12s ease;
+}
+.submit:hover:not(:disabled){background:var(--cinnabar-deep)}
+.submit:active:not(:disabled){transform:translateY(1px)}
+.submit:disabled{opacity:.62;cursor:wait}
+.submit:focus-visible{outline:3px solid rgba(181,64,42,.4);outline-offset:2px}
+.links{display:flex;justify-content:space-between;margin-top:18px;font-size:13.5px}
+.links a{color:var(--ink-soft);text-decoration:none;border-bottom:1px dashed transparent}
+.links a:hover{color:var(--cinnabar);border-bottom-color:var(--cinnabar)}
+.links a:focus-visible{outline:3px solid rgba(181,64,42,.35);outline-offset:2px}
+.tip{
+  display:none;margin-top:16px;background:var(--card);border:1px dashed var(--line);
+  border-radius:var(--radius-ctl);padding:11px 14px;font-size:13px;color:var(--muted);
+}
+.tip.show{display:block}
+.foot{margin-top:34px;text-align:center;color:var(--muted);font-size:12px;letter-spacing:.12em}
+@media(max-width:920px){
+  .brand{display:none}
+  .panel{padding:40px 20px}
+}
+@media(prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+}
+</style>
+</head>
+<body>
+<div class="stage">
+  <aside class="brand">
+    <div class="brand-top">
+      <div class="seal" aria-hidden="true">墨</div>
+      <div>
+        <div class="brand-name">墨池</div>
+        <div class="brand-sub">MOCHI WRITING</div>
+      </div>
+    </div>
+    <p class="verse">笔落惊风雨，<em>诗成泣鬼神</em>。</p>
+    <p class="brand-foot">中文写作者的长文书房 · 自 2019 年陪伴十二万作者</p>
+  </aside>
+  <main class="panel">
+    <div class="card">
+      <h1>回到墨池</h1>
+      <p class="lead">稿纸还摊在案上，接着上次的段落写下去。</p>
+      <div class="tabs" role="tablist" aria-label="登录方式">
+        <button class="tab" id="tab-pwd" role="tab" aria-selected="true" type="button">密码登录</button>
+        <button class="tab" id="tab-code" role="tab" aria-selected="false" type="button">验证码登录</button>
+      </div>
+      <div class="notice" id="notice" role="alert"></div>
+      <form id="login-form" novalidate>
+        <div class="field">
+          <label for="account">邮箱或笔名</label>
+          <div class="control">
+            <input id="account" name="account" type="text" autocomplete="username" placeholder="例如 qingyan@mochi.cn">
+          </div>
+        </div>
+        <div class="field" id="pwd-field">
+          <label for="password">密码</label>
+          <div class="control">
+            <input id="password" name="password" type="password" autocomplete="current-password" placeholder="至少 6 位">
+            <button class="ghost-btn" id="toggle-pwd" type="button" aria-pressed="false">显示</button>
+          </div>
+        </div>
+        <div class="field" id="code-field" hidden>
+          <label for="code">短信验证码</label>
+          <div class="code-row">
+            <div class="control">
+              <input id="code" name="code" type="text" inputmode="numeric" maxlength="6" placeholder="6 位数字">
+            </div>
+            <button class="send-btn" id="send-code" type="button">获取验证码</button>
+          </div>
+        </div>
+        <button class="submit" id="submit" type="submit">进 书 房</button>
+      </form>
+      <div class="links">
+        <a href="#reset" id="forgot">找不到密码了</a>
+        <a href="#signup" id="to-signup">新作者注册</a>
+      </div>
+      <div class="tip" id="reset-tip">重置链接会发到你绑定的邮箱，十分钟内有效；若收不到，请检查垃圾邮件夹。</div>
+      <p class="foot">登录即同意《墨池写作公约》与《隐私条款》</p>
+    </div>
+  </main>
+</div>
+<script>
+(function(){
+  var tabPwd=document.getElementById('tab-pwd');
+  var tabCode=document.getElementById('tab-code');
+  var pwdField=document.getElementById('pwd-field');
+  var codeField=document.getElementById('code-field');
+  var notice=document.getElementById('notice');
+  var account=document.getElementById('account');
+  var password=document.getElementById('password');
+  var code=document.getElementById('code');
+  var toggle=document.getElementById('toggle-pwd');
+  var sendBtn=document.getElementById('send-code');
+  var submit=document.getElementById('submit');
+  var form=document.getElementById('login-form');
+  var forgot=document.getElementById('forgot');
+  var resetTip=document.getElementById('reset-tip');
+  var mode='pwd';
+  var timer=null;
+  function show(kind,text){
+    notice.textContent=text;
+    notice.className='notice show'+(kind==='ok'?' ok':'');
+  }
+  function setMode(next){
+    mode=next;
+    tabPwd.setAttribute('aria-selected',String(next==='pwd'));
+    tabCode.setAttribute('aria-selected',String(next==='code'));
+    pwdField.hidden=next!=='pwd';
+    codeField.hidden=next!=='code';
+    notice.className='notice';
+  }
+  tabPwd.addEventListener('click',function(){setMode('pwd')});
+  tabCode.addEventListener('click',function(){setMode('code')});
+  toggle.addEventListener('click',function(){
+    var show=password.type==='password';
+    password.type=show?'text':'password';
+    toggle.textContent=show?'隐藏':'显示';
+    toggle.setAttribute('aria-pressed',String(show));
+    password.focus();
+  });
+  sendBtn.addEventListener('click',function(){
+    if(!account.value.trim()){show('err','先填写邮箱或笔名，再接收验证码。');account.focus();return}
+    var left=60;
+    sendBtn.disabled=true;
+    show('ok','验证码已发往 '+account.value.trim()+' 绑定的手机，五分钟内有效。');
+    sendBtn.textContent=left+' 秒后重发';
+    timer=setInterval(function(){
+      left-=1;
+      if(left<=0){clearInterval(timer);sendBtn.disabled=false;sendBtn.textContent='重新获取';return}
+      sendBtn.textContent=left+' 秒后重发';
+    },1000);
+  });
+  form.addEventListener('submit',function(ev){
+    ev.preventDefault();
+    if(!account.value.trim()){show('err','请填写邮箱或笔名。');account.focus();return}
+    if(mode==='pwd'&&password.value.length<6){show('err','密码至少 6 位，再核对一下。');password.focus();return}
+    if(mode==='code'&&!/^\d{6}$/.test(code.value.trim())){show('err','请输入 6 位数字验证码。');code.focus();return}
+    submit.disabled=true;
+    submit.textContent='正在研墨…';
+    show('ok','身份核对通过，书房门开了。');
+    setTimeout(function(){
+      submit.disabled=false;
+      submit.textContent='进 书 房';
+    },1600);
+  });
+  forgot.addEventListener('click',function(ev){
+    ev.preventDefault();
+    resetTip.classList.toggle('show');
+  });
+  document.getElementById('to-signup').addEventListener('click',function(ev){
+    ev.preventDefault();
+    show('ok','注册页在隔壁：填笔名、邮箱和密码即可入池。');
+  });
+})();
+</script>
+</body>
+</html>

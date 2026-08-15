@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>货栈 · 三道门</title>
+  <style>
+    :root {
+      --kraft: #c9a36a;
+      --navy: #1d2c4a;
+      --paper: #f3e6cf;
+      --ink: #1b140c;
+      --tag: #efe0c4;
+      --ok: #2f6b45;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #b08952; color: var(--ink); font: 14px/1.4 "Trebuchet MS", "Microsoft YaHei", sans-serif; }
+    header { background: var(--navy); color: var(--paper); padding: 16px 22px; display: flex; justify-content: space-between; align-items: center; }
+    header h1 { margin: 0; font-size: 20px; letter-spacing: 0.08em; }
+    header button { height: 36px; background: var(--kraft); border: 0; color: var(--navy); padding: 0 12px; font: 700 13px/1 inherit; cursor: pointer; }
+    .board { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; padding: 16px; min-height: calc(100vh - 68px); }
+    .col { background: var(--paper); min-height: 520px; padding: 10px; }
+    .col h2 { margin: 4px 8px 10px; font-size: 14px; letter-spacing: 0.14em; color: var(--navy); }
+    .card { background: var(--tag); border: 1px dashed #7a5a2e; padding: 10px; margin: 0 0 8px; cursor: pointer; }
+    .card:hover { background: #f7ead0; }
+    .card.on { outline: 2px solid var(--navy); }
+    .card small { display: block; color: #6a4e2a; margin-top: 4px; }
+    .move { display: flex; gap: 6px; margin-top: 8px; }
+    .move button { flex: 1; height: 28px; border: 1px solid var(--navy); background: #fff; cursor: pointer; font: 12px inherit; }
+    @media (max-width: 768px) {
+      .board { grid-template-columns: 1fr; }
+      .col { min-height: 0; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>货栈三道门</h1>
+    <button type="button" id="new">新开一单</button>
+  </header>
+  <div class="board" id="board">
+    <section class="col" data-col="0"><h2>待入</h2></section>
+    <section class="col" data-col="1"><h2>在检</h2></section>
+    <section class="col" data-col="2"><h2>可出</h2></section>
+  </div>
+  <script>
+    (function () {
+      var data = [
+        { t: "北港灯油 12 桶", s: "唛头 BH-09", c: 0 },
+        { t: "绛席瓷器 4 箱", s: "易碎 · 夜运", c: 0 },
+        { t: "晨案纸令 20", s: "已过磅", c: 1 },
+        { t: "青圃种子袋", s: "怕潮", c: 1 },
+        { t: "霜台铜麦 2", s: "可出栈", c: 2 }
+      ];
+      var n = 12;
+      function render() {
+        var cols = document.querySelectorAll(".col");
+        cols.forEach(function (col) {
+          var head = col.querySelector("h2").outerHTML;
+          col.innerHTML = head;
+        });
+        data.forEach(function (item, index) {
+          var el = document.createElement("article");
+          el.className = "card";
+          el.innerHTML = "<strong>" + item.t + "</strong><small>" + item.s + "</small><div class=\"move\"><button type=\"button\" data-i=\"" + index + "\" data-d=\"-1\">回一扇</button><button type=\"button\" data-i=\"" + index + "\" data-d=\"1\">进一扇</button></div>";
+          cols[item.c].appendChild(el);
+        });
+      }
+      document.getElementById("board").addEventListener("click", function (event) {
+        var btn = event.target.closest("button");
+        if (!btn) {
+          var card = event.target.closest(".card");
+          if (card) {
+            document.querySelectorAll(".card").forEach(function (c) { c.classList.remove("on"); });
+            card.classList.add("on");
+          }
+          return;
+        }
+        var item = data[Number(btn.getAttribute("data-i"))];
+        var next = item.c + Number(btn.getAttribute("data-d"));
+        if (next >= 0 && next <= 2) item.c = next;
+        render();
+      });
+      document.getElementById("new").addEventListener("click", function () {
+        n += 1;
+        data.push({ t: "临时件 " + n, s: "手写唛头", c: 0 });
+        render();
+      });
+      render();
+    })();
+  </script>
+</body>
+</html>

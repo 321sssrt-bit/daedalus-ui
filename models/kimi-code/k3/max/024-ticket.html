@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>票根 · 结账</title>
+<style>
+:root{
+  --brick:#b0492f;
+  --brick-deep:#8c3524;
+  --rice:#f6efe0;
+  --stub:#fdf8ea;
+  --ink:#33261f;
+  --muted:#94856f;
+  --line:#e3d5ba;
+  --gold:#c99a4a;
+  --ok:#3d7a4f;
+  --radius-card:14px;
+  --radius-ctl:8px;
+  --sp:8px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font:15px/1.7 "PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+  background:var(--rice);color:var(--ink);min-height:100vh;padding:34px 24px 60px;
+}
+.head{max-width:960px;margin:0 auto 22px;display:flex;align-items:baseline;justify-content:space-between}
+h1{font-size:22px;letter-spacing:.16em}
+.head .hold{color:var(--muted);font-size:12.5px;font-family:ui-monospace,Consolas,monospace}
+.stage{max-width:960px;margin:0 auto;display:flex;gap:26px;align-items:flex-start}
+.ticket{
+  flex:1;background:var(--stub);border:1px solid var(--line);border-radius:var(--radius-card);
+  position:relative;overflow:hidden;box-shadow:0 14px 36px rgba(140,90,40,.16);
+}
+.ticket .band{
+  background:var(--brick);color:#f6efe0;padding:18px 24px;
+}
+.band .kind{font-size:11px;letter-spacing:.3em;opacity:.85}
+.band h2{font:700 22px/1.4 "Songti SC","STSong","SimSun",serif;margin-top:4px;letter-spacing:.06em}
+.ticket .body{padding:18px 24px}
+.line-item{display:flex;justify-content:space-between;padding:9px 0;font-size:14px;border-bottom:1px dashed var(--line)}
+.line-item .mono{font-family:ui-monospace,Consolas,monospace}
+.line-item .mut{color:var(--muted);font-size:12.5px}
+.sum{display:flex;justify-content:space-between;align-items:baseline;padding-top:14px}
+.sum .lab{font-size:12.5px;color:var(--muted);letter-spacing:.14em}
+.sum .amt{font:700 34px/1 ui-monospace,Consolas,monospace;color:var(--brick)}
+.perf{
+  position:relative;border-top:2px dashed var(--brick);margin:0 -24px;padding:14px 24px 16px;
+  display:flex;justify-content:space-between;align-items:center;
+}
+.perf::before,.perf::after{
+  content:"";position:absolute;top:-11px;width:20px;height:20px;border-radius:50%;
+  background:var(--rice);border:1px solid var(--line);
+}
+.perf::before{left:-11px}
+.perf::after{right:-11px}
+.perf .no{font:12px/1.6 ui-monospace,Consolas,monospace;color:var(--muted)}
+.perf .seat{font-size:13px;font-weight:700;letter-spacing:.1em}
+.stampd{
+  position:absolute;right:22px;top:86px;transform:rotate(9deg);border:3px solid var(--ok);color:var(--ok);
+  border-radius:8px;padding:6px 14px;font:700 18px/1 "Songti SC","STSong",serif;letter-spacing:.2em;
+  opacity:0;transition:opacity .3s ease;pointer-events:none;
+}
+.ticket.paid .stampd{opacity:.85}
+.pay{flex:0 0 340px}
+.panel{
+  background:#fffdf4;border:1px solid var(--line);border-radius:var(--radius-card);padding:20px 22px;
+}
+.panel h3{font-size:13px;letter-spacing:.16em;color:var(--muted);margin-bottom:14px}
+.pm{
+  width:100%;display:flex;align-items:center;gap:12px;padding:13px 14px;margin-bottom:10px;
+  border:1.5px solid var(--line);border-radius:var(--radius-ctl);background:#fffdf4;cursor:pointer;
+  font:inherit;color:inherit;text-align:left;transition:all .14s ease;
+}
+.pm:hover{border-color:var(--gold)}
+.pm.on{border-color:var(--brick);background:#fbf2e2;box-shadow:inset 0 0 0 1px var(--brick)}
+.pm .ic{flex:0 0 34px;height:34px;border-radius:9px;display:grid;place-items:center;font-size:15px;font-weight:700;color:#fff}
+.pm .nm{font-size:14px;font-weight:600}
+.pm .sub{font-size:11.5px;color:var(--muted)}
+.pm .dot{margin-left:auto;width:16px;height:16px;border-radius:50%;border:2px solid var(--line);position:relative}
+.pm.on .dot{border-color:var(--brick)}
+.pm.on .dot::after{content:"";position:absolute;inset:3px;border-radius:50%;background:var(--brick)}
+.total-line{display:flex;justify-content:space-between;align-items:baseline;margin:16px 0 14px}
+.total-line .amt{font:700 26px/1 ui-monospace,Consolas,monospace;color:var(--brick)}
+.paynow{
+  width:100%;height:50px;border:0;border-radius:var(--radius-ctl);cursor:pointer;
+  background:var(--brick);color:#f6efe0;font:inherit;font-weight:700;font-size:15px;letter-spacing:.3em;padding-left:.3em;
+  box-shadow:0 8px 20px rgba(176,73,47,.3);transition:background .15s ease;
+}
+.paynow:hover:not(:disabled){background:var(--brick-deep)}
+.paynow:disabled{opacity:.6;cursor:wait}
+.paynow:focus-visible{outline:3px solid rgba(176,73,47,.4);outline-offset:2px}
+.safe{margin-top:12px;text-align:center;color:var(--muted);font-size:11.5px;letter-spacing:.06em}
+@media(max-width:880px){
+  .stage{flex-direction:column}
+  .pay{flex:none;width:100%}
+}
+@media(prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+}
+</style>
+</head>
+<body>
+<div class="head">
+  <h1>票根 · 结账台</h1>
+  <span class="hold">座位为你保留 <b id="hold">09:52</b></span>
+</div>
+<main class="stage">
+  <section class="ticket" id="ticket">
+    <div class="stampd" id="stampd">已出票</div>
+    <div class="band">
+      <p class="kind">LIVEHOUSE · 正式票</p>
+      <h2>「铁轨之声」秋季专场 · 杭州站</h2>
+    </div>
+    <div class="body">
+      <div class="line-item"><span>全价票 <span class="mut">× 2</span></span><span class="mono">¥260.00 × 2</span></div>
+      <div class="line-item"><span>票务服务费</span><span class="mono">¥10.00</span></div>
+      <div class="line-item"><span>早鸟优惠 <span class="mut">开票 48h 内</span></span><span class="mono" style="color:#3d7a4f">− ¥20.00</span></div>
+      <div class="sum"><span class="lab">应付合计</span><span class="amt" id="amt">¥510.00</span></div>
+      <div class="perf">
+        <span class="no">票号<br><b id="tno">PG-2026-0814-77</b></span>
+        <span class="seat">9 月 6 日 19:30 · MAO Livehouse<br>站席 · 南区</span>
+      </div>
+    </div>
+  </section>
+  <aside class="pay">
+    <div class="panel">
+      <h3>选一种付法</h3>
+      <button class="pm on" type="button" data-p="支付宝">
+        <span class="ic" style="background:#3d8bc2">支</span>
+        <span><span class="nm">支付宝</span><br><span class="sub">余额 / 花呗均可</span></span>
+        <span class="dot" aria-hidden="true"></span>
+      </button>
+      <button class="pm" type="button" data-p="微信支付">
+        <span class="ic" style="background:#5c9a5e">微</span>
+        <span><span class="nm">微信支付</span><br><span class="sub">零钱 / 储蓄卡</span></span>
+        <span class="dot" aria-hidden="true"></span>
+      </button>
+      <button class="pm" type="button" data-p="云闪付">
+        <span class="ic" style="background:#b0492f">闪</span>
+        <span><span class="nm">云闪付</span><br><span class="sub">绑卡立减 3 元</span></span>
+        <span class="dot" aria-hidden="true"></span>
+      </button>
+      <div class="total-line"><span>应付</span><span class="amt">¥510.00</span></div>
+      <button class="paynow" id="paynow" type="button">确 认 支 付</button>
+      <p class="safe">出票后可在「我的票夹」随时查看 · 支持有条件转赠</p>
+    </div>
+  </aside>
+</main>
+<script>
+(function(){
+  var pms=document.querySelectorAll('.pm');
+  var chosen='支付宝';
+  for(var i=0;i<pms.length;i++){
+    (function(pm){
+      pm.addEventListener('click',function(){
+        for(var j=0;j<pms.length;j++)pms[j].classList.remove('on');
+        pm.classList.add('on');
+        chosen=pm.getAttribute('data-p');
+      });
+    })(pms[i]);
+  }
+  var paynow=document.getElementById('paynow');
+  var ticket=document.getElementById('ticket');
+  var busy=false;
+  paynow.addEventListener('click',function(){
+    if(busy)return;
+    busy=true;
+    paynow.disabled=true;
+    paynow.textContent='正在出票…';
+    setTimeout(function(){
+      ticket.classList.add('paid');
+      paynow.textContent='已 出 票';
+      document.querySelector('.safe').textContent='已用'+chosen+'收讫 ¥510.00 · 电子票根已存入票夹';
+    },1100);
+  });
+  var hold=document.getElementById('hold');
+  var secs=592;
+  setInterval(function(){
+    if(secs<=0)return;
+    secs-=1;
+    var m=Math.floor(secs/60),s=secs%60;
+    hold.textContent=(m<10?'0':'')+m+':'+(s<10?'0':'')+s;
+  },1000);
+})();
+</script>
+</body>
+</html>

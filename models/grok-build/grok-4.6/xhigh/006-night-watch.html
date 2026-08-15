@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>夜巡 · 二次核身</title>
+  <style>
+    :root {
+      --olive: #1c2414;
+      --panel: #2a3320;
+      --amber: #e3b04a;
+      --dim: #8b956c;
+      --warn: #d4552b;
+      --metal: #9aa080;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--olive);
+      color: var(--amber);
+      font: 15px/1.45 "Cascadia Mono", "Consolas", "Sarasa Mono SC", monospace;
+      display: grid;
+      place-items: center;
+    }
+    .console {
+      width: min(680px, 100%);
+      background: var(--panel);
+      border: 4px solid #12180c;
+      box-shadow: inset 0 0 0 2px #3d4a2c, 0 12px 0 #0c1008;
+      padding: 28px 28px 22px;
+    }
+    .top { display: flex; justify-content: space-between; color: var(--dim); font-size: 12px; letter-spacing: 0.12em; }
+    h1 { font-size: 22px; margin: 16px 0 8px; font-weight: 600; }
+    p { color: var(--dim); margin: 0 0 18px; }
+    .cells { display: flex; gap: 8px; }
+    .cells input {
+      width: 52px; height: 58px;
+      text-align: center;
+      font: 24px/1 inherit;
+      background: #12180c;
+      color: var(--amber);
+      border: 2px solid var(--metal);
+    }
+    .cells input:focus { outline: none; border-color: var(--amber); }
+    .bar { display: flex; justify-content: space-between; align-items: center; margin-top: 18px; gap: 12px; }
+    button {
+      height: 40px;
+      padding: 0 14px;
+      background: var(--amber);
+      color: #1c2414;
+      border: 0;
+      font: 700 13px/1 inherit;
+      letter-spacing: 0.08em;
+      cursor: pointer;
+    }
+    button:disabled { background: #5a6040; color: #c4c8a8; cursor: not-allowed; }
+    button.ghost { background: transparent; color: var(--amber); border: 1px solid var(--amber); }
+    .log { min-height: 40px; margin-top: 14px; color: var(--warn); }
+    .ok { color: var(--amber); }
+    @media (max-width: 768px) {
+      .console { border-width: 3px; padding: 20px 14px; }
+      .cells input { width: 42px; height: 50px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <main class="console">
+    <div class="top"><span>WATCH / POST 7</span><span id="clock">02:14:08</span></div>
+    <h1>二次核身</h1>
+    <p>口令已对。再输入今夜巡号，证明人还在岗。</p>
+    <div class="cells" id="cells"></div>
+    <div class="bar">
+      <button type="button" id="send">核对巡号</button>
+      <button class="ghost" type="button" id="resend" disabled>重发 30s</button>
+    </div>
+    <div class="log" id="log"></div>
+  </main>
+  <script>
+    (function () {
+      var cells = document.getElementById("cells");
+      var log = document.getElementById("log");
+      var resend = document.getElementById("resend");
+      var fails = 0;
+      var left = 30;
+      var timer = null;
+      for (var i = 0; i < 6; i++) {
+        var el = document.createElement("input");
+        el.maxLength = 1;
+        el.inputMode = "numeric";
+        el.setAttribute("aria-label", "第" + (i + 1) + "位");
+        cells.appendChild(el);
+      }
+      var inputs = cells.querySelectorAll("input");
+      inputs[0].value = "7";
+      inputs[1].value = "4";
+      inputs.forEach(function (input, index) {
+        input.addEventListener("input", function () {
+          input.value = input.value.replace(/[^0-9]/g, "").slice(0, 1);
+          if (input.value && inputs[index + 1]) inputs[index + 1].focus();
+        });
+      });
+      function code() {
+        var s = "";
+        inputs.forEach(function (input) { s += input.value; });
+        return s;
+      }
+      function tick() {
+        left -= 1;
+        if (left <= 0) {
+          resend.disabled = false;
+          resend.textContent = "重发巡号";
+          return;
+        }
+        resend.textContent = "重发 " + left + "s";
+        timer = setTimeout(tick, 1000);
+      }
+      tick();
+      document.getElementById("send").addEventListener("click", function () {
+        var v = code();
+        if (v.length < 6) {
+          log.className = "log";
+          log.textContent = "巡号不足六位，岗亭灯仍是红的。";
+          return;
+        }
+        if (v === "741908") {
+          log.className = "log ok";
+          log.textContent = "岗对上了。门闩打开。";
+          return;
+        }
+        fails += 1;
+        log.className = "log";
+        if (fails >= 3) {
+          log.textContent = "连续三次不对，本岗锁定到下一整点。请改走有线电话。";
+          document.getElementById("send").disabled = true;
+          inputs.forEach(function (input) { input.disabled = true; });
+        } else {
+          log.textContent = "巡号错误（" + fails + "/3）。再错将锁定。正确演示号是 741908。";
+        }
+      });
+      resend.addEventListener("click", function () {
+        if (resend.disabled) return;
+        left = 30;
+        resend.disabled = true;
+        log.className = "log ok";
+        log.textContent = "新巡号已从有线送出。仍用演示号 741908。";
+        tick();
+      });
+    })();
+  </script>
+</body>
+</html>

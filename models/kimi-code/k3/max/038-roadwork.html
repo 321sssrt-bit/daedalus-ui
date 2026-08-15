@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>施工 · 路暂时不通</title>
+<style>
+:root{
+  --warn:#f5c81e;
+  --ink:#1c1a14;
+  --sand:#f2ecd8;
+  --card:#fffdf2;
+  --muted:#8a8270;
+  --line:#ddd2b2;
+  --ok:#3e9e63;
+  --frame:#10151f;
+  --sp:8px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font:15px/1.65 "PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+  background:#262b34;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;
+}
+.stage{text-align:center}
+.device-label{color:#8b93a1;font-size:12px;letter-spacing:.2em;margin-bottom:14px}
+.phone{
+  width:390px;height:min(844px,calc(100vh - 90px));border-radius:38px;border:11px solid var(--frame);
+  background:var(--sand);overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.5);
+}
+.screen{height:100%;display:flex;flex-direction:column}
+.hazard{
+  height:14px;flex:0 0 14px;
+  background:repeating-linear-gradient(45deg,var(--warn) 0 16px,var(--ink) 16px 32px);
+}
+.hazard.bottom{margin-top:auto}
+.main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px 26px;text-align:center}
+.sign{width:130px;height:120px;margin-bottom:22px}
+h1{font-size:20px;letter-spacing:.06em;margin-bottom:10px}
+.plain{color:#4d463a;font-size:14px;line-height:1.9;max-width:300px;margin-bottom:20px}
+.ticket{
+  width:100%;background:var(--card);border:1px solid var(--line);border-radius:12px;
+  padding:13px 16px;display:flex;justify-content:space-between;align-items:center;margin-bottom:22px;
+}
+.ticket .k{font-size:11.5px;color:var(--muted);letter-spacing:.1em}
+.ticket .no{font:700 14px/1 ui-monospace,Consolas,monospace;letter-spacing:.04em}
+.copy{
+  border:0;background:none;color:var(--muted);font:inherit;font-size:11.5px;cursor:pointer;
+  border-bottom:1px dashed var(--muted);padding-bottom:1px;
+}
+.copy:hover{color:var(--ink)}
+.actions{display:flex;flex-direction:column;gap:11px;width:100%}
+.retry{
+  width:100%;height:50px;border:0;border-radius:12px;background:var(--ink);color:var(--warn);
+  font:inherit;font-weight:700;font-size:15px;letter-spacing:.18em;cursor:pointer;transition:all .14s ease;
+}
+.retry:hover:not(:disabled){background:#33302a}
+.retry:disabled{opacity:.6;cursor:wait}
+.home{
+  width:100%;height:46px;border:1.5px solid var(--ink);background:none;border-radius:12px;
+  font:inherit;font-size:13.5px;color:var(--ink);cursor:pointer;letter-spacing:.12em;transition:all .14s ease;
+}
+.home:hover{background:var(--ink);color:var(--sand)}
+.result{
+  display:none;width:100%;background:#e8f4ec;border:1px solid #bcd8c2;border-radius:12px;
+  padding:14px 16px;text-align:left;margin-bottom:14px;
+}
+.result.show{display:block}
+.result h2{font-size:14.5px;color:var(--ok);margin-bottom:4px}
+.result p{font-size:12.5px;color:#3f5a48;line-height:1.8}
+@media(max-width:520px){
+  body{padding:0}
+  .device-label{display:none}
+  .phone{width:100%;height:100vh;border:0;border-radius:0}
+}
+@media(prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+}
+</style>
+</head>
+<body>
+<div class="stage">
+  <p class="device-label">施 工 ROADWORK</p>
+  <div class="phone">
+    <div class="screen">
+      <div class="hazard" aria-hidden="true"></div>
+      <div class="main">
+        <svg class="sign" viewBox="0 0 130 120" fill="none" aria-hidden="true">
+          <path d="M65 8L122 106H8L65 8Z" fill="#f5c81e" stroke="#1c1a14" stroke-width="5" stroke-linejoin="round"/>
+          <path d="M50 82L62 64L70 72L80 58L90 82" stroke="#1c1a14" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M44 92H96" stroke="#1c1a14" stroke-width="5" stroke-linecap="round"/>
+        </svg>
+        <h1>前面的路在修，先别往前开了</h1>
+        <p class="plain" id="plain">艮山西路 600 米路段围挡施工，实时路况没跟上，导航一时算不出路。这不是你的问题，路政已经接了单。</p>
+        <div class="ticket">
+          <span class="k">工单编号</span>
+          <span class="no" id="wno">WO-2026-0814-033</span>
+          <button class="copy" id="copy" type="button">复制</button>
+        </div>
+        <div class="result" id="result">
+          <h2>已绕开施工段</h2>
+          <p>新路线走备塘路，多 4 分钟、少 3 个红绿灯。点「回首页」即可按新路线出发。</p>
+        </div>
+        <div class="actions">
+          <button class="retry" id="retry" type="button">重新算一条路</button>
+          <button class="home" id="home" type="button">回首页</button>
+        </div>
+      </div>
+      <div class="hazard bottom" aria-hidden="true"></div>
+    </div>
+  </div>
+</div>
+<script>
+(function(){
+  var retry=document.getElementById('retry');
+  var result=document.getElementById('result');
+  var plain=document.getElementById('plain');
+  var busy=false;
+  retry.addEventListener('click',function(){
+    if(busy)return;
+    busy=true;
+    retry.disabled=true;
+    retry.textContent='正在重新规划…';
+    setTimeout(function(){
+      busy=false;
+      retry.disabled=false;
+      result.classList.add('show');
+      retry.textContent='再算一次';
+      plain.textContent='施工段还没拆，但备选路已经算出来了，就在下面。';
+    },1300);
+  });
+  document.getElementById('copy').addEventListener('click',function(ev){
+    ev.target.textContent='已复制';
+    setTimeout(function(){ev.target.textContent='复制'},1600);
+  });
+  document.getElementById('home').addEventListener('click',function(){
+    plain.textContent='已回到首页。新路线在地图上等你。';
+  });
+})();
+</script>
+</body>
+</html>

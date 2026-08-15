@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>明信片 · 写一张</title>
+<style>
+:root{
+  --paper:#faf3e3;
+  --paper-2:#f4ecd7;
+  --ink:#4a3f30;
+  --post:#b5453c;
+  --stamp:#4a6fa5;
+  --muted:#9a8d75;
+  --line:#e3d7bc;
+  --frame:#10151f;
+  --sp:8px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font:15px/1.7 "PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+  background:#262b34;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;
+}
+.stage{text-align:center}
+.device-label{color:#8b93a1;font-size:12px;letter-spacing:.2em;margin-bottom:14px}
+.phone{
+  width:390px;height:min(844px,calc(100vh - 90px));border-radius:38px;border:11px solid var(--frame);
+  background:var(--paper-2);overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.5);
+}
+.screen{height:100%;overflow-y:auto;padding:22px 20px 20px;display:flex;flex-direction:column}
+.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.top .t{font-size:12px;letter-spacing:.24em;color:var(--muted)}
+.status{font:600 11.5px/1 ui-monospace,Consolas,monospace;color:var(--post);border:1px solid var(--post);border-radius:999px;padding:5px 11px;letter-spacing:.08em}
+.card{
+  position:relative;background:var(--paper);border-radius:6px;padding:22px 20px 18px;flex:1;
+  box-shadow:0 14px 34px rgba(90,70,30,.22);
+}
+.card::before{
+  content:"";position:absolute;inset:7px;border:1.5px dashed #cbbd9a;border-radius:3px;pointer-events:none;
+}
+.stamp{
+  position:absolute;top:18px;right:18px;width:64px;height:76px;background:var(--stamp);
+  border:3px solid var(--paper);outline:1.5px dashed var(--paper);outline-offset:-6px;
+  display:grid;place-items:center;transform:rotate(2deg);box-shadow:0 4px 10px rgba(60,60,90,.25);
+}
+.stamp svg{display:block}
+.field-t{margin-bottom:14px;max-width:230px}
+.field-t input{
+  width:100%;border:0;border-bottom:1.5px solid var(--line);background:none;padding:7px 2px;
+  font:700 17px/1.4 "Kaiti SC","STKaiti","KaiTi","Songti SC",serif;color:var(--ink);
+}
+.field-t input:focus{outline:none;border-bottom-color:var(--post)}
+.field-t input::placeholder{color:#c3b592}
+.body-t textarea{
+  width:100%;min-height:270px;border:0;background:none;resize:none;
+  font:16px/2.1 "Kaiti SC","STKaiti","KaiTi","Songti SC",serif;color:var(--ink);
+  background-image:repeating-linear-gradient(transparent 0 33px,var(--line) 33px 34px);
+}
+.body-t textarea:focus{outline:none}
+.body-t textarea::placeholder{color:#c3b592}
+.foot-row{display:flex;justify-content:space-between;align-items:center;margin-top:8px}
+.count{font:11.5px/1 ui-monospace,Consolas,monospace;color:var(--muted)}
+.count.full{color:var(--post)}
+.sign{font:14px/1 "Kaiti SC","STKaiti","KaiTi",serif;color:var(--muted)}
+.actions{display:flex;gap:10px;margin-top:16px}
+.draft{
+  flex:1;height:48px;border:1.5px solid var(--ink);background:none;border-radius:10px;
+  font:inherit;font-size:13.5px;font-weight:600;color:var(--ink);cursor:pointer;letter-spacing:.08em;
+  transition:all .14s ease;
+}
+.draft:hover{background:var(--ink);color:var(--paper)}
+.send{
+  flex:1.3;height:48px;border:0;border-radius:10px;background:var(--post);color:#faf3e3;
+  font:inherit;font-weight:700;font-size:14px;letter-spacing:.16em;cursor:pointer;transition:all .14s ease;
+}
+.send:hover:not(:disabled){background:#9c382f}
+.send:disabled{opacity:.4;cursor:not-allowed}
+.postmark{
+  position:absolute;left:26px;top:96px;width:86px;height:86px;border:2.5px solid var(--post);border-radius:50%;
+  display:none;place-items:center;text-align:center;color:var(--post);font:700 12px/1.6 "Songti SC","STSong",serif;
+  transform:rotate(-10deg);opacity:.8;letter-spacing:.1em;
+}
+.postmark.show{display:grid;animation:stampin .3s ease}
+@keyframes stampin{from{transform:rotate(-10deg) scale(1.4);opacity:0}to{transform:rotate(-10deg) scale(1);opacity:.8}}
+.toast{
+  position:fixed;left:50%;bottom:30px;transform:translate(-50%,16px);opacity:0;pointer-events:none;
+  background:var(--ink);color:#faf3e3;padding:11px 24px;border-radius:999px;font-size:13px;transition:all .28s ease;z-index:9;
+}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+@media(max-width:520px){
+  body{padding:0}
+  .device-label{display:none}
+  .phone{width:100%;height:100vh;border:0;border-radius:0}
+}
+@media(prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+}
+</style>
+</head>
+<body>
+<div class="stage">
+  <p class="device-label">明 信 片 POSTCARD</p>
+  <div class="phone">
+    <div class="screen">
+      <div class="top">
+        <span class="t">写一张 · 寄往成都</span>
+        <span class="status" id="status">还空着</span>
+      </div>
+      <div class="card">
+        <div class="stamp" aria-hidden="true">
+          <svg width="40" height="48" viewBox="0 0 40 48" fill="none">
+            <rect x="4" y="4" width="32" height="40" rx="2" fill="#f4ecd7"/>
+            <path d="M8 30C14 22 18 26 22 20C26 14 30 18 32 14" stroke="#4a6fa5" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+            <circle cx="14" cy="13" r="4" fill="#e8b45a"/>
+            <path d="M6 38H34" stroke="#9aa7bd" stroke-width="1.6" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="postmark" id="postmark">成都<br>2026.08.14<br>已 收 寄</div>
+        <div class="field-t">
+          <input id="to" type="text" placeholder="致：阿灿" maxlength="12">
+        </div>
+        <div class="body-t">
+          <textarea id="msg" maxlength="500" placeholder="见字如面。&#10;这边的桂花刚开……"></textarea>
+        </div>
+        <div class="foot-row">
+          <span class="count" id="count">0 / 500</span>
+          <span class="sign">—— 清言 于拱宸桥</span>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="draft" id="draft" type="button">夹进抽屉</button>
+        <button class="send" id="send" type="button" disabled>贴上邮票寄出</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+(function(){
+  var to=document.getElementById('to');
+  var msg=document.getElementById('msg');
+  var count=document.getElementById('count');
+  var status=document.getElementById('status');
+  var send=document.getElementById('send');
+  var toast=document.getElementById('toast');
+  var postmark=document.getElementById('postmark');
+  var timer=null;
+  function say(t){
+    toast.textContent=t;
+    toast.classList.add('show');
+    if(timer)clearTimeout(timer);
+    timer=setTimeout(function(){toast.classList.remove('show')},2200);
+  }
+  function refresh(){
+    var n=msg.value.length;
+    count.textContent=n+' / 500';
+    count.className='count'+(n>=480?' full':'');
+    var ready=to.value.replace(/^\s+|\s+$/g,'').length>0&&n>=10;
+    send.disabled=!ready;
+    if(n===0){status.textContent='还空着'}
+    else if(!ready){status.textContent='书写中'}
+    else{status.textContent='可寄出'}
+  }
+  to.addEventListener('input',refresh);
+  msg.addEventListener('input',refresh);
+  document.getElementById('draft').addEventListener('click',function(){
+    say('已夹进抽屉第三格，下次接着写。');
+  });
+  send.addEventListener('click',function(){
+    postmark.classList.add('show');
+    status.textContent='已收寄';
+    send.disabled=true;
+    send.textContent='已在路上';
+    say('明信片已收寄，预计五天到成都。');
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>晨案 · 今日</title>
+  <style>
+    :root {
+      --peach: #f3d2b3;
+      --desk: #f7efe4;
+      --slate: #3d4650;
+      --ink: #241f1a;
+      --tile: #fffaf3;
+      --rose: #c45b4a;
+      --sage: #6e8b74;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--desk); color: var(--ink); font: 15px/1.45 "Segoe UI", "PingFang SC", sans-serif; }
+    .app { display: grid; grid-template-columns: 200px 1fr; min-height: 100vh; }
+    nav { background: #2b333b; color: #efe6da; padding: 22px 16px; }
+    nav h1 { font-size: 18px; margin: 0 0 20px; font-weight: 600; }
+    nav button { display: block; width: 100%; text-align: left; background: transparent; border: 0; color: #c9d0d6; padding: 9px 8px; font: inherit; cursor: pointer; }
+    nav button.on, nav button:hover { background: #3c4650; color: #fff; }
+    main { padding: 28px 32px; }
+    .hello { font-size: 28px; margin: 0 0 6px; }
+    .sub { color: #6d645a; margin: 0 0 22px; }
+    .nums { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    .num { background: var(--tile); padding: 16px; border-top: 4px solid var(--rose); }
+    .num:nth-child(2) { border-top-color: var(--sage); }
+    .num:nth-child(3) { border-top-color: #d4a24c; }
+    .num b { display: block; font-size: 32px; }
+    .queue { margin-top: 22px; background: var(--tile); }
+    .queue h2 { margin: 0; padding: 14px 16px; font-size: 16px; border-bottom: 1px solid #eadfce; }
+    .queue li { display: grid; grid-template-columns: 88px 1fr auto; gap: 12px; padding: 12px 16px; border-bottom: 1px solid #f0e6d6; list-style: none; }
+    .queue ul { margin: 0; padding: 0; }
+    .time { color: var(--rose); font-variant-numeric: tabular-nums; }
+    .queue button { border: 1px solid #cbbba6; background: #fff; height: 30px; padding: 0 10px; cursor: pointer; }
+    .done { color: var(--sage); }
+    @media (max-width: 768px) {
+      .app { grid-template-columns: 1fr; }
+      nav { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+      nav h1 { margin: 0 12px 0 0; }
+      nav button { width: auto; }
+      .nums { grid-template-columns: 1fr; }
+      .queue li { grid-template-columns: 1fr; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <nav>
+      <h1>晨案</h1>
+      <button class="on" data-p="today">今日</button>
+      <button data-p="desk">案头</button>
+      <button data-p="out">外勤</button>
+    </nav>
+    <main>
+      <p class="hello">戊日寅时，案上还有三件。</p>
+      <p class="sub">数字按今早六点截到现在。队列只放能在午前清掉的。</p>
+      <section class="nums">
+        <article class="num"><span>待回复</span><b id="n1">7</b></article>
+        <article class="num"><span>已出门</span><b id="n2">3</b></article>
+        <article class="num"><span>误点风险</span><b id="n3">1</b></article>
+      </section>
+      <section class="queue">
+        <h2>午前队列</h2>
+        <ul id="list">
+          <li><span class="time">07:40</span><span>核北港灯塔报文</span><button type="button">勾掉</button></li>
+          <li><span class="time">08:15</span><span>回沈纸年的席位确认</span><button type="button">勾掉</button></li>
+          <li><span class="time">09:00</span><span>把误点的货栈单改期</span><button type="button">勾掉</button></li>
+          <li><span class="time">10:20</span><span>巡号备份给七号岗</span><button type="button">勾掉</button></li>
+        </ul>
+      </section>
+    </main>
+  </div>
+  <script>
+    (function () {
+      document.querySelectorAll("nav button").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          document.querySelectorAll("nav button").forEach(function (b) { b.className = ""; });
+          btn.className = "on";
+          document.querySelector(".hello").textContent = {
+            today: "戊日寅时，案上还有三件。",
+            desk: "案头只留能用手碰到的纸。",
+            out: "外勤地图今早还没铺开。"
+          }[btn.getAttribute("data-p")];
+        });
+      });
+      document.getElementById("list").addEventListener("click", function (event) {
+        if (event.target.tagName !== "BUTTON") return;
+        var li = event.target.parentElement;
+        if (event.target.textContent === "勾掉") {
+          event.target.textContent = "已清";
+          li.querySelector("span:nth-child(2)").className = "done";
+          var n = document.getElementById("n1");
+          n.textContent = String(Math.max(0, Number(n.textContent) - 1));
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

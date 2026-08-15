@@ -1,0 +1,691 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>青玉钱包 · 转账</title>
+<style>
+  :root {
+    --page: #eaf3f0;
+    --surface: #ffffff;
+    --jade: #2f8f7a;
+    --jade-deep: #1e5f50;
+    --ink: #17231f;
+    --muted: #71827c;
+    --danger: #c0573f;
+    --jade-soft: #d6ece5;
+    --line: #dcece6;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  [hidden] { display: none !important; }
+  html, body { height: 100%; }
+  body {
+    font-family: -apple-system, "Segoe UI", "Microsoft YaHei", "PingFang SC", "Helvetica Neue", sans-serif;
+    color: var(--ink);
+    background: radial-gradient(1200px 700px at 50% 0%, #dcece6 0%, #c3d8d0 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+  }
+  .phone {
+    width: 390px;
+    height: 844px;
+    background: var(--page);
+    border: 8px solid var(--jade-deep);
+    border-radius: 46px;
+    box-shadow: 0 30px 60px rgba(23, 35, 31, 0.30);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+  /* 窄屏时手机壳贴合窗口 */
+  @media (max-width: 430px) {
+    body { align-items: stretch; }
+    .phone {
+      width: 100vw;
+      height: 100vh;
+      max-width: 100vw;
+      max-height: 100vh;
+      border-radius: 0;
+      border: none;
+      box-shadow: none;
+    }
+  }
+  /* 状态栏 */
+  .statusbar {
+    height: 28px;
+    flex: 0 0 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--jade-deep);
+    background: var(--page);
+  }
+  .sb-right { display: flex; align-items: center; gap: 6px; }
+  .sb-bars { letter-spacing: 1px; color: var(--jade); }
+  .sb-batt {
+    width: 22px; height: 11px;
+    border: 1.5px solid var(--jade-deep);
+    border-radius: 3px;
+    position: relative;
+  }
+  .sb-batt::after {
+    content: "";
+    position: absolute; right: -4px; top: 2px;
+    width: 2px; height: 5px;
+    background: var(--jade-deep);
+    border-radius: 1px;
+  }
+  .sb-batt::before {
+    content: "";
+    position: absolute; left: 2px; top: 2px; bottom: 2px; width: 14px;
+    background: var(--jade);
+    border-radius: 1px;
+  }
+  /* 屏幕区 */
+  .screen { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+  .view { display: flex; flex-direction: column; height: 100%; min-height: 0; }
+  .appbar {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 16px 12px;
+  }
+  .back {
+    width: 34px; height: 34px;
+    border: none; background: transparent;
+    border-radius: 12px;
+    font-size: 22px; line-height: 1;
+    color: var(--jade-deep);
+    cursor: pointer;
+  }
+  .back:active { background: var(--jade-soft); }
+  .appbar-title { flex: 1; font-size: 17px; font-weight: 700; }
+  .step-chip {
+    font-size: 12px; font-weight: 600;
+    color: var(--jade-deep);
+    background: var(--jade-soft);
+    border-radius: 999px;
+    padding: 5px 11px;
+  }
+  .body { flex: 1; min-height: 0; overflow-y: auto; padding: 0 20px 12px; }
+  .body::-webkit-scrollbar { width: 0; }
+  .foot {
+    flex: 0 0 auto;
+    padding: 12px 20px 20px;
+    border-top: 1px solid var(--line);
+    background: var(--page);
+  }
+  .section-label {
+    font-size: 13px; font-weight: 600;
+    color: var(--muted);
+    margin: 4px 0 10px;
+    letter-spacing: 0.02em;
+  }
+  /* 主按钮 */
+  .primary {
+    width: 100%;
+    height: 52px;
+    border: none;
+    border-radius: 16px;
+    background: var(--jade);
+    color: #ffffff;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 10px 22px rgba(47, 143, 122, 0.28);
+  }
+  .primary:active { background: var(--jade-deep); }
+  .primary:disabled { background: #b9d4cd; color: #ffffff; box-shadow: none; cursor: not-allowed; }
+  .secondary {
+    height: 48px;
+    padding: 0 18px;
+    border: 1.5px solid var(--line);
+    border-radius: 14px;
+    background: var(--surface);
+    color: var(--ink);
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .secondary:active { background: var(--jade-soft); }
+  .outline-danger {
+    height: 48px;
+    padding: 0 18px;
+    border: 1.5px solid var(--jade);
+    border-radius: 14px;
+    background: transparent;
+    color: var(--jade-deep);
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .outline-danger:active { background: var(--jade-soft); }
+  /* 钱包卡片（玉石质感） */
+  .wallet-card {
+    border-radius: 20px;
+    padding: 18px;
+    color: #ffffff;
+    background: linear-gradient(135deg, #37a18b 0%, #2f8f7a 45%, #1e5f50 100%);
+    box-shadow: 0 16px 30px rgba(30, 95, 80, 0.30);
+  }
+  .wc-top { display: flex; align-items: center; justify-content: space-between; }
+  .wc-label { font-size: 13px; opacity: 0.9; }
+  .wc-badge {
+    font-size: 11px;
+    padding: 3px 9px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.16);
+  }
+  .wc-total { font-size: 34px; font-weight: 700; margin: 10px 0 14px; letter-spacing: 0.01em; }
+  .wc-sources { display: flex; gap: 10px; }
+  .wc-src {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.12);
+    border-radius: 12px;
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+  .wc-src span { font-size: 12px; opacity: 0.85; }
+  .wc-src b { font-size: 15px; font-weight: 700; }
+  /* 收款人列表 */
+  .payee-list { display: flex; flex-direction: column; gap: 10px; }
+  .payee {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border: 1.5px solid transparent;
+    border-radius: 16px;
+    background: var(--surface);
+    padding: 12px 14px;
+    cursor: pointer;
+    text-align: left;
+    box-shadow: 0 2px 8px rgba(23, 35, 31, 0.04);
+  }
+  .payee.active { border-color: var(--jade); background: var(--jade-soft); }
+  .avatar {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    background: var(--jade-soft);
+    color: var(--jade-deep);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; font-weight: 700;
+    flex: 0 0 auto;
+  }
+  .payee-meta { flex: 1; display: flex; flex-direction: column; gap: 3px; }
+  .payee-meta b { font-size: 16px; font-weight: 600; }
+  .payee-meta i { font-style: normal; font-size: 13px; color: var(--muted); }
+  .check {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    border: 1.5px solid #c4d8d1;
+    color: transparent;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 700;
+    flex: 0 0 auto;
+  }
+  .payee.active .check { border-color: var(--jade); background: var(--jade); color: #ffffff; }
+  /* 金额输入 */
+  .payee-strip {
+    font-size: 14px; color: var(--muted);
+    text-align: center;
+    margin: 4px 0 6px;
+  }
+  .payee-strip b { color: var(--ink); }
+  .amount-display {
+    text-align: center;
+    font-size: 46px;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    padding: 6px 0 10px;
+    color: var(--ink);
+  }
+  .chips { display: flex; gap: 8px; justify-content: center; margin-bottom: 16px; }
+  .chip {
+    border: 1.5px solid var(--line);
+    background: var(--surface);
+    color: var(--jade-deep);
+    border-radius: 999px;
+    padding: 8px 14px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .chip:active { background: var(--jade-soft); border-color: var(--jade); }
+  /* 资金来源 */
+  .source-block { margin-bottom: 14px; }
+  .source-rows { display: flex; gap: 10px; }
+  .source {
+    flex: 1;
+    border: 1.5px solid var(--line);
+    border-radius: 14px;
+    background: var(--surface);
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    cursor: pointer;
+    text-align: left;
+  }
+  .source.active { border-color: var(--jade); background: var(--jade-soft); }
+  .source span { font-size: 14px; font-weight: 600; }
+  .source small { font-size: 13px; color: var(--muted); }
+  .src-hint { font-size: 12px; color: var(--muted); margin-top: 10px; }
+  .src-hint b { color: var(--jade-deep); }
+  /* 数字键盘 */
+  .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .key {
+    height: 56px;
+    border: none;
+    border-radius: 16px;
+    background: var(--surface);
+    color: var(--ink);
+    font-size: 22px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(23, 35, 31, 0.05);
+  }
+  .key:active { background: var(--jade-soft); }
+  .key.fn { color: var(--jade-deep); font-size: 18px; }
+  /* 确认页 */
+  .confirm-card {
+    background: var(--surface);
+    border-radius: 20px;
+    padding: 22px 18px;
+    box-shadow: 0 8px 20px rgba(23, 35, 31, 0.06);
+  }
+  .confirm-amount { text-align: center; font-size: 40px; font-weight: 700; margin-bottom: 18px; }
+  .confirm-rows { display: flex; flex-direction: column; }
+  .row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 13px 0;
+    border-top: 1px solid var(--line);
+    font-size: 14px;
+  }
+  .row:first-child { border-top: none; }
+  .row span { color: var(--muted); }
+  .row b { font-weight: 600; }
+  .row b.ok { color: var(--jade); }
+  /* 错误面板 */
+  .error-panel {
+    margin-top: 16px;
+    border: 1.5px solid #e8c6bd;
+    background: #fbf0ed;
+    border-radius: 16px;
+    padding: 16px;
+  }
+  .err-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--danger);
+    margin-bottom: 6px;
+  }
+  .err-msg { font-size: 13px; line-height: 1.55; color: #7d4a3e; }
+  .err-msg b { color: var(--danger); }
+  .err-actions { display: flex; gap: 10px; margin-top: 14px; }
+  .err-actions button { flex: 1; }
+  /* 凭证 */
+  .receipt { padding: 40px 20px 20px; display: flex; flex-direction: column; }
+  .receipt-check {
+    width: 72px; height: 72px;
+    border-radius: 50%;
+    background: var(--jade);
+    color: #ffffff;
+    font-size: 36px;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 16px;
+    box-shadow: 0 12px 26px rgba(47, 143, 122, 0.34);
+  }
+  .receipt h2 { text-align: center; font-size: 22px; margin-bottom: 6px; }
+  .receipt-sub { text-align: center; font-size: 13px; color: var(--muted); margin-bottom: 18px; }
+  .receipt-amount { text-align: center; font-size: 40px; font-weight: 700; margin-bottom: 20px; }
+  .ticket {
+    background: var(--surface);
+    border-radius: 18px;
+    padding: 6px 16px;
+    box-shadow: 0 8px 20px rgba(23, 35, 31, 0.06);
+    margin-bottom: 24px;
+  }
+  .ticket .row { font-size: 14px; }
+  .ticket .row b { font-weight: 600; }
+  .ticket .row b.mono { font-family: -apple-system, "Segoe UI", monospace; letter-spacing: 0.02em; }
+  .ticket-divider {
+    border-top: 1.5px dashed var(--line);
+    margin: 4px 0;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+  }
+</style>
+</head>
+<body>
+  <div class="phone">
+    <div class="statusbar">
+      <span>9:41</span>
+      <span class="sb-right"><span class="sb-bars">▂▄▆█</span><span class="sb-batt"></span></span>
+    </div>
+    <div class="screen">
+
+      <!-- 第 1 步：余额与收款人选择 -->
+      <div class="view" id="view-payee">
+        <div class="appbar">
+          <span class="appbar-title">转账</span>
+          <span class="step-chip">1 / 3</span>
+        </div>
+        <div class="body">
+          <div class="wallet-card">
+            <div class="wc-top">
+              <span class="wc-label">可用余额</span>
+              <span class="wc-badge">青玉账户</span>
+            </div>
+            <div class="wc-total" id="home-total">¥236.50</div>
+            <div class="wc-sources">
+              <div class="wc-src"><span>日常账户</span><b id="home-main">¥86.50</b></div>
+              <div class="wc-src"><span>零钱罐</span><b id="home-jar">¥150.00</b></div>
+            </div>
+          </div>
+          <p class="section-label" style="margin-top: 20px;">选择收款人</p>
+          <div class="payee-list">
+            <button class="payee" data-name="林晓雨" data-phone="138 **** 2210" onclick="selectPayee(this)">
+              <span class="avatar">林</span>
+              <span class="payee-meta"><b>林晓雨</b><i>138 **** 2210</i></span>
+              <span class="check">✓</span>
+            </button>
+            <button class="payee" data-name="陈默" data-phone="139 **** 4478" onclick="selectPayee(this)">
+              <span class="avatar">陈</span>
+              <span class="payee-meta"><b>陈默</b><i>139 **** 4478</i></span>
+              <span class="check">✓</span>
+            </button>
+            <button class="payee" data-name="周妍" data-phone="137 **** 9063" onclick="selectPayee(this)">
+              <span class="avatar">周</span>
+              <span class="payee-meta"><b>周妍</b><i>137 **** 9063</i></span>
+              <span class="check">✓</span>
+            </button>
+          </div>
+        </div>
+        <div class="foot">
+          <button class="primary" id="btn-payee-next" disabled onclick="goAmount()">下一步</button>
+        </div>
+      </div>
+
+      <!-- 第 2 步：金额输入 + 资金来源 -->
+      <div class="view" id="view-amount" hidden>
+        <div class="appbar">
+          <button class="back" onclick="goPayee()">‹</button>
+          <span class="appbar-title">输入金额</span>
+          <span class="step-chip">2 / 3</span>
+        </div>
+        <div class="body">
+          <p class="payee-strip">向 <b id="amount-payee">收款人</b> 转账</p>
+          <div class="amount-display" id="amount-display">¥0</div>
+          <div class="chips">
+            <button class="chip" onclick="setAmount('50')">¥50</button>
+            <button class="chip" onclick="setAmount('100')">¥100</button>
+            <button class="chip" onclick="setAmount('200')">¥200</button>
+            <button class="chip" onclick="setAmount('500')">¥500</button>
+          </div>
+          <div class="source-block">
+            <p class="section-label">资金来源</p>
+            <div class="source-rows">
+              <button class="source active" id="src-main" onclick="pickSource('main')">
+                <span>日常账户</span>
+                <small>余额 <b id="src-main-bal">¥86.50</b></small>
+              </button>
+              <button class="source" id="src-jar" onclick="pickSource('jar')">
+                <span>零钱罐</span>
+                <small>余额 <b id="src-jar-bal">¥150.00</b></small>
+              </button>
+            </div>
+            <p class="src-hint">当前来源可用余额 <b id="amount-avail">¥86.50</b></p>
+          </div>
+          <div class="keypad">
+            <button class="key" onclick="keyTap('1')">1</button>
+            <button class="key" onclick="keyTap('2')">2</button>
+            <button class="key" onclick="keyTap('3')">3</button>
+            <button class="key" onclick="keyTap('4')">4</button>
+            <button class="key" onclick="keyTap('5')">5</button>
+            <button class="key" onclick="keyTap('6')">6</button>
+            <button class="key" onclick="keyTap('7')">7</button>
+            <button class="key" onclick="keyTap('8')">8</button>
+            <button class="key" onclick="keyTap('9')">9</button>
+            <button class="key fn" onclick="keyTap('.')">.</button>
+            <button class="key" onclick="keyTap('0')">0</button>
+            <button class="key fn" onclick="keyTap('del')">⌫</button>
+          </div>
+        </div>
+        <div class="foot">
+          <button class="primary" id="btn-amount-next" disabled onclick="goConfirm()">下一步</button>
+        </div>
+      </div>
+
+      <!-- 第 3 步：核对并确认 -->
+      <div class="view" id="view-confirm" hidden>
+        <div class="appbar">
+          <button class="back" onclick="goAmount()">‹</button>
+          <span class="appbar-title">确认转账</span>
+          <span class="step-chip">3 / 3</span>
+        </div>
+        <div class="body">
+          <div class="confirm-card">
+            <div class="confirm-amount" id="confirm-amount">¥0.00</div>
+            <div class="confirm-rows">
+              <div class="row"><span>收款人</span><b id="confirm-payee">收款人</b></div>
+              <div class="row"><span>资金来源</span><b id="confirm-source">日常账户</b></div>
+              <div class="row"><span>可用余额</span><b id="confirm-avail">¥86.50</b></div>
+              <div class="row"><span>到账方式</span><b>实时到账</b></div>
+            </div>
+          </div>
+          <div class="error-panel" id="error-panel" hidden>
+            <div class="err-title">余额不足</div>
+            <p class="err-msg">「<b id="err-source">日常账户</b>」的可用余额为 <b id="err-avail">¥86.50</b>，不足以完成这笔转账。请降低金额或切换其他资金来源。</p>
+            <div class="err-actions">
+              <button class="secondary" onclick="lowerAmount()">降低金额</button>
+              <button class="outline-danger" onclick="switchSource()">切换资金来源</button>
+            </div>
+          </div>
+        </div>
+        <div class="foot">
+          <button class="primary" id="btn-confirm" onclick="confirmTransfer()">确认转账</button>
+        </div>
+      </div>
+
+      <!-- 成功凭证 -->
+      <div class="view" id="view-receipt" hidden>
+        <div class="body">
+          <div class="receipt">
+            <div class="receipt-check">✓</div>
+            <h2>转账成功</h2>
+            <p class="receipt-sub">资金已从资金来源转出</p>
+            <div class="receipt-amount" id="receipt-amount">¥0.00</div>
+            <div class="ticket">
+              <div class="row"><span>收款人</span><b id="receipt-payee">收款人</b></div>
+              <div class="row"><span>资金来源</span><b id="receipt-source">日常账户</b></div>
+              <div class="ticket-divider"></div>
+              <div class="row"><span>转账单号</span><b class="mono" id="receipt-no">——</b></div>
+              <div class="row"><span>转账时间</span><b class="mono" id="receipt-time">——</b></div>
+              <div class="row"><span>状态</span><b class="ok">已到账</b></div>
+            </div>
+            <button class="primary" onclick="finish()">完成</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    /* 青玉钱包转账原型：状态与交互 */
+    var state = {
+      payee: null,
+      amount: '',
+      source: 'main',
+      balances: { main: 86.50, jar: 150.00 }
+    };
+
+    function el(id) { return document.getElementById(id); }
+    function money(n) { return (Math.round(n * 100) / 100).toFixed(2); }
+
+    function show(id) {
+      var views = document.querySelectorAll('.view');
+      for (var i = 0; i < views.length; i++) { views[i].hidden = true; }
+      el(id).hidden = false;
+      var b = el(id).querySelector('.body');
+      if (b) { b.scrollTop = 0; }
+    }
+
+    /* 收款人选择 */
+    function selectPayee(btn) {
+      var list = document.querySelectorAll('.payee');
+      for (var i = 0; i < list.length; i++) { list[i].classList.remove('active'); }
+      btn.classList.add('active');
+      state.payee = { name: btn.getAttribute('data-name'), phone: btn.getAttribute('data-phone') };
+      el('btn-payee-next').disabled = false;
+    }
+
+    function goAmount() {
+      if (!state.payee) { return; }
+      el('amount-payee').textContent = state.payee.name;
+      renderAmount();
+      pickSource(state.source);
+      show('view-amount');
+    }
+    function goPayee() { show('view-payee'); }
+
+    /* 金额输入 */
+    function setAmount(v) {
+      state.amount = v;
+      renderAmount();
+    }
+    function keyTap(k) {
+      var d = state.amount;
+      if (k === 'del') {
+        state.amount = d.slice(0, -1);
+      } else if (k === '.') {
+        if (d.indexOf('.') === -1) {
+          if (d === '') { d = '0'; }
+          state.amount = d + '.';
+        }
+      } else {
+        if (d.indexOf('.') !== -1 && d.split('.')[1].length >= 2) { return; }
+        if (d === '0') { state.amount = k; }
+        else if (d.length >= 8) { return; }
+        else { state.amount = d + k; }
+      }
+      renderAmount();
+    }
+    function renderAmount() {
+      var t = state.amount === '' ? '0' : state.amount;
+      el('amount-display').textContent = '¥' + t;
+      var n = parseFloat(state.amount);
+      el('btn-amount-next').disabled = !(n > 0);
+    }
+
+    /* 资金来源 */
+    function pickSource(s) {
+      state.source = s;
+      el('src-main').classList.toggle('active', s === 'main');
+      el('src-jar').classList.toggle('active', s === 'jar');
+      el('amount-avail').textContent = '¥' + money(state.balances[s]);
+    }
+    function sourceName(s) { return s === 'main' ? '日常账户' : '零钱罐'; }
+
+    /* 确认页 */
+    function goConfirm() {
+      var amt = parseFloat(state.amount);
+      if (!(amt > 0)) { return; }
+      el('confirm-amount').textContent = '¥' + money(amt);
+      el('confirm-payee').textContent = state.payee.name;
+      updateConfirmSource();
+      el('error-panel').hidden = true;
+      show('view-confirm');
+    }
+    function updateConfirmSource() {
+      el('confirm-source').textContent = sourceName(state.source);
+      el('confirm-avail').textContent = '¥' + money(state.balances[state.source]);
+    }
+
+    function confirmTransfer() {
+      var amt = parseFloat(state.amount);
+      if (!(amt > 0)) { return; }
+      var bal = state.balances[state.source];
+      if (amt > bal) {
+        /* 余额不足：阻止转账，展示可用余额 */
+        el('err-source').textContent = sourceName(state.source);
+        el('err-avail').textContent = '¥' + money(bal);
+        el('error-panel').hidden = false;
+        return;
+      }
+      /* 转账成功：扣减余额，出凭证 */
+      state.balances[state.source] = Math.round((bal - amt) * 100) / 100;
+      renderBalances();
+      el('receipt-amount').textContent = '¥' + money(amt);
+      el('receipt-payee').textContent = state.payee.name;
+      el('receipt-source').textContent = sourceName(state.source);
+      el('receipt-no').textContent = genNo();
+      el('receipt-time').textContent = nowTime();
+      el('error-panel').hidden = true;
+      show('view-receipt');
+    }
+
+    function lowerAmount() {
+      el('error-panel').hidden = true;
+      show('view-amount');
+      renderAmount();
+      pickSource(state.source);
+    }
+    function switchSource() {
+      state.source = state.source === 'main' ? 'jar' : 'main';
+      updateConfirmSource();
+      var amt = parseFloat(state.amount);
+      var bal = state.balances[state.source];
+      if (amt > bal) {
+        el('err-source').textContent = sourceName(state.source);
+        el('err-avail').textContent = '¥' + money(bal);
+        el('error-panel').hidden = false;
+      } else {
+        el('error-panel').hidden = true;
+      }
+    }
+
+    function renderBalances() {
+      el('home-main').textContent = '¥' + money(state.balances.main);
+      el('home-jar').textContent = '¥' + money(state.balances.jar);
+      el('home-total').textContent = '¥' + money(state.balances.main + state.balances.jar);
+      el('src-main-bal').textContent = '¥' + money(state.balances.main);
+      el('src-jar-bal').textContent = '¥' + money(state.balances.jar);
+      el('amount-avail').textContent = '¥' + money(state.balances[state.source]);
+    }
+
+    function genNo() {
+      var t = new Date();
+      var p = '' + t.getFullYear() + pad(t.getMonth() + 1) + pad(t.getDate()) + pad(t.getHours()) + pad(t.getMinutes());
+      return p + String(Math.floor(Math.random() * 9000) + 1000);
+    }
+    function nowTime() {
+      var t = new Date();
+      return pad(t.getHours()) + ':' + pad(t.getMinutes()) + ':' + pad(t.getSeconds());
+    }
+    function pad(n) { return (n < 10 ? '0' : '') + n; }
+
+    function finish() {
+      state.payee = null;
+      state.amount = '';
+      var list = document.querySelectorAll('.payee');
+      for (var i = 0; i < list.length; i++) { list[i].classList.remove('active'); }
+      el('btn-payee-next').disabled = true;
+      renderAmount();
+      show('view-payee');
+    }
+  </script>
+</body>
+</html>

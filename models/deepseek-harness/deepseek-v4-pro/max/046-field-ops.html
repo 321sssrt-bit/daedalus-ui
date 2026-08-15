@@ -1,0 +1,447 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>猎鹰协作 · 行动台</title>
+<style>
+:root{
+  --bg:#141b16;
+  --top:#1b241d;
+  --panel:#1b241d;
+  --card:#222e25;
+  --card-hover:#2a3a2e;
+  --line:#34453a;
+  --line-soft:#2c3a30;
+  --text:#e7ecd9;
+  --muted:#93a190;
+  --accent:#d2a53f;
+  --ok:#6fbf7e;
+  --warn:#d2a53f;
+  --danger:#d0613f;
+  --lock:#b0893a;
+  --blue:#5b8cbf;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:-apple-system,"Segoe UI","Microsoft YaHei","PingFang SC","Helvetica Neue",sans-serif;
+  background:
+    radial-gradient(1200px 600px at 78% -10%, rgba(210,165,63,.07), transparent 60%),
+    var(--bg);
+  color:var(--text);
+  font-size:14px;
+  line-height:1.5;
+  min-height:100vh;
+}
+.app{max-width:1280px;margin:0 auto;padding:0 16px 24px}
+/* ---------- top bar ---------- */
+.topbar{
+  height:56px;display:flex;align-items:center;justify-content:space-between;gap:16px;
+  border-bottom:1px solid var(--line);margin-bottom:16px;position:sticky;top:0;z-index:30;
+  background:rgba(20,27,22,.92);backdrop-filter:blur(6px);
+}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:16px;letter-spacing:.5px}
+.brand .mark{
+  width:26px;height:26px;border-radius:5px;background:var(--accent);color:#141b16;
+  display:grid;place-items:center;font-weight:800;font-size:14px;
+}
+.brand .sub{font-size:11px;font-weight:600;color:var(--accent);border:1px solid var(--accent);border-radius:4px;padding:1px 6px;letter-spacing:2px}
+.topbar-right{display:flex;align-items:center;gap:14px}
+.net{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
+.net .dot{width:8px;height:8px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 3px rgba(111,191,126,.18)}
+.user-chip{display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--line);border-radius:6px;padding:5px 10px}
+.avatar{width:24px;height:24px;border-radius:50%;background:var(--blue);color:#0e1410;display:grid;place-items:center;font-weight:700;font-size:12px}
+.user-chip .role{font-size:11px;color:var(--accent);border-left:1px solid var(--line);padding-left:8px}
+/* ---------- layout ---------- */
+.layout{display:grid;grid-template-columns:280px 1fr 300px;gap:14px;align-items:start}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.panel-head{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-bottom:1px solid var(--line-soft)}
+.panel-head h2{font-size:13px;font-weight:700;letter-spacing:1px}
+.panel-head .count{font-size:11px;color:var(--muted)}
+.btn{font-family:inherit;font-size:13px;font-weight:600;border-radius:6px;cursor:pointer;border:1px solid var(--line);transition:background .15s,border-color .15s,color .15s}
+.btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btn-primary{background:var(--accent);color:#141b16;border-color:var(--accent)}
+.btn-primary:hover{background:#e0b74f}
+.btn-ghost{background:transparent;color:var(--text)}
+.btn-ghost:hover{background:var(--card-hover)}
+.btn-danger{background:transparent;color:var(--danger);border-color:var(--danger)}
+.btn-danger:hover{background:rgba(208,97,63,.12)}
+.btn-sm{padding:5px 10px;font-size:12px}
+.btn-md{padding:8px 14px}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+/* ---------- queue ---------- */
+.task-list{list-style:none;max-height:560px;overflow:auto}
+.task-item{
+  padding:11px 12px;border-bottom:1px solid var(--line-soft);cursor:pointer;position:relative;
+  transition:background .15s;
+}
+.task-item:hover{background:var(--card-hover)}
+.task-item.active{background:var(--card);box-shadow:inset 3px 0 0 var(--accent)}
+.task-item .t-top{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:5px}
+.task-item .t-name{font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pill{font-size:10px;font-weight:700;letter-spacing:1px;padding:1px 5px;border-radius:3px;border:1px solid var(--line);white-space:nowrap}
+.pill.p-hi{color:var(--danger);border-color:var(--danger)}
+.pill.p-mid{color:var(--accent);border-color:var(--accent)}
+.pill.p-top{color:var(--accent);border-color:var(--accent)}
+.task-item .t-meta{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:11px;color:var(--muted)}
+.status-tag{display:flex;align-items:center;gap:5px;font-size:11px}
+.sdot{width:7px;height:7px;border-radius:50%;background:var(--muted)}
+.sdot.s0{background:var(--muted)}
+.sdot.s1{background:var(--warn)}
+.sdot.s2{background:var(--ok)}
+.lock-ic{font-size:11px;color:var(--lock)}
+.empty-hint{padding:16px 12px;font-size:12px;color:var(--muted);text-align:center}
+/* ---------- detail ---------- */
+.detail{padding:14px}
+.plate{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:14px;position:relative}
+.plate.locked{border-color:var(--lock)}
+.plate .plate-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:10px}
+.plate h1{font-size:20px;font-weight:700;letter-spacing:.5px;line-height:1.3}
+.plate .id-tag{font-family:ui-monospace,"SFMono-Regular",Consolas,monospace;font-size:11px;color:var(--muted);letter-spacing:1px}
+.plate .desc{font-size:13px;color:var(--muted);margin-bottom:12px}
+.lock-banner{display:flex;align-items:center;gap:8px;background:rgba(176,137,58,.12);border:1px solid var(--lock);border-radius:6px;padding:8px 10px;font-size:12px;color:var(--lock);margin-bottom:12px}
+.section{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:14px;margin-bottom:12px}
+.section h3{font-size:12px;font-weight:700;letter-spacing:1px;color:var(--muted);margin-bottom:10px;text-transform:uppercase}
+/* stepper */
+.stepper{display:flex;align-items:center;gap:0}
+.step{display:flex;align-items:center;gap:8px}
+.step .n{width:26px;height:26px;border-radius:50%;border:1px solid var(--line);display:grid;place-items:center;font-size:12px;font-weight:700;color:var(--muted);background:var(--bg)}
+.step .l{font-size:13px;color:var(--muted)}
+.step.done .n{background:var(--ok);border-color:var(--ok);color:#0e1410}
+.step.done .l{color:var(--text)}
+.step.cur .n{background:var(--warn);border-color:var(--warn);color:#141b16;box-shadow:0 0 0 3px rgba(210,165,63,.2)}
+.step.cur .l{color:var(--text);font-weight:600}
+.stepper .bar{flex:1;height:2px;background:var(--line);margin:0 10px}
+.stepper .bar.on{background:var(--ok)}
+/* assign */
+.assign-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.select{font-family:inherit;font-size:13px;background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:6px;padding:7px 10px;min-width:180px}
+.select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.assignee-chip{display:inline-flex;align-items:center;gap:6px;background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:4px 10px;font-size:12px}
+.assignee-chip .av{width:18px;height:18px;border-radius:50%;background:var(--blue);color:#0e1410;display:grid;place-items:center;font-size:10px;font-weight:700}
+.muted-1{color:var(--muted);font-size:12px}
+.action-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+/* ---------- log ---------- */
+.log-list{list-style:none;max-height:560px;overflow:auto}
+.log-item{padding:9px 12px;border-bottom:1px solid var(--line-soft);display:flex;gap:10px;align-items:flex-start}
+.log-item .lt{font-family:ui-monospace,"SFMono-Regular",Consolas,monospace;font-size:11px;color:var(--muted);white-space:nowrap;padding-top:1px}
+.log-item .ltx{font-size:12px;color:var(--text)}
+.log-item .kind{width:6px;height:6px;border-radius:50%;margin-top:6px;flex-shrink:0;background:var(--muted)}
+.log-item.k-create .kind{background:var(--blue)}
+.log-item.k-assign .kind{background:var(--accent)}
+.log-item.k-advance .kind{background:var(--ok)}
+.log-item.k-request .kind{background:var(--warn)}
+.log-item.k-deny .kind{background:var(--danger)}
+/* ---------- modal ---------- */
+.modal-mask{position:fixed;inset:0;background:rgba(8,12,9,.7);display:none;align-items:center;justify-content:center;z-index:100;padding:16px}
+.modal-mask.show{display:flex}
+.modal{width:440px;max-width:100%;background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.modal-head{padding:14px 16px;border-bottom:1px solid var(--line-soft);display:flex;align-items:center;justify-content:space-between}
+.modal-head h3{font-size:15px;font-weight:700}
+.modal-body{padding:16px}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}
+.field .input{width:100%;font-family:inherit;font-size:14px;background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:6px;padding:9px 12px}
+.field .input:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-color:var(--accent)}
+.deny-box{background:rgba(208,97,63,.1);border:1px solid var(--danger);border-radius:8px;padding:12px;margin-bottom:14px}
+.deny-box .dn-title{display:flex;align-items:center;gap:8px;font-weight:700;color:var(--danger);font-size:14px;margin-bottom:6px}
+.deny-box p{font-size:13px;color:var(--text)}
+.deny-box .miss{display:inline-block;margin-top:8px;background:var(--bg);border:1px solid var(--danger);border-radius:4px;padding:3px 8px;font-size:12px;color:var(--danger)}
+.modal-foot{padding:12px 16px;border-top:1px solid var(--line-soft);display:flex;justify-content:flex-end;gap:10px}
+/* ---------- toast ---------- */
+.toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(20px);background:var(--card);border:1px solid var(--line);border-radius:8px;padding:10px 16px;font-size:13px;box-shadow:0 10px 30px rgba(0,0,0,.5);opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:200}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.ok{border-color:var(--ok);color:var(--ok)}
+.toast.warn{border-color:var(--warn);color:var(--warn)}
+.toast.danger{border-color:var(--danger);color:var(--danger)}
+/* ---------- responsive ---------- */
+@media (max-width:900px){
+  .layout{grid-template-columns:1fr}
+  .topbar{flex-wrap:wrap;height:auto;padding:10px 0}
+  .topbar-right{flex-wrap:wrap}
+  .task-list,.log-list{max-height:none}
+}
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="brand">
+      <span class="mark">猎</span>
+      <span>猎鹰协作</span>
+      <span class="sub">FIELD-OPS</span>
+    </div>
+    <div class="topbar-right">
+      <span class="net"><span class="dot"></span>前线网络 · 已连接</span>
+      <span class="user-chip">
+        <span class="avatar">林</span>
+        <span>林志远</span>
+        <span class="role">行动员</span>
+      </span>
+    </div>
+  </header>
+
+  <div class="layout">
+    <!-- 任务队列 -->
+    <aside class="panel">
+      <div class="panel-head">
+        <h2>任务队列</h2>
+        <span class="count" id="queueCount">3 项</span>
+      </div>
+      <ul class="task-list" id="taskList"></ul>
+      <div class="panel-head" style="border-top:1px solid var(--line-soft);border-bottom:none">
+        <button class="btn btn-primary btn-sm" id="btnNew" type="button">＋ 新建任务</button>
+      </div>
+    </aside>
+
+    <!-- 任务详情 -->
+    <main class="panel detail" id="detailPanel"></main>
+
+    <!-- 行动日志 -->
+    <aside class="panel">
+      <div class="panel-head">
+        <h2>行动日志</h2>
+        <span class="count">活动记录</span>
+      </div>
+      <ul class="log-list" id="logList"></ul>
+    </aside>
+  </div>
+</div>
+
+<!-- 新建任务 -->
+<div class="modal-mask" id="newMask">
+  <div class="modal">
+    <div class="modal-head"><h3>新建任务</h3></div>
+    <div class="modal-body">
+      <div class="field">
+        <label for="taskName">任务名称</label>
+        <input class="input" id="taskName" type="text" placeholder="例如：西线桥头警戒点复查" maxlength="24">
+      </div>
+      <div class="field">
+        <label for="taskPrio">优先级</label>
+        <select class="select" id="taskPrio" style="width:100%">
+          <option value="中">中 · 常规</option>
+          <option value="高">高 · 优先处理</option>
+          <option value="低">低 · 可延后</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost btn-md" id="newCancel" type="button">取消</button>
+      <button class="btn btn-primary btn-md" id="newConfirm" type="button">确认创建</button>
+    </div>
+  </div>
+</div>
+
+<!-- 权限不足 -->
+<div class="modal-mask" id="denyMask">
+  <div class="modal">
+    <div class="modal-head"><h3>操作被拒绝</h3></div>
+    <div class="modal-body">
+      <div class="deny-box">
+        <div class="dn-title"><span>⛔</span> 权限不足</div>
+        <p id="denyText">你缺少所需权限，本次变更未写入。</p>
+        <span class="miss" id="denyPerm">「行动指令签发」权限</span>
+      </div>
+      <p class="muted-1">你可以发出访问申请，等待指挥官批准；也可以安全返回可操作区域继续其他任务。</p>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost btn-md" id="denyBack" type="button">安全返回可操作区</button>
+      <button class="btn btn-primary btn-md" id="denyRequest" type="button">申请访问权限</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  "use strict";
+  var MEMBERS = ["王铁军","赵婉清","陈子昂","林志远"];
+  var STATUS = [{t:"待命",c:"s0"},{t:"执行中",c:"s1"},{t:"完成",c:"s2"}];
+  var PRIO = {高:"p-hi",中:"p-mid",低:"p-mid",机密:"p-top"};
+
+  var state = {
+    user:"林志远",
+    selected:"t1",
+    nextId:4,
+    tasks:[
+      {id:"t1",name:"北坡补给点测绘",status:1,assignee:"王铁军",restricted:false,prio:"高",desc:"核实北坡三号补给点坐标并回传地形标高。"},
+      {id:"t2",name:"东线通讯中继检查",status:0,assignee:null,restricted:false,prio:"中",desc:"巡检东线中继站信号强度与备用电源。"},
+      {id:"t3",name:"夜莺机密侦察路线",status:0,assignee:null,restricted:true,prio:"机密",desc:"机密级侦察路线，需「行动指令签发」权限方可推进。"}
+    ],
+    log:[
+      {k:"create",t:"08:12",x:"创建任务「东线通讯中继检查」"},
+      {k:"assign",t:"08:20",x:"分派成员 王铁军 到「北坡补给点测绘」"},
+      {k:"advance",t:"08:31",x:"「北坡补给点测绘」状态推进：待命 → 执行中"}
+    ]
+  };
+
+  var $ = function(id){return document.getElementById(id);};
+
+  function nowTime(){
+    var d=new Date();var p=function(n){return (n<10?"0":"")+n;};
+    return p(d.getHours())+":"+p(d.getMinutes());
+  }
+  function taskById(id){for(var i=0;i<state.tasks.length;i++){if(state.tasks[i].id===id)return state.tasks[i];}return null;}
+  function sel(){return taskById(state.selected);}
+
+  function addLog(k,x){state.log.unshift({k:k,t:nowTime(),x:x});renderLog();}
+
+  function renderQueue(){
+    var list=$("taskList");list.innerHTML="";
+    state.tasks.forEach(function(t){
+      var li=document.createElement("li");
+      li.className="task-item"+(t.id===state.selected?" active":"");
+      var st=STATUS[t.status];
+      var prio=t.prio;
+      li.innerHTML=
+        '<div class="t-top"><span class="t-name">'+(t.restricted?'🔒 ':'')+t.name+'</span>'+
+        '<span class="pill '+PRIO[prio]+'">'+prio+'</span></div>'+
+        '<div class="t-meta">'+
+        '<span class="status-tag"><span class="sdot '+st.c+'"></span>'+st.t+'</span>'+
+        '<span>'+(t.assignee?t.assignee:(t.restricted?"受权限保护":"未分派"))+'</span>'+
+        '</div>';
+      li.addEventListener("click",function(){state.selected=t.id;renderQueue();renderDetail();});
+      list.appendChild(li);
+    });
+    $("queueCount").textContent=state.tasks.length+" 项";
+  }
+
+  function renderDetail(){
+    var t=sel();if(!t)return;
+    var st=STATUS[t.status];
+    var el=$("detailPanel");
+    var stepsHtml="";
+    for(var i=0;i<3;i++){
+      var cls="step";
+      if(i<t.status)cls+=" done";else if(i===t.status)cls+=" cur";
+      stepsHtml+='<div class="'+cls+'"><span class="n">'+(i<t.status?"✓":(i+1))+'</span><span class="l">'+STATUS[i].t+'</span></div>';
+      if(i<2)stepsHtml+='<div class="bar'+(i<t.status?" on":"")+'"></div>';
+    }
+    var lockBanner=t.restricted?'<div class="lock-banner">🔒 受限任务 · 需要「行动指令签发」权限才能推进状态</div>':'';
+    var assigneeChip=t.assignee
+      ?'<span class="assignee-chip"><span class="av">'+t.assignee.charAt(0)+'</span>'+t.assignee+'</span>'
+      :'<span class="muted-1">尚未分派成员</span>';
+    var assignOptions=MEMBERS.map(function(m){
+      return '<option value="'+m+'"'+(m===t.assignee?" selected":"")+'>'+m+'</option>';
+    }).join("");
+    var doneDisabled=t.status===2?" disabled":"";
+    el.innerHTML=
+      '<div class="plate'+(t.restricted?" locked":"")+'">'+
+        '<div class="plate-top">'+
+          '<div><h1>'+t.name+'</h1><div class="id-tag">任务编号 · '+t.id.toUpperCase()+' / 优先级 '+t.prio+'</div></div>'+
+          '<span class="status-tag" style="font-size:12px"><span class="sdot '+st.c+'"></span>'+st.t+'</span>'+
+        '</div>'+
+        '<p class="desc">'+t.desc+'</p>'+
+        lockBanner+
+        '<div class="stepper">'+stepsHtml+'</div>'+
+      '</div>'+
+      '<div class="section"><h3>分派成员</h3>'+
+        '<div class="assign-row">'+assigneeChip+
+        '<select class="select" id="assignSelect">'+assignOptions+'</select>'+
+        '<button class="btn btn-ghost btn-md" id="btnAssign" type="button">分派</button></div>'+
+      '</div>'+
+      '<div class="section"><h3>状态推进</h3>'+
+        '<div class="action-row">'+
+        (t.restricted
+          ? '<button class="btn btn-danger btn-md" id="btnTry" type="button">尝试推进（受限）</button>'
+          : '<button class="btn btn-primary btn-md" id="btnAdvance" type="button"'+doneDisabled+'>推进状态</button>')+
+        '<span class="muted-1">'+(t.status===2?"该任务已完成，不可再推进":(t.restricted?"受限操作，将触发权限校验":"推进将写入行动日志"))+'</span>'+
+        '</div>'+
+      '</div>';
+    $("btnAssign").addEventListener("click",assignMember);
+    if(!t.restricted)$("btnAdvance").addEventListener("click",advanceStatus);
+    if(t.restricted)$("btnTry").addEventListener("click",tryRestricted);
+  }
+
+  function renderLog(){
+    var list=$("logList");list.innerHTML="";
+    if(state.log.length===0){list.innerHTML='<li class="empty-hint">暂无活动记录</li>';return;}
+    state.log.forEach(function(e){
+      var li=document.createElement("li");
+      li.className="log-item k-"+e.k;
+      li.innerHTML='<span class="kind"></span><span class="lt">'+e.t+'</span><span class="ltx">'+e.x+'</span>';
+      list.appendChild(li);
+    });
+  }
+
+  function openNew(){
+    $("taskName").value="";$("taskPrio").value="中";$("newMask").classList.add("show");$("taskName").focus();
+  }
+  function closeNew(){$("newMask").classList.remove("show");}
+  function confirmNew(){
+    var name=$("taskName").value.trim();
+    if(!name){toast("请输入任务名称","danger");return;}
+    var prio=$("taskPrio").value;
+    var t={id:"t"+(state.nextId++),name:name,status:0,assignee:null,restricted:false,prio:prio,desc:"新录入任务，待分派与推进。"};
+    state.tasks.push(t);state.selected=t.id;
+    closeNew();renderQueue();renderDetail();
+    addLog("create","创建任务「"+name+"」");
+    toast("任务「"+name+"」已创建","ok");
+  }
+  function assignMember(){
+    var t=sel();if(!t)return;
+    var m=$("assignSelect").value;
+    var old=t.assignee;
+    t.assignee=m;
+    renderQueue();renderDetail();
+    addLog("assign","分派成员 "+m+" 到「"+t.name+"」"+(old?"（原 "+old+"）":""));
+    toast("已分派 "+m+" 到「"+t.name+"」","ok");
+  }
+  function advanceStatus(){
+    var t=sel();if(!t)return;
+    if(t.restricted){tryRestricted();return;}
+    if(t.status>=2)return;
+    var from=STATUS[t.status].t;
+    t.status++;
+    var to=STATUS[t.status].t;
+    renderQueue();renderDetail();
+    addLog("advance","「"+t.name+"」状态推进："+from+" → "+to);
+    toast("状态已推进："+to,"ok");
+  }
+  function tryRestricted(){
+    $("denyText").textContent="你缺少「行动指令签发」权限，本次状态变更未写入行动日志。";
+    $("denyPerm").textContent="「行动指令签发」权限";
+    $("denyMask").classList.add("show");
+    addLog("deny","尝试推进「"+sel().name+"」被拒绝（权限不足）");
+  }
+  function denyBack(){
+    $("denyMask").classList.remove("show");
+    // 安全返回：切到一个可操作任务
+    var normal=null;
+    for(var i=0;i<state.tasks.length;i++){if(!state.tasks[i].restricted){normal=state.tasks[i];break;}}
+    if(normal){state.selected=normal.id;renderQueue();renderDetail();}
+    toast("已安全返回可操作区域","ok");
+  }
+  function denyRequest(){
+    $("denyMask").classList.remove("show");
+    addLog("request","发出访问申请：请求「行动指令签发」权限（等待批准）");
+    toast("访问申请已提交，等待指挥官批准","warn");
+  }
+
+  function toast(msg,kind){
+    var t=$("toast");t.textContent=msg;t.className="toast show "+(kind||"");
+    clearTimeout(t._t);t._t=setTimeout(function(){t.className="toast";},2600);
+  }
+
+  $("btnNew").addEventListener("click",openNew);
+  $("newCancel").addEventListener("click",closeNew);
+  $("newConfirm").addEventListener("click",confirmNew);
+  $("denyBack").addEventListener("click",denyBack);
+  $("denyRequest").addEventListener("click",denyRequest);
+  $("newMask").addEventListener("click",function(e){if(e.target===this)closeNew();});
+  $("denyMask").addEventListener("click",function(e){if(e.target===this)$("denyMask").classList.remove("show");});
+  $("taskName").addEventListener("keydown",function(e){if(e.key==="Enter")confirmNew();});
+
+  renderQueue();
+  renderDetail();
+  renderLog();
+})();
+</script>
+</body>
+</html>

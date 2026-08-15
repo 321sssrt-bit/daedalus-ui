@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>麻线信 · 会话</title>
+  <style>
+    :root {
+      --linen: #efe6d4;
+      --thread: #6a4a2a;
+      --ink: #2a2118;
+      --bubble: #fff8ea;
+      --fail: #8b2e18;
+      --ok: #2f5d3a;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; background: #c9b89a; display: grid; place-items: center; font: 15px/1.45 Georgia, "Songti SC", serif; color: var(--ink); }
+    .phone { width: 390px; height: 844px; background: var(--linen); border-radius: 36px; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 0 0 10px #8a7350; }
+    .threads { display: flex; border-bottom: 1px solid #d8c8a8; }
+    .threads button { flex: 1; height: 44px; border: 0; background: transparent; cursor: pointer; font: inherit; }
+    .threads button.on { box-shadow: inset 0 -2px var(--thread); }
+    .msgs { flex: 1; overflow: auto; padding: 12px; }
+    .m { max-width: 80%; background: var(--bubble); padding: 8px 10px; margin: 0 0 8px auto; }
+    .m.in { margin-left: 0; margin-right: auto; background: #e4d8c0; }
+    .m.fail { outline: 1px solid var(--fail); }
+    .st { font-size: 12px; color: var(--ok); }
+    .m.fail .st { color: var(--fail); }
+    .comp { display: flex; gap: 6px; padding: 8px; }
+    input { flex: 1; height: 40px; border: 1px solid var(--thread); padding: 0 8px; font: inherit; }
+    .comp button { height: 40px; border: 0; background: var(--thread); color: #fff8ea; cursor: pointer; }
+    .failsw { margin: 0 8px 8px; font-size: 13px; }
+    @media (max-width: 430px) {
+      body { display: block; background: var(--linen); }
+      .phone { width: 100%; height: 100vh; border-radius: 0; box-shadow: none; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="phone">
+    <div class="threads" id="th"></div>
+    <div class="msgs" id="msgs"></div>
+    <label class="failsw"><input id="boom" type="checkbox"> 下一条发送失败</label>
+    <div class="comp">
+      <input id="t" value="灯还亮着吗">
+      <button id="send" type="button">寄出</button>
+    </div>
+  </div>
+  <script>
+    (function () {
+      var chats = {
+        "顾北": [{ in: true, t: "今夜偏东。", st: "已读" }],
+        "吴苔": [{ in: true, t: "种子袋干了。", st: "已读" }]
+      };
+      var cur = "顾北";
+      function drawTh() {
+        var box = document.getElementById("th");
+        box.innerHTML = "";
+        Object.keys(chats).forEach(function (n) {
+          var b = document.createElement("button");
+          b.type = "button";
+          b.className = n === cur ? "on" : "";
+          b.textContent = n;
+          b.addEventListener("click", function () { cur = n; draw(); });
+          box.appendChild(b);
+        });
+      }
+      function drawMsgs() {
+        var box = document.getElementById("msgs");
+        box.innerHTML = "";
+        chats[cur].forEach(function (m, i) {
+          var el = document.createElement("div");
+          el.className = "m" + (m.in ? " in" : "") + (m.fail ? " fail" : "");
+          el.innerHTML = m.t + "<div class=\"st\">" + m.st + (m.fail ? " <button type=\"button\" data-i=\"" + i + "\">重试</button>" : "") + "</div>";
+          box.appendChild(el);
+        });
+        box.querySelectorAll("button").forEach(function (btn) {
+          btn.addEventListener("click", function () {
+            var m = chats[cur][Number(btn.getAttribute("data-i"))];
+            m.fail = false;
+            m.st = "已送达";
+            draw();
+          });
+        });
+        box.scrollTop = box.scrollHeight;
+      }
+      function draw() { drawTh(); drawMsgs(); }
+      document.getElementById("send").addEventListener("click", function () {
+        var t = document.getElementById("t").value.trim();
+        if (!t) return;
+        var fail = document.getElementById("boom").checked;
+        chats[cur].push({ t: t, st: fail ? "发送失败" : "已送达", fail: fail });
+        document.getElementById("boom").checked = false;
+        document.getElementById("t").value = "";
+        draw();
+      });
+      draw();
+    })();
+  </script>
+</body>
+</html>

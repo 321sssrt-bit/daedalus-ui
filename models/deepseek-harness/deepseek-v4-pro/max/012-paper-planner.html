@@ -1,0 +1,332 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>手账日历 · 三月</title>
+<style>
+  :root{
+    --paper:#fbf5ec;
+    --card:#ffffff;
+    --pink:#f7d6e0;
+    --mint:#cfe8d8;
+    --lav:#d9e2f5;
+    --peach:#fce7c8;
+    --butter:#f6e5a8;
+    --ink:#5a5148;
+    --muted:#8a8178;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:-apple-system,"Segoe UI","Microsoft YaHei","PingFang SC","Helvetica Neue",sans-serif;
+    background-color:var(--paper);
+    background-image:radial-gradient(rgba(90,81,72,.07) 1px, transparent 1px);
+    background-size:18px 18px;
+    color:var(--ink);min-height:100vh;
+  }
+  .hand{font-family:"Kaiti SC","STKaiti","KaiTi","FangSong",cursive}
+  .wrap{max-width:1080px;margin:0 auto;padding:34px 28px 64px}
+
+  header{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:26px;flex-wrap:wrap}
+  .h-title h1{font-size:30px;font-weight:700;letter-spacing:2px}
+  .h-title p{font-size:13px;color:var(--muted);margin-top:6px;letter-spacing:1px}
+  .h-right{display:flex;align-items:center;gap:14px}
+  .month-label{font-size:20px;color:var(--ink)}
+  .sticker-deco{
+    width:34px;height:34px;border-radius:50%;
+    background:var(--butter);display:inline-flex;align-items:center;justify-content:center;
+    font-size:18px;box-shadow:0 2px 0 rgba(90,81,72,.12);transform:rotate(8deg);
+  }
+  .btn{
+    font-family:inherit;cursor:pointer;border:none;border-radius:20px;
+    padding:10px 18px;font-size:14px;font-weight:600;letter-spacing:1px;
+    transition:transform .08s ease, box-shadow .12s ease, background .12s ease;
+  }
+  .btn:active{transform:translateY(1px)}
+  .btn-pink{background:var(--pink);color:var(--ink);box-shadow:0 3px 0 rgba(247,214,224,.8)}
+  .btn-pink:hover{background:#f3c4d4}
+  .btn-ghost{background:transparent;color:var(--muted);border:1px solid rgba(90,81,72,.18)}
+  .btn-ghost:hover{color:var(--ink);border-color:var(--ink)}
+
+  /* 星期表头 */
+  .weekdays{display:grid;grid-template-columns:repeat(7,1fr);gap:10px;margin-bottom:10px}
+  .weekdays span{
+    text-align:center;font-size:12px;color:var(--muted);letter-spacing:2px;padding:6px 0;
+  }
+  .weekdays span.wk{color:#d98a9f}
+
+  /* 月网格 */
+  .grid{display:grid;grid-template-columns:repeat(7,1fr);gap:10px}
+  .day{
+    background:var(--card);border:1px solid rgba(90,81,72,.10);border-radius:12px;
+    min-height:104px;padding:8px 8px 10px;position:relative;cursor:default;
+    box-shadow:0 2px 6px rgba(90,81,72,.05);
+    transition:transform .1s ease, box-shadow .12s ease;
+  }
+  .day.blank{background:transparent;border:none;box-shadow:none;cursor:default}
+  .day:hover{transform:translateY(-2px);box-shadow:0 6px 14px rgba(90,81,72,.10)}
+  .day.blank:hover{transform:none;box-shadow:none}
+  .dnum{font-size:13px;font-weight:700;color:var(--ink);display:inline-flex;align-items:center;gap:6px}
+  .dnum.today::after{content:"今天";font-size:10px;color:#d98a9f;font-weight:600;letter-spacing:1px}
+  .sticker{position:absolute;top:6px;right:8px;font-size:13px;transform:rotate(12deg)}
+
+  .strips{display:flex;flex-direction:column;gap:4px;margin-top:10px}
+  .strip{
+    display:block;width:100%;text-align:left;font-family:inherit;cursor:pointer;
+    border:none;border-radius:5px;padding:3px 7px;font-size:11px;line-height:1.35;
+    color:var(--ink);background:var(--c,var(--pink));
+    box-shadow:inset 0 -2px 0 rgba(0,0,0,.06);
+    transform:rotate(-1deg);transition:transform .1s ease, box-shadow .1s ease;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  }
+  .strip:hover{transform:rotate(0deg) translateX(2px);box-shadow:inset 0 -2px 0 rgba(0,0,0,.10)}
+  .strip:nth-child(even){transform:rotate(1deg)}
+  .strip:nth-child(even):hover{transform:rotate(0deg) translateX(2px)}
+  .more{font-size:10px;color:var(--muted);margin-top:2px;padding-left:2px}
+
+  /* 详情弹层 */
+  .overlay{position:fixed;inset:0;background:rgba(90,81,72,.28);display:none;align-items:center;justify-content:center;z-index:50}
+  .overlay.open{display:flex}
+  .panel{
+    width:360px;max-width:92vw;background:var(--card);border-radius:16px;
+    box-shadow:0 20px 50px rgba(90,81,72,.22);overflow:hidden;
+  }
+  .panel-tape{
+    height:26px;background:var(--c,var(--pink));
+    box-shadow:inset 0 -3px 0 rgba(0,0,0,.06);
+    display:flex;align-items:center;justify-content:flex-end;padding-right:12px;
+  }
+  .close{
+    border:none;background:transparent;cursor:pointer;color:rgba(90,81,72,.6);
+    font-size:20px;line-height:1;padding:2px 4px;
+  }
+  .close:hover{color:var(--ink)}
+  .panel-body{padding:20px 22px 24px}
+  .panel-body h2{font-size:22px;font-weight:700;margin-bottom:14px;letter-spacing:1px}
+  .meta-row{display:flex;align-items:flex-start;gap:10px;margin-bottom:12px;font-size:14px}
+  .meta-ic{width:20px;flex:none;text-align:center;color:var(--muted)}
+  .meta-row .val{line-height:1.5}
+  .meta-row .val small{display:block;color:var(--muted);font-size:12px;margin-top:2px}
+  .panel-foot{display:flex;justify-content:flex-end;gap:10px;margin-top:16px}
+  .btn-small{padding:8px 16px;font-size:13px}
+
+  /* 记一笔表单 */
+  .form label{display:block;font-size:12px;color:var(--muted);margin:12px 0 6px;letter-spacing:1px}
+  .form input,.form select{
+    width:100%;padding:9px 12px;border-radius:8px;border:1px solid rgba(90,81,72,.18);
+    font-size:14px;font-family:inherit;color:var(--ink);background:var(--card);
+  }
+  .form input:focus,.form select:focus{outline:2px solid var(--pink);outline-offset:1px}
+  .color-row{display:flex;gap:8px;margin-top:8px}
+  .color-dot{width:26px;height:26px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:border-color .12s ease}
+  .color-dot.sel{border-color:var(--ink)}
+
+  .toast{
+    position:fixed;left:50%;bottom:30px;transform:translateX(-50%) translateY(16px);
+    background:var(--ink);color:var(--card);font-size:13px;padding:11px 20px;border-radius:20px;
+    opacity:0;pointer-events:none;transition:opacity .18s ease, transform .18s ease;z-index:60;
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  @media (max-width:768px){
+    .wrap{padding:20px 14px 48px}
+    .day{min-height:84px}
+    .strip{font-size:10px}
+  }
+  @media (prefers-reduced-motion: reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="h-title">
+      <h1 class="hand">手账日历</h1>
+      <p>把三月过成喜欢的样子</p>
+    </div>
+    <div class="h-right">
+      <div class="month-label hand">2025 年 3 月</div>
+      <span class="sticker-deco" aria-hidden="true">✿</span>
+      <button class="btn btn-pink" id="addBtn">＋ 记一笔</button>
+    </div>
+  </header>
+
+  <div class="weekdays">
+    <span>周一</span><span>周二</span><span>周三</span><span>周四</span><span>周五</span>
+    <span class="wk">周六</span><span class="wk">周日</span>
+  </div>
+
+  <div class="grid" id="grid"></div>
+</div>
+
+<!-- 事件详情 -->
+<div class="overlay" id="detail">
+  <div class="panel" role="dialog" aria-modal="true" aria-labelledby="detTitle">
+    <div class="panel-tape" id="detTape"><button class="close" id="detClose" aria-label="关闭">×</button></div>
+    <div class="panel-body">
+      <h2 class="hand" id="detTitle">事件</h2>
+      <div class="meta-row"><span class="meta-ic">🕐</span><div class="val" id="detTime">—</div></div>
+      <div class="meta-row"><span class="meta-ic">📍</span><div class="val" id="detPlace">—</div></div>
+      <div class="meta-row"><span class="meta-ic">✎</span><div class="val" id="detNote">—</div></div>
+      <div class="panel-foot"><button class="btn btn-ghost btn-small" id="detClose2">收起来</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- 记一笔表单 -->
+<div class="overlay" id="form">
+  <div class="panel" role="dialog" aria-modal="true" aria-labelledby="formTitle">
+    <div class="panel-tape" style="--c:#cfe8d8"><button class="close" id="formClose" aria-label="关闭">×</button></div>
+    <div class="panel-body form">
+      <h2 class="hand" id="formTitle">记一笔</h2>
+      <label for="evTitle">标题</label>
+      <input id="evTitle" type="text" placeholder="例如：和老友喝咖啡">
+      <label for="evDay">日期（3 月）</label>
+      <select id="evDay"></select>
+      <label for="evTime">时间（可选）</label>
+      <input id="evTime" type="text" placeholder="例如：15:00 - 16:30">
+      <label for="evPlace">地点（可选）</label>
+      <input id="evPlace" type="text" placeholder="例如：街角书店">
+      <label>贴纸颜色</label>
+      <div class="color-row" id="colorRow">
+        <span class="color-dot sel" data-c="#f7d6e0" style="background:#f7d6e0"></span>
+        <span class="color-dot" data-c="#cfe8d8" style="background:#cfe8d8"></span>
+        <span class="color-dot" data-c="#d9e2f5" style="background:#d9e2f5"></span>
+        <span class="color-dot" data-c="#fce7c8" style="background:#fce7c8"></span>
+      </div>
+      <div class="panel-foot">
+        <button class="btn btn-ghost btn-small" id="formCancel">取消</button>
+        <button class="btn btn-pink btn-small" id="formSave">贴上去</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  /* 3 月手账事件 */
+  var events = [
+    {day:5,  title:"团队周会", time:"10:00 - 11:00", place:"会议室 A", note:"带上周报数据", color:"#f7d6e0"},
+    {day:8,  title:"健身房私教课", time:"18:30 - 19:30", place:"星海健身", note:"记得带水壶", color:"#cfe8d8"},
+    {day:12, title:"项目评审", time:"14:00 - 15:00", place:"线上会议", note:"准备演示稿", color:"#d9e2f5"},
+    {day:15, title:"咖啡市集", time:"13:00 起", place:"城南公园", note:"和晓雯一起去", color:"#fce7c8"},
+    {day:21, title:"妈妈的生日", time:"全天", place:"家里", note:"订好蛋糕", color:"#f6e5a8"},
+    {day:26, title:"体检预约", time:"08:30", place:"仁和体检中心", note:"空腹，带身份证", color:"#cfe8d8"}
+  ];
+  var chosenColor = "#f7d6e0";
+  var stickers = {8:"★",15:"✿",21:"♥",26:"★"};
+  var lead = 5; /* 2025-03-01 是周六，周一起算 5 个空位 */
+  var daysInMonth = 31;
+
+  function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+  function render(){
+    var g = document.getElementById('grid');
+    var html = '';
+    var total = Math.ceil((lead + daysInMonth) / 7) * 7;
+    for (var i = 0; i < total; i++){
+      var d = i - lead + 1;
+      if (d < 1 || d > daysInMonth){
+        html += '<div class="day blank"></div>';
+        continue;
+      }
+      var evs = events.filter(function(e){ return e.day === d; });
+      var st = stickers[d] ? '<span class="sticker" aria-hidden="true">' + stickers[d] + '</span>' : '';
+      var isToday = (d === 18);
+      html += '<div class="day" data-day="' + d + '">' +
+        '<span class="dnum' + (isToday ? ' today' : '') + '">' + d + '</span>' + st +
+        '<div class="strips">';
+      for (var j = 0; j < evs.length; j++){
+        html += '<button class="strip" style="--c:' + evs[j].color + '" data-ev="' + events.indexOf(evs[j]) + '">' + esc(evs[j].title) + '</button>';
+      }
+      html += '</div></div>';
+    }
+    g.innerHTML = html;
+  }
+
+  function showToast(msg){
+    var t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(t._timer);
+    t._timer = setTimeout(function(){ t.classList.remove('show'); }, 2200);
+  }
+
+  /* 事件详情 */
+  var detail = document.getElementById('detail');
+  function openDetail(idx){
+    var e = events[idx];
+    document.getElementById('detTape').style.setProperty('--c', e.color);
+    document.getElementById('detTitle').textContent = e.title;
+    document.getElementById('detTime').textContent = '3 月 ' + e.day + ' 日 · ' + e.time;
+    document.getElementById('detPlace').textContent = e.place;
+    document.getElementById('detNote').textContent = e.note;
+    detail.classList.add('open');
+  }
+  function closeDetail(){ detail.classList.remove('open'); }
+
+  /* 事件委托 */
+  document.getElementById('grid').addEventListener('click', function(e){
+    var strip = e.target.closest('.strip');
+    if (strip){
+      openDetail(Number(strip.dataset.ev));
+      return;
+    }
+    var day = e.target.closest('.day');
+    if (day && day.dataset.day){
+      var n = events.filter(function(ev){ return ev.day === Number(day.dataset.day); }).length;
+      showToast('3 月 ' + day.dataset.day + ' 日 · ' + (n ? n + ' 项安排' : '暂时空白，记一笔吧'));
+    }
+  });
+
+  document.getElementById('detClose').addEventListener('click', closeDetail);
+  document.getElementById('detClose2').addEventListener('click', closeDetail);
+  detail.addEventListener('click', function(e){ if (e.target === detail) closeDetail(); });
+
+  /* 记一笔 */
+  var form = document.getElementById('form');
+  function buildDayOptions(){
+    var sel = document.getElementById('evDay');
+    var h = '';
+    for (var d = 1; d <= daysInMonth; d++){
+      h += '<option value="' + d + '">' + d + ' 日</option>';
+    }
+    sel.innerHTML = h;
+  }
+  document.getElementById('addBtn').addEventListener('click', function(){
+    buildDayOptions();
+    document.getElementById('evTitle').value = '';
+    document.getElementById('evTime').value = '';
+    document.getElementById('evPlace').value = '';
+    form.classList.add('open');
+    document.getElementById('evTitle').focus();
+  });
+  document.getElementById('formClose').addEventListener('click', function(){ form.classList.remove('open'); });
+  document.getElementById('formCancel').addEventListener('click', function(){ form.classList.remove('open'); });
+  form.addEventListener('click', function(e){ if (e.target === form) form.classList.remove('open'); });
+
+  document.getElementById('colorRow').addEventListener('click', function(e){
+    var dot = e.target.closest('.color-dot');
+    if (!dot) return;
+    chosenColor = dot.dataset.c;
+    var all = this.querySelectorAll('.color-dot');
+    for (var i=0;i<all.length;i++){ all[i].classList.remove('sel'); }
+    dot.classList.add('sel');
+  });
+
+  document.getElementById('formSave').addEventListener('click', function(){
+    var title = document.getElementById('evTitle').value.trim();
+    if (!title){ showToast('先写个标题吧'); return; }
+    var day = Number(document.getElementById('evDay').value);
+    var time = document.getElementById('evTime').value.trim() || '全天';
+    var place = document.getElementById('evPlace').value.trim() || '未定';
+    events.push({day:day, title:title, time:time, place:place, note:"刚刚记下的安排", color:chosenColor});
+    render();
+    form.classList.remove('open');
+    showToast('已贴到 3 月 ' + day + ' 日');
+  });
+
+  render();
+</script>
+</body>
+</html>

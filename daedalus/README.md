@@ -11,7 +11,7 @@ python -m daedalus starter --output dist/daedalus-clean.zip
 三个命令都向标准输出写 JSON 回执，失败时退出码非零。`build` 和
 `starter` 一定先验证；失败不会留下新的可发布产物。
 
-## v3 答卷合同
+## v4 答卷合同
 
 登记表 `models/_index.json`：
 
@@ -30,8 +30,28 @@ python -m daedalus starter --output dist/daedalus-clean.zip
 }
 ```
 
-每份答卷目录中使用 `model.json`。完成答卷的 `status` 为 `complete`，
-并严格登记 001–050；弃权答卷的 `status` 为 `forfeited`，另含：
+每份答卷目录中使用 `model.json`，并声明 `schemaVersion: 4` 与
+`specVersion: 2`。每个 piece 必须登记同名的 `.html`、`.spec.md` 和
+`.intent.md`；前者是页面，中者是可验收复现合同，后者只放设计意图和
+辅助复刻提示词。完成答卷的 `status` 为 `complete`，并严格登记
+001–050；弃权答卷的 `status` 为 `forfeited`，另含：
+
+```json
+{
+  "schemaVersion": 4,
+  "specVersion": 2,
+  "pieces": [
+    {
+      "id": "001",
+      "slug": "scheme-name",
+      "file": "001-scheme-name.html",
+      "spec": "001-scheme-name.spec.md",
+      "intent": "001-scheme-name.intent.md",
+      "status": "complete"
+    }
+  ]
+}
+```
 
 ```json
 {"forfeit": {"phrase": "我是鸡", "reason": "非空原因"}}

@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>使馆 · 角色权限</title>
+<style>
+:root{
+  --navy:#1d2a4a;
+  --navy-2:#16203a;
+  --gold:#c9a54a;
+  --bg:#f2f3f6;
+  --card:#ffffff;
+  --ink:#20263a;
+  --muted:#757c8f;
+  --line:#d8dce4;
+  --ok:#3e9e63;
+  --radius-card:10px;
+  --radius-ctl:6px;
+  --sp:8px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font:14px/1.6 "PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+  background:var(--bg);color:var(--ink);min-height:100vh;
+}
+.topbar{
+  background:var(--navy);color:#e8e4d4;padding:0 26px;height:56px;
+  display:flex;align-items:center;justify-content:space-between;border-bottom:3px solid var(--gold);
+}
+.brand{display:flex;align-items:center;gap:11px;font-weight:700;letter-spacing:.2em}
+.topbar .dept{font:11.5px/1 ui-monospace,Consolas,monospace;color:#9aa3bc;letter-spacing:.12em}
+.wrap{max-width:1100px;margin:0 auto;padding:22px 26px 50px}
+.layout{display:flex;gap:18px;align-items:flex-start}
+.roles{flex:0 0 292px;display:flex;flex-direction:column;gap:12px}
+.role{
+  background:var(--card);border:1px solid var(--line);border-left:4px solid var(--line);
+  border-radius:var(--radius-card);padding:14px 16px;cursor:pointer;text-align:left;font:inherit;color:inherit;
+  transition:all .14s ease;width:100%;
+}
+.role:hover{border-left-color:var(--gold)}
+.role.on{border-left-color:var(--gold);background:#fdf9ec;box-shadow:0 6px 18px rgba(29,42,74,.08)}
+.role h2{font-size:14.5px;display:flex;align-items:center;justify-content:space-between}
+.role h2 .c{font:10.5px/1 ui-monospace,Consolas,monospace;color:var(--muted);letter-spacing:.1em}
+.role p{font-size:12px;color:var(--muted);margin-top:5px;line-height:1.7}
+.matrix{flex:1;background:var(--card);border:1px solid var(--line);border-radius:var(--radius-card);overflow:hidden}
+.m-head{
+  display:flex;align-items:center;justify-content:space-between;padding:15px 20px;
+  border-bottom:1px solid var(--line);background:#fafbfc;
+}
+.m-head h2{font-size:15px}
+.m-head .who{font-size:12px;color:var(--muted)}
+.m-head .who b{color:var(--navy)}
+.pgroup{border-bottom:1px solid var(--line)}
+.pgroup:last-of-type{border-bottom:0}
+.pgroup h3{
+  font-size:11.5px;letter-spacing:.18em;color:var(--muted);padding:11px 20px 9px;background:#f6f7f9;
+}
+.prow{display:flex;align-items:center;gap:12px;padding:11px 20px;border-top:1px solid #eef0f3}
+.prow .nm{font-size:13.5px;font-weight:600}
+.prow .ds{font-size:12px;color:var(--muted);margin-left:6px}
+.tog{
+  margin-left:auto;position:relative;width:42px;height:23px;border-radius:999px;border:1px solid var(--line);
+  background:#dfe2e8;cursor:pointer;transition:background .15s ease;padding:0;flex:0 0 42px;
+}
+.tog::after{
+  content:"";position:absolute;top:2px;left:2px;width:17px;height:17px;border-radius:50%;background:#fff;
+  transition:left .15s ease;box-shadow:0 1px 3px rgba(0,0,0,.25);
+}
+.tog[aria-checked="true"]{background:var(--navy);border-color:var(--navy)}
+.tog[aria-checked="true"]::after{left:21px;background:var(--gold)}
+.m-foot{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-top:2px solid var(--navy)}
+.dirty-note{font-size:12px;color:var(--muted)}
+.dirty-note.on{color:#b0721a;font-weight:600}
+.save{
+  border:0;border-radius:var(--radius-ctl);background:var(--navy);color:#e8e4d4;padding:11px 30px;
+  font:inherit;font-weight:700;font-size:13.5px;letter-spacing:.18em;cursor:pointer;transition:background .14s ease;
+}
+.save:hover:not(:disabled){background:var(--navy-2)}
+.save:disabled{opacity:.4;cursor:not-allowed}
+.save:focus-visible{outline:3px solid rgba(201,165,74,.5);outline-offset:2px}
+.toast{
+  position:fixed;left:50%;bottom:30px;transform:translate(-50%,16px);opacity:0;pointer-events:none;
+  background:var(--navy-2);color:#e8e4d4;padding:11px 24px;border-radius:999px;font-size:13px;transition:all .28s ease;z-index:9;
+}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+@media(max-width:900px){
+  .layout{flex-direction:column}
+  .roles{flex:none;width:100%;flex-direction:row;flex-wrap:wrap}
+  .role{flex:1 1 44%}
+}
+@media(prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M12 3L20 6.5V12C20 17 16.5 20.4 12 21.5C7.5 20.4 4 17 4 12V6.5L12 3Z" stroke="#c9a54a" stroke-width="1.8" stroke-linejoin="round"/>
+      <path d="M8.5 12L11 14.5L15.5 9.5" stroke="#c9a54a" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    领事馆签证系统
+  </div>
+  <span class="dept">权限配置 · 仅系统管理员可见此页</span>
+</header>
+<div class="wrap">
+  <div class="layout">
+    <aside class="roles" id="roles">
+      <button class="role on" type="button" data-r="clerk">
+        <h2>窗口文员 <span class="c">R-01</span></h2>
+        <p>受理窗口一线。录入申请、收材料、打印回执，不接触审批结论。</p>
+      </button>
+      <button class="role" type="button" data-r="officer">
+        <h2>签证官 <span class="c">R-02</span></h2>
+        <p>审理个案并给出签发建议。签发动作需主管复核后生效。</p>
+      </button>
+      <button class="role" type="button" data-r="chief">
+        <h2>审核主管 <span class="c">R-03</span></h2>
+        <p>终审核签、退费复核、抽检已结案件，可退回签证官意见。</p>
+      </button>
+      <button class="role" type="button" data-r="admin">
+        <h2>系统管理员 <span class="c">R-04</span></h2>
+        <p>维护账号与参数。业务数据只读，无法接触任何审批操作。</p>
+      </button>
+    </aside>
+    <section class="matrix">
+      <div class="m-head">
+        <h2>权限矩阵</h2>
+        <span class="who">正在预览：<b id="who">窗口文员</b></span>
+      </div>
+      <div id="mx">
+        <div class="pgroup">
+          <h3>受理与材料</h3>
+          <div class="prow"><span class="nm">申请录入</span><span class="ds">新建并编辑未受理申请</span><button class="tog" type="button" role="switch" aria-checked="true" data-p="p1"></button></div>
+          <div class="prow"><span class="nm">材料初审</span><span class="ds">核验材料完整性并标注</span><button class="tog" type="button" role="switch" aria-checked="true" data-p="p2"></button></div>
+          <div class="prow"><span class="nm">补件通知</span><span class="ds">向申请人发出补件要求</span><button class="tog" type="button" role="switch" aria-checked="true" data-p="p3"></button></div>
+        </div>
+        <div class="pgroup">
+          <h3>审批</h3>
+          <div class="prow"><span class="nm">案件审理</span><span class="ds">阅读全卷并填写审理意见</span><button class="tog" type="button" role="switch" aria-checked="false" data-p="p4"></button></div>
+          <div class="prow"><span class="nm">签证签发</span><span class="ds">制作并发出签证页</span><button class="tog" type="button" role="switch" aria-checked="false" data-p="p5"></button></div>
+          <div class="prow"><span class="nm">拒签复核</span><span class="ds">对拒签结论做最终复核</span><button class="tog" type="button" role="switch" aria-checked="false" data-p="p6"></button></div>
+        </div>
+        <div class="pgroup">
+          <h3>财务与系统</h3>
+          <div class="prow"><span class="nm">退费审批</span><span class="ds">同意或驳回退费申请</span><button class="tog" type="button" role="switch" aria-checked="false" data-p="p7"></button></div>
+          <div class="prow"><span class="nm">业务数据导出</span><span class="ds">导出案件清单与统计</span><button class="tog" type="button" role="switch" aria-checked="false" data-p="p8"></button></div>
+          <div class="prow"><span class="nm">账号与参数管理</span><span class="ds">管理登录账号与系统参数</span><button class="tog" type="button" role="switch" aria-checked="false" data-p="p9"></button></div>
+        </div>
+      </div>
+      <div class="m-foot">
+        <span class="dirty-note" id="dirty">与已保存配置一致</span>
+        <button class="save" id="save" type="button" disabled>保 存 配 置</button>
+      </div>
+    </section>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+(function(){
+  var roleNames={clerk:'窗口文员',officer:'签证官',chief:'审核主管',admin:'系统管理员'};
+  var presets={
+    clerk:{p1:true,p2:true,p3:true,p4:false,p5:false,p6:false,p7:false,p8:false,p9:false},
+    officer:{p1:true,p2:true,p3:true,p4:true,p5:true,p6:false,p7:false,p8:false,p9:false},
+    chief:{p1:true,p2:true,p3:true,p4:true,p5:true,p6:true,p7:true,p8:true,p9:false},
+    admin:{p1:false,p2:false,p3:false,p4:false,p5:false,p6:false,p7:false,p8:true,p9:true}
+  };
+  var cur='clerk';
+  var who=document.getElementById('who');
+  var dirty=document.getElementById('dirty');
+  var save=document.getElementById('save');
+  var toast=document.getElementById('toast');
+  var timer=null;
+  var togs=document.querySelectorAll('.tog');
+  function apply(role){
+    var set=presets[role];
+    for(var key in set){
+      var el=document.querySelector('.tog[data-p="'+key+'"]');
+      if(el)el.setAttribute('aria-checked',String(set[key]));
+    }
+    who.textContent=roleNames[role];
+    dirty.textContent='与已保存配置一致';
+    dirty.classList.remove('on');
+    save.disabled=true;
+  }
+  function markDirty(){
+    dirty.textContent='有未保存的改动';
+    dirty.classList.add('on');
+    save.disabled=false;
+  }
+  for(var i=0;i<togs.length;i++){
+    (function(t){
+      t.addEventListener('click',function(){
+        var on=t.getAttribute('aria-checked')==='true';
+        t.setAttribute('aria-checked',String(!on));
+        markDirty();
+      });
+    })(togs[i]);
+  }
+  var roles=document.querySelectorAll('.role');
+  for(var k=0;k<roles.length;k++){
+    (function(r){
+      r.addEventListener('click',function(){
+        for(var j=0;j<roles.length;j++)roles[j].classList.remove('on');
+        r.classList.add('on');
+        cur=r.getAttribute('data-r');
+        apply(cur);
+      });
+    })(roles[k]);
+  }
+  save.addEventListener('click',function(){
+    var set={};
+    for(var m=0;m<togs.length;m++){
+      set[togs[m].getAttribute('data-p')]=togs[m].getAttribute('aria-checked')==='true';
+    }
+    presets[cur]=set;
+    dirty.textContent='与已保存配置一致';
+    dirty.classList.remove('on');
+    save.disabled=true;
+    toast.textContent='「'+roleNames[cur]+'」的权限配置已保存并下发到各终端。';
+    toast.classList.add('show');
+    if(timer)clearTimeout(timer);
+    timer=setTimeout(function(){toast.classList.remove('show')},2200);
+  });
+})();
+</script>
+</body>
+</html>

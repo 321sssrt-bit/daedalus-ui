@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>岭票 · 订一程</title>
+  <style>
+    :root {
+      --ridge: #2a4038;
+      --snow: #e8f0ea;
+      --ink: #1a2822;
+      --pine: #3d6b52;
+      --warn: #8b2e18;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; background: #1a2a24; display: grid; place-items: center; font: 15px/1.45 "Segoe UI", "PingFang SC", sans-serif; color: var(--ink); }
+    .phone { width: 390px; height: 844px; background: var(--snow); border-radius: 36px; overflow: auto; box-shadow: 0 0 0 10px #243830; padding: 20px 16px 28px; }
+    h1 { margin: 0 0 8px; }
+    label { display: block; margin-top: 8px; }
+    select, button { width: 100%; height: 40px; margin-top: 6px; font: inherit; }
+    .go { background: var(--ridge); color: var(--snow); border: 0; cursor: pointer; }
+    .err { color: var(--warn); min-height: 20px; }
+    .ok { display: none; background: #fff; padding: 12px; margin-top: 10px; border-left: 4px solid var(--pine); }
+    .ok.on { display: block; }
+    @media (max-width: 430px) {
+      body { display: block; background: var(--snow); }
+      .phone { width: 100%; height: 100vh; border-radius: 0; box-shadow: none; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="phone">
+    <h1>岭票</h1>
+    <label>路线
+      <select id="route">
+        <option>北港 → 岭脊</option>
+        <option>岭脊 → 青圃</option>
+      </select>
+    </label>
+    <button id="search" type="button">搜索班次</button>
+    <div id="trips"></div>
+    <p class="err" id="err"></p>
+    <div class="ok" id="ok"></div>
+  </div>
+  <script>
+    (function () {
+      var found = false;
+      var trip = "午班 12:40";
+      var seat = "窗 4";
+      function list() {
+        found = true;
+        document.getElementById("trips").innerHTML =
+          "<label>班次<select id=\"trip\"><option>午班 12:40</option><option value=\"sold\">暮班 18:10（将触发售罄）</option></select></label>" +
+          "<label>座位<select id=\"seat\"><option>窗 4</option><option value=\"gone\">过道 1（将触发售罄）</option></select></label>" +
+          "<button class=\"go\" id=\"go\" type=\"button\">确认订单</button>";
+        document.getElementById("trip").addEventListener("change", function () { trip = this.options[this.selectedIndex].text; });
+        document.getElementById("seat").addEventListener("change", function () { seat = this.options[this.selectedIndex].text; });
+        document.getElementById("go").addEventListener("click", buy);
+      }
+      function buy() {
+        var t = document.getElementById("trip");
+        var s = document.getElementById("seat");
+        var err = document.getElementById("err");
+        var ok = document.getElementById("ok");
+        ok.className = "ok";
+        if (t.value === "sold" || s.value === "gone") {
+          err.textContent = (t.value === "sold" ? "暮班 18:10 已售罄。" : "过道 1 已售罄。") + "路线条件仍保留，请改选可用班次或座位。";
+          return;
+        }
+        err.textContent = "";
+        ok.className = "ok on";
+        ok.innerHTML = "<strong>行程凭证 LX-48</strong><p>" + document.getElementById("route").value + " · " + t.options[t.selectedIndex].text + " · " + s.options[s.selectedIndex].text + "</p>";
+      }
+      document.getElementById("search").addEventListener("click", function () {
+        document.getElementById("err").textContent = "";
+        document.getElementById("ok").className = "ok";
+        list();
+      });
+    })();
+  </script>
+</body>
+</html>

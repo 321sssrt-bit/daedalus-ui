@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>青圃社 · 领一张社员卡</title>
+  <style>
+    :root {
+      --leaf: #2d4a28;
+      --soil: #5b3a24;
+      --fruit: #e07a3d;
+      --cream: #f7f1de;
+      --field: #eef6e4;
+      --moss: #6d8a52;
+      --ink: #1e2a1c;
+      --stamp: #c94b3a;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 80% 12%, #ffe08a 0 8%, transparent 9%),
+        radial-gradient(circle at 10% 88%, #cde3b4 0 12%, transparent 13%),
+        var(--field);
+      color: var(--ink);
+      font: 16px/1.55 "Trebuchet MS", "Microsoft YaHei", sans-serif;
+      display: grid;
+      place-items: center;
+      padding: 32px 16px;
+    }
+    .card {
+      width: min(720px, 100%);
+      background: var(--cream);
+      border-radius: 28px;
+      padding: 36px 40px 28px;
+      position: relative;
+      box-shadow: 0 18px 0 var(--leaf);
+      border: 3px solid var(--leaf);
+    }
+    .stamp {
+      position: absolute;
+      top: 18px;
+      right: 22px;
+      width: 76px;
+      height: 88px;
+      border: 3px dashed var(--stamp);
+      border-radius: 8px;
+      color: var(--stamp);
+      display: grid;
+      place-items: center;
+      font-size: 12px;
+      text-align: center;
+      transform: rotate(8deg);
+      background: #fff6ea;
+    }
+    h1 { margin: 0 8px 0 0; font-size: 34px; letter-spacing: 0.02em; }
+    .kicker { color: var(--moss); font-size: 13px; letter-spacing: 0.16em; }
+    .lede { max-width: 28em; color: var(--soil); }
+    form { display: grid; grid-template-columns: 1fr 1fr; gap: 16px 20px; margin-top: 22px; }
+    label { font-size: 13px; display: block; margin-bottom: 6px; color: var(--leaf); }
+    input, select {
+      width: 100%;
+      height: 46px;
+      border: 2px solid var(--leaf);
+      border-radius: 14px;
+      padding: 0 12px;
+      background: #fff;
+      font: inherit;
+    }
+    input:focus, select:focus { outline: 3px solid #e07a3d66; border-color: var(--fruit); }
+    .full { grid-column: 1 / -1; }
+    .actions { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+    button.join {
+      height: 48px;
+      padding: 0 22px;
+      border: 0;
+      border-radius: 999px;
+      background: var(--fruit);
+      color: #fff8ef;
+      font: 700 16px/1 inherit;
+      cursor: pointer;
+    }
+    button.join:hover { background: #c65f24; }
+    button.join:disabled { background: #c5b9a4; }
+    button.login {
+      border: 0;
+      background: none;
+      color: var(--leaf);
+      text-decoration: underline;
+      cursor: pointer;
+      font: inherit;
+    }
+    .msg { min-height: 24px; margin: 14px 0 0; font-size: 14px; }
+    .ok { color: var(--leaf); }
+    .err { color: var(--stamp); }
+    .sprouts { display: flex; gap: 8px; margin-top: 8px; }
+    .sprouts span {
+      width: 10px; height: 10px; border-radius: 50%;
+      background: var(--moss);
+    }
+    @media (max-width: 768px) {
+      .card { padding: 28px 20px; border-radius: 22px; }
+      form { grid-template-columns: 1fr; }
+      .stamp { width: 60px; height: 70px; font-size: 11px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <div class="stamp">青圃<br>社员<br>新种</div>
+    <div class="kicker">ORCHARD SOCIETY</div>
+    <h1>领一张社员卡</h1>
+    <p class="lede">把名字和一块地写下。我们不收邮箱验证码，只问你愿意照看哪一垄。</p>
+    <form id="join">
+      <div>
+        <label for="name">怎么称呼你</label>
+        <input id="name" name="name" type="text" value="林晚青">
+      </div>
+      <div>
+        <label for="plot">想认领的垄</label>
+        <select id="plot">
+          <option>东坡豌豆</option>
+          <option selected>南篱番茄</option>
+          <option>西井香葱</option>
+        </select>
+      </div>
+      <div class="full">
+        <label for="note">给园丁的一句话</label>
+        <input id="note" name="note" type="text" value="周末能来浇两次水">
+      </div>
+      <div class="full actions">
+        <button class="join" type="submit">种下这张卡</button>
+        <button class="login" id="has" type="button">已经有社员卡，去园门</button>
+      </div>
+    </form>
+    <p class="msg" id="msg"></p>
+    <div class="sprouts" aria-hidden="true"><span></span><span></span><span></span></div>
+  </main>
+  <script>
+    (function () {
+      var msg = document.getElementById("msg");
+      document.getElementById("has").addEventListener("click", function () {
+        msg.className = "msg";
+        msg.textContent = "旧卡仍在园门左侧木箱。出示编号就能进，不必再领新卡。";
+      });
+      document.getElementById("join").addEventListener("submit", function (event) {
+        event.preventDefault();
+        var name = document.getElementById("name").value.trim();
+        var note = document.getElementById("note").value.trim();
+        if (!name || !note) {
+          msg.className = "msg err";
+          msg.textContent = "名字和那句话都要有，空卡不能过打孔机。";
+          return;
+        }
+        var plot = document.getElementById("plot").value;
+        msg.className = "msg ok";
+        msg.textContent = name + " 的社员卡已打孔，垄位记在「" + plot + "」。下次从园门刷卡即可。";
+      });
+    })();
+  </script>
+</body>
+</html>

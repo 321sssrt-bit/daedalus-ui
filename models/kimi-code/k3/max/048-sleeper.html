@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>卧铺 · 夜班车</title>
+<style>
+:root{
+  --mid:#141f3c;
+  --mid-2:#1d2c52;
+  --lamp:#f0b45a;
+  --cream:#f2ede0;
+  --card:#fbf8ef;
+  --ink:#26304a;
+  --muted:#8d97b8;
+  --line:#2a3a66;
+  --danger:#d96a4a;
+  --ok:#3e9e63;
+  --frame:#10151f;
+  --sp:8px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font:15px/1.65 "PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+  background:#262b34;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;
+}
+.stage{text-align:center}
+.device-label{color:#8b93a1;font-size:12px;letter-spacing:.2em;margin-bottom:14px}
+.phone{
+  width:390px;height:min(844px,calc(100vh - 90px));border-radius:38px;border:11px solid var(--frame);
+  background:var(--mid);overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.5);
+}
+.screen{height:100%;overflow-y:auto;position:relative;color:var(--cream)}
+.view{display:none;flex-direction:column;min-height:100%;padding:20px 18px 24px}
+.view.on{display:flex}
+.v-head{display:flex;align-items:center;gap:11px;margin-bottom:16px}
+.v-head .bk{
+  width:32px;height:32px;border-radius:50%;border:1px solid var(--line);background:none;
+  color:var(--cream);font-size:15px;cursor:pointer;
+}
+.v-head h1{font-size:16.5px;letter-spacing:.1em}
+.v-head .r{margin-left:auto;font-size:10.5px;color:var(--muted);letter-spacing:.08em}
+.route-card{
+  background:var(--mid-2);border:1px solid var(--line);border-radius:16px;padding:18px;margin-bottom:14px;
+}
+.route-row{display:flex;align-items:center;gap:12px}
+.city{flex:1;text-align:center}
+.city .cn{font-size:19px;font-weight:700;letter-spacing:.1em}
+.city .st{font-size:10.5px;color:var(--muted);margin-top:3px}
+.route-row .arrow{color:var(--lamp);font-size:18px}
+.date-line{margin-top:14px;padding-top:13px;border-top:1px dashed var(--line);display:flex;justify-content:space-between;font-size:12.5px}
+.date-line .k{color:var(--muted)}
+.date-line b{font-family:ui-monospace,Consolas,monospace;color:var(--lamp)}
+.big-cta{
+  width:100%;height:50px;border:0;border-radius:13px;background:var(--lamp);color:#141f3c;
+  font:inherit;font-weight:700;font-size:14.5px;letter-spacing:.2em;cursor:pointer;transition:background .14s ease;
+}
+.big-cta:hover:not(:disabled){background:#f7c578}
+.big-cta:disabled{opacity:.4;cursor:not-allowed}
+.train{
+  width:100%;text-align:left;background:var(--card);color:var(--ink);border:1px solid #e3dcc8;border-radius:14px;
+  padding:14px 16px;margin-bottom:10px;cursor:pointer;font:inherit;transition:transform .13s ease,box-shadow .13s ease;
+}
+.train:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(0,0,0,.3)}
+.train .t1{display:flex;justify-content:space-between;align-items:baseline}
+.train .no{font:700 17px/1 ui-monospace,Consolas,monospace}
+.train .tp{font-size:11px;color:#8a8062}
+.train .t2{display:flex;justify-content:space-between;margin-top:8px;font-size:12.5px}
+.train .t2 .tm{font-family:ui-monospace,Consolas,monospace}
+.train .t3{display:flex;gap:6px;margin-top:9px;flex-wrap:wrap}
+.seat-tag{font-size:10.5px;padding:3px 9px;border-radius:999px;background:#efe9d4;color:#6b6248}
+.seat-tag.low{background:#fbe3da;color:#a04828;font-weight:700}
+.seat-tag.out{background:#e8e4da;color:#a09a8c;text-decoration:line-through}
+.cond-bar{
+  background:rgba(240,180,90,.12);border:1px solid rgba(240,180,90,.4);border-radius:11px;
+  padding:9px 13px;font-size:11.5px;color:var(--lamp);margin-bottom:13px;letter-spacing:.04em;
+}
+.berths{display:flex;flex-direction:column;gap:9px;margin-bottom:14px}
+.berth{
+  display:flex;align-items:center;gap:11px;background:var(--card);color:var(--ink);border:1.5px solid #e3dcc8;
+  border-radius:12px;padding:13px 15px;cursor:pointer;font:inherit;text-align:left;transition:all .13s ease;width:100%;
+}
+.berth:hover{border-color:var(--lamp)}
+.berth.on{border-color:var(--lamp);background:#fdf3dc;box-shadow:0 0 0 1px var(--lamp)}
+.berth .bn{font-size:13.5px;font-weight:700}
+.berth .bp{font-size:11.5px;color:#8a8062;font-family:ui-monospace,Consolas,monospace}
+.berth .st2{margin-left:auto;font-size:11px;font-weight:700}
+.berth .st2.ok{color:var(--ok)}
+.berth .st2.low{color:#a04828}
+.soldout{
+  display:none;background:#3a1c14;border:1px solid #8c4a30;border-radius:14px;padding:16px;margin-bottom:13px;
+}
+.soldout.show{display:block}
+.soldout h2{color:#f0b8a0;font-size:15px;margin-bottom:6px}
+.soldout p{font-size:12.5px;color:#d8a898;line-height:1.9}
+.soldout b{color:#fff}
+.ticket{
+  background:var(--card);color:var(--ink);border-radius:16px;overflow:hidden;margin-bottom:14px;
+  box-shadow:0 16px 40px rgba(0,0,0,.35);
+}
+.ticket .th{
+  background:var(--mid-2);color:var(--cream);padding:15px 18px;display:flex;justify-content:space-between;align-items:center;
+}
+.ticket .th .no{font:700 19px/1 ui-monospace,Consolas,monospace;color:var(--lamp)}
+.tear{height:12px;background:radial-gradient(circle at 6px -2px,transparent 6px,var(--card) 6.5px);background-size:12px 12px}
+.ticket .tb{padding:14px 18px}
+.tb-row{display:flex;justify-content:space-between;padding:7px 0;font-size:13px;border-bottom:1px dashed #e3dcc8}
+.tb-row:last-child{border-bottom:0}
+.tb-row .k{color:#8a8062;font-size:12px}
+.tb-row .v{font-weight:600}
+.tb-row .v.mono{font-family:ui-monospace,Consolas,monospace}
+.done-note{text-align:center;color:var(--muted);font-size:11.5px;margin-top:4px}
+@media(max-width:520px){
+  body{padding:0}
+  .device-label{display:none}
+  .phone{width:100%;height:100vh;border:0;border-radius:0}
+}
+@media(prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+}
+</style>
+</head>
+<body>
+<div class="stage">
+  <p class="device-label">卧 铺 SLEEPER</p>
+  <div class="phone">
+    <div class="screen">
+      <section class="view on" id="v-search">
+        <div class="v-head"><h1>夜班卧铺</h1><span class="r">夕发朝至</span></div>
+        <div class="route-card">
+          <div class="route-row">
+            <div class="city"><p class="cn">杭州</p><p class="st">城站 22:08 发</p></div>
+            <span class="arrow">→</span>
+            <div class="city"><p class="cn">北京</p><p class="st">丰台 次日 09:47 到</p></div>
+          </div>
+          <div class="date-line"><span class="k">出发日期</span><b>8 月 20 日 · 周四</b></div>
+          <div class="date-line"><span class="k">乘客</span><b style="color:var(--cream)">周清言 · 成人 1 位</b></div>
+        </div>
+        <button class="big-cta" id="search" type="button">查 夜 班 车</button>
+      </section>
+      <section class="view" id="v-list">
+        <div class="v-head"><button class="bk" type="button" data-back="v-search">←</button><h1>选一班夜车</h1><span class="r">3 班</span></div>
+        <div class="cond-bar">路线条件：杭州 → 北京 · 8 月 20 日 · 1 位成人</div>
+        <button class="train" type="button" data-t="z282">
+          <div class="t1"><span class="no">Z282</span><span class="tp">直达特快 · 老牌夜车</span></div>
+          <div class="t2"><span class="tm">22:08 → 09:47</span><span>11 小时 39 分</span></div>
+          <div class="t3"><span class="seat-tag low">软卧 仅剩 1 张</span><span class="seat-tag">硬卧 余 12</span><span class="seat-tag out">高级软卧 售罄</span></div>
+        </button>
+        <button class="train" type="button" data-t="d712">
+          <div class="t1"><span class="no">D712</span><span class="tp">动卧 · 纵向包厢</span></div>
+          <div class="t2"><span class="tm">21:55 → 09:12</span><span>11 小时 17 分</span></div>
+          <div class="t3"><span class="seat-tag">动卧下铺 余 8</span><span class="seat-tag">动卧上铺 余 15</span></div>
+        </button>
+        <button class="train" type="button" data-t="k527">
+          <div class="t1"><span class="no">K527</span><span class="tp">快速 · 经停南京</span></div>
+          <div class="t2"><span class="tm">23:16 → 11:02</span><span>11 小时 46 分</span></div>
+          <div class="t3"><span class="seat-tag">硬卧 余 21</span><span class="seat-tag">软卧 余 4</span></div>
+        </button>
+      </section>
+      <section class="view" id="v-seat">
+        <div class="v-head"><button class="bk" type="button" data-back="v-list">←</button><h1 id="seat-title">Z282 · 选铺</h1><span class="r">03 / 04</span></div>
+        <div class="cond-bar">路线条件：杭州 → 北京 · 8 月 20 日 · 1 位成人</div>
+        <div class="berths" id="berths"></div>
+        <div class="soldout" id="soldout">
+          <h2>这一步没订上：软卧刚刚售罄</h2>
+          <p>你选的 <b>Z282 · 软卧</b> 最后一张已被别人订走。<b>路线条件（杭州 → 北京 · 8 月 20 日）原样保留</b>，返回改选同车硬卧或别班即可。</p>
+        </div>
+        <button class="big-cta" id="confirm" type="button">确认订铺</button>
+      </section>
+      <section class="view" id="v-cert">
+        <div class="v-head"><h1>行程凭证</h1><span class="r">已出票</span></div>
+        <div class="ticket">
+          <div class="th"><span style="font-size:11px;letter-spacing:.2em">夜车票夹</span><span class="no" id="c-no">Z282</span></div>
+          <div class="tear" aria-hidden="true"></div>
+          <div class="tb">
+            <div class="tb-row"><span class="k">行程</span><span class="v">杭州 22:08 → 北京丰台 09:47</span></div>
+            <div class="tb-row"><span class="k">日期</span><span class="v">8 月 20 日 · 周四</span></div>
+            <div class="tb-row"><span class="k">铺位</span><span class="v mono" id="c-berth"></span></div>
+            <div class="tb-row"><span class="k">乘客</span><span class="v">周清言</span></div>
+            <div class="tb-row"><span class="k">凭证号</span><span class="v mono" id="c-code"></span></div>
+          </div>
+        </div>
+        <button class="big-cta" id="restart" type="button">再查一班</button>
+        <p class="done-note">开车前 2 小时可在票夹内退改 · 上铺注意头顶</p>
+      </section>
+    </div>
+  </div>
+</div>
+<script>
+(function(){
+  var views=['v-search','v-list','v-seat','v-cert'];
+  function go(id){
+    for(var i=0;i<views.length;i++){
+      var v=document.getElementById(views[i]);
+      if(views[i]===id){v.classList.add('on')}else{v.classList.remove('on')}
+    }
+  }
+  var trains={
+    z282:{no:'Z282',berths:[
+      {n:'软卧',p:'¥478.5',st:'low',stTxt:'仅剩 1 张',soldout:true},
+      {n:'硬卧 · 下铺',p:'¥322.0',st:'ok',stTxt:'余 12'},
+      {n:'硬卧 · 上铺',p:'¥296.0',st:'ok',stTxt:'余 12'}
+    ]},
+    d712:{no:'D712',berths:[
+      {n:'动卧 · 下铺',p:'¥560.0',st:'ok',stTxt:'余 8'},
+      {n:'动卧 · 上铺',p:'¥500.0',st:'ok',stTxt:'余 15'}
+    ]},
+    k527:{no:'K527',berths:[
+      {n:'软卧',p:'¥452.5',st:'ok',stTxt:'余 4'},
+      {n:'硬卧 · 下铺',p:'¥315.0',st:'ok',stTxt:'余 21'}
+    ]}
+  };
+  var curTrain='z282';
+  var selBerth=0;
+  var berthsEl=document.getElementById('berths');
+  var soldout=document.getElementById('soldout');
+  function renderBerths(){
+    var t=trains[curTrain];
+    var html='';
+    for(var i=0;i<t.berths.length;i++){
+      var b=t.berths[i];
+      html+='<button class="berth'+(i===selBerth?' on':'')+'" type="button" data-i="'+i+'">'+
+        '<span><span class="bn">'+b.n+'</span><br><span class="bp">'+b.p+'</span></span>'+
+        '<span class="st2 '+b.st+'">'+b.stTxt+'</span></button>';
+    }
+    berthsEl.innerHTML=html;
+    var rows=berthsEl.querySelectorAll('.berth');
+    for(var k=0;k<rows.length;k++){
+      (function(row){
+        row.addEventListener('click',function(){
+          selBerth=Number(row.getAttribute('data-i'));
+          soldout.classList.remove('show');
+          renderBerths();
+        });
+      })(rows[k]);
+    }
+  }
+  document.getElementById('search').addEventListener('click',function(){go('v-list')});
+  var trainBtns=document.querySelectorAll('.train');
+  for(var i=0;i<trainBtns.length;i++){
+    (function(btn){
+      btn.addEventListener('click',function(){
+        curTrain=btn.getAttribute('data-t');
+        selBerth=0;
+        document.getElementById('seat-title').textContent=trains[curTrain].no+' · 选铺';
+        soldout.classList.remove('show');
+        renderBerths();
+        go('v-seat');
+      });
+    })(trainBtns[i]);
+  }
+  document.getElementById('confirm').addEventListener('click',function(){
+    var b=trains[curTrain].berths[selBerth];
+    if(b.soldout){
+      soldout.classList.add('show');
+      return;
+    }
+    document.getElementById('c-no').textContent=trains[curTrain].no;
+    document.getElementById('c-berth').textContent=b.n+' · 5 车 12 号';
+    document.getElementById('c-code').textContent='WP-0820-'+(10000+Math.floor(Math.random()*89999));
+    go('v-cert');
+  });
+  var backs=document.querySelectorAll('.bk');
+  for(var k=0;k<backs.length;k++){
+    (function(btn){
+      btn.addEventListener('click',function(){go(btn.getAttribute('data-back'))});
+    })(backs[k]);
+  }
+  document.getElementById('restart').addEventListener('click',function(){go('v-search')});
+})();
+</script>
+</body>
+</html>

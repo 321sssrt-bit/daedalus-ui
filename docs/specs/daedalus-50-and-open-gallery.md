@@ -1,4 +1,4 @@
-# Daedalus 50 题与开源展厅规格
+# Daedalus 50 题公开评测与展厅规格
 
 ## Problem Statement
 
@@ -6,7 +6,7 @@
 
 ## Solution
 
-把项目升级并正式命名为 **Daedalus — Product UI Model Gallery**。评测固定为 50 题：001–040 保留为独立页面题，041–050 增加十种单文件产品原型。每个产品原型必须完成一条正常核心操作闭环，并提供一个可触发、可恢复的异常分支，同时提交扩展的产品原型规范。
+把项目升级并正式定义为 **Daedalus — Open Product UI Design Evaluation for AI Models**（面向 AI 模型的公开产品 UI 设计评测）。评测固定为 50 题：001–040 保留为独立页面题，041–050 增加十种单文件产品原型。每个产品原型必须完成一条正常核心操作闭环，并提供一个可触发、可恢复的异常分支。每题同时提交可量测、可验收的复现规范和非规范性的设计意图；提示词只属于设计意图，不能替代规范。
 
 答卷身份由运行框架、模型和思考档位共同组成。主 Agent 与子 Agent 必须使用相同模型和思考档位，子 Agent 只能通过并行提速。无法诚实完成的 Agent 可以公开弃权，展厅显示“我是鸡”。旧 40 题答卷只在本地归档，所有模型以后按新版规则重做完整 50 题。
 
@@ -64,10 +64,11 @@
 48. As a security reviewer, I want all answers self-contained, so that public pages do not load unknown external code, fonts, or images.
 49. As a future maintainer, I want accepted decisions and deprecated ideas clearly recorded, so that voting or community intake is not accidentally reintroduced.
 50. As a future maintainer, I want Caissa kept outside this scope, so that the future chess evaluation can evolve independently.
+51. As a maintainer, I want the user to confirm harness, model, and reasoning effort before a run starts, so that platform routing cannot silently create a wrongly attributed submission.
 
 ## Implementation Decisions
 
-- The project name is Daedalus, with the public subtitle `Product UI Model Gallery` and recommended repository name `daedalus-ui`.
+- The project name is Daedalus, with the public definition `Open Product UI Design Evaluation for AI Models`, the Chinese definition “面向 AI 模型的公开产品 UI 设计评测”, and the repository name `daedalus-ui`. The gallery is the result-browsing layer rather than the product definition.
 - The repository uses MIT with the notice `Copyright (c) 2026 Daedalus Authors`.
 - The catalog becomes a new schema version with exactly 50 ordered tasks.
 - Tasks 001–040 retain their existing page responsibilities, must-have modules, device rules, and per-piece visual independence.
@@ -84,8 +85,8 @@
 - Travel covers route search, service and seat selection, confirmation, itinerary receipt, sold-out state, and alternate selection.
 - Health covers activity entry, goal progress, trend feedback, invalid data, correction, and recalculation.
 - Learning covers lesson entry, exercise completion, result explanation, incorrect answer, and successful retry.
-- Prototype specifications retain visual-system sections and add product positioning, target user, core task, state map, happy path, exception recovery, data changes, primary device, responsive behavior, and manual acceptance steps.
-- Submission identity is composed of harness, model, and reasoning effort, stored as separate metadata fields and reflected in the submission hierarchy.
+- Every piece has a normative `.spec.md` (layout, tokens, components, responsive behavior, content, motion, checks) and a non-normative `.intent.md` (design intent, audience, non-goals, reproduction prompt). Prototype specifications additionally record product boundary, state map, normal flow, exception recovery, data changes, and manual acceptance steps.
+- Submission identity is composed of harness, model, and reasoning effort, stored as separate metadata fields and reflected in the submission hierarchy. Before a new or repeated answer starts, the Agent displays all three candidate values and waits for explicit user confirmation.
 - A complete submission contains exactly 50 complete pieces and a run receipt. A forfeited submission has a model-level forfeited status, the phrase “我是鸡”, a reason, and any legitimately completed pieces.
 - Subagents are optional. When used, they must match the main Agent’s model and reasoning effort; the receipt discloses their count and use.
 - The repository lifecycle is a deep module behind one CLI seam with three caller-visible operations: validate, build, and starter. Internal parsers, renderers, scanners, and archive helpers do not become additional caller interfaces.
@@ -111,7 +112,8 @@
 - Parallelism receipt tests prove that declared subagents cannot differ from the main model or reasoning effort.
 - Path-security tests attempt parent traversal, absolute paths, alternate separators, encoded traversal, registry escape, and unsupported extensions; all must fail before file contents are embedded.
 - HTML compliance tests prove that answers are self-contained, declare character encoding and viewport, avoid external URLs and imports, include reduced-motion handling, and contain no duplicate element IDs.
-- Specification tests prove that 001–040 include every visual specification section and 041–050 include both visual and product-prototype sections.
+- Specification tests prove that all `.spec.md` files use specification version 2, contain measurable layout, token, component, responsive and acceptance sections, reference their exact HTML, and use colors present in that HTML. Tasks 041–050 also contain the complete product-prototype sections.
+- Intent tests prove that every piece has a matching `.intent.md` with intent version 1, while prompt or design-intent headings inside `.spec.md` are rejected.
 - Prototype static checks require the declared core-flow and exception evidence in the specification, but do not claim the interaction works.
 - Manual prototype acceptance follows each specification’s stated steps and records whether the normal result and exception recovery were actually observed.
 - Gallery tests prove that complete, missing, and forfeited states render correctly; harness, model, effort, and status are visible; and only common available tasks can be compared.

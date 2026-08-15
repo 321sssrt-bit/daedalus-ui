@@ -1,0 +1,564 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>青柠钱包</title>
+<style>
+  :root{
+    --bg:#f3f6ec;
+    --card:#ffffff;
+    --lime:#a8d527;
+    --lime-deep:#7aa81a;
+    --lime-tint:#eef6dc;
+    --ink:#1c2610;
+    --muted:#82926b;
+    --pos:#3aa844;
+    --neg:#e14b4b;
+    --sans:-apple-system,"Segoe UI","Microsoft YaHei","PingFang SC","Helvetica Neue",sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:#12140f;
+    font-family:var(--sans);
+    min-height:100vh;
+    display:flex;align-items:center;justify-content:center;
+    padding:40px 16px;
+  }
+  .phone{
+    position:relative;
+    width:390px;height:844px;
+    background:var(--bg);
+    border:12px solid #0f120c;
+    border-radius:48px;
+    box-shadow:0 30px 80px rgba(0,0,0,.55);
+    overflow:hidden;
+    display:flex;flex-direction:column;
+  }
+  .notch{
+    position:absolute;top:8px;left:50%;transform:translateX(-50%);
+    width:118px;height:26px;background:#0f120c;border-radius:16px;z-index:40;
+  }
+  .screen{flex:1;overflow-y:auto;position:relative;scrollbar-width:none;}
+  .screen::-webkit-scrollbar{display:none;}
+
+  .statusbar{
+    height:48px;display:flex;align-items:flex-end;justify-content:space-between;
+    padding:0 26px 4px;font-size:13px;font-weight:600;color:var(--ink);
+  }
+  .statusbar .sb-ic{display:flex;gap:5px;align-items:center;}
+
+  .top{display:flex;align-items:center;justify-content:space-between;padding:10px 22px 6px;}
+  .top .greet{font-size:20px;font-weight:700;color:var(--ink);}
+  .top .greet small{display:block;font-size:12px;font-weight:400;color:var(--muted);}
+  .top .ring{
+    width:38px;height:38px;border-radius:50%;background:var(--card);
+    display:flex;align-items:center;justify-content:center;position:relative;
+    box-shadow:0 4px 14px rgba(28,38,16,.08);
+  }
+  .top .ring .dot{position:absolute;top:8px;right:8px;width:8px;height:8px;border-radius:50%;background:var(--neg);border:2px solid #fff;}
+
+  .balance{
+    margin:14px 18px 0;
+    background:linear-gradient(135deg,#c4ec4a 0%,#96d421 55%,#7ab91a 100%);
+    border-radius:24px;
+    padding:22px 22px 20px;
+    color:#173a06;
+    box-shadow:0 14px 30px rgba(122,168,26,.28);
+  }
+  .balance .bl-label{font-size:13px;opacity:.82;}
+  .balance .bl-row{display:flex;align-items:center;justify-content:space-between;margin-top:8px;}
+  .balance .amount{font-size:34px;font-weight:800;letter-spacing:-.5px;line-height:1;}
+  .balance .eye{
+    width:34px;height:34px;border:none;border-radius:50%;
+    background:rgba(255,255,255,.4);color:#173a06;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .balance .bl-sub{font-size:12px;opacity:.85;margin-top:10px;}
+  .balance .bl-actions{display:flex;gap:10px;margin-top:16px;}
+  .balance .pill{
+    flex:1;border:none;border-radius:14px;
+    padding:11px 0;font-size:15px;font-weight:700;cursor:pointer;
+    background:rgba(255,255,255,.85);color:#3c5f0e;
+    transition:transform .12s ease;
+  }
+  .balance .pill:active{transform:scale(.97);}
+
+  .quick{display:flex;justify-content:space-between;margin:18px 22px 0;}
+  .quick .qi{display:flex;flex-direction:column;align-items:center;gap:7px;font-size:12px;color:var(--ink);}
+  .quick .qi .qc{
+    width:50px;height:50px;border-radius:18px;background:var(--card);
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:0 4px 14px rgba(28,38,16,.06);
+  }
+
+  .view{display:none;padding-bottom:20px;}
+  .view.on{display:block;}
+
+  .section{margin:20px 18px 0;}
+  .sec-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;}
+  .sec-head h3{margin:0;font-size:16px;font-weight:700;color:var(--ink);}
+  .sec-head .link{font-size:13px;color:var(--muted);background:none;border:none;cursor:pointer;}
+  .tx-list{list-style:none;margin:8px 0 0;padding:0;}
+  .tx-item{
+    display:flex;align-items:center;gap:12px;
+    background:var(--card);border-radius:16px;
+    padding:13px 14px;margin-bottom:10px;
+    cursor:pointer;box-shadow:0 3px 12px rgba(28,38,16,.05);
+    transition:transform .12s ease;
+  }
+  .tx-item:active{transform:scale(.985);}
+  .tx-ico{
+    width:42px;height:42px;flex:0 0 42px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    font-size:18px;background:var(--lime-tint);
+  }
+  .tx-main{flex:1;min-width:0;}
+  .tx-name{font-size:15px;font-weight:600;color:var(--ink);}
+  .tx-time{font-size:12px;color:var(--muted);margin-top:2px;}
+  .tx-amt{font-size:15px;font-weight:700;text-align:right;}
+  .tx-amt.in{color:var(--pos);}
+  .tx-amt.out{color:var(--ink);}
+  .tx-detail{display:none;margin-top:10px;padding-top:10px;border-top:1px dashed #e5ead8;font-size:12px;color:var(--muted);}
+  .tx-item.open .tx-detail{display:block;}
+  .tx-detail .row{display:flex;justify-content:space-between;padding:2px 0;}
+
+  .card{
+    background:var(--card);border-radius:18px;padding:18px;
+    box-shadow:0 3px 12px rgba(28,38,16,.05);margin-bottom:12px;
+  }
+  .card h4{margin:0 0 8px;font-size:15px;color:var(--ink);}
+  .card p{margin:0;font-size:13px;color:var(--muted);}
+  .coupon{
+    display:flex;align-items:center;gap:14px;
+    background:var(--card);border-radius:18px;padding:16px;margin-bottom:12px;
+    box-shadow:0 3px 12px rgba(28,38,16,.05);
+  }
+  .coupon .cv{
+    width:56px;height:56px;flex:0 0 56px;border-radius:14px;
+    background:linear-gradient(135deg,#c4ec4a,#7ab91a);
+    color:#173a06;font-weight:800;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;font-size:12px;
+  }
+  .coupon .cv b{font-size:20px;line-height:1;}
+  .coupon .ct{flex:1;}
+  .coupon .ct .t{font-size:14px;font-weight:600;color:var(--ink);}
+  .coupon .ct .d{font-size:12px;color:var(--muted);margin-top:3px;}
+  .profile{display:flex;align-items:center;gap:14px;background:var(--card);border-radius:18px;padding:18px;box-shadow:0 3px 12px rgba(28,38,16,.05);}
+  .profile .av{width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#c4ec4a,#7ab91a);color:#173a06;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;}
+  .menu{margin-top:16px;background:var(--card);border-radius:18px;overflow:hidden;box-shadow:0 3px 12px rgba(28,38,16,.05);}
+  .menu .mi{display:flex;align-items:center;justify-content:space-between;padding:15px 18px;border-bottom:1px solid #eef2e6;font-size:14px;color:var(--ink);cursor:pointer;}
+  .menu .mi:last-child{border-bottom:none;}
+  .menu .mi .ar{color:var(--muted);}
+
+  .tabbar{
+    flex:0 0 64px;display:flex;align-items:stretch;
+    background:var(--card);border-top:1px solid #e7ecdc;
+  }
+  .tab{
+    flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+    background:none;border:none;cursor:pointer;color:var(--muted);font-size:11px;
+  }
+  .tab svg{width:22px;height:22px;}
+  .tab.active{color:var(--lime-deep);}
+
+  .mask{
+    position:absolute;inset:0;background:rgba(12,16,6,.45);
+    opacity:0;pointer-events:none;transition:opacity .2s ease;z-index:50;
+  }
+  .mask.show{opacity:1;pointer-events:auto;}
+  .sheet{
+    position:absolute;left:0;right:0;bottom:0;z-index:60;
+    background:var(--card);border-radius:26px 26px 0 0;
+    padding:20px 20px 28px;
+    transform:translateY(105%);
+    transition:transform .28s cubic-bezier(.22,.8,.36,1);
+    max-height:78%;
+    overflow-y:auto;
+  }
+  .sheet.show{transform:translateY(0);}
+  .sheet .grab{width:42px;height:5px;border-radius:3px;background:#e0e6d2;margin:0 auto 16px;}
+  .sheet h3{margin:0 0 14px;font-size:18px;color:var(--ink);}
+  .sheet .close{
+    position:absolute;top:16px;right:18px;border:none;background:none;
+    font-size:22px;color:var(--muted);cursor:pointer;line-height:1;
+  }
+  .recs{display:flex;gap:12px;margin-bottom:18px;}
+  .rec{
+    flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;
+    background:#f6f9ef;border:2px solid transparent;border-radius:16px;
+    padding:14px 6px;cursor:pointer;
+  }
+  .rec.sel{border-color:var(--lime);background:var(--lime-tint);}
+  .rec .rav{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#c4ec4a,#7ab91a);color:#173a06;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;}
+  .rec .rn{font-size:13px;color:var(--ink);}
+  .amt-wrap{display:flex;align-items:center;gap:10px;border:1px solid #e0e6d2;border-radius:14px;padding:12px 14px;background:#fbfdf7;}
+  .amt-wrap .cur{font-size:20px;font-weight:700;color:var(--ink);}
+  .amt-wrap input{flex:1;border:none;background:none;font-size:26px;font-weight:700;color:var(--ink);outline:none;font-family:var(--sans);}
+  .amt-wrap .all{font-size:13px;color:var(--lime-deep);background:none;border:none;cursor:pointer;font-weight:700;}
+  .amt-err{font-size:12px;color:var(--neg);min-height:16px;margin-top:8px;}
+  .send{
+    width:100%;border:none;border-radius:16px;background:var(--lime);
+    color:#173a06;font-size:16px;font-weight:700;padding:15px 0;cursor:pointer;margin-top:6px;
+  }
+  .send:disabled{background:#e7ecdc;color:#a8b79a;cursor:not-allowed;}
+
+  .qr-box{display:flex;flex-direction:column;align-items:center;padding:8px 0 4px;}
+  .qr-box svg{width:200px;height:200px;}
+  .acct{font-size:14px;color:var(--ink);font-weight:600;margin-top:8px;}
+  .acct-num{font-size:12px;color:var(--muted);margin-top:3px;}
+  .rec-actions{display:flex;gap:10px;margin-top:18px;}
+  .rec-actions button{
+    flex:1;border-radius:14px;padding:12px 0;font-size:14px;font-weight:600;cursor:pointer;
+  }
+  .rec-actions .ghost{border:1px solid #dfe5d0;background:none;color:var(--ink);}
+  .rec-actions .solid{border:1px solid var(--lime);background:var(--lime);color:#173a06;}
+
+  .toast{
+    position:absolute;left:50%;bottom:96px;transform:translateX(-50%) translateY(16px);
+    background:#1c2610;color:#fff;border-radius:999px;padding:11px 20px;font-size:13px;
+    opacity:0;pointer-events:none;transition:opacity .2s ease,transform .2s ease;z-index:70;
+    white-space:nowrap;
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+  @media (max-width:420px){
+    body{padding:0;}
+    .phone{width:100vw;height:100vh;border:0;border-radius:0;box-shadow:none;}
+    .notch{display:none;}
+  }
+  @media (prefers-reduced-motion: reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+  <div class="phone">
+    <div class="notch" aria-hidden="true"></div>
+
+    <div class="screen">
+      <div class="statusbar">
+        <span>9:41</span>
+        <span class="sb-ic">
+          <svg width="16" height="11" viewBox="0 0 16 11" fill="currentColor"><path d="M1 8h2v2H1zM4 6h2v4H4zM7 4h2v6H7zM10 2h2v8h-2zM13 0h2v10h-2z"/></svg>
+          <svg width="22" height="11" viewBox="0 0 22 11" fill="none"><rect x="0" y="2" width="17" height="7" rx="1.5" stroke="currentColor" stroke-opacity=".4"/><rect x="1.5" y="3.5" width="12" height="4" rx="1" fill="currentColor"/><path d="M19 4a2.5 2.5 0 0 1 0 3" stroke="currentColor" stroke-opacity=".4"/></svg>
+        </span>
+      </div>
+
+      <div class="top">
+        <div class="greet">早上好，小满<small>青柠钱包 · 安全守护中</small></div>
+        <div class="ring"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg><span class="dot"></span></div>
+      </div>
+
+      <!-- 首页 -->
+      <div class="view on" id="view-home">
+        <section class="balance">
+          <div class="bl-label">总资产（元）</div>
+          <div class="bl-row">
+            <div class="amount" id="amount">¥ 12,846.20</div>
+            <button class="eye" id="eye" type="button" aria-label="隐藏余额">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+          <div class="bl-sub" id="bl-sub">较昨日 +¥ 326.40</div>
+          <div class="bl-actions">
+            <button class="pill" id="btn-transfer" type="button">转出</button>
+            <button class="pill" id="btn-receive" type="button">收款</button>
+          </div>
+        </section>
+
+        <div class="quick">
+          <div class="qi"><span class="qc"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#7aa81a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12v-2a5 5 0 0 0-5-5H8a5 5 0 0 0-5 5v2"/><circle cx="12" cy="12" r="3"/><path d="M12 4v2M12 18v2M4 12h2M18 12h2"/></svg></span>充值</div>
+          <div class="qi"><span class="qc"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#7aa81a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18"/></svg></span>还款</div>
+          <div class="qi"><span class="qc"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#7aa81a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M17 7h4v4"/></svg></span>理财</div>
+          <div class="qi"><span class="qc"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#7aa81a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 16l4-4 4 4 3-3 4 4"/><path d="M3 20h18"/></svg></span>红包</div>
+        </div>
+
+        <section class="section">
+          <div class="sec-head"><h3>最近流水</h3><button class="link" id="view-all" type="button">全部 ›</button></div>
+          <ul class="tx-list" id="tx-list"></ul>
+        </section>
+      </div>
+
+      <!-- 收支 -->
+      <div class="view" id="view-ledger">
+        <section class="section">
+          <div class="sec-head"><h3>全部收支</h3></div>
+          <ul class="tx-list" id="tx-ledger"></ul>
+        </section>
+      </div>
+
+      <!-- 卡券 -->
+      <div class="view" id="view-coupon">
+        <section class="section">
+          <div class="sec-head"><h3>卡券</h3></div>
+          <div class="coupon">
+            <div class="cv">¥<b>20</b></div>
+            <div class="ct"><div class="t">新人立减券</div><div class="d">满 50 可用 · 2025-07-01 前有效</div></div>
+          </div>
+          <div class="coupon">
+            <div class="cv">¥<b>8</b></div>
+            <div class="ct"><div class="t">生活缴费券</div><div class="d">满 30 可用 · 2025-06-30 前有效</div></div>
+          </div>
+          <div class="coupon">
+            <div class="cv">¥<b>5</b></div>
+            <div class="ct"><div class="t">周末通用券</div><div class="d">无门槛 · 2025-06-22 前有效</div></div>
+          </div>
+        </section>
+      </div>
+
+      <!-- 我的 -->
+      <div class="view" id="view-mine">
+        <section class="section">
+          <div class="profile">
+            <div class="av">满</div>
+            <div>
+              <div style="font-size:17px;font-weight:700;color:#1c2610;">小满</div>
+              <div style="font-size:13px;color:#82926b;margin-top:3px;">ID 8802 4317 · 已实名</div>
+            </div>
+          </div>
+          <div class="menu">
+            <div class="mi">银行卡 <span class="ar">›</span></div>
+            <div class="mi">安全中心 <span class="ar">›</span></div>
+            <div class="mi">账单与凭证 <span class="ar">›</span></div>
+            <div class="mi">帮助与客服 <span class="ar">›</span></div>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <nav class="tabbar">
+      <button class="tab active" data-tab="home" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg>
+        首页
+      </button>
+      <button class="tab" data-tab="ledger" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3v18M6 3h12a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6"/><path d="M10 8h6M10 12h6M10 16h4"/></svg>
+        收支
+      </button>
+      <button class="tab" data-tab="coupon" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9V6a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v3a3 3 0 0 0 0 6v3a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-3a3 3 0 0 0 0-6z"/><path d="M13 9v6M10.5 12h5" stroke-width="1.6"/></svg>
+        卡券
+      </button>
+      <button class="tab" data-tab="mine" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
+        我的
+      </button>
+    </nav>
+
+    <div class="mask" id="mask"></div>
+
+    <div class="sheet" id="sheet-transfer" role="dialog" aria-label="转出">
+      <div class="grab"></div>
+      <button class="close" id="close-transfer" type="button">×</button>
+      <h3>转出</h3>
+      <div class="recs" id="recs">
+        <div class="rec" data-name="李然"><div class="rav">李</div><div class="rn">李然</div></div>
+        <div class="rec" data-name="妈妈"><div class="rav">妈</div><div class="rn">妈妈</div></div>
+        <div class="rec" data-name="张一鸣"><div class="rav">张</div><div class="rn">张一鸣</div></div>
+      </div>
+      <div class="amt-wrap">
+        <span class="cur">¥</span>
+        <input type="number" id="amt-input" placeholder="0.00" min="0" step="0.01" inputmode="decimal">
+        <button class="all" id="btn-all" type="button">全部</button>
+      </div>
+      <div class="amt-err" id="amt-err"></div>
+      <button class="send" id="btn-send" type="button" disabled>确认转出</button>
+    </div>
+
+    <div class="sheet" id="sheet-receive" role="dialog" aria-label="收款">
+      <div class="grab"></div>
+      <button class="close" id="close-receive" type="button">×</button>
+      <h3>收款</h3>
+      <div class="qr-box">
+        <svg id="qr-svg" viewBox="0 0 21 21" shape-rendering="crispEdges"></svg>
+        <div class="acct">小满</div>
+        <div class="acct-num">青柠钱包账号 · 8802 4317</div>
+      </div>
+      <div class="rec-actions">
+        <button class="ghost" id="copy-account" type="button">复制账号</button>
+        <button class="solid" id="save-code" type="button">保存收款码</button>
+      </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+  </div>
+
+  <script>
+    /* 青柠钱包：余额显隐 / 转出与收款 / 流水展开 / 底部导航 */
+    var balance = 12846.20;
+    var hidden = false;
+    var amountEl = document.getElementById('amount');
+    var eye = document.getElementById('eye');
+    var mask = document.getElementById('mask');
+    var toast = document.getElementById('toast');
+    var sheetTransfer = document.getElementById('sheet-transfer');
+    var sheetReceive = document.getElementById('sheet-receive');
+    var amtInput = document.getElementById('amt-input');
+    var amtErr = document.getElementById('amt-err');
+    var btnSend = document.getElementById('btn-send');
+    var selectedRec = null;
+
+    function fmt(n){
+      return n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    }
+
+    function renderAmount(){
+      amountEl.textContent = hidden ? '¥ ••••••' : '¥ ' + fmt(balance);
+    }
+
+    var txs = [
+      {name:'工资入账', time:'今天 09:12', amt:'+18,420.00', kind:'in', icon:'薪', detail:{交易号:'20250614 0001', 方式:'对公代发 · 招商银行', 状态:'已到账'}},
+      {name:'转账 · 张一鸣', time:'昨天 21:40', amt:'-2,500.00', kind:'out', icon:'转', detail:{交易号:'20250613 0821', 方式:'余额转出', 状态:'已完成'}},
+      {name:'美团外卖', time:'昨天 12:03', amt:'-46.80', kind:'out', icon:'餐', detail:{交易号:'20250613 0342', 方式:'余额支付', 状态:'已完成'}},
+      {name:'余额宝收益', time:'07-11', amt:'+3.26', kind:'in', icon:'益', detail:{交易号:'20250711 0001', 方式:'理财收益', 状态:'已入账'}}
+    ];
+
+    var ledger = txs.concat([
+      {name:'房租转账 · 王先生', time:'07-10', amt:'-3,800.00', kind:'out', icon:'房', detail:{交易号:'20250710 0110', 方式:'余额转出', 状态:'已完成'}},
+      {name:'滴滴出行', time:'07-09', amt:'-32.50', kind:'out', icon:'行', detail:{交易号:'20250709 0056', 方式:'免密支付', 状态:'已完成'}},
+      {name:'退款 · 京东', time:'07-08', amt:'+199.00', kind:'in', icon:'退', detail:{交易号:'20250708 0092', 方式:'原路退回', 状态:'已到账'}},
+      {name:'咖啡 · 瑞幸', time:'07-08', amt:'-18.00', kind:'out', icon:'咖', detail:{交易号:'20250708 0021', 方式:'余额支付', 状态:'已完成'}}
+    ]);
+
+    function txHTML(t){
+      var cls = t.kind === 'in' ? 'in' : 'out';
+      var sign = t.kind === 'in' ? '+' : '-';
+      var abs = t.amt.replace(/^[+-]/, '');
+      var detail = '';
+      if(t.detail){
+        detail = '<div class="tx-detail">' +
+          '<div class="row"><span>交易号</span><span>' + t.detail['交易号'] + '</span></div>' +
+          '<div class="row"><span>方式</span><span>' + t.detail['方式'] + '</span></div>' +
+          '<div class="row"><span>状态</span><span>' + t.detail['状态'] + '</span></div>' +
+          '</div>';
+      }
+      return '<li class="tx-item"><span class="tx-ico">' + t.icon + '</span>' +
+        '<div class="tx-main"><div class="tx-name">' + t.name + '</div>' +
+        '<div class="tx-time">' + t.time + '</div>' + detail + '</div>' +
+        '<div class="tx-amt ' + cls + '">' + sign + '¥ ' + abs + '</div></li>';
+    }
+
+    function renderList(){
+      document.getElementById('tx-list').innerHTML = txs.slice(0,4).map(txHTML).join('');
+      document.getElementById('tx-ledger').innerHTML = ledger.map(txHTML).join('');
+      bindExpand();
+    }
+    function bindExpand(){
+      var items = document.querySelectorAll('.tx-item');
+      items.forEach(function(it){
+        it.addEventListener('click', function(){
+          it.classList.toggle('open');
+        });
+      });
+    }
+
+    function showToast(msg){
+      toast.textContent = msg;
+      toast.classList.add('show');
+      clearTimeout(showToast._t);
+      showToast._t = setTimeout(function(){ toast.classList.remove('show'); }, 2000);
+    }
+
+    function openSheet(s){ mask.classList.add('show'); s.classList.add('show'); }
+    function closeSheets(){ mask.classList.remove('show'); sheetTransfer.classList.remove('show'); sheetReceive.classList.remove('show'); }
+
+    eye.addEventListener('click', function(){
+      hidden = !hidden;
+      renderAmount();
+    });
+
+    document.getElementById('btn-transfer').addEventListener('click', function(){ openSheet(sheetTransfer); });
+    document.getElementById('btn-receive').addEventListener('click', function(){ openSheet(sheetReceive); drawQR(); });
+    document.getElementById('close-transfer').addEventListener('click', closeSheets);
+    document.getElementById('close-receive').addEventListener('click', closeSheets);
+    mask.addEventListener('click', closeSheets);
+
+    document.querySelectorAll('.rec').forEach(function(r){
+      r.addEventListener('click', function(){
+        document.querySelectorAll('.rec').forEach(function(x){ x.classList.remove('sel'); });
+        r.classList.add('sel');
+        selectedRec = r.getAttribute('data-name');
+        refreshSend();
+      });
+    });
+
+    function refreshSend(){
+      var v = parseFloat(amtInput.value);
+      if(selectedRec && v > 0 && v <= balance){
+        btnSend.disabled = false;
+        amtErr.textContent = '';
+      } else {
+        btnSend.disabled = true;
+        if(v > balance){ amtErr.textContent = '余额不足，可用 ¥ ' + fmt(balance); }
+        else { amtErr.textContent = ''; }
+      }
+    }
+    amtInput.addEventListener('input', refreshSend);
+    document.getElementById('btn-all').addEventListener('click', function(){
+      amtInput.value = balance.toFixed(2);
+      refreshSend();
+    });
+
+    btnSend.addEventListener('click', function(){
+      if(btnSend.disabled) return;
+      var v = parseFloat(amtInput.value);
+      balance -= v;
+      var amtStr = v.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+      txs.unshift({name:'转账 · ' + selectedRec, time:'刚刚', amt:'-' + amtStr, kind:'out', icon:'转', detail:{交易号:'20250614 0101', 方式:'余额转出', 状态:'已完成'}});
+      ledger.unshift(txs[0]);
+      renderAmount();
+      renderList();
+      closeSheets();
+      amtInput.value = '';
+      selectedRec = null;
+      document.querySelectorAll('.rec').forEach(function(x){ x.classList.remove('sel'); });
+      btnSend.disabled = true;
+      showToast('已转出 ¥ ' + amtStr + ' 给 ' + (ledger[0].name.replace('转账 · ','')) );
+    });
+
+    document.getElementById('copy-account').addEventListener('click', function(){ showToast('账号已复制'); });
+    document.getElementById('save-code').addEventListener('click', function(){ showToast('收款码已保存'); });
+
+    /* 底部导航切换 */
+    var tabs = document.querySelectorAll('.tab');
+    tabs.forEach(function(t){
+      t.addEventListener('click', function(){
+        tabs.forEach(function(x){ x.classList.remove('active'); });
+        t.classList.add('active');
+        document.querySelectorAll('.view').forEach(function(v){ v.classList.remove('on'); });
+        document.getElementById('view-' + t.getAttribute('data-tab')).classList.add('on');
+      });
+    });
+
+    /* 生成收款码（确定性伪随机） */
+    function drawQR(){
+      var svg = document.getElementById('qr-svg');
+      var N = 21, size = 1;
+      var seed = 88024317;
+      function rand(){ seed = (seed * 1103515245 + 12345) % 2147483648; return seed / 2147483648; }
+      var cells = [];
+      for(var r=0;r<N;r++){ for(var c=0;c<N;c++){ cells[r*N+c] = rand() > 0.5; } }
+      function finder(r0,c0){
+        for(var r=0;r<7;r++){ for(var c=0;c<7;c++){
+          var border = (r===0||r===6||c===0||c===6);
+          var core = (r>=2&&r<=4&&c>=2&&c<=4);
+          cells[(r0+r)*N+(c0+c)] = border || core;
+        }}
+        for(var r=1;r<6;r++){ for(var c=1;c<6;c++){
+          var inside = (r>=2&&r<=4&&c>=2&&c<=4);
+          if(!inside){ cells[(r0+r)*N+(c0+c)] = false; }
+        }}
+      }
+      finder(0,0); finder(0,14); finder(14,0);
+      var out = '';
+      for(var r=0;r<N;r++){ for(var c=0;c<N;c++){
+        if(cells[r*N+c]){ out += '<rect x="'+c+'" y="'+r+'" width="'+size+'" height="'+size+'" fill="#1c2610"/>'; }
+      }}
+      svg.innerHTML = '<rect width="21" height="21" fill="#ffffff"/>' + out;
+    }
+
+    renderAmount();
+    renderList();
+  </script>
+</body>
+</html>

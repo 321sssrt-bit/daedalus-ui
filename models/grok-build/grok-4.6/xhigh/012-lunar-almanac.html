@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>月令 · 八月</title>
+  <style>
+    :root {
+      --bone: #f6edd8;
+      --vermilion: #b42318;
+      --ink: #2a1b12;
+      --rule: #e2d2b0;
+      --gold: #c9a15b;
+      --mute: #7a6550;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bone); color: var(--ink); font: 15px/1.45 "KaiTi", "STKaiti", "Songti SC", serif; }
+    .page { max-width: 1100px; margin: 0 auto; padding: 24px; display: grid; grid-template-columns: 1fr 300px; gap: 20px; }
+    h1 { margin: 0 0 12px; font-size: 32px; color: var(--vermilion); }
+    table { width: 100%; border-collapse: collapse; background: #fff9ec; }
+    th, td { border: 1px solid var(--rule); width: 14.28%; height: 78px; vertical-align: top; padding: 6px; }
+    th { height: 32px; color: var(--vermilion); font-weight: 600; }
+    td button { all: unset; display: block; width: 100%; height: 100%; cursor: pointer; }
+    td .d { color: var(--mute); font-size: 12px; }
+    td.has { background: #fff1d6; }
+    td.on { outline: 2px solid var(--vermilion); }
+    aside { border: 2px solid var(--vermilion); padding: 16px; min-height: 280px; background: #fff8e6; }
+    aside h2 { margin: 0 0 8px; font-size: 20px; }
+    aside .meta { color: var(--mute); font-size: 13px; }
+    @media (max-width: 768px) {
+      .page { grid-template-columns: 1fr; }
+      th, td { height: 64px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <main>
+      <h1>月令 · 八月上旬</h1>
+      <table>
+        <thead><tr><th>日</th><th>一</th><th>二</th><th>三</th><th>四</th><th>五</th><th>六</th></tr></thead>
+        <tbody id="cal"></tbody>
+      </table>
+    </main>
+    <aside id="detail">
+      <h2>点开一件</h2>
+      <p class="meta">右侧只读这一候里被朱笔圈过的事。</p>
+    </aside>
+  </div>
+  <script>
+    (function () {
+      var events = {
+        3: { t: "开犁试水", w: "北港浅滩", d: "看潮位够不够把犁放下。误点则改到初五。" },
+        6: { t: "绛席核帖", w: "二楼窗席", d: "亥时开席。无帖号者门厅不点灯。" },
+        8: { t: "货栈盘点", w: "三道门", d: "把在检列清到可出。种子袋单独过磅。" },
+        11: { t: "霜台试麦", w: "东厢", d: "只开一次麦，离开即关。" }
+      };
+      var start = 5;
+      var html = "";
+      var day = 1;
+      for (var r = 0; r < 5; r++) {
+        html += "<tr>";
+        for (var c = 0; c < 7; c++) {
+          var cellIndex = r * 7 + c;
+          if (cellIndex < start || day > 14) { html += "<td></td>"; continue; }
+          var ev = events[day];
+          html += "<td class=\"" + (ev ? "has" : "") + "\"><button type=\"button\" data-d=\"" + day + "\"><span class=\"d\">初" + day + "</span>" + (ev ? "<br>" + ev.t : "") + "</button></td>";
+          day += 1;
+        }
+        html += "</tr>";
+      }
+      document.getElementById("cal").innerHTML = html;
+      document.getElementById("cal").addEventListener("click", function (event) {
+        var btn = event.target.closest("button");
+        if (!btn) return;
+        document.querySelectorAll("td").forEach(function (td) { td.classList.remove("on"); });
+        btn.parentElement.classList.add("on");
+        var ev = events[btn.getAttribute("data-d")];
+        var box = document.getElementById("detail");
+        if (!ev) {
+          box.innerHTML = "<h2>初" + btn.getAttribute("data-d") + "</h2><p>这一日黄历空白，宜静。可把新事写进下一部。</p>";
+          return;
+        }
+        box.innerHTML = "<h2>" + ev.t + "</h2><p class=\"meta\">初" + btn.getAttribute("data-d") + " · " + ev.w + "</p><p>" + ev.d + "</p>";
+      });
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>窑市 · 买一件</title>
+  <style>
+    :root {
+      --ash: #e8ddd0;
+      --clay: #c47a4a;
+      --kiln: #8b2e18;
+      --ink: #2a1c14;
+      --paper: #f6efe6;
+      --mute: #7a6454;
+      --line: #d4c4b0;
+      --ok: #2f5d3a;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--ash); color: var(--ink); font: 15px/1.45 "Segoe UI", "PingFang SC", sans-serif; }
+    header { display: flex; justify-content: space-between; align-items: center; padding: 16px 24px; background: #3a261c; color: #f6efe6; }
+    h1 { margin: 0; font-size: 20px; letter-spacing: 0.12em; }
+    .app { display: grid; grid-template-columns: 1fr 320px; gap: 16px; padding: 16px 24px 40px; }
+    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .g { background: var(--paper); padding: 14px; cursor: pointer; border-top: 5px solid var(--clay); }
+    .g.on { outline: 2px solid var(--kiln); }
+    .g b { display: block; font-size: 18px; }
+    .panel { background: var(--paper); padding: 16px; }
+    .opts { display: flex; gap: 6px; flex-wrap: wrap; margin: 8px 0; }
+    .opts button { height: 32px; border: 1px solid var(--ink); background: #fff; cursor: pointer; }
+    .opts button.on { background: var(--kiln); color: #fff; border-color: var(--kiln); }
+    .qty { display: flex; gap: 8px; align-items: center; }
+    .qty button { width: 28px; height: 28px; }
+    .add, .buy { width: 100%; height: 40px; margin-top: 8px; border: 0; background: var(--kiln); color: #fff8f0; cursor: pointer; }
+    .ghost { width: 100%; height: 36px; margin-top: 8px; background: transparent; border: 1px dashed var(--kiln); color: var(--kiln); cursor: pointer; }
+    .cart { background: var(--paper); padding: 16px; }
+    .line { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
+    .sum { font-size: 24px; color: var(--kiln); margin: 10px 0; }
+    .err { color: var(--kiln); min-height: 22px; }
+    .ok { color: var(--ok); }
+    .receipt { display: none; background: #fff8f0; padding: 16px; border: 1px solid var(--kiln); margin-top: 12px; }
+    .receipt.on { display: block; }
+    @media (max-width: 768px) {
+      .app, .grid { grid-template-columns: 1fr; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>窑市</h1>
+    <div id="tag">今日开窑 · 器未冷</div>
+  </header>
+  <div class="app">
+    <div>
+      <div class="grid" id="grid"></div>
+      <section class="panel" id="panel"></section>
+    </div>
+    <aside class="cart">
+      <h2>泥车</h2>
+      <div id="lines"></div>
+      <div class="sum" id="sum">¥ 0</div>
+      <p class="err" id="err"></p>
+      <button class="buy" id="buy" type="button">提交订单</button>
+      <div class="receipt" id="rec"></div>
+    </aside>
+  </div>
+  <script>
+    (function () {
+      var goods = [
+        { id: "a", n: "雨花盏", p: 86, d: "一窑只出十二只。" },
+        { id: "b", n: "石纹瓶", p: 160, d: "瓶口还带着窑汗。" },
+        { id: "c", n: "苔缘碟", p: 48, d: "可叠，怕撞。" }
+      ];
+      var glazes = ["青灰", "霁蓝"];
+      var pick = 0;
+      var glaze = "青灰";
+      var qty = 1;
+      var cart = [];
+      var oos = {};
+      var order = 1900;
+      function money() {
+        return cart.reduce(function (s, l) { return s + l.p * l.q; }, 0);
+      }
+      function renderGrid() {
+        var grid = document.getElementById("grid");
+        grid.innerHTML = "";
+        goods.forEach(function (g, i) {
+          var el = document.createElement("article");
+          el.className = "g" + (i === pick ? " on" : "");
+          el.innerHTML = "<b>" + g.n + "</b><span>¥ " + g.p + "</span>";
+          el.addEventListener("click", function () { pick = i; qty = 1; glaze = "青灰"; render(); });
+          grid.appendChild(el);
+        });
+      }
+      function renderPanel() {
+        var g = goods[pick];
+        var panel = document.getElementById("panel");
+        panel.innerHTML = "<h2>" + g.n + "</h2><p>" + g.d + "</p><div>釉色</div><div class=\"opts\" id=\"gl\"></div><div class=\"qty\">数量 <button type=\"button\" id=\"m\">-</button><b id=\"q\">" + qty + "</b><button type=\"button\" id=\"p\">+</button></div><button class=\"add\" id=\"add\" type=\"button\">加入泥车</button><button class=\"ghost\" id=\"oos\" type=\"button\">把当前釉色标为缺货</button>";
+        glazes.forEach(function (name) {
+          var b = document.createElement("button");
+          b.type = "button";
+          b.className = name === glaze ? "on" : "";
+          b.textContent = name + (oos[g.id + name] ? "（缺）" : "");
+          b.addEventListener("click", function () { glaze = name; render(); });
+          document.getElementById("gl").appendChild(b);
+        });
+        document.getElementById("m").addEventListener("click", function () { qty = Math.max(1, qty - 1); render(); });
+        document.getElementById("p").addEventListener("click", function () { qty += 1; render(); });
+        document.getElementById("add").addEventListener("click", function () {
+          var key = g.id + glaze;
+          var line = cart.filter(function (l) { return l.key === key; })[0];
+          if (line) line.q += qty;
+          else cart.push({ key: key, n: g.n, glaze: glaze, p: g.p, q: qty, gid: g.id });
+          document.getElementById("rec").className = "receipt";
+          render();
+        });
+        document.getElementById("oos").addEventListener("click", function () {
+          oos[g.id + glaze] = true;
+          document.getElementById("err").textContent = g.n + "「" + glaze + "」已标缺货。提交会被拦住。";
+          render();
+        });
+      }
+      function renderCart() {
+        var box = document.getElementById("lines");
+        box.innerHTML = cart.length ? "" : "<p>泥车空着。</p>";
+        cart.forEach(function (l, i) {
+          var el = document.createElement("div");
+          el.className = "line";
+          el.innerHTML = "<span>" + l.n + " / " + l.glaze + " ×" + l.q + (oos[l.key] ? " · 缺货" : "") + "</span><span>¥ " + (l.p * l.q) + " <button type=\"button\" data-i=\"" + i + "\">减</button></span>";
+          box.appendChild(el);
+        });
+        box.querySelectorAll("button").forEach(function (btn) {
+          btn.addEventListener("click", function () {
+            var line = cart[Number(btn.getAttribute("data-i"))];
+            line.q -= 1;
+            if (line.q <= 0) cart.splice(Number(btn.getAttribute("data-i")), 1);
+            render();
+          });
+        });
+        document.getElementById("sum").textContent = "¥ " + money();
+      }
+      function render() {
+        renderGrid();
+        renderPanel();
+        renderCart();
+      }
+      document.getElementById("buy").addEventListener("click", function () {
+        var rec = document.getElementById("rec");
+        var err = document.getElementById("err");
+        if (!cart.length) { err.textContent = "泥车是空的，窑口不接空单。"; rec.className = "receipt"; return; }
+        var bad = cart.filter(function (l) { return oos[l.key]; });
+        if (bad.length) {
+          err.textContent = "缺货： " + bad.map(function (l) { return l.n + l.glaze; }).join("、") + "。请改釉或减量后再提交。";
+          rec.className = "receipt";
+          return;
+        }
+        order += 1;
+        err.textContent = "";
+        rec.className = "receipt on";
+        rec.innerHTML = "<strong>窑单 Y" + order + "</strong><p>合计 ¥ " + money() + "。器在泥车上，三日后来取。</p>";
+        cart = [];
+        renderCart();
+      });
+      render();
+    })();
+  </script>
+</body>
+</html>

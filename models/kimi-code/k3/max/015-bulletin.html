@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>布告栏 · 通知中心</title>
+<style>
+:root{
+  --cork:#9a7348;
+  --cork-deep:#7d5c38;
+  --note:#f7e08a;
+  --note-2:#fdf3b8;
+  --ink:#4a3b28;
+  --muted:#8f7f68;
+  --pin:#c14b3c;
+  --paper:#fbf6e8;
+  --line:#e2d5b8;
+  --radius-card:8px;
+  --sp:8px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font:14.5px/1.65 "PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+  color:var(--ink);min-height:100vh;display:flex;flex-direction:column;
+  background:var(--cork);
+  background-image:radial-gradient(rgba(0,0,0,.14) 1px,transparent 1.6px),radial-gradient(rgba(255,255,255,.09) 1px,transparent 1.6px);
+  background-size:26px 26px,34px 34px;background-position:0 0,12px 14px;
+}
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;padding:16px 26px;
+  color:#f7efdd;border-bottom:2px solid var(--cork-deep);
+}
+.brand{display:flex;align-items:center;gap:11px;font-weight:700;font-size:17px;letter-spacing:.14em}
+.topbar .who{font-size:12.5px;opacity:.85;letter-spacing:.06em}
+.layout{flex:1;display:flex;gap:22px;padding:22px 26px;align-items:flex-start;max-width:1180px;width:100%;margin:0 auto}
+.board{flex:1;display:grid;grid-template-columns:repeat(2,1fr);gap:18px;align-content:start}
+.note{
+  position:relative;background:var(--note);border-radius:3px;padding:20px 18px 14px;cursor:pointer;
+  box-shadow:0 8px 18px rgba(60,40,15,.35);transition:transform .16s ease,box-shadow .16s ease;
+}
+.note:nth-child(odd){transform:rotate(-1.1deg)}
+.note:nth-child(even){transform:rotate(.8deg)}
+.note:hover{transform:rotate(0) translateY(-3px);box-shadow:0 14px 26px rgba(60,40,15,.42)}
+.note.read{background:var(--note-2);opacity:.78}
+.note .pin{
+  position:absolute;top:-8px;left:50%;transform:translateX(-50%);width:15px;height:15px;border-radius:50%;
+  background:var(--pin);box-shadow:0 2px 4px rgba(0,0,0,.35),inset -2px -2px 3px rgba(0,0,0,.25);
+}
+.note.read .pin{background:#a89a80}
+.note .kind{font-size:11px;font-weight:700;letter-spacing:.1em;padding:2px 8px;border-radius:999px;color:#fff;display:inline-block;margin-bottom:8px}
+.kind.jw{background:#4a6fa5}.kind.st{background:#5b8c5a}.kind.hq{background:#d98e3d}.kind.lf{background:#b5453c}
+.note h2{font-size:15px;margin-bottom:4px}
+.note .when{font-size:11.5px;color:#7a6a4d;margin-bottom:8px;font-family:ui-monospace,Consolas,monospace}
+.note .brief{font-size:13px;color:#5d4d33}
+.note .full{display:none;font-size:13px;color:#5d4d33;line-height:1.9;margin-top:8px;border-top:1px dashed #cbb567;padding-top:10px}
+.note.open .full{display:block}
+.note.open .brief{display:none}
+.note .more{font-size:11.5px;color:#8a6f2f;margin-top:8px;letter-spacing:.08em}
+.new-flag{position:absolute;top:10px;right:12px;font-size:10.5px;font-weight:700;color:var(--pin);letter-spacing:.14em}
+.note.read .new-flag{display:none}
+.side{flex:0 0 252px;display:flex;flex-direction:column;gap:16px}
+.panel{background:var(--paper);border-radius:var(--radius-card);padding:16px 18px;box-shadow:0 8px 18px rgba(60,40,15,.3)}
+.panel h3{font-size:13px;letter-spacing:.12em;color:var(--muted);margin-bottom:12px}
+.panel .flt{
+  display:flex;width:100%;align-items:center;gap:8px;border:0;background:none;padding:8px 10px;border-radius:7px;
+  font:inherit;font-size:13.5px;color:var(--ink);cursor:pointer;text-align:left;transition:background .13s ease;
+}
+.panel .flt:hover{background:#f0e7cd}
+.panel .flt.on{background:var(--ink);color:#f7efdd;font-weight:600}
+.panel .flt .c{margin-left:auto;font:11px/1 ui-monospace,Consolas,monospace;opacity:.7}
+.stat{font:700 34px/1 ui-monospace,Consolas,monospace}
+.stat small{font-size:12px;color:var(--muted);font-weight:400;margin-left:6px}
+.markall{
+  width:100%;border:0;border-radius:999px;cursor:pointer;padding:12px 0;background:var(--ink);color:#f7efdd;
+  font:inherit;font-weight:700;font-size:13.5px;letter-spacing:.1em;transition:background .15s ease;
+}
+.markall:hover:not(:disabled){background:#2e2415}
+.markall:disabled{opacity:.45;cursor:not-allowed}
+@media(max-width:900px){.layout{flex-direction:column}.side{flex:none;width:100%;flex-direction:row}.panel{flex:1}.board{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <rect x="3" y="4" width="18" height="15" rx="2" stroke="#f7efdd" stroke-width="1.8"/>
+      <path d="M7 9H17M7 13H14" stroke="#f7efdd" stroke-width="1.8" stroke-linecap="round"/>
+      <circle cx="17.5" cy="14.5" r="1.6" fill="#f7e08a"/>
+    </svg>
+    三号教学楼 · 布告栏
+  </div>
+  <span class="who">周四 16:20 · 放学前记得看栏</span>
+</header>
+<div class="layout">
+  <main class="board" id="board">
+    <article class="note" data-id="1" data-kind="jw">
+      <span class="pin" aria-hidden="true"></span><span class="new-flag">NEW</span>
+      <span class="kind jw">教务</span><h2>期中考试安排出炉</h2>
+      <p class="when">今天 15:00</p><p class="brief">第 11–12 周随堂考，考场表贴在二栏……</p>
+      <p class="full">第 11–12 周随堂考。高二（3）班考场在 304 室，语文周二上午、数学周三下午。准考证号即学号，迟到 15 分钟不得入场。</p>
+      <p class="more">点开看全文</p>
+    </article>
+    <article class="note" data-id="2" data-kind="st">
+      <span class="pin" aria-hidden="true"></span><span class="new-flag">NEW</span>
+      <span class="kind st">社团</span><h2>天文社周五观星报名</h2>
+      <p class="when">今天 12:30</p><p class="brief">本周五晚操场，英仙座流星雨尾声……</p>
+      <p class="full">本周五 20:00 操场集合，英仙座流星雨尾声。带外套，社里出三台望远镜。限额 30 人，向社长报名。</p>
+      <p class="more">点开看全文</p>
+    </article>
+    <article class="note" data-id="3" data-kind="hq">
+      <span class="pin" aria-hidden="true"></span><span class="new-flag">NEW</span>
+      <span class="kind hq">后勤</span><h2>食堂下周换秋季菜单</h2>
+      <p class="when">昨天 17:40</p><p class="brief">萝卜炖牛腩回归，早餐添桂花粥……</p>
+      <p class="full">下周一起换秋季菜单：萝卜炖牛腩、栗子鸡回归，早餐添桂花粥与烤红薯。意见箱在食堂东门。</p>
+      <p class="more">点开看全文</p>
+    </article>
+    <article class="note read" data-id="4" data-kind="lf">
+      <span class="pin" aria-hidden="true"></span><span class="new-flag">NEW</span>
+      <span class="kind lf">失物招领</span><h2>捡到一串钥匙，挂小熊</h2>
+      <p class="when">昨天 08:15</p><p class="brief">在体育馆器材室门口捡到……</p>
+      <p class="full">体育馆器材室门口捡到钥匙一串，挂棕色小熊，共四把。请到传达室描述钥匙样子认领。</p>
+      <p class="more">点开看全文</p>
+    </article>
+    <article class="note read" data-id="5" data-kind="jw">
+      <span class="pin" aria-hidden="true"></span><span class="new-flag">NEW</span>
+      <span class="kind jw">教务</span><h2>图书馆延长开放到晚九点</h2>
+      <p class="when">周三</p><p class="brief">期中期间三楼自习区延时……</p>
+      <p class="full">即日起到期中结束，图书馆三楼自习区开放延长至 21:00，20:30 停止入馆。</p>
+      <p class="more">点开看全文</p>
+    </article>
+    <article class="note read" data-id="6" data-kind="st">
+      <span class="pin" aria-hidden="true"></span><span class="new-flag">NEW</span>
+      <span class="kind st">社团</span><h2>辩论队招新复试名单</h2>
+      <p class="when">周二</p><p class="brief">初试通过 14 人，复试周六……</p>
+      <p class="full">初试通过 14 人（名单见二栏）。复试周六上午 9:30，阶梯教室，即兴辩题现场抽。</p>
+      <p class="more">点开看全文</p>
+    </article>
+  </main>
+  <aside class="side">
+    <div class="panel">
+      <h3>按类型看</h3>
+      <div id="flts">
+        <button class="flt on" type="button" data-f="all"><span>全部便签</span><span class="c">6</span></button>
+        <button class="flt" type="button" data-f="jw"><span>教务</span><span class="c">2</span></button>
+        <button class="flt" type="button" data-f="st"><span>社团</span><span class="c">2</span></button>
+        <button class="flt" type="button" data-f="hq"><span>后勤</span><span class="c">1</span></button>
+        <button class="flt" type="button" data-f="lf"><span>失物招领</span><span class="c">1</span></button>
+      </div>
+    </div>
+    <div class="panel">
+      <h3>未读</h3>
+      <div class="stat"><span id="unread-n">3</span><small>张便签还没看</small></div>
+    </div>
+    <button class="markall" id="markall" type="button">全部标为已读（3）</button>
+  </aside>
+</div>
+<script>
+(function(){
+  var board=document.getElementById('board');
+  var fltsEl=document.getElementById('flts');
+  var unreadN=document.getElementById('unread-n');
+  var markall=document.getElementById('markall');
+  var cur='all';
+  function renderStat(){
+    var notes=board.querySelectorAll('.note');
+    var left=0;
+    for(var i=0;i<notes.length;i++)if(!notes[i].classList.contains('read'))left++;
+    unreadN.textContent=left;
+    markall.disabled=left===0;
+    markall.textContent=left===0?'都看完了':'全部标为已读（'+left+'）';
+  }
+  function applyFilter(){
+    var notes=board.querySelectorAll('.note');
+    for(var i=0;i<notes.length;i++){
+      var n=notes[i];
+      var show=cur==='all'||n.getAttribute('data-kind')===cur;
+      n.style.display=show?'':'none';
+    }
+  }
+  function bindNotes(){
+    var notes=board.querySelectorAll('.note');
+    for(var i=0;i<notes.length;i++){
+      (function(el){
+        el.addEventListener('click',function(){
+          el.classList.add('open');
+          el.classList.add('read');
+          el.querySelector('.more').textContent='已读 · 全文如上';
+          renderStat();
+        });
+      })(notes[i]);
+    }
+  }
+  var fltBtns=fltsEl.querySelectorAll('.flt');
+  for(var k=0;k<fltBtns.length;k++){
+    (function(b){
+      b.addEventListener('click',function(){
+        for(var j=0;j<fltBtns.length;j++)fltBtns[j].classList.remove('on');
+        b.classList.add('on');
+        cur=b.getAttribute('data-f');
+        applyFilter();
+      });
+    })(fltBtns[k]);
+  }
+  markall.addEventListener('click',function(){
+    var notes=board.querySelectorAll('.note');
+    for(var i=0;i<notes.length;i++)notes[i].classList.add('read');
+    renderStat();
+  });
+  bindNotes();
+  renderStat();
+})();
+</script>
+</body>
+</html>

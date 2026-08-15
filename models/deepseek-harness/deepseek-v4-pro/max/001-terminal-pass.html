@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>远航终端 · 登录</title>
+<style>
+:root{
+  --bg:#060a07;
+  --panel:#0a120c;
+  --field:#0f2b18;
+  --green:#33ff66;
+  --dim:#1f8f3d;
+  --err:#ff3355;
+  --amber:#ffcc33;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:"Cascadia Mono","SF Mono","Consolas","Courier New","Microsoft YaHei",monospace;
+  background:var(--bg);
+  color:var(--green);
+  min-height:100vh;
+  display:flex;align-items:center;justify-content:center;
+  padding:40px 24px;
+  position:relative;
+  line-height:1.6;
+}
+.crt{
+  position:fixed;inset:0;pointer-events:none;z-index:20;
+}
+.crt-scan{
+  position:absolute;inset:0;
+  background:repeating-linear-gradient(0deg,rgba(0,0,0,.22) 0 1px,transparent 1px 3px);
+}
+.crt-vignette{
+  position:absolute;inset:0;
+  background:radial-gradient(ellipse at center,transparent 55%,rgba(0,0,0,.55) 100%);
+}
+.crt-flicker{
+  position:absolute;inset:0;background:rgba(51,255,102,.03);
+  animation:flicker 4.2s steps(1) infinite;
+}
+@keyframes flicker{
+  0%,100%{opacity:1}
+  8%{opacity:.7}
+  9%{opacity:1}
+  22%{opacity:.86}
+  23%{opacity:1}
+  51%{opacity:.8}
+  52%{opacity:1}
+  77%{opacity:.92}
+  78%{opacity:1}
+}
+.terminal{
+  position:relative;z-index:1;
+  width:760px;max-width:100%;
+  background:var(--panel);
+  border:2px solid var(--green);
+  box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--dim),0 0 42px rgba(51,255,102,.22);
+  image-rendering:pixelated;
+}
+.titlebar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:8px 14px;
+  background:var(--field);
+  border-bottom:2px solid var(--dim);
+  font-size:13px;letter-spacing:.08em;color:var(--dim);
+}
+.titlebar .dots{display:flex;gap:6px}
+.titlebar .dot{width:11px;height:11px;border:1px solid var(--dim);background:var(--green);opacity:.85}
+.titlebar .dot:nth-child(2){opacity:.45}
+.titlebar .dot:nth-child(3){opacity:.2}
+.titlebar .whoami{color:var(--green)}
+.body{padding:26px 30px 30px}
+.boot{min-height:84px;margin-bottom:18px;font-size:14px;white-space:pre-wrap}
+.boot .caret{display:inline-block;width:9px;height:15px;background:var(--green);vertical-align:-2px;animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+.field{margin-bottom:20px}
+.field label{display:block;font-size:13px;color:var(--dim);letter-spacing:.08em;margin-bottom:6px}
+.field label::before{content:"> ";color:var(--green)}
+.wrap{display:flex;align-items:stretch;border:1px solid var(--dim);background:var(--field)}
+.wrap input{
+  flex:1;min-width:0;
+  background:transparent;border:0;color:var(--green);
+  font:inherit;font-size:15px;letter-spacing:.04em;
+  padding:11px 12px;outline:none;
+}
+.wrap input::placeholder{color:var(--dim);opacity:.7}
+.wrap input:focus{border-color:var(--green);box-shadow:inset 0 0 0 1px var(--green)}
+.wrap:focus-within{border-color:var(--green);box-shadow:inset 0 0 0 1px var(--green)}
+.eyebtn{
+  flex:0 0 auto;border:0;border-left:1px solid var(--dim);
+  background:var(--field);color:var(--dim);
+  font:inherit;font-size:12px;padding:0 12px;cursor:pointer;letter-spacing:.05em;
+}
+.eyebtn:hover{color:var(--green);background:var(--green);background:rgba(51,255,102,.12)}
+.row{display:flex;align-items:center;gap:14px;margin:18px 0 22px;flex-wrap:wrap}
+.check{display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:var(--dim)}
+.check input{position:absolute;opacity:0;width:1px;height:1px}
+.check .box{width:15px;height:15px;border:1px solid var(--dim);background:var(--field);display:inline-flex;align-items:center;justify-content:center;font-size:11px;color:var(--green)}
+.check input:checked + .box{background:var(--green);color:var(--bg)}
+.check input:focus-visible + .box{outline:2px solid var(--green);outline-offset:2px}
+.link{background:none;border:0;color:var(--dim);font:inherit;font-size:13px;cursor:pointer;text-decoration:underline;text-underline-offset:3px;padding:0}
+.link:hover{color:var(--green)}
+.submit{
+  width:100%;border:2px solid var(--green);
+  background:var(--green);color:var(--bg);
+  font:inherit;font-size:15px;letter-spacing:.3em;font-weight:700;
+  padding:13px;cursor:pointer;text-align:center;
+}
+.submit:hover{background:var(--field);color:var(--green)}
+.submit:focus-visible{outline:2px solid var(--green);outline-offset:2px}
+.submit:disabled{border-color:var(--dim);background:var(--field);color:var(--dim);cursor:not-allowed;letter-spacing:.3em}
+.status{margin-top:20px;min-height:22px;font-size:13px;letter-spacing:.03em}
+.status.err{color:var(--err)}
+.status.ok{color:var(--green)}
+.status.lock{color:var(--amber)}
+.recover{margin-top:6px;border-top:1px dashed var(--dim);padding-top:16px;display:none}
+.recover.show{display:block}
+.recover p{font-size:13px;color:var(--dim);line-height:1.9}
+.recover b{color:var(--green);font-weight:400}
+.footer{margin-top:26px;font-size:12px;color:var(--dim);letter-spacing:.06em}
+.footer .amber{color:var(--amber)}
+@media (max-width:768px){
+  body{padding:20px 12px}
+  .body{padding:20px 18px 22px}
+  .row{gap:10px}
+  .submit{letter-spacing:.18em}
+}
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+}
+</style>
+</head>
+<body>
+<div class="crt" aria-hidden="true"><div class="crt-scan"></div><div class="crt-vignette"></div><div class="crt-flicker"></div></div>
+
+<div class="terminal" role="main">
+  <div class="titlebar">
+    <span class="dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></span>
+    <span>远航终端 v3.2 — NODE-7</span>
+    <span class="whoami">secure shell</span>
+  </div>
+  <div class="body">
+    <div class="boot" id="boot" aria-live="polite"></div>
+
+    <div class="field">
+      <label for="account">账号</label>
+      <div class="wrap">
+        <input id="account" type="text" autocomplete="username" placeholder="如：demo 或你的员工编号" spellcheck="false">
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="password">密码</label>
+      <div class="wrap">
+        <input id="password" type="password" autocomplete="current-password" placeholder="输入你的访问密钥">
+        <button class="eyebtn" id="pwToggle" type="button">显示</button>
+      </div>
+    </div>
+
+    <div class="row">
+      <label class="check">
+        <input id="remember" type="checkbox">
+        <span class="box">✓</span>
+        <span>记住此设备（7 天内免密登录）</span>
+      </label>
+      <button class="link" id="recoverLink" type="button">找不到密码？</button>
+    </div>
+
+    <button class="submit" id="submit" type="button">进入系统</button>
+
+    <div class="status" id="status" role="status"></div>
+
+    <div class="recover" id="recover">
+      <p>> 找回密码：向管理员 <b>root@voyage.internal</b> 索取一次性重置链接。</p>
+      <p>> 或持已绑定的密钥盘，在 <b>node7/restore</b> 自助重置访问密钥。</p>
+      <p>> 锁定时请等待 60 秒自动解锁，再重新输入。</p>
+    </div>
+
+    <div class="footer">
+      会话密钥 · AES-256 加密传输 &nbsp;|&nbsp; 输入 help 查看命令 &nbsp;|&nbsp; <span class="amber">NODE-7 · 高密度监控中</span>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var bootLines = [
+    "> 远航终端 v3.2 — NODE-7 已就绪",
+    "> 安全通道已建立：TLS 1.3 / AES-256-GCM",
+    "> 请输入账号与密码以继续"
+  ];
+  var boot = document.getElementById("boot");
+  var account = document.getElementById("account");
+  var password = document.getElementById("password");
+  var pwToggle = document.getElementById("pwToggle");
+  var remember = document.getElementById("remember");
+  var submit = document.getElementById("submit");
+  var recoverLink = document.getElementById("recoverLink");
+  var recover = document.getElementById("recover");
+  var status = document.getElementById("status");
+  var attempts = 0;
+  var locked = false;
+
+  var reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  function typeBoot(){
+    if (reduced) {
+      boot.textContent = bootLines.join("\n");
+      boot.innerHTML = boot.textContent.replace(/\n/g, "<br>") + " <span class=\"caret\"></span>";
+      return;
+    }
+    var full = bootLines.join("\n");
+    var i = 0;
+    boot.innerHTML = " <span class=\"caret\"></span>";
+    var t = setInterval(function(){
+      if (i >= full.length) { clearInterval(t); return; }
+      var c = full.charAt(i);
+      if (c === "\n") {
+        boot.innerHTML = boot.innerHTML.replace(/<span class="caret"><\/span>$/, "") + "<br> <span class=\"caret\"></span>";
+      } else {
+        boot.innerHTML = boot.innerHTML.replace(/<span class="caret"><\/span>$/, "") + c + "<span class=\"caret\"></span>";
+      }
+      i++;
+    }, 14);
+  }
+
+  function setStatus(msg, cls){
+    status.textContent = msg;
+    status.className = "status " + (cls || "");
+  }
+
+  pwToggle.addEventListener("click", function(){
+    var show = password.type === "password";
+    password.type = show ? "text" : "password";
+    pwToggle.textContent = show ? "隐藏" : "显示";
+  });
+
+  recoverLink.addEventListener("click", function(){
+    var open = recover.classList.toggle("show");
+    recoverLink.textContent = open ? "收起找回指引" : "找不到密码？";
+  });
+
+  function submitLogin(){
+    if (locked) {
+      setStatus("[LOCK] 尝试次数过多，已锁定 60 秒，请稍后再试", "lock");
+      return;
+    }
+    var acc = account.value.trim();
+    var pwd = password.value;
+    if (acc === "") { setStatus("[ERR] 账号不能为空", "err"); return; }
+    if (pwd === "") { setStatus("[ERR] 密码不能为空", "err"); return; }
+    if (acc === "demo" && pwd === "green123") {
+      setStatus("[OK] 校验通过，正在建立会话…", "ok");
+      submit.disabled = true;
+      submit.textContent = "已进入系统";
+      setTimeout(function(){
+        setStatus("[OK] 欢迎回来，船长。身份：管理员 · NODE-7 · 上次登录 2025-01-17 09:14:32", "ok");
+      }, 420);
+      return;
+    }
+    attempts++;
+    var left = 3 - attempts;
+    if (left <= 0) {
+      locked = true;
+      submit.disabled = true;
+      submit.textContent = "已锁定 60 秒";
+      setStatus("[LOCK] 连续错误 3 次，终端已锁定 60 秒", "lock");
+      setTimeout(function(){
+        locked = false;
+        attempts = 0;
+        submit.disabled = false;
+        submit.textContent = "进入系统";
+        setStatus("", "");
+      }, 60000);
+    } else {
+      setStatus("[ERR] 账号或密码不正确，剩余 " + left + " 次尝试", "err");
+    }
+  }
+
+  submit.addEventListener("click", submitLogin);
+  password.addEventListener("keydown", function(e){
+    if (e.key === "Enter") { submitLogin(); }
+  });
+  account.addEventListener("keydown", function(e){
+    if (e.key === "Enter") { submitLogin(); }
+  });
+
+  typeBoot();
+})();
+</script>
+</body>
+</html>
