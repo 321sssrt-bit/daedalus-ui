@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>云闸 · 二次验证</title>
+<style>
+:root{
+  --bg:#0d1220; --panel:#161d31; --panel-line:#27304a; --text:#e9edf6;
+  --muted:#8b95b0; --cyan:#45d6b8; --cyan-deep:#2fae94; --bad:#ff6d61;
+  --mono:ui-monospace,Consolas,monospace;
+  --sans:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:var(--bg);color:var(--text);font:15px/1.7 var(--sans);display:grid;place-items:center;padding:32px 16px;background-image:radial-gradient(700px 400px at 80% -5%,#1a2547 0%,var(--bg) 60%)}
+.shell{width:440px;max-width:100%}
+.console{background:var(--panel);border:1px solid var(--panel-line);border-radius:14px;padding:32px 30px 28px}
+.kicker{font:12px var(--mono);color:var(--cyan);letter-spacing:.22em;margin:0 0 10px}
+h1{font-size:23px;margin:0 0 8px}
+.lead{color:var(--muted);font-size:14px;margin:0 0 24px}
+.lead b{color:var(--text)}
+.cells{display:flex;gap:10px;justify-content:space-between}
+.cell{width:56px;height:64px;background:#0b101d;border:1px solid var(--panel-line);border-radius:9px;text-align:center;color:var(--cyan);font:600 26px/64px var(--mono);transition:border-color .15s,box-shadow .15s}
+.cell:focus{outline:none;border-color:var(--cyan);box-shadow:0 0 0 3px #45d6b822}
+.cells.wrong .cell{border-color:var(--bad);color:var(--bad);animation:jolt .32s ease}
+@keyframes jolt{25%{transform:translateX(-4px)}60%{transform:translateX(4px)}}
+.verify{width:100%;height:46px;margin-top:20px;border:0;border-radius:9px;background:var(--cyan);color:#06251f;font:700 15px var(--sans);letter-spacing:.2em;cursor:pointer;transition:background .15s,opacity .15s}
+.verify:hover{background:var(--cyan-deep);color:#eafffa}
+.verify:disabled{background:#2a3b52;color:#66748f;cursor:not-allowed}
+.verify:focus-visible{outline:3px solid #45d6b844;outline-offset:2px}
+.msg{min-height:22px;margin:14px 0 0;font-size:13px;text-align:center}
+.msg.bad{color:var(--bad)}
+.msg.good{color:var(--cyan)}
+.meta{display:flex;justify-content:space-between;margin-top:16px;font-size:13px;color:var(--muted)}
+.resend{border:0;background:none;color:var(--muted);font:inherit;font-size:13px;cursor:pointer;padding:0}
+.resend.ready{color:var(--cyan);font-weight:600}
+.resend:disabled{cursor:not-allowed}
+.lock{margin-top:14px;border:1px solid #ff6d6144;background:#ff6d6112;color:#ffb1aa;border-radius:9px;padding:12px 14px;font-size:13px;display:none}
+.lock.show{display:block}
+.lock a{color:var(--cyan)}
+@media (max-width:480px){.cell{width:46px;height:56px;font-size:22px;line-height:56px}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<main class="shell">
+  <section class="console">
+    <p class="kicker">STEP 2 / 2 · SECOND FACTOR</p>
+    <h1>再确认一次是你本人</h1>
+    <p class="lead">密码已通过。我们把 6 位验证码发到了 <b>137****6021</b> 的短信里，5 分钟内有效。</p>
+    <div class="cells" id="cells">
+      <input class="cell" maxlength="1" inputmode="numeric" aria-label="验证码第1位">
+      <input class="cell" maxlength="1" inputmode="numeric" aria-label="验证码第2位">
+      <input class="cell" maxlength="1" inputmode="numeric" aria-label="验证码第3位">
+      <input class="cell" maxlength="1" inputmode="numeric" aria-label="验证码第4位">
+      <input class="cell" maxlength="1" inputmode="numeric" aria-label="验证码第5位">
+      <input class="cell" maxlength="1" inputmode="numeric" aria-label="验证码第6位">
+    </div>
+    <button class="verify" id="verifyBtn" type="button" disabled>验 证</button>
+    <p class="msg" id="msg" role="status"></p>
+    <div class="meta">
+      <span id="expire">有效期 05:00</span>
+      <button class="resend" id="resendBtn" type="button" disabled>30 秒后可重发</button>
+    </div>
+    <div class="lock" id="lockBox">验证已锁定 10 分钟。你可以<a href="#other">换一种验证方式</a>或联系支持。</div>
+  </section>
+</main>
+<script>
+(function(){
+  "use strict";
+  var CODE="426911";
+  var cells=Array.prototype.slice.call(document.querySelectorAll(".cell"));
+  var cellsWrap=document.getElementById("cells");
+  var btn=document.getElementById("verifyBtn");
+  var msg=document.getElementById("msg");
+  var resend=document.getElementById("resendBtn");
+  var lockBox=document.getElementById("lockBox");
+  var tries=0;
+  var locked=false;
+  cells.forEach(function(cell,i){
+    cell.addEventListener("input",function(){
+      cell.value=cell.value.replace(/\D/g,"");
+      if(cell.value&&i<cells.length-1)cells[i+1].focus();
+      refresh();
+    });
+    cell.addEventListener("keydown",function(ev){
+      if(ev.key==="Backspace"&&!cell.value&&i>0)cells[i-1].focus();
+    });
+  });
+  function code(){return cells.map(function(c){return c.value}).join("")}
+  function refresh(){
+    cellsWrap.classList.remove("wrong");
+    btn.disabled=locked||code().length!==6;
+  }
+  btn.addEventListener("click",function(){
+    msg.className="msg";
+    if(code()===CODE){
+      msg.className="msg good";
+      msg.textContent="验证通过，正在进入云闸控制台…";
+      btn.disabled=true;
+      cells.forEach(function(c){c.disabled=true});
+      return;
+    }
+    tries+=1;
+    cellsWrap.classList.add("wrong");
+    if(tries>=3){
+      locked=true;
+      lockBox.classList.add("show");
+      msg.className="msg bad";
+      msg.textContent="连续 3 次验证码错误。";
+      cells.forEach(function(c){c.disabled=true});
+    }else{
+      msg.className="msg bad";
+      msg.textContent="验证码不对，还剩 "+(3-tries)+" 次机会。";
+    }
+    refresh();
+  });
+  var left=30;
+  var t=setInterval(function(){
+    left-=1;
+    if(left<=0){
+      clearInterval(t);
+      resend.disabled=false;
+      resend.classList.add("ready");
+      resend.textContent="重新发送验证码";
+    }else{
+      resend.textContent=left+" 秒后可重发";
+    }
+  },1000);
+  resend.addEventListener("click",function(){
+    left=30;
+    resend.disabled=false;
+    msg.className="msg good";
+    msg.textContent="新验证码已发送到 137****6021。";
+    var t2=setInterval(function(){
+      left-=1;
+      if(left<=0){clearInterval(t2);resend.disabled=false;resend.classList.add("ready");resend.textContent="重新发送验证码"}
+      else{resend.disabled=true;resend.classList.remove("ready");resend.textContent=left+" 秒后可重发"}
+    },1000);
+  });
+  refresh();
+})();
+</script>
+</body>
+</html>

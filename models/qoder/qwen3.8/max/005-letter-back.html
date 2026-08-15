@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>驿邮 · 找回密码</title>
+<style>
+:root{
+  --slate:#edf1f7; --card:#ffffff; --navy:#17324d; --post:#2f6fed;
+  --post-deep:#1f56bd; --muted:#67788c; --line:#d7dfeb; --ok:#1e7d4f;
+  --sans:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+  --mono:ui-monospace,Consolas,monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--slate);color:var(--navy);font:15px/1.65 var(--sans);min-height:100vh;display:grid;place-items:center;padding:32px 16px}
+.card{width:480px;max-width:100%;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:38px 40px 32px;box-shadow:0 16px 40px #17324d12}
+.stamp{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px}
+.stamp .name{font-weight:700;font-size:16px;letter-spacing:.06em}
+.stamp .tag{font:12px var(--mono);color:var(--post);border:1px dashed #2f6fed88;padding:4px 10px;border-radius:6px}
+h1{font-size:24px;margin:0 0 8px}
+.lead{color:var(--muted);margin:0 0 24px;font-size:14px}
+label{display:block;font-size:13px;font-weight:600;margin-bottom:7px}
+input[type=email]{width:100%;height:46px;border:1px solid var(--line);border-radius:9px;padding:0 13px;font:inherit;background:#fbfcfe;transition:border-color .16s,box-shadow .16s}
+input:focus{outline:none;border-color:var(--post);box-shadow:0 0 0 3px #2f6fed22;background:#fff}
+.send{width:100%;height:47px;margin-top:18px;border:0;border-radius:9px;background:var(--post);color:#fff;font:600 15px var(--sans);cursor:pointer;transition:background .16s}
+.send:hover{background:var(--post-deep)}
+.send:focus-visible{outline:3px solid #2f6fed44;outline-offset:2px}
+.send:disabled{background:#a9c0e2;cursor:wait}
+.err{color:#b3372f;font-size:13px;margin:8px 0 0;min-height:18px}
+.waiting{display:none;margin-top:20px;border:1px solid var(--line);border-radius:10px;padding:16px 18px;background:#f6f9fd}
+.waiting.show{display:block}
+.waiting .head{display:flex;align-items:center;gap:10px;font-weight:600}
+.spin{width:16px;height:16px;border:2px solid #2f6fed44;border-top-color:var(--post);border-radius:50%;animation:turn 0.9s linear infinite}
+@keyframes turn{to{transform:rotate(360deg)}}
+.waiting p{margin:8px 0 0;color:var(--muted);font-size:13px}
+.waiting .to{color:var(--navy);font-weight:600}
+.resend{margin-top:12px;border:0;background:none;color:var(--muted);font:13px var(--sans);cursor:pointer;padding:4px 0}
+.resend.ready{color:var(--post);font-weight:600}
+.resend:disabled{cursor:not-allowed}
+.backline{margin-top:22px;text-align:center;font-size:14px}
+.backline a{color:var(--navy);font-weight:600;text-decoration:none;border-bottom:1px solid var(--line);padding-bottom:1px}
+.backline a:hover{color:var(--post);border-color:var(--post)}
+.done-note{display:none;margin-top:14px;background:#e7f3ec;color:var(--ok);border:1px solid #cfe6d8;border-radius:8px;padding:10px 12px;font-size:13px}
+.done-note.show{display:block}
+@media (max-width:540px){.card{padding:28px 22px}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.spin{animation:none!important;border-top-color:var(--post)}}
+</style>
+</head>
+<body>
+<main class="card">
+  <div class="stamp"><span class="name">驿邮</span><span class="tag">NO.2026-0815</span></div>
+  <h1>找回你的入口</h1>
+  <p class="lead">填写注册邮箱，我们会寄出一封重置信，链接 30 分钟内有效。</p>
+  <div id="formZone">
+    <label for="mail">注册邮箱</label>
+    <input type="email" id="mail" placeholder="name@example.com" autocomplete="email">
+    <p class="err" id="errMsg"></p>
+    <button class="send" id="sendBtn" type="button">寄出重置信</button>
+  </div>
+  <div class="waiting" id="waiting" role="status">
+    <div class="head"><span class="spin" aria-hidden="true"></span><span>重置信已寄出</span></div>
+    <p>请查收 <span class="to" id="sentTo"></span> 的收件箱，没收到的话看看垃圾邮件。</p>
+    <p>没收到？<span id="countdown">60 秒</span>后可重新寄出一封。</p>
+    <button class="resend" id="resendBtn" type="button" disabled>重新寄出</button>
+  </div>
+  <div class="done-note" id="doneNote">第二封重置信也已寄出，旧链接随之作废。</div>
+  <p class="backline">想起来了？<a href="#login">回登录页</a></p>
+</main>
+<script>
+(function(){
+  "use strict";
+  var mail=document.getElementById("mail");
+  var sendBtn=document.getElementById("sendBtn");
+  var errMsg=document.getElementById("errMsg");
+  var waiting=document.getElementById("waiting");
+  var sentTo=document.getElementById("sentTo");
+  var countdown=document.getElementById("countdown");
+  var resendBtn=document.getElementById("resendBtn");
+  var doneNote=document.getElementById("doneNote");
+  var timer=null;
+  function startCountdown(){
+    var left=60;
+    resendBtn.disabled=true;
+    resendBtn.classList.remove("ready");
+    countdown.textContent=left+" 秒";
+    if(timer)clearInterval(timer);
+    timer=setInterval(function(){
+      left-=1;
+      if(left<=0){
+        clearInterval(timer);timer=null;
+        countdown.textContent="现在";
+        resendBtn.disabled=false;
+        resendBtn.classList.add("ready");
+      }else{
+        countdown.textContent=left+" 秒";
+      }
+    },1000);
+  }
+  sendBtn.addEventListener("click",function(){
+    var value=mail.value.trim();
+    doneNote.classList.remove("show");
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)){
+      errMsg.textContent="邮箱格式看起来不对，请检查后再寄。";
+      return;
+    }
+    errMsg.textContent="";
+    sendBtn.disabled=true;sendBtn.textContent="正在装封…";
+    setTimeout(function(){
+      sendBtn.disabled=false;sendBtn.textContent="寄出重置信";
+      sentTo.textContent=value;
+      waiting.classList.add("show");
+      startCountdown();
+    },800);
+  });
+  resendBtn.addEventListener("click",function(){
+    doneNote.classList.add("show");
+    startCountdown();
+  });
+})();
+</script>
+</body>
+</html>

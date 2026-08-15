@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>青禾工作台 · 删除工作区</title>
+<style>
+:root{
+  --bg:#f7f6f5; --card:#ffffff; --ink:#24211f; --muted:#86807a;
+  --line:#e7e3df; --red:#c22e2e; --red-deep:#9c2222; --soft:#fbecec;
+  --sans:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.7 var(--sans)}
+.stripe{height:8px;background:repeating-linear-gradient(-45deg,var(--red) 0 14px,#24211f 14px 28px)}
+.wrap{max-width:720px;margin:0 auto;padding:40px 22px 80px}
+.crumb{font-size:13px;color:var(--muted);margin-bottom:14px}
+.crumb b{color:var(--ink)}
+.card{background:var(--card);border:1px solid var(--line);border-top:4px solid var(--red);border-radius:14px;padding:28px 30px}
+h1{font-size:22px;margin:0 0 8px;color:var(--red)}
+.lead{margin:0 0 22px;color:var(--muted)}
+.loss{background:var(--soft);border:1px solid #efcaca;border-radius:11px;padding:16px 18px;margin-bottom:22px}
+.loss h2{font-size:14px;margin:0 0 10px;color:var(--red-deep)}
+.loss li{font-size:13px;margin:4px 0;padding-left:4px}
+.typeline label{display:block;font-size:13px;font-weight:600;margin-bottom:8px}
+.typeline code{background:#f1eeeb;border-radius:5px;padding:1px 8px;font-family:ui-monospace,Consolas,monospace;color:var(--red)}
+.typeline input{width:100%;height:46px;border:1px solid var(--line);border-radius:10px;padding:0 14px;font:inherit;background:#fff;transition:border-color .15s,box-shadow .15s}
+.typeline input:focus{outline:none;border-color:var(--red);box-shadow:0 0 0 3px #c22e2e1e}
+.typeline .match{font-size:12px;margin:6px 0 0;min-height:18px;color:var(--muted)}
+.typeline .match.ok{color:var(--red);font-weight:600}
+.btns{display:flex;gap:12px;margin-top:24px}
+.cancel{flex:1.5;height:48px;border:0;border-radius:10px;background:var(--ink);color:#fff;font:700 15px var(--sans);cursor:pointer;transition:background .15s}
+.cancel:hover{background:#000}
+.cancel:focus-visible{outline:3px solid #24211f44;outline-offset:2px}
+.delete{flex:1;height:48px;border:1px solid #e4b9b9;border-radius:10px;background:#fff;color:var(--red);font:600 15px var(--sans);cursor:pointer}
+.delete:hover:not(:disabled){background:var(--red);color:#fff;border-color:var(--red)}
+.delete:disabled{opacity:.45;cursor:not-allowed}
+.delete:focus-visible{outline:2px solid var(--red);outline-offset:2px}
+.result{display:none;margin-top:16px;border-radius:9px;padding:11px 14px;font-size:13px}
+.result.show{display:block}
+.result.gone{background:var(--soft);color:var(--red-deep);border:1px solid #efcaca}
+.result.stay{background:#eef1ee;color:#3e6b4f;border:1px solid #d7e0d6}
+@media (max-width:560px){.btns{flex-direction:column-reverse}.card{padding:22px 18px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="stripe" aria-hidden="true"></div>
+<main class="wrap">
+  <p class="crumb">设置 / 工作区 / <b>危险操作</b></p>
+  <section class="card">
+    <h1>删除「青禾」工作区</h1>
+    <p class="lead">这是无法恢复的操作。删除后，工作区与其全部内容会立即从所有成员的界面中消失。</p>
+    <div class="loss">
+      <h2>你将永久失去</h2>
+      <ul>
+        <li>14 个项目与 236 条任务记录</li>
+        <li>31 位成员的协作历史与评论</li>
+        <li>2.4 GB 附件、模板与自动化流程</li>
+        <li>「青禾」这个名字（30 天内他人可重新注册）</li>
+      </ul>
+    </div>
+    <div class="typeline">
+      <label for="word">请输入工作区名称 <code>青禾</code> 以解锁删除按钮</label>
+      <input type="text" id="word" placeholder="逐字输入，不接受别名" autocomplete="off">
+      <p class="match" id="matchNote"></p>
+    </div>
+    <div class="btns">
+      <button class="cancel" id="cancelBtn" type="button">取消，保留工作区</button>
+      <button class="delete" id="delBtn" type="button" disabled>永久删除</button>
+    </div>
+    <p class="result" id="result" role="status"></p>
+  </section>
+</main>
+<script>
+(function(){
+  "use strict";
+  var WORD="青禾";
+  var word=document.getElementById("word");
+  var note=document.getElementById("matchNote");
+  var del=document.getElementById("delBtn");
+  var cancel=document.getElementById("cancelBtn");
+  var result=document.getElementById("result");
+  word.addEventListener("input",function(){
+    var ok=word.value.trim()===WORD;
+    del.disabled=!ok;
+    note.className="match"+(ok?" ok":"");
+    note.textContent=word.value?(ok?"名称匹配，删除按钮已解锁。":"还不是工作区名称，请逐字输入「青禾」。"):"";
+  });
+  del.addEventListener("click",function(){
+    result.className="result show gone";
+    result.textContent="「青禾」工作区已永久删除。数据将按法规在 72 小时内从备份中清除。";
+    del.disabled=true;
+    del.textContent="已删除";
+    word.disabled=true;
+  });
+  cancel.addEventListener("click",function(){
+    result.className="result show stay";
+    result.textContent="已取消。工作区「青禾」安然无恙，一切照旧。";
+  });
+})();
+</script>
+</body>
+</html>

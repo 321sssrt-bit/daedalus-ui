@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>云梯协作 · 定价</title>
+<style>
+:root{
+  --bg:#f4f6fd; --card:#ffffff; --ink:#22294a; --muted:#7b81a0;
+  --line:#e2e5f2; --royal:#3145c8; --royal-deep:#24339b; --navy:#1c2340;
+  --sans:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.65 var(--sans)}
+.hero{text-align:center;padding:54px 20px 26px}
+.hero h1{font-size:32px;margin:0 0 10px}
+.hero p{color:var(--muted);margin:0 auto;max-width:460px}
+.switch{display:inline-flex;margin-top:24px;border:1px solid var(--line);border-radius:999px;background:var(--card);padding:4px}
+.switch button{border:0;background:transparent;border-radius:999px;padding:8px 22px;font:600 13px var(--sans);color:var(--muted);cursor:pointer}
+.switch button.on{background:var(--royal);color:#fff}
+.switch button:focus-visible{outline:2px solid var(--royal);outline-offset:2px}
+.switch small{color:#c9a13c;font-weight:700}
+.tiers{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;max-width:1040px;margin:30px auto 70px;padding:0 22px;align-items:stretch}
+.tier{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:26px 24px;display:flex;flex-direction:column;position:relative}
+.tier.hot{background:var(--navy);color:#eef0fb;border-color:var(--navy);transform:translateY(-12px);box-shadow:0 22px 44px #1c234026}
+.ribbon{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:#f0b429;color:#40300a;border-radius:999px;font-size:12px;font-weight:700;padding:4px 14px;white-space:nowrap}
+.tier h2{font-size:18px;margin:0}
+.tier .desc{color:var(--muted);font-size:12px;margin:4px 0 16px}
+.tier.hot .desc{color:#a8aecb}
+.amount{font-size:34px;font-weight:800}
+.amount small{font-size:13px;font-weight:400;color:var(--muted)}
+.tier.hot .amount small{color:#a8aecb}
+.per{margin:2px 0 16px;color:var(--muted);font-size:12px}
+.tier.hot .per{color:#a8aecb}
+ul{margin:0 0 20px;padding:0;list-style:none;flex:1}
+li{padding:7px 0 7px 22px;position:relative;font-size:13px;border-bottom:1px dashed var(--line)}
+.tier.hot li{border-color:#333c63}
+li:before{content:"✓";position:absolute;left:0;color:var(--royal);font-weight:700}
+.tier.hot li:before{color:#f0b429}
+.choose{height:44px;border-radius:10px;font:700 14px var(--sans);cursor:pointer;transition:background .15s;border:1px solid var(--royal);background:transparent;color:var(--royal)}
+.choose:hover{background:#eef1fd}
+.tier.hot .choose{background:#f0b429;border-color:#f0b429;color:#40300a}
+.tier.hot .choose:hover{background:#f7c95a}
+.choose:focus-visible{outline:3px solid #3145c844;outline-offset:2px}
+.foot{text-align:center;color:var(--muted);font-size:12px;margin-bottom:60px}
+@media (max-width:900px){.tiers{grid-template-columns:1fr;max-width:460px}.tier.hot{transform:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<header class="hero">
+  <h1>给团队选一个云梯</h1>
+  <p>云梯协作按团队规模收费，随时升档或降档，按天折算差价。</p>
+  <div class="switch" role="group" aria-label="计费周期">
+    <button type="button" class="on" data-cycle="m">按月</button>
+    <button type="button" data-cycle="y">按年 <small>省 20%</small></button>
+  </div>
+</header>
+<main class="tiers" id="tiers"></main>
+<p class="foot">所有档位都含 7 天试用 · 支持对公转账与发票 · 超过 200 人请联系销售</p>
+<script>
+(function(){
+  "use strict";
+  var PLANS=[
+    {name:"小队",desc:"5 人以内的起步团队",m:0,y:0,unit:"永久免费",btn:"免费开始",hot:false,feats:["3 个项目空间","基础看板与日历","1GB 附件空间","社区支持"]},
+    {name:"成长",desc:"正在冲刺的 20 人团队",m:18,y:14.4,unit:"每人 / 月",btn:"开始 7 天试用",hot:true,feats:["不限项目空间","自动化流程 50 条/月","时间线与甘特视图","50GB 附件空间","工作日在线客服"]},
+    {name:"旗舰",desc:"跨部门与合规需求",m:42,y:33.6,unit:"每人 / 月",btn:"联系销售",hot:false,feats:["成长档全部能力","SSO 单点登录","审计日志与数据导出","专属客户成功经理","99.95% 可用性承诺"]}
+  ];
+  var cycle="m";
+  var box=document.getElementById("tiers");
+  function priceText(p){
+    if(p.m===0)return '<span class="amount">¥ 0</span>';
+    var v=cycle==="m"?p.m:p.y;
+    return '<span class="amount">¥ '+(Number.isInteger(v)?v:v.toFixed(1))+"<small> "+p.unit+"</small></span>";
+  }
+  function render(){
+    box.innerHTML="";
+    PLANS.forEach(function(p){
+      var card=document.createElement("section");
+      card.className="tier"+(p.hot?" hot":"");
+      card.innerHTML=(p.hot?'<div class="ribbon">最多团队选择</div>':'')+
+        "<h2>"+p.name+'</h2><div class="desc">'+p.desc+"</div>"+
+        priceText(p)+
+        '<div class="per">'+(p.m===0?"无需绑卡":(cycle==="m"?"按月支付，随时取消":"按年支付，折合每月"))+'</div>'+
+        "<ul>"+p.feats.map(function(f){return "<li>"+f+"</li>"}).join("")+"</ul>"+
+        '<button class="choose" type="button">'+p.btn+"</button>";
+      card.querySelector(".choose").addEventListener("click",function(ev){
+        ev.target.textContent=p.m===0?"已为你开通小队档":(p.btn==="联系销售"?"已提交需求，销售明天联系你":"试用已开启，今天就算第一天");
+        ev.target.disabled=true;
+      });
+      box.appendChild(card);
+    });
+  }
+  document.querySelector(".switch").addEventListener("click",function(ev){
+    var btn=ev.target.closest("button");
+    if(!btn)return;
+    document.querySelectorAll(".switch button").forEach(function(b){b.classList.remove("on")});
+    btn.classList.add("on");
+    cycle=btn.getAttribute("data-cycle");
+    render();
+  });
+  render();
+})();
+</script>
+</body>
+</html>

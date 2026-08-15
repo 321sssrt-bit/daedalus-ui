@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>拾光俱乐部 · 凭柬而入</title>
+<style>
+:root{
+  --night:#0f211c; --panel:#16302a; --gold:#c9a45c; --gold-soft:#e6cf9a;
+  --text:#efe7d4; --muted:#8fa295; --line:#2c453c; --bad:#d4785f;
+  --serif:"Songti SC","STSong","SimSun",serif;
+  --sans:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:radial-gradient(1200px 700px at 50% -10%,#1b3a31 0%,var(--night) 62%);color:var(--text);font:15px/1.7 var(--sans);display:grid;place-items:center;padding:36px 16px}
+.invite{width:460px;max-width:100%;text-align:center}
+.crest{width:76px;height:76px;margin:0 auto 22px;border:1px solid var(--gold);border-radius:50%;display:grid;place-items:center;font-family:var(--serif);font-size:30px;color:var(--gold);background:radial-gradient(circle at 50% 30%,#1e3d33,#122821)}
+.kicker{letter-spacing:.5em;font-size:12px;color:var(--gold);text-indent:.5em;margin:0}
+h1{font-family:var(--serif);font-size:32px;font-weight:600;margin:12px 0 10px;letter-spacing:.12em}
+.lead{color:var(--muted);margin:0 auto 30px;max-width:360px;font-size:14px}
+.box{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:30px 28px 26px;position:relative}
+.box:before{content:"";position:absolute;inset:8px;border:1px solid #c9a45c33;border-radius:8px;pointer-events:none}
+label{display:block;font-size:12px;letter-spacing:.3em;color:var(--gold);margin-bottom:12px;text-indent:.3em}
+.code{width:100%;height:54px;background:#0d1b17;border:1px solid var(--line);border-radius:8px;color:var(--gold-soft);font:600 20px/1 ui-monospace,Consolas,monospace;letter-spacing:.42em;text-align:center;text-transform:uppercase;padding:0 8px;transition:border-color .18s,box-shadow .18s}
+.code::placeholder{color:#4d6157;letter-spacing:.3em;font-size:14px;text-transform:none}
+.code:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px #c9a45c26}
+.code.shake{animation:shake .4s ease}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-7px)}55%{transform:translateX(6px)}80%{transform:translateX(-3px)}}
+.verify{width:100%;height:48px;margin-top:16px;background:var(--gold);border:0;border-radius:8px;color:#241c0c;font:600 15px var(--sans);letter-spacing:.35em;text-indent:.35em;cursor:pointer;transition:background .18s,transform .12s}
+.verify:hover{background:var(--gold-soft)}
+.verify:active{transform:translateY(1px)}
+.verify:focus-visible{outline:2px solid var(--gold-soft);outline-offset:3px}
+.verify:disabled{background:#5d553f;color:#9b917a;cursor:wait}
+.verdict{margin-top:16px;min-height:22px;font-size:13px}
+.verdict.fail{color:var(--bad)}
+.verdict.ok{color:var(--gold-soft)}
+.hint{color:var(--muted);font-size:12px;margin-top:14px}
+.hint a{color:var(--gold);text-decoration:none;border-bottom:1px dotted #c9a45c66}
+.try{margin-top:10px;font-size:12px;color:#55705f}
+@media (max-width:520px){h1{font-size:26px}.box{padding:24px 18px}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<main class="invite">
+  <div class="crest" aria-hidden="true">拾</div>
+  <p class="kicker">INVITATION ONLY</p>
+  <h1>拾光俱乐部</h1>
+  <p class="lead">这里只向受邀者开放。请核对朋友赠予你的邀请柬码，核对通过即可入席。</p>
+  <form class="box" id="inviteForm">
+    <label for="codeInput">邀 请 柬 码</label>
+    <input class="code" id="codeInput" maxlength="8" placeholder="八位柬码" autocomplete="off" spellcheck="false">
+    <button type="submit" class="verify" id="verifyBtn">核 对 柬 码</button>
+    <p class="verdict" id="verdict" role="status"></p>
+    <p class="try" id="tryNote">演示柬码：SG2026X8（含演示角标可触发失败）</p>
+    <p class="hint">柬码遗失或没有朋友邀请？<a href="#waitlist">登记候补名单</a></p>
+  </form>
+</main>
+<script>
+(function(){
+  "use strict";
+  var VALID="SG2026X8";
+  var form=document.getElementById("inviteForm");
+  var input=document.getElementById("codeInput");
+  var btn=document.getElementById("verifyBtn");
+  var verdict=document.getElementById("verdict");
+  var tries=0;
+  form.addEventListener("submit",function(ev){
+    ev.preventDefault();
+    var code=input.value.trim().toUpperCase();
+    verdict.className="verdict";
+    if(code.length!==8){
+      verdict.className="verdict fail";
+      verdict.textContent="柬码应为 8 位，请对照柬卡再输一次。";
+      return;
+    }
+    btn.disabled=true;btn.textContent="正在核对…";
+    setTimeout(function(){
+      btn.disabled=false;btn.textContent="核 对 柬 码";
+      if(code===VALID){
+        verdict.className="verdict ok";
+        verdict.textContent="核对通过。欢迎入席，正在为你安排 2 楼临窗座…";
+      }else{
+        tries+=1;
+        input.classList.remove("shake");
+        void input.offsetWidth;
+        input.classList.add("shake");
+        verdict.className="verdict fail";
+        verdict.textContent=tries>=3
+          ?"连续三次核对未通过，本次柬码已锁定 10 分钟，可先登记候补。"
+          :"这份柬码不在名册上，请核对大小写与数字。还可尝试 "+(3-tries)+" 次。";
+      }
+    },800);
+  });
+})();
+</script>
+</body>
+</html>

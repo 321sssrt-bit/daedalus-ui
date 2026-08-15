@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>巷口小铺 · 商店首页</title>
+<style>
+:root{
+  --cream:#fdf6ec; --card:#ffffff; --ink:#35272a; --muted:#98817f;
+  --line:#f0e2d0; --red:#d23b3b; --red-deep:#b02c2c; --gold:#f0a832; --leaf:#4f7d46;
+  --sans:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--cream);color:var(--ink);font:14px/1.6 var(--sans)}
+.awning{height:14px;background:repeating-linear-gradient(90deg,var(--red) 0 40px,#fff 40px 80px)}
+.bar{background:var(--red);color:#fff;padding:16px 30px;display:flex;justify-content:space-between;align-items:center}
+.bar h1{font-size:22px;margin:0;letter-spacing:.06em}
+.bar .sub{font-size:12px;opacity:.85;margin-top:2px}
+.cart{position:relative;border:0;background:#fff;color:var(--red);border-radius:999px;padding:9px 20px;font:700 14px var(--sans);cursor:pointer}
+.cart:hover{background:#ffe9e2}
+.cart:focus-visible{outline:3px solid #ffffff88;outline-offset:2px}
+.badge{position:absolute;top:-7px;right:-7px;background:var(--gold);color:#3a2a08;border-radius:999px;font-size:12px;min-width:22px;height:22px;display:grid;place-items:center;padding:0 5px}
+.shelf{max-width:1120px;margin:0 auto;padding:26px 24px 60px}
+.shelf-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:16px}
+.shelf-head h2{font-size:18px;margin:0}
+.shelf-head span{color:var(--muted);font-size:12px}
+.goods{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.g{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;display:flex;flex-direction:column}
+.pic{height:120px;display:grid;place-items:center;font-size:44px}
+.g .info{padding:12px 14px 14px;display:flex;flex-direction:column;flex:1}
+.g .name{font-weight:700;font-size:14px}
+.g .note{font-size:12px;color:var(--muted);margin:3px 0 10px;flex:1}
+.g .buy{display:flex;justify-content:space-between;align-items:center}
+.price{color:var(--red);font-weight:800;font-size:16px}
+.price small{font-size:12px;font-weight:400}
+.add{border:0;background:var(--red);color:#fff;border-radius:8px;padding:7px 14px;font:600 13px var(--sans);cursor:pointer;transition:background .15s}
+.add:hover{background:var(--red-deep)}
+.add:focus-visible{outline:2px solid var(--red);outline-offset:2px}
+.fav{border:1px solid var(--line);background:#fff;border-radius:8px;width:34px;height:32px;cursor:pointer;color:var(--muted);font-size:15px;margin-left:8px}
+.fav.on{color:var(--red);border-color:#f0c2c2;background:#fff3f1}
+.toast{position:fixed;left:50%;bottom:30px;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;border-radius:999px;padding:10px 22px;font-size:13px;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+@media (max-width:960px){.goods{grid-template-columns:repeat(2,1fr)}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="awning" aria-hidden="true"></div>
+<header class="bar">
+  <div><h1>巷口小铺</h1><div class="sub">每晚 18:00 上新 · 满 ¥39 免配送</div></div>
+  <button class="cart" id="cartBtn" type="button">购物袋<span class="badge" id="cartBadge">0</span></button>
+</header>
+<main class="shelf">
+  <div class="shelf-head"><h2>今晚的货架</h2><span>共 8 件 · 全部当日制作</span></div>
+  <section class="goods" id="goods"></section>
+</main>
+<div class="toast" id="toast" role="status"></div>
+<script>
+(function(){
+  "use strict";
+  var GOODS=[
+    {name:"桂花米糕",note:"现蒸，微甜不腻",price:12,emoji:"糕",bg:"#fbeedd"},
+    {name:"冰镇酸梅汤",note:"老方子熬六小时",price:9,emoji:"饮",bg:"#fde8e4"},
+    {name:"葱油拌面",note:"葱现炸，面现煮",price:15,emoji:"面",bg:"#eef2e2"},
+    {name:"红豆双皮奶",note:"顺德手艺，冷藏更佳",price:14,emoji:"奶",bg:"#f6ecf3"},
+    {name:"椒盐烧饼",note:"炉烤，外脆里软",price:8,emoji:"饼",bg:"#fdf0dc"},
+    {name:"茉莉冷泡茶",note:"冷萃八小时",price:11,emoji:"茶",bg:"#e8f1ec"},
+    {name:"糖炒栗子",note:"迁西栗，当日现炒",price:18,emoji:"栗",bg:"#f3e8da"},
+    {name:"酒酿小圆子",note:"温食最佳",price:13,emoji:"圆",bg:"#fdeee9"}
+  ];
+  var bag=0;
+  var goodsBox=document.getElementById("goods");
+  var badge=document.getElementById("cartBadge");
+  var toast=document.getElementById("toast");
+  var toastTimer=null;
+  function say(text){
+    toast.textContent=text;
+    toast.classList.add("show");
+    if(toastTimer)clearTimeout(toastTimer);
+    toastTimer=setTimeout(function(){toast.classList.remove("show")},1600);
+  }
+  GOODS.forEach(function(g){
+    var card=document.createElement("article");
+    card.className="g";
+    card.innerHTML='<div class="pic" style="background:'+g.bg+'"><span>'+g.emoji+'</span></div><div class="info"><div class="name">'+g.name+'</div><div class="note">'+g.note+'</div><div class="buy"><span class="price"><small>¥</small>'+g.price+'</span><span><button class="add" type="button">加袋子</button><button class="fav" type="button" aria-label="收藏">♥</button></span></div></div>';
+    card.querySelector(".add").addEventListener("click",function(){
+      bag+=1;
+      badge.textContent=bag;
+      say("「"+g.name+"」已放进购物袋");
+    });
+    card.querySelector(".fav").addEventListener("click",function(ev){
+      var on=ev.target.classList.toggle("on");
+      say(on?"已收藏「"+g.name+"」":"已取消收藏「"+g.name+"」");
+    });
+    goodsBox.appendChild(card);
+  });
+  document.getElementById("cartBtn").addEventListener("click",function(){
+    say(bag?"袋子里现在有 "+bag+" 件好物":"袋子还空着，先逛逛吧");
+  });
+})();
+</script>
+</body>
+</html>

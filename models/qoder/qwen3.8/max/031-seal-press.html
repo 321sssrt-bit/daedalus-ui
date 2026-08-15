@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>纸间编辑部 · 发布确认</title>
+<style>
+:root{
+  --parch:#f9f3e5; --card:#fffdf7; --ink:#33281a; --muted:#948468;
+  --line:#eadfc6; --bronze:#8a621c; --bronze-deep:#6e4d14; --ok:#3f7d4f;
+  --serif:"Songti SC","STSong","SimSun",serif;
+  --sans:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:var(--parch);color:var(--ink);font:15px/1.75 var(--sans);display:grid;place-items:center;padding:32px 16px}
+.card{width:540px;max-width:100%;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:34px 38px;box-shadow:0 20px 46px #33281a14}
+.kicker{font-size:12px;letter-spacing:.3em;color:var(--bronze);margin:0 0 8px}
+h1{font-family:var(--serif);font-size:26px;margin:0 0 8px}
+.conseq{background:#f6ecd6;border:1px solid #e6d5ab;border-radius:10px;padding:12px 15px;font-size:13.5px;margin:0 0 20px}
+.conseq b{color:var(--bronze-deep)}
+.doc{border:1px solid var(--line);border-radius:10px;padding:12px 15px;margin-bottom:20px;font-size:13px;color:var(--muted)}
+.doc b{color:var(--ink);font-size:14px;display:block;margin-bottom:2px}
+.acks{display:grid;gap:10px;margin-bottom:24px}
+.ack{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:10px;padding:11px 13px;font-size:13px;cursor:pointer;transition:background .15s,border-color .15s}
+.ack:hover{background:#faf4e4}
+.ack.on{border-color:var(--bronze);background:#f8efdb}
+.ack input{margin-top:3px;accent-color:var(--bronze);width:15px;height:15px}
+.btns{display:flex;gap:12px}
+.back{flex:1;height:46px;border:1px solid var(--line);background:#fff;border-radius:10px;font:600 15px var(--sans);cursor:pointer;color:var(--ink)}
+.back:hover{background:#f6efe0}
+.back:focus-visible{outline:2px solid var(--bronze);outline-offset:2px}
+.seal{flex:1.4;height:46px;border:0;border-radius:10px;background:var(--bronze);color:#fff;font:700 15px var(--sans);letter-spacing:.12em;cursor:pointer;transition:background .15s}
+.seal:hover:not(:disabled){background:var(--bronze-deep)}
+.seal:disabled{background:#cbbd9d;cursor:not-allowed}
+.seal:focus-visible{outline:3px solid #8a621c44;outline-offset:2px}
+.result{display:none;margin-top:16px;padding:11px 14px;border-radius:9px;font-size:13px}
+.result.show{display:block}
+.result.ok{background:#e7f0e4;color:var(--ok);border:1px solid #cfe0c8}
+.result.info{background:#f1ecdd;color:#6e5a2c;border:1px solid var(--line)}
+@media (max-width:560px){.card{padding:26px 20px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<main class="card">
+  <p class="kicker">FINAL STEP · 发布确认</p>
+  <h1>给这一期盖章</h1>
+  <p class="conseq"><b>按下确认后无法撤回：</b>《纸间》第 47 期将立即向 12,480 位订阅者推送，并锁定全部文章为终稿。</p>
+  <div class="doc"><b>第 47 期「手艺与机器」</b>6 篇文章 · 28 张配图 · 封面已通过三审 · 校对签：老柏</div>
+  <div class="acks">
+    <label class="ack" id="ack1"><input type="checkbox">我已逐篇复核目录与作者署名，确认没有遗漏或错排。</label>
+    <label class="ack" id="ack2"><input type="checkbox">我知晓发布后无法撤回，如需更正只能追加勘误说明。</label>
+  </div>
+  <div class="btns">
+    <button class="back" id="backBtn" type="button">返回修改</button>
+    <button class="seal" id="sealBtn" type="button" disabled>盖章发布</button>
+  </div>
+  <p class="result" id="result" role="status"></p>
+</main>
+<script>
+(function(){
+  "use strict";
+  var acks=[document.getElementById("ack1"),document.getElementById("ack2")];
+  var seal=document.getElementById("sealBtn");
+  var back=document.getElementById("backBtn");
+  var result=document.getElementById("result");
+  function refresh(){
+    acks.forEach(function(a){a.classList.toggle("on",a.querySelector("input").checked)});
+    var all=acks.every(function(a){return a.querySelector("input").checked});
+    seal.disabled=!all;
+  }
+  acks.forEach(function(a){
+    a.querySelector("input").addEventListener("change",refresh);
+  });
+  seal.addEventListener("click",function(){
+    seal.disabled=true;
+    seal.textContent="已发布";
+    result.className="result show ok";
+    result.textContent="第 47 期已于刚才推送给 12,480 位订阅者，推送回执编号 PB-047。";
+  });
+  back.addEventListener("click",function(){
+    result.className="result show info";
+    result.textContent="已返回编辑页（演示）。未确认的发布不会生效。";
+    seal.disabled=true;
+  });
+  refresh();
+})();
+</script>
+</body>
+</html>

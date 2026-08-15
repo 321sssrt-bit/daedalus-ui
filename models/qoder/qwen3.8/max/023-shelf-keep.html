@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>拾贝 · 我的收藏</title>
+<style>
+:root{
+  --bg:#eef3f8; --card:#ffffff; --ink:#22303e; --muted:#7f8da0;
+  --line:#dbe4ee; --bay:#2f6b9e; --bay-soft:#e3edf6; --coral:#d9604a;
+  --sans:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.6 var(--sans)}
+.top{max-width:860px;margin:0 auto;padding:34px 20px 10px;display:flex;justify-content:space-between;align-items:flex-end}
+.top h1{font-size:26px;margin:0}
+.top .sub{color:var(--muted);font-size:13px;margin-top:4px}
+.tabs{display:flex;gap:8px;max-width:860px;margin:14px auto 0;padding:0 20px}
+.tab{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:7px 18px;font:inherit;font-size:13px;cursor:pointer;color:var(--muted)}
+.tab:hover{border-color:var(--bay);color:var(--bay)}
+.tab.on{background:var(--bay);border-color:var(--bay);color:#fff}
+.tab:focus-visible{outline:2px solid var(--bay);outline-offset:2px}
+.list{max-width:860px;margin:16px auto 70px;padding:0 20px;display:grid;gap:10px}
+.item{display:grid;grid-template-columns:44px 1fr auto;gap:14px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:13px 16px}
+.kind{width:42px;height:42px;border-radius:10px;display:grid;place-items:center;font-size:18px}
+.k-article{background:var(--bay-soft);color:var(--bay)}
+.k-goods{background:#fdeee4;color:#c26a2a}
+.k-recipe{background:#e9f3e6;color:#4a7a3f}
+.item b{display:block;font-size:14px}
+.item .meta{font-size:12px;color:var(--muted);margin-top:2px}
+.del{border:1px solid var(--line);background:#fff;color:var(--muted);border-radius:8px;padding:7px 14px;font:12px var(--sans);cursor:pointer}
+.del:hover{color:var(--coral);border-color:#ecc9c1;background:#fdf3f1}
+.del:focus-visible{outline:2px solid var(--coral);outline-offset:2px}
+.empty{padding:50px 20px;text-align:center;color:var(--muted)}
+.toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);background:var(--ink);color:#fff;border-radius:10px;padding:11px 18px;font-size:13px;display:none;align-items:center;gap:14px}
+.toast.show{display:flex}
+.toast button{border:0;background:none;color:#8fd0ff;font:600 13px var(--sans);cursor:pointer}
+@media (max-width:560px){.top{flex-direction:column;align-items:flex-start;gap:6px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div><h1>我的收藏</h1><p class="sub">拾贝 · 网页、好物与菜谱都收在这里</p></div>
+</header>
+<div class="tabs" id="tabs" role="group" aria-label="收藏分类">
+  <button class="tab on" type="button" data-k="all">全部</button>
+  <button class="tab" type="button" data-k="article">文章</button>
+  <button class="tab" type="button" data-k="goods">好物</button>
+  <button class="tab" type="button" data-k="recipe">菜谱</button>
+</div>
+<main class="list" id="list"></main>
+<div class="toast" id="toast" role="status"><span id="toastText"></span><button id="undo" type="button">撤销</button></div>
+<script>
+(function(){
+  "use strict";
+  var SAVES=[
+    {k:"article",title:"空态设计的十种分寸",meta:"收藏于 8 月 12 日 · 来自 纸间"},
+    {k:"goods",title:"黄铜手冲壶 600ml",meta:"收藏于 8 月 10 日 · ¥ 268"},
+    {k:"recipe",title:"葱油拌面的三个关键",meta:"收藏于 8 月 8 日 · 15 分钟"},
+    {k:"article",title:"为什么看板总是三列",meta:"收藏于 8 月 6 日 · 来自 云梯博客"},
+    {k:"goods",title:"粗陶山月杯",meta:"收藏于 8 月 3 日 · ¥ 128"},
+    {k:"recipe",title:"冰镇酸梅汤老方子",meta:"收藏于 7 月 30 日 · 6 小时"},
+    {k:"article",title:"定价页的推荐档心理学",meta:"收藏于 7 月 28 日 · 来自 读数"}
+  ];
+  var KIND_NAME={article:"文",goods:"物",recipe:"食"};
+  var filter="all";
+  var lastRemoved=null;
+  var list=document.getElementById("list");
+  var toast=document.getElementById("toast");
+  var toastText=document.getElementById("toastText");
+  var toastTimer=null;
+  function render(){
+    var items=SAVES.filter(function(s){return filter==="all"||s.k===filter});
+    list.innerHTML="";
+    if(!items.length){list.innerHTML='<div class="empty">这个分类下还没有收藏。</div>';return}
+    items.forEach(function(s){
+      var idx=SAVES.indexOf(s);
+      var row=document.createElement("div");
+      row.className="item";
+      row.innerHTML='<span class="kind k-'+s.k+'">'+KIND_NAME[s.k]+'</span><div><b>'+s.title+'</b><div class="meta">'+s.meta+"</div></div>"+'<button class="del" type="button">移除</button>';
+      row.querySelector(".del").addEventListener("click",function(){
+        lastRemoved={item:s,idx:idx};
+        SAVES.splice(idx,1);
+        toastText.textContent="已移除「"+s.title+"」";
+        toast.classList.add("show");
+        if(toastTimer)clearTimeout(toastTimer);
+        toastTimer=setTimeout(function(){toast.classList.remove("show");lastRemoved=null},3200);
+        render();
+      });
+      list.appendChild(row);
+    });
+  }
+  document.getElementById("undo").addEventListener("click",function(){
+    if(!lastRemoved)return;
+    SAVES.splice(Math.min(lastRemoved.idx,SAVES.length),0,lastRemoved.item);
+    lastRemoved=null;
+    toast.classList.remove("show");
+    render();
+  });
+  document.getElementById("tabs").addEventListener("click",function(ev){
+    var btn=ev.target.closest(".tab");
+    if(!btn)return;
+    document.querySelectorAll(".tab").forEach(function(b){b.classList.remove("on")});
+    btn.classList.add("on");
+    filter=btn.getAttribute("data-k");
+    render();
+  });
+  render();
+})();
+</script>
+</body>
+</html>

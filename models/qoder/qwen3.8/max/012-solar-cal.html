@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>陶历 · 八月安排</title>
+<style>
+:root{
+  --clay:#f7ede2; --card:#fffaf4; --ink:#4a3226; --muted:#a08672;
+  --line:#ecd9c6; --fire:#c65d34; --fire-soft:#f6ded1; --moss:#5f7d54;
+  --sans:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--clay);color:var(--ink);font:14px/1.6 var(--sans)}
+.top{display:flex;justify-content:space-between;align-items:flex-end;padding:30px 40px 16px;max-width:1150px;margin:0 auto}
+.top h1{font-size:30px;margin:0}
+.top .sub{color:var(--muted);font-size:13px;margin-top:4px}
+.legend{display:flex;gap:14px;font-size:12px;color:var(--muted)}
+.legend i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;font-style:normal}
+.layout{display:grid;grid-template-columns:1fr 320px;gap:20px;max-width:1150px;margin:0 auto;padding:0 40px 48px}
+.cal{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px}
+.week{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:6px}
+.week .wd{text-align:center;font-size:12px;color:var(--muted);padding:6px 0}
+.grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.day{min-height:86px;border-radius:10px;border:1px solid transparent;background:transparent;padding:8px;text-align:left;font:inherit;color:var(--ink);cursor:pointer;display:flex;flex-direction:column;gap:6px;transition:background .15s}
+.day:hover{background:#fbf1e7}
+.day.other{opacity:.35}
+.day.today{background:var(--fire-soft);border-color:var(--fire)}
+.day.pick{background:var(--ink);color:#f9eee3}
+.day .n{font-weight:700;font-size:14px}
+.day .dots{display:flex;gap:4px;flex-wrap:wrap}
+.day .dots i{width:7px;height:7px;border-radius:50%}
+.d-work{background:var(--fire)}
+.d-life{background:var(--moss)}
+.detail{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px;height:fit-content;position:sticky;top:24px}
+.detail .date-line{font-size:12px;color:var(--muted);letter-spacing:.1em}
+.detail h2{font-size:20px;margin:6px 0 14px}
+.ev{border-left:3px solid var(--fire);padding:10px 12px;background:#fdf6ee;border-radius:0 10px 10px 0;margin-bottom:12px}
+.ev.life{border-color:var(--moss);background:#f2f5ee}
+.ev b{display:block;font-size:14px}
+.ev span{font-size:12px;color:var(--muted)}
+.ev p{margin:6px 0 0;font-size:13px}
+.none{color:var(--muted);font-size:13px}
+@media (max-width:920px){.layout{grid-template-columns:1fr}.detail{position:static}.top{flex-direction:column;align-items:flex-start;gap:10px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div><h1>2026 年 8 月</h1><p class="sub">陶历 · 窑房与工作室的共同日程</p></div>
+  <div class="legend"><span><i class="d-work"></i>工作</span><span><i class="d-life"></i>生活</span></div>
+</header>
+<main class="layout">
+  <section class="cal" aria-label="月历">
+    <div class="week"><span class="wd">一</span><span class="wd">二</span><span class="wd">三</span><span class="wd">四</span><span class="wd">五</span><span class="wd">六</span><span class="wd">日</span></div>
+    <div class="grid" id="grid"></div>
+  </section>
+  <aside class="detail" id="detail" aria-live="polite"></aside>
+</main>
+<script>
+(function(){
+  "use strict";
+  var EVENTS={
+    "2026-08-05":[{t:"work",title:"供应商来样确认",time:"10:00 – 11:30",desc:"比对三家釉料样品，确定秋季订单用料。"}],
+    "2026-08-12":[{t:"work",title:"v3.1 上新评审",time:"14:00 – 15:30",desc:"确认上新清单、定价与详情页文案。"}],
+    "2026-08-15":[{t:"work",title:"窑房开窑整理",time:"09:00 – 11:00",desc:"登记出窑成品，挑出需要复烧的部件。"},{t:"life",title:"傍晚跑步",time:"19:00",desc:"沿江五公里，带水壶。"}],
+    "2026-08-18":[{t:"work",title:"数据复盘会",time:"15:00 – 16:00",desc:"回看上新两周的转化与退货原因。"}],
+    "2026-08-21":[{t:"life",title:"团队爬山",time:"08:30 集合",desc:"午山步道，雨天顺延一周。"}],
+    "2026-08-26":[{t:"work",title:"月底结账",time:"全天",desc:"核对出入库与供应商账期。"}]
+  };
+  var TODAY="2026-08-15";
+  var MONTH_LABEL={};
+  var start=new Date(2026,6,27);
+  var cells=[];
+  for(var i=0;i<42;i++){
+    var d=new Date(start);
+    d.setDate(start.getDate()+i);
+    cells.push(d);
+  }
+  function key(d){
+    return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+  }
+  var grid=document.getElementById("grid");
+  var detail=document.getElementById("detail");
+  var picked=TODAY;
+  function render(){
+    grid.innerHTML="";
+    cells.forEach(function(d){
+      var k=key(d);
+      var inMonth=d.getMonth()===7;
+      var btn=document.createElement("button");
+      btn.type="button";
+      btn.className="day"+(inMonth?"":" other")+(k===TODAY?" today":"")+(k===picked?" pick":"");
+      btn.setAttribute("data-key",k);
+      var dots="";
+      (EVENTS[k]||[]).forEach(function(ev){dots+='<i class="d-'+ev.t+'"></i>'});
+      btn.innerHTML='<span class="n">'+d.getDate()+'</span><span class="dots">'+dots+'</span>';
+      btn.addEventListener("click",function(){picked=k;render()});
+      grid.appendChild(btn);
+    });
+    var list=EVENTS[picked]||[];
+    var dObj=new Date(picked);
+    var weekName=["日","一","二","三","四","五","六"][dObj.getDay()];
+    var body;
+    if(list.length){
+      body=list.map(function(ev){
+        return '<div class="ev'+(ev.t==="life"?" life":"")+'"><b>'+ev.title+'</b><span>'+ev.time+'</span><p>'+ev.desc+'</p></div>';
+      }).join("");
+    }else{
+      body='<p class="none">这一天还没有安排，空着也很好。</p>';
+    }
+    detail.innerHTML='<div class="date-line">'+picked+' 星期'+weekName+(picked===TODAY?" · 今天":"")+'</div><h2>'+(list.length?list.length+" 项安排":"没有安排")+'</h2>'+body;
+  }
+  render();
+})();
+</script>
+</body>
+</html>

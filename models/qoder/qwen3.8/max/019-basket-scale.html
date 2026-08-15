@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>青篮市集 · 购物车</title>
+<style>
+:root{
+  --bg:#f4f7f5; --card:#ffffff; --ink:#1f2a26; --muted:#7c8a83;
+  --line:#e2e9e4; --green:#0f7b5f; --green-deep:#0a5c47; --soft:#e4f2ec;
+  --sans:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.6 var(--sans)}
+.top{height:56px;background:var(--green);color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 30px}
+.top b{font-size:17px}
+.top span{font-size:12px;opacity:.85}
+.wrap{display:grid;grid-template-columns:1fr 300px;gap:18px;max-width:1120px;margin:24px auto 60px;padding:0 22px;align-items:start}
+.table{background:var(--card);border:1px solid var(--line);border-radius:13px;overflow:hidden}
+.thead{display:grid;grid-template-columns:1fr 130px 120px 90px 60px;gap:10px;padding:12px 18px;border-bottom:1px solid var(--line);color:var(--muted);font-size:12px}
+.row{display:grid;grid-template-columns:1fr 130px 120px 90px 60px;gap:10px;align-items:center;padding:14px 18px;border-bottom:1px solid #edf2ef}
+.row:last-child{border-bottom:0}
+.name{font-weight:600}
+.spec{color:var(--muted);font-size:12px;margin-top:2px}
+.unit{color:var(--muted);font-size:13px}
+.stepper{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.stepper button{width:30px;height:30px;border:0;background:#fff;cursor:pointer;font-size:15px;color:var(--ink)}
+.stepper button:hover{background:var(--soft)}
+.stepper button:disabled{color:#c0ccc6;cursor:not-allowed}
+.stepper b{width:36px;display:grid;place-items:center;border-left:1px solid var(--line);border-right:1px solid var(--line);font-size:13px}
+.sub{font-weight:700;text-align:right}
+.del{border:0;background:none;color:var(--muted);cursor:pointer;font-size:13px}
+.del:hover{color:#c0392b;text-decoration:underline}
+.sum{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:20px;position:sticky;top:20px}
+.sum h2{font-size:16px;margin:0 0 14px}
+.sum .line{display:flex;justify-content:space-between;font-size:13px;color:var(--muted);margin-bottom:9px}
+.sum .total{display:flex;justify-content:space-between;align-items:baseline;border-top:1px dashed var(--line);padding-top:12px;margin-top:6px}
+.sum .total b{font-size:24px;color:var(--green)}
+.go{width:100%;height:46px;margin-top:16px;border:0;border-radius:10px;background:var(--green);color:#fff;font:700 15px var(--sans);cursor:pointer;transition:background .15s}
+.go:hover{background:var(--green-deep)}
+.go:focus-visible{outline:3px solid #0f7b5f44;outline-offset:2px}
+.sum .note{margin-top:10px;font-size:12px;color:var(--muted);min-height:18px;text-align:center}
+.empty{padding:60px 20px;text-align:center;color:var(--muted)}
+@media (max-width:900px){.wrap{grid-template-columns:1fr}.thead{display:none}.row{grid-template-columns:1fr 110px 70px;gap:8px}.unit,.del{display:none}.sub{grid-column:2}.stepper{grid-column:1}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<header class="top"><b>青篮市集 · 购物车</b><span>今日 21:00 前下单，明晨 7 点送达</span></header>
+<main class="wrap">
+  <section class="table">
+    <div class="thead"><span>商品</span><span>单价</span><span>数量</span><span style="text-align:right">小计</span><span></span></div>
+    <div id="rows"></div>
+  </section>
+  <aside class="sum">
+    <h2>合计</h2>
+    <div class="line"><span id="cntLine"></span><span id="goodsSum"></span></div>
+    <div class="line"><span>配送费</span><span id="feeVal"></span></div>
+    <div class="total"><span>应付总额</span><b id="totalVal"></b></div>
+    <button class="go" id="checkout" type="button">去结算</button>
+    <p class="note" id="note"></p>
+  </aside>
+</main>
+<script>
+(function(){
+  "use strict";
+  var ITEMS=[
+    {name:"本地番茄",spec:"自然熟 · 约 500g",unit:6.8,qty:2},
+    {name:"可生食鸡蛋",spec:"30 枚装 · 当日捡拾",unit:22.9,qty:1},
+    {name:"冷萃豆浆",spec:"原味 · 1L",unit:9.5,qty:3},
+    {name:"崇明大米",spec:"新米 · 2.5kg",unit:32,qty:1}
+  ];
+  var FEE=5;
+  var rows=document.getElementById("rows");
+  var note=document.getElementById("note");
+  function money(n){return "¥ "+n.toFixed(1)}
+  function render(){
+    rows.innerHTML="";
+    if(!ITEMS.length){
+      rows.innerHTML='<div class="empty">篮子空了。回市集看看今天新到的菜吧。</div>';
+    }
+    ITEMS.forEach(function(item,i){
+      var row=document.createElement("div");
+      row.className="row";
+      row.innerHTML='<div><div class="name">'+item.name+'</div><div class="spec">'+item.spec+'</div></div><span class="unit">'+money(item.unit)+'</span><span class="stepper"><button type="button" data-a="-" aria-label="减少">−</button><b>'+item.qty+'</b><button type="button" data-a="+" aria-label="增加">＋</button></span><span class="sub">'+money(item.unit*item.qty)+'</span><button class="del" type="button">移除</button>';
+      row.querySelector('[data-a="-"]').addEventListener("click",function(){
+        item.qty=Math.max(1,item.qty-1);
+        render();
+      });
+      row.querySelector('[data-a="+"]').addEventListener("click",function(){
+        item.qty=Math.min(20,item.qty+1);
+        render();
+      });
+      row.querySelector(".del").addEventListener("click",function(){
+        ITEMS.splice(i,1);
+        note.textContent="已移除「"+item.name+"」";
+        render();
+      });
+      rows.appendChild(row);
+    });
+    var count=ITEMS.reduce(function(s,it){return s+it.qty},0);
+    var goods=ITEMS.reduce(function(s,it){return s+it.unit*it.qty},0);
+    var fee=ITEMS.length&&goods<49?FEE:0;
+    document.getElementById("cntLine").textContent="共 "+ITEMS.length+" 种 / "+count+" 件";
+    document.getElementById("goodsSum").textContent=money(goods);
+    document.getElementById("feeVal").textContent=fee?money(fee):"免配送";
+    document.getElementById("totalVal").textContent=money(goods+fee);
+  }
+  document.getElementById("checkout").addEventListener("click",function(){
+    if(!ITEMS.length){note.textContent="篮子是空的，先挑点东西吧。";return}
+    note.textContent="正在为你锁定库存，马上去结算页…";
+  });
+  render();
+})();
+</script>
+</body>
+</html>

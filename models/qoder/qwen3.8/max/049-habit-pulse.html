@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>燃迹 · 今日记录</title>
+<style>
+:root{
+  --bg:#f2f7f3; --card:#ffffff; --ink:#1f2a24; --muted:#7f8d84;
+  --line:#e1ebe3; --fire:#e8642c; --fire-deep:#c94f1d; --leaf:#2f9e63; --bad:#c73c32;
+  --sans:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+  --mono:ui-monospace,Consolas,monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:#15211a;font:14px/1.6 var(--sans);display:grid;place-items:center;min-height:100vh;padding:20px 10px}
+.phone{width:390px;max-width:100%;height:844px;border:10px solid #0b120d;border-radius:44px;overflow:hidden;box-shadow:0 30px 80px #00000088;background:var(--bg);position:relative}
+.scr{height:100%;overflow-y:auto;padding:54px 18px 26px}
+.scr::-webkit-scrollbar{width:0}
+h1{font-size:20px;color:var(--ink);margin:0 0 2px}
+.sub{color:var(--muted);font-size:12px;margin:0 0 16px}
+.cardbox{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:14px}
+.ringrow{display:flex;gap:16px;align-items:center}
+.ring{width:110px;height:110px;flex:none}
+.ring .mid{font:700 20px var(--mono);fill:var(--ink)}
+.ring .sm{font-size:10px;fill:var(--muted)}
+.goalinfo b{font-size:15px;display:block;color:var(--ink)}
+.goalinfo span{font-size:12px;color:var(--muted);display:block;margin-top:3px}
+.goalinfo .up{color:var(--leaf);font-weight:700}
+.trend{display:flex;gap:8px;align-items:flex-end;height:90px;padding-top:6px}
+.tb{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:5px;height:100%}
+.tb i{width:100%;border-radius:6px 6px 3px 3px;background:#cfe4d5;min-height:4px;transition:height .3s ease}
+.tb.today i{background:var(--fire)}
+.tb span{font-size:10px;color:var(--muted)}
+.tnote{font-size:11px;color:var(--muted);margin-top:8px}
+.tnote b{color:var(--fire)}
+label{display:block;font-size:12px;color:var(--muted);margin:12px 0 6px}
+label:first-child{margin-top:0}
+.frow{display:flex;gap:10px}
+.frow input{flex:1}
+input[type=number]{width:100%;height:44px;border:1px solid var(--line);border-radius:11px;padding:0 13px;font:600 15px var(--mono);background:#fbfdfb;color:var(--ink)}
+input:focus{outline:none;border-color:var(--fire);box-shadow:0 0 0 3px #e8642c1f}
+input.bad{border-color:var(--bad);box-shadow:0 0 0 3px #c73c321f}
+.hint{font-size:11px;color:var(--muted);margin:4px 0 0}
+.ferr{font-size:11px;color:var(--bad);margin:4px 0 0;min-height:15px}
+.save{width:100%;height:48px;border:0;border-radius:12px;background:var(--fire);color:#fff;font:700 15px var(--sans);cursor:pointer;margin-top:14px;transition:background .15s}
+.save:hover{background:var(--fire-deep)}
+.save:focus-visible{outline:3px solid #e8642c44;outline-offset:2px}
+.snote{margin-top:10px;font-size:12px;text-align:center;min-height:18px}
+.snote.ok{color:var(--leaf)}
+.snote.bad{color:var(--bad)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="scr">
+    <h1>燃迹 · 今日记录</h1>
+    <p class="sub">目标：每周运动 150 分钟 · 今天是周五</p>
+    <section class="cardbox">
+      <div class="ringrow">
+        <svg class="ring" viewBox="0 0 110 110" aria-hidden="true">
+          <circle cx="55" cy="55" r="46" fill="none" stroke="#e4efe7" stroke-width="11"/>
+          <circle id="ringFill" cx="55" cy="55" r="46" fill="none" stroke="#e8642c" stroke-width="11" stroke-linecap="round" stroke-dasharray="289" stroke-dashoffset="289" transform="rotate(-90 55 55)"/>
+          <text class="mid" id="ringNum" x="55" y="53" text-anchor="middle">72</text>
+          <text class="sm" x="55" y="70" text-anchor="middle">/ 150 分钟</text>
+        </svg>
+        <div class="goalinfo">
+          <b>本周目标进度</b>
+          <span id="pctTxt">已完成 48%</span>
+          <span id="deltaTxt" class="up"></span>
+        </div>
+      </div>
+    </section>
+    <section class="cardbox">
+      <div class="trend" id="trend"></div>
+      <p class="tnote" id="trendNote"></p>
+    </section>
+    <section class="cardbox">
+      <label for="dur">本次跑步时长（分钟）</label>
+      <input type="number" id="dur" value="30" inputmode="numeric">
+      <p class="hint">合理范围 5 – 180 分钟</p>
+      <p class="ferr" id="durErr"></p>
+      <label for="dist">距离（公里）</label>
+      <input type="number" id="dist" value="4.2" inputmode="decimal">
+      <p class="hint">合理范围 0.5 – 30 公里</p>
+      <p class="ferr" id="distErr"></p>
+      <button class="save" id="saveBtn" type="button">保存记录</button>
+      <p class="snote" id="snote" role="status"></p>
+    </section>
+  </div>
+</div>
+<script>
+(function(){
+  "use strict";
+  var WEEK_BASE=72;
+  var saved=0;
+  var DAYS=[
+    {d:"一",v:20},{d:"二",v:0},{d:"三",v:35},{d:"四",v:17},{d:"五",v:0,today:true},{d:"六",v:0},{d:"日",v:0}
+  ];
+  var dur=document.getElementById("dur");
+  var dist=document.getElementById("dist");
+  var durErr=document.getElementById("durErr");
+  var distErr=document.getElementById("distErr");
+  var snote=document.getElementById("snote");
+  function current(){return WEEK_BASE+saved}
+  function renderGoal(){
+    var c=current();
+    var ratio=Math.min(1,c/150);
+    document.getElementById("ringFill").setAttribute("stroke-dashoffset",String(289*(1-ratio)));
+    document.getElementById("ringNum").textContent=c;
+    document.getElementById("pctTxt").textContent="已完成 "+Math.round(c/150*100)+"%";
+    document.getElementById("deltaTxt").textContent=saved>0?"刚记录 +"+saved+" 分钟，继续加油":"";
+  }
+  function renderTrend(){
+    var box=document.getElementById("trend");
+    box.innerHTML="";
+    var max=40;
+    DAYS.forEach(function(x){
+      var v=x.today&&saved>0?saved:x.v;
+      var bar=document.createElement("div");
+      bar.className="tb"+(x.today?" today":"");
+      bar.innerHTML="<i></i><span>"+x.d+"</span>";
+      bar.querySelector("i").style.height=Math.round(Math.min(v,max)/max*100)+"%";
+      box.appendChild(bar);
+    });
+    var total=DAYS.reduce(function(s,x){return s+(x.today&&saved>0?saved:x.v)},0);
+    document.getElementById("trendNote").innerHTML=saved>0
+      ?"今天这根橙条就是你刚保存的 <b>"+saved+" 分钟</b>，本周累计 "+total+" 分钟。"
+      :"本周已累计 72 分钟，今天的格子还空着。";
+  }
+  function validate(){
+    var ok=true;
+    var d=parseFloat(dur.value);
+    var k=parseFloat(dist.value);
+    dur.classList.remove("bad");dist.classList.remove("bad");
+    durErr.textContent="";distErr.textContent="";
+    if(!(d>=5&&d<=180)){dur.classList.add("bad");durErr.textContent="时长超出合理范围（5–180 分钟），本次未保存。";ok=false}
+    if(!(k>=0.5&&k<=30)){dist.classList.add("bad");distErr.textContent="距离超出合理范围（0.5–30 公里），本次未保存。";ok=false}
+    if(ok&&d/k>25){dur.classList.add("bad");dist.classList.add("bad");durErr.textContent="时长与距离对不上：配速慢于 25 分钟/公里，请核对。";ok=false}
+    return ok?{d:d,k:k}:null;
+  }
+  document.getElementById("saveBtn").addEventListener("click",function(){
+    var v=validate();
+    if(!v){
+      snote.className="snote bad";
+      snote.textContent="数据无效，目标进度保持原样。修正后再保存。";
+      return;
+    }
+    saved=v.d;
+    renderGoal();
+    renderTrend();
+    snote.className="snote ok";
+    snote.textContent="已保存 "+v.d+" 分钟 · "+v.k+" 公里，进度与趋势已更新。";
+  });
+  renderGoal();
+  renderTrend();
+})();
+</script>
+</body>
+</html>

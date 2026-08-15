@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>筛坊 · 筛选检索</title>
+<style>
+:root{
+  --bg:#f6f4f8; --card:#ffffff; --ink:#2c2633; --muted:#8a8294;
+  --line:#e8e3ee; --plum:#6d3b8e; --plum-soft:#f1e8f7; --ok:#3f7d4f;
+  --sans:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.6 var(--sans)}
+.wrap{display:grid;grid-template-columns:260px 1fr;gap:18px;max-width:1120px;margin:0 auto;padding:30px 22px 70px}
+.filters{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px;height:fit-content}
+.filters h1{font-size:18px;margin:0 0 4px}
+.filters .sub{color:var(--muted);font-size:12px;margin:0 0 16px}
+.fgroup{border-top:1px solid var(--line);padding:14px 0}
+.fgroup h2{font-size:12px;color:var(--muted);margin:0 0 10px;letter-spacing:.1em}
+.check{display:flex;gap:9px;align-items:center;font-size:13px;padding:5px 0;cursor:pointer}
+.check input{accent-color:var(--plum);width:15px;height:15px}
+select{width:100%;height:38px;border:1px solid var(--line);border-radius:9px;padding:0 10px;font:inherit;background:#fff}
+select:focus{outline:none;border-color:var(--plum);box-shadow:0 0 0 3px #6d3b8e22}
+.clear{width:100%;margin-top:14px;border:1px solid var(--line);background:#fff;border-radius:9px;padding:9px;font:600 13px var(--sans);cursor:pointer;color:var(--ink)}
+.clear:hover{border-color:var(--plum);color:var(--plum)}
+.clear:focus-visible{outline:2px solid var(--plum);outline-offset:2px}
+.main-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.main-head .c{font-size:14px}
+.main-head .c b{color:var(--plum);font-size:17px}
+.sort{display:flex;border:1px solid var(--line);border-radius:999px;background:#fff;overflow:hidden}
+.sort button{border:0;background:transparent;padding:7px 16px;font:12px var(--sans);color:var(--muted);cursor:pointer}
+.sort button.on{background:var(--plum);color:#fff}
+.results{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.r{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px}
+.r .tag{display:inline-block;font-size:11px;border-radius:999px;padding:2px 10px;background:var(--plum-soft);color:var(--plum);margin-bottom:8px}
+.r b{display:block;font-size:14px}
+.r .m{color:var(--muted);font-size:12px;margin-top:4px}
+.r .p{margin-top:10px;font-weight:800;color:var(--plum)}
+.none{grid-column:1/-1;background:var(--card);border:1px dashed var(--line);border-radius:12px;padding:44px 20px;text-align:center;color:var(--muted)}
+@media (max-width:920px){.wrap{grid-template-columns:1fr}.results{grid-template-columns:repeat(2,1fr)}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <aside class="filters">
+    <h1>筛坊</h1>
+    <p class="sub">用条件把好课筛出来</p>
+    <div class="fgroup" style="border-top:0;padding-top:0">
+      <h2>课 程 类 型</h2>
+      <label class="check"><input type="checkbox" class="cat" value="手作" checked>手作陶艺</label>
+      <label class="check"><input type="checkbox" class="cat" value="摄影" checked>城市摄影</label>
+      <label class="check"><input type="checkbox" class="cat" value="写作" checked>非虚构写作</label>
+      <label class="check"><input type="checkbox" class="cat" value="户外" checked>户外徒步</label>
+    </div>
+    <div class="fgroup">
+      <h2>价 格</h2>
+      <select id="price">
+        <option value="all">全部价格</option>
+        <option value="free">免费</option>
+        <option value="low">¥200 以内</option>
+        <option value="high">¥200 以上</option>
+      </select>
+    </div>
+    <div class="fgroup">
+      <h2>口 碑</h2>
+      <select id="rating">
+        <option value="all">不限评分</option>
+        <option value="45">4.5 分以上</option>
+        <option value="48">4.8 分以上</option>
+      </select>
+    </div>
+    <div class="fgroup">
+      <h2>时 长</h2>
+      <select id="dur">
+        <option value="all">不限时长</option>
+        <option value="short">半天以内</option>
+        <option value="long">一天及以上</option>
+      </select>
+    </div>
+    <button class="clear" id="clearBtn" type="button">清除全部条件</button>
+  </aside>
+  <section>
+    <div class="main-head">
+      <span class="c">找到 <b id="count">0</b> 门课</span>
+      <div class="sort" role="group" aria-label="排序">
+        <button type="button" class="on" data-sort="hot">最热</button>
+        <button type="button" data-sort="rating">评分</button>
+        <button type="button" data-sort="price">价格</button>
+      </div>
+    </div>
+    <div class="results" id="results"></div>
+  </section>
+</main>
+<script>
+(function(){
+  "use strict";
+  var COURSES=[
+    {name:"柴窑入门：第一只杯",cat:"手作",price:268,rating:4.9,hot:812,dur:"long"},
+    {name:"夜城扫街三小时",cat:"摄影",price:128,rating:4.7,hot:954,dur:"short"},
+    {name:"把散步写成文章",cat:"写作",price:0,rating:4.6,hot:623,dur:"short"},
+    {name:"午山环线领队课",cat:"户外",price:329,rating:4.8,hot:741,dur:"long"},
+    {name:"釉色调配工作坊",cat:"手作",price:188,rating:4.5,hot:377,dur:"short"},
+    {name:"手机拍菜市场的十二招",cat:"摄影",price:0,rating:4.4,hot:508,dur:"short"},
+    {name:"两日重装徒步入门",cat:"户外",price:499,rating:4.8,hot:666,dur:"long"},
+    {name:"人物专访写作营",cat:"写作",price:399,rating:4.9,hot:289,dur:"long"}
+  ];
+  var sortKey="hot";
+  var results=document.getElementById("results");
+  var count=document.getElementById("count");
+  function pass(c){
+    var cats=Array.prototype.slice.call(document.querySelectorAll(".cat:checked")).map(function(i){return i.value});
+    if(cats.indexOf(c.cat)===-1)return false;
+    var p=document.getElementById("price").value;
+    if(p==="free"&&c.price!==0)return false;
+    if(p==="low"&&(c.price===0||c.price>200))return false;
+    if(p==="high"&&c.price<=200)return false;
+    var r=document.getElementById("rating").value;
+    if(r==="45"&&c.rating<4.5)return false;
+    if(r==="48"&&c.rating<4.8)return false;
+    var d=document.getElementById("dur").value;
+    if(d!=="all"&&c.dur!==d)return false;
+    return true;
+  }
+  function render(){
+    var list=COURSES.filter(pass);
+    list.sort(function(a,b){
+      if(sortKey==="rating")return b.rating-a.rating;
+      if(sortKey==="price")return a.price-b.price;
+      return b.hot-a.hot;
+    });
+    count.textContent=list.length;
+    results.innerHTML="";
+    if(!list.length){
+      results.innerHTML='<div class="none">这几个条件叠在一起没有课了，放宽一项试试。</div>';
+      return;
+    }
+    list.forEach(function(c){
+      var card=document.createElement("article");
+      card.className="r";
+      card.innerHTML='<span class="tag">'+c.cat+'</span><b>'+c.name+'</b><div class="m">评分 '+c.rating.toFixed(1)+' · '+c.hot+' 人学过 · '+(c.dur==="long"?"一天及以上":"半天以内")+'</div><div class="p">'+(c.price===0?"免费":"¥ "+c.price)+'</div>';
+      results.appendChild(card);
+    });
+  }
+  document.querySelectorAll(".cat").forEach(function(i){i.addEventListener("change",render)});
+  ["price","rating","dur"].forEach(function(id){
+    document.getElementById(id).addEventListener("change",render);
+  });
+  document.getElementById("clearBtn").addEventListener("click",function(){
+    document.querySelectorAll(".cat").forEach(function(i){i.checked=true});
+    document.getElementById("price").value="all";
+    document.getElementById("rating").value="all";
+    document.getElementById("dur").value="all";
+    render();
+  });
+  document.querySelector(".sort").addEventListener("click",function(ev){
+    var btn=ev.target.closest("button");
+    if(!btn)return;
+    document.querySelectorAll(".sort button").forEach(function(b){b.classList.remove("on")});
+    btn.classList.add("on");
+    sortKey=btn.getAttribute("data-sort");
+    render();
+  });
+  render();
+})();
+</script>
+</body>
+</html>
