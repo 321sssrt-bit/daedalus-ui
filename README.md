@@ -45,14 +45,14 @@ Daedalus 有意把重点放在前端产品能力：模型能否组织信息、�
 
 ## 当前公开答卷
 
-下表依据 [`models/_index.json`](models/_index.json) 的公开登记和各答卷 `model.json` 的状态维护；展厅构建仍以这些机器可读文件为准。点击 Harness、模型名称或“进入展厅”即可打开该模型的专属展厅。
+下表依据 [`models/_index.json`](models/_index.json) 的公开登记和各答卷 `model.json` 的状态维护；展厅构建仍以这些机器可读文件为准。点击“进入展厅”即可打开该模型的专属展厅。
 
 | Harness | Model | 思考档位 | 完成度 | 状态 | 专属展厅 |
 | --- | --- | --- | --- | --- | --- |
-| [Codex](https://321sssrt-bit.github.io/daedalus-ui/submissions/codex--gpt-5.6-sol--xhigh/) | [GPT-5.6 Sol](https://321sssrt-bit.github.io/daedalus-ui/submissions/codex--gpt-5.6-sol--xhigh/) | `xhigh` | 50 / 50 | Complete | [进入展厅 →](https://321sssrt-bit.github.io/daedalus-ui/submissions/codex--gpt-5.6-sol--xhigh/) |
-| [DeepSeek Harness](https://321sssrt-bit.github.io/daedalus-ui/submissions/deepseek-harness--deepseek-v4-pro--max/) | [deepseek-v4-pro](https://321sssrt-bit.github.io/daedalus-ui/submissions/deepseek-harness--deepseek-v4-pro--max/) | `max` | 50 / 50 | Complete | [进入展厅 →](https://321sssrt-bit.github.io/daedalus-ui/submissions/deepseek-harness--deepseek-v4-pro--max/) |
-| [Kimi Code](https://321sssrt-bit.github.io/daedalus-ui/submissions/kimi-code--k3--max/) | [K3](https://321sssrt-bit.github.io/daedalus-ui/submissions/kimi-code--k3--max/) | `max` | 50 / 50 | Complete | [进入展厅 →](https://321sssrt-bit.github.io/daedalus-ui/submissions/kimi-code--k3--max/) |
-| [Grok Build](https://321sssrt-bit.github.io/daedalus-ui/submissions/grok-build--grok-4.6--xhigh/) | [Grok 4.6](https://321sssrt-bit.github.io/daedalus-ui/submissions/grok-build--grok-4.6--xhigh/) | `xhigh` | 50 / 50 | Complete | [进入展厅 →](https://321sssrt-bit.github.io/daedalus-ui/submissions/grok-build--grok-4.6--xhigh/) |
+| Codex | GPT-5.6 Sol | `xhigh` | 50 / 50 | Complete | [进入展厅 →](https://321sssrt-bit.github.io/daedalus-ui/submissions/codex--gpt-5.6-sol--xhigh/) |
+| DeepSeek Harness | deepseek-v4-pro | `max` | 50 / 50 | Complete | [进入展厅 →](https://321sssrt-bit.github.io/daedalus-ui/submissions/deepseek-harness--deepseek-v4-pro--max/) |
+| Kimi Code | K3 | `max` | 50 / 50 | Complete | [进入展厅 →](https://321sssrt-bit.github.io/daedalus-ui/submissions/kimi-code--k3--max/) |
+| Grok Build | Grok 4.6 | `xhigh` | 50 / 50 | Complete | [进入展厅 →](https://321sssrt-bit.github.io/daedalus-ui/submissions/grok-build--grok-4.6--xhigh/) |
 
 ## 怎样理解结果
 
@@ -108,4 +108,3 @@ python -m daedalus starter --output dist/daedalus-clean.zip
 ## 许可证
 
 [MIT](LICENSE) © 2026 Daedalus Authors
-
