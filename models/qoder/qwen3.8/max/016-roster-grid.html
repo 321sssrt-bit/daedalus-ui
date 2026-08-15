@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>同路人 · 成员目录</title>
+<style>
+:root{
+  --sand:#f6f0e4; --card:#fffdf8; --ink:#3a2f24; --muted:#95886f;
+  --line:#e8ddc8; --olive:#6b7b3c; --olive-soft:#eef0dd; --rust:#b0562f;
+  --sans:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--sand);color:var(--ink);font:14px/1.6 var(--sans)}
+.top{padding:30px 36px 12px;max-width:1150px;margin:0 auto;display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:12px}
+.top h1{font-size:26px;margin:0}
+.top .sub{color:var(--muted);font-size:13px;margin-top:4px}
+.filters{display:flex;gap:8px;flex-wrap:wrap}
+.f{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:7px 18px;font:inherit;font-size:13px;cursor:pointer;color:var(--muted)}
+.f:hover{border-color:var(--olive);color:var(--olive)}
+.f.on{background:var(--olive);border-color:var(--olive);color:#fff}
+.f:focus-visible{outline:2px solid var(--olive);outline-offset:2px}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;padding:18px 36px 30px;max-width:1150px;margin:0 auto}
+.person{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 16px;cursor:pointer;text-align:center;transition:transform .14s,box-shadow .14s}
+.person:hover{transform:translateY(-3px);box-shadow:0 10px 24px #3a2f2412}
+.person.pick{border-color:var(--olive);box-shadow:0 0 0 2px var(--olive-soft)}
+.person:focus-visible{outline:2px solid var(--olive);outline-offset:2px}
+.face{width:56px;height:56px;border-radius:50%;margin:0 auto 10px;display:grid;place-items:center;font-size:20px;color:#fff}
+.person b{display:block;font-size:15px}
+.person .role{font-size:12px;color:var(--muted);margin-top:2px}
+.person .dept{display:inline-block;margin-top:8px;font-size:11px;border-radius:999px;padding:2px 10px;background:var(--olive-soft);color:var(--olive)}
+.count{padding:0 36px;max-width:1150px;margin:0 auto;color:var(--muted);font-size:12px}
+.profile{max-width:1150px;margin:0 auto 50px;padding:0 36px;display:none}
+.profile.show{display:block}
+.pcard{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:24px 26px;display:grid;grid-template-columns:72px 1fr auto;gap:18px;align-items:center}
+.pcard .face{width:72px;height:72px;font-size:26px;margin:0}
+.pcard h2{margin:0;font-size:19px}
+.pcard .bio{color:var(--muted);font-size:13px;margin-top:4px}
+.pcard .tags{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+.pcard .tags span{font-size:11px;background:var(--sand);border:1px solid var(--line);border-radius:999px;padding:3px 10px;color:var(--ink)}
+.contact{display:flex;flex-direction:column;gap:8px}
+.contact a{border:1px solid var(--line);border-radius:9px;padding:8px 18px;font:600 13px var(--sans);color:var(--ink);text-decoration:none;background:#fff;text-align:center}
+.contact a:hover{border-color:var(--rust);color:var(--rust)}
+@media (max-width:960px){.grid{grid-template-columns:repeat(2,1fr)}.pcard{grid-template-columns:60px 1fr}.contact{grid-column:1/-1;flex-direction:row}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div><h1>同路人目录</h1><p class="sub">青禾工作室 · 34 位同事，点开任何一张脸认识 TA</p></div>
+  <div class="filters" id="filters" role="group" aria-label="部门筛选">
+    <button class="f on" type="button" data-dept="all">全部</button>
+    <button class="f" type="button" data-dept="产品">产品</button>
+    <button class="f" type="button" data-dept="设计">设计</button>
+    <button class="f" type="button" data-dept="工程">工程</button>
+    <button class="f" type="button" data-dept="质量">质量</button>
+  </div>
+</header>
+<p class="count" id="count"></p>
+<main class="grid" id="grid"></main>
+<section class="profile" id="profile" aria-live="polite"></section>
+<script>
+(function(){
+  "use strict";
+  var PEOPLE=[
+    {name:"林晚",role:"产品负责人",dept:"产品",color:"#6b7b3c",bio:"负责清单与订阅线，喜欢把复杂流程砍到三步以内。",tags:["需求评审","路线图","用户访谈"]},
+    {name:"沈一帆",role:"产品经理",dept:"产品",color:"#b0562f",bio:"盯渠道与增长，数据口径的守门员。",tags:["增长实验","渠道对接"]},
+    {name:"苏杭",role:"视觉设计师",dept:"设计",color:"#8a6d3b",bio:"空态插画与品牌物料出自她手，偏爱暖色。",tags:["插画","品牌"]},
+    {name:"顾清",role:"交互设计师",dept:"设计",color:"#5d6d7e",bio:"原型快手，坚信每个弹窗都该有理由。",tags:["原型","可用性测试"]},
+    {name:"赵屿",role:"后端工程师",dept:"工程",color:"#3c6e71",bio:"账单与导出接口的作者，深夜代码常客。",tags:["接口","稳定性"]},
+    {name:"孟远",role:"前端工程师",dept:"工程",color:"#7d5a50",bio:"列表页与动效担当，键盘声音最响的一位。",tags:["列表页","动效"]},
+    {name:"何苗",role:"测试工程师",dept:"质量",color:"#9a8c98",bio:"回归结论一票否决权持有者，缺陷单编号狂魔。",tags:["回归","缺陷管理"]},
+    {name:"陈默",role:"运营",dept:"质量",color:"#4a5759",bio:"管客服工单与社群，最懂用户骂什么。",tags:["工单","社群"]}
+  ];
+  var dept="all";
+  var picked=null;
+  var grid=document.getElementById("grid");
+  var profile=document.getElementById("profile");
+  var count=document.getElementById("count");
+  function render(){
+    var list=PEOPLE.filter(function(p){return dept==="all"||p.dept===dept});
+    count.textContent="共 "+list.length+" 位 · 筛选："+(dept==="all"?"全部":dept);
+    grid.innerHTML="";
+    list.forEach(function(p,i){
+      var idx=PEOPLE.indexOf(p);
+      var card=document.createElement("button");
+      card.type="button";
+      card.className="person"+(idx===picked?" pick":"");
+      card.innerHTML='<span class="face" style="background:'+p.color+'">'+p.name.charAt(0)+'</span><b>'+p.name+'</b><div class="role">'+p.role+'</div><span class="dept">'+p.dept+'</span>';
+      card.addEventListener("click",function(){picked=idx;render()});
+      grid.appendChild(card);
+    });
+    if(picked===null){profile.className="profile";profile.innerHTML="";return}
+    var p=PEOPLE[picked];
+    profile.className="profile show";
+    profile.innerHTML='<div class="pcard"><span class="face" style="background:'+p.color+'">'+p.name.charAt(0)+'</span><div><h2>'+p.name+' · '+p.role+'</h2><div class="bio">'+p.bio+'</div><div class="tags">'+p.tags.map(function(t){return "<span>"+t+"</span>"}).join("")+'</div></div><div class="contact"><a href="#mail">发消息</a><a href="#cal">约时间</a></div></div>';
+  }
+  document.getElementById("filters").addEventListener("click",function(ev){
+    var btn=ev.target.closest(".f");
+    if(!btn)return;
+    document.querySelectorAll(".f").forEach(function(b){b.classList.remove("on")});
+    btn.classList.add("on");
+    dept=btn.getAttribute("data-dept");
+    picked=null;
+    render();
+  });
+  render();
+})();
+</script>
+</body>
+</html>

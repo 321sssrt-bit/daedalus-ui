@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>幕间 · 放映厅</title>
+<style>
+:root{
+  --bg:#101014; --panel:#1a1a22; --panel-line:#2a2a36; --text:#eceaf0;
+  --muted:#8f8d99; --ember:#e0653a; --ember-deep:#c04f28; --ok:#59b87c;
+  --sans:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+  --mono:ui-monospace,Consolas,monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:14px/1.6 var(--sans)}
+.top{height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;border-bottom:1px solid var(--panel-line)}
+.top b{font-size:17px;letter-spacing:.06em}
+.top span{color:var(--muted);font-size:12px}
+.layout{display:grid;grid-template-columns:300px 1fr;gap:20px;max-width:1200px;margin:0 auto;padding:22px 24px 60px}
+.disco h2{font-size:14px;color:var(--muted);margin:0 0 12px;letter-spacing:.1em}
+.v{display:flex;gap:12px;background:var(--panel);border:1px solid var(--panel-line);border-radius:12px;padding:11px 12px;margin-bottom:10px;cursor:pointer;transition:border-color .15s}
+.v:hover{border-color:#3d3d4e}
+.v.on{border-color:var(--ember)}
+.v:focus-visible{outline:2px solid var(--ember)}
+.thumb{width:86px;height:54px;border-radius:8px;display:grid;place-items:center;font-size:20px;flex:none}
+.v b{font-size:13px;display:block}
+.v span{font-size:11px;color:var(--muted)}
+.player{background:var(--panel);border:1px solid var(--panel-line);border-radius:16px;overflow:hidden}
+.stage{height:340px;display:grid;place-items:center;position:relative;background:radial-gradient(500px 260px at 50% 40%,#26263a 0%,#14141b 70%)}
+.stage .disc{width:170px;height:170px;border-radius:50%;border:3px solid var(--ember);display:grid;place-items:center;font-size:52px;animation:spin 9s linear infinite;animation-play-state:paused}
+.stage.playing .disc{animation-play-state:running}
+@keyframes spin{to{transform:rotate(360deg)}}
+.offline{position:absolute;inset:0;background:#101014d9;display:none;flex-direction:column;align-items:center;justify-content:center;gap:12px;text-align:center}
+.offline.show{display:flex}
+.offline b{font-size:17px}
+.offline p{color:var(--muted);font-size:13px;margin:0;max-width:340px}
+.recon{border:0;background:var(--ember);color:#fff;border-radius:10px;padding:11px 26px;font:700 14px var(--sans);cursor:pointer}
+.recon:hover{background:var(--ember-deep)}
+.recon:focus-visible{outline:3px solid #e0653a44;outline-offset:2px}
+.ctrls{padding:16px 20px 18px}
+.now{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px}
+.now b{font-size:16px}
+.now span{color:var(--muted);font-size:12px}
+.prog{display:flex;align-items:center;gap:12px}
+.track{flex:1;height:6px;border-radius:3px;background:#2c2c38;cursor:pointer}
+.fill{height:100%;width:0;background:var(--ember);border-radius:3px}
+.time{font:12px var(--mono);color:var(--muted);min-width:44px}
+.time.r{text-align:right}
+.btnrow{display:flex;gap:10px;margin-top:14px;align-items:center}
+.pp{border:0;background:var(--ember);color:#fff;border-radius:10px;padding:10px 24px;font:700 14px var(--sans);cursor:pointer}
+.pp:hover{background:var(--ember-deep)}
+.pp:focus-visible{outline:3px solid #e0653a44;outline-offset:2px}
+.net{border:1px dashed #4a4a5c;background:transparent;color:var(--muted);border-radius:10px;padding:10px 16px;font:12px var(--sans);cursor:pointer}
+.net:hover{color:var(--ember);border-color:var(--ember)}
+.state{margin-left:auto;font-size:12px;color:var(--muted)}
+.state.ok{color:var(--ok)}
+.state.bad{color:var(--ember)}
+.queue{margin-top:18px;background:var(--panel);border:1px solid var(--panel-line);border-radius:14px;padding:14px 16px}
+.queue h3{font-size:13px;color:var(--muted);margin:0 0 10px}
+.q{display:flex;justify-content:space-between;align-items:center;padding:8px 4px;border-top:1px solid #232330;font-size:13px}
+.q .mv{border:0;background:none;color:var(--muted);cursor:pointer;font-size:12px}
+.q .mv:hover{color:var(--ember)}
+@media (max-width:900px){.layout{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<header class="top"><b>幕间放映厅</b><span>今晚 21:00 · 4 部在映</span></header>
+<main class="layout">
+  <aside class="disco">
+    <h2>发 现</h2>
+    <div id="discoBox"></div>
+  </aside>
+  <section>
+    <div class="player">
+      <div class="stage" id="stage">
+        <div class="disc">🎬</div>
+        <div class="offline" id="offline">
+          <b>播放中断 · 网络已断开</b>
+          <p id="offNote"></p>
+          <button class="recon" id="reconBtn" type="button">重新连接并续播</button>
+        </div>
+      </div>
+      <div class="ctrls">
+        <div class="now"><b id="nowName"></b><span id="nowMeta"></span></div>
+        <div class="prog">
+          <span class="time" id="cur">00:00</span>
+          <div class="track" id="track"><div class="fill" id="fill"></div></div>
+          <span class="time r" id="dur"></span>
+        </div>
+        <div class="btnrow">
+          <button class="pp" id="ppBtn" type="button">播放</button>
+          <button class="net" id="netBtn" type="button">演示：模拟网络中断</button>
+          <span class="state" id="stateTxt">尚未开始</span>
+        </div>
+      </div>
+    </div>
+    <div class="queue">
+      <h3>稍后放映（可调整顺序）</h3>
+      <div id="queueBox"></div>
+    </div>
+  </section>
+</main>
+<script>
+(function(){
+  "use strict";
+  var LIB=[
+    {name:"巷口的灯光",meta:"纪录 · 26 分钟",dur:1560,thumb:"🌆",bg:"#2e3a4d"},
+    {name:"海边的放映机",meta:"剧情 · 18 分钟",dur:1080,thumb:"🎞️",bg:"#3a2e4d"},
+    {name:"山间电台",meta:"短片 · 12 分钟",dur:720,thumb:"📻",bg:"#2e4d3a"},
+    {name:"最后一班渡轮",meta:"剧情 · 22 分钟",dur:1320,thumb:"⛴️",bg:"#4d3a2e"}
+  ];
+  var cur=0,pos=0,playing=false,offline=false;
+  var stage=document.getElementById("stage");
+  var pp=document.getElementById("ppBtn");
+  var fill=document.getElementById("fill");
+  var curT=document.getElementById("cur");
+  var durT=document.getElementById("dur");
+  var stateTxt=document.getElementById("stateTxt");
+  var offEl=document.getElementById("offline");
+  function fmt(s){
+    return String(Math.floor(s/60)).padStart(2,"0")+":"+String(Math.floor(s%60)).padStart(2,"0");
+  }
+  function tick(){
+    var v=LIB[cur];
+    fill.style.width=(pos/v.dur*100)+"%";
+    curT.textContent=fmt(pos);
+    durT.textContent=fmt(v.dur);
+  }
+  function load(i,keepPos){
+    cur=i;
+    if(!keepPos)pos=0;
+    var v=LIB[i];
+    document.getElementById("nowName").textContent=v.name;
+    document.getElementById("nowMeta").textContent=v.meta;
+    renderDisco();
+    tick();
+  }
+  function renderDisco(){
+    var box=document.getElementById("discoBox");
+    box.innerHTML="";
+    LIB.forEach(function(v,i){
+      var d=document.createElement("div");
+      d.className="v"+(i===cur?" on":"");
+      d.tabIndex=0;
+      d.innerHTML='<span class="thumb" style="background:'+v.bg+'">'+v.thumb+'</span><div><b>'+v.name+'</b><span>'+v.meta+'</span></div>';
+      d.addEventListener("click",function(){stopPlay();load(i);stateTxt.className="state";stateTxt.textContent="已选择，点播放开始"});
+      box.appendChild(d);
+    });
+  }
+  function renderQueue(){
+    var box=document.getElementById("queueBox");
+    box.innerHTML="";
+    LIB.forEach(function(v,i){
+      if(i===cur)return;
+      var d=document.createElement("div");
+      d.className="q";
+      d.innerHTML="<span>"+v.thumb+" "+v.name+"</span><span><button class=\"mv\" data-d=\"-1\" type=\"button\">↑ 提前</button> <button class=\"mv\" data-d=\"1\" type=\"button\">↓ 推后</button></span>";
+      box.appendChild(d);
+    });
+    box.querySelectorAll(".mv").forEach(function(b){
+      b.addEventListener("click",function(){stateTxt.className="state ok";stateTxt.textContent="队列顺序已调整（演示）"});
+    });
+  }
+  function stopPlay(){playing=false;stage.classList.remove("playing");pp.textContent="播放"}
+  function setPlay(p){
+    if(offline)return;
+    playing=p;
+    stage.classList.toggle("playing",playing);
+    pp.textContent=playing?"暂停":"播放";
+    stateTxt.className="state ok";
+    stateTxt.textContent=playing?"正在播放 · 进度自动保存":"已暂停 · 进度已保存于 "+fmt(pos);
+  }
+  pp.addEventListener("click",function(){setPlay(!playing)});
+  document.getElementById("track").addEventListener("click",function(ev){
+    var r=ev.currentTarget.getBoundingClientRect();
+    var ratio=Math.min(1,Math.max(0,(ev.clientX-r.left)/r.width));
+    pos=Math.round(LIB[cur].dur*ratio);
+    tick();
+    stateTxt.className="state ok";
+    stateTxt.textContent="已跳到 "+fmt(pos)+" · 进度已保存";
+  });
+  document.getElementById("netBtn").addEventListener("click",function(){
+    if(offline)return;
+    offline=true;
+    stopPlay();
+    offEl.classList.add("show");
+    document.getElementById("offNote").textContent="已为你停在 "+fmt(pos)+"，恢复网络后从这里继续，不会重头开始。";
+    stateTxt.className="state bad";
+    stateTxt.textContent="网络中断 · 进度已保存于 "+fmt(pos);
+  });
+  document.getElementById("reconBtn").addEventListener("click",function(){
+    offline=false;
+    offEl.classList.remove("show");
+    setPlay(true);
+    stateTxt.className="state ok";
+    stateTxt.textContent="已重连 · 从 "+fmt(pos)+" 继续播放";
+  });
+  setInterval(function(){
+    if(!playing||offline)return;
+    pos+=1;
+    if(pos>=LIB[cur].dur){
+      stopPlay();
+      pos=LIB[cur].dur;
+      stateTxt.className="state ok";
+      stateTxt.textContent="本片放映完毕";
+    }
+    tick();
+  },1000);
+  load(0);
+  renderQueue();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>潮汐专注 · 权限请求</title>
+<style>
+:root{
+  --fog:#e7ebf2; --panel:#f4f6fa; --ink:#232733; --muted:#6a7183;
+  --line:#d3d9e4; --violet:#6a5ae0; --violet-deep:#5344c0; --ghost:#8a93a6;
+  --sans:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:var(--fog);color:var(--ink);font:15px/1.65 var(--sans);overflow:hidden}
+.app{height:100vh;display:grid;grid-template-columns:220px 1fr;filter:blur(3px);opacity:.85;pointer-events:none;user-select:none}
+.side{background:var(--panel);border-right:1px solid var(--line);padding:24px 18px}
+.side .row{height:14px;border-radius:7px;background:var(--line);margin-bottom:14px}
+.side .row.short{width:60%}
+.main{padding:34px 40px}
+.main .title{height:26px;width:260px;border-radius:8px;background:var(--line);margin-bottom:22px}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.card-skel{height:150px;border-radius:14px;background:#f8fafd;border:1px solid var(--line)}
+.veil{position:fixed;inset:0;background:#23273366;display:grid;place-items:center;padding:20px;z-index:10}
+.dialog{width:420px;max-width:100%;background:#fff;border-radius:18px;padding:30px 30px 26px;box-shadow:0 30px 80px #23273340;text-align:center}
+.icon{width:62px;height:62px;border-radius:16px;background:#ece9fd;display:grid;place-items:center;margin:0 auto 16px}
+.dialog h1{font-size:19px;margin:0 0 8px}
+.why{color:var(--muted);font-size:14px;margin:0 0 18px}
+.scope{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 16px;text-align:left;font-size:13px;margin-bottom:20px}
+.scope b{display:block;font-size:13px;margin-bottom:2px}
+.scope span{color:var(--muted)}
+.btns{display:grid;gap:10px}
+.allow{height:46px;border:0;border-radius:10px;background:var(--violet);color:#fff;font:600 15px var(--sans);cursor:pointer;transition:background .15s,transform .12s}
+.allow:hover{background:var(--violet-deep)}
+.allow:active{transform:scale(.99)}
+.allow:focus-visible{outline:3px solid #6a5ae044;outline-offset:2px}
+.pair{display:flex;gap:10px}
+.deny,.later{flex:1;height:42px;border-radius:10px;font:600 14px var(--sans);cursor:pointer;transition:background .15s}
+.deny{border:1px solid var(--line);background:#fff;color:var(--ink)}
+.deny:hover{background:#f3ecec;color:#a13d3d;border-color:#e2c3c3}
+.later{border:0;background:var(--panel);color:var(--muted)}
+.later:hover{background:#e9edf4;color:var(--ink)}
+.deny:focus-visible,.later:focus-visible{outline:2px solid var(--violet);outline-offset:2px}
+.result{display:none;margin-top:16px;font-size:13px;padding:10px 12px;border-radius:9px}
+.result.show{display:block}
+.result.yes{background:#e9f3ec;color:#256b41;border:1px solid #cfe3d5}
+.result.no{background:#f6efef;color:#8a4040;border:1px solid #e7d3d3}
+.result.wait{background:#eef0f7;color:#4a5164;border:1px solid var(--line)}
+.again{margin-top:12px;border:0;background:none;color:var(--violet);font:600 13px var(--sans);cursor:pointer;display:none}
+.again.show{display:inline-block}
+.again:hover{text-decoration:underline}
+@media (max-width:760px){.app{grid-template-columns:1fr}.side{display:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="app" aria-hidden="true">
+  <aside class="side">
+    <div class="row" style="width:70%"></div><div class="row"></div><div class="row short"></div><div class="row"></div><div class="row short"></div>
+  </aside>
+  <section class="main">
+    <div class="title"></div>
+    <div class="cards"><div class="card-skel"></div><div class="card-skel"></div><div class="card-skel"></div><div class="card-skel"></div><div class="card-skel"></div><div class="card-skel"></div></div>
+  </section>
+</div>
+<div class="veil">
+  <section class="dialog" role="dialog" aria-modal="true" aria-labelledby="askTitle">
+    <div class="icon" aria-hidden="true">
+      <svg width="30" height="30" viewBox="0 0 30 30"><path d="M15 3 C10 8 5 11 5 17 a10 10 0 0 0 20 0 c0-6-5-9-10-14z" fill="#6a5ae0"/><circle cx="15" cy="17" r="4" fill="#ece9fd"/></svg>
+    </div>
+    <h1 id="askTitle">允许「潮汐专注」发送通知吗？</h1>
+    <p class="why">专注结束时，潮汐需要提醒你休息；它不会在专注中打扰你。</p>
+    <div class="scope"><b>这项权限会做什么</b><span>在专注计时结束与潮汐时刻推送本地提醒，可随时在设置中关闭。</span></div>
+    <div class="btns" id="btnZone">
+      <button class="allow" id="allowBtn" type="button">允许通知</button>
+      <div class="pair">
+        <button class="deny" id="denyBtn" type="button">拒绝</button>
+        <button class="later" id="laterBtn" type="button">仅此一次，稍后再问</button>
+      </div>
+    </div>
+    <p class="result" id="resultBox" role="status"></p>
+    <button class="again" id="againBtn" type="button">重新唤起这次询问</button>
+  </section>
+</div>
+<script>
+(function(){
+  "use strict";
+  var allowBtn=document.getElementById("allowBtn");
+  var denyBtn=document.getElementById("denyBtn");
+  var laterBtn=document.getElementById("laterBtn");
+  var btnZone=document.getElementById("btnZone");
+  var resultBox=document.getElementById("resultBox");
+  var againBtn=document.getElementById("againBtn");
+  function decide(cls,text){
+    btnZone.style.display="none";
+    resultBox.className="result show "+cls;
+    resultBox.textContent=text;
+    againBtn.classList.add("show");
+  }
+  allowBtn.addEventListener("click",function(){
+    decide("yes","已允许。专注结束时，潮汐会轻轻提醒你。");
+  });
+  denyBtn.addEventListener("click",function(){
+    decide("no","已拒绝。你可以在系统设置里随时改主意。");
+  });
+  laterBtn.addEventListener("click",function(){
+    decide("wait","好的，这次先不打开。下次启动专注时再问你一次。");
+  });
+  againBtn.addEventListener("click",function(){
+    btnZone.style.display="";
+    resultBox.className="result";
+    resultBox.textContent="";
+    againBtn.classList.remove("show");
+  });
+})();
+</script>
+</body>
+</html>

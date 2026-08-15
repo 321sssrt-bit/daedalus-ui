@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>舵手 · 项目任务</title>
+<style>
+:root{
+  --bg:#f4f4f1; --card:#ffffff; --ink:#2b2a26; --muted:#8c897f;
+  --line:#e6e4dc; --ochre:#c07f22; --ochre-deep:#a2691a; --bad:#b3372f; --ok:#3e6b4f;
+  --graphite:#26262a;
+  --sans:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.6 var(--sans)}
+.bar{background:var(--graphite);color:#f1efe8;height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 28px}
+.bar b{font-size:16px;letter-spacing:.05em}
+.bar .who{font-size:12px;color:#b9b7ad}
+.layout{display:grid;grid-template-columns:1fr 320px;gap:18px;max-width:1180px;margin:0 auto;padding:22px 24px 70px;align-items:start}
+.board{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px}
+.board h2{font-size:17px;margin:0 0 14px}
+.newrow{display:flex;gap:9px;margin-bottom:16px}
+.newrow input{flex:1;height:42px;border:1px solid var(--line);border-radius:10px;padding:0 13px;font:inherit;background:#fdfdfa}
+.newrow input:focus{outline:none;border-color:var(--ochre);box-shadow:0 0 0 3px #c07f2222}
+.newrow select{height:42px;border:1px solid var(--line);border-radius:10px;padding:0 10px;font:inherit;background:#fff}
+.newrow button{border:0;background:var(--ochre);color:#fff;border-radius:10px;padding:0 22px;font:700 14px var(--sans);cursor:pointer}
+.newrow button:hover{background:var(--ochre-deep)}
+.newrow button:focus-visible{outline:3px solid #c07f2244;outline-offset:2px}
+.t{border:1px solid var(--line);border-radius:12px;padding:13px 15px;margin-bottom:10px;background:#fdfdfa}
+.t.locked{background:#faf6f0;border-color:#e3d3bb}
+.t .l1{display:flex;justify-content:space-between;gap:10px;align-items:center}
+.t b{font-size:14px}
+.st{font-size:11px;border-radius:999px;padding:2px 11px;white-space:nowrap}
+.st.s0{background:#eeece4;color:#75726a}
+.st.s1{background:#f7ecd8;color:var(--ochre-deep)}
+.st.s2{background:#e5efe4;color:var(--ok)}
+.t .l2{display:flex;justify-content:space-between;align-items:center;margin-top:9px;font-size:12px;color:var(--muted)}
+.t .ops{display:flex;gap:7px}
+.adv,.lock-btn{border:1px solid var(--line);background:#fff;border-radius:8px;padding:5px 13px;font:600 12px var(--sans);cursor:pointer;color:var(--ink)}
+.adv:hover{border-color:var(--ochre);color:var(--ochre-deep)}
+.adv:disabled{opacity:.45;cursor:not-allowed}
+.lock-btn{color:#8a6a33;border-color:#dcc79c;background:#f9f1df}
+.lock-btn:hover{background:#f3e6c9}
+.focus-visible,.adv:focus-visible,.lock-btn:focus-visible{outline:2px solid var(--ochre);outline-offset:2px}
+.deny{display:none;background:#fbeae8;border:1px solid #ecc9c4;color:#8f2c24;border-radius:11px;padding:12px 15px;font-size:13px;margin-top:12px}
+.deny.show{display:block}
+.deny b{display:block;margin-bottom:4px}
+.deny .acts{margin-top:9px;display:flex;gap:9px}
+.deny button{border-radius:8px;padding:7px 16px;font:600 12px var(--sans);cursor:pointer}
+.apply{border:1px solid #8f2c24;background:#fff;color:#8f2c24}
+.apply:hover{background:#8f2c24;color:#fff}
+.backsafe{border:1px solid var(--line);background:#fff;color:var(--ink)}
+.backsafe:hover{background:#f3f2ee}
+.log{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;position:sticky;top:20px}
+.log h2{font-size:15px;margin:0 0 12px}
+.log ul{margin:0;padding:0;list-style:none;max-height:520px;overflow-y:auto}
+.log li{border-left:3px solid var(--line);padding:7px 10px;margin-bottom:8px;font-size:12px;color:#55534b;background:#faf9f6;border-radius:0 8px 8px 0}
+.log li.bad{border-color:var(--bad);background:#fdf2f0;color:#8f2c24}
+.log li.ok{border-color:var(--ok);background:#f1f7f0;color:#34573f}
+.log li .tm{color:var(--muted);margin-right:6px}
+@media (max-width:940px){.layout{grid-template-columns:1fr}.log{position:static}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<header class="bar"><b>舵手 · 「秋季上新」项目</b><span class="who">当前身份：林晚 · 普通成员</span></header>
+<main class="layout">
+  <section class="board">
+    <h2>任务板</h2>
+    <div class="newrow">
+      <input type="text" id="nt" placeholder="新任务名称，回车创建" aria-label="新任务名称">
+      <select id="na" aria-label="分派成员">
+        <option>林晚</option><option>赵屿</option><option>何苗</option><option>苏杭</option>
+      </select>
+      <button id="addBtn" type="button">创建并分派</button>
+    </div>
+    <div id="tasks"></div>
+    <div class="deny" id="deny" role="alert">
+      <b>权限不足 · 本次操作已被阻止</b>
+      <span id="denyText"></span>
+      <div class="acts">
+        <button class="apply" id="applyBtn" type="button">申请财务任务权限</button>
+        <button class="backsafe" id="safeBtn" type="button">安全返回我的任务</button>
+      </div>
+    </div>
+  </section>
+  <aside class="log">
+    <h2>活动记录</h2>
+    <ul id="logBox"></ul>
+  </aside>
+</main>
+<script>
+(function(){
+  "use strict";
+  var ST=["未开始","进行中","已完成"];
+  var TASKS=[
+    {t:"整理竞品定价对比",a:"林晚",s:0,lock:false},
+    {t:"首页空态插画三稿",a:"苏杭",s:1,lock:false},
+    {t:"回归测试登录链路",a:"何苗",s:1,lock:false},
+    {t:"结算渠道对账",a:"财务组",s:1,lock:true}
+  ];
+  var tasksBox=document.getElementById("tasks");
+  var logBox=document.getElementById("logBox");
+  var deny=document.getElementById("deny");
+  function now(){
+    var d=new Date();
+    return String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0")+":"+String(d.getSeconds()).padStart(2,"0");
+  }
+  function log(text,kind){
+    var li=document.createElement("li");
+    li.className=kind||"";
+    li.innerHTML='<span class="tm">'+now()+"</span>"+text;
+    logBox.insertBefore(li,logBox.firstChild);
+  }
+  function render(){
+    tasksBox.innerHTML="";
+    TASKS.forEach(function(task,i){
+      var d=document.createElement("div");
+      d.className="t"+(task.lock?" locked":"");
+      var nextLabel=task.s===2?"已办结":"推进到「"+ST[task.s+1]+"」";
+      d.innerHTML='<div class="l1"><b></b><span class="st s'+task.s+'">'+ST[task.s]+(task.lock?" · 财务受限":"")+'</span></div>'+
+        '<div class="l2"><span>负责人：'+task.a+'</span><span class="ops">'+
+        (task.lock?'<button class="lock-btn" type="button">尝试推进</button>':'<button class="adv" type="button"'+(task.s===2?" disabled":"")+">"+nextLabel+"</button>")+"</span></div>";
+      d.querySelector("b").textContent=task.t;
+      var btn=d.querySelector(".adv");
+      if(btn)btn.addEventListener("click",function(){
+        task.s+=1;
+        log("林晚 把「"+task.t+"」推进到「"+ST[task.s]+"」","ok");
+        render();
+      });
+      var lb=d.querySelector(".lock-btn");
+      if(lb)lb.addEventListener("click",function(){
+        deny.classList.add("show");
+        document.getElementById("denyText").textContent="「"+task.t+"」属于财务受限任务。你的角色「普通成员」缺少「财务任务推进」权限，本次变更未写入。";
+        log("系统阻止：林晚 尝试推进受限任务「"+task.t+"」，缺少财务任务推进权限","bad");
+        deny.scrollIntoView({behavior:"smooth",block:"nearest"});
+      });
+      tasksBox.appendChild(d);
+    });
+  }
+  document.getElementById("addBtn").addEventListener("click",function(){
+    var input=document.getElementById("nt");
+    var name=input.value.trim();
+    if(!name){input.focus();return}
+    var a=document.getElementById("na").value;
+    TASKS.unshift({t:name,a:a,s:0,lock:false});
+    input.value="";
+    log("林晚 创建任务「"+name+"」并分派给 "+a,"ok");
+    render();
+  });
+  document.getElementById("nt").addEventListener("keydown",function(ev){
+    if(ev.key==="Enter")document.getElementById("addBtn").click();
+  });
+  document.getElementById("applyBtn").addEventListener("click",function(){
+    log("林晚 向管理员发起了「财务任务推进」权限申请，等待审批","");
+    deny.classList.remove("show");
+  });
+  document.getElementById("safeBtn").addEventListener("click",function(){
+    deny.classList.remove("show");
+    log("林晚 选择安全返回，继续处理自己有权限的任务","");
+  });
+  log("项目「秋季上新」已加载，当前 4 项任务","");
+  render();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>铃坞 · 通知中心</title>
+<style>
+:root{
+  --bg:#f2f1f7; --panel:#ffffff; --ink:#2a2733; --muted:#8b8798;
+  --line:#e5e3ee; --iris:#6c5ce7; --ok:#2e9e6b; --warn:#d98a1f; --bad:#d5453c; --info:#2f7fd1;
+  --sans:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.6 var(--sans)}
+.top{height:58px;display:flex;justify-content:space-between;align-items:center;padding:0 30px;background:var(--panel);border-bottom:1px solid var(--line)}
+.top b{font-size:16px}
+.col{max-width:720px;margin:26px auto 60px;padding:0 20px}
+.head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.head h1{font-size:20px;margin:0;display:flex;gap:10px;align-items:center}
+.badge{background:var(--iris);color:#fff;border-radius:999px;font-size:12px;padding:2px 10px}
+.readall{border:1px solid var(--line);background:#fff;border-radius:9px;padding:8px 16px;font:600 13px var(--sans);cursor:pointer;color:var(--ink)}
+.readall:hover{background:#eceaf5}
+.readall:focus-visible{outline:2px solid var(--iris);outline-offset:2px}
+.note{height:36px;display:flex;align-items:center;justify-content:center;border-radius:9px;background:#e7f3ec;color:var(--ok);font-size:13px;margin-bottom:12px;visibility:hidden}
+.note.show{visibility:visible}
+.n{display:grid;grid-template-columns:38px 1fr auto;gap:12px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:10px;position:relative}
+.n.unread{background:#fbfaff;border-color:#d9d4f2}
+.n.unread:before{content:"";position:absolute;left:-1px;top:14px;bottom:14px;width:3px;background:var(--iris);border-radius:2px}
+.icon{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;font-size:16px}
+.i-system{background:#e8f0fa;color:var(--info)}
+.i-mention{background:#eeeafb;color:var(--iris)}
+.i-task{background:#e6f4ee;color:var(--ok)}
+.i-billing{background:#fbf1de;color:var(--warn)}
+.i-security{background:#fbe9e7;color:var(--bad)}
+.n .t{font-weight:600}
+.n:not(.unread) .t{font-weight:400;color:var(--muted)}
+.n .s{font-size:13px;color:var(--muted);margin-top:2px}
+.when{font-size:12px;color:var(--muted);white-space:nowrap}
+.tools{grid-column:1/-1;display:flex;gap:8px;margin-top:4px}
+.exp{border:1px dashed var(--line);background:#faf9fd;border-radius:8px;padding:6px 12px;font:12px var(--sans);color:var(--iris);cursor:pointer}
+.exp:hover{background:#f1eefc}
+.mark{border:0;background:none;color:var(--muted);font:12px var(--sans);cursor:pointer;padding:6px 4px}
+.mark:hover{color:var(--iris)}
+.detail{display:none;margin-top:8px;padding:10px 12px;background:#f6f5fb;border-radius:8px;font-size:13px;color:var(--ink)}
+.detail.show{display:block}
+@media (max-width:560px){.top{padding:0 16px}.col{padding:0 12px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<header class="top"><b>铃坞 · 团队协作</b><span style="color:var(--muted);font-size:13px">林晚的通知</span></header>
+<main class="col">
+  <div class="head">
+    <h1>通知中心 <span class="badge" id="badge"></span></h1>
+    <button class="readall" id="readAll" type="button">全部标为已读</button>
+  </div>
+  <div class="note" id="note" role="status">已全部标为已读，世界清净了。</div>
+  <section id="list">
+    <article class="n unread" data-type="mention">
+      <div class="icon i-mention">@</div>
+      <div><div class="t">何苗 在「登录链路回归」中提到了你</div><div class="s">「麻烦林晚确认验证码回跳是否影响发版结论。」</div>
+        <div class="detail" id="d1">完整留言：弱网下验证码倒计时偶尔回跳（QD-1143），我判断不阻塞发版，但需要你从产品角度确认一下口径，今天下班前回我就行。</div>
+        <div class="tools"><button class="exp" type="button" data-target="d1">展开完整留言</button><button class="mark" type="button">标为已读</button></div>
+      </div>
+      <span class="when">3 分钟前</span>
+    </article>
+    <article class="n unread" data-type="task">
+      <div class="icon i-task">任</div>
+      <div><div class="t">任务「准备周一立项会材料」明天到期</div><div class="s">负责人是你，当前进度 40%，还差结论页。</div><div class="tools"><button class="mark" type="button">标为已读</button></div></div>
+      <span class="when">28 分钟前</span>
+    </article>
+    <article class="n unread" data-type="security">
+      <div class="icon i-security">盾</div>
+      <div><div class="t">新设备在 杭州 登录了你的账号</div><div class="s">Chrome · Windows，如果不是你，请立即改密。</div><div class="tools"><button class="mark" type="button">标为已读</button></div></div>
+      <span class="when">1 小时前</span>
+    </article>
+    <article class="n" data-type="billing">
+      <div class="icon i-billing">账</div>
+      <div><div class="t">8 月账单已出：团队版 ¥ 480</div><div class="s">将于 8 月 20 日从尾号 6021 的卡扣款。</div><div class="tools"><button class="mark" type="button">标为已读</button></div></div>
+      <span class="when">昨天 18:02</span>
+    </article>
+    <article class="n" data-type="system">
+      <div class="icon i-system">系</div>
+      <div><div class="t">铃坞将于周日 02:00 升级维护</div><div class="s">预计 20 分钟，期间只读不可编辑。</div><div class="tools"><button class="mark" type="button">标为已读</button></div></div>
+      <span class="when">昨天 10:30</span>
+    </article>
+    <article class="n" data-type="mention">
+      <div class="icon i-mention">@</div>
+      <div><div class="t">沈一帆 回复了你关于评审改期的评论</div><div class="s">「同意，材料中午前给我就行。」</div><div class="tools"><button class="mark" type="button">标为已读</button></div></div>
+      <span class="when">昨天 09:41</span>
+    </article>
+  </section>
+</main>
+<script>
+(function(){
+  "use strict";
+  var list=document.getElementById("list");
+  var badge=document.getElementById("badge");
+  var note=document.getElementById("note");
+  function refresh(){
+    var unread=list.querySelectorAll(".n.unread").length;
+    badge.textContent=unread+" 条未读";
+    badge.style.display=unread?"":"none";
+  }
+  list.addEventListener("click",function(ev){
+    var item=ev.target.closest(".n");
+    if(!item)return;
+    if(ev.target.classList.contains("exp")){
+      var detail=document.getElementById(ev.target.getAttribute("data-target"));
+      var show=detail.classList.toggle("show");
+      ev.target.textContent=show?"收起完整留言":"展开完整留言";
+      return;
+    }
+    if(ev.target.classList.contains("mark")){
+      item.classList.remove("unread");
+      refresh();
+      return;
+    }
+    item.classList.remove("unread");
+    refresh();
+  });
+  document.getElementById("readAll").addEventListener("click",function(){
+    list.querySelectorAll(".n.unread").forEach(function(item){item.classList.remove("unread")});
+    note.classList.add("show");
+    refresh();
+  });
+  refresh();
+})();
+</script>
+</body>
+</html>

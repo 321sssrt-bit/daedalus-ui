@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>拾陶商城 · 购物闭环</title>
+<style>
+:root{
+  --bg:#f5f0e8; --card:#fffdf8; --ink:#33261c; --muted:#96826f;
+  --line:#e9ddca; --kiln:#b0562f; --kiln-deep:#934524; --ok:#3e6b4f; --bad:#b3372f;
+  --sans:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.6 var(--sans)}
+.bar{height:58px;background:var(--kiln);color:#fff;display:flex;justify-content:space-between;align-items:center;padding:0 30px}
+.bar b{font-size:17px;letter-spacing:.05em}
+.bar .nav{display:flex;gap:10px}
+.bar button{border:1px solid #ffffff66;background:transparent;color:#fff;border-radius:999px;padding:7px 18px;font:600 13px var(--sans);cursor:pointer}
+.bar button:hover{background:#ffffff1f}
+.bar button:focus-visible{outline:2px solid #fff}
+.wrap{max-width:1060px;margin:0 auto;padding:26px 24px 70px}
+.view{display:none}
+.view.show{display:block}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.p{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;cursor:pointer;transition:transform .14s,box-shadow .14s}
+.p:hover{transform:translateY(-3px);box-shadow:0 12px 28px #33261c14}
+.p .ph{height:130px;display:grid;place-items:center;font-size:40px}
+.p .in{padding:14px 16px}
+.p b{font-size:15px}
+.p .m{color:var(--muted);font-size:12px;margin:3px 0 8px}
+.p .pr{color:var(--kiln);font-weight:800}
+h2{font-size:20px;margin:0 0 16px}
+.crumb{color:var(--muted);font-size:13px;margin-bottom:12px}
+.crumb a{color:var(--kiln);cursor:pointer;text-decoration:none}
+.dbox{display:grid;grid-template-columns:320px 1fr;gap:22px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:24px}
+.dpic{border-radius:12px;display:grid;place-items:center;font-size:90px;min-height:300px}
+.dinfo h3{font-size:24px;margin:0 0 6px}
+.dinfo .lead{color:var(--muted);margin:0 0 14px;font-size:13px}
+.gname{font-size:12px;color:var(--muted);margin:12px 0 7px}
+.specs{display:flex;gap:9px;flex-wrap:wrap}
+.spec{border:1px solid var(--line);background:#fff;border-radius:9px;padding:8px 15px;font:inherit;font-size:13px;cursor:pointer}
+.spec:hover{border-color:var(--kiln)}
+.spec.on{border-color:var(--kiln);color:var(--kiln);background:#faf0e9;font-weight:700}
+.spec:focus-visible{outline:2px solid var(--kiln)}
+.stock{font-size:12px;margin-top:8px;color:var(--muted)}
+.stock.out{color:var(--bad);font-weight:700}
+.qty{display:inline-flex;border:1px solid var(--line);border-radius:9px;overflow:hidden}
+.qty button{width:36px;height:36px;border:0;background:#fff;cursor:pointer;font-size:16px}
+.qty button:disabled{color:#c8b9a6;cursor:not-allowed}
+.qty b{width:42px;display:grid;place-items:center;border-left:1px solid var(--line);border-right:1px solid var(--line)}
+.addrow{display:flex;gap:12px;margin-top:20px;align-items:center}
+.add{border:0;background:var(--kiln);color:#fff;border-radius:10px;padding:12px 30px;font:700 14px var(--sans);cursor:pointer}
+.add:hover{background:var(--kiln-deep)}
+.add:focus-visible{outline:3px solid #b0562f44;outline-offset:2px}
+.demo{border:1px dashed #c9a07f;background:#fdf6ee;color:#93683f;border-radius:10px;padding:11px 16px;font:12px var(--sans);cursor:pointer}
+.demo:hover{background:#faeedd}
+.flash{margin-top:12px;font-size:13px;min-height:20px}
+.flash.bad{color:var(--bad)}
+.flash.good{color:var(--ok)}
+.row{display:grid;grid-template-columns:1fr 150px 130px 90px;gap:12px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:10px}
+.row.out-of-stock{border-color:#e0b3ae;background:#fdf4f2}
+.row .n{font-weight:700}
+.row .s{color:var(--muted);font-size:12px}
+.tagout{display:inline-block;background:#fbe7e4;color:var(--bad);border-radius:999px;font-size:11px;padding:2px 10px;margin-left:8px}
+.sub{text-align:right;font-weight:800}
+.sumcard{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin-top:14px}
+.sumcard .l{display:flex;justify-content:space-between;font-size:13px;color:var(--muted);padding:4px 0}
+.sumcard .t{display:flex;justify-content:space-between;align-items:baseline;border-top:1px dashed var(--line);margin-top:8px;padding-top:12px}
+.sumcard .t b{font-size:26px;color:var(--kiln)}
+.submit{width:100%;margin-top:14px;height:48px;border:0;border-radius:11px;background:var(--kiln);color:#fff;font:700 15px var(--sans);cursor:pointer}
+.submit:hover{background:var(--kiln-deep)}
+.submit:focus-visible{outline:3px solid #b0562f44;outline-offset:2px}
+.alert{display:none;background:#fbe7e4;border:1px solid #ecc9c1;color:#8f2c24;border-radius:12px;padding:14px 16px;margin-top:12px;font-size:13px}
+.alert.show{display:block}
+.fix{border:1px solid #8f2c24;background:#fff;color:#8f2c24;border-radius:8px;padding:6px 14px;font:600 12px var(--sans);cursor:pointer;margin:8px 8px 0 0}
+.fix:hover{background:#8f2c24;color:#fff}
+.receipt{max-width:560px;margin:0 auto;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:28px 30px;text-align:center}
+.okbadge{width:62px;height:62px;border-radius:50%;background:var(--ok);color:#fff;display:grid;place-items:center;font-size:26px;margin:0 auto 12px}
+.receipt h3{margin:0 0 4px;font-size:22px}
+.ono{font:700 16px ui-monospace,Consolas,monospace;color:var(--kiln)}
+.rline{display:flex;justify-content:space-between;font-size:13px;padding:8px 4px;border-bottom:1px dashed var(--line)}
+.again{margin-top:18px;border:1px solid var(--kiln);background:#fff;color:var(--kiln);border-radius:10px;padding:11px 26px;font:700 14px var(--sans);cursor:pointer}
+.again:hover{background:#faf0e9}
+@media (max-width:900px){.grid{grid-template-columns:1fr}.dbox{grid-template-columns:1fr}.row{grid-template-columns:1fr 110px 80px}.row .del-col{display:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<header class="bar">
+  <b>拾陶商城</b>
+  <div class="nav">
+    <button type="button" data-go="shop">货架</button>
+    <button type="button" data-go="cart" id="cartNav">购物袋（0）</button>
+  </div>
+</header>
+<main class="wrap">
+  <section class="view show" id="v-shop">
+    <h2>今日货架</h2>
+    <div class="grid" id="pgrid"></div>
+  </section>
+  <section class="view" id="v-detail"></section>
+  <section class="view" id="v-cart">
+    <h2>购物袋</h2>
+    <div id="cartRows"></div>
+    <div class="alert" id="cartAlert" role="alert"></div>
+    <div class="sumcard">
+      <div class="l"><span id="cntTxt"></span><span id="goodsTxt"></span></div>
+      <div class="l"><span>运费</span><span>免运费</span></div>
+      <div class="t"><span>应付合计</span><b id="totalTxt"></b></div>
+      <button class="submit" id="submitBtn" type="button">提交订单</button>
+    </div>
+  </section>
+  <section class="view" id="v-receipt">
+    <div class="receipt">
+      <div class="okbadge">✓</div>
+      <h3>下单成功</h3>
+      <p class="ono" id="orderNo"></p>
+      <p style="color:var(--muted);font-size:13px">预计 8 月 18 日送达 · 顺丰特惠</p>
+      <div id="rlist" style="text-align:left;margin-top:14px"></div>
+      <div class="t" style="display:flex;justify-content:space-between;padding-top:12px"><span>实付</span><b id="rTotal" style="color:var(--kiln);font-size:22px"></b></div>
+      <button class="again" id="againBtn" type="button">再逛一次</button>
+    </div>
+  </section>
+</main>
+<script>
+(function(){
+  "use strict";
+  var PRODUCTS=[
+    {id:"cup",name:"山月杯",emoji:"🍵",bg:"#f3e3d3",desc:"柴窑烧成的手作粗陶杯，釉面留火痕。",specs:[{v:"标准款 · 260ml",price:128,stock:20},{v:"限定款 · 礼盒装",price:168,stock:2}]},
+    {id:"pot",name:"云雾茶壶",emoji:"🫖",bg:"#e7ecdf",desc:"侧把壶，出水利落，适合三五好友。",specs:[{v:"标准款 · 450ml",price:258,stock:12},{v:"限定款 · 柴烧",price:328,stock:3}]},
+    {id:"bowl",name:"窑变茶碗",emoji:"🥣",bg:"#efe2e6",desc:"入窑一色出窑万彩，每只纹理不同。",specs:[{v:"标准款 · 单只",price:98,stock:30},{v:"对装 · 两只",price:188,stock:6}]}
+  ];
+  var cart=[];
+  var views={shop:document.getElementById("v-shop"),detail:document.getElementById("v-detail"),cart:document.getElementById("v-cart"),receipt:document.getElementById("v-receipt")};
+  function go(v){
+    Object.keys(views).forEach(function(k){views[k].classList.toggle("show",k===v)});
+    if(v==="cart")renderCart();
+    window.scrollTo(0,0);
+  }
+  function findSpec(p,v){return p.specs.filter(function(s){return s.v===v})[0]}
+  function cartCount(){return cart.reduce(function(s,i){return s+i.qty},0)}
+  function syncNav(){document.getElementById("cartNav").textContent="购物袋（"+cartCount()+"）"}
+  function renderShop(){
+    var g=document.getElementById("pgrid");
+    g.innerHTML="";
+    PRODUCTS.forEach(function(p){
+      var card=document.createElement("article");
+      card.className="p";
+      card.innerHTML='<div class="ph" style="background:'+p.bg+'">'+p.emoji+'</div><div class="in"><b>'+p.name+'</b><div class="m">'+p.desc+'</div><span class="pr">¥ '+p.specs[0].price+' 起</span></div>';
+      card.addEventListener("click",function(){renderDetail(p.id)});
+      g.appendChild(card);
+    });
+  }
+  var cur=null;
+  function renderDetail(pid){
+    cur=PRODUCTS.filter(function(p){return p.id===pid})[0];
+    var sel=0,qty=1;
+    var box=views.detail;
+    function draw(){
+      var sp=cur.specs[sel];
+      box.innerHTML='<p class="crumb"><a data-back>返回货架</a> / '+cur.name+'</p>'+
+        '<div class="dbox"><div class="dpic" style="background:'+cur.bg+'">'+cur.emoji+'</div><div class="dinfo">'+
+        '<h3>'+cur.name+'</h3><p class="lead">'+cur.desc+'</p>'+
+        '<div class="gname">规格 · 二选一</div><div class="specs" id="specBox"></div>'+
+        '<p class="stock '+(sp.stock===0?"out":"")+'" id="stockTxt">'+(sp.stock===0?"该规格已缺货，请选择其他规格":"库存 "+sp.stock+" 件")+'</p>'+
+        '<div class="gname">数量</div><div class="qty"><button id="minus" type="button">−</button><b>'+qty+'</b><button id="plus" type="button">＋</button></div>'+
+        '<div class="addrow"><button class="add" id="addBtn" type="button">加入购物袋 · ¥ '+(sp.price*qty)+'</button>'+
+        '<button class="demo" id="sellout" type="button">演示：把该规格调成缺货</button></div>'+
+        '<p class="flash" id="flash"></p></div></div>';
+      var specBox=box.querySelector("#specBox");
+      cur.specs.forEach(function(s,i){
+        var b=document.createElement("button");
+        b.type="button";
+        b.className="spec"+(i===sel?" on":"");
+        b.textContent=s.v+" · ¥"+s.price;
+        b.addEventListener("click",function(){sel=i;draw()});
+        specBox.appendChild(b);
+      });
+      box.querySelector("[data-back]").addEventListener("click",function(){go("shop")});
+      box.querySelector("#minus").addEventListener("click",function(){if(qty>1){qty--;draw()}});
+      box.querySelector("#plus").addEventListener("click",function(){if(qty<9){qty++;draw()}});
+      box.querySelector("#sellout").addEventListener("click",function(){
+        cur.specs[sel].stock=0;
+        draw();
+        var f=box.querySelector("#flash");
+        f.className="flash bad";
+        f.textContent="已把「"+cur.specs[sel].v+"」设为缺货（演示入口）。";
+      });
+      box.querySelector("#addBtn").addEventListener("click",function(){
+        var f=box.querySelector("#flash");
+        if(sp.stock===0){
+          f.className="flash bad";
+          f.textContent="「"+sp.v+"」缺货，无法加入，请换一个规格。";
+          return;
+        }
+        cart.push({pid:cur.id,v:sp.v,qty:qty});
+        syncNav();
+        f.className="flash good";
+        f.textContent="已把 "+qty+" 件 "+cur.name+"（"+sp.v+"）放进购物袋。";
+      });
+    }
+    draw();
+    go("detail");
+  }
+  function renderCart(){
+    var box=document.getElementById("cartRows");
+    var alert=document.getElementById("cartAlert");
+    box.innerHTML="";
+    alert.className="alert";
+    alert.innerHTML="";
+    if(!cart.length){
+      box.innerHTML='<p style="color:var(--muted)">袋子还空着，先去货架挑两件。</p>';
+    }
+    var bad=[];
+    cart.forEach(function(item,i){
+      var p=PRODUCTS.filter(function(x){return x.id===item.pid})[0];
+      var sp=findSpec(p,item.v);
+      var lack=sp.stock<item.qty;
+      if(lack)bad.push({item:item,i:i,p:p,sp:sp});
+      var row=document.createElement("div");
+      row.className="row"+(lack?" out-of-stock":"");
+      row.innerHTML='<div><span class="n">'+p.name+(lack?'<span class="tagout">'+(sp.stock===0?"缺货":"仅剩 "+sp.stock+" 件")+"</span>":"")+'</span><div class="s">'+sp.v+'</div></div>'+
+        '<div class="qty"><button data-a="-" type="button">−</button><b>'+item.qty+'</b><button data-a="+" type="button">＋</button></div>'+
+        '<div class="sub">¥ '+(sp.price*item.qty)+'</div>'+
+        '<div class="del-col" style="text-align:right"><button data-a="rm" type="button" style="border:0;background:none;color:var(--muted);cursor:pointer">移除</button><button data-a="os" type="button" style="border:1px dashed #c9a07f;background:#fdf6ee;color:#93683f;border-radius:8px;padding:5px 9px;font-size:11px;cursor:pointer;margin-top:6px">触发缺货</button></div>';
+      row.querySelector('[data-a="-"]').addEventListener("click",function(){if(item.qty>1){item.qty--;renderCart();syncNav()}});
+      row.querySelector('[data-a="+"]').addEventListener("click",function(){if(item.qty<9){item.qty++;renderCart();syncNav()}});
+      row.querySelector('[data-a="rm"]').addEventListener("click",function(){cart.splice(i,1);renderCart();syncNav()});
+      row.querySelector('[data-a="os"]').addEventListener("click",function(){sp.stock=item.qty>1?item.qty-1:0;renderCart()});
+      box.appendChild(row);
+    });
+    if(bad.length){
+      alert.className="alert show";
+      var names=bad.map(function(b){return "「"+b.p.name+" · "+b.sp.v+"」"}).join("、");
+      var html="库存不足："+names+" 无法按当前数量提交。请改选有货规格或减少数量。";
+      bad.forEach(function(b){
+        var other=b.p.specs.filter(function(s){return s.v!==b.sp.v&&s.stock>0})[0];
+        if(other)html+='<button class="fix" data-fix="spec" data-i="'+b.i+'" data-v="'+other.v+'" type="button">改选「'+other.v+'」</button>';
+        if(b.sp.stock>0)html+='<button class="fix" data-fix="qty" data-i="'+b.i+'" type="button">减到 '+b.sp.stock+' 件</button>';
+      });
+      alert.innerHTML=html;
+      alert.querySelectorAll("[data-fix]").forEach(function(btn){
+        btn.addEventListener("click",function(){
+          var i=Number(btn.getAttribute("data-i"));
+          if(btn.getAttribute("data-fix")==="spec"){cart[i].v=btn.getAttribute("data-v")}
+          else{cart[i].qty=findSpec(PRODUCTS.filter(function(x){return x.id===cart[i].pid})[0],cart[i].v).stock}
+          renderCart();
+        });
+      });
+    }
+    var count=cartCount();
+    var goods=cart.reduce(function(s,item){
+      var p=PRODUCTS.filter(function(x){return x.id===item.pid})[0];
+      return s+findSpec(p,item.v).price*item.qty;
+    },0);
+    document.getElementById("cntTxt").textContent="共 "+cart.length+" 种 / "+count+" 件";
+    document.getElementById("goodsTxt").textContent="¥ "+goods;
+    document.getElementById("totalTxt").textContent="¥ "+goods;
+  }
+  document.getElementById("submitBtn").addEventListener("click",function(){
+    var hasBad=cart.some(function(item){
+      var p=PRODUCTS.filter(function(x){return x.id===item.pid})[0];
+      return findSpec(p,item.v).stock<item.qty;
+    });
+    if(!cart.length)return;
+    if(hasBad)return;
+    var no="PT-2026-0815-"+String(Math.floor(Math.random()*900)+100);
+    document.getElementById("orderNo").textContent=no;
+    var rlist=document.getElementById("rlist");
+    rlist.innerHTML="";
+    var total=0;
+    cart.forEach(function(item){
+      var p=PRODUCTS.filter(function(x){return x.id===item.pid})[0];
+      var sp=findSpec(p,item.v);
+      sp.stock=Math.max(0,sp.stock-item.qty);
+      total+=sp.price*item.qty;
+      var d=document.createElement("div");
+      d.className="rline";
+      d.innerHTML="<span>"+p.name+" · "+item.v+" × "+item.qty+"</span><b>¥ "+(sp.price*item.qty)+"</b>";
+      rlist.appendChild(d);
+    });
+    document.getElementById("rTotal").textContent="¥ "+total;
+    cart=[];
+    syncNav();
+    go("receipt");
+  });
+  document.getElementById("againBtn").addEventListener("click",function(){go("shop")});
+  document.querySelector(".bar .nav").addEventListener("click",function(ev){
+    var b=ev.target.closest("button");
+    if(b)go(b.getAttribute("data-go"));
+  });
+  renderShop();
+  syncNav();
+})();
+</script>
+</body>
+</html>

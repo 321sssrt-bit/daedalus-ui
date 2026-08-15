@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>回声 · 正在播放</title>
+<style>
+:root{
+  --dusk1:#f7b267; --dusk2:#e35d5b; --dusk3:#5d3a6e; --deep:#2e1f3d;
+  --text:#fff6ec; --soft:#ffffffb3; --track:#ffffff40;
+  --sans:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+body{margin:0;background:#241a30;font:14px/1.6 var(--sans);display:grid;place-items:center;min-height:100vh;padding:20px 10px}
+.phone{width:390px;max-width:100%;height:844px;border:10px solid #140e1c;border-radius:44px;overflow:hidden;box-shadow:0 30px 80px #00000088;position:relative;background:linear-gradient(180deg,var(--dusk1) 0%,var(--dusk2) 46%,var(--dusk3) 78%,var(--deep) 100%)}
+.scr{height:100%;display:flex;flex-direction:column;padding:58px 26px 34px;color:var(--text)}
+.top{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--soft)}
+.top b{font-size:13px;letter-spacing:.14em}
+.disc-wrap{flex:1;display:grid;place-items:center}
+.disc{width:250px;height:250px;border-radius:50%;background:radial-gradient(circle at 50% 50%,#3a2a4d 0 26%,#241a30 26% 27%,#472f56 27% 62%,#241a30 62% 63%,#553a66 63% 100%);position:relative;box-shadow:0 24px 60px #00000059;animation:spin 14s linear infinite;animation-play-state:paused}
+.playing .disc{animation-play-state:running}
+@keyframes spin{to{transform:rotate(360deg)}}
+.disc .label{position:absolute;inset:34%;border-radius:50%;background:linear-gradient(135deg,var(--dusk1),var(--dusk2));display:grid;place-items:center;font-size:26px}
+.title{text-align:center;margin:6px 0 2px}
+.title h1{font-size:22px;margin:0}
+.title p{margin:3px 0 0;color:var(--soft);font-size:13px}
+.progress{margin:22px 0 8px}
+.bar{height:5px;border-radius:3px;background:var(--track);cursor:pointer}
+.fill{height:100%;width:0;background:#fff;border-radius:3px}
+.times{display:flex;justify-content:space-between;font-size:11px;color:var(--soft);margin-top:7px}
+.ctrl{display:flex;justify-content:center;align-items:center;gap:34px;margin-top:10px}
+.ctrl button{border:0;background:none;color:var(--text);cursor:pointer;font-size:22px;padding:10px;border-radius:50%}
+.ctrl button:hover{background:#ffffff1f}
+.ctrl button:focus-visible{outline:2px solid #fff;outline-offset:2px}
+.pp{width:74px;height:74px;border-radius:50%;background:#fff;color:#5d3a6e;font-size:28px;display:grid;place-items:center;box-shadow:0 12px 30px #00000040}
+.pp:hover{background:#fff}
+.next-q{margin-top:22px;background:#ffffff14;border-radius:14px;padding:11px 14px;font-size:12px;color:var(--soft);display:flex;justify-content:space-between}
+.next-q b{color:var(--text);font-weight:600}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="scr" id="scr">
+    <div class="top"><span>◂ 播放列表</span><b>正 在 播 放</b><span>···</span></div>
+    <div class="disc-wrap"><div class="disc"><span class="label">♪</span></div></div>
+    <div class="title"><h1 id="songName">晚风影院</h1><p id="songArtist">海鸥食堂 · 专辑《沿河路》</p></div>
+    <div class="progress">
+      <div class="bar" id="bar"><div class="fill" id="fill"></div></div>
+      <div class="times"><span id="cur">00:00</span><span id="dur">04:12</span></div>
+    </div>
+    <div class="ctrl">
+      <button type="button" id="prevBtn" aria-label="上一首">⏮</button>
+      <button type="button" class="pp" id="ppBtn" aria-label="播放或暂停">▶</button>
+      <button type="button" id="nextBtn" aria-label="下一首">⏭</button>
+    </div>
+    <div class="next-q"><span>下一首</span><b id="nextName">沿河路的灯 · 海鸥食堂</b></div>
+  </div>
+</div>
+<script>
+(function(){
+  "use strict";
+  var LIST=[
+    {name:"晚风影院",artist:"海鸥食堂 · 专辑《沿河路》",dur:252},
+    {name:"沿河路的灯",artist:"海鸥食堂 · 专辑《沿河路》",dur:198},
+    {name:"末班车电台",artist:"白屿 · 单曲",dur:226}
+  ];
+  var idx=0;
+  var playing=false;
+  var pos=0;
+  var scr=document.getElementById("scr");
+  var pp=document.getElementById("ppBtn");
+  var fill=document.getElementById("fill");
+  var cur=document.getElementById("cur");
+  var dur=document.getElementById("dur");
+  var name=document.getElementById("songName");
+  var artist=document.getElementById("songArtist");
+  var nextName=document.getElementById("nextName");
+  function fmt(s){
+    return String(Math.floor(s/60)).padStart(2,"0")+":"+String(Math.floor(s%60)).padStart(2,"0");
+  }
+  function render(){
+    var s=LIST[idx];
+    name.textContent=s.name;
+    artist.textContent=s.artist;
+    dur.textContent=fmt(s.dur);
+    nextName.textContent=LIST[(idx+1)%LIST.length].name+" · "+LIST[(idx+1)%LIST.length].artist.split(" ·")[0];
+    tick();
+  }
+  function tick(){
+    var s=LIST[idx];
+    fill.style.width=(pos/s.dur*100)+"%";
+    cur.textContent=fmt(pos);
+  }
+  pp.addEventListener("click",function(){
+    playing=!playing;
+    pp.textContent=playing?"❚❚":"▶";
+    scr.classList.toggle("playing",playing);
+  });
+  document.getElementById("nextBtn").addEventListener("click",function(){
+    idx=(idx+1)%LIST.length;
+    pos=0;
+    render();
+  });
+  document.getElementById("prevBtn").addEventListener("click",function(){
+    idx=(idx-1+LIST.length)%LIST.length;
+    pos=0;
+    render();
+  });
+  document.getElementById("bar").addEventListener("click",function(ev){
+    var rect=ev.currentTarget.getBoundingClientRect();
+    var ratio=(ev.clientX-rect.left)/rect.width;
+    pos=Math.round(LIST[idx].dur*Math.min(1,Math.max(0,ratio)));
+    tick();
+  });
+  setInterval(function(){
+    if(!playing)return;
+    pos+=1;
+    if(pos>=LIST[idx].dur){idx=(idx+1)%LIST.length;pos=0;render();return}
+    tick();
+  },1000);
+  render();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>作帖 · 海报工坊</title>
+<style>
+:root{
+  --bg:#15171c; --panel:#1f222a; --panel-line:#2e323c; --text:#e9eaee;
+  --muted:#8e93a0; --mint:#5ec8b0; --mint-deep:#43a890; --bad:#ff7d6e;
+  --sans:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+  --mono:ui-monospace,Consolas,monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:14px/1.6 var(--sans)}
+.bar{height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 26px;border-bottom:1px solid var(--panel-line)}
+.bar b{font-size:16px;letter-spacing:.05em}
+.bar span{color:var(--muted);font-size:12px}
+.studio{display:grid;grid-template-columns:270px 1fr 270px;gap:16px;max-width:1240px;margin:0 auto;padding:18px 22px 60px;align-items:start}
+.pane{background:var(--panel);border:1px solid var(--panel-line);border-radius:14px;padding:16px}
+.pane h2{font-size:13px;color:var(--muted);margin:0 0 12px;letter-spacing:.1em}
+.grp{margin-bottom:16px}
+.grp label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}
+.swatches{display:flex;gap:8px}
+.sw{width:30px;height:30px;border-radius:8px;border:2px solid transparent;cursor:pointer}
+.sw.on{border-color:#fff;box-shadow:0 0 0 2px var(--mint)}
+.sw:focus-visible{outline:2px solid var(--mint);outline-offset:2px}
+input[type=text]{width:100%;height:38px;border:1px solid var(--panel-line);border-radius:9px;background:#171920;color:var(--text);padding:0 11px;font:inherit}
+input[type=text]:focus{outline:none;border-color:var(--mint)}
+input[type=range]{width:100%;accent-color:var(--mint)}
+.tgl{display:flex;justify-content:space-between;align-items:center;font-size:13px;padding:7px 0}
+.tgl button{width:36px;height:21px;border-radius:999px;border:0;background:#3a3f4b;position:relative;cursor:pointer;transition:background .15s}
+.tgl button:after{content:"";position:absolute;top:2.5px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;transition:left .15s}
+.tgl button.on{background:var(--mint)}
+.tgl button.on:after{left:17px}
+.stage{background:var(--panel);border:1px solid var(--panel-line);border-radius:14px;padding:22px;display:grid;place-items:center;min-height:560px}
+.poster{width:340px;height:480px;border-radius:10px;display:flex;flex-direction:column;justify-content:space-between;padding:26px 24px;box-shadow:0 24px 60px #00000066;transition:background .25s}
+.poster .k{font-size:12px;letter-spacing:.3em;opacity:.85}
+.poster h1{font-size:34px;line-height:1.25;margin:10px 0 0;font-weight:800}
+.poster .deco{font-size:40px}
+.poster .foot{display:flex;justify-content:space-between;font-size:11px;opacity:.8}
+.fmt{display:flex;gap:8px;flex-wrap:wrap}
+.f{flex:1;border:1px solid var(--panel-line);background:#171920;border-radius:9px;padding:8px 4px;text-align:center;font:12px var(--sans);color:var(--muted);cursor:pointer;min-width:52px}
+.f.on{border-color:var(--mint);color:var(--mint);background:#1d2b28;font-weight:700}
+.f:focus-visible{outline:2px solid var(--mint)}
+.size{display:flex;flex-direction:column;gap:7px}
+.sz{display:flex;justify-content:space-between;border:1px solid var(--panel-line);background:#171920;border-radius:9px;padding:8px 12px;font-size:12px;color:var(--muted);cursor:pointer}
+.sz.on{border-color:var(--mint);color:var(--mint);background:#1d2b28;font-weight:700}
+.sz span{color:var(--muted);font-size:11px}
+.exbtn{width:100%;height:44px;margin-top:14px;border:0;border-radius:10px;background:var(--mint);color:#12352c;font:700 14px var(--sans);cursor:pointer;transition:background .15s}
+.exbtn:hover{background:var(--mint-deep)}
+.exbtn:focus-visible{outline:3px solid #5ec8b044;outline-offset:2px}
+.exmsg{margin-top:10px;font-size:12px;min-height:18px}
+.exmsg.bad{color:var(--bad)}
+.exmsg.good{color:var(--mint)}
+.result{display:none;margin-top:12px;background:#171920;border:1px solid var(--panel-line);border-radius:10px;padding:12px}
+.result.show{display:block}
+.result .r{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);padding:3px 0}
+.result .r b{color:var(--text);font:600 12px var(--mono)}
+.fix{border:1px solid var(--bad);background:transparent;color:var(--bad);border-radius:8px;padding:6px 12px;font:600 12px var(--sans);cursor:pointer;margin:8px 6px 0 0}
+.fix:hover{background:var(--bad);color:#2b0f0b}
+@media (max-width:1000px){.studio{grid-template-columns:1fr}.stage{min-height:auto}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<header class="bar"><b>作帖 · 海报工坊</b><span>草稿「秋季音乐会」· 实时预览中</span></header>
+<main class="studio">
+  <section class="pane">
+    <h2>参 数</h2>
+    <div class="grp"><label>底色</label>
+      <div class="swatches" id="sws">
+        <button class="sw on" type="button" data-bg="#20443b" data-fg="#e9f2ec" style="background:#20443b" aria-label="松绿"></button>
+        <button class="sw" type="button" data-bg="#4a2c3a" data-fg="#f5e8ee" style="background:#4a2c3a" aria-label="乌梅"></button>
+        <button class="sw" type="button" data-bg="#1f3350" data-fg="#e8eef7" style="background:#1f3350" aria-label="藏蓝"></button>
+        <button class="sw" type="button" data-bg="#513a1e" data-fg="#f7efe2" style="background:#513a1e" aria-label="赭石"></button>
+      </div>
+    </div>
+    <div class="grp"><label>主标题</label><input type="text" id="titleIn" value="秋季音乐会" maxlength="12"></div>
+    <div class="grp"><label>标题字号 <span id="fsVal" style="color:var(--mint)">34px</span></label><input type="range" id="fsIn" min="22" max="44" value="34"></div>
+    <div class="grp"><label>副文案</label><input type="text" id="subIn" value="十月的风里，听一场民谣" maxlength="18"></div>
+    <div class="grp"><label>装饰元素</label>
+      <div class="tgl"><span>角落音符</span><button id="decoBtn" class="on" type="button" aria-label="切换装饰"></button></div>
+    </div>
+  </section>
+  <section class="stage">
+    <div class="poster" id="poster" style="background:#20443b;color:#e9f2ec">
+      <div>
+        <div class="k">民 谣 · 现 场</div>
+        <h1 id="pTitle">秋季音乐会</h1>
+      </div>
+      <div class="deco" id="pDeco">♪</div>
+      <div class="foot"><span id="pSub">十月的风里，听一场民谣</span><span>10.24 晚 8 点</span></div>
+    </div>
+  </section>
+  <section class="pane">
+    <h2>导 出</h2>
+    <div class="grp"><label>格式</label>
+      <div class="fmt" id="fmtBox">
+        <button class="f on" type="button" data-f="PNG">PNG</button>
+        <button class="f" type="button" data-f="JPG">JPG</button>
+        <button class="f" type="button" data-f="SVG">SVG</button>
+        <button class="f" type="button" data-f="PDF">PDF</button>
+      </div>
+    </div>
+    <div class="grp"><label>尺寸</label>
+      <div class="size" id="sizeBox">
+        <button class="sz on" type="button" data-s="1080p">标准 1080p <span>1080 × 1520</span></button>
+        <button class="sz" type="button" data-s="2K">高清 2K <span>1440 × 2030</span></button>
+        <button class="sz" type="button" data-s="4K">超清 4K <span>2160 × 3040</span></button>
+      </div>
+    </div>
+    <button class="exbtn" id="exBtn" type="button">导出海报</button>
+    <p class="exmsg" id="exMsg" role="status"></p>
+    <div id="fixBox"></div>
+    <div class="result" id="result">
+      <div class="r"><span>文件名</span><b id="rName"></b></div>
+      <div class="r"><span>尺寸</span><b id="rDim"></b></div>
+      <div class="r"><span>体积（模拟）</span><b id="rSize"></b></div>
+      <div class="r"><span>状态</span><b style="color:var(--mint)">导出成功</b></div>
+    </div>
+  </section>
+</main>
+<script>
+(function(){
+  "use strict";
+  var poster=document.getElementById("poster");
+  var fmt="PNG",size="1080p";
+  var DIMS={"1080p":"1080 × 1520","2K":"1440 × 2030","4K":"2160 × 3040"};
+  var KB={"1080p":"1.2 MB","2K":"2.8 MB","4K":"6.4 MB"};
+  document.getElementById("sws").addEventListener("click",function(ev){
+    var b=ev.target.closest(".sw");
+    if(!b)return;
+    document.querySelectorAll(".sw").forEach(function(x){x.classList.remove("on")});
+    b.classList.add("on");
+    poster.style.background=b.getAttribute("data-bg");
+    poster.style.color=b.getAttribute("data-fg");
+  });
+  document.getElementById("titleIn").addEventListener("input",function(ev){
+    document.getElementById("pTitle").textContent=ev.target.value||"未命名海报";
+  });
+  document.getElementById("subIn").addEventListener("input",function(ev){
+    document.getElementById("pSub").textContent=ev.target.value||" ";
+  });
+  document.getElementById("fsIn").addEventListener("input",function(ev){
+    var v=ev.target.value;
+    document.getElementById("pTitle").style.fontSize=v+"px";
+    document.getElementById("fsVal").textContent=v+"px";
+  });
+  document.getElementById("decoBtn").addEventListener("click",function(ev){
+    var on=ev.target.classList.toggle("on");
+    document.getElementById("pDeco").style.visibility=on?"visible":"hidden";
+  });
+  document.getElementById("fmtBox").addEventListener("click",function(ev){
+    var b=ev.target.closest(".f");
+    if(!b)return;
+    document.querySelectorAll(".f").forEach(function(x){x.classList.remove("on")});
+    b.classList.add("on");
+    fmt=b.getAttribute("data-f");
+  });
+  document.getElementById("sizeBox").addEventListener("click",function(ev){
+    var b=ev.target.closest(".sz");
+    if(!b)return;
+    document.querySelectorAll(".sz").forEach(function(x){x.classList.remove("on")});
+    b.classList.add("on");
+    size=b.getAttribute("data-s");
+  });
+  var msg=document.getElementById("exMsg");
+  var fixBox=document.getElementById("fixBox");
+  var result=document.getElementById("result");
+  function conflict(){
+    if(fmt==="PDF"&&size==="4K")return "PDF 印刷通道暂不支持超清 4K 出血，会被裁切。";
+    if(fmt==="SVG"&&size==="4K")return "SVG 为矢量格式，不需要超清 4K 位图尺寸。";
+    return null;
+  }
+  document.getElementById("exBtn").addEventListener("click",function(){
+    fixBox.innerHTML="";
+    result.classList.remove("show");
+    var c=conflict();
+    if(c){
+      msg.className="exmsg bad";
+      msg.textContent="导出条件不支持："+c+" 本次导出已被阻止。";
+      if(fmt==="PDF"&&size==="4K"){
+        fixBox.innerHTML='<button class="fix" data-a="size" type="button">改用高清 2K</button><button class="fix" data-a="fmt" type="button">改用 PNG</button>';
+      }else{
+        fixBox.innerHTML='<button class="fix" data-a="size2" type="button">改用标准 1080p</button>';
+      }
+      fixBox.querySelectorAll(".fix").forEach(function(btn){
+        btn.addEventListener("click",function(){
+          var a=btn.getAttribute("data-a");
+          if(a==="size"){size="2K"}
+          else if(a==="fmt"){fmt="PNG"}
+          else{size="1080p"}
+          document.querySelectorAll(".sz").forEach(function(x){x.classList.toggle("on",x.getAttribute("data-s")===size)});
+          document.querySelectorAll(".f").forEach(function(x){x.classList.toggle("on",x.getAttribute("data-f")===fmt)});
+          msg.className="exmsg good";
+          msg.textContent="已修正为 "+fmt+" · "+size+"，可以重新导出。";
+          fixBox.innerHTML="";
+        });
+      });
+      return;
+    }
+    msg.className="exmsg good";
+    msg.textContent="导出成功，已生成 "+fmt.toLowerCase()+" 文件。";
+    document.getElementById("rName").textContent="秋季音乐会_"+size+"."+fmt.toLowerCase();
+    document.getElementById("rDim").textContent=DIMS[size];
+    document.getElementById("rSize").textContent=KB[size];
+    result.classList.add("show");
+  });
+})();
+</script>
+</body>
+</html>

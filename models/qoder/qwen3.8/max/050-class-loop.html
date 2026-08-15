@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>知了课堂 · 练习</title>
+<style>
+:root{
+  --bg:#f7f5ef; --card:#ffffff; --ink:#2b3138; --muted:#8b8577;
+  --line:#e8e2d4; --board:#2e6e5e; --board-deep:#245a4c; --pen:#c0392b; --ok:#2e7d4f;
+  --sans:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.65 var(--sans)}
+.bar{height:56px;background:var(--board);color:#eef5f1;display:flex;align-items:center;justify-content:space-between;padding:0 28px}
+.bar b{font-size:16px;letter-spacing:.05em}
+.bar span{font-size:12px;opacity:.85}
+.layout{display:grid;grid-template-columns:280px 1fr;gap:18px;max-width:1150px;margin:0 auto;padding:22px 24px 70px;align-items:start}
+.courses h2{font-size:13px;color:var(--muted);margin:0 0 10px;letter-spacing:.1em}
+.c{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:13px 15px;margin-bottom:10px;cursor:pointer;transition:border-color .15s}
+.c:hover{border-color:#cfc6ad}
+.c.on{border-color:var(--board);background:#f2f7f4}
+.c b{font-size:14px;display:block}
+.c span{font-size:12px;color:var(--muted)}
+.c .prog{height:5px;border-radius:3px;background:#eee8da;margin-top:9px;overflow:hidden}
+.c .prog i{display:block;height:100%;background:var(--board)}
+.quiz{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:24px 26px}
+.quiz .crumb{font-size:12px;color:var(--muted);margin-bottom:6px}
+.quiz h2{font-size:20px;margin:0 0 4px}
+.quiz .why{color:var(--muted);font-size:13px;margin:0 0 18px}
+.opts{display:grid;gap:10px}
+.opt{display:flex;gap:12px;align-items:center;border:1px solid var(--line);border-radius:11px;padding:12px 15px;cursor:pointer;background:#fffefb;text-align:left;font:inherit;transition:border-color .15s,background .15s}
+.opt:hover{border-color:#cfc6ad}
+.opt .key{width:26px;height:26px;border-radius:50%;background:#f1ecdf;display:grid;place-items:center;font-size:12px;font-weight:700;flex:none}
+.opt.sel{border-color:var(--board);background:#f2f7f4}
+.opt.right{border-color:var(--ok);background:#eef6ef}
+.opt.wrong{border-color:var(--pen);background:#fbeeea}
+.opt:disabled{cursor:default}
+.opt:focus-visible{outline:2px solid var(--board);outline-offset:2px}
+.row{display:flex;gap:10px;margin-top:18px;align-items:center}
+.sub{border:0;background:var(--board);color:#fff;border-radius:10px;padding:11px 28px;font:700 14px var(--sans);cursor:pointer}
+.sub:hover{background:var(--board-deep)}
+.sub:disabled{background:#a8c2ba;cursor:not-allowed}
+.sub:focus-visible{outline:3px solid #2e6e5e44;outline-offset:2px}
+.retry{border:1px solid var(--pen);background:#fff;color:var(--pen);border-radius:10px;padding:10px 24px;font:700 14px var(--sans);cursor:pointer;display:none}
+.retry:hover{background:var(--pen);color:#fff}
+.verdict{margin-top:14px;border-radius:11px;padding:13px 16px;font-size:13px;display:none}
+.verdict.show{display:block}
+.verdict.bad{background:#fbeeea;border:1px solid #eecac2;color:#8f2c24}
+.verdict.good{background:#eef6ef;border:1px solid #cfe3d2;color:#2c5c3d}
+.verdict b{display:block;margin-bottom:4px}
+.score{margin-top:14px;font-size:12px;color:var(--muted)}
+.score b{color:var(--board)}
+@media (max-width:900px){.layout{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<header class="bar"><b>知了课堂</b><span>今日学习 24 分钟 · 连续打卡 6 天</span></header>
+<main class="layout">
+  <aside class="courses">
+    <h2>我 的 课 程</h2>
+    <div class="c on" id="courseCard">
+      <b>生活中的经济学</b>
+      <span>第 3 讲 · 价格与供需 · 练习 1/4</span>
+      <div class="prog"><i style="width:62%"></i></div>
+    </div>
+    <div class="c">
+      <b>看懂天气预报</b>
+      <span>第 1 讲 · 气压与风 · 未开始</span>
+      <div class="prog"><i style="width:0%"></i></div>
+    </div>
+  </aside>
+  <section class="quiz">
+    <p class="crumb">生活中的经济学 / 第 3 讲 价格与供需 / 随堂练习</p>
+    <h2 id="qTitle">为什么夏天的冰淇淋涨价后，便利店反而少进货了？</h2>
+    <p class="why">提交后立刻看对错与解释；答错可以再次作答完成订正。</p>
+    <div class="opts" id="opts"></div>
+    <div class="row">
+      <button class="sub" id="subBtn" type="button" disabled>提交答案</button>
+      <button class="retry" id="retryBtn" type="button">再次作答</button>
+    </div>
+    <div class="verdict" id="verdict" role="status"></div>
+    <p class="score">本节进度：<b id="progTxt">答对 0 题 · 订正成功 0 题</b></p>
+  </section>
+</main>
+<script>
+(function(){
+  "use strict";
+  var Q={
+    right:"B",
+    opts:{A:"因为夏天冰淇淋容易化掉，运输成本高",B:"涨价抑制了需求，预期销量下降所以少进货",C:"便利店把货架让给了冷饮之外的新品",D:"厂家夏天减少生产导致进货量下降"},
+    explain:"价格是需求的信号：涨价后买的人变少，便利店的预期销量下降，理性的进货量随之减少。这正是供需关系在货架上的体现。"
+  };
+  var sel=null,answered=false,wrongOnce=false;
+  var optsBox=document.getElementById("opts");
+  var subBtn=document.getElementById("subBtn");
+  var retryBtn=document.getElementById("retryBtn");
+  var verdict=document.getElementById("verdict");
+  var progTxt=document.getElementById("progTxt");
+  var rightCount=0,fixCount=0;
+  function renderScore(){
+    progTxt.textContent="答对 "+rightCount+" 题 · 订正成功 "+fixCount+" 题";
+  }
+  function renderOpts(){
+    optsBox.innerHTML="";
+    Object.keys(Q.opts).forEach(function(k){
+      var b=document.createElement("button");
+      b.type="button";
+      b.className="opt"+(sel===k?" sel":"");
+      b.innerHTML='<span class="key">'+k+"</span><span>"+Q.opts[k]+"</span>";
+      if(answered){
+        b.disabled=true;
+        if(k===Q.right)b.classList.add("right");
+        if(k===sel&&sel!==Q.right)b.classList.add("wrong");
+      }
+      b.addEventListener("click",function(){
+        if(answered)return;
+        sel=k;
+        subBtn.disabled=false;
+        renderOpts();
+      });
+      optsBox.appendChild(b);
+    });
+  }
+  subBtn.addEventListener("click",function(){
+    if(!sel)return;
+    answered=true;
+    subBtn.disabled=true;
+    if(sel===Q.right){
+      if(wrongOnce){fixCount+=1}
+      else{rightCount+=1}
+      verdict.className="verdict show good";
+      verdict.innerHTML="<b>"+(wrongOnce?"订正成功！":"回答正确！")+"</b>"+Q.explain;
+    }else{
+      wrongOnce=true;
+      verdict.className="verdict show bad";
+      verdict.innerHTML="<b>答错了 · 看看为什么</b>"+Q.explain+"<br>正确答案已标绿，点「再次作答」自己选一次完成订正。";
+      retryBtn.style.display="inline-block";
+    }
+    renderOpts();
+    renderScore();
+  });
+  retryBtn.addEventListener("click",function(){
+    answered=false;
+    sel=null;
+    retryBtn.style.display="none";
+    verdict.className="verdict";
+    verdict.innerHTML="";
+    subBtn.disabled=true;
+    renderOpts();
+  });
+  renderOpts();
+  renderScore();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>云梯协作 · 角色权限</title>
+<style>
+:root{
+  --bg:#f0f2f4; --card:#ffffff; --ink:#23282d; --muted:#7d858d;
+  --line:#e1e5e9; --cyan:#0d7a8a; --cyan-soft:#e4f2f4; --bad:#c0392b;
+  --sans:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.6 var(--sans)}
+.wrap{max-width:880px;margin:0 auto;padding:36px 22px 80px}
+h1{font-size:24px;margin:0 0 6px}
+.lead{color:var(--muted);margin:0 0 22px;font-size:13px}
+.roles{display:flex;gap:10px;margin-bottom:16px}
+.role{flex:1;border:1px solid var(--line);background:var(--card);border-radius:12px;padding:14px 16px;cursor:pointer;text-align:left;font:inherit;transition:border-color .15s,background .15s}
+.role:hover{border-color:#b8ccd0}
+.role.on{border-color:var(--cyan);background:var(--cyan-soft)}
+.role:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+.role b{display:block;font-size:15px}
+.role span{color:var(--muted);font-size:12px}
+.matrix{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.matrix .head{display:grid;grid-template-columns:1fr 130px;padding:12px 20px;border-bottom:1px solid var(--line);color:var(--muted);font-size:12px}
+.mrow{display:grid;grid-template-columns:1fr 130px;align-items:center;padding:13px 20px;border-bottom:1px solid #edf0f2}
+.mrow:last-child{border-bottom:0}
+.mrow:hover{background:#f8fafb}
+.mrow .n{font-weight:600;font-size:14px}
+.mrow .d{color:var(--muted);font-size:12px;margin-top:1px}
+.allow{display:flex;align-items:center;gap:9px;font-size:13px;color:var(--ink);cursor:pointer}
+.allow input{accent-color:var(--cyan);width:16px;height:16px}
+.lock{font-size:12px;color:var(--muted)}
+.foot{display:flex;justify-content:space-between;align-items:center;margin-top:18px}
+.dirty{font-size:13px;color:var(--bad);min-height:20px}
+.dirty.ok{color:var(--cyan)}
+.btns{display:flex;gap:10px}
+.reset{border:1px solid var(--line);background:#fff;border-radius:10px;padding:10px 20px;font:600 14px var(--sans);cursor:pointer;color:var(--ink)}
+.reset:hover{background:#f3f5f6}
+.save{border:0;background:var(--cyan);color:#fff;border-radius:10px;padding:10px 26px;font:600 14px var(--sans);cursor:pointer;transition:background .15s}
+.save:hover{background:#0a5f6b}
+.save:disabled{background:#a9c6cb;cursor:not-allowed}
+.save:focus-visible{outline:3px solid #0d7a8a44;outline-offset:2px}
+@media (max-width:640px){.roles{flex-direction:column}.matrix .head,.mrow{grid-template-columns:1fr 96px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <h1>角色权限</h1>
+  <p class="lead">先选一个角色预览它能做什么，勾选修改后要记得保存。所有者的权限不可修改。</p>
+  <div class="roles" id="roles"></div>
+  <section class="matrix">
+    <div class="head"><span>能力</span><span>是否允许</span></div>
+    <div id="rows"></div>
+  </section>
+  <div class="foot">
+    <p class="dirty" id="dirty" role="status"></p>
+    <div class="btns">
+      <button class="reset" id="resetBtn" type="button">放弃修改</button>
+      <button class="save" id="saveBtn" type="button" disabled>保存权限</button>
+    </div>
+  </div>
+</main>
+<script>
+(function(){
+  "use strict";
+  var PERMS=[
+    {key:"view",name:"查看项目",desc:"只读浏览所有项目与文档"},
+    {key:"create",name:"创建项目",desc:"新建项目并自动成为负责人"},
+    {key:"invite",name:"邀请成员",desc:"发送邀请链接并分配角色"},
+    {key:"billing",name:"管理账单",desc:"查看发票、升降档与支付方式"},
+    {key:"export",name:"导出数据",desc:"导出项目数据与审计日志"},
+    {key:"destroy",name:"删除内容",desc:"永久删除项目与归档数据"}
+  ];
+  var BASE={
+    owner:{view:true,create:true,invite:true,billing:true,export:true,destroy:true,locked:true},
+    admin:{view:true,create:true,invite:true,billing:false,export:true,destroy:false},
+    member:{view:true,create:false,invite:false,billing:false,export:false,destroy:false}
+  };
+  var state=JSON.parse(JSON.stringify(BASE));
+  var current="admin";
+  var rolesBox=document.getElementById("roles");
+  var rowsBox=document.getElementById("rows");
+  var dirty=document.getElementById("dirty");
+  var saveBtn=document.getElementById("saveBtn");
+  var resetBtn=document.getElementById("resetBtn");
+  function changedCount(){
+    var n=0;
+    Object.keys(BASE).forEach(function(r){
+      PERMS.forEach(function(p){
+        if(state[r][p.key]!==BASE[r][p.key])n++;
+      });
+    });
+    return n;
+  }
+  function refresh(){
+    var n=changedCount();
+    saveBtn.disabled=n===0;
+    dirty.className="dirty";
+    dirty.textContent=n?("有 "+n+" 处未保存的修改"):"";
+    rolesBox.innerHTML="";
+    [["owner","所有者","1 人 · 全权限"],["admin","管理员","3 人 · 日常运营"],["member","成员","28 人 · 参与协作"]].forEach(function(r){
+      var btn=document.createElement("button");
+      btn.type="button";
+      btn.className="role"+(current===r[0]?" on":"");
+      btn.innerHTML="<b>"+r[1]+"</b><span>"+r[2]+"</span>";
+      btn.addEventListener("click",function(){current=r[0];refresh()});
+      rolesBox.appendChild(btn);
+    });
+    rowsBox.innerHTML="";
+    var st=state[current];
+    PERMS.forEach(function(p){
+      var row=document.createElement("div");
+      row.className="mrow";
+      if(st.locked){
+        row.innerHTML='<div><div class="n">'+p.name+'</div><div class="d">'+p.desc+'</div></div><span class="lock">固定开启 · 不可修改</span>';
+      }else{
+        row.innerHTML='<div><div class="n">'+p.name+'</div><div class="d">'+p.desc+'</div></div><label class="allow"><input type="checkbox"'+(st[p.key]?" checked":"")+'>允许</label>';
+        row.querySelector("input").addEventListener("change",function(ev){
+          st[p.key]=ev.target.checked;
+          refresh();
+        });
+      }
+      rowsBox.appendChild(row);
+    });
+  }
+  saveBtn.addEventListener("click",function(){
+    BASE=JSON.parse(JSON.stringify(state));
+    dirty.className="dirty ok";
+    dirty.textContent="权限已保存，立即对全队生效。";
+    refresh();
+  });
+  resetBtn.addEventListener("click",function(){
+    state=JSON.parse(JSON.stringify(BASE));
+    refresh();
+  });
+  refresh();
+})();
+</script>
+</body>
+</html>

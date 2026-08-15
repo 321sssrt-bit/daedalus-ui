@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>驿路 · 购票</title>
+<style>
+:root{
+  --bg:#eef3f7; --card:#ffffff; --ink:#202c38; --muted:#8291a0;
+  --line:#dfe7ee; --navy:#1f3a5f; --navy-deep:#162c49; --signal:#2f9e44; --bad:#d5453c;
+  --sans:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+  --mono:ui-monospace,Consolas,monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:#22303e;font:14px/1.6 var(--sans);display:grid;place-items:center;min-height:100vh;padding:20px 10px}
+.phone{width:390px;max-width:100%;height:844px;border:10px solid #131c26;border-radius:44px;overflow:hidden;box-shadow:0 30px 80px #00000088;background:var(--bg);position:relative}
+.scr{height:100%;display:flex;flex-direction:column;padding:56px 18px 24px}
+.view{display:none;flex-direction:column;flex:1;min-height:0}
+.view.show{display:flex}
+h1{font-size:20px;color:var(--ink);margin:0 0 4px}
+.sub{color:var(--muted);font-size:12px;margin:0 0 16px}
+.cardbox{background:var(--card);border:1px solid var(--line);border-radius:15px;padding:16px}
+.cities{display:flex;align-items:center;gap:10px}
+.cities input{flex:1;height:46px;border:1px solid var(--line);border-radius:11px;padding:0 13px;font:inherit;background:#f8fafc;text-align:center}
+.cities input:focus{outline:none;border-color:var(--navy)}
+.cities .sw{border:0;background:var(--navy);color:#fff;width:34px;height:34px;border-radius:50%;cursor:pointer;font-size:14px}
+.date{display:flex;gap:9px;margin-top:13px}
+.date input{flex:1;height:42px;border:1px solid var(--line);border-radius:11px;padding:0 13px;font:inherit;background:#f8fafc}
+.go{width:100%;height:48px;margin-top:16px;border:0;border-radius:12px;background:var(--navy);color:#fff;font:700 15px var(--sans);cursor:pointer;transition:background .15s}
+.go:hover{background:var(--navy-deep)}
+.go:focus-visible{outline:3px solid #1f3a5f44;outline-offset:2px}
+.train{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:13px 15px;margin-bottom:10px;cursor:pointer}
+.train.on{border-color:var(--navy);background:#f4f8fc}
+.train .l1{display:flex;justify-content:space-between;font:700 15px var(--mono);color:var(--ink)}
+.train .l2{display:flex;justify-content:space-between;color:var(--muted);font-size:12px;margin-top:4px}
+.train .price{color:var(--navy);font-weight:800}
+.seatmap{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-top:12px}
+.seat{border:1px solid var(--line);background:#f8fafc;border-radius:10px;padding:10px 4px;text-align:center;font:600 13px var(--mono);cursor:pointer;color:var(--ink)}
+.seat.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+.seat.hot{border-color:#e8b48f;background:#fdf3ea;color:#a15b28}
+.seat:focus-visible{outline:2px solid var(--navy)}
+.legend{display:flex;gap:14px;font-size:11px;color:var(--muted);margin-top:10px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;font-style:normal;vertical-align:-1px}
+.alert{display:none;background:#fbe9e7;border:1px solid #efc8c2;color:#8f2c24;border-radius:12px;padding:12px 14px;font-size:12.5px;margin-top:12px}
+.alert.show{display:block}
+.alert b{display:block;margin-bottom:3px}
+.alert .back{border:1px solid #8f2c24;background:#fff;color:#8f2c24;border-radius:8px;padding:6px 14px;font:600 12px var(--sans);cursor:pointer;margin-top:8px}
+.alert .back:hover{background:#8f2c24;color:#fff}
+.sumline{display:flex;justify-content:space-between;font-size:13px;padding:7px 0;border-bottom:1px dashed var(--line)}
+.sumline:last-child{border-bottom:0}
+.big{font:700 24px var(--mono);color:var(--navy)}
+.ghost{width:100%;height:44px;margin-top:9px;border:1px solid var(--line);background:#fff;border-radius:12px;font:600 14px var(--sans);color:var(--ink);cursor:pointer}
+.ghost:hover{background:#f4f7fa}
+.okmark{width:66px;height:66px;border-radius:50%;background:var(--signal);color:#fff;display:grid;place-items:center;font-size:28px;margin:8px auto 12px}
+.rcpt{background:var(--card);border:1px solid var(--line);border-radius:15px;padding:15px 16px;margin-top:14px}
+.rcpt .r{display:flex;justify-content:space-between;font-size:12.5px;color:var(--muted);padding:5px 0}
+.rcpt .r b{color:var(--ink);font:600 12.5px var(--mono)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="scr">
+    <section class="view show" id="v-search">
+      <h1>去哪一站？</h1>
+      <p class="sub">第一步 · 搜索路线与日期</p>
+      <div class="cardbox">
+        <div class="cities">
+          <input type="text" id="from" value="杭州东" aria-label="出发站">
+          <button class="sw" id="swap" type="button" aria-label="交换">⇄</button>
+          <input type="text" id="to" value="上海虹桥" aria-label="到达站">
+        </div>
+        <div class="date"><input type="text" id="date" value="8 月 24 日 · 周一" aria-label="出发日期"></div>
+      </div>
+      <button class="go" id="toTrains" type="button">搜索班次</button>
+    </section>
+    <section class="view" id="v-trains">
+      <h1 id="routeTitle"></h1>
+      <p class="sub">第二步 · 选择班次</p>
+      <div id="trainBox" style="overflow-y:auto;flex:1"></div>
+      <button class="go" id="toSeats" type="button" style="margin-top:12px">下一步 · 选座位</button>
+      <button class="ghost" id="back1" type="button">改路线条件</button>
+    </section>
+    <section class="view" id="v-seats">
+      <h1 id="seatTitle"></h1>
+      <p class="sub">第三步 · 选座位（靠窗为 A/F）</p>
+      <div class="cardbox">
+        <div class="seatmap" id="seatBox"></div>
+        <div class="legend">
+          <span><i style="background:#f8fafc;border:1px solid #dfe7ee"></i>可选</span>
+          <span><i style="background:#fdf3ea;border:1px solid #e8b48f"></i>确认时校验余票</span>
+          <span><i style="background:#1f3a5f"></i>已选</span>
+        </div>
+      </div>
+      <div class="alert" id="alert" role="alert"></div>
+      <button class="go" id="toCfm" type="button" style="margin-top:14px">下一步 · 确认订单</button>
+      <button class="ghost" id="back2" type="button">返回班次列表</button>
+    </section>
+    <section class="view" id="v-cfm">
+      <h1>确认订单</h1>
+      <p class="sub">第四步 · 核对行程</p>
+      <div class="cardbox" id="cfmBox"></div>
+      <button class="go" id="payBtn" type="button" style="margin-top:14px">确认并出票</button>
+      <button class="ghost" id="back3" type="button">返回选座位</button>
+    </section>
+    <section class="view" id="v-ticket">
+      <div style="text-align:center">
+        <div class="okmark">✓</div>
+        <h1>出票成功</h1>
+        <p class="sub">行程凭证已生成，检票时出示</p>
+      </div>
+      <div class="rcpt" id="ticketBox"></div>
+      <button class="go" id="again" type="button" style="margin-top:auto">再订一程</button>
+    </section>
+  </div>
+</div>
+<script>
+(function(){
+  "use strict";
+  var TRAINS=[
+    {no:"G7521",dep:"08:12",arr:"09:07",dur:"55 分",price:73},
+    {no:"G7535",dep:"10:26",arr:"11:31",dur:"1 时 05 分",price:73},
+    {no:"D3107",dep:"14:40",arr:"16:12",dur:"1 时 32 分",price:49}
+  ];
+  var SEATS=["1A","1B","1C","1D","2A","2B","2C","2D","3A","3B","3C","3D"];
+  var HOT=["1C","3A"];
+  var trainIdx=-1,seatSel=null;
+  var soldOut={};
+  function $(id){return document.getElementById(id)}
+  var views=["v-search","v-trains","v-seats","v-cfm","v-ticket"];
+  function go(v){views.forEach(function(x){$(x).classList.toggle("show",x===v)})}
+  function route(){return $("from").value+" → "+$("to").value+" · "+$("date").value}
+  $("swap").addEventListener("click",function(){
+    var a=$("from").value;$("from").value=$("to").value;$("to").value=a;
+  });
+  $("toTrains").addEventListener("click",function(){
+    $("routeTitle").textContent=route();
+    trainIdx=-1;
+    renderTrains();
+    go("v-trains");
+  });
+  function renderTrains(){
+    var box=$("trainBox");
+    box.innerHTML="";
+    TRAINS.forEach(function(t,i){
+      var d=document.createElement("div");
+      d.className="train"+(i===trainIdx?" on":"");
+      d.innerHTML='<div class="l1"><span>'+t.no+'</span><span class="price">¥ '+t.price+'</span></div><div class="l2"><span>'+t.dep+' → '+t.arr+'</span><span>'+t.dur+' · 二等座</span></div>';
+      d.addEventListener("click",function(){trainIdx=i;seatSel=null;renderTrains()});
+      box.appendChild(d);
+    });
+  }
+  $("toSeats").addEventListener("click",function(){
+    if(trainIdx<0){alert("请先选择一个班次");return}
+    $("seatTitle").textContent=TRAINS[trainIdx].no+" · 二等座";
+    $("alert").className="alert";
+    $("alert").innerHTML="";
+    renderSeats();
+    go("v-seats");
+  });
+  function renderSeats(){
+    var box=$("seatBox");
+    box.innerHTML="";
+    SEATS.forEach(function(s){
+      var b=document.createElement("button");
+      b.type="button";
+      var out=soldOut[TRAINS[trainIdx].no+"-"+s];
+      b.className="seat"+(seatSel===s?" on":"")+(HOT.indexOf(s)>-1&&!out?" hot":"");
+      b.textContent=out?s+" 已售罄":s;
+      b.disabled=!!out;
+      b.addEventListener("click",function(){seatSel=s;$("alert").className="alert";$("alert").innerHTML="";renderSeats()});
+      box.appendChild(b);
+    });
+  }
+  $("toCfm").addEventListener("click",function(){
+    if(!seatSel){alert("请先选择一个座位");return}
+    var t=TRAINS[trainIdx];
+    var key=t.no+"-"+seatSel;
+    if(HOT.indexOf(seatSel)>-1&&!soldOut[key]){
+      soldOut[key]=true;
+      var al=$("alert");
+      al.className="alert show";
+      al.innerHTML="<b>座位已售罄 · 订单未生成</b>抱歉，"+t.no+" 的 "+seatSel+" 座刚被售出，本次确认被阻止。路线条件已保留，请改选其他座位或返回班次列表。"+'<br><button class="back" type="button">返回改选座位</button>';
+      al.querySelector(".back").addEventListener("click",function(){seatSel=null;renderSeats()});
+      seatSel=null;
+      renderSeats();
+      return;
+    }
+    $("cfmBox").innerHTML='<div class="sumline"><span>路线</span><b style="color:var(--ink);font-size:13px">'+$("from").value+" → "+$("to").value+'</b></div>'+
+      '<div class="sumline"><span>日期</span><b style="color:var(--ink);font-size:13px">'+$("date").value+'</b></div>'+
+      '<div class="sumline"><span>班次</span><b style="color:var(--ink);font-size:13px">'+t.no+" "+t.dep+" → "+t.arr+'</b></div>'+
+      '<div class="sumline"><span>席位</span><b style="color:var(--ink);font-size:13px">二等座 '+seatSel+'</b></div>'+
+      '<div class="sumline"><span>票价</span><span class="big">¥ '+t.price+'</span></div>';
+    go("v-cfm");
+  });
+  $("payBtn").addEventListener("click",function(){
+    var t=TRAINS[trainIdx];
+    var code="YZ-"+t.no+"-"+seatSel+"-"+String(Math.floor(Math.random()*900)+100);
+    $("ticketBox").innerHTML='<div class="r"><span>凭证编号</span><b>'+code+'</b></div>'+
+      '<div class="r"><span>行程</span><b>'+$("from").value+" → "+$("to").value+'</b></div>'+
+      '<div class="r"><span>日期</span><b>'+$("date").value+'</b></div>'+
+      '<div class="r"><span>班次 / 席位</span><b>'+t.no+" · 二等座 "+seatSel+'</b></div>'+
+      '<div class="r"><span>检票口</span><b>B6 · 发车前 5 分钟停止检票</b></div>';
+    go("v-ticket");
+  });
+  $("back1").addEventListener("click",function(){go("v-search")});
+  $("back2").addEventListener("click",function(){go("v-trains")});
+  $("back3").addEventListener("click",function(){go("v-seats")});
+  $("again").addEventListener("click",function(){trainIdx=-1;seatSel=null;go("v-search")});
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>货坞 · 文件上传</title>
+<style>
+:root{
+  --bg:#eef1f4; --card:#ffffff; --ink:#25313d; --muted:#7e8b98;
+  --line:#dde4ea; --steel:#33608c; --steel-deep:#274b6e; --ok:#2e8b5f; --warn:#c07f22;
+  --sans:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.6 var(--sans)}
+.wrap{max-width:780px;margin:0 auto;padding:40px 22px 80px}
+h1{font-size:24px;margin:0 0 6px}
+.lead{color:var(--muted);font-size:13px;margin:0 0 24px}
+.drop{border:2px dashed #b9c7d4;border-radius:14px;background:var(--card);padding:38px 20px;text-align:center;transition:border-color .15s,background .15s;cursor:pointer}
+.drop:hover,.drop.over{border-color:var(--steel);background:#f3f7fb}
+.drop .ic{font-size:30px}
+.drop b{display:block;margin:8px 0 3px}
+.drop span{color:var(--muted);font-size:12px}
+.queue{margin-top:22px;background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.queue-head{display:flex;justify-content:space-between;align-items:center;padding:13px 18px;border-bottom:1px solid var(--line);font-size:13px;color:var(--muted)}
+.f{display:grid;grid-template-columns:38px 1fr auto auto;gap:12px;align-items:center;padding:12px 18px;border-bottom:1px solid #edf1f4}
+.f:last-child{border-bottom:0}
+.fic{width:36px;height:36px;border-radius:9px;background:#e8eef4;color:var(--steel);display:grid;place-items:center;font-size:15px;font-weight:700}
+.f .n{font-weight:600;font-size:14px}
+.f .m{font-size:12px;color:var(--muted)}
+.bar{height:5px;border-radius:3px;background:#e6ebf0;margin-top:6px;overflow:hidden;display:none}
+.bar i{display:block;height:100%;width:0;background:var(--steel);border-radius:3px;transition:width .3s ease}
+.st{font-size:12px;border-radius:999px;padding:3px 11px;white-space:nowrap}
+.st.ready{background:#e6eef7;color:var(--steel)}
+.st.busy{background:#fbf3e2;color:var(--warn)}
+.st.done{background:#e5f2ea;color:var(--ok)}
+.del{border:0;background:none;color:var(--muted);cursor:pointer;font-size:13px;padding:6px}
+.del:hover{color:#c0392b}
+.del:focus-visible{outline:2px solid var(--steel);outline-offset:2px}
+.foot{display:flex;justify-content:space-between;align-items:center;margin-top:20px}
+.foot .hint{font-size:12px;color:var(--muted)}
+.go{border:0;background:var(--steel);color:#fff;border-radius:10px;padding:12px 30px;font:700 14px var(--sans);cursor:pointer;transition:background .15s}
+.go:hover{background:var(--steel-deep)}
+.go:disabled{background:#aebfcd;cursor:not-allowed}
+.go:focus-visible{outline:3px solid #33608c44;outline-offset:2px}
+@media (max-width:560px){.f{grid-template-columns:34px 1fr auto}.del{display:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}.bar i{transition:none!important}}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <h1>上传素材</h1>
+  <p class="lead">把活动照片与设计源文件交给货坞，统一转码归档。单个文件不超过 500MB。</p>
+  <div class="drop" id="drop" role="button" tabindex="0" aria-label="选择或拖入文件">
+    <div class="ic" aria-hidden="true">⇪</div>
+    <b>把文件拖到这里，或点击选择</b>
+    <span>支持 JPG / PNG / PDF / SKETCH / ZIP · 队列已含两个待处理文件</span>
+  </div>
+  <section class="queue">
+    <div class="queue-head"><span id="count"></span><span>处理顺序按从上到下</span></div>
+    <div id="rows"></div>
+  </section>
+  <div class="foot">
+    <span class="hint" id="hint">删除不需要的文件后，点右侧开始处理。</span>
+    <button class="go" id="goBtn" type="button">开始处理</button>
+  </div>
+</main>
+<script>
+(function(){
+  "use strict";
+  var FILES=[
+    {name:"秋季徒步主视觉.jpg",size:"4.8 MB",ext:"图",status:"ready"},
+    {name:"活动手册_v3.pdf",size:"12.6 MB",ext:"文",status:"ready"}
+  ];
+  var rows=document.getElementById("rows");
+  var count=document.getElementById("count");
+  var hint=document.getElementById("hint");
+  var goBtn=document.getElementById("goBtn");
+  var drop=document.getElementById("drop");
+  var running=false;
+  function label(s){return s==="ready"?"待处理":(s==="busy"?"处理中":"已完成")}
+  function render(){
+    rows.innerHTML="";
+    count.textContent="队列中共 "+FILES.length+" 个文件";
+    FILES.forEach(function(file,i){
+      var row=document.createElement("div");
+      row.className="f";
+      row.innerHTML='<span class="fic">'+file.ext+'</span><div><div class="n">'+file.name+'</div><div class="m">'+file.size+'</div><div class="bar"><i></i></div></div><span class="st '+file.status+'">'+label(file.status)+'</span><button class="del" type="button" aria-label="删除文件">删除</button>';
+      row.querySelector(".del").addEventListener("click",function(){
+        if(running)return;
+        FILES.splice(i,1);
+        render();
+      });
+      rows.appendChild(row);
+    });
+    goBtn.disabled=running||FILES.length===0;
+  }
+  function process(){
+    running=true;
+    goBtn.disabled=true;
+    goBtn.textContent="处理中…";
+    hint.textContent="正在依次转码归档，请不要关闭页面。";
+    var i=0;
+    function next(){
+      if(i>=FILES.length){
+        running=false;
+        goBtn.textContent="重新处理";
+        hint.textContent="全部完成，文件已归档到货坞仓库。";
+        render();
+        goBtn.disabled=false;
+        FILES.forEach(function(f){f.status="ready"});
+        return;
+      }
+      var file=FILES[i];
+      file.status="busy";
+      render();
+      var bar=rows.children[i].querySelector(".bar");
+      var fill=bar.querySelector("i");
+      bar.style.display="block";
+      var p=0;
+      var t=setInterval(function(){
+        p=Math.min(100,p+20);
+        fill.style.width=p+"%";
+        if(p>=100){
+          clearInterval(t);
+          file.status="done";
+          render();
+          i+=1;
+          setTimeout(next,260);
+        }
+      },180);
+    }
+    next();
+  }
+  goBtn.addEventListener("click",function(){
+    if(running)return;
+    FILES.forEach(function(f){f.status="ready"});
+    process();
+  });
+  drop.addEventListener("click",function(){
+    if(running)return;
+    FILES.push({name:"新加入的素材_"+(FILES.length+1)+".zip",size:"2.1 MB",ext:"包",status:"ready"});
+    render();
+    hint.textContent="已加入一个新文件示例，可继续添加或删除。";
+  });
+  drop.addEventListener("keydown",function(ev){
+    if(ev.key==="Enter"||ev.key===" "){ev.preventDefault();drop.click()}
+  });
+  drop.addEventListener("dragover",function(ev){ev.preventDefault();drop.classList.add("over")});
+  drop.addEventListener("dragleave",function(){drop.classList.remove("over")});
+  drop.addEventListener("drop",function(ev){ev.preventDefault();drop.classList.remove("over");drop.click()});
+  render();
+})();
+</script>
+</body>
+</html>

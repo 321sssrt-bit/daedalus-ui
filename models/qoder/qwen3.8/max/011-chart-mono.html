@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>读数 · 经营数据看板</title>
+<style>
+:root{
+  --paper:#fbfaf7; --ink:#181818; --gray:#6f6f6a; --faint:#e4e2da;
+  --red:#d43a2f; --green:#1d7a4f;
+  --serif:"Songti SC","STSong","SimSun",serif;
+  --sans:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+  --mono:ui-monospace,Consolas,monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font:14px/1.6 var(--sans)}
+.masthead{border-bottom:2px solid var(--ink);padding:26px 44px 16px;display:flex;justify-content:space-between;align-items:flex-end}
+.masthead h1{font-family:var(--serif);font-size:34px;margin:0;letter-spacing:.08em}
+.masthead .meta{font:12px var(--mono);color:var(--gray);text-align:right}
+.wrap{max-width:1100px;margin:0 auto;padding:26px 44px 60px}
+.figures{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--ink);margin-bottom:26px}
+.fig{padding:18px 22px;border-right:1px solid var(--ink)}
+.fig:last-child{border-right:0}
+.fig .k{font-size:12px;color:var(--gray);letter-spacing:.1em}
+.fig .v{font:700 30px/1.3 var(--mono)}
+.fig .d{font:12px var(--mono)}
+.fig .d.up{color:var(--green)}
+.fig .d.down{color:var(--red)}
+.panel{border:1px solid var(--ink)}
+.panel-head{display:flex;justify-content:space-between;align-items:center;padding:14px 20px;border-bottom:1px solid var(--ink)}
+.panel-head h2{font-family:var(--serif);font-size:19px;margin:0}
+.grain{display:flex;border:1px solid var(--ink)}
+.grain button{border:0;background:transparent;font:13px var(--sans);padding:7px 16px;cursor:pointer;border-right:1px solid var(--ink)}
+.grain button:last-child{border-right:0}
+.grain button.on{background:var(--ink);color:#fff}
+.grain button:focus-visible{outline:2px solid var(--red);outline-offset:-2px}
+.chart{padding:18px 20px 8px}
+.chart svg{width:100%;height:auto;display:block}
+.axis{font:11px var(--mono);fill:var(--gray)}
+.note{padding:0 20px 18px;color:var(--gray);font-size:12px}
+.table{margin-top:26px;border:1px solid var(--ink);border-collapse:collapse;width:100%;font:13px var(--mono)}
+.table th{background:var(--ink);color:#fff;text-align:left;padding:9px 14px;font-weight:600}
+.table td{padding:9px 14px;border-top:1px solid var(--faint)}
+.table tr:hover td{background:#f2f0e9}
+.hot{color:var(--red);font-weight:700}
+@media (max-width:860px){.masthead{flex-direction:column;align-items:flex-start;gap:8px;padding:20px 20px 12px}.wrap{padding:20px}.figures{grid-template-columns:1fr}.fig{border-right:0;border-bottom:1px solid var(--ink)}.fig:last-child{border-bottom:0}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<header class="masthead">
+  <h1>读数</h1>
+  <div class="meta">经营数据周报 · 第 33 期<br>统计截至 08-15 06:00</div>
+</header>
+<main class="wrap">
+  <section class="figures">
+    <div class="fig"><div class="k">本期营收</div><div class="v">¥ 486,210</div><div class="d up">▲ 12.4% 环比</div></div>
+    <div class="fig"><div class="k">活跃订阅</div><div class="v">9,382</div><div class="d up">▲ 3.1% 环比</div></div>
+    <div class="fig"><div class="k">退款率</div><div class="v">1.7%</div><div class="d down">▼ 0.4pt 环比</div></div>
+  </section>
+  <section class="panel">
+    <div class="panel-head">
+      <h2>营收走势</h2>
+      <div class="grain" role="group" aria-label="统计粒度">
+        <button type="button" class="on" data-grain="day">按日</button>
+        <button type="button" data-grain="week">按周</button>
+        <button type="button" data-grain="month">按月</button>
+      </div>
+    </div>
+    <div class="chart" id="chartBox"></div>
+    <p class="note" id="chartNote"></p>
+  </section>
+  <table class="table">
+    <tr><th>渠道</th><th>营收</th><th>环比</th></tr>
+    <tr><td>App 内购</td><td>¥ 261,400</td><td class="hot">+18.9%</td></tr>
+    <tr><td>网页订阅</td><td>¥ 152,030</td><td>+6.2%</td></tr>
+    <tr><td>企业合同</td><td>¥ 72,780</td><td>+4.5%</td></tr>
+  </table>
+</main>
+<script>
+(function(){
+  "use strict";
+  var DATA={
+    day:{labels:["08-09","08-10","08-11","08-12","08-13","08-14","08-15"],values:[58,66,61,74,70,83,74],unit:"千元",note:"近 7 日营收（千元）。08-14 为本周峰值，与会员日活动重合。"},
+    week:{labels:["第27周","第28周","第29周","第30周","第31周","第32周","第33周"],values:[332,351,340,398,412,432,486],unit:"千元",note:"近 7 周营收（千元）。连续五周上行，第 33 周创今年新高。"},
+    month:{labels:["3月","4月","5月","6月","7月","8月"],values:[1260,1340,1310,1520,1690,1804],unit:"千元",note:"近 6 个月营收（千元）。8 月为进行中月份，按当前日均折算。"}
+  };
+  var box=document.getElementById("chartBox");
+  var note=document.getElementById("chartNote");
+  function draw(grain){
+    var d=DATA[grain];
+    var W=1000,H=320,P=46;
+    var max=Math.max.apply(null,d.values)*1.15;
+    var min=Math.min.apply(null,d.values)*0.8;
+    var stepX=(W-P*2)/(d.values.length-1);
+    function y(v){return H-P-((v-min)/(max-min))*(H-P*2)}
+    var pts=d.values.map(function(v,i){return [P+i*stepX,y(v)]});
+    var line=pts.map(function(p,i){return (i?"L":"M")+p[0]+" "+p[1]}).join(" ");
+    var area=line+" L"+pts[pts.length-1][0]+" "+(H-P)+" L"+P+" "+(H-P)+" Z";
+    var grid=[0.25,0.5,0.75].map(function(t){
+      var gy=P+t*(H-P*2);
+      return '<line x1="'+P+'" y1="'+gy+'" x2="'+(W-P)+'" y2="'+gy+'" stroke="#e4e2da" stroke-width="1"/>';
+    }).join("");
+    var dots=pts.map(function(p,i){
+      return '<circle cx="'+p[0]+'" cy="'+p[1]+'" r="4.5" fill="#fbfaf7" stroke="#d43a2f" stroke-width="2.5"/><text class="axis" x="'+p[0]+'" y="'+(p[1]-12)+'" text-anchor="middle">'+d.values[i]+'</text>';
+    }).join("");
+    var labels=d.labels.map(function(l,i){
+      return '<text class="axis" x="'+(P+i*stepX)+'" y="'+(H-P+22)+'" text-anchor="middle">'+l+'</text>';
+    }).join("");
+    box.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="营收走势折线图">'+grid+'<path d="'+area+'" fill="#d43a2f14"/><path d="'+line+'" fill="none" stroke="#d43a2f" stroke-width="3"/>'+dots+labels+'<line x1="'+P+'" y1="'+(H-P)+'" x2="'+(W-P)+'" y2="'+(H-P)+'" stroke="#181818" stroke-width="1.5"/></svg>';
+    note.textContent=d.note;
+  }
+  document.querySelectorAll(".grain button").forEach(function(btn){
+    btn.addEventListener("click",function(){
+      document.querySelectorAll(".grain button").forEach(function(b){b.classList.remove("on")});
+      btn.classList.add("on");
+      draw(btn.getAttribute("data-grain"));
+    });
+  });
+  draw("day");
+})();
+</script>
+</body>
+</html>

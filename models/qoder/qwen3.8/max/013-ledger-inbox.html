@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>航信 · 收件箱</title>
+<style>
+:root{
+  --bg:#e9edf1; --panel:#ffffff; --ink:#182430; --muted:#75828e;
+  --line:#dde4ea; --petrol:#0e7c86; --petrol-soft:#e0f1f2; --star:#e8b23c;
+  --sans:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.6 var(--sans)}
+.top{height:56px;display:flex;align-items:center;gap:14px;padding:0 26px;background:var(--panel);border-bottom:1px solid var(--line)}
+.top b{font-size:16px}
+.tabs{display:flex;gap:6px;margin-left:18px}
+.tab{border:1px solid var(--line);background:#fff;border-radius:999px;padding:6px 16px;font:inherit;font-size:13px;cursor:pointer;color:var(--muted)}
+.tab:hover{border-color:var(--petrol);color:var(--petrol)}
+.tab.on{background:var(--petrol);border-color:var(--petrol);color:#fff}
+.tab:focus-visible{outline:2px solid var(--petrol);outline-offset:2px}
+.layout{display:grid;grid-template-columns:380px 1fr;gap:16px;padding:18px 26px;max-width:1200px;margin:0 auto}
+.list{background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden;height:640px;display:flex;flex-direction:column}
+.list-head{padding:12px 16px;border-bottom:1px solid var(--line);font-size:12px;color:var(--muted)}
+.rows{overflow-y:auto;flex:1}
+.mail{display:grid;grid-template-columns:14px 1fr auto;gap:10px;padding:13px 16px;border-bottom:1px solid #edf1f4;cursor:pointer;transition:background .13s}
+.mail:hover{background:#f4f8f9}
+.mail.reading{background:var(--petrol-soft);border-left:3px solid var(--petrol);padding-left:13px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--petrol);margin-top:7px;visibility:hidden}
+.mail.unread .dot{visibility:visible}
+.mail .from{font-weight:600;font-size:13px}
+.mail.unread .from{color:var(--ink)}
+.mail:not(.unread) .from{font-weight:400;color:var(--muted)}
+.mail .subj{font-size:13px;margin-top:1px}
+.mail .when{font-size:12px;color:var(--muted)}
+.s{color:var(--star);font-size:13px}
+.reader{background:var(--panel);border:1px solid var(--line);border-radius:12px;height:640px;display:flex;flex-direction:column;overflow:hidden}
+.reader-body{padding:24px 28px;flex:1;overflow-y:auto}
+.reader-body h2{margin:0 0 6px;font-size:20px}
+.meta{color:var(--muted);font-size:13px;margin-bottom:18px}
+.reader-body p{margin:0 0 12px}
+.reader-foot{border-top:1px solid var(--line);padding:12px 16px;display:flex;gap:10px}
+.act{border:1px solid var(--line);background:#fff;border-radius:9px;padding:8px 16px;font:600 13px var(--sans);cursor:pointer;color:var(--ink)}
+.act:hover{background:#f2f6f7}
+.act.star-btn.starred{color:var(--star);border-color:#ecd9ac;background:#fdf8ec}
+.act:focus-visible{outline:2px solid var(--petrol);outline-offset:2px}
+.empty{padding:60px 30px;text-align:center;color:var(--muted)}
+@media (max-width:900px){.layout{grid-template-columns:1fr}.list,.reader{height:auto;max-height:420px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<header class="top">
+  <b>航信</b>
+  <div class="tabs" role="group" aria-label="筛选">
+    <button class="tab on" type="button" data-filter="all">全部</button>
+    <button class="tab" type="button" data-filter="unread">未读</button>
+    <button class="tab" type="button" data-filter="starred">星标</button>
+  </div>
+</header>
+<main class="layout">
+  <section class="list">
+    <div class="list-head" id="listHead"></div>
+    <div class="rows" id="rows"></div>
+  </section>
+  <section class="reader" id="reader"></section>
+</main>
+<script>
+(function(){
+  "use strict";
+  var MAILS=[
+    {from:"沈一帆",subj:"周三评审改到下午两点",when:"09:12",unread:true,star:false,body:"各位，周三的页面评审与渠道例会撞车了，改到下午 14:00，会议室不变。评审材料请在当天中午前传到共享目录，我提前过一遍。"},
+    {from:"财务系统",subj:"7 月报销单已通过审核",when:"昨天",unread:false,star:false,body:"你提交的 7 月差旅报销（单号 BX-20260731-018）已通过审核，款项将于 3 个工作日内打入工资卡。如有疑问请联系财务部 8021。"},
+    {from:"何苗",subj:"登录链路的回归结论",when:"昨天",unread:true,star:true,body:"短信登录与密码登录都过了，唯一遗留是验证码倒计时在弱网下偶尔回跳，我建了缺陷单 QD-1143，优先级中。其余可以发版。"},
+    {from:"行政小助",subj:"下周消防演练报名",when:"周三",unread:false,star:false,body:"下周四上午 10 点进行楼宇消防演练，请各部门至少派两名同事参加，回复本邮件即可报名，名额 40。"},
+    {from:"赵屿",subj:"账单导出接口的新文档",when:"周二",unread:false,star:true,body:"重构后的导出接口文档已更新，分页参数改为游标式，旧字段保留一个版本。麻烦前端同学这周对着改一下列表页。"},
+    {from:"订阅周刊",subj:"本周产品人书单已送达",when:"周一",unread:true,star:false,body:"本周推荐：《界面之下》《度量之美》以及一篇关于空态设计的长文。点击合集页可在线阅读。"}
+  ];
+  var filter="all";
+  var current=0;
+  var rows=document.getElementById("rows");
+  var reader=document.getElementById("reader");
+  var listHead=document.getElementById("listHead");
+  function visible(){
+    return MAILS.map(function(m,i){return i}).filter(function(i){
+      var m=MAILS[i];
+      if(filter==="unread")return m.unread;
+      if(filter==="starred")return m.star;
+      return true;
+    });
+  }
+  function renderList(){
+    var ids=visible();
+    listHead.textContent="共 "+ids.length+" 封 · 未读 "+MAILS.filter(function(m){return m.unread}).length+" 封";
+    rows.innerHTML="";
+    if(!ids.length){rows.innerHTML='<div class="empty">这个筛选下没有邮件。</div>';return}
+    ids.forEach(function(i){
+      var m=MAILS[i];
+      var row=document.createElement("div");
+      row.className="mail"+(m.unread?" unread":"")+(i===current?" reading":"");
+      row.innerHTML='<span class="dot"></span><div><div class="from">'+m.from+(m.star?' <span class="s">★</span>':'')+'</div><div class="subj">'+m.subj+'</div></div><span class="when">'+m.when+'</span>';
+      row.addEventListener("click",function(){open(i)});
+      rows.appendChild(row);
+    });
+  }
+  function open(i){
+    current=i;
+    var m=MAILS[i];
+    m.unread=false;
+    reader.innerHTML='<div class="reader-body"><h2>'+m.subj+'</h2><div class="meta">'+m.from+' · '+m.when+'</div><p>'+m.body+'</p></div><div class="reader-foot"><button class="act star-btn'+(m.star?" starred":"")+'" type="button">'+(m.star?"取消星标":"加星标")+'</button><button class="act" type="button" data-archive="1">归档</button></div>';
+    reader.querySelector(".star-btn").addEventListener("click",function(){
+      m.star=!m.star;open(i);
+    });
+    reader.querySelector("[data-archive]").addEventListener("click",function(){
+      MAILS.splice(i,1);
+      var ids=visible();
+      current=ids.length?ids[0]:null;
+      if(current===null){reader.innerHTML='<div class="empty">收件箱清空了，去泡杯茶吧。</div>';renderList();return}
+      open(current);
+      renderList();
+    });
+    renderList();
+  }
+  document.querySelectorAll(".tab").forEach(function(tab){
+    tab.addEventListener("click",function(){
+      document.querySelectorAll(".tab").forEach(function(t){t.classList.remove("on")});
+      tab.classList.add("on");
+      filter=tab.getAttribute("data-filter");
+      var ids=visible();
+      current=ids.length?ids[0]:null;
+      if(current===null){reader.innerHTML='<div class="empty">这个筛选下没有邮件。</div>';renderList();return}
+      open(current);
+    });
+  });
+  open(0);
+})();
+</script>
+</body>
+</html>
