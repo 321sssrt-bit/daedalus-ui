@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>银盐 · 权限请求</title>
+<style>
+  :root{
+    --soot:#191512;
+    --soot-2:#241e19;
+    --safelite:#e0552f;
+    --safelite-soft:#f3d9c9;
+    --cream:#efe7d4;
+    --cream-soft:#cfc4a9;
+    --cream-mute:#8f8672;
+    --ember:#f5a336;
+    --film:#3a3028;
+    --ok:#6e9b6a;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    background:
+      radial-gradient(900px 540px at 82% -12%, rgba(224,85,47,.14), transparent 60%),
+      linear-gradient(180deg,var(--soot) 0%,var(--soot-2) 100%);
+    color:var(--cream);
+    font-family:"Microsoft YaHei","PingFang SC","Noto Sans SC",sans-serif;
+    min-height:100vh;display:flex;align-items:center;justify-content:center;padding:36px 16px;
+  }
+  .frame{
+    width:100%;max-width:900px;min-height:540px;
+    background:linear-gradient(180deg,#2a231d 0%,#201a15 100%);
+    border:1px solid #4a3c2e;border-radius:4px;
+    box-shadow:0 26px 70px rgba(0,0,0,.55),inset 0 0 0 6px rgba(0,0,0,.35);
+    display:grid;grid-template-columns:1fr 1fr;overflow:hidden;
+  }
+  /* 左：样片墙 */
+  .samples{
+    padding:44px 38px 36px;display:flex;flex-direction:column;
+    background:
+      repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0 1px,transparent 1px 4px),
+      #241e19;
+    border-right:1px dashed #4a3c2e;
+  }
+  .samples .head{display:flex;align-items:center;gap:12px;margin-bottom:22px}
+  .samples .head .mark{width:34px;height:34px;background:var(--safelite);border-radius:3px;display:flex;align-items:center;justify-content:center;color:#1c1208;font-weight:800}
+  .samples .head .name{font-size:17px;font-weight:800;letter-spacing:.06em}
+  .samples .head .name small{display:block;font-size:10px;letter-spacing:.3em;color:var(--cream-mute);font-weight:400;margin-top:3px}
+  .samples .nozzle{margin-bottom:16px;font-size:12px;color:var(--ember);letter-spacing:.14em}
+  .photos{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .ph{
+    background:var(--cream);border:8px solid #110e0b;aspect-ratio:4/5;
+    box-shadow:0 8px 20px rgba(0,0,0,.5);position:relative;overflow:hidden;
+  }
+  .ph svg{position:absolute;inset:0;width:100%;height:100%}
+  .ph .cap{position:absolute;left:0;right:0;bottom:0;background:linear-gradient(transparent,rgba(17,14,11,.9));color:var(--cream-soft);font-size:9px;padding:12px 8px 5px;letter-spacing:.08em}
+  .samples .footnote{margin-top:auto;padding-top:20px;font-size:11.5px;line-height:1.9;color:var(--cream-mute)}
+  .samples .footnote b{color:var(--safelite)}
+  /* 右：请求卡 */
+  .ask{padding:56px 52px 40px;display:flex;flex-direction:column;justify-content:center}
+  .ask .kicker{font-size:11px;letter-spacing:.34em;color:var(--ember);margin-bottom:12px}
+  .ask h1{font-size:27px;line-height:1.35;margin-bottom:10px}
+  .ask .why{font-size:13.5px;line-height:2;color:var(--cream-soft);margin-bottom:26px;max-width:380px}
+  .ask .why b{color:var(--cream)}
+  .perm{
+    border:1px solid #4a3c2e;border-radius:6px;padding:16px 18px;margin-bottom:22px;
+    background:rgba(255,255,255,.03);
+  }
+  .perm .row1{display:flex;justify-content:space-between;align-items:center}
+  .perm .row1 .pname{font-size:14px;font-weight:700}
+  .perm .row1 .picon{color:var(--safelite)}
+  .perm .ptag{margin-top:8px;font-size:11.5px;line-height:1.8;color:var(--cream-mute)}
+  .acts{display:flex;flex-direction:column;gap:10px}
+  .allow{
+    padding:14px;font-size:15px;font-weight:700;letter-spacing:.12em;border:none;border-radius:6px;
+    background:var(--safelite);color:#1c1208;cursor:pointer;font-family:inherit;
+    transition:background .15s,transform .1s,box-shadow .15s;
+  }
+  .allow:hover{background:#ef6b45;box-shadow:0 8px 22px rgba(224,85,47,.35)}
+  .allow:active{transform:translateY(1px)}
+  .onetime{
+    padding:13px;font-size:14px;border-radius:6px;cursor:pointer;font-family:inherit;
+    background:none;border:1.5px solid #4a3c2e;color:var(--cream-soft);
+    transition:border-color .15s,color .15s;
+  }
+  .onetime:hover{border-color:var(--cream-mute);color:var(--cream)}
+  .deny{
+    background:none;border:none;font-size:12.5px;color:var(--cream-mute);cursor:pointer;
+    font-family:inherit;padding:6px 0;transition:color .15s;
+  }
+  .deny:hover{color:var(--safelite)}
+  .verdict{
+    margin-top:18px;min-height:40px;padding:10px 14px;border-radius:6px;font-size:12.5px;line-height:1.8;
+    background:rgba(110,155,106,.12);border:1px dashed #4c6e48;color:#a9c8a3;display:none;
+  }
+  .verdict.show{display:block}
+  @media (max-width:840px){
+    .frame{grid-template-columns:1fr;min-height:0}
+    .samples{border-right:none;border-bottom:1px dashed #4a3c2e;padding:30px 26px 24px}
+    .photos{grid-template-columns:1fr 1fr}
+    .ask{padding:38px 26px 36px}
+    .ask h1{font-size:22px}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .allow,.onetime,.deny{transition:none}
+  }
+</style>
+</head>
+<body>
+<main class="frame">
+  <section class="samples" aria-label="作品样片">
+    <div class="head">
+      <span class="mark">⌘</span>
+      <div class="name">银盐 SILVER-VIEW<small>PRIVATE PHOTO ARCHIVE · 你的事</small></div>
+    </div>
+    <p class="nozzle">── 冲印间 · 今日样片 12 张</p>
+    <div class="photos">
+      <div class="ph">
+        <svg viewBox="0 0 100 125" preserveAspectRatio="xMidYMid slice">
+          <rect width="100" height="125" fill="#d8c9a8"/>
+          <rect y="86" width="100" height="39" fill="#b9a07a"/>
+          <circle cx="74" cy="30" r="15" fill="#e0552f"/>
+          <path d="M0 92 L34 62 L58 88 L84 60 L100 80 L100 125 L0 125 Z" fill="#7c6a4e"/>
+        </svg>
+        <div class="cap">№ 0231 · 11:26 洗出</div>
+      </div>
+      <div class="ph">
+        <svg viewBox="0 0 100 125" preserveAspectRatio="xMidYMid slice">
+          <rect width="100" height="125" fill="#cfc4a9"/>
+          <circle cx="50" cy="44" r="18" fill="#3a3028"/>
+          <rect x="44" y="60" width="12" height="18" fill="#3a3028"/>
+          <path d="M20 100 Q50 78 80 100" stroke="#3a3028" stroke-width="5" fill="none"/>
+        </svg>
+        <div class="cap">№ 0232 · 12:03 洗出</div>
+      </div>
+    </div>
+    <p class="footnote">放了一排你自己冲印的胶片——<b>它们今天想被看见。</b>拍下新的画面之前，银盐需要先打开相机。</p>
+  </section>
+
+  <section class="ask" aria-label="权限请求">
+    <p class="kicker">PERMISSION · 相机</p>
+    <h1>让银盐打开相机？</h1>
+    <p class="why">这一栏样片已经摆好。允许访问相机后，<b>你拍下的每一帧都会自动归入你的私册</b>，与已洗出的样片同排陈列，不会同步到任何公开相册。</p>
+    <div class="perm">
+      <div class="row1"><span class="pname">相机</span><span class="picon">◎</span></div>
+      <p class="ptag">用于：拍摄新照片并冲印进「你的事」私册。</p>
+    </div>
+    <div class="acts">
+      <button class="allow" id="allowBtn" type="button">允许打开相机</button>
+      <button class="onetime" id="onceBtn" type="button">仅这次允许</button>
+      <button class="deny" id="denyBtn" type="button">先不让它开</button>
+    </div>
+    <div class="verdict" id="verdict" role="status" aria-live="polite"></div>
+  </section>
+</main>
+<script>
+(function(){
+  var allow=document.getElementById('allowBtn'),
+      once=document.getElementById('onceBtn'),
+      deny=document.getElementById('denyBtn'),
+      verdict=document.getElementById('verdict');
+
+  function show(msg){verdict.textContent=msg;verdict.classList.add('show');
+    allow.className='allow';}
+  allow.addEventListener('click',function(){
+    allow.textContent='相机已开 · 随时可以拍';allow.disabled=true;
+    once.disabled=true;deny.disabled=true;
+    show('✓ 已允许：银盐将在你进入冲印间时自动调用相机。可在「设置 → 权限」里随时收回。');
+  });
+  once.addEventListener('click',function(){
+    allow.textContent='仅本次生效';once.disabled=true;deny.disabled=true;
+    show('◌ 仅此一次：下次打开页面时会再次询问。');
+  });
+  deny.addEventListener('click',function(){
+    deny.disabled=true;
+    show('知道了。你仍可浏览已洗出的 12 张样片；想拍照时点上方「打开相机」再允许即可。');
+  });
+})();
+</script>
+</body>
+</html>

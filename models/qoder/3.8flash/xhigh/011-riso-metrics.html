@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>客流与停留 · 数据台</title>
+<style>
+:root{
+  --paper:#f7f4ee;--ink:#17171a;--pink:#e8336d;--blue:#2b4bd8;--gray:#8b8a86;--line:#ded8cc;--hot:#f2c94c;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font:13.5px/1.6 system-ui,"Microsoft YaHei",sans-serif}
+.wrap{max-width:1240px;margin:0 auto;padding:28px 34px 52px}
+.head{display:flex;align-items:flex-end;gap:20px;border-bottom:2px solid var(--ink);padding-bottom:16px;flex-wrap:wrap}
+.head h1{margin:0;font:900 30px/1.15 system-ui;letter-spacing:-.01em}
+.head .sub{margin:0 0 4px;color:var(--gray);font-size:12.5px;max-width:38ch}
+.toggle{display:flex;margin-left:auto}
+.toggle .grp{display:flex;border:1.5px solid var(--ink);background:var(--paper)}
+.toggle .grp + .grp{border-left:0}
+.toggle button{appearance:none;border:0;background:transparent;font:inherit;font-size:12.5px;padding:9px 14px;cursor:pointer;color:var(--ink);border-right:1px solid var(--ink)}
+.toggle button:last-child{border-right:0}
+.toggle button[aria-pressed="true"]{background:var(--ink);color:var(--paper);font-weight:700}
+.toggle button:focus-visible{outline:2px solid var(--pink);outline-offset:2px}
+.grid{display:grid;grid-template-columns:1fr 300px;gap:30px;margin-top:26px}
+.chart{border:1.5px solid var(--ink);background:#fffdf8;padding:20px 22px 14px;position:relative}
+.chart h2{margin:0;font:700 15px/1.4 system-ui;letter-spacing:.04em}
+.chart .cap{margin:4px 0 14px;font-size:12px;color:var(--gray)}
+.legend{position:absolute;right:22px;top:20px;display:grid;gap:7px;font-size:12px}
+.legend button{display:flex;align-items:center;gap:8px;appearance:none;border:0;background:transparent;font:inherit;cursor:pointer;color:var(--ink);padding:2px}
+.legend button[aria-pressed="false"]{color:var(--gray);text-decoration:line-through}
+.legend i{width:14px;height:14px;border:1.5px solid var(--ink);flex:none}
+.legend i.a{background:var(--pink)}
+.legend i.b{background:var(--blue)}
+.legend button:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+svg.bars{width:100%;height:290px;display:block}
+.bars .axis{stroke:var(--ink);stroke-width:1.5}
+.bars .tick{stroke:var(--line);stroke-width:1}
+.bars text{font:500 10.5px/1 ui-monospace,Consolas,monospace;fill:var(--gray)}
+.bars .lab{fill:var(--ink)}
+.bars rect.a{fill:var(--pink);mix-blend-mode:multiply}
+.bars rect.b{fill:url(#dots);mix-blend-mode:multiply}
+.bars g.bar:hover rect.a,.bars g.bar.hot rect.a{fill:var(--hot)}
+.bars g.bar:hover text,.bars g.bar.hot text{fill:var(--ink);font-weight:700}
+.readout{display:flex;align-items:baseline;gap:18px;flex-wrap:wrap;margin-top:10px;padding-top:12px;border-top:1px dashed var(--line);font-size:12.5px;color:var(--gray)}
+.readout b{font:700 15px/1 ui-monospace,Consolas,monospace;color:var(--ink)}
+.readout .pink{color:var(--pink)}
+.readout .blue{color:var(--blue)}
+.rail{display:grid;gap:18px;align-content:start}
+.stat{border:1.5px solid var(--ink);background:var(--paper);padding:14px 16px 15px}
+.stat .k{font:600 11px/1 ui-monospace,Consolas,monospace;letter-spacing:.14em;color:var(--gray)}
+.stat .v{font:900 40px/1.05 system-ui;letter-spacing:-.02em;margin-top:6px}
+.stat .v small{font:700 15px/1 ui-monospace,Consolas,monospace;margin-left:5px;color:var(--gray)}
+.stat .d{margin-top:7px;font-size:12px;color:var(--gray)}
+.stat .d b{color:var(--pink);font-weight:700}
+.stat.peak{background:var(--blue);color:#f7f4ee}
+.stat.peak .k,.stat.peak .d{color:#c3ccf5}
+.stat.peak .v{color:#fff}
+.stat.peak .d b{color:var(--hot)}
+.rank{border:1.5px solid var(--ink);background:#fffdf8;padding:14px 16px 8px}
+.rank h3{margin:0 0 10px;font:700 13px/1.4 system-ui;letter-spacing:.06em}
+.rank ol{margin:0;padding:0;list-style:none;counter-reset:r}
+.rank li{display:grid;grid-template-columns:20px 1fr auto;gap:9px;align-items:center;padding:8px 0;border-bottom:1px dashed var(--line);font-size:12.5px}
+.rank li:last-child{border-bottom:0}
+.rank li::before{counter-increment:r;content:counter(r);font:700 11px/1 ui-monospace,Consolas,monospace;color:var(--gray)}
+.rank .t{height:6px;background:var(--line);position:relative;min-width:60px}
+.rank .t i{position:absolute;inset:0 auto 0 0;background:var(--pink)}
+.rank b{font:700 12.5px/1 ui-monospace,Consolas,monospace}
+.foot{margin-top:28px;padding-top:14px;border-top:2px solid var(--ink);display:flex;gap:22px;flex-wrap:wrap;font-size:12px;color:var(--gray)}
+.foot span b{color:var(--ink)}
+[hidden]{display:none!important}
+@media (max-width:980px){
+  .wrap{padding:20px 18px 40px}
+  .grid{grid-template-columns:1fr;gap:20px}
+  .rail{grid-template-columns:1fr 1fr}
+  .legend{position:static;margin-bottom:10px}
+  .head h1{font-size:24px}
+}
+@media (max-width:600px){.rail{grid-template-columns:1fr}.toggle{margin-left:0;width:100%}.toggle .grp{flex:1}.toggle button{flex:1}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="head">
+    <div>
+      <h1>客流与停留</h1>
+      <p class="sub">环湖线 4 个站口 · 数据口径为闸机进出与站口摄像滞留，剔除工作人员</p>
+    </div>
+    <div class="toggle">
+      <div class="grp" role="group" aria-label="时间粒度">
+        <button type="button" data-g="day" aria-pressed="true">按小时</button>
+        <button type="button" data-g="week" aria-pressed="false">按日</button>
+        <button type="button" data-g="month" aria-pressed="false">按月</button>
+      </div>
+      <div class="grp" role="group" aria-label="站点范围">
+        <button type="button" data-s="all" aria-pressed="true">全部站口</button>
+        <button type="button" data-s="gate3" aria-pressed="false">仅 3 号口</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="grid">
+    <section class="chart">
+      <h2 id="chartTitle">今日逐小时：进站人次与平均停留</h2>
+      <p class="cap" id="chartCap">柱高＝进站人次（实心）；点柱＝平均停留（点阵），读右侧刻度分钟</p>
+      <div class="legend">
+        <button type="button" id="lgA" aria-pressed="true"><i class="a" aria-hidden="true"></i>进站人次</button>
+        <button type="button" id="lgB" aria-pressed="true"><i class="b" aria-hidden="true"></i>平均停留</button>
+      </div>
+      <svg class="bars" id="bars" viewBox="0 0 760 290" preserveAspectRatio="none" role="img" aria-label="逐小时客流与停留柱状图">
+        <defs>
+          <pattern id="dots" width="7" height="7" patternUnits="userSpaceOnUse">
+            <rect width="7" height="7" fill="#2b4bd8"/>
+            <circle cx="2" cy="2" r="1.7" fill="#f7f4ee"/>
+            <circle cx="5.5" cy="5.5" r="1.7" fill="#f7f4ee"/>
+          </pattern>
+        </defs>
+      </svg>
+      <div class="readout" id="readout"></div>
+    </section>
+
+    <aside class="rail">
+      <div class="stat"><div class="k">TOTAL · 今日进站</div><div class="v" id="s1">—</div><div class="d" id="d1"></div></div>
+      <div class="stat peak"><div class="k">PEAK · 高峰时段</div><div class="v" id="s2">—</div><div class="d" id="d2"></div></div>
+      <div class="stat"><div class="k">DWELL · 平均停留</div><div class="v" id="s3">—</div><div class="d" id="d3"></div></div>
+      <div class="rank">
+        <h3>站口排行</h3>
+        <ol id="rank"></ol>
+      </div>
+    </aside>
+  </div>
+
+  <footer class="foot">
+    <span>口径 <b>闸机 + 站口滞留</b></span>
+    <span>刷新 <b>每 5 分钟</b> · 最近 21:40</span>
+    <span>对比基线 <b>近四周同星期均值</b></span>
+    <span>剔除 <b>工作证进出 412 次</b></span>
+  </footer>
+</div>
+
+<script>
+(function(){
+  'use strict';
+  var DATA = {
+    day:{
+      title:'今日逐小时：进站人次与平均停留',
+      labels:['06','07','08','09','10','11','12','13','14','15','16','17','18','19','20','21'],
+      a:[180,740,1520,1180,860,990,1240,1080,920,1060,1380,2140,2680,2210,1640,920],
+      b:[4,7,9,8,6,6,7,7,6,7,8,11,13,12,10,7],
+      unit:['人次','分钟'],peak:'18:00–19:00',peakNote:'占全天 12.9%',
+      total:'20 740',totalNote:'较近四周同星期 <b>+6.4%</b>',
+      dwell:'8.4',dwellNote:'峰值 13 分钟出现在 <b>18 时</b>'
+    },
+    week:{
+      title:'近七日：进站人次与平均停留',
+      labels:['周四','周五','周六','周日','周一','周二','周三'],
+      a:[17420,20380,26740,24180,15960,16480,18220],
+      b:[8,9,12,11,7,7,8],
+      unit:['人次','分钟'],peak:'周六 15 时',peakNote:'单小时最高 3 120 人次',
+      total:'139 380',totalNote:'日均 <b>19 911</b> 人次',
+      dwell:'9.1',dwellNote:'周末比工作日多 <b>4.2 分钟</b>'
+    },
+    month:{
+      title:'近六个月：进站人次与平均停留',
+      labels:['3月','4月','5月','6月','7月','8月'],
+      a:[412,438,466,449,505,538],
+      b:[7.4,7.8,8.6,8.9,9.6,10.2],
+      unit:['千人次','分钟'],peak:'8 月',peakNote:'环比 <b>+6.5%</b>',
+      total:'2 808',totalNote:'半年均值 <b>468 千人次</b>',
+      dwell:'8.8',dwellNote:'停留随夏季延长 <b>连续 4 月上行</b>'
+    }
+  };
+  var GATE3 = {a:0.28, note:'仅 3 号口 · 约占总客流 28%'};
+  var g = 'day', scope = 'all', showA = true, showB = true;
+  var svg = document.getElementById('bars');
+  var readout = document.getElementById('readout');
+
+  function current(){
+    var d = DATA[g];
+    if (scope === 'all'){ return d; }
+    var copy = JSON.parse(JSON.stringify(d));
+    copy.a = d.a.map(function(v){ return Math.round(v * GATE3.a); });
+    copy.title = d.title + '（仅 3 号口）';
+    copy.total = (g === 'day' ? '5 807' : (g === 'week' ? '39 026' : '786'));
+    copy.totalNote = GATE3.note;
+    copy.dwell = (parseFloat(d.dwell) + 0.6).toFixed(1);
+    return copy;
+  }
+  function num(v){ return v >= 1000 ? v.toLocaleString('zh-CN') : String(v); }
+
+  function draw(){
+    var d = current();
+    var W = 760, H = 290, padL = 46, padR = 40, padT = 14, padB = 34;
+    var maxA = Math.max.apply(null, d.a), maxB = Math.max.apply(null, d.b);
+    var band = (W - padL - padR) / d.labels.length;
+    var bw = Math.min(38, band * 0.52);
+    var out = '';
+    for (var i = 0; i <= 4; i++){
+      var y = padT + (H - padT - padB) * i / 4;
+      out += '<line class="tick" x1="' + padL + '" y1="' + y + '" x2="' + (W - padR) + '" y2="' + y + '"/>';
+      out += '<text x="' + (padL - 8) + '" y="' + (y + 3.5) + '" text-anchor="end">' + num(Math.round(maxA * (1 - i / 4))) + '</text>';
+      out += '<text x="' + (W - padR + 8) + '" y="' + (y + 3.5) + '">' + (maxB * (1 - i / 4)).toFixed(0) + '</text>';
+    }
+    d.labels.forEach(function(label, i){
+      var cx = padL + band * (i + 0.5);
+      var ha = showA ? (d.a[i] / maxA) * (H - padT - padB) : 0;
+      var hb = showB ? (d.b[i] / maxB) * (H - padT - padB) * 0.82 : 0;
+      out += '<g class="bar" data-i="' + i + '" tabindex="0" role="button" aria-label="' + label + '：' + num(d.a[i]) + ' ' + d.unit[0] + '，停留 ' + d.b[i] + ' ' + d.unit[1] + '">';
+      out += '<rect x="' + (cx - band / 2) + '" y="' + padT + '" width="' + band + '" height="' + (H - padT - padB) + '" fill="transparent"/>';
+      if (showA){ out += '<rect class="a" x="' + (cx - bw / 2) + '" y="' + (H - padB - ha) + '" width="' + bw + '" height="' + ha + '"/>'; }
+      if (showB){ out += '<rect class="b" x="' + (cx + bw / 2 + 3) + '" y="' + (H - padB - hb) + '" width="' + Math.max(8, bw * 0.42) + '" height="' + hb + '"/>'; }
+      out += '<text class="lab" x="' + cx + '" y="' + (H - padB + 16) + '" text-anchor="middle">' + label + '</text>';
+      out += '</g>';
+    });
+    out += '<line class="axis" x1="' + padL + '" y1="' + (H - padB) + '" x2="' + (W - padR) + '" y2="' + (H - padB) + '"/>';
+    out += '<line class="axis" x1="' + padL + '" y1="' + padT + '" x2="' + padL + '" y2="' + (H - padB) + '"/>';
+    Array.prototype.forEach.call(svg.querySelectorAll('g.bar,line.axis,text,rect.a,rect.b'), function(n){ n.remove(); });
+    svg.insertAdjacentHTML('beforeend', out);
+    document.getElementById('chartTitle').textContent = d.title;
+    bind();
+    stats(d);
+    say(d, d.a.length - 1);
+  }
+
+  function say(d, i){
+    readout.innerHTML = '<span>' + d.labels[i] + ' <b>' + num(d.a[i]) + '</b> <span class="pink">' + d.unit[0] + '</span></span>' +
+      '<span>平均停留 <b>' + d.b[i] + '</b> <span class="blue">' + d.unit[1] + '</span></span>' +
+      '<span>占当期 <b>' + (d.a[i] / d.a.reduce(function(s,x){ return s + x; }, 0) * 100).toFixed(1) + '%</b></span>' +
+      '<span>点击或键盘聚焦柱子可锁定读数</span>';
+  }
+  function stats(d){
+    document.getElementById('s1').innerHTML = d.total + '<small>' + d.unit[0] + '</small>';
+    document.getElementById('d1').innerHTML = d.totalNote;
+    document.getElementById('s2').innerHTML = d.peak + '<small>峰</small>';
+    document.getElementById('d2').innerHTML = d.peakNote;
+    document.getElementById('s3').innerHTML = d.dwell + '<small>' + d.unit[1] + '</small>';
+    document.getElementById('d3').innerHTML = d.dwellNote;
+  }
+  function bind(){
+    var d = current();
+    Array.prototype.forEach.call(svg.querySelectorAll('g.bar'), function(node){
+      var i = +node.dataset.i;
+      function enter(){ say(d, i); node.classList.add('hot'); }
+      node.addEventListener('mouseenter', enter);
+      node.addEventListener('focus', enter);
+      node.addEventListener('click', enter);
+      node.addEventListener('mouseleave', function(){ node.classList.remove('hot'); });
+    });
+  }
+
+  function rank(){
+    var d = current();
+    var top = d.a.map(function(v, i){ return {label:d.labels[i], v:v}; }).sort(function(x, y){ return y.v - x.v; }).slice(0, 5);
+    var max = top[0].v;
+    document.getElementById('rank').innerHTML = top.map(function(t){
+      return '<li><span>' + t.label + '</span><span class="t"><i style="width:' + (t.v / max * 100) + '%"></i></span><b>' + num(t.v) + '</b></li>';
+    }).join('');
+  }
+  var origDraw = draw;
+  draw = function(){ origDraw(); rank(); };
+
+  Array.prototype.forEach.call(document.querySelectorAll('[data-g]'), function(b){
+    b.addEventListener('click', function(){
+      g = b.dataset.g;
+      Array.prototype.forEach.call(document.querySelectorAll('[data-g]'), function(x){ x.setAttribute('aria-pressed', String(x === b)); });
+      draw();
+    });
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('[data-s]'), function(b){
+    b.addEventListener('click', function(){
+      scope = b.dataset.s;
+      Array.prototype.forEach.call(document.querySelectorAll('[data-s]'), function(x){ x.setAttribute('aria-pressed', String(x === b)); });
+      document.getElementById('chartCap').textContent = scope === 'all'
+        ? '柱高＝进站人次（实心）；点柱＝平均停留（点阵），读右侧刻度分钟'
+        : GATE3.note + '；两序列同比例缩放仅供对照';
+      draw();
+    });
+  });
+  document.getElementById('lgA').addEventListener('click', function(){ showA = !showA; this.setAttribute('aria-pressed', String(showA)); draw(); });
+  document.getElementById('lgB').addEventListener('click', function(){ showB = !showB; this.setAttribute('aria-pressed', String(showB)); draw(); });
+
+  draw();
+})();
+</script>
+</body>
+</html>

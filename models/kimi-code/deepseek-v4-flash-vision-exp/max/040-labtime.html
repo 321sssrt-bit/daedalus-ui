@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>克来门实验室 · 核酸排队</title>
+<style>
+  :root{
+    --lab:#f4f7fb;
+    --lab-2:#e8eef6;
+    --navy:#2b4670;
+    --navy-deep:#1e3456;
+    --blue:#3f79c2;
+    --blue-soft:rgba(63,121,194,.1);
+    --cyan:#39a8b8;
+    --cyan-soft:rgba(57,168,184,.1);
+    --ink:#22344c;
+    --ink-soft:#54687f;
+    --ink-mute:#93a4b5;
+    --line:#d2dce7;
+    --line-soft:#e2eaf2;
+    --amber:#e0a13c;
+    --amber-soft:rgba(224,161,60,.12);
+    --mint:#3d9c74;
+    --mint-soft:rgba(61,156,116,.12);
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    background:#dae3ec;
+    font-family:"Microsoft YaHei","PingFang SC","Noto Sans SC",sans-serif;
+    min-height:100vh;display:flex;align-items:center;justify-content:center;padding:26px 14px;
+  }
+  .phone{
+    width:390px;max-width:100%;height:844px;max-height:calc(100vh - 40px);
+    background:linear-gradient(180deg,#f4f7fb 0%,#e8eef6 100%);
+    border-radius:36px;border:1px solid #bccad8;overflow:hidden;
+    box-shadow:0 24px 60px rgba(34,52,76,.25),inset 0 0 0 6px #fff;
+    display:flex;flex-direction:column;position:relative;
+  }
+  .notch{position:absolute;top:8px;left:50%;transform:translateX(-50%);width:120px;height:22px;border-radius:99px;background:#22344c;z-index:20}
+  .screen{flex:1;display:flex;flex-direction:column;overflow-y:auto;position:relative}
+  .screen::-webkit-scrollbar{width:0}
+  .appbar{padding:48px 20px 8px;text-align:center;font-size:11.5px;letter-spacing:.24em;color:var(--ink-mute)}
+  /* 队列卡 */
+  .queue{
+    margin:14px 18px 0;background:#fff;border:1px solid var(--line);border-radius:22px;padding:22px 20px 18px;
+    box-shadow:0 14px 40px rgba(34,52,76,.12);
+  }
+  .qhead{display:flex;justify-content:space-between;align-items:center}
+  .qhead .st{font-size:13px;font-weight:800;color:var(--ink)}
+  .qhead .num{font-size:11px;color:var(--ink-mute)}
+  .qhead .num b{color:var(--navy);font-size:14px}
+  .prog{margin-top:16px}
+  .prog .trk{height:10px;border-radius:99px;background:var(--lab-2);overflow:hidden}
+  .prog .trk .fill{height:100%;width:42%;border-radius:99px;background:linear-gradient(90deg,var(--blue),var(--cyan))}
+  .prog .lbl{display:flex;justify-content:space-between;margin-top:8px;font-size:10.5px;color:var(--ink-mute)}
+  .prog .lbl .cur{color:var(--navy);font-weight:800}
+  .stage{margin-top:16px;background:var(--lab);border-radius:14px;padding:12px 14px}
+  .stage .t{font-size:11px;color:var(--ink-mute)}
+  .stage .d{font-size:13px;font-weight:800;color:var(--ink);margin-top:4px}
+  .stage .d .tick{color:var(--mint)}
+  /* 预计 */
+  .eta{
+    margin:16px 18px 0;background:var(--amber-soft);border:1px solid rgba(224,161,60,.35);border-radius:16px;
+    padding:16px 18px;display:flex;align-items:center;gap:14px;
+  }
+  .eta .ic{width:40px;height:40px;border-radius:50%;background:var(--amber);color:#3a2c08;display:flex;align-items:center;justify-content:center;font-size:18px;flex:none}
+  .eta .t1{font-size:12.5px;font-weight:800;color:#7a5a1c}
+  .eta .t2{font-size:11px;color:#8a6f35;margin-top:4px;line-height:1.7}
+  .eta .t2 b{color:#6b4f12}
+  /* 行动 */
+  .unmute{
+    margin:16px 18px 0;display:flex;gap:10px;
+  }
+  .unmute .btn{
+    flex:1;display:flex;align-items:center;justify-content:center;gap:8px;padding:14px;border-radius:14px;
+    font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;transition:all .15s;border:none;
+  }
+  .unmute .aside{background:var(--lab-2);color:var(--ink-soft)}
+  .unmute .aside:hover{background:var(--line)}
+  .unmute .cancel{background:#fff;color:var(--ink-soft);border:1.5px solid var(--line)}
+  .unmute .cancel:hover{border-color:var(--ink);color:var(--ink)}
+  /* 状态切换 */
+  .done-card{display:none;margin:16px 18px 30px;background:#fff;border:1px solid rgba(61,156,116,.4);border-radius:16px;padding:16px 18px}
+  .done-card.show{display:block}
+  .done-card .a{font-size:13px;font-weight:800;color:var(--mint)}
+  .done-card .b{font-size:11.5px;color:var(--ink-soft);margin-top:6px;line-height:1.8}
+  .aside-card{display:none;margin:16px 18px 30px;background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px 18px}
+  .aside-card.show{display:block}
+  .aside-card .a{font-size:13px;font-weight:800;color:var(--ink)}
+  .aside-card .b{font-size:11.5px;color:var(--ink-soft);margin-top:6px;line-height:1.8}
+  .reason{
+    display:none;margin:14px 18px 30px;background:var(--lab-2);border-radius:16px;padding:16px 18px;font-size:12px;color:var(--ink-soft);
+    line-height:2;
+  }
+  .reason.show{display:block}
+  @media (prefers-reduced-motion:reduce){
+    .unmute .btn{transition:none}
+  }
+</style>
+</head>
+<body>
+<div class="phone">
+  <span class="notch"></span>
+  <div class="screen">
+    <header class="appbar">克来门实验室 · 检测中心</header>
+
+    <section class="queue" aria-label="当前排队">
+      <div class="qhead">
+        <span class="st">当前排队 · 样本登记</span>
+        <span class="num">前面还有 <b>4</b> 位</span>
+      </div>
+      <div class="prog">
+        <div class="trk"><div class="fill"></div></div>
+        <div class="lbl"><span class="cur">进行中 · 出样台 06</span><span>全程约 8 分钟</span></div>
+      </div>
+      <div class="stage">
+        <div class="t">最近更新</div>
+        <div class="d">14:32 · 你的样本已录入系统 <span class="tick">✓</span></div>
+      </div>
+    </section>
+
+    <section class="eta" aria-label="预计时间">
+      <span class="ic">⏱</span>
+      <div>
+        <div class="t1">预计还需 2–3 分钟</div>
+        <div class="t2">发放报告后短信通知 <b>138 **** 0021</b>；<br>着急可致电前台 400-08-2033 查询。</div>
+      </div>
+    </section>
+
+    <section class="unmute">
+      <button class="btn aside" id="asideBtn" type="button">放到一边</button>
+      <button class="btn cancel" id="cancelBtn" type="button">取消本次检测</button>
+    </section>
+
+    <section class="done-card" id="doneCard">
+      <div class="a">✓ 已出报告，可以离开了</div>
+      <div class="b">检测报告已推送至「我的档案」，可随时查看。</div>
+    </section>
+
+    <section class="aside-card" id="asideCard">
+      <div class="a">已放到一边</div>
+      <div class="b">排队继续，出结果时通知你；回来点「回到排队」即可。</div>
+    </section>
+
+    <section class="reason" id="reason">
+      <b>已取消。</b> 检测卡 24 小时内有效，下次到前台报编号 <b>#NC-0741</b> 即可重新排队，无需重新缴费。
+    </section>
+  </div>
+</div>
+<script>
+(function(){
+  var aside=document.getElementById('asideBtn'),
+      cancel=document.getElementById('cancelBtn'),
+      doneCard=document.getElementById('doneCard'),
+      asideCard=document.getElementById('asideCard'),
+      reason=document.getElementById('reason');
+  aside.addEventListener('click',function(){
+    asideCard.classList.toggle('show');
+    aside.textContent=asideCard.classList.contains('show')?'回到排队':'放到一边';
+  });
+  cancel.addEventListener('click',function(){
+    reason.classList.add('show');
+    cancel.textContent='已取消 ✓';cancel.disabled=true;
+  });
+  // 模拟 3 秒后出报告（演示）
+  setTimeout(function(){
+    if(!asideCard.classList.contains('show')&&!reason.classList.contains('show')){
+      doneCard.classList.add('show');
+    }
+  },3000);
+})();
+</script>
+</body>
+</html>

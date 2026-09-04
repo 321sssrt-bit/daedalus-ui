@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>山路巴士 · 行程预订</title>
+<style>
+  :root{
+    --forest:#17402e;
+    --forest-2:#1f5340;
+    --leaf:#57a776;
+    --leaf-deep:#3f8057;
+    --leaf-soft:rgba(87,167,118,.14);
+    --cream:#f6f2e6;
+    --white:#fffdf8;
+    --sand:#d9c287;
+    --ink:#233a2b;
+    --ink-soft:#55705c;
+    --ink-mute:#91a294;
+    --err:#c06546;
+    --err-soft:rgba(192,101,70,.13);
+    --line:#d6dfd2;
+    --line-soft:#e5ebe1;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:#21342a;font-family:"Microsoft YaHei","PingFang SC","Noto Sans SC",sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:26px 14px}
+  .phone{
+    width:390px;max-width:100%;height:844px;max-height:calc(100vh - 40px);background:linear-gradient(180deg,#f6f2e6,#eef0e4);
+    border-radius:36px;border:1px solid #b8c4b6;overflow:hidden;box-shadow:0 24px 60px rgba(16,32,23,.35),inset 0 0 0 6px #fffdf8;
+    display:flex;flex-direction:column;position:relative;
+  }
+  .notch{position:absolute;top:8px;left:50%;transform:translateX(-50%);width:120px;height:22px;border-radius:99px;background:#17402e;z-index:20}
+  .screen{flex:1;display:flex;flex-direction:column;overflow-y:auto;position:relative}
+  .screen::-webkit-scrollbar{width:0}
+  .appbar{
+    position:sticky;top:0;z-index:10;background:linear-gradient(135deg,var(--forest),var(--forest-2));
+    padding:46px 16px 12px;color:#eef6ef;
+  }
+  .appbar .t{font-size:14px;font-weight:900}
+  .appbar .s{font-size:10px;color:#a9cfb6;margin-top:4px;letter-spacing:.14em}
+  .stepbar{display:flex;gap:6px;margin-top:10px}
+  .stepbar .stp{flex:1;text-align:center;font-size:9.5px;color:#9fb8a8;padding:5px 0;border-radius:99px;background:rgba(255,255,255,.08)}
+  .stepbar .stp.on{background:var(--leaf);color:#0f2a1c;font-weight:800}
+  /* views */
+  .view{display:none;padding:14px 16px 26px}
+  .view.show{display:block}
+  .card{background:var(--white);border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-bottom:12px}
+  .field{margin-bottom:12px}
+  .field label{display:block;font-size:11px;font-weight:800;color:var(--ink-soft);margin-bottom:6px}
+  .field .box{display:flex;align-items:center;gap:8px;border:1.5px solid var(--line);border-radius:12px;padding:12px 14px;background:#fff}
+  .field .box input{flex:1;border:none;outline:none;font-size:14px;color:var(--ink);background:none;font-family:inherit}
+  .field .box .swap{font-size:13px;color:var(--leaf-deep);cursor:pointer}
+  .search{
+    width:100%;padding:14px;border:none;border-radius:14px;background:var(--leaf);color:#0f2a1c;font-size:15px;font-weight:900;cursor:pointer;font-family:inherit;box-shadow:0 5px 0 var(--leaf-deep);
+  }
+  .search:active{transform:translateY(2px);box-shadow:0 3px 0 var(--leaf-deep)}
+  /* 班次 */
+  .trip{
+    border:1.5px solid var(--line);border-radius:14px;padding:14px 16px;margin-bottom:10px;cursor:pointer;background:#fff;transition:all .12s;
+  }
+  .trip:hover{border-color:var(--leaf)}
+  .trip.sel{border-color:var(--leaf);background:var(--leaf-soft)}
+  .trip .r1{display:flex;justify-content:space-between;align-items:center}
+  .trip .r1 .tt{font-size:14px;font-weight:800}
+  .trip .r1 .pr{font-size:14px;font-weight:900;color:var(--leaf-deep)}
+  .trip .r2{font-size:11px;color:var(--ink-mute);margin-top:6px}
+  .trip.soldout{border-style:dashed;opacity:.6;cursor:default}
+  .trip.soldout .r1 .tt::after{content:" · 售罄";color:var(--err);font-weight:800;font-size:10.5px}
+  /* 座位 */
+  .seatmap{margin-top:4px}
+  .seatmap .sm{display:flex;gap:2px;justify-content:center}
+  .sm .s{font-size:10px;padding:7px 8px;border-radius:6px;border:1px solid var(--line);background:#fff;cursor:pointer;color:var(--ink-soft);margin:2px}
+  .sm .s.taken{background:var(--line);color:var(--ink-mute);cursor:default}
+  .sm .s.sel{background:var(--leaf);color:#fff;border-color:var(--leaf-deep)}
+  .seatlegend{display:flex;gap:12px;font-size:10px;color:var(--ink-mute);margin:10px 0 4px;align-items:center}
+  .seatlegend i{width:12px;height:12px;border-radius:4px;border:1px solid var(--line);display:inline-block}
+  .seatlegend i.g{background:var(--leaf)}
+  .seatlegend i.t{background:var(--line)}
+  /* 确认 */
+  .mrow{display:flex;justify-content:space-between;padding:7px 0;font-size:12.5px;color:var(--ink-soft)}
+  .mrow b{color:var(--ink)}
+  .mrow.total{font-size:14px;font-weight:900;color:var(--leaf-deep);border-top:1px dashed var(--line);margin-top:8px;padding-top:10px}
+  .confirmbtn{
+    width:100%;padding:14px;border:none;border-radius:14px;background:var(--leaf);color:#0f2a1c;font-size:15px;font-weight:900;cursor:pointer;font-family:inherit;box-shadow:0 5px 0 var(--leaf-deep);
+  }
+  .confirmbtn:disabled{background:var(--ink-mute);box-shadow:0 5px 0 #76887a;cursor:default}
+  /* 凭证 */
+  .ticket{text-align:center;padding-top:6px}
+  .ticket .check{width:70px;height:70px;border-radius:50%;background:var(--leaf);color:#0f2a1c;display:flex;align-items:center;justify-content:center;font-size:30px;margin:0 auto 12px}
+  .ticket h1{font-size:19px;font-weight:900}
+  .ticket .no{font-size:12px;color:var(--ink-mute);margin-top:6px;font-family:"Courier New",Consolas,monospace}
+  .ticket .body{margin-top:14px;text-align:left}
+  .ticket .again{margin-top:16px;width:100%;padding:12px;border:1.5px solid var(--line);border-radius:12px;background:#fff;color:var(--ink-soft);font-size:13px;font-weight:800;cursor:pointer;font-family:inherit}
+  .fb{min-height:38px;margin-top:10px;padding:10px 13px;border-radius:12px;font-size:12px;line-height:1.8;background:var(--err-soft);color:#8f4530}
+  @media (prefers-reduced-motion:reduce){
+    .trip,.search,.confirmbtn{transition:none}
+  }
+</style>
+</head>
+<body>
+<div class="phone">
+  <span class="notch"></span>
+  <div class="screen">
+    <header class="appbar">
+      <div class="t">山路巴士</div>
+      <div class="s">南屏山 · 周末直达</div>
+      <div class="stepbar">
+        <span class="stp on">1 路线</span>
+        <span class="stp" id="stp2">2 班次</span>
+        <span class="stp" id="stp3">3 座位</span>
+        <span class="stp" id="stp4">4 凭证</span>
+      </div>
+    </header>
+
+    <!-- 1 搜索 -->
+    <section class="view show" id="v1">
+      <div class="card">
+        <div class="field">
+          <label>出发</label>
+          <div class="box"><input id="from" value="市区客运站"><span class="swap" id="swapBtn">⇅</span></div>
+        </div>
+        <div class="field">
+          <label>到达</label>
+          <div class="box"><input id="to" value="南屏山脚"></div>
+        </div>
+        <div class="field">
+          <label>日期</label>
+          <div class="box"><input id="date" value="9 月 6 日 周日" readonly></div>
+        </div>
+      </div>
+      <button class="search" id="searchBtn" type="button">搜索班次</button>
+    </section>
+
+    <!-- 2 班次 -->
+    <section class="view" id="v2">
+      <p style="font-size:11px;color:var(--ink-mute);margin:0 2px 10px">9 月 6 日 · 3 个班次 · 15 座巴士</p>
+      <div class="trip sel" data-k="08:20"><div class="r1"><span class="tt">08:20 – 09:35</span><span class="pr">¥16</span></div><div class="r2">全程 1 小时 15 分 · 坐席 12/15 可选</div></div>
+      <div class="trip" data-k="10:40"><div class="r1"><span class="tt">10:40 – 11:55</span><span class="pr">¥16</span></div><div class="r2">全程 1 小时 15 分 · 坐席 15/15 可选</div></div>
+      <div class="trip soldout" data-k="14:00"><div class="r1"><span class="tt">14:00 – 15:15</span><span class="pr">¥16</span></div><div class="r2">全程 1 小时 15 分 · 已售罄</div></div>
+      <button class="confirmbtn" id="next2" type="button">选这班 → 选座位</button>
+    </section>
+
+    <!-- 3 座位 -->
+    <section class="view" id="v3">
+      <div class="card">
+        <div class="seatmap" id="seatmap"></div>
+        <div class="seatlegend"><span><i class="g"></i>可选</span><span><i class="t"></i>已占</span><span><i></i>选中</span></div>
+      </div>
+      <p class="fb" id="seatFb" style="display:none"></p>
+      <button class="confirmbtn" id="next3" type="button" disabled>确认选座</button>
+    </section>
+
+    <!-- 4 凭证 -->
+    <section class="view" id="v4">
+      <div class="ticket">
+        <span class="check">✓</span>
+        <h1>行程已预订</h1>
+        <p class="no">#TR-9006-0842</p>
+        <div class="card body" id="tkBody"></div>
+        <button class="again" id="againBtn" type="button">再订一趟</button>
+      </div>
+    </section>
+  </div>
+</div>
+<script>
+(function(){
+  var trip='08:20',seat=null,seatCount=0;
+  var views={1:document.getElementById('v1'),2:document.getElementById('v2'),3:document.getElementById('v3'),4:document.getElementById('v4')};
+  function show(n){
+    Object.keys(views).forEach(function(k){views[k].classList.toggle('show',String(k)===String(n))});
+    [2,3,4].forEach(function(i){document.getElementById('stp'+i).classList.toggle('on',i<=n)});
+  }
+  document.getElementById('swapBtn').addEventListener('click',function(){
+    var f=document.getElementById('from').value;
+    document.getElementById('from').value=document.getElementById('to').value;
+    document.getElementById('to').value=f;
+  });
+  var soldoutOnce=true;
+  var fb=document.getElementById('seatFb');
+  function renderSeats(){
+    var box=document.getElementById('seatmap');box.innerHTML='';
+    var taken=[1,3,6,10,13];
+    for(var r=0;r<3;r++){
+      var row=document.createElement('div');row.className='sm';
+      for(var i=1;i<=5;i++){
+        var n=r*5+i;
+        var s=document.createElement('span');s.className='s'+(taken.indexOf(n)>-1?' taken':'');
+        s.textContent=n;
+        if(taken.indexOf(n)===-1){
+          s.addEventListener('click',function(){
+            if(seat===n){seat=null;}
+            else{seat=n;}
+            document.querySelectorAll('#seatmap .s').forEach(function(x){x.classList.remove('sel')});
+            if(seat){document.querySelectorAll('#seatmap .s')[seat-1].classList.add('sel');}
+            document.getElementById('next3').disabled=seat===null;
+          });
+        }
+        row.appendChild(s);
+      }
+      box.appendChild(row);
+    }
+  }
+  document.querySelectorAll('.trip').forEach(function(t){
+    t.addEventListener('click',function(){
+      if(t.classList.contains('soldout'))return;
+      document.querySelectorAll('.trip').forEach(function(x){x.classList.remove('sel')});
+      t.classList.add('sel');trip=t.dataset.k;
+    });
+  });
+  document.getElementById('searchBtn').addEventListener('click',function(){show(2)});
+  document.getElementById('next2').addEventListener('click',function(){show(3);renderSeats();});
+  document.getElementById('next3').addEventListener('click',function(){
+    if(seat===null)return;
+    if(soldoutOnce){
+      // 售罄异常：所选班次其实是「10:40」时被标记售罄？方案：14:00 那班……改为：确认时检查所选班次在该时间的某座位被占 → 提示售罄并返回
+      soldoutOnce=false;
+      fb.style.display='block';
+      fb.innerHTML='× 「08:20」班次的 <b>5 号座</b>刚被订走（售罄）。<br>已保留路线条件，请改选其他座位或班次。';
+      var taken=[1,3,6,10,13];if(taken.indexOf(seat)===-1)taken.push(seat);
+      // 把当前所选座位标记为已占
+      document.querySelectorAll('#seatmap .s')[seat-1].classList.add('taken');
+      document.querySelectorAll('#seatmap .s')[seat-1].classList.remove('sel');
+      document.querySelectorAll('#seatmap .s')[seat-1].removeEventListener;
+      // 简单：清空选择
+      seat=null;
+      document.getElementById('next3').disabled=true;
+      return;
+    }
+    // 成功
+    var body=document.getElementById('tkBody');body.innerHTML='';
+    [['班次','08:20 – 09:35（15 座巴士）'],['座位','第 '+seat+' 座 · 靠窗与否随调度'],['金额','¥16.00 · 已支付'],['乘车人','林小满 · 138****0021'],['乘车码','#TR-9006-0842']].forEach(function(r){
+      var d=document.createElement('div');d.className='mrow';
+      d.innerHTML='<span>'+r[0]+'</span><b>'+r[1]+'</b>';
+      body.appendChild(d);
+    });
+    show(4);
+  });
+  document.getElementById('againBtn').addEventListener('click',function(){
+    seat=null;soldoutOnce=true;
+    document.getElementById('seatFb').style.display='none';
+    show(1);
+  });
+  renderSeats();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>镇口杂货铺 · 集市页</title>
+<style>
+  :root{
+    --sign:#b3232a;
+    --sign-dark:#8d1a20;
+    --plank:#8a5f3c;
+    --plank-2:#75502f;
+    --cream:#f7efdd;
+    --cream-2:#efe4c8;
+    --ink:#3a2c1c;
+    --ink-soft:#6b573d;
+    --ink-mute:#9a8a6e;
+    --leaf:#4e6b3a;
+    --leaf-deep:#39522a;
+    --gold:#e0a437;
+    --line:#d8c9a6;
+    --shadow:0 10px 26px rgba(74,50,26,.22);
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    background:
+      linear-gradient(rgba(58,44,28,.04) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(58,44,28,.04) 1px,transparent 1px),
+      var(--cream);
+    background-size:26px 26px;
+    color:var(--ink);
+    font-family:"Microsoft YaHei","PingFang SC","Noto Sans SC",sans-serif;
+    min-height:100vh;
+  }
+  .wrap{max-width:1280px;margin:0 auto;padding:0 22px 60px}
+  /* 顶棚招牌 */
+  .canopy{
+    background:var(--plank);border-bottom:4px solid var(--plank-2);
+    padding:22px 22px 16px;
+  }
+  .canopy .in{max-width:1280px;margin:0 auto;display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px}
+  .canopy .sign{
+    display:inline-flex;align-items:center;gap:12px;
+  }
+  .canopy .sign .badge{width:40px;height:40px;border-radius:50%;background:var(--cream);display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:inset 0 0 0 3px var(--sign)}
+  .canopy h1{font-size:26px;font-weight:900;letter-spacing:.1em;color:var(--cream);text-shadow:0 2px 0 var(--plank-2)}
+  .canopy .slog{font-size:11px;color:#d9c69b;letter-spacing:.2em;margin-top:6px}
+  .canopy .cartbtn{
+    display:flex;align-items:center;gap:9px;background:var(--sign);color:var(--cream);
+    border:none;border-radius:10px;padding:11px 18px;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;
+    box-shadow:0 4px 0 var(--sign-dark);transition:transform .1s,box-shadow .1s;
+  }
+  .canopy .cartbtn:hover{background:#c92e35}
+  .canopy .cartbtn:active{transform:translateY(2px);box-shadow:0 2px 0 var(--sign-dark)}
+  .canopy .cartbtn .cnt{background:var(--cream);color:var(--sign);border-radius:99px;padding:1px 8px;font-size:12px}
+  /* 栏目条 */
+  .lanes{
+    display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:18px 0 6px;
+  }
+  .lanes .lane{
+    padding:8px 16px;font-size:13px;font-weight:700;border-radius:8px;cursor:pointer;
+    color:var(--ink-soft);background:none;border:1.5px solid transparent;font-family:inherit;transition:all .15s;
+  }
+  .lanes .lane:hover{color:var(--ink)}
+  .lanes .lane.on{background:var(--ink);color:var(--cream)}
+  .lanes .promo{
+    margin-left:auto;font-size:12px;color:var(--sign);font-weight:800;background:#f7e8dc;border-radius:99px;padding:7px 14px;
+  }
+  .title-row{display:flex;justify-content:space-between;align-items:baseline;margin:20px 0 16px}
+  .title-row h2{font-size:17px;font-weight:800;letter-spacing:.06em}
+  .title-row .more{font-size:12px;color:var(--ink-soft);cursor:pointer;border-bottom:1px dashed var(--ink-soft)}
+  /* 货架 */
+  .shelf{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
+  .goods{
+    background:var(--cream);border:1px solid var(--line);border-radius:12px;overflow:hidden;
+    box-shadow:0 3px 0 rgba(74,50,26,.14);transition:box-shadow .15s,transform .15s;display:flex;flex-direction:column;
+  }
+  .goods:hover{box-shadow:0 10px 22px rgba(74,50,26,.22);transform:translateY(-2px)}
+  .pic{position:relative;height:150px;background:#efe4c8}
+  .pic svg{width:100%;height:100%;display:block}
+  .pic .tag{position:absolute;top:8px;left:8px;font-size:10.5px;font-weight:800;padding:3px 8px;border-radius:4px;color:var(--cream)}
+  .pic .tag.new{background:var(--sign)}
+  .pic .tag.hot{background:var(--gold);color:#4a3210}
+  .pic .heart{
+    position:absolute;top:8px;right:8px;width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.85);
+    display:flex;align-items:center;justify-content:center;font-size:14px;cursor:pointer;border:none;color:var(--sign);
+  }
+  .gbody{padding:12px 14px 14px;display:flex;flex-direction:column;flex:1}
+  .gbody .nm{font-size:14.5px;font-weight:800}
+  .gbody .ds{font-size:11.5px;color:var(--ink-soft);margin-top:4px;line-height:1.6}
+  .gbody .pr{display:flex;align-items:baseline;gap:6px;margin-top:10px}
+  .gbody .pr .now{font-size:18px;font-weight:900;color:var(--sign)}
+  .gbody .pr .old{font-size:11.5px;color:var(--ink-mute);text-decoration:line-through}
+  .gbody .vendor{font-size:11px;color:var(--ink-mute);margin-top:2px}
+  .gbody .add{
+    margin-top:12px;width:100%;padding:9px;border:none;border-radius:8px;background:var(--leaf);color:var(--cream);
+    font-size:12.5px;font-weight:800;cursor:pointer;font-family:inherit;transition:background .15s;
+  }
+  .gbody .add:hover{background:var(--leaf-deep)}
+  .gbody .add.added{background:var(--gold)}
+  /* 底部铺规 */
+  .foot{
+    margin-top:34px;padding:18px 20px;border:1px dashed var(--line);border-radius:10px;
+    display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;font-size:11.5px;color:var(--ink-soft);
+  }
+  .foot b{color:var(--sign)}
+  @media (max-width:1000px){.shelf{grid-template-columns:repeat(3,1fr)}}
+  @media (max-width:760px){.shelf{grid-template-columns:repeat(2,1fr)};.lanes{gap:6px}}
+  @media (max-width:480px){.shelf{grid-template-columns:1fr}}
+  @media (prefers-reduced-motion:reduce){
+    .goods,.lanes .lane,.canopy .cartbtn,.gbody .add{transition:none}
+    .goods:hover,.canopy .cartbtn:active{transform:none}
+  }
+</style>
+</head>
+<body>
+<header class="canopy">
+  <div class="in">
+    <div class="sign">
+      <span class="badge">▲</span>
+      <div>
+        <h1>镇口杂货铺</h1>
+        <p class="slog">山货 · 日用 · 手工 · 老街放心价</p>
+      </div>
+    </div>
+    <button class="cartbtn" id="cartBtn" type="button">🛒 布口袋 <span class="cnt" id="cartCnt">0</span></button>
+  </div>
+</header>
+<main class="wrap">
+  <nav class="lanes" aria-label="栏目">
+    <button class="lane on" data-l="all" type="button">全部货品</button>
+    <button class="lane" data-l="山货" type="button">山货</button>
+    <button class="lane" data-l="日用" type="button">日用</button>
+    <button class="lane" data-l="手工" type="button">手工</button>
+    <span class="promo">今日特价：山栗立减 5 元</span>
+  </nav>
+
+  <div class="title-row">
+    <h2>当季上架 · 8 件</h2>
+    <span class="more">从新到旧 ›</span>
+  </div>
+
+  <section class="shelf" id="shelf"></section>
+
+  <div class="foot">
+    <span>铺规：<b>满 39 元包邮</b> · 山区 3 天发货</span>
+    <span>掌柜：周老圃 · 已营 27 年 · 老街 12 号</span>
+  </div>
+</main>
+<script>
+(function(){
+  var goods=[
+    {id:1,name:'野生山栗（生）',desc:'秋季现打，个头匀称，砂糖炖鸡一绝。',price:'¥12.8',old:'',tag:'热卖',cat:'山货',art:'a'},
+    {id:2,name:'竹编沥水篮',desc:'老竹匠手工破篾，可盛果蔬，不霉。',price:'¥32.0',old:'¥39.0',tag:'新上',cat:'手工',art:'b'},
+    {id:3,name:'黄泥腊肉 500g',desc:'松枝熏制 40 天，肥瘦三七。',price:'¥46.0',old:'',tag:'',cat:'山货',art:'c'},
+    {id:4,name:'棉麻锅刷',desc:'棕丝加老棉布，刷锅不伤釉。',price:'¥9.9',old:'',tag:'',cat:'日用',art:'d'},
+    {id:5,name:'土蜂蜜 350g',desc:'崖蜜，波美度 42+，封盖率九成。',price:'¥58.0',old:'¥66.0',tag:'新上',cat:'山货',art:'e'},
+    {id:6,name:'老粗布桌旗',desc:'织机织造，植物染蓝，双面可用。',price:'¥27.5',old:'',tag:'热卖',cat:'手工',art:'f'},
+    {id:7,name:'柴火油茶籽 1kg',desc:'物理压榨，烟点高，炒菜不呛。',price:'¥39.8',old:'',tag:'',cat:'日用',art:'g'},
+    {id:8,name:'陶土焙茶罐',desc:'手工拉坯，透气存茶，配麻绳提手。',price:'¥66.0',old:'¥75.0',tag:'',cat:'手工',art:'h'}
+  ];
+  var arts={
+    a:'<svg viewBox="0 0 200 150"><rect width="200" height="150" fill="#efe4c8"/><circle cx="58" cy="52" r="26" fill="#8a5f3c"/><circle cx="104" cy="46" r="30" fill="#75502f"/><circle cx="146" cy="60" r="24" fill="#9a6a40"/><circle cx="84" cy="92" r="28" fill="#8a5f3c"/><circle cx="132" cy="100" r="22" fill="#75502f"/><ellipse cx="100" cy="138" rx="92" ry="10" fill="#d8c9a6"/></svg>',
+    b:'<svg viewBox="0 0 200 150"><rect width="200" height="150" fill="#f0e6cf"/><ellipse cx="100" cy="150" rx="80" ry="26" fill="#d8c9a6"/><path d="M40 60 Q100 20 160 60 L150 116 Q100 140 50 116 Z" fill="#a87b48"/><path d="M46 70 Q100 34 154 70" stroke="#6d4b26" stroke-width="3" fill="none"/><path d="M52 88 Q100 56 148 88" stroke="#6d4b26" stroke-width="3" fill="none"/></svg>',
+    c:'<svg viewBox="0 0 200 150"><rect width="200" height="150" fill="#efe0c4"/><rect x="58" y="34" width="84" height="70" rx="8" fill="#a3502f"/><path d="M58 54 h84 M58 74 h84 M58 90 h84" stroke="#7d3a20" stroke-width="3"/><path d="M66 34 L74 18 L82 34 M92 34 L100 18 L108 34 M118 34 L126 18 L134 34" stroke="#6b573d" stroke-width="3" fill="none"/></svg>',
+    d:'<svg viewBox="0 0 200 150"><rect width="200" height="150" fill="#f2e9d8"/><rect x="52" y="40" width="96" height="76" rx="10" fill="#4e6b3a"/><path d="M66 46 L66 110 M84 46 L84 110 M102 46 L102 110 M120 46 L120 110" stroke="#39522a" stroke-width="3"/><rect x="48" y="34" width="104" height="14" rx="6" fill="#8a5f3c"/></svg>',
+    e:'<svg viewBox="0 0 200 150"><rect width="200" height="150" fill="#f4ead2"/><ellipse cx="100" cy="78" rx="52" ry="42" fill="#d9a43a"/><path d="M100 36 L100 8" stroke="#b8862e" stroke-width="4"/><path d="M84 118 h32" stroke="#8a6f1e" stroke-width="5"/><circle cx="152" cy="42" r="7" fill="#e0a437"/></svg>',
+    f:'<svg viewBox="0 0 200 150"><rect width="200" height="150" fill="#eee2c8"/><rect x="36" y="30" width="128" height="90" fill="#3f5d8c"/><path d="M36 54 h128 M36 78 h128 M36 100 h128" stroke="#2c4266" stroke-width="4"/><path d="M70 30 v90 M104 30 v90 M138 30 v90" stroke="#2c4266" stroke-width="3"/><circle cx="170" cy="42" r="15" fill="#b3232a"/></svg>',
+    g:'<svg viewBox="0 0 200 150"><rect width="200" height="150" fill="#efe7d4"/><rect x="46" y="46" width="108" height="70" rx="10" fill="#8a6f4d"/><rect x="46" y="46" width="108" height="22" fill="#75502f"/><text x="100" y="62" font-size="12" fill="#f7efdd" text-anchor="middle">油茶籽</text><circle cx="80" cy="96" r="6" fill="#5c4630"/><circle cx="122" cy="92" r="5" fill="#5c4630"/></svg>',
+    h:'<svg viewBox="0 0 200 150"><rect width="200" height="150" fill="#f1e6cd"/><path d="M68 40 q32 -20 64 0 l10 62 q-42 26 -84 0 Z" fill="#9a5e3a"/><path d="M68 40 q32 -20 64 0" fill="none" stroke="#6d4b26" stroke-width="4"/><rect x="88" y="4" width="24" height="30" rx="8" fill="#d8c9a6"/><path d="M92 10 q8 8 0 18" stroke="#8a5f3c" stroke-width="3" fill="none"/></svg>'
+  };
+  var shelf=document.getElementById('shelf'),cart=[];
+  function render(filter){
+    shelf.innerHTML='';
+    goods.forEach(function(g){
+      if(filter!=='all'&&g.cat!==filter)return;
+      var d=document.createElement('div');d.className='goods';
+      d.innerHTML='<div class="pic">'+arts[g.art]+
+        (g.tag?'<span class="tag '+(g.tag==='热卖'?'hot':'new')+'">'+g.tag+'</span>':'')+
+        '<button class="heart" type="button" aria-label="收藏">♡</button></div>'+
+        '<div class="gbody"><div class="nm">'+g.name+'</div><div class="ds">'+g.desc+'</div>'+
+        '<div class="pr"><span class="now">'+g.price+'</span>'+(g.old?'<span class="old">'+g.old+'</span>':'')+'</div>'+
+        '<div class="vendor">掌柜自营 · '+g.cat+'</div>'+
+        '<button class="add" type="button">加入布袋</button></div>';
+      d.querySelector('.heart').addEventListener('click',function(e){
+        e.stopPropagation();
+        this.textContent=this.textContent==='♡'?'♥':'♡';
+      });
+      d.querySelector('.add').addEventListener('click',function(){
+        var n=cart.indexOf(g.id);
+        if(n<0){cart.push(g.id);}
+        document.getElementById('cartCnt').textContent=cart.length;
+        this.textContent='已入袋 ✓';this.classList.add('added');
+        setTimeout(function(){this.textContent='加入布袋';this.classList.remove('added');}.bind(this),1200);
+      });
+      shelf.appendChild(d);
+    });
+  }
+  document.querySelectorAll('.lane').forEach(function(b){
+    b.addEventListener('click',function(){
+      document.querySelectorAll('.lane').forEach(function(x){x.classList.remove('on')});
+      b.classList.add('on');render(b.dataset.l);
+    });
+  });
+  render('all');
+})();
+</script>
+</body>
+</html>

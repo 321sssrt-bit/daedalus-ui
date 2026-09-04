@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>保险库 · 二次验证</title>
+<style>
+:root{
+  --graphite:#1b1d1f;--panel:#232729;--panel-2:#2b3033;--line:#3a4043;--line-2:#4e565a;
+  --cream:#f2ece0;--muted:#97a0a4;--amber:#e0932a;--red:#d9553f;--jade:#4e9a6d;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;min-height:100vh;background:var(--graphite);color:var(--cream);padding:40px 24px;
+  font:15px/1.65 system-ui,"Microsoft YaHei",sans-serif;
+  background-image:repeating-linear-gradient(90deg,#ffffff05 0 1px,transparent 1px 64px),repeating-linear-gradient(0deg,#ffffff05 0 1px,transparent 1px 64px);
+}
+.door{
+  max-width:980px;margin:0 auto;background:var(--panel);border:1px solid var(--line);
+  display:grid;grid-template-columns:1fr 300px;
+}
+.hinge{grid-column:1 / -1;display:flex;align-items:center;gap:14px;padding:18px 30px;border-bottom:1px solid var(--line);background:var(--panel-2)}
+.hinge .bolt{width:12px;height:12px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#8d959a,#4a5155);flex:none}
+.hinge b{font:700 14px/1 system-ui;letter-spacing:.2em}
+.hinge .tag{margin-left:auto;font:600 11px/1 ui-monospace,Consolas,monospace;letter-spacing:.14em;color:var(--muted)}
+.left{padding:34px 40px 38px}
+h1{margin:0;font:700 34px/1.2 system-ui;letter-spacing:.02em}
+.sub{margin:12px 0 0;color:var(--muted);font-size:14.5px;max-width:48ch}
+.sub b{color:var(--cream);font-weight:600}
+.slots{display:flex;gap:12px;margin:34px 0 0}
+.slots input{
+  width:64px;height:82px;background:#191b1c;border:1px solid var(--line);color:var(--cream);
+  font:700 34px/1 ui-monospace,Consolas,monospace;text-align:center;padding:0;
+  transition:border-color .15s ease,background .15s ease,transform .15s ease;
+}
+.slots input:focus{outline:0;border-color:var(--amber);background:#241f16;transform:translateY(-2px)}
+.slots.bad input{border-color:var(--red);background:#2a1a17}
+.slots.ok input{border-color:var(--jade);background:#16211b}
+.slots.shake{animation:shake .32s ease}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-7px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(2px)}}
+.slots input:disabled{opacity:.5;cursor:not-allowed}
+.meter{display:flex;gap:6px;margin:18px 0 0}
+.meter i{height:4px;flex:1;background:var(--line);font-style:normal}
+.meter i.used{background:var(--red)}
+.msg{min-height:24px;margin:16px 0 0;font-size:13.5px;color:var(--muted);display:flex;align-items:center;gap:8px}
+.msg.bad{color:var(--red)}
+.msg.ok{color:var(--jade)}
+.msg svg{width:15px;height:15px;flex:none}
+.row{display:flex;align-items:center;gap:16px;margin-top:30px;flex-wrap:wrap}
+.key{
+  appearance:none;cursor:pointer;border:1px solid var(--amber);background:var(--amber);color:#1b1408;
+  font:inherit;font-weight:700;font-size:15px;letter-spacing:.16em;padding:15px 40px;transition:background .15s ease,color .15s ease;
+}
+.key:hover:not([disabled]){background:#f0a83c}
+.key:focus-visible{outline:2px solid var(--cream);outline-offset:3px}
+.key[disabled]{background:transparent;color:var(--line-2);border-color:var(--line);cursor:not-allowed}
+.key.done{background:var(--jade);border-color:var(--jade);color:#0d150f}
+.textbtn{appearance:none;background:transparent;border:1px solid var(--line);color:var(--muted);font:inherit;font-size:13.5px;padding:14px 20px;cursor:pointer;transition:color .15s ease,border-color .15s ease}
+.textbtn:hover:not([disabled]){color:var(--cream);border-color:var(--line-2)}
+.textbtn:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+.textbtn[disabled]{opacity:.45;cursor:not-allowed}
+.locked{display:none;margin-top:26px;border:1px solid var(--red);background:#d9553f14;padding:16px 18px;font-size:14px}
+.locked.show{display:block}
+.locked b{color:var(--red);letter-spacing:.06em}
+.locked .again{margin-top:8px;color:var(--muted);font-size:13px}
+.right{padding:34px 28px;border-left:1px solid var(--line);background:var(--panel-2);display:flex;flex-direction:column;gap:22px;align-items:center}
+.dial{position:relative;width:170px;height:170px}
+.dial svg{transform:rotate(-90deg)}
+.dial .face{position:absolute;inset:0;display:grid;place-content:center;text-align:center;gap:2px}
+.dial .face b{font:700 40px/1 ui-monospace,Consolas,monospace;letter-spacing:.02em;color:var(--amber)}
+.dial .face span{font:600 10px/1.6 ui-monospace,Consolas,monospace;letter-spacing:.18em;color:var(--muted)}
+.dial.danger .face b{color:var(--red)}
+.log{width:100%;font:500 11.5px/1.9 ui-monospace,Consolas,monospace;color:var(--muted);border-top:1px solid var(--line);padding-top:16px}
+.log i{font-style:normal;color:var(--cream)}
+.log .p{color:var(--amber)}
+.demo{grid-column:1 / -1;padding:14px 30px;border-top:1px solid var(--line);background:#191b1c;font-size:12.5px;color:var(--muted)}
+.demo b{color:var(--cream);font-weight:600}
+[hidden]{display:none!important}
+@media (max-width:860px){
+  .door{grid-template-columns:1fr}
+  .right{border-left:0;border-top:1px solid var(--line);flex-direction:row;align-items:center;justify-content:space-between;flex-wrap:wrap}
+  .left{padding:26px 22px 30px}
+  .slots{gap:8px}
+  .slots input{width:1fr;flex:1;min-width:0;height:66px;font-size:26px}
+  .log{width:auto;flex:1;min-width:180px;border-top:0;padding-top:0}
+}
+@media (max-width:520px){.slots{flex-wrap:wrap}.slots input{flex:none;width:calc(33.33% - 6px)}}
+@media (prefers-reduced-motion:reduce){
+  *{transition:none!important;animation:none!important;scroll-behavior:auto!important}
+  .slots input:focus{transform:none}
+}
+</style>
+</head>
+<body>
+<div class="door">
+  <header class="hinge">
+    <span class="bolt" aria-hidden="true"></span><span class="bolt" aria-hidden="true"></span>
+    <b>VAULT 07 · 二次验证</b>
+    <span class="tag" id="acct">账户 NG-104282 · 密码已核对</span>
+  </header>
+
+  <section class="left">
+    <h1>密码对了还不够</h1>
+    <p class="sub">保险库要求第二段凭证。请从验证器读取 <b>当前 6 位</b>，一码一次，<b>60 秒</b>后自动失效。</p>
+
+    <div class="slots" id="slots">
+      <input type="text" inputmode="numeric" maxlength="1" aria-label="第 1 位" autocomplete="one-time-code">
+      <input type="text" inputmode="numeric" maxlength="1" aria-label="第 2 位">
+      <input type="text" inputmode="numeric" maxlength="1" aria-label="第 3 位">
+      <input type="text" inputmode="numeric" maxlength="1" aria-label="第 4 位">
+      <input type="text" inputmode="numeric" maxlength="1" aria-label="第 5 位">
+      <input type="text" inputmode="numeric" maxlength="1" aria-label="第 6 位">
+    </div>
+    <div class="meter" aria-hidden="true"><i id="u1"></i><i id="u2"></i><i id="u3"></i></div>
+
+    <p class="msg" id="msg">还剩 3 次机会，用尽后保险库锁定 5 分钟。</p>
+
+    <div class="row">
+      <button class="key" id="verify" type="button" disabled>开 库</button>
+      <button class="textbtn" id="resend" type="button">重新取码（<span id="rs">30</span> 秒后可用）</button>
+      <button class="textbtn" id="other" type="button">改用其他方式</button>
+    </div>
+
+    <div class="locked" id="locked">
+      <b>保险库已锁定 <span id="lock">05:00</span></b>
+      <div class="again">连续三次核验失败。等待解锁后可再试，或改用备用密钥。</div>
+    </div>
+  </section>
+
+  <aside class="right">
+    <div class="dial" id="dial">
+      <svg viewBox="0 0 170 170" width="170" height="170" aria-hidden="true">
+        <circle cx="85" cy="85" r="76" fill="none" stroke="#3a4043" stroke-width="6"/>
+        <circle id="ring" cx="85" cy="85" r="76" fill="none" stroke="#e0932a" stroke-width="6" stroke-linecap="butt"
+                stroke-dasharray="477.5" stroke-dashoffset="0"/>
+      </svg>
+      <div class="face"><b id="sec">60</b><span>SECONDS LEFT</span></div>
+    </div>
+    <div class="log">
+      21:04:11 <i>密码核验通过</i><br>
+      21:04:12 <i class="p">下发一次性码</i><br>
+      21:04:12 <i>设备 iPhone 15 · 上海</i><br>
+      21:04:30 <i id="last">等待第二段凭证</i>
+    </div>
+  </aside>
+
+  <p class="demo">演示规则（页面明示，便于人工复现）：以 <b>8 开头</b>的 6 位数字判为通过；<b>倒计时归零</b>或<b>不含 8 开头</b>判为失败；累计三次失败进入 5 分钟锁定。</p>
+</div>
+
+<script>
+(function(){
+  'use strict';
+  var slots = document.getElementById('slots');
+  var boxes = Array.prototype.slice.call(slots.querySelectorAll('input'));
+  var msg = document.getElementById('msg');
+  var verify = document.getElementById('verify');
+  var resend = document.getElementById('resend');
+  var other = document.getElementById('other');
+  var sec = document.getElementById('sec');
+  var ring = document.getElementById('ring');
+  var dial = document.getElementById('dial');
+  var locked = document.getElementById('locked');
+  var lock = document.getElementById('lock');
+  var last = document.getElementById('last');
+  var bars = [document.getElementById('u1'),document.getElementById('u2'),document.getElementById('u3')];
+  var FULL = 477.5, left = 60, fails = 0, cd = 30, lockLeft = 300, t1 = null, t2 = null, t3 = null;
+
+  function value(){ return boxes.map(function(b){ return b.value; }).join(''); }
+  function setMsg(kind, html){
+    msg.className = 'msg' + (kind ? ' ' + kind : '');
+    msg.innerHTML = (kind === 'bad' ? '<svg viewBox="0 0 15 15"><circle cx="7.5" cy="7.5" r="6.8" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M7.5 4v4.6M7.5 10.5v.9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>' : '') + html;
+  }
+  function tick(){
+    sec.textContent = left;
+    ring.setAttribute('stroke-dashoffset', String(FULL * (1 - left / 60)));
+    dial.classList.toggle('danger', left <= 15);
+    if (left <= 0){
+      boxes.forEach(function(b){ b.value = ''; b.blur(); });
+      slots.classList.remove('bad','ok');
+      setMsg('bad', '本码已过期，请重新取码后再开库。');
+      verify.disabled = true;
+      last.textContent = '凭证过期';
+      cd = 0; paintResend();
+    }
+  }
+  function start(){
+    if (t1){ clearInterval(t1); }
+    t1 = setInterval(function(){ if (left > 0){ left -= 1; tick(); } }, 1000);
+  }
+  function paintResend(){
+    if (cd > 0){ resend.disabled = true; resend.textContent = ''; resend.append('重新取码（'); var s = document.createElement('span'); s.textContent = cd + ' 秒后可用'; resend.append(s, '）'); }
+    else { resend.disabled = false; resend.textContent = '取一张新码'; }
+  }
+  function reset(){
+    left = 60; ring.setAttribute('stroke-dashoffset','0'); dial.classList.remove('danger'); tick(); start();
+  }
+  if (!t3){ t3 = setInterval(function(){ if (cd > 0){ cd -= 1; paintResend(); } }, 1000); }
+  paintResend();
+
+  boxes.forEach(function(box, i){
+    box.addEventListener('input', function(){
+      box.value = box.value.replace(/[^0-9]/g,'').slice(-1);
+      slots.classList.remove('bad','ok');
+      if (box.value && i < 5){ boxes[i + 1].focus(); }
+      verify.disabled = value().length !== 6 || left === 0;
+      if (!msg.classList.contains('bad')){ setMsg('', '还剩 ' + (3 - fails) + ' 次机会，用尽后保险库锁定 5 分钟。'); }
+    });
+    box.addEventListener('keydown', function(e){
+      if (e.key === 'Backspace' && !box.value && i > 0){ boxes[i - 1].focus(); boxes[i - 1].value = ''; e.preventDefault(); }
+      if (e.key === 'ArrowLeft' && i > 0){ boxes[i - 1].focus(); e.preventDefault(); }
+      if (e.key === 'ArrowRight' && i < 5){ boxes[i + 1].focus(); e.preventDefault(); }
+    });
+    box.addEventListener('paste', function(e){
+      var text = (e.clipboardData || window.clipboardData).getData('text').replace(/[^0-9]/g,'').slice(0, 6);
+      if (!text){ return; }
+      e.preventDefault();
+      text.split('').forEach(function(ch, j){ boxes[j].value = ch; });
+      boxes[Math.min(text.length, 5)].focus();
+      verify.disabled = text.length !== 6;
+    });
+  });
+
+  verify.addEventListener('click', function(){
+    var code = value();
+    verify.disabled = true;
+    verify.textContent = '核验中';
+    slots.classList.remove('bad','ok','shake');
+    void slots.offsetWidth;
+    setTimeout(function(){
+      verify.textContent = '开 库';
+      var ok = code.charAt(0) === '8' && left > 0 && fails < 3;
+      if (ok){
+        slots.classList.add('ok');
+        setMsg('ok', '<svg viewBox="0 0 15 15"><path d="M1.6 7.8 5.4 11.6 13.4 3.2" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>核验通过，库门已开。');
+        verify.classList.add('done');
+        verify.textContent = '已 开 库';
+        verify.disabled = true;
+        last.textContent = '二次验证通过';
+        boxes.forEach(function(b){ b.disabled = true; });
+        if (t1){ clearInterval(t1); }
+        return;
+      }
+      fails += 1;
+      bars.slice(0, fails).forEach(function(b){ b.classList.add('used'); });
+      slots.classList.add('shake');
+      boxes.forEach(function(b){ b.value = ''; });
+      boxes[0].focus();
+      last.textContent = '第 ' + fails + ' 次核验失败';
+      if (fails >= 3){
+        slots.classList.remove('shake');
+        setMsg('bad', '三次核验失败，保险库已锁定。');
+        boxes.forEach(function(b){ b.disabled = true; });
+        locked.classList.add('show');
+        verify.disabled = true;
+        other.disabled = true;
+        if (t1){ clearInterval(t1); }
+        if (t2){ clearInterval(t2); }
+        t2 = setInterval(function(){
+          lockLeft -= 1;
+          var m = Math.floor(lockLeft / 60), s2 = lockLeft % 60;
+          lock.textContent = (m < 10 ? '0' : '') + m + ':' + (s2 < 10 ? '0' : '') + s2;
+          if (lockLeft <= 0){
+            clearInterval(t2);
+            fails = 0; lockLeft = 300;
+            bars.forEach(function(b){ b.classList.remove('used'); });
+            locked.classList.remove('show');
+            boxes.forEach(function(b){ b.disabled = false; b.value = ''; });
+            setMsg('', '锁已解除，可再试 3 次。');
+            reset();
+          }
+        }, 1000);
+        return;
+      }
+      setMsg('bad', '验证码不正确，以 8 开头的 6 位数字才能开库；剩 ' + (3 - fails) + ' 次机会。');
+      verify.disabled = true;
+    }, 800);
+  });
+
+  resend.addEventListener('click', function(){
+    cd = 30; paintResend();
+    boxes.forEach(function(b){ b.value = ''; b.disabled = false; });
+    slots.classList.remove('bad','ok');
+    setMsg('', '新码已下发，旧码即刻作废。');
+    last.textContent = '重新下发一次性码';
+    verify.disabled = true;
+    verify.classList.remove('done');
+    verify.textContent = '开 库';
+    reset();
+    boxes[0].focus();
+  });
+
+  other.addEventListener('click', function(){
+    setMsg('', '备用方式：插入硬件密钥，或到 3 号柜台由两人见证开锁。');
+    last.textContent = '已申请人工旁路';
+  });
+
+  reset();
+})();
+</script>
+</body>
+</html>

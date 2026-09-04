@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>城墙根 · 街坊广场</title>
+<style>
+  :root{
+    --lime:#f5f1e6;
+    --lime-2:#ece5d2;
+    --brick:#a8543d;
+    --brick-deep:#86412e;
+    --brick-soft:rgba(168,84,61,.12);
+    --ink:#372e24;
+    --ink-soft:#6a5d4c;
+    --ink-mute:#a3947e;
+    --wall:#fbf8ef;
+    --green:#5f7f4a;
+    --green-deep:#46632f;
+    --green-soft:rgba(95,127,74,.13);
+    --amber:#d9a441;
+    --amber-soft:rgba(217,164,65,.13);
+    --err:#c0583f;
+    --err-soft:rgba(192,88,63,.13);
+    --line:#d8cdb6;
+    --line-soft:#e7dfcc;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:#e0d8c6;font-family:"Microsoft YaHei","PingFang SC","Noto Sans SC",sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:26px 14px}
+  .phone{
+    width:390px;max-width:100%;height:844px;max-height:calc(100vh - 40px);background:var(--lime);
+    border-radius:36px;border:1px solid #c3b494;overflow:hidden;box-shadow:0 24px 60px rgba(75,54,35,.25),inset 0 0 0 6px #fffdf7;
+    display:flex;flex-direction:column;position:relative;
+  }
+  .notch{position:absolute;top:8px;left:50%;transform:translateX(-50%);width:120px;height:22px;border-radius:99px;background:#372e24;z-index:20}
+  .screen{flex:1;display:flex;flex-direction:column;overflow-y:auto;position:relative}
+  .screen::-webkit-scrollbar{width:0}
+  .appbar{
+    position:sticky;top:0;z-index:10;background:rgba(245,241,230,.95);padding:46px 16px 10px;
+    display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line-soft);
+  }
+  .appbar .t{font-size:14px;font-weight:900;letter-spacing:.08em}
+  .appbar .compose{background:var(--brick);color:#fdf7ef;border:none;border-radius:99px;padding:8px 16px;font-size:11.5px;font-weight:800;cursor:pointer;font-family:inherit}
+  /* 动态流 */
+  .feed{padding:14px 14px 20px;display:flex;flex-direction:column;gap:12px}
+  .post{background:var(--wall);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+  .post .who{display:flex;align-items:center;gap:10px}
+  .post .ava{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;font-weight:800}
+  .post .nm{font-size:13px;font-weight:800;color:var(--ink)}
+  .post .range{font-size:10px;color:var(--ink-mute);margin-top:2px}
+  .post .txt{font-size:13px;line-height:1.9;color:var(--ink-soft);margin-top:10px}
+  .post .imgs{display:flex;gap:6px;margin-top:10px}
+  .post .imgs span{width:64px;height:64px;border-radius:8px;background:var(--lime-2);display:flex;align-items:center;justify-content:center;font-size:24px}
+  .post .foot{display:flex;gap:16px;margin-top:12px;font-size:11px;color:var(--ink-mute)}
+  .post .foot span{display:flex;align-items:center;gap:5px}
+  .post.just{box-shadow:0 0 0 2px var(--green)}
+  /* 发布视图 */
+  .comp{display:none;padding:16px}
+  .comp.show{display:block}
+  .comp .box{background:var(--wall);border:1px solid var(--line);border-radius:16px;padding:16px}
+  .comp textarea{
+    width:100%;min-height:120px;border:none;outline:none;background:none;font-size:14px;line-height:2;color:var(--ink);font-family:inherit;resize:none;
+  }
+  .comp textarea::placeholder{color:var(--ink-mute)}
+  .comp .range-sel{margin-top:10px}
+  .comp .rs{font-size:11.5px;font-weight:800;color:var(--ink-soft);margin-bottom:8px}
+  .comp .opts{display:flex;flex-direction:column;gap:8px}
+  .comp .opt{
+    display:flex;align-items:center;gap:10px;padding:12px 14px;border:1.5px solid var(--line);border-radius:12px;
+    cursor:pointer;background:#fffdf7;transition:all .12s;
+  }
+  .comp .opt:hover{border-color:var(--green)}
+  .comp .opt.sel{border-color:var(--green);background:var(--green-soft)}
+  .comp .opt .r{width:18px;height:18px;border-radius:50%;border:2px solid var(--ink-mute);flex:none;position:relative}
+  .comp .opt.sel .r{border-color:var(--green)}
+  .comp .opt.sel .r::after{content:"";position:absolute;inset:3px;border-radius:50%;background:var(--green)}
+  .comp .opt .ot{font-size:13px;font-weight:700;color:var(--ink)}
+  .comp .opt .od{font-size:10.5px;color:var(--ink-mute);margin-top:2px}
+  .comp .chars{margin-top:10px;font-size:10.5px;color:var(--ink-mute);text-align:right}
+  .comp .go{width:100%;margin-top:14px;padding:14px;border:none;border-radius:14px;background:var(--green);color:#f5faef;font-size:14px;font-weight:900;cursor:pointer;font-family:inherit;box-shadow:0 5px 0 var(--green-deep)}
+  .comp .go:active{transform:translateY(2px);box-shadow:0 3px 0 var(--green-deep)}
+  .comp .fb{min-height:38px;margin-top:12px;padding:10px 13px;border-radius:12px;font-size:12px;line-height:1.8;background:var(--err-soft);color:#8f3d2c}
+  @media (prefers-reduced-motion:reduce){
+    .comp .opt{transition:none}
+  }
+</style>
+</head>
+<body>
+<div class="phone">
+  <span class="notch"></span>
+  <div class="screen">
+    <header class="appbar">
+      <span class="t">城墙根 · 街坊广场</span>
+      <button class="compose" id="composeBtn" type="button">+ 说点什么</button>
+    </header>
+
+    <!-- 浏览流 -->
+    <section class="feed" id="feed"></section>
+
+    <!-- 发布视图 -->
+    <section class="comp" id="compView">
+      <div class="box">
+        <textarea id="draft" maxlength="280" placeholder="街坊们，今天……"></textarea>
+        <div class="chars"><span id="charc">0 / 280</span></div>
+      </div>
+      <div class="range-sel">
+        <p class="rs">这条说给谁看？</p>
+        <div class="opts" id="scopeOpts">
+          <div class="opt sel" data-s="全场街坊"><span class="r"></span><div><div class="ot">全场街坊</div><div class="od">广场公告栏 · 所有街坊可见</div></div></div>
+          <div class="opt" data-s="左右邻舍"><span class="r"></span><div><div class="ot">左右邻舍</div><div class="od">只给本胡同 3 户人家看</div></div></div>
+          <div class="opt" data-s="自己留档"><span class="r"></span><div><div class="ot">自己留档</div><div class="od">只有你自己能看到</div></div></div>
+        </div>
+      </div>
+      <div class="fb" id="pubFb" style="display:none"></div>
+      <button class="go" id="pubGo" type="button">贴到公告栏</button>
+    </section>
+  </div>
+</div>
+<script>
+(function(){
+  var posts=[
+    {who:'枣红马',ava:'#a8543d',range:'全场街坊',txt:'今天老城门的鸽子飞得特别低，像是要下雨。有谁家收衣服的？',time:'14:20',likes:12,cmt:4},
+    {who:'李婶',ava:'#5f7f4a',range:'左右邻舍',txt:'晚上二楼包饺子，缺一头蒜，有多的街坊匀我几瓣。',time:'13:05',likes:8,cmt:6},
+    {who:'修门匠 老韩',ava:'#3f79c2',range:'全场街坊',txt:'老城根 14 号的门轴修好了，明早可取。',time:'11:47',likes:21,cmt:2}
+  ];
+  var feed=document.getElementById('feed');
+  function renderFeed(){
+    feed.innerHTML='';
+    posts.forEach(function(p){
+      var d=document.createElement('div');d.className='post'+(p.just?' just':'');
+      d.innerHTML='<div class="who"><span class="ava" style="background:'+p.ava+'">'+p.who.slice(0,1)+'</span>'+
+        '<div><div class="nm">'+p.who+'</div><div class="range">'+p.range+' · '+p.time+'</div></div></div>'+
+        '<div class="txt">'+p.txt+'</div>'+
+        '<div class="foot"><span>👍 '+p.likes+'</span><span>💬 '+p.cmt+'</span><span>分享</span></div>';
+      feed.appendChild(d);
+    });
+  }
+  var scope='全场街坊';
+  document.querySelectorAll('#scopeOpts .opt').forEach(function(o){
+    o.addEventListener('click',function(){
+      document.querySelectorAll('#scopeOpts .opt').forEach(function(x){x.classList.remove('sel')});
+      o.classList.add('sel');scope=o.dataset.s;
+    });
+  });
+  var draft=document.getElementById('draft'),charc=document.getElementById('charc');
+  draft.addEventListener('input',function(){charc.textContent=draft.value.length+' / 280'});
+  var composeBtn=document.getElementById('composeBtn');
+  var failCount=0;
+  function toggleComp(show){
+    feed.style.display=show?'none':'flex';
+    document.getElementById('compView').classList.toggle('show',show);
+    composeBtn.style.display=show?'none':'block';
+  }
+  composeBtn.addEventListener('click',function(){toggleComp(true);draft.focus();});
+  document.getElementById('pubGo').addEventListener('click',function(){
+    var t=draft.value.trim();
+    if(!t){var fb=document.getElementById('pubFb');fb.style.display='block';fb.textContent='先写点什么再贴。';return;}
+    failCount++;
+    if(failCount%2===1){
+      // 模拟发布失败（第一次必失败）
+      var fb=document.getElementById('pubFb');
+      fb.style.display='block';
+      fb.innerHTML='× 喇叭卡壳了：刚才那阵风没把公告吹上去。<br><b>草稿与可见范围都替你留着</b>，再点一次就是。';
+      return;
+    }
+    // 成功发布
+    posts.unshift({who:'我',ava:'#d9a441',range:scope,txt:t,time:'刚刚',likes:0,cmt:0,just:failCount===2});
+    var fb=document.getElementById('pubFb');fb.style.display='block';
+    fb.style.background='rgba(95,127,74,.14)';fb.style.color='#37542a';
+    fb.textContent='✓ 已贴上公告栏（'+scope+'）。';
+    draft.value='';charc.textContent='0 / 280';
+    setTimeout(function(){
+      toggleComp(false);
+      renderFeed();
+    },900);
+  });
+  renderFeed();
+})();
+</script>
+</body>
+</html>

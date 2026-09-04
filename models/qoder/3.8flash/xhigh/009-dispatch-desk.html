@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>调度台 · 今日全局</title>
+<style>
+:root{
+  --concrete:#e9e7e2;--white:#fbfaf8;--navy:#0b3d5c;--navy-2:#082c43;--ink:#1d2429;
+  --muted:#6c7378;--line:#cfcabf;--lamp-green:#2f7d4f;--lamp-amber:#c1782a;--lamp-red:#b0362c;--chip:#dfdcd3;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--concrete);color:var(--ink);font:13.5px/1.6 system-ui,"Microsoft YaHei",sans-serif}
+.desk{display:grid;grid-template-columns:186px 1fr;min-height:100vh;max-width:1440px;margin:0 auto;background:var(--white)}
+nav{border-right:1px solid var(--line);padding:16px 0 20px;background:#f2f0ec;display:flex;flex-direction:column}
+.shift{padding:0 14px 14px;border-bottom:1px solid var(--line);margin-bottom:10px}
+.shift b{display:block;font:700 13px/1.4 system-ui;letter-spacing:.06em;color:var(--navy)}
+.shift span{font:500 10.5px/1.6 ui-monospace,Consolas,monospace;color:var(--muted);letter-spacing:.06em}
+nav a{
+  display:flex;align-items:center;gap:9px;padding:9px 14px;color:var(--muted);text-decoration:none;
+  font-size:13px;border-left:3px solid transparent;
+}
+nav a svg{width:14px;height:14px;flex:none;opacity:.75}
+nav a .n{margin-left:auto;font:600 10.5px/1 ui-monospace,Consolas,monospace;color:var(--ink);background:var(--chip);padding:4px 6px;border-radius:2px}
+nav a:hover{background:#e9e6e0;color:var(--ink)}
+nav a[aria-current="page"]{background:var(--white);color:var(--navy);border-left-color:var(--navy);font-weight:600}
+nav a:focus-visible{outline:2px solid var(--navy);outline-offset:-2px}
+nav .foot{margin-top:auto;padding:14px;border-top:1px solid var(--line);font:500 10.5px/1.7 ui-monospace,Consolas,monospace;color:var(--muted)}
+main{padding:0 0 26px;min-width:0}
+.head{display:flex;align-items:center;gap:14px;padding:16px 24px;border-bottom:1px solid var(--line)}
+.head h1{margin:0;font:700 18px/1.3 system-ui;letter-spacing:.04em}
+.head .asof{font:500 11px/1 ui-monospace,Consolas,monospace;color:var(--muted);letter-spacing:.06em}
+.seg{margin-left:auto;display:flex;border:1px solid var(--line);border-radius:2px;overflow:hidden}
+.seg button{appearance:none;border:0;background:var(--white);color:var(--muted);font:inherit;font-size:12px;padding:7px 13px;cursor:pointer;border-right:1px solid var(--line)}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{background:var(--navy);color:#fff;font-weight:600}
+.seg button:focus-visible{outline:2px solid var(--lamp-amber);outline-offset:-2px}
+.tiles{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid var(--line)}
+.tile{padding:16px 20px;border-right:1px solid var(--line);display:grid;gap:6px}
+.tile:last-child{border-right:0}
+.tile .k{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--muted)}
+.lamp{width:9px;height:9px;border-radius:50%;background:var(--lamp-green);flex:none;box-shadow:0 0 0 2px #2f7d4f2e}
+.lamp.amber{background:var(--lamp-amber);box-shadow:0 0 0 2px #c1782a2e}
+.lamp.red{background:var(--lamp-red);box-shadow:0 0 0 2px #b0362c2e}
+.tile .v{font:700 30px/1 ui-monospace,Consolas,monospace;letter-spacing:-.01em;color:var(--navy)}
+.tile .v small{font-size:14px;color:var(--muted);margin-left:4px}
+.tile .d{display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--muted)}
+.tile .d b{color:var(--ink);font-weight:600}
+.tile svg{width:64px;height:20px}
+.cols{display:grid;grid-template-columns:1fr 296px;min-height:0}
+.list{border-right:1px solid var(--line);min-width:0}
+.list-head{display:flex;align-items:center;gap:10px;padding:12px 20px;border-bottom:1px solid var(--line);background:#f4f2ee}
+.list-head h2{margin:0;font:700 13px/1.4 system-ui;letter-spacing:.08em}
+.list-head .count{font:600 11px/1 ui-monospace,Consolas,monospace;color:var(--muted)}
+.list-head .who{margin-left:auto;font-size:12px;color:var(--muted)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font:600 10.5px/1 ui-monospace,Consolas,monospace;letter-spacing:.1em;color:var(--muted);padding:10px 12px 10px 20px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:11px 12px 11px 20px;border-bottom:1px solid #e6e3dc;vertical-align:middle}
+tbody tr{cursor:pointer}
+tbody tr:hover{background:#f7f5f1}
+tbody tr[aria-selected="true"]{background:#eaf1f5;box-shadow:inset 3px 0 0 var(--navy)}
+td .id{font:600 12px/1 ui-monospace,Consolas,monospace;color:var(--navy)}
+td .st{display:inline-flex;align-items:center;gap:6px;font-size:12px;white-space:nowrap}
+td .late{color:var(--lamp-red);font-weight:600}
+td .num{font:600 12px/1 ui-monospace,Consolas,monospace}
+aside{padding:16px 20px 20px;display:grid;gap:16px;align-content:start}
+aside h3{margin:0 0 8px;font:700 12px/1.5 system-ui;letter-spacing:.1em;color:var(--navy)}
+.panel{border:1px solid var(--line);border-radius:2px;padding:12px 14px;background:#f8f7f4}
+.panel dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:6px 12px;font-size:12.5px}
+.panel dt{color:var(--muted)}
+.panel dd{margin:0;font-weight:600}
+.panel .act{margin-top:10px;display:flex;gap:8px}
+.btn{appearance:none;font:inherit;font-size:12px;cursor:pointer;padding:8px 12px;border:1px solid var(--navy);background:var(--navy);color:#fff;border-radius:2px}
+.btn:hover{background:var(--navy-2)}
+.btn.ghost{background:transparent;color:var(--navy)}
+.btn.ghost:hover{background:#e2e9ee}
+.btn:focus-visible{outline:2px solid var(--lamp-amber);outline-offset:2px}
+.log{display:grid;gap:8px;font-size:12px;color:#42494e}
+.log div{display:grid;grid-template-columns:52px 1fr;gap:9px;padding-bottom:8px;border-bottom:1px dotted var(--line)}
+.log time{font:500 11px/1.6 ui-monospace,Consolas,monospace;color:var(--muted)}
+.log b{font-weight:600}
+.gauge{display:grid;gap:7px;font-size:12px}
+.gauge .bar{height:7px;background:var(--chip);border-radius:1px;overflow:hidden}
+.gauge .bar i{display:block;height:100%;background:var(--navy)}
+.gauge .row{display:flex;justify-content:space-between;color:var(--muted)}
+.gauge .row b{color:var(--ink);font-family:ui-monospace,Consolas,monospace}
+[hidden]{display:none!important}
+@media (max-width:1100px){
+  .desk{grid-template-columns:1fr}
+  nav{flex-direction:row;overflow-x:auto;border-right:0;border-bottom:1px solid var(--line);align-items:center;padding:8px}
+  .shift,.nav-foot{display:none}
+  nav a{border-left:0;border-bottom:3px solid transparent;white-space:nowrap}
+  nav a[aria-current="page"]{border-left:0;border-bottom-color:var(--navy)}
+  .tiles{grid-template-columns:1fr 1fr}
+  .tile:nth-child(2n){border-right:0}
+  .tile:nth-child(-n+2){border-bottom:1px solid var(--line)}
+  .cols{grid-template-columns:1fr}
+  .list{border-right:0}
+  aside{border-top:1px solid var(--line)}
+}
+@media (max-width:768px){
+  .tiles{grid-template-columns:1fr}
+  th:nth-child(4),td:nth-child(4){display:none}
+  .head{flex-wrap:wrap}
+  .seg{margin-left:0;width:100%}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="desk">
+  <nav aria-label="调度台模块">
+    <div class="shift">
+      <b>夜班 21:00–05:00</b>
+      <span>值班：沈砚舟 · 席位 D-04</span>
+    </div>
+    <a href="#today" aria-current="page"><svg viewBox="0 0 14 14" aria-hidden="true"><rect x="1" y="1" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M1 5h12" stroke="currentColor" stroke-width="1.4"/></svg>今日全局<span class="n">12</span></a>
+    <a href="#fleet"><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M1 10h12M3 10V4h8v6" fill="none" stroke="currentColor" stroke-width="1.4"/></svg>车队状态<span class="n">8/9</span></a>
+    <a href="#crew"><svg viewBox="0 0 14 14" aria-hidden="true"><circle cx="7" cy="4.6" r="2.4" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M2 12.6c1.2-2.6 8.8-2.6 10 0" fill="none" stroke="currentColor" stroke-width="1.4"/></svg>当班人员<span class="n">6</span></a>
+    <a href="#alert"><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M7 1.6 12.6 12H1.4z" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M7 5.4v3.1" stroke="currentColor" stroke-width="1.4"/></svg>异常工单<span class="n">3</span></a>
+    <a href="#log"><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M2.4 2h9.2v10H2.4z" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M4.6 5h4.8M4.6 7.6h4.8" stroke="currentColor" stroke-width="1.4"/></svg>交接日志</a>
+    <div class="foot" style="margin-top:auto">系统时钟 21:42<br>数据延迟 &lt; 30 秒</div>
+  </nav>
+
+  <main>
+    <header class="head">
+      <h1>今日全局</h1>
+      <span class="asof" id="asof">截至 21:42 · 自动刷新</span>
+      <div class="seg" role="group" aria-label="时间范围">
+        <button type="button" data-range="today" aria-pressed="true">今日</button>
+        <button type="button" data-range="next" aria-pressed="false">明日预排</button>
+        <button type="button" data-range="week" aria-pressed="false">近七日</button>
+      </div>
+    </header>
+
+    <section class="tiles" id="tiles" aria-label="今日关键数字"></section>
+
+    <div class="cols">
+      <section class="list">
+        <div class="list-head">
+          <h2>待发队列</h2><span class="count" id="qcount"></span>
+          <span class="who">按发车时间排序 · 点击一行看详情</span>
+        </div>
+        <table>
+          <thead><tr><th>班次</th><th>线路</th><th>发车</th><th>驾驶</th><th>载客</th><th>状态</th></tr></thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </section>
+
+      <aside>
+        <div class="panel" id="detail">
+          <h3>选中班次</h3>
+          <p style="margin:0;font-size:12.5px;color:var(--muted)">在左侧队列点一行，这里会显示可操作详情。</p>
+        </div>
+        <div class="panel">
+          <h3>今晚余量</h3>
+          <div class="gauge" id="gauge"></div>
+        </div>
+        <div class="panel">
+          <h3>值班日志</h3>
+          <div class="log">
+            <div><time>21:31</time><span><b>N-23:00 机场直达</b> 报延误 6 分，已在二站台等候。</span></div>
+            <div><time>21:14</time><span><b>3 号车</b> 胎压告警解除，恢复可派。</span></div>
+            <div><time>20:52</time><span>与早班交接完成，遗留工单 3 条。</span></div>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </main>
+</div>
+
+<script>
+(function(){
+  'use strict';
+  var DATA = {
+    today:{
+      tiles:[
+        {k:'今晚待发',v:'12',u:'班',lamp:'',trend:'较昨日同时 +2',pts:'0,14 10,10 20,12 32,6 44,9 56,4 64,7'},
+        {k:'正点率',v:'94.2',u:'%',lamp:'',trend:'近 7 日最低 89.1',pts:'0,6 10,9 20,7 32,11 44,8 56,12 64,10'},
+        {k:'异常工单',v:'3',u:'条',lamp:'amber',trend:'1 条超 30 分钟未处理',pts:'0,12 10,10 20,13 32,8 44,11 56,13 64,9'},
+        {k:'余在座驾驶',v:'6',u:'人',lamp:'red',trend:'低于安全线 8 人',pts:'0,4 10,6 20,5 32,9 44,10 56,12 64,15'}
+      ],
+      queue:[
+        {id:'N-21:45',line:'环湖线 · 内圈',dep:'21:45',drv:'马文柏',load:'38/52',st:'ready'},
+        {id:'N-21:52',line:'石门线',dep:'21:52',drv:'柯志明',load:'12/44',st:'ready'},
+        {id:'N-22:10',line:'夜班区间 · 城东',dep:'22:10',drv:'待指派',load:'—',st:'wait'},
+        {id:'N-22:15',line:'石门线 · 加班',dep:'22:15',drv:'梁若谷',load:'41/44',st:'ready'},
+        {id:'N-22:30',line:'环湖线 · 外圈',dep:'22:30',drv:'周允',load:'6/52',st:'check'},
+        {id:'N-23:00',line:'机场直达',dep:'23:00 +6′',drv:'郑明轩',load:'27/48',st:'late'},
+        {id:'N-23:20',line:'夜班区间 · 城西',dep:'23:20',drv:'待指派',load:'—',st:'wait'},
+        {id:'N-23:40',line:'环湖线 · 内圈',dep:'23:40',drv:'马文柏',load:'—',st:'ready'}
+      ]
+    },
+    next:{
+      tiles:[
+        {k:'明早排班',v:'34',u:'班',lamp:'',trend:'驾驶已配 28 人',pts:'0,8 10,7 20,10 32,9 44,12 56,11 64,14'},
+        {k:'预方正点率',v:'96.0',u:'%',lamp:'',trend:'依据近四周同期',pts:'0,10 10,11 20,9 32,12 44,13 56,12 64,14'},
+        {k:'维护占用',v:'5',u:'台',lamp:'amber',trend:'2 台预计 06:00 归队',pts:'0,12 10,11 20,13 32,12 44,14 56,13 64,12'},
+        {k:'请假待批',v:'2',u:'人',lamp:'',trend:'影响 05:30 两个班次',pts:'0,6 10,5 20,7 32,6 44,8 56,7 64,9'}
+      ],
+      queue:[
+        {id:'A-05:30',line:'环湖线 · 内圈',dep:'05:30',drv:'梁若谷',load:'—',st:'ready'},
+        {id:'A-05:40',line:'机场直达',dep:'05:40',drv:'周允',load:'—',st:'check'},
+        {id:'A-06:00',line:'石门线',dep:'06:00',drv:'待指派',load:'—',st:'wait'},
+        {id:'A-06:10',line:'夜班区间 · 城东',dep:'06:10',drv:'柯志明',load:'—',st:'ready'},
+        {id:'A-06:20',line:'环湖线 · 外圈',dep:'06:20',drv:'郑明轩',load:'—',st:'ready'},
+        {id:'A-06:30',line:'高铁接驳',dep:'06:30',drv:'马文柏',load:'—',st:'check'}
+      ]
+    },
+    week:{
+      tiles:[
+        {k:'七日发班',v:'1 268',u:'班',lamp:'',trend:'同比 +4.6%',pts:'0,12 10,10 20,11 32,7 44,9 56,6 64,5'},
+        {k:'七日正点率',v:'96.8',u:'%',lamp:'',trend:'目标线 96.0',pts:'0,9 10,10 20,12 32,11 44,13 56,12 64,13'},
+        {k:'七日异常',v:'41',u:'条',lamp:'amber',trend:'平均每日 5.9 条',pts:'0,14 10,12 20,13 32,10 44,11 56,9 64,10'},
+        {k:'客诉工单',v:'7',u:'条',lamp:'',trend:'3 条已回访',pts:'0,8 10,7 20,9 32,6 44,7 56,5 64,6'}
+      ],
+      queue:[
+        {id:'W-08-21',line:'周五 · 环湖线',dep:'已完成',drv:'马文柏',load:'38/52',st:'done'},
+        {id:'W-08-22',line:'周六 · 机场直达',dep:'已完成',drv:'郑明轩',load:'44/48',st:'done'},
+        {id:'W-08-23',line:'周日 · 石门线',dep:'已完成',drv:'柯志明',load:'12/44',st:'done'},
+        {id:'W-08-24',line:'周一 · 夜区间东',dep:'已完成',drv:'待指派',load:'20/44',st:'done'},
+        {id:'W-08-25',line:'周二 · 环湖外圈',dep:'已完成',drv:'周允',load:'31/52',st:'done'},
+        {id:'W-08-26',line:'周三 · 高铁接驳',dep:'已完成',drv:'梁若谷',load:'9/44',st:'done'}
+      ]
+    }
+  };
+  var ST = {
+    ready:['#2f7d4f','可发车'], check:['#c1782a','待检查'], wait:['#6c7378','待指派'],
+    late:['#b0362c','延误'], done:['#0b3d5c','已完成']
+  };
+  var tiles = document.getElementById('tiles');
+  var rows = document.getElementById('rows');
+  var detail = document.getElementById('detail');
+  var gauge = document.getElementById('gauge');
+  var qcount = document.getElementById('qcount');
+  var range = 'today';
+
+  function spark(pts){
+    return '<svg viewBox="0 0 64 20" aria-hidden="true"><polyline points="' + pts + '" fill="none" stroke="#0b3d5c" stroke-width="1.4"/></svg>';
+  }
+  function paintTiles(list){
+    tiles.innerHTML = list.map(function(t){
+      return '<div class="tile"><div class="k"><span class="lamp ' + t.lamp + '" aria-hidden="true"></span>' + t.k + '</div>' +
+        '<div class="v">' + t.v + '<small>' + t.u + '</small></div>' +
+        '<div class="d">' + spark(t.pts) + '<b>' + t.trend + '</b></div></div>';
+    }).join('');
+  }
+  function paintQueue(list){
+    rows.innerHTML = list.map(function(q, i){
+      var s = ST[q.st];
+      return '<tr data-i="' + i + '"><td><span class="id">' + q.id + '</span></td><td>' + q.line + '</td>' +
+        '<td><span class="num' + (q.st === 'late' ? ' late' : '') + '">' + q.dep + '</span></td>' +
+        '<td>' + q.drv + '</td><td><span class="num">' + q.load + '</span></td>' +
+        '<td><span class="st"><span class="lamp" style="background:' + s[0] + ';box-shadow:0 0 0 2px ' + s[0] + '2e" aria-hidden="true"></span>' + s[1] + '</span></td></tr>';
+    }).join('');
+    qcount.textContent = list.length + ' 条 · 待指派 ' + list.filter(function(q){ return q.st === 'wait'; }).length + ' 条';
+    var waiting = list.filter(function(q){ return q.st === 'wait'; }).length;
+    var drivers = 6 - waiting > 0 ? 6 - waiting : 0;
+    gauge.innerHTML =
+      '<div class="row"><span>驾驶可用</span><b>' + drivers + ' / 6</b></div><div class="bar"><i style="width:' + (drivers / 6 * 100) + '%"></i></div>' +
+      '<div class="row"><span>车辆在场</span><b>8 / 9</b></div><div class="bar"><i style="width:88.9%"></i></div>' +
+      '<div class="row"><span>今晚可发</span><b>' + (list.length - waiting) + ' / ' + list.length + '</b></div><div class="bar"><i style="width:' + ((list.length - waiting) / list.length * 100) + '%"></i></div>';
+    detail.innerHTML = '<h3>选中班次</h3><p style="margin:0;font-size:12.5px;color:var(--muted)">在左侧队列点一行，这里会显示可操作详情。</p>';
+    Array.prototype.forEach.call(rows.children, function(tr){
+      tr.addEventListener('click', function(){
+        Array.prototype.forEach.call(rows.children, function(x){ x.setAttribute('aria-selected','false'); });
+        tr.setAttribute('aria-selected','true');
+        var q = DATA[range].queue[+tr.dataset.i];
+        var s = ST[q.st];
+        detail.innerHTML = '<h3>' + q.id + ' · ' + q.line + '</h3><dl>' +
+          '<dt>发车</dt><dd>' + q.dep + '</dd><dt>驾驶</dt><dd>' + q.drv + '</dd>' +
+          '<dt>载客</dt><dd>' + q.load + '</dd><dt>状态</dt><dd style="color:' + s[0] + '">' + s[1] + '</dd>' +
+          '<dt>使用车辆</dt><dd>' + (q.st === 'check' ? '3 号车（待检查）' : '7 号车（已检查）') + '</dd></dl>' +
+          '<div class="act"><button class="btn" type="button">' + (q.st === 'wait' ? '指派驾驶' : '确认发车') + '</button>' +
+          '<button class="btn ghost" type="button">转异常工单</button></div>';
+        detail.querySelector('.btn').addEventListener('click', function(){
+          this.textContent = q.st === 'wait' ? '已进指派池' : '已确认 · 21:42';
+          this.disabled = true;
+        });
+      });
+    });
+  }
+  function show(key){
+    range = key;
+    paintTiles(DATA[key].tiles);
+    paintQueue(DATA[key].queue);
+    document.getElementById('asof').textContent = key === 'today' ? '截至 21:42 · 自动刷新' : (key === 'next' ? '预排版本 v4 · 手工确认' : '统计区间 08-21 至 08-27');
+  }
+
+  Array.prototype.forEach.call(document.querySelectorAll('.seg button'), function(b){
+    b.addEventListener('click', function(){
+      Array.prototype.forEach.call(document.querySelectorAll('.seg button'), function(x){ x.setAttribute('aria-pressed', String(x === b)); });
+      show(b.dataset.range);
+    });
+  });
+
+  show('today');
+})();
+</script>
+</body>
+</html>

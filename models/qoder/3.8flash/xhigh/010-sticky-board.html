@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>检修看板 · 本周工单</title>
+<style>
+:root{
+  --board:#eef0f3;--white:#ffffff;--ink:#232a31;--muted:#69737d;--line:#d5dae1;
+  --accent:#2f5fa8;--warn:#b8791f;--ok:#2f7d4f;--bad:#b0362c;
+  --s-yellow:#f7e6a8;--s-pink:#f3c7c8;--s-blue:#c8dcf0;--s-green:#cbe6d3;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--board);color:var(--ink);font:13.5px/1.55 system-ui,"Microsoft YaHei",sans-serif}
+.top{background:var(--white);border-bottom:1px solid var(--line);padding:14px 28px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.top h1{margin:0;font:700 18px/1.3 system-ui;letter-spacing:.02em}
+.top .wk{font:500 11px/1 ui-monospace,Consolas,monospace;letter-spacing:.1em;color:var(--muted);border:1px solid var(--line);padding:6px 9px;border-radius:3px}
+.top .legend{margin-left:auto;display:flex;gap:14px;font-size:12px;color:var(--muted);align-items:center}
+.top .legend i{display:inline-block;width:11px;height:11px;margin-right:5px;vertical-align:-1px;border-radius:2px}
+.compose{display:flex;gap:8px;align-items:center}
+.compose input{font:inherit;padding:10px 12px;border:1px solid var(--line);border-radius:3px;background:#f7f8fa;min-width:250px;color:var(--ink)}
+.compose input:focus{outline:0;border-color:var(--accent);background:var(--white);box-shadow:0 0 0 3px #2f5fa826}
+.compose select{font:inherit;padding:10px 8px;border:1px solid var(--line);border-radius:3px;background:#f7f8fa}
+.add{appearance:none;cursor:pointer;font:inherit;font-weight:600;border:1px solid var(--accent);background:var(--accent);color:#fff;padding:10px 18px;border-radius:3px}
+.add:hover{background:#254c8a}
+.add:focus-visible,.compose input:focus-visible{outline:2px solid var(--warn);outline-offset:2px}
+.board{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px;padding:22px 28px 40px;align-items:start}
+.col{background:#e6e9ee;border:1px solid var(--line);border-radius:6px;padding:12px;min-height:200px}
+.col.over{border-color:var(--warn);background:#f6efe2}
+.col-head{display:flex;align-items:center;gap:8px;margin-bottom:12px;padding:0 2px}
+.col-head h2{margin:0;font:700 13px/1.4 system-ui;letter-spacing:.06em}
+.col-head .n{font:700 11px/1 ui-monospace,Consolas,monospace;color:var(--muted);background:var(--white);border:1px solid var(--line);padding:4px 7px;border-radius:999px}
+.col-head .limit{margin-left:auto;font:500 10.5px/1.4 ui-monospace,Consolas,monospace;color:var(--warn)}
+.stack{display:grid;gap:12px}
+.note{
+  position:relative;background:var(--s-yellow);border-radius:2px;padding:12px 12px 13px;
+  box-shadow:0 2px 6px #232a311f;transform:rotate(-.5deg);cursor:pointer;
+  border-left:3px solid #00000014;transition:transform .16s ease,box-shadow .16s ease;
+}
+.note:nth-child(2n){transform:rotate(.6deg);background:var(--s-blue)}
+.note:nth-child(3n){transform:rotate(-.2deg);background:var(--s-pink)}
+.note:hover{transform:translateY(-3px) rotate(0deg);box-shadow:0 8px 16px #232a3129}
+.note.pinned{outline:2px solid var(--accent);outline-offset:2px}
+.note .tape{position:absolute;top:-7px;left:50%;width:52px;height:14px;transform:translateX(-50%) rotate(-2deg);background:#ffffffa6;border:1px solid #00000010}
+.note b{display:block;font-size:13.5px;font-weight:700;line-height:1.4}
+.note p{margin:6px 0 0;font-size:12px;color:#42474d;line-height:1.5}
+.note .meta{display:flex;align-items:center;gap:7px;margin-top:9px;font:500 10.5px/1 ui-monospace,Consolas,monospace;color:#4b5158}
+.note .who{width:19px;height:19px;border-radius:50%;background:#ffffffb0;display:grid;place-items:center;font:700 10px/1 system-ui;color:var(--ink)}
+.note .tag{border:1px solid #00000026;border-radius:999px;padding:3px 7px}
+.note .tag.hi{background:var(--bad);color:#fff;border-color:var(--bad)}
+.note .tag.mid{background:#f0d9a8}
+.note .mv{display:none;gap:4px;margin-left:auto}
+.note:hover .mv,.note.pinned .mv{display:flex}
+.note .mv button{appearance:none;cursor:pointer;border:1px solid #00000026;background:#ffffffc4;border-radius:3px;font:inherit;font-size:11px;padding:3px 7px;color:var(--ink)}
+.note .mv button:hover{background:#fff}
+.note .mv button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.drop{border:1.5px dashed #b6bec8;border-radius:4px;padding:14px 10px;text-align:center;color:var(--muted);font-size:12px;background:#eef0f3}
+.bar{position:fixed;left:0;right:0;bottom:0;background:var(--white);border-top:1px solid var(--line);padding:12px 28px;display:flex;align-items:center;gap:14px;transform:translateY(110%);transition:transform .22s ease;z-index:6}
+.bar.show{transform:none}
+.bar .k{font:600 11px/1 ui-monospace,Consolas,monospace;color:var(--accent);letter-spacing:.1em}
+.bar b{font-size:14px}
+.bar span{font-size:12.5px;color:var(--muted)}
+.bar .sp{margin-left:auto}
+.bar button{appearance:none;cursor:pointer;font:inherit;font-size:12.5px;border:1px solid var(--line);background:#f7f8fa;padding:9px 14px;border-radius:3px}
+.bar button:hover{border-color:var(--accent);color:var(--accent)}
+.bar button:focus-visible{outline:2px solid var(--warn);outline-offset:2px}
+[hidden]{display:none!important}
+@media (max-width:1080px){.board{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:768px){
+  .top{padding:12px 16px}
+  .compose input{min-width:0;flex:1}
+  .board{grid-template-columns:1fr;padding:16px}
+  .top .legend{display:none}
+}
+@media (prefers-reduced-motion:reduce){
+  *{transition:none!important}
+  .note,.note:nth-child(2n),.note:nth-child(3n){transform:none}
+  .note:hover{transform:none}
+  .bar{transition:none}
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <h1>检修看板</h1>
+  <span class="wk">第 35 周 · 08-27 至 09-02</span>
+  <div class="compose">
+    <input id="title" type="text" placeholder="新增一条工单，例如：3 号车库门异响" maxlength="28">
+    <select id="prio" aria-label="优先级"><option value="hi">紧急</option><option value="mid" selected>普通</option><option value="low">可缓</option></select>
+    <button class="add" id="add" type="button">新建一条</button>
+  </div>
+  <div class="legend" aria-hidden="true">
+    <span><i style="background:var(--s-yellow)"></i>待排</span>
+    <span><i style="background:var(--s-blue)"></i>在做</span>
+    <span><i style="background:var(--s-pink)"></i>待检</span>
+    <span><i style="background:var(--s-green)"></i>完成</span>
+  </div>
+</header>
+
+<div class="board" id="board"></div>
+
+<div class="bar" id="bar">
+  <span class="k" id="barid">W-000</span><b id="bartitle"></b><span id="barinfo"></span>
+  <button class="sp" id="barleft" type="button">← 退回上一列</button>
+  <button id="barright" type="button">推进到下一列 →</button>
+  <button id="barmine" type="button">标为我的</button>
+  <button id="barclose" type="button">关闭</button>
+</div>
+
+<script>
+(function(){
+  'use strict';
+  var COLS = [
+    {id:'todo', name:'待排', limit:'—'},
+    {id:'doing', name:'在做', limit:'上限 3'},
+    {id:'review', name:'待检', limit:'—'},
+    {id:'done', name:'完成', limit:'—'}
+  ];
+  var SEED = [
+    {col:'todo', id:'W-311', t:'3 号车库门异响', d:'开合到 1.2 米处有金属摩擦声，怀疑导轨缺油。', who:'柯', prio:'hi', due:'今天 18:00'},
+    {col:'todo', id:'W-312', t:'东站台雨棚积水', d:'雨后积水深约 4 厘米，需清理落水管。', who:'未指派', prio:'mid', due:'明天'},
+    {col:'todo', id:'W-313', t:'候车厅 2 排座椅松动', d:'3 个螺栓扭矩不足，可与其他巡检合并。', who:'未指派', prio:'low', due:'本周内'},
+    {col:'doing', id:'W-304', t:'N-23:00 班次刹车片更换', d:'已拆轮，等待新片到货（预计 22:10）。', who:'马', prio:'hi', due:'今晚'},
+    {col:'doing', id:'W-305', t:'调度台显示器闪屏', d:'更换信号线后复现一次，继续观察。', who:'周', prio:'mid', due:'明天'},
+    {col:'review', id:'W-298', t:'饮水机滤芯更换', d:'已完成，需质检确认出水口感与压力。', who:'梁', prio:'mid', due:'待质检'},
+    {col:'review', id:'W-299', t:'夜间照明 5 回路延时', d:'延时参数已改为 40 秒，请夜班确认关灯顺序。', who:'郑', prio:'low', due:'待质检'},
+    {col:'done', id:'W-286', t:'西门地锁电池更换', d:'两节电池更换完成，连续三天测试正常。', who:'沈', prio:'low', due:'08-25'},
+    {col:'done', id:'W-287', t:'报站屏字体放大一档', d:'已发布 v2.4，客诉归零。', who:'沈', prio:'mid', due:'08-24'}
+  ];
+  var board = document.getElementById('board');
+  var bar = document.getElementById('bar');
+  var seq = 320;
+  var selected = null;
+
+  function tag(p){
+    return p === 'hi' ? '<span class="tag hi">紧急</span>' : (p === 'mid' ? '<span class="tag mid">普通</span>' : '<span class="tag">可缓</span>');
+  }
+  function card(item, index, colIndex){
+    var el = document.createElement('article');
+    el.className = 'note';
+    el.tabIndex = 0;
+    el.setAttribute('role','button');
+    el.setAttribute('aria-label', item.id + ' ' + item.t);
+    el.innerHTML = '<span class="tape" aria-hidden="true"></span><b>' + item.t + '</b><p>' + item.d + '</p>' +
+      '<div class="meta"><span class="who" aria-hidden="true">' + item.who.charAt(0) + '</span>' + item.id + tag(item.prio) +
+      '<span>' + item.due + '</span><span class="mv"></span></div>';
+    var mv = el.querySelector('.mv');
+    if (colIndex > 0){ mv.appendChild(mvBtn('←', -1, item)); }
+    if (colIndex < COLS.length - 1){ mv.appendChild(mvBtn('→', 1, item)); }
+    function pick(){ select(item.id, el); }
+    el.addEventListener('click', pick);
+    el.addEventListener('keydown', function(e){ if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); pick(); } });
+    return el;
+  }
+  function mvBtn(text, delta, item){
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.textContent = text;
+    b.setAttribute('aria-label', text === '→' ? '推进到下一列' : '退回上一列');
+    b.addEventListener('click', function(e){ e.stopPropagation(); move(item.id, delta); });
+    return b;
+  }
+  function move(id, delta){
+    var item = SEED.filter(function(x){ return x.id === id; })[0];
+    if (!item){ return; }
+    var i = COLS.map(function(c){ return c.id; }).indexOf(item.col) + delta;
+    i = Math.max(0, Math.min(COLS.length - 1, i));
+    item.col = COLS[i].id;
+    if (item.col === 'done'){ item.due = '刚刚完成'; }
+    paint();
+    if (selected === id){ flash(item); }
+  }
+  function select(id, el){
+    Array.prototype.forEach.call(document.querySelectorAll('.note.pinned'), function(x){ x.classList.remove('pinned'); });
+    el.classList.add('pinned');
+    selected = id;
+    var item = SEED.filter(function(x){ return x.id === id; })[0];
+    flash(item);
+  }
+  function flash(item){
+    var ci = COLS.map(function(c){ return c.id; }).indexOf(item.col);
+    document.getElementById('barid').textContent = item.id;
+    document.getElementById('bartitle').textContent = item.t;
+    document.getElementById('barinfo').textContent = COLS[ci].name + ' · 负责 ' + item.who + ' · 期限 ' + item.due;
+    document.getElementById('barleft').disabled = ci === 0;
+    document.getElementById('barright').disabled = ci === COLS.length - 1;
+    bar.classList.add('show');
+  }
+  function paint(){
+    board.innerHTML = '';
+    COLS.forEach(function(col, ci){
+      var items = SEED.filter(function(x){ return x.col === col.id; });
+      var sec = document.createElement('section');
+      sec.className = 'col' + (col.id === 'doing' && items.length > 3 ? ' over' : '');
+      var head = '<div class="col-head"><h2>' + col.name + '</h2><span class="n">' + items.length + '</span><span class="limit">' + (col.limit === '—' ? '' : col.limit) + '</span></div>';
+      sec.innerHTML = head + '<div class="stack"></div>';
+      var stack = sec.querySelector('.stack');
+      items.forEach(function(item, i){ stack.appendChild(card(item, i, ci)); });
+      if (!items.length){
+        var drop = document.createElement('div');
+        drop.className = 'drop';
+        drop.textContent = '这一列空着，用 → 推进一条进来';
+        stack.appendChild(drop);
+      }
+      if (col.id === 'doing' && items.length > 3){
+        var warn = document.createElement('div');
+        warn.className = 'drop';
+        warn.style.borderColor = '#b8791f';
+        warn.style.color = '#b8791f';
+        warn.textContent = '在做过载：' + items.length + ' 条 / 上限 3，先完成一条再拉新的。';
+        stack.appendChild(warn);
+      }
+      board.appendChild(sec);
+    });
+  }
+
+  document.getElementById('add').addEventListener('click', function(){
+    var input = document.getElementById('title');
+    var text = input.value.trim();
+    if (!text){
+      input.focus();
+      input.style.borderColor = '#b0362c';
+      input.placeholder = '先写一句要修什么，再点新建';
+      return;
+    }
+    input.style.borderColor = '';
+    seq += 1;
+    SEED.unshift({
+      col:'todo', id:'W-' + seq, t:text, d:'（尚未补充细节，可在卡片上继续编辑）',
+      who:'沈', prio:document.getElementById('prio').value, due:'本周内'
+    });
+    input.value = '';
+    paint();
+  });
+  document.getElementById('title').addEventListener('keydown', function(e){
+    if (e.key === 'Enter'){ e.preventDefault(); document.getElementById('add').click(); }
+  });
+
+  document.getElementById('barleft').addEventListener('click', function(){ if (selected){ move(selected, -1); } });
+  document.getElementById('barright').addEventListener('click', function(){ if (selected){ move(selected, 1); } });
+  document.getElementById('barmine').addEventListener('click', function(){
+    var item = SEED.filter(function(x){ return x.id === selected; })[0];
+    if (item){ item.who = '沈砚舟'; flash(item); paint(); }
+  });
+  document.getElementById('barclose').addEventListener('click', function(){
+    bar.classList.remove('show');
+    selected = null;
+    Array.prototype.forEach.call(document.querySelectorAll('.note.pinned'), function(x){ x.classList.remove('pinned'); });
+  });
+
+  paint();
+})();
+</script>
+</body>
+</html>

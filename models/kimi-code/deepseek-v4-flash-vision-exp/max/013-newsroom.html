@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>晨钟报 · 编辑部收件</title>
+<style>
+  :root{
+    --news:#f2f0ea;
+    --news-2:#e9e6dd;
+    --ink:#1c1c1a;
+    --ink-soft:#4d4c46;
+    --ink-mute:#8b8a80;
+    --pencil:#c33027;
+    --pencil-soft:#f4e0db;
+    --sec:#5b6f9e;
+    --sec-soft:#e4e8f2;
+    --hour:#b0872e;
+    --hour-soft:#f1e9d4;
+    --line:#c9c6ba;
+    --line-soft:#dedbd0;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    background:var(--news);
+    color:var(--ink);
+    font-family:"Microsoft YaHei","PingFang SC","Noto Sans SC",sans-serif;
+    min-height:100vh;display:flex;justify-content:center;padding:0 12px;
+  }
+  .desk{
+    width:100%;max-width:1380px;min-height:100vh;display:grid;grid-template-columns:380px 1fr;
+    background:var(--news-2);border-left:1px solid var(--line);border-right:1px solid var(--line);
+  }
+  /* 左列：报头+列表 */
+  .left{border-right:1px solid var(--line);display:flex;flex-direction:column;min-width:0}
+  .masthead{
+    padding:26px 26px 18px;border-bottom:2px solid var(--ink);
+    font-family:"Songti SC",SimSun,serif;
+  }
+  .masthead .paper{font-size:30px;font-weight:900;letter-spacing:.22em;line-height:1}
+  .masthead .paper span{color:var(--pencil)}
+  .masthead .edition{display:flex;justify-content:space-between;font-size:10.5px;letter-spacing:.14em;color:var(--ink-soft);margin-top:10px;border-top:1px solid var(--line);padding-top:8px}
+  .filters{display:flex;gap:6px;padding:14px 18px;flex-wrap:wrap}
+  .filters button{
+    padding:6px 13px;font-size:11.5px;border-radius:99px;border:1px solid var(--line);
+    background:none;color:var(--ink-soft);cursor:pointer;font-family:inherit;transition:all .15s;
+  }
+  .filters button.on{background:var(--ink);color:var(--news);border-color:var(--ink)}
+  .inbox{flex:1;overflow-y:auto;padding:0 8px 20px}
+  .item{
+    display:grid;grid-template-columns:26px 1fr auto;gap:10px;padding:14px 12px;
+    border-bottom:1px solid var(--line-soft);cursor:pointer;transition:background .15s;
+  }
+  .item:hover{background:#fffdf6}
+  .item.on{background:#fffdf6;border-left:3px solid var(--ink)}
+  .item .flag{width:22px;font-size:15px;text-align:center;color:var(--ink-mute)}
+  .item .flag.on{color:var(--pencil)}
+  .item .body{min-width:0}
+  .item .who{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .item .subject{font-size:12.5px;color:var(--ink-soft);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .item .snip{font-size:11px;color:var(--ink-mute);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .item .time{font-size:10.5px;color:var(--ink-mute);white-space:nowrap}
+  .item.unread .who::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--pencil);margin-right:6px;vertical-align:1px}
+  .item.unread .subject{color:var(--ink)}
+  /* 右列：读稿区 */
+  .right{padding:26px 34px 46px;min-width:0}
+  .storybar{display:flex;justify-content:space-between;align-items:center;padding-bottom:14px;border-bottom:1px solid var(--line);margin-bottom:20px}
+  .storybar .left{display:flex;gap:14px;align-items:center}
+  .storybar label{font-size:11px;color:var(--ink-mute);display:flex;align-items:center;gap:6px;cursor:pointer}
+  .storybar input[type=checkbox]{accent-color:var(--ink);width:15px;height:15px}
+  .storybar .acts{display:flex;gap:8px}
+  .storybar .acts button{
+    padding:7px 14px;font-size:11.5px;border:1px solid var(--line);border-radius:4px;
+    background:#fffdf6;color:var(--ink-soft);cursor:pointer;font-family:inherit;transition:all .15s;
+  }
+  .storybar .acts button:hover{border-color:var(--ink);color:var(--ink)}
+  .letter{
+    background:#fffdf6;border:1px solid var(--line);padding:30px 34px 26px;box-shadow:0 2px 0 rgba(0,0,0,.05);
+    max-width:720px;margin:0 auto;
+  }
+  .letter .kicker{font-size:11px;letter-spacing:.3em;color:var(--ink-mute);margin-bottom:10px}
+  .letter h1{font-size:23px;font-family:"Songti SC",SimSun,serif;line-height:1.5;margin-bottom:6px}
+  .letter .from{font-size:12px;color:var(--ink-soft);margin-bottom:16px}
+  .letter .from b{color:var(--sec)}
+  .letter .body{font-size:14px;line-height:2.1;color:var(--ink-soft);font-family:"Songti SC",SimSun,serif}
+  .letter .body p{margin-bottom:12px}
+  .letter .body strong{color:var(--ink)}
+  .annotate{
+    margin-top:18px;padding:12px 14px;border:1px dashed var(--pencil);border-radius:4px;
+    font-size:12px;color:var(--pencil);background:var(--pencil-soft);line-height:1.9;
+  }
+  .letter .stampd{display:flex;justify-content:space-between;margin-top:16px;font-size:11px;color:var(--ink-mute)}
+  @media (max-width:960px){
+    .desk{grid-template-columns:1fr}
+    .left{border-right:none;border-bottom:1px solid var(--line)}
+    .inbox{overflow:visible}
+    .right{padding:22px 18px 36px}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .item,.filters button,.storybar .acts button{transition:none}
+  }
+</style>
+</head>
+<body>
+<div class="desk">
+  <section class="left" aria-label="收件列表">
+    <header class="masthead">
+      <p class="paper">晨钟报<span>。</span>晨间编辑部</p>
+      <div class="edition"><span>第 12807 期</span><span>2026-09-04 · 星期五</span><span>读者来信 147 封</span></div>
+    </header>
+    <div class="filters" role="group" aria-label="筛选">
+      <button class="on" data-f="all" type="button">全部</button>
+      <button data-f="unread" type="button">未读</button>
+      <button data-f="star" type="button">星标</button>
+      <button data-f="urgent" type="button">急稿</button>
+    </div>
+    <div class="inbox" id="inbox"></div>
+  </section>
+
+  <section class="right" aria-label="稿件阅读区">
+    <div class="storybar">
+      <div class="left">
+        <label><input type="checkbox" id="markAll"> 全部标记已读</label>
+      </div>
+      <div class="acts">
+        <button id="starBtn" type="button">☆ 星标</button>
+        <button id="doneBtn" type="button">✓ 已处理本文</button>
+      </div>
+    </div>
+    <article class="letter" id="letter"></article>
+  </section>
+</div>
+
+<script>
+(function(){
+  var items=[
+    {id:1,who:'市政厅新闻办',subject:'「秋风夜市」围栏施工通告',snip:'明起南门人行道封闭三天，请安排摄影…',time:'09:12',unread:true,star:false,urgent:true,
+     body:'<p><strong>市政厅新闻办发来通稿：</strong>为迎接「秋风夜市」开幕，南门广场围栏将于 9 月 5 日起更换，人行道封闭三天。</p><p>请安排摄影记者明早 8:00 到场拍摄，并准备一篇 800 字现场稿，配图两张。</p>',
+     annotate:'主编批注：这稿子要赶在 22:00 前发，夜市开幕稿欠着两条了。'},
+    {id:2,who:'记者 · 陈砚',subject:'菜价观察：豆角一周涨 3 成',snip:'菜市场采访稿已完成，有待核实批发价数据…',time:'08:47',unread:true,star:false,urgent:false,
+     body:'<p>陈砚交来稿子，讲早市豆角一周涨三成、葱价回落。数据来自三家菜商口述。</p><p><strong>待办：</strong>与市监测中心核对正式批发价后签发。</p>',
+     annotate:'主编批注：先发市场口述稿，数据核实后次日补追踪。'},
+    {id:3,who:'校对 · 周妈',subject:'二版两处错别字',snip:'「蓝缶」应为「蓝釉」；「87 小组」疑为「87 号小…',time:'08:15',unread:false,star:true,urgent:false,
+     body:'<p>校对室退回二版样稿：〈窑火千年〉文中「蓝缶」应为「蓝釉」；「87 小组」疑为「87 号小组」。</p><p>请编辑确认后改版再送印刷。</p>',
+     annotate:'主编批注：已回执确认，蓝釉、87 号小组。'},
+    {id:4,who:'读者 · 方爷爷',subject:'建议：多登一点老手艺栏目',snip:'上次那篇修瓷匠写得真好，能不能每个月…',time:'07:58',unread:false,star:false,urgent:false,
+     body:'<p>方爷爷来信，夸上周〈碎瓷修补匠〉栏目。建议每月固定一期老手艺选题。</p><p>附：他收藏的一把牛骨梳照片，可作配图。</p>',
+     annotate:'主编批注：已转生活版，纳入「月档案」选题池。'},
+    {id:5,who:'线人 · 老于',subject:'北市场 3 号库房夜里卸货',snip:'连续三晚有外地牌照大货车进出…',time:'06:40',unread:false,star:false,urgent:true,
+     body:'<p>线人老于报料：北市场 3 号库房连续三晚有大货车卸货，天明前离开手持票据像牛皮纸。</p><p>建议暗访一次，查是私货还是正常周转。</p>',
+     annotate:'主编批注：同意，派陈砚明早六点蹲点。'}
+  ];
+  var current=1;
+  var inbox=document.getElementById('inbox');
+
+  function stars(){return items.some(function(i){return i.star})}
+  function render(filter){
+    inbox.innerHTML='';
+    items.forEach(function(it){
+      if(filter==='unread'&&!it.unread)return;
+      if(filter==='star'&&!it.star)return;
+      if(filter==='urgent'&&!it.urgent)return;
+      var d=document.createElement('div');
+      d.className='item'+(it.unread?' unread':'')+(it.id===current&&!filter||filter===null&&it.id===current ? ' on':'');
+      if(it.id===current)d.classList.add('on');
+      d.innerHTML='<div class="flag'+(it.star?' on':'')+'">'+(it.star?'★':'☆')+'</div>'+
+        '<div class="body"><div class="who">'+it.who+'</div><div class="subject">'+it.subject+'</div><div class="snip">'+it.snip+'</div></div>'+
+        '<div class="time">'+it.time+'</div>';
+      d.addEventListener('click',function(){current=it.id;render(filtersValue);open();});
+      inbox.appendChild(d);
+    });
+  }
+  var filtersValue='all';
+  function open(){
+    var it=items.find(function(x){return x.id===current});
+    var l=document.getElementById('letter');
+    l.innerHTML='';
+    l.innerHTML='<p class="kicker">'+(it.urgent?'急稿 · ':'')+'来信编码 '+(100+it.id)+'</p>'+
+      '<h1>'+it.subject+'</h1>'+
+      '<p class="from">致信：<b>'+it.who+'</b> · '+it.time+' 提交 · 未读状态'+(it.unread?'  ●':'  ○')+'</p>'+
+      '<div class="body">'+it.body+'</div>'+
+      '<div class="annotate">'+it.annotate+'</div>'+
+      '<div class="stampd"><span>归档编目：'+(100+it.id)+'·晨间</span><span>预计见报：明日一版</span></div>';
+  }
+  document.querySelectorAll('.filters button').forEach(function(b){
+    b.addEventListener('click',function(){
+      document.querySelectorAll('.filters button').forEach(function(x){x.classList.remove('on')});
+      b.classList.add('on');filtersValue=b.dataset.f;render(filtersValue);
+    });
+  });
+  document.getElementById('markAll').addEventListener('change',function(e){
+    items.forEach(function(i){i.unread=false});
+    render(filtersValue);open();
+  });
+  document.getElementById('starBtn').addEventListener('click',function(){
+    var it=items.find(function(x){return x.id===current});
+    it.star=!it.star;render(filtersValue);open();
+  });
+  document.getElementById('doneBtn').addEventListener('click',function(){
+    var it=items.find(function(x){return x.id===current});
+    it.unread=false;
+    var l=document.getElementById('letter');
+    l.style.opacity=.4;
+    setTimeout(function(){l.style.opacity=1;render(filtersValue);open();},300);
+  });
+  render('all');open();
+})();
+</script>
+</body>
+</html>

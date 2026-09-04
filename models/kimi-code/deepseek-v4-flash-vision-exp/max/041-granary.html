@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>山货铺 · 购物零售原型</title>
+<style>
+  :root{
+    --dusk:#1d3a4f;
+    --dusk-2:#162f40;
+    --cream:#f6eddb;
+    --cream-2:#efe3c9;
+    --paper:#fffdf6;
+    --ink:#23313c;
+    --ink-soft:#586b78;
+    --ink-mute:#94a3ac;
+    --leaf:#3f7f5c;
+    --leaf-deep:#2c5f43;
+    --leaf-soft:rgba(63,127,92,.12);
+    --amber:#e0a13c;
+    --amber-soft:rgba(224,161,60,.14);
+    --warn:#c25e3a;
+    --warn-soft:rgba(194,94,58,.12);
+    --line:#d8cdb4;
+    --line-soft:#e6ddc8;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    background:#e6ddc8;
+    font-family:"Microsoft YaHei","PingFang SC","Noto Sans SC",sans-serif;
+    min-height:100vh;display:flex;align-items:center;justify-content:center;padding:26px 14px;
+  }
+  .phone{
+    width:390px;max-width:100%;height:844px;max-height:calc(100vh - 40px);
+    background:var(--cream);border-radius:36px;border:1px solid #c4b48d;overflow:hidden;
+    box-shadow:0 24px 60px rgba(29,58,79,.3),inset 0 0 0 6px #fffdf6;
+    display:flex;flex-direction:column;position:relative;
+  }
+  .notch{position:absolute;top:8px;left:50%;transform:translateX(-50%);width:120px;height:22px;border-radius:99px;background:#1d3a4f;z-index:20}
+  .screen{flex:1;display:flex;flex-direction:column;overflow-y:auto;position:relative}
+  .screen::-webkit-scrollbar{width:0}
+  /* 顶部 */
+  .appbar{
+    position:sticky;top:0;z-index:10;background:rgba(246,237,219,.95);
+    padding:18px 20px 10px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line-soft);
+  }
+  .appbar .t{font-size:14px;font-weight:900;letter-spacing:.06em}
+  .appbar .cartbtn{
+    background:var(--leaf);color:#f2f8f1;border:none;border-radius:99px;padding:7px 14px;font-size:11.5px;font-weight:800;cursor:pointer;font-family:inherit;
+  }
+  .appbar .cartbtn .n{background:#f2f8f1;color:var(--leaf-deep);border-radius:99px;padding:1px 7px;margin-left:6px}
+  /* 页面视图 */
+  .view{display:none}
+  .view.show{display:block}
+  /* 商品列表 */
+  .items{padding:18px 20px 30px;display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px}
+  .item{
+    background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:12px;cursor:pointer;
+    transition:box-shadow .12s,transform .12s;
+  }
+  .item:hover{box-shadow:0 8px 18px rgba(29,58,79,.12);transform:translateY(-2px)}
+  .item .pic{height:96px;border-radius:10px;background:var(--cream-2);display:flex;align-items:center;justify-content:center;font-size:34px}
+  .item .nm{font-size:13px;font-weight:800;margin-top:8px}
+  .item .pr{font-size:15px;font-weight:900;color:var(--leaf-deep);margin-top:4px}
+  .item .st{font-size:10px;color:var(--ink-mute);margin-top:2px}
+  .item.soldout{opacity:.55}
+  .item.soldout .st{color:var(--warn);font-weight:700}
+  /* 详情 */
+  .detail{padding:14px 16px}
+  .detail .hero{
+    height:180px;border-radius:16px;background:var(--cream-2);display:flex;align-items:center;justify-content:center;font-size:64px;margin-bottom:14px;border:1px solid var(--line);
+  }
+  .detail h1{font-size:19px;font-weight:900}
+  .detail .desc{font-size:12.5px;color:var(--ink-soft);line-height:1.9;margin-top:8px}
+  .detail .price{font-size:22px;font-weight:900;color:var(--leaf-deep);margin-top:10px}
+  .detail .spec{margin-top:14px}
+  .detail .sl{font-size:11.5px;font-weight:800;color:var(--ink-soft);margin-bottom:8px}
+  .detail .opts{display:flex;gap:8px;flex-wrap:wrap}
+  .detail .opt{
+    padding:8px 14px;border:1.5px solid var(--line);border-radius:10px;background:var(--paper);
+    font-size:12.5px;cursor:pointer;font-family:inherit;color:var(--ink-soft);transition:all .12s;
+  }
+  .detail .opt.sel{border-color:var(--leaf);background:var(--leaf-soft);color:var(--leaf-deep);font-weight:800}
+  .detail .opt.off{color:var(--ink-mute);text-decoration:line-through}
+  .detail .qty{display:flex;align-items:center;gap:12px;margin-top:14px}
+  .detail .qty .sl{font-size:11.5px;font-weight:800;color:var(--ink-soft)}
+  .detail .qty .ctrl{display:flex;align-items:center;border:1.5px solid var(--line);border-radius:10px;overflow:hidden;background:var(--paper)}
+  .detail .qty .ctrl button{width:36px;height:38px;border:none;background:none;font-size:16px;cursor:pointer;color:var(--ink-soft);font-family:inherit}
+  .detail .qty .ctrl .v{width:40px;text-align:center;font-weight:800;line-height:38px;border-left:1px solid var(--line);border-right:1px solid var(--line)}
+  .detail .btns{display:flex;gap:10px;margin-top:18px}
+  .detail .add{
+    flex:1;padding:13px;border:none;border-radius:12px;background:var(--leaf);color:#f2f8f1;font-size:14px;font-weight:900;cursor:pointer;font-family:inherit;box-shadow:0 4px 0 var(--leaf-deep);
+  }
+  .detail .add:active{transform:translateY(2px);box-shadow:0 2px 0 var(--leaf-deep)}
+  .detail .add.disabled{background:var(--ink-mute);box-shadow:0 4px 0 #7d8c94;cursor:default}
+  .detail .back{width:40px;height:40px;border-radius:50%;border:1.5px solid var(--line);background:var(--paper);font-size:14px;cursor:pointer;color:var(--ink-soft);flex:none}
+  /* 购物车 */
+  .cart{padding:14px 16px 100px}
+  .crow{
+    display:grid;grid-template-columns:40px 1fr;gap:10px;padding:12px 0;border-bottom:1px solid var(--line-soft);align-items:center;
+  }
+  .crow .ic{width:36px;height:36px;border-radius:10px;background:var(--cream-2);display:flex;align-items:center;justify-content:center;font-size:18px}
+  .crow .nm{font-size:12.5px;font-weight:700}
+  .crow .mt{font-size:10px;color:var(--ink-mute);margin-top:2px}
+  .crow .side{display:flex;align-items:center;gap:10px;justify-content:flex-end}
+  .crow .ctrl{display:flex;align-items:center;border:1px solid var(--line);border-radius:99px;overflow:hidden;background:var(--paper)}
+  .crow .ctrl button{width:26px;height:26px;border:none;background:none;font-size:13px;cursor:pointer;color:var(--ink-soft)}
+  .crow .ctrl .v{width:28px;text-align:center;font-size:12px;font-weight:800}
+  .crow .amt{font-size:13px;font-weight:900;color:var(--leaf-deep);min-width:52px;text-align:right}
+  .crow.dim{opacity:.5;background:var(--warn-soft);border-radius:10px}
+  .crow .st{font-size:10px;color:var(--warn);font-weight:800}
+  .crow .fix{
+    border:none;background:none;color:var(--leaf-deep);font-size:10px;font-weight:800;cursor:pointer;font-family:inherit;text-decoration:underline;padding:0;
+  }
+  .cartfoot{
+    position:absolute;left:0;right:0;bottom:0;background:rgba(246,237,219,.96);border-top:1px solid var(--line);
+    padding:12px 16px 20px;display:flex;align-items:center;gap:12px;
+  }
+  .cartfoot .total{font-size:10px;color:var(--ink-mute)}
+  .cartfoot .total b{display:block;font-size:18px;color:var(--leaf-deep);margin-top:2px}
+  .cartfoot .check{
+    flex:1;padding:13px;border:none;border-radius:12px;background:var(--leaf);color:#f2f8f1;font-size:14px;font-weight:900;cursor:pointer;font-family:inherit;
+  }
+  .cartfoot .check:disabled{background:var(--ink-mute);cursor:default}
+  /* 提交页 */
+  .submitv{padding:16px 18px 100px}
+  .submitv .card{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:16px 18px;margin-bottom:14px}
+  .submitv .card h2{font-size:14px;font-weight:900;margin-bottom:10px}
+  .submitv .row{display:flex;justify-content:space-between;font-size:12.5px;color:var(--ink-soft);padding:7px 0}
+  .submitv .row b{color:var(--ink)}
+  .submitv .row.total{font-size:15px;font-weight:900;color:var(--leaf-deep);border-top:1px dashed var(--line);margin-top:8px;padding-top:12px}
+  .submitv .addr{font-size:12.5px;color:var(--ink-soft);line-height:1.9}
+  .submitv .go{
+    width:100%;padding:14px;border:none;border-radius:14px;background:var(--leaf);color:#f2f8f1;font-size:15px;font-weight:900;cursor:pointer;font-family:inherit;box-shadow:0 5px 0 var(--leaf-deep);
+  }
+  .submitv .go:active{transform:translateY(2px);box-shadow:0 3px 0 var(--leaf-deep)}
+  /* 回执 */
+  .receiptv{padding:26px 20px 40px;text-align:center}
+  .receiptv .check{width:72px;height:72px;border-radius:50%;background:var(--leaf);color:#f2f8f1;display:flex;align-items:center;justify-content:center;font-size:34px;margin:0 auto 16px}
+  .receiptv h1{font-size:21px;font-weight:900}
+  .receiptv .no{font-size:13px;color:var(--ink-mute);margin-top:8px;font-family:"Courier New",Consolas,monospace}
+  .receiptv .card{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:16px 18px;margin-top:18px;text-align:left}
+  .receiptv .row{display:flex;justify-content:space-between;font-size:12.5px;color:var(--ink-soft);padding:7px 0}
+  .receiptv .again{
+    margin-top:18px;padding:12px 26px;border-radius:12px;border:1.5px solid var(--line);background:var(--paper);
+    color:var(--ink-soft);font-size:13px;font-weight:800;cursor:pointer;font-family:inherit;
+  }
+  /* 缺货横幅 */
+  .shortline{margin:0 16px 10px;background:var(--warn-soft);border:1px solid rgba(194,94,58,.35);border-radius:12px;padding:10px 14px;font-size:11.5px;color:var(--warn);line-height:1.8}
+  .shortline b{color:#8f3f24}
+  .trigger{
+    background:var(--amber-soft);border:1px solid rgba(224,161,60,.4);color:#8a6415;border-radius:99px;
+    padding:7px 13px;font-size:11px;font-weight:800;cursor:pointer;font-family:inherit;
+  }
+  .trigger:hover{background:rgba(224,161,60,.24)}
+  @media (prefers-reduced-motion:reduce){
+    .item,.detail .opt,.detail .add,.submitv .go{transition:none}
+  }
+</style>
+</head>
+<body>
+<div class="phone">
+  <span class="notch"></span>
+  <div class="screen">
+    <header class="appbar">
+      <span class="t">山货铺</span>
+      <button class="cartbtn" id="cartTop" type="button">🧺 布口袋<span class="n" id="cntTop">0</span></button>
+    </header>
+
+    <!-- 视图：商品列表 -->
+    <section class="view show" id="v-list">
+      <div class="items" id="itemGrid"></div>
+    </section>
+
+    <!-- 视图：详情 -->
+    <section class="view" id="v-detail">
+      <div class="detail">
+        <div class="hero" id="dHero"></div>
+        <h1 id="dName"></h1>
+        <p class="desc" id="dDesc"></p>
+        <div class="price" id="dPrice"></div>
+        <div class="spec">
+          <p class="sl">规格</p>
+          <div class="opts" id="dSpecs"></div>
+        </div>
+        <div class="qty">
+          <span class="sl">数量</span>
+          <div class="ctrl">
+            <button id="dMinus" type="button">−</button>
+            <span class="v" id="dQty">1</span>
+            <button id="dPlus" type="button">＋</button>
+          </div>
+        </div>
+        <div class="btns">
+          <button class="back" id="dBack" type="button">‹</button>
+          <button class="add" id="dAdd" type="button">加入布口袋</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 视图：购物车 -->
+    <section class="view" id="v-cart">
+      <div class="cart">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:8px">
+          <button class="trigger" id="outTrigger" type="button">⚡ 模拟「山栗 · 中颗粒」缺货</button>
+          <span id="outHint" style="font-size:10px;color:var(--ink-mute)"></span>
+        </div>
+        <div class="shortline" id="cartWarn" style="display:none">⚠ <b>「山栗 · 中颗粒（1.5cm）」临时缺货</b>：改为有货规格后，金额才会恢复。</div>
+        <div id="cartRows"></div>
+      </div>
+      <div class="cartfoot">
+        <div class="total"><span>合计（含运费）</span><b id="cartTotal">¥0.00</b></div>
+        <button class="check" id="cartCheck" type="button">去提交订单</button>
+      </div>
+    </section>
+
+    <!-- 视图：提交 -->
+    <section class="view" id="v-submit">
+      <div class="submitv">
+        <div class="card">
+          <h2>订单摘要</h2>
+          <div id="subRows"></div>
+          <div class="row total"><span>应付合计</span><b id="subTotal">¥0.00</b></div>
+        </div>
+        <div class="card">
+          <h2>收货信息</h2>
+          <p class="addr">沈阿婆 · 138 **** 0021<br>江畔新村 3 栋 502（门卫代收）</p>
+        </div>
+        <button class="go" id="subGo" type="button">提交订单</button>
+      </div>
+    </section>
+
+    <!-- 视图：回执 -->
+    <section class="view" id="v-receipt">
+      <div class="receiptv">
+        <span class="check">✓</span>
+        <h1>订单已提交</h1>
+        <p class="no" id="rcNo">#OR-2026-0904-127</p>
+        <div class="card" id="rcBody"></div>
+        <button class="again" id="rcAgain" type="button">再逛一逛</button>
+      </div>
+    </section>
+  </div>
+</div>
+<script>
+(function(){
+  var G=[
+    {id:'chestnut',name:'野生山栗 500g',desc:'秋季现打，粒粒手选。砂糖炖鸡一绝。',price:12.8,emoji:'🌰',
+     specs:[{k:'大颗粒（≥2cm）',low:false},{k:'中颗粒（1.5cm）',low:true},{k:'碎粒（炖菜用）',low:false}]},
+    {id:'honey',name:'土蜂蜜 350g',desc:'崖蜜波美度 42+，封盖率九成。',price:58,emoji:'🍯',
+     specs:[{k:'标准瓶 350g',low:false},{k:'大瓶 500g',low:false}]},
+    {id:'tea',name:'柴火油茶籽 1kg',desc:'物理压榨，烟点高。',price:39.8,emoji:'🫒',
+     specs:[{k:'1kg 袋装',low:false},{k:'5kg 桶装',low:false}]}
+  ];
+  var cart=[];        // {id, spec, qty, out:boolean}
+  var curD=null,cSpec=null,cQty=1;
+  var views={list:document.getElementById('v-list'),detail:document.getElementById('v-detail'),
+             cart:document.getElementById('v-cart'),submit:document.getElementById('v-submit'),
+             receipt:document.getElementById('v-receipt')};
+  function show(name){
+    Object.keys(views).forEach(function(k){views[k].classList.toggle('show',k===name)});
+  }
+  function findG(id){return G.find(function(g){return g.id===id})}
+  function cartCount(){return cart.reduce(function(a,c){return a+c.qty},0)}
+  function money(n){return '¥'+n.toFixed(2)}
+  function renderList(){
+    var grid=document.getElementById('itemGrid');grid.innerHTML='';
+    G.forEach(function(g){
+      var d=document.createElement('div');d.className='item';
+      d.innerHTML='<div class="pic">'+g.emoji+'</div><div class="nm">'+g.name+'</div>'+
+        '<div class="pr">'+money(g.price)+'</div><div class="st">山货 · 现货包邮】</div>';
+      d.addEventListener('click',function(){openDetail(g.id)});
+      grid.appendChild(d);
+    });
+    syncCnt();
+  }
+  function openDetail(id){
+    curD=id;cSpec=0;cQty=1;
+    var g=findG(id);
+    document.getElementById('dHero').textContent=g.emoji;
+    document.getElementById('dName').textContent=g.name;
+    document.getElementById('dDesc').textContent=g.desc;
+    document.getElementById('dPrice').textContent=money(g.price);
+    renderSpecs();renderQty();
+    show('detail');
+  }
+  function renderSpecs(){
+    var g=findG(curD),box=document.getElementById('dSpecs');box.innerHTML='';
+    g.specs.forEach(function(s,i){
+      var b=document.createElement('button');b.className='opt'+(i===cSpec?' sel':'');b.type='button';
+      b.textContent=s.k+(s.low?'（易缺货）':'');
+      b.addEventListener('click',function(){
+        if(b.classList.contains('off'))return;
+        cSpec=i;renderSpecs();renderAddDisabled();
+      });
+      box.appendChild(b);
+    });
+    renderAddDisabled();
+  }
+  function renderQty(){
+    document.getElementById('dQty').textContent=cQty;
+    renderAddDisabled();
+  }
+  function renderAddDisabled(){
+    var g=findG(curD),off=g.specs[cSpec].low&&Math.random()<0;
+    document.getElementById('dAdd').classList.toggle('disabled',false);
+  }
+  document.getElementById('dMinus').addEventListener('click',function(){if(cQty>1){cQty--;renderQty()}});
+  document.getElementById('dPlus').addEventListener('click',function(){cQty++;renderQty()});
+  document.getElementById('dBack').addEventListener('click',function(){show('list')});
+  document.getElementById('dAdd').addEventListener('click',function(){
+    var g=findG(curD);
+    var ex=cart.find(function(c){return c.id===g.id&&c.spec===g.specs[cSpec].k});
+    if(ex){ex.qty+=cQty;}else{cart.push({id:g.id,spec:g.specs[cSpec].k,qty:cQty,out:false});}
+    syncCnt();
+    var b=document.getElementById('dAdd');b.textContent='已加入 ✓';
+    setTimeout(function(){b.textContent='加入布口袋'},900);
+  });
+  function syncCnt(){
+    document.getElementById('cntTop').textContent=cartCount();
+  }
+  function renderCart(){
+    var box=document.getElementById('cartRows');box.innerHTML='';
+    var sub=0,hasOut=false;
+    document.getElementById('cartWarn').style.display='none';
+    cart.forEach(function(c,i){
+      var g=findG(c.id);
+      var d=document.createElement('div');d.className='crow'+(c.out?' dim':'');
+      d.innerHTML='<div class="ic">'+g.emoji+'</div>'+
+        '<div><div class="nm">'+g.name+'</div><div class="mt">'+c.spec+'</div></div>'+
+        '<div class="side">'+(c.out?'<span class="st">缺货 · <button class="fix" type="button">改为大颗粒</button></span>':'<div class="ctrl"><button data-m>−</button><span class="v">'+c.qty+'</span><button data-p>＋</button></div>')+
+        '<span class="amt">'+money(c.out?0:g.price*c.qty)+'</span></div>';
+      if(c.out){
+        var fx=d.querySelector('.fix');
+        if(fx)fx.addEventListener('click',function(){
+          c.spec='大颗粒（≥2cm）';c.out=false;warnOnce=false;renderCart();
+        });
+      }else{
+        d.querySelector('[data-m]').addEventListener('click',function(){
+          if(c.qty>1){c.qty--;}else{cart.splice(cart.indexOf(c),1);}
+          renderCart();
+        });
+        d.querySelector('[data-p]').addEventListener('click',function(){c.qty++;renderCart();});
+      }
+      box.appendChild(d);
+      if(!c.out)sub+=g.price*c.qty;else hasOut=true;
+    });
+    if(hasOut)document.getElementById('cartWarn').style.display='block';
+    document.getElementById('cartTotal').textContent=money(sub+(cart.length?5:0));
+    document.getElementById('cartCheck').disabled=hasOut||!cart.length;
+  }
+  document.getElementById('cartTop').addEventListener('click',function(){
+    renderCart();show('cart');
+  });
+  var warnOnce=false;
+  var trigger=document.getElementById('outTrigger'),outHint=document.getElementById('outHint');
+  trigger.addEventListener('click',function(){
+    var chest=cart.filter(function(c){return c.id==='chestnut'});
+    if(!chest.length){
+      outHint.textContent='车里还没有山栗，先加一件';
+      return;
+    }
+    var c=chest[0];
+    c.spec='中颗粒（1.5cm）';c.out=true;warnOnce=true;
+    renderCart();
+  });
+  document.getElementById('cartCheck').addEventListener('click',function(){
+    // 正常进入提交
+    var sub=0,rows=document.getElementById('subRows');rows.innerHTML='';
+    cart.forEach(function(c){
+      if(c.out)return;
+      var g=findG(c.id);sub+=g.price*c.qty;
+      var d=document.createElement('div');d.className='row';
+      d.innerHTML='<span>'+g.name+' ×'+c.qty+'</span><b>'+money(g.price*c.qty)+'</b>';
+      rows.appendChild(d);
+    });
+    var d=document.createElement('div');d.className='row';
+    d.innerHTML='<span>运费（包邮线 39 元）</span><b>'+money(sub>=39?0:5)+'</b>';
+    rows.appendChild(d);
+    var tot=sub+(sub>=39?0:5);
+    document.getElementById('subTotal').textContent=money(tot);
+    show('submit');
+  });
+  document.getElementById('subGo').addEventListener('click',function(){
+    var sub=0;cart.forEach(function(c){if(!c.out){var g=findG(c.id);sub+=g.price*c.qty;}});
+    var tot=sub+(sub>=39?0:5);
+    var body=document.getElementById('rcBody');body.innerHTML='';
+    [['订单编号','#OR-2026-0904-127'],['商品件数',cart.filter(function(c){return !c.out}).reduce(function(a,c){return a+c.qty},0)+' 件'],['实付金额',money(tot)],['预计送达','9 月 6 日 上午']].forEach(function(r){
+      var row=document.createElement('div');row.className='row';
+      row.innerHTML='<span>'+r[0]+'</span><b>'+r[1]+'</b>';
+      body.appendChild(row);
+    });
+    document.getElementById('rcNo').textContent='#OR-2026-0904-127';
+    show('receipt');
+  });
+  document.getElementById('rcAgain').addEventListener('click',function(){
+    show('list');renderList();
+  });
+  renderList();
+})();
+</script>
+</body>
+</html>

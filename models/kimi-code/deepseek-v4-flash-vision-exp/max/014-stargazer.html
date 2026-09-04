@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>观星台 · 星图检索</title>
+<style>
+  :root{
+    --void:#0b1030;
+    --void-2:#121735;
+    --nebula:#5b3a8e;
+    --violet:#8a7bd8;
+    --violet-soft:rgba(138,123,216,.14);
+    --star:#ffe9b8;
+    --moon:#e8e3f2;
+    --text:#efecfa;
+    --text-soft:#b7b1d5;
+    --text-mute:#7a75a0;
+    --line:rgba(232,227,242,.14);
+    --warm:#f0a05a;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    background:
+      radial-gradient(900px 560px at 78% -14%, rgba(91,58,142,.4), transparent 62%),
+      radial-gradient(500px 380px at 8% 108%, rgba(138,123,216,.22), transparent 60%),
+      linear-gradient(180deg,var(--void) 0%,var(--void-2) 100%);
+    color:var(--text);
+    font-family:"Microsoft YaHei","PingFang SC","Noto Sans SC",sans-serif;
+    min-height:100vh;display:flex;align-items:flex-start;justify-content:center;padding:40px 16px 70px;
+  }
+  .deck{
+    width:100%;max-width:860px;
+    background:rgba(15,20,50,.6);border:1px solid var(--line);border-radius:18px;
+    box-shadow:0 30px 80px rgba(0,0,0,.5),inset 0 0 60px rgba(91,58,142,.12);
+    padding:34px 40px 40px;
+  }
+  .brand{display:flex;align-items:center;gap:12px;margin-bottom:26px}
+  .brand .orb{
+    width:42px;height:42px;border-radius:50%;
+    background:radial-gradient(circle at 35% 30%,#efe6ff 0%,#8a7bd8 48%,#4a3a80 100%);
+    box-shadow:0 0 24px rgba(138,123,216,.55);
+  }
+  .brand .t{font-size:19px;font-weight:800;letter-spacing:.1em}
+  .brand .t small{display:block;font-size:9.5px;color:var(--text-mute);letter-spacing:.3em;margin-top:3px;font-weight:400}
+  /* 搜索框 */
+  .searchbar{
+    display:flex;gap:10px;background:rgba(11,16,48,.7);border:1px solid var(--line);
+    border-radius:14px;padding:10px 12px;margin-bottom:22px;
+  }
+  .searchbar .icon{display:flex;align-items:center;padding:0 6px;color:var(--violet)}
+  .searchbar input{
+    flex:1;background:none;border:none;outline:none;color:var(--text);font-size:15.5px;font-family:inherit;
+  }
+  .searchbar input::placeholder{color:var(--text-mute)}
+  .searchbar button{
+    padding:9px 22px;border:none;border-radius:10px;background:var(--violet);color:var(--void);
+    font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;
+    box-shadow:0 8px 20px rgba(138,123,216,.3);transition:background .15s,transform .1s;
+  }
+  .searchbar button:hover{background:#9d8fe6}
+  .searchbar button:active{transform:translateY(1px)}
+  .query-line{
+    display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--text-soft);
+    margin-bottom:24px;
+  }
+  .query-line .q{color:var(--star)}
+  .query-line .q b{color:var(--text)}
+  /* 星图空态 */
+  .emptysky{text-align:center;padding:16px 0 0}
+  .emptysky .scope{max-width:280px;margin:0 auto 22px}
+  .emptysky .scope svg{width:100%;height:auto}
+  .emptysky h1{font-size:23px;line-height:1.5;margin-bottom:10px}
+  .emptysky h1 em{font-style:normal;color:var(--violet)}
+  .emptysky .lead{font-size:13px;line-height:2;color:var(--text-soft);max-width:460px;margin:0 auto 26px}
+  .sugg-title{font-size:11px;letter-spacing:.3em;color:var(--text-mute);margin-bottom:12px}
+  .sugg{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:22px}
+  .sugg button{
+    display:flex;align-items:center;gap:12px;padding:16px 18px;border-radius:12px;cursor:pointer;
+    background:rgba(232,227,242,.05);border:1px solid var(--line);color:var(--text-soft);
+    font-size:13.5px;font-family:inherit;text-align:left;transition:border-color .15s,background .15s,transform .1s;
+  }
+  .sugg button:hover{border-color:var(--violet);background:var(--violet-soft);color:var(--text);transform:translateY(-1px)}
+  .sugg button .st{font-size:17px;color:var(--star)}
+  .sugg button .s{display:flex;flex-direction:column}
+  .sugg button .s b{font-size:13.5px;color:var(--text)}
+  .sugg button .s span{font-size:11px;color:var(--text-mute);margin-top:2px}
+  .help{margin-top:6px;font-size:11.5px;color:var(--text-mute);text-align:center}
+  .help span{color:var(--warm)}
+  @media (max-width:640px){
+    .deck{padding:26px 20px 32px}
+    .sugg{grid-template-columns:1fr}
+    .searchbar{flex-wrap:wrap}
+    .searchbar button{width:100%}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .searchbar button,.sugg button{transition:none}
+    .sugg button:hover{transform:none}
+  }
+</style>
+</head>
+<body>
+<main class="deck">
+  <header class="brand">
+    <span class="orb"></span>
+    <div class="t">观星台<small>STAR ATLAS · 全表检索</small></div>
+  </header>
+
+  <form class="searchbar" id="searchForm">
+    <span class="icon">⌕</span>
+    <input id="q" type="text" placeholder="搜索星名、星座、发现者或坐标…" value="仙女座星云" autocomplete="off">
+    <button type="submit">检索星表</button>
+  </form>
+
+  <div class="query-line">
+    <span>你正在找：<span class="q"><b id="term">仙女座星云</b></span></span>
+    <span>星表 4120 条 · 0 条匹配</span>
+  </div>
+
+  <section class="emptysky" aria-label="无结果空态">
+    <div class="scope">
+      <svg viewBox="0 0 280 210" role="img" aria-label="望远镜对准空无一星的夜空">
+        <circle cx="216" cy="44" r="22" fill="#ffe9b8"/>
+        <circle cx="224" cy="36" r="18" fill="#121735"/>
+        <path d="M96 150 L150 62 L168 76 L118 160 Z" fill="#8a7bd8"/>
+        <path d="M88 156 a28 28 0 1 0 36 24 Z" fill="#5b3a8e"/>
+        <path d="M120 146 L172 190" stroke="#b7b1d5" stroke-width="6" stroke-linecap="round"/>
+        <path d="M150 196 L232 124" stroke="#b7b1d5" stroke-width="6" stroke-linecap="round"/>
+        <g fill="#7a75a0">
+          <circle cx="40" cy="40" r="1.6"/><circle cx="70" cy="92" r="1.2"/><circle cx="252" cy="120" r="1.4"/>
+          <circle cx="196" cy="180" r="1.2"/><circle cx="30" cy="150" r="1.0"/>
+        </g>
+      </svg>
+    </div>
+    <h1>望远镜里，<em>什么都没有</em></h1>
+    <p class="lead">「<b id="term2">仙女座星云</b>」没有出现在目镜里——不是它不存在，而是这一版星表用「官方名称 + 编号 + 发现者」编目。换个叫法可能就找到了。</p>
+    <p class="sugg-title">换个叫法试试 · 常见邻近条目</p>
+    <div class="sugg">
+      <button data-q="仙女座" type="button"><span class="st">✦</span><span class="s"><b>仙女座</b><span>星座 · 375 条记录</span></span></button>
+      <button data-q="M31" type="button"><span class="st">✦</span><span class="s"><b>M31 / NGC 224</b><span>星表编号 · 12 条记录</span></span></button>
+      <button data-q="梅西耶天体" type="button"><span class="st">✦</span><span class="s"><b>梅西耶天体</b><span>分类 · 110 颗深空天体</span></span></button>
+      <button data-q="梅西耶 31" type="button"><span class="st">✦</span><span class="s"><b>梅西耶 31</b><span>乾隆版本星表编目</span></span></button>
+    </div>
+    <p class="help">仍不确定？可试用 <span>⌘K</span> 打开全表浏览，或致函观星台值班员。</p>
+  </section>
+</main>
+<script>
+(function(){
+  var form=document.getElementById('searchForm'),
+      q=document.getElementById('q');
+  function apply(term){
+    document.getElementById('term').textContent=term;
+    document.getElementById('term2').textContent=term;
+    q.value=term;
+  }
+  form.addEventListener('submit',function(e){
+    e.preventDefault();
+    var v=q.value.trim()||'';
+    apply(v||'无');
+  });
+  document.querySelectorAll('.sugg button').forEach(function(b){
+    b.addEventListener('click',function(){apply(b.dataset.q);});
+  });
+})();
+</script>
+</body>
+</html>

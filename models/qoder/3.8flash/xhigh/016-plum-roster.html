@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>名册 · 环湖线调度组</title>
+<style>
+:root{
+  --bg:#f4f3f5;--card:#ffffff;--ink:#211f24;--muted:#767279;--line:#e3e1e6;
+  --plum:#8e2f6f;--plum-2:#6d2354;--on:#2f7d4f;--standby:#b8791f;--off:#9a969e;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.65 system-ui,"Microsoft YaHei",sans-serif}
+.wrap{max-width:1200px;margin:0 auto;padding:26px 30px 60px}
+.head{display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap;padding-bottom:16px;border-bottom:1px solid var(--line)}
+.head h1{margin:0;font:800 24px/1.3 system-ui;letter-spacing:.01em}
+.head .sub{margin:4px 0 0;color:var(--muted);font-size:13px}
+.count{margin-left:auto;font:700 12px/1 ui-monospace,Consolas,monospace;letter-spacing:.08em;color:var(--plum);border:1px solid #8e2f6f40;background:#8e2f6f0f;padding:8px 12px;border-radius:999px}
+.tools{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:18px 0 20px}
+.search{display:flex;align-items:center;gap:9px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:0 13px;flex:1;min-width:220px}
+.search svg{width:15px;height:15px;color:var(--muted);flex:none}
+.search input{flex:1;min-width:0;border:0;background:transparent;font:inherit;padding:12px 0;color:var(--ink)}
+.search input:focus{outline:0}
+.search:focus-within{border-color:var(--plum);box-shadow:0 0 0 3px #8e2f6f24}
+.tools select{font:inherit;font-size:13px;padding:12px 14px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink)}
+.tools select:focus{outline:2px solid var(--plum);outline-offset:1px}
+.states{display:flex;gap:6px}
+.states button{appearance:none;cursor:pointer;font:inherit;font-size:12.5px;border:1px solid var(--line);background:var(--card);color:var(--muted);padding:11px 14px;border-radius:10px}
+.states button[aria-pressed="true"]{border-color:var(--plum);background:#8e2f6f0f;color:var(--plum);font-weight:600}
+.states button:focus-visible{outline:2px solid var(--plum);outline-offset:2px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(232px,1fr));gap:14px}
+.person{
+  text-align:left;appearance:none;cursor:pointer;font:inherit;color:inherit;background:var(--card);
+  border:1px solid var(--line);border-radius:14px;padding:16px;display:grid;gap:12px;
+  transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease;
+}
+.person:hover{transform:translateY(-3px);box-shadow:0 10px 22px #211f2417;border-color:#d7d3db}
+.person:focus-visible{outline:2px solid var(--plum);outline-offset:2px}
+.person[aria-selected="true"]{border-color:var(--plum);box-shadow:inset 0 0 0 1px var(--plum)}
+.face{display:flex;align-items:center;gap:12px}
+.tile{width:48px;height:48px;border-radius:12px;flex:none;display:grid;place-items:center;color:#fff;font:800 19px/1 system-ui;letter-spacing:0;background:linear-gradient(145deg,var(--plum),#3b1a33)}
+.tile.b{background:linear-gradient(145deg,#2f6b8e,#1b3350)}
+.tile.c{background:linear-gradient(145deg,#b8791f,#5b3a0d)}
+.tile.d{background:linear-gradient(145deg,#2f7d4f,#123a25)}
+.face b{display:block;font-size:15px;font-weight:700;line-height:1.3}
+.face span{display:block;font-size:12.5px;color:var(--muted);margin-top:2px}
+.row{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--muted);flex-wrap:wrap}
+.st{display:inline-flex;align-items:center;gap:6px;font-size:12px}
+.st::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--on)}
+.st.sb::before{background:var(--standby)}
+.st.off::before{background:var(--off);box-shadow:inset 0 0 0 1px var(--line)}
+.role{margin-left:auto;font:600 10.5px/1 ui-monospace,Consolas,monospace;letter-spacing:.06em;border:1px solid var(--line);border-radius:4px;padding:5px 7px;color:var(--muted)}
+.skills{display:flex;gap:6px;flex-wrap:wrap}
+.skills i{font-style:normal;font-size:11.5px;background:#f2f0f3;border:1px solid var(--line);border-radius:999px;padding:4px 9px;color:#544f58}
+.empty{grid-column:1 / -1;border:1.5px dashed #d7d3db;border-radius:14px;padding:44px 20px;text-align:center;color:var(--muted);background:var(--card)}
+.empty b{display:block;color:var(--ink);font-size:16px;margin-bottom:4px}
+.empty button{appearance:none;cursor:pointer;font:inherit;font-size:13px;margin-top:14px;padding:10px 18px;border-radius:10px;border:1px solid var(--plum);background:var(--plum);color:#fff}
+.panel{position:fixed;top:0;right:0;height:100%;width:min(360px,92vw);background:var(--card);border-left:1px solid var(--line);box-shadow:-16px 0 40px #211f2426;transform:translateX(102%);transition:transform .24s ease;z-index:9;overflow-y:auto;padding:22px 24px 30px}
+.panel.show{transform:none}
+.panel .close{appearance:none;cursor:pointer;float:right;border:1px solid var(--line);background:var(--card);border-radius:8px;font:inherit;font-size:12.5px;padding:8px 12px;color:var(--muted)}
+.panel .close:hover{border-color:var(--plum);color:var(--plum)}
+.panel .close:focus-visible{outline:2px solid var(--plum);outline-offset:2px}
+.panel .tile{width:64px;height:64px;border-radius:16px;font-size:25px;margin-top:6px}
+.panel h2{margin:14px 0 2px;font:800 21px/1.3 system-ui}
+.panel .role-line{color:var(--muted);font-size:13px;margin:0}
+.panel dl{display:grid;grid-template-columns:auto 1fr;gap:8px 14px;margin:18px 0 0;font-size:13px}
+.panel dt{color:var(--muted)}
+.panel dd{margin:0;font-weight:600}
+.panel .bio{margin:16px 0 0;font-size:13.5px;line-height:1.8;color:#413d44;border-top:1px solid var(--line);padding-top:14px}
+.panel .pacts{display:flex;gap:8px;margin-top:18px;flex-wrap:wrap}
+.panel .pacts button{appearance:none;cursor:pointer;font:inherit;font-size:13px;padding:11px 15px;border-radius:10px;border:1px solid var(--line);background:var(--card)}
+.panel .pacts button.pri{background:var(--plum);border-color:var(--plum);color:#fff;font-weight:600}
+.panel .pacts button.pri:hover{background:var(--plum-2)}
+.panel .pacts button:hover{border-color:var(--plum);color:var(--plum)}
+.panel .pacts button.pri:hover{color:#fff}
+.mask{position:fixed;inset:0;background:#211f244d;opacity:0;pointer-events:none;transition:opacity .24s ease;z-index:8}
+.mask.show{opacity:1;pointer-events:auto}
+.pstatus{margin-top:14px;font-size:12.5px;color:var(--on)}
+[hidden]{display:none!important}
+@media (max-width:768px){
+  .wrap{padding:18px 16px 44px}
+  .grid{grid-template-columns:1fr 1fr;gap:10px}
+  .count{margin-left:0}
+  .person{padding:13px}
+  .skills{display:none}
+}
+@media (max-width:480px){.grid{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:reduce){
+  *{transition:none!important}
+  .person:hover{transform:none}
+  .panel{transition:none}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="head">
+    <div>
+      <h1>环湖线调度组</h1>
+      <p class="sub">名册 10 人 · 含驾驶、设备、安全与事务岗 · 点击一人看简介</p>
+    </div>
+    <span class="count" id="count">—</span>
+  </header>
+
+  <div class="tools">
+    <div class="search">
+      <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="6.8" cy="6.8" r="5" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M10.6 10.6 15 15" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+      <input id="q" type="search" placeholder="搜姓名、工号或技能，例如「刹车」" aria-label="搜索成员">
+    </div>
+    <select id="role" aria-label="按岗位筛选">
+      <option value="all">全部岗位</option>
+      <option value="调度">调度</option>
+      <option value="驾驶">驾驶</option>
+      <option value="设备">设备</option>
+      <option value="安全">安全</option>
+      <option value="事务">事务</option>
+    </select>
+    <div class="states" role="group" aria-label="按状态筛选">
+      <button type="button" data-s="all" aria-pressed="true">全部</button>
+      <button type="button" data-s="on" aria-pressed="false">在岗</button>
+      <button type="button" data-s="sb" aria-pressed="false">待命</button>
+      <button type="button" data-s="off" aria-pressed="false">离线</button>
+    </div>
+  </div>
+
+  <div class="grid" id="grid"></div>
+</div>
+
+<div class="mask" id="mask"></div>
+<aside class="panel" id="panel" role="dialog" aria-modal="true" aria-label="成员简介" tabindex="-1"></aside>
+
+<script>
+(function(){
+  'use strict';
+  var PEOPLE = [
+    {id:'D-04',n:'沈砚舟',role:'调度',tile:'',st:'on',shift:'夜班 21:00–05:00',tel:'内线 8104',skills:['排班','运行图','应急处置'],bio:'在环湖线做了九年调度，负责夜班全局与对外联络。习惯把交接单写在纸上再录系统，认为「写清楚的交接比记得住更可靠」。'},
+    {id:'D-11',n:'马文柏',role:'调度',tile:'b',st:'sb',shift:'备班 · 今晚可叫',tel:'内线 8111',skills:['排班','值班经理','新人带教'],bio:'值班经理，负责跨组协调与遗留事项跟踪。近两年主推「短交班」：交接不超过七条，超出部分转为工单。'},
+    {id:'V-02',n:'郑明轩',role:'驾驶',tile:'d',st:'on',shift:'晚班 16:00–24:00',tel:'车载 3-07',skills:['机场直达','夜间行车','节能驾驶'],bio:'机舱直达线路固定驾驶，连续 14 个月零急刹记录。带教时会要求新人先把整条线路的限速牌背下来。'},
+    {id:'V-07',n:'柯志明',role:'驾驶',tile:'d',st:'off',shift:'休息 · 明日 06:00',tel:'内线 8207',skills:['石门线','长途','客诉处理'],bio:'老司机，跑过所有在役线路。因腰部旧伤被限制连续夜班不超过三天，排班系统里设有硬约束。'},
+    {id:'V-15',n:'周允',role:'驾驶',tile:'d',st:'on',shift:'晚班 15:30–23:30',tel:'车载 5-02',skills:['环湖外圈','带教','新车型'],bio:'新车型试点驾驶之一，负责把新车反馈整理给设备科，习惯用车载终端随手记录异常。'},
+    {id:'E-01',n:'梁若谷',role:'设备',tile:'c',st:'on',shift:'夜班 20:00–06:00',tel:'内线 8301',skills:['制动','胎压','保养计划'],bio:'设备科驻库工程师，今晚负责 3 号车刹车片更换。对「带病出车」态度极其明确：宁可缺一班，不放一辆疑车。'},
+    {id:'E-06',n:'汪德海',role:'设备',tile:'c',st:'sb',shift:'待命 · 30 分钟到场',tel:'手机 138·0xxx',skills:['供电','照明回路','电梯'],bio:'电气出身，负责站厅照明与扶梯。夜间照明延时改动由他执行，改完一定留一张手写参数条。'},
+    {id:'S-03',n:'简宁',role:'安全',tile:'',st:'on',shift:'夜班 22:00–06:00',tel:'内线 8403',skills:['安全检查','培训','事故复盘'],bio:'安全科值班，主管月度培训与事后复盘。推动「同一问题不报第二次」的看板制度，检修看板的 WIP 上限由她定。'},
+    {id:'S-08',n:'雁回',role:'安全',tile:'',st:'off',shift:'外训 08-26 至 08-29',tel:'—',skills:['消防','演练','台账'],bio:'正在参加市级应急演练培训，回岗后需补一次夜间演练记录。休假期间职责由简宁代管。'},
+    {id:'C-05',n:'陈砚青',role:'事务',tile:'b',st:'on',shift:'夜班 19:00–03:00',tel:'内线 8505',skills:['失物','票务','广播'],bio:'客事务岗，负责失物、广播与临时票务。失物柜双人开锁的第二把钥匙在她手上，登记簿写得比系统还细。'}
+  ];
+  var ST = {on:['在岗','st'],sb:['待命','st sb'],off:['离线','st off']};
+  var grid = document.getElementById('grid');
+  var panel = document.getElementById('panel');
+  var mask = document.getElementById('mask');
+  var q = '', role = 'all', state = 'all', picked = null;
+
+  function matches(p){
+    if (role !== 'all' && p.role !== role){ return false; }
+    if (state !== 'all' && p.st !== state){ return false; }
+    if (q){
+      var hay = (p.n + p.id + p.role + p.skills.join('') + p.shift).toLowerCase();
+      if (hay.indexOf(q.toLowerCase()) < 0){ return false; }
+    }
+    return true;
+  }
+  function paint(){
+    var rows = PEOPLE.filter(matches);
+    document.getElementById('count').textContent = rows.length + ' / ' + PEOPLE.length + ' 人';
+    grid.innerHTML = '';
+    if (!rows.length){
+      grid.innerHTML = '<div class="empty"><b>没有符合条件的同事</b>换个工作关键词，或把岗位、状态放回「全部」。<br><button type="button" id="reset">清除全部筛选</button></div>';
+      document.getElementById('reset').addEventListener('click', reset);
+      return;
+    }
+    rows.forEach(function(p){
+      var card = document.createElement('button');
+      card.type = 'button';
+      card.className = 'person';
+      if (picked === p.id){ card.setAttribute('aria-selected','true'); }
+      card.innerHTML =
+        '<span class="face"><span class="tile ' + p.tile + '" aria-hidden="true">' + p.n.charAt(0) + '</span>' +
+        '<span><b>' + p.n + '</b><span>工号 ' + p.id + '</span></span></span>' +
+        '<span class="row"><span class="' + ST[p.st][1] + '">' + ST[p.st][0] + '</span><span>' + p.shift + '</span><span class="role">' + p.role + '</span></span>' +
+        '<span class="skills">' + p.skills.map(function(s){ return '<i>' + s + '</i>'; }).join('') + '</span>';
+      card.addEventListener('click', function(){ open(p.id); });
+      grid.appendChild(card);
+    });
+  }
+  function open(id){
+    var p = PEOPLE.filter(function(x){ return x.id === id; })[0];
+    picked = id;
+    panel.innerHTML =
+      '<button class="close" type="button" id="pclose">关闭 Esc</button>' +
+      '<span class="tile ' + p.tile + '" aria-hidden="true">' + p.n.charAt(0) + '</span>' +
+      '<h2>' + p.n + '</h2><p class="role-line">' + p.role + '岗 · 工号 ' + p.id + '</p>' +
+      '<dl><dt>状态</dt><dd>' + ST[p.st][0] + '</dd><dt>本班次</dt><dd>' + p.shift + '</dd>' +
+      '<dt>联系</dt><dd>' + p.tel + '</dd><dt>持证</dt><dd>' + p.skills[0] + ' · 有效期内</dd></dl>' +
+      '<p class="bio">' + p.bio + '</p>' +
+      '<p style="margin:14px 0 0;color:var(--muted);font-size:12.5px">技能标签</p>' +
+      '<div class="skills" style="margin-top:8px">' + p.skills.map(function(s){ return '<i>' + s + '</i>'; }).join('') + '</div>' +
+      '<div class="pacts"><button class="pri" type="button" id="pcall">呼叫' + (p.tel.indexOf('内线') === 0 ? '内线' : '手机') + '</button>' +
+      '<button type="button" id="pmsg">留一句给下一班</button><button type="button" id="pshift">看他本周班表</button></div>' +
+      '<p class="pstatus" id="pstatus"></p>';
+    panel.classList.add('show');
+    mask.classList.add('close');
+    mask.classList.add('show');
+    panel.focus();
+    document.getElementById('pclose').addEventListener('click', close);
+    document.getElementById('pcall').addEventListener('click', function(){
+      document.getElementById('pstatus').textContent = '正在通过总机接 ' + p.tel + ' …';
+    });
+    document.getElementById('pmsg').addEventListener('click', function(){
+      document.getElementById('pstatus').textContent = '便签已挂到 ' + p.n + ' 的下一班首页（本机保存）';
+    });
+    document.getElementById('pshift').addEventListener('click', function(){
+      document.getElementById('pstatus').textContent = '已按「' + p.n + '」筛选周历，可在日历页查看';
+    });
+    paint();
+  }
+  function close(){
+    panel.classList.remove('show');
+    mask.classList.remove('show');
+    picked = null;
+    paint();
+  }
+  function reset(){
+    q = ''; role = 'all'; state = 'all';
+    document.getElementById('q').value = '';
+    document.getElementById('role').value = 'all';
+    Array.prototype.forEach.call(document.querySelectorAll('.states button'), function(x){ x.setAttribute('aria-pressed', String(x.dataset.s === 'all')); });
+    paint();
+  }
+
+  document.getElementById('q').addEventListener('input', function(){ q = this.value.trim(); paint(); });
+  document.getElementById('role').addEventListener('change', function(){ role = this.value; paint(); });
+  Array.prototype.forEach.call(document.querySelectorAll('.states button'), function(b){
+    b.addEventListener('click', function(){
+      state = b.dataset.s;
+      Array.prototype.forEach.call(document.querySelectorAll('.states button'), function(x){ x.setAttribute('aria-pressed', String(x === b)); });
+      paint();
+    });
+  });
+  mask.addEventListener('click', close);
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && panel.classList.contains('show')){ close(); } });
+
+  paint();
+})();
+</script>
+</body>
+</html>

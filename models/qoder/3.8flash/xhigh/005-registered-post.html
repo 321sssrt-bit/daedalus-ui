@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>找回入口 · 挂号投递</title>
+<style>
+:root{
+  --navy:#16324f;--navy-2:#0f2338;--sky:#dfe9f2;--manila:#e7d3a8;--stamp:#b23a2f;
+  --ink:#1c2733;--muted:#5d6b78;--line:#c3d2de;--jade:#2b6b4f;--white:#ffffff;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--sky);color:var(--ink);font:15px/1.65 system-ui,"Microsoft YaHei",sans-serif}
+.airmail{height:12px;background:repeating-linear-gradient(45deg,var(--stamp) 0 10px,var(--white) 10px 20px,var(--navy) 20px 30px)}
+.bar{background:var(--navy);color:#eaf1f7}
+.bar-in{max-width:1120px;margin:0 auto;padding:14px 32px;display:flex;align-items:center;gap:14px}
+.bar svg{width:24px;height:24px}
+.bar b{font:700 15px/1 system-ui;letter-spacing:.12em}
+.bar span{font:500 11px/1 ui-monospace,Consolas,monospace;letter-spacing:.14em;color:#9db6cd}
+.back{margin-left:auto;color:#eaf1f7;text-decoration:none;border:1px solid #ffffff40;padding:8px 14px;font-size:13px}
+.back:hover{background:#ffffff1f;border-color:#ffffff88}
+.back:focus-visible{outline:2px solid var(--manila);outline-offset:2px}
+main{max-width:1120px;margin:0 auto;padding:36px 32px 56px;display:grid;grid-template-columns:1.15fr .85fr;gap:32px;align-items:start}
+.sheet{background:var(--white);border:1px solid var(--line);border-top:4px solid var(--navy);padding:32px 34px 34px}
+h1{margin:0;font:700 30px/1.25 system-ui;letter-spacing:.01em}
+.sub{margin:10px 0 26px;color:var(--muted);max-width:46ch}
+fieldset{border:0;margin:0 0 22px;padding:0}
+legend{font:600 11px/1 ui-monospace,Consolas,monospace;letter-spacing:.16em;color:var(--muted);margin-bottom:12px}
+.ways{display:flex;gap:10px}
+.way{position:relative;flex:1}
+.way input{position:absolute;opacity:0;width:0;height:0}
+.way span{
+  display:flex;align-items:center;gap:9px;justify-content:center;height:46px;cursor:pointer;
+  border:1px solid var(--line);background:#f6f9fc;font-size:14px;color:var(--muted);transition:border-color .15s ease,background .15s ease;
+}
+.way span::before{content:"";width:12px;height:12px;border:1px solid var(--muted);border-radius:50%}
+.way input:checked + span{border-color:var(--navy);background:#eef4fa;color:var(--navy);font-weight:600;box-shadow:inset 0 -2px 0 var(--manila)}
+.way input:checked + span::before{border-color:var(--navy);background:var(--navy);box-shadow:inset 0 0 0 2px var(--white)}
+.way input:focus-visible + span{outline:2px solid var(--stamp);outline-offset:2px}
+.field label{display:block;font:600 11px/1 ui-monospace,Consolas,monospace;letter-spacing:.16em;color:var(--muted);margin-bottom:9px}
+.field .box{display:flex;border:1px solid var(--line);background:#f6f9fc}
+.field .box:focus-within{border-color:var(--navy);background:var(--white);box-shadow:0 0 0 3px #16324f26}
+.field .box i{display:flex;align-items:center;padding:0 14px;font:500 12px/1 ui-monospace,Consolas,monospace;color:var(--muted);font-style:normal;border-right:1px solid var(--line)}
+.field input{flex:1;min-width:0;border:0;background:transparent;padding:15px 14px;font:inherit;color:var(--ink)}
+.field input:focus{outline:0}
+.field.bad .box{border-color:var(--stamp);background:#b23a2f12}
+.note{display:none;margin:10px 0 0;font-size:13px;color:var(--stamp)}
+.note.wide{display:block}
+.note.ok{color:var(--jade)}
+.send{
+  width:100%;margin-top:26px;appearance:none;cursor:pointer;border:1px solid var(--navy);background:var(--navy);
+  color:var(--white);font:inherit;font-weight:700;font-size:16px;letter-spacing:.18em;padding:16px;
+  display:flex;align-items:center;justify-content:center;gap:12px;transition:background .15s ease;
+}
+.send svg{width:17px;height:17px}
+.send:hover:not([disabled]){background:var(--navy-2)}
+.send:focus-visible{outline:3px solid var(--manila);outline-offset:2px}
+.send[disabled]{background:#8c9aa6;border-color:#8c9aa6;cursor:not-allowed;letter-spacing:.12em}
+.alt{margin:20px 0 0;padding-top:18px;border-top:1px dashed var(--line);font-size:13.5px;color:var(--muted)}
+.alt a{color:var(--navy);text-decoration:none;border-bottom:1px solid var(--manila);padding-bottom:1px}
+.alt a:hover{color:var(--stamp)}
+.track{background:var(--manila);border:1px solid #d4bd85;padding:26px 26px 28px;position:relative}
+.track h2{margin:0 0 4px;font:700 17px/1.4 system-ui;letter-spacing:.06em;color:var(--navy-2)}
+.track .no{font:500 11px/1 ui-monospace,Consolas,monospace;letter-spacing:.12em;color:#88764b}
+.steps{list-style:none;margin:22px 0 0;padding:0;display:grid;gap:0}
+.steps li{display:grid;grid-template-columns:22px 1fr;gap:14px;position:relative;padding-bottom:22px}
+.steps li::before{content:"";position:absolute;left:10px;top:22px;bottom:0;width:2px;background:#cbb37c}
+.steps li:last-child::before{display:none}
+.steps .dot{width:22px;height:22px;border:2px solid #a9915e;background:var(--manila);border-radius:50%;display:grid;place-items:center;font:700 11px/1 ui-monospace,Consolas,monospace;color:#88764b}
+.steps b{font-size:14.5px;color:var(--navy-2);letter-spacing:.02em}
+.steps p{margin:3px 0 0;font-size:13px;color:#7a6a45}
+.steps li[data-on="1"] .dot{background:var(--navy);border-color:var(--navy);color:var(--white)}
+.steps li[data-on="1"] b{color:var(--navy)}
+.steps li[data-now="1"] .dot{border-color:var(--stamp);background:var(--stamp);color:var(--white)}
+.steps li[data-now="1"] .dot::after{content:"";width:30px;height:30px;border:1px solid #b23a2f66;border-radius:50%;position:absolute;animation:pulse 1.8s ease-out infinite}
+@keyframes pulse{0%{opacity:.9;transform:scale(.6)}100%{opacity:0;transform:scale(1.15)}}
+.card{margin-top:8px;background:var(--white);border:1px dashed #a9915e;padding:14px 16px;font-size:13.5px;color:var(--ink)}
+.card b{display:block;font:600 12px/1.8 ui-monospace,Consolas,monospace;letter-spacing:.1em;color:var(--muted)}
+.card span{font:600 16px/1.5 ui-monospace,Consolas,monospace;color:var(--navy);letter-spacing:.06em}
+.void{margin-top:18px;border:2px solid var(--stamp);color:var(--stamp);background:#b23a2f0f;padding:12px 14px;font-size:13.5px;display:none}
+.void.show{display:block}
+[hidden]{display:none!important}
+@media (max-width:920px){
+  main{grid-template-columns:1fr;padding:24px 20px 40px;gap:22px}
+  .sheet{padding:24px 20px 26px}
+  .bar-in{padding:12px 20px}
+}
+@media (max-width:560px){.ways{flex-direction:column}}
+@media (prefers-reduced-motion:reduce){
+  *{transition:none!important;scroll-behavior:auto!important}
+  .steps li[data-now="1"] .dot::after{animation:none;opacity:.5;transform:scale(1)}
+}
+</style>
+</head>
+<body>
+<div class="airmail" aria-hidden="true"></div>
+<header class="bar">
+  <div class="bar-in">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 6l10 7 10-7v12H2z" fill="none" stroke="#e7d3a8" stroke-width="1.8"/><path d="M2 6h20" stroke="#e7d3a8" stroke-width="1.8"/></svg>
+    <b>挂号投递台</b><span>REGISTER · MAIL DESK</span>
+    <a class="back" href="#login">← 回到登录</a>
+  </div>
+</header>
+
+<main>
+  <section class="sheet">
+    <h1>把入口重新寄给你</h1>
+    <p class="sub">选一种联系方式，我们寄一封挂号件过去。信件 30 分钟内有效，一次只能寄往一个地址。</p>
+
+    <form id="form" novalidate>
+      <fieldset>
+        <legend>投递方式 / CHANNEL</legend>
+        <div class="ways">
+          <label class="way"><input type="radio" name="way" value="phone" checked><span>登记手机号</span></label>
+          <label class="way"><input type="radio" name="way" value="mail"><span>登记邮箱</span></label>
+        </div>
+      </fieldset>
+
+      <div class="field" id="field">
+        <label for="target" id="cap">登记手机号</label>
+        <div class="box">
+          <i id="prefix">TEL</i>
+          <input id="target" type="tel" inputmode="numeric" autocomplete="tel" placeholder="138 0000 4271">
+        </div>
+        <p class="note" id="note">请填写 11 位手机号。</p>
+      </div>
+
+      <button class="send" type="submit" id="send">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12l18-8-6 18-3.5-6.5z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+        <span id="sendText">寄出挂号件</span>
+      </button>
+      <p class="alt">收不到？<a href="#counter">去人工柜台</a> · 号码也换了？<a href="#switch">提交身份变更</a> · <a href="#help">这封信会包含什么</a></p>
+    </form>
+  </section>
+
+  <aside class="track">
+    <h2>投递轨迹</h2>
+    <p class="no">单号 RD-8842-0827 · 本窗口</p>
+    <ol class="steps" id="steps">
+      <li data-on="1" data-now="1"><span class="dot">1</span><div><b>待投递</b><p>等待你在左栏确认联系方式。</p></div></li>
+      <li><span class="dot">2</span><div><b>已收寄</b><p>挂号件进入投递队列。</p></div></li>
+      <li><span class="dot">3</span><div><b>派送中</b><p>30 分钟内有效，逾期自动作废。</p></div></li>
+      <li><span class="dot">4</span><div><b>已签收</b><p>你已用新入口重新登录。</p></div></li>
+    </ol>
+    <div class="card" id="card" hidden>
+      <b>寄往地址</b><span id="dest">—</span>
+      <b>可重投倒计时</b><span id="cool">60 秒</span>
+    </div>
+    <div class="void" id="void">查无此件：该号码没有登记过账号。可<a href="#switch">提交身份变更</a>，或改用另一种方式再试。</div>
+  </aside>
+</main>
+
+<script>
+(function(){
+  'use strict';
+  var form = document.getElementById('form');
+  var target = document.getElementById('target');
+  var field = document.getElementById('field');
+  var note = document.getElementById('note');
+  var cap = document.getElementById('cap');
+  var prefix = document.getElementById('prefix');
+  var send = document.getElementById('send');
+  var sendText = document.getElementById('sendText');
+  var steps = Array.prototype.slice.call(document.querySelectorAll('#steps li'));
+  var card = document.getElementById('card');
+  var dest = document.getElementById('dest');
+  var cool = document.getElementById('cool');
+  var voidBox = document.getElementById('void');
+  var way = 'phone', timer = null, left = 0, stage = 0;
+
+  function paint(){
+    steps.forEach(function(li, i){
+      li.setAttribute('data-on', i <= stage ? '1' : '0');
+      li.setAttribute('data-now', i === stage && stage < 3 ? '1' : '0');
+    });
+  }
+  function setWay(next){
+    way = next;
+    var phone = next === 'phone';
+    cap.textContent = phone ? '登记手机号' : '登记邮箱';
+    prefix.textContent = phone ? 'TEL' : 'MAIL';
+    target.type = phone ? 'tel' : 'email';
+    target.placeholder = phone ? '138 0000 4271' : 'name@example.com';
+    target.value = '';
+    bare();
+  }
+  function bare(){
+    field.classList.remove('bad');
+    note.className = 'note';
+    note.textContent = way === 'phone' ? '请填写 11 位手机号。' : '请填写有效的邮箱地址。';
+    voidBox.classList.remove('show');
+  }
+  function valid(){
+    var v = target.value.trim();
+    if (way === 'phone'){
+      var d = v.replace(/[^0-9]/g, '');
+      return d.length === 11 && d.charAt(0) === '1';
+    }
+    return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v);
+  }
+  function mask(){
+    var v = target.value.trim();
+    if (way === 'phone'){ var d = v.replace(/[^0-9]/g,''); return d.slice(0,3) + '****' + d.slice(7); }
+    var at = v.indexOf('@'); var head = v.slice(0, at);
+    return head.slice(0, 2) + '***' + v.slice(at);
+  }
+  function countdown(){
+    left = 60;
+    cool.textContent = left + ' 秒';
+    send.disabled = true;
+    sendText.textContent = '已寄出，60 秒后可重投';
+    if (timer){ clearInterval(timer); }
+    timer = setInterval(function(){
+      left -= 1;
+      cool.textContent = left > 0 ? left + ' 秒' : '可重新投递';
+      if (left <= 0){
+        clearInterval(timer);
+        send.disabled = false;
+        sendText.textContent = '再寄一件';
+      }
+    }, 1000);
+  }
+
+  Array.prototype.forEach.call(document.querySelectorAll('input[name="way"]'), function(r){
+    r.addEventListener('change', function(){ setWay(r.value); });
+  });
+  target.addEventListener('input', function(){
+    if (way === 'phone'){ target.value = target.value.replace(/[^0-9]/g,'').slice(0,11); }
+    bare();
+    stage = 0; paint();
+  });
+
+  form.addEventListener('submit', function(e){
+    e.preventDefault();
+    if (!valid()){
+      field.classList.add('bad');
+      note.className = 'note wide';
+      note.textContent = way === 'phone' ? '手机号需为 11 位且以 1 开头。' : '邮箱格式不正确，请核对 @ 与后缀。';
+      return;
+    }
+    var dead = way === 'phone' ? target.value.charAt(10) === '0' : /^nobody@/.test(target.value.trim());
+    send.disabled = true;
+    sendText.textContent = '收寄中';
+    stage = 1; paint();
+    setTimeout(function(){
+      if (dead){
+        stage = 0; paint();
+        voidBox.classList.add('show');
+        card.hidden = true;
+        send.disabled = false;
+        sendText.textContent = '寄出挂号件';
+        note.className = 'note wide';
+        note.textContent = '查无此件，未投递任何信件。';
+        return;
+      }
+      stage = 2; paint();
+      card.hidden = false;
+      dest.textContent = mask();
+      voidBox.classList.remove('show');
+      note.className = 'note wide ok';
+      note.textContent = '挂号件已收寄，请留意 30 分钟内的信件。';
+      countdown();
+    }, 900);
+  });
+
+  document.getElementById('void').addEventListener('click', function(e){
+    if (e.target.tagName === 'A'){ e.preventDefault(); }
+  });
+  paint();
+})();
+</script>
+</body>
+</html>

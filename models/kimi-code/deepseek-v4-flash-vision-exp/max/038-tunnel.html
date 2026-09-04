@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>廊桥地铁 · 列车故障</title>
+<style>
+  :root{
+    --rail:#20262c;
+    --rail-2:#2b323a;
+    --panel:#f2f4f5;
+    --panel-2:#e6eaec;
+    --orange:#f0813a;
+    --orange-deep:#c96626;
+    --orange-soft:rgba(240,129,58,.12);
+    --slate:#7d8a94;
+    --slate-deep:#5c6a74;
+    --ink:#242b31;
+    --ink-soft:#4e5a63;
+    --ink-mute:#8d99a2;
+    --line:#d7dde1;
+    --line-soft:#e5eaed;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    background:#d5dcdf;
+    font-family:"Microsoft YaHei","PingFang SC","Noto Sans SC",sans-serif;
+    min-height:100vh;display:flex;align-items:center;justify-content:center;padding:26px 14px;
+  }
+  .phone{
+    width:390px;max-width:100%;height:844px;max-height:calc(100vh - 40px);
+    background:linear-gradient(180deg,#f2f4f5 0%,#e6eaec 100%);
+    border-radius:36px;border:1px solid #b9c2c7;overflow:hidden;
+    box-shadow:0 24px 60px rgba(32,38,44,.25),inset 0 0 0 6px #fff;
+    display:flex;flex-direction:column;position:relative;
+  }
+  .notch{position:absolute;top:8px;left:50%;transform:translateX(-50%);width:120px;height:22px;border-radius:99px;background:#242b31;z-index:20}
+  .screen{flex:1;display:flex;flex-direction:column;overflow-y:auto;position:relative}
+  .screen::-webkit-scrollbar{width:0}
+  .appbar{padding:46px 18px 8px;display:flex;align-items:center;gap:10px}
+  .appbar .b{width:34px;height:34px;border-radius:50%;background:#fff;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:13px}
+  .appbar .t{font-size:14px;font-weight:800}
+  .appbar .s{font-size:10.5px;color:var(--ink-mute);margin-left:auto}
+  /* 状态头 */
+  .state{
+    margin:18px 18px 0;background:var(--orange-soft);border:1px solid rgba(240,129,58,.3);
+    border-radius:16px;padding:14px 16px;display:flex;gap:12px;align-items:center;
+  }
+  .state .ic{width:38px;height:38px;border-radius:50%;background:var(--orange);color:#fff;display:flex;align-items:center;justify-content:center;font-size:17px;flex:none}
+  .state .t1{font-size:13.5px;font-weight:800;color:var(--orange-deep)}
+  .state .t2{font-size:11px;color:var(--ink-soft);margin-top:3px}
+  /* 故障插画 */
+  .illu{margin:22px 30px 0;text-align:center}
+  .illu svg{width:100%;max-width:280px}
+  /* 人话说明 */
+  .human{
+    margin:18px 24px 0;text-align:center;
+  }
+  .human h1{font-size:22px;font-weight:900;color:var(--ink);line-height:1.5}
+  .human p{font-size:13px;color:var(--ink-soft);line-height:2;margin-top:10px}
+  .human p b{color:var(--ink)}
+  /* 工单卡 */
+  .ticket{
+    margin:18px 18px 0;background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px 16px;
+    display:flex;justify-content:space-between;align-items:center;
+  }
+  .ticket .l1{font-size:11px;color:var(--ink-mute)}
+  .ticket .l2{font-size:14px;font-weight:900;color:var(--ink);font-family:"Courier New",Consolas,monospace;margin-top:4px}
+  .ticket .l3{font-size:10.5px;color:var(--ink-mute);margin-top:4px}
+  .ticket .live{font-size:10px;padding:5px 12px;border-radius:99px;background:var(--orange-soft);color:var(--orange-deep);font-weight:800}
+  /* 操作 */
+  .ops{margin:22px 18px 0;display:flex;flex-direction:column;gap:10px}
+  .retry{
+    width:100%;padding:14px;border:none;border-radius:14px;background:var(--orange);color:#fff;
+    font-size:15px;font-weight:900;letter-spacing:.06em;cursor:pointer;font-family:inherit;
+    box-shadow:0 6px 0 var(--orange-deep);transition:background .15s,transform .1s,box-shadow .1s;
+  }
+  .retry:hover{background:#f18d4c}
+  .retry:active{transform:translateY(2px);box-shadow:0 3px 0 var(--orange-deep)}
+  .home{
+    width:100%;padding:13px;border-radius:14px;border:1.5px solid var(--line);background:none;
+    font-size:14px;font-weight:700;color:var(--ink-soft);cursor:pointer;font-family:inherit;transition:border-color .15s,color .15s;
+  }
+  .home:hover{border-color:var(--ink);color:var(--ink)}
+  /* 成功结果 */
+  .okprint{display:none;margin:18px 18px 0;background:#fff;border:1.5px dashed var(--slate-deep);border-radius:14px;padding:16px;font-size:13px;color:var(--ink-soft);line-height:1.9}
+  .okprint.show{display:block}
+  .okprint b{color:var(--orange-deep)}
+  @media (prefers-reduced-motion:reduce){
+    .retry,.home{transition:none}
+  }
+</style>
+</head>
+<body>
+<div class="phone">
+  <span class="notch"></span>
+  <div class="screen">
+    <header class="appbar">
+      <span class="b">‹</span>
+      <span class="t">行程</span>
+      <span class="s">廊桥地铁</span>
+    </header>
+
+    <div class="state">
+      <span class="ic">⚠</span>
+      <div>
+        <div class="t1">当前线路：2 号线 · 途中故障</div>
+        <div class="t2">廊桥站 — 白站段区间信号丢失，列车限速通过</div>
+      </div>
+    </div>
+
+    <section class="illu" aria-label="故障插画">
+      <svg viewBox="0 0 280 170" role="img" aria-label="停在地下的列车">
+        <path d="M20 130 h240 M20 130 l-6 16 M260 130 l6 16" stroke="#5c6a74" stroke-width="4"/>
+        <path d="M20 130 h240" stroke="#7d8a94" stroke-width="2"/>
+        <rect x="52" y="56" width="176" height="66" rx="12" fill="#f0813a"/>
+        <rect x="52" y="56" width="176" height="22" rx="12" fill="#c96626"/>
+        <rect x="60" y="88" width="22" height="18" rx="4" fill="#20262c"/>
+        <rect x="96" y="88" width="22" height="18" rx="4" fill="#20262c"/>
+        <rect x="132" y="88" width="22" height="18" rx="4" fill="#20262c"/>
+        <rect x="168" y="88" width="22" height="18" rx="4" fill="#20262c"/>
+        <circle cx="80" cy="128" r="10" fill="#2b323a"/>
+        <circle cx="200" cy="128" r="10" fill="#2b323a"/>
+        <path d="M110 44 q0 -8 10 -8 M140 46 q0 -8 10 -8 M170 44 q0 -8 10 -8" stroke="#7d8a94" stroke-width="3" fill="none" stroke-linecap="round"/>
+        <text x="140" y="156" font-size="11" fill="#5c6a74" text-anchor="middle">B1 · 信号中断</text>
+      </svg>
+    </section>
+
+    <section class="human">
+      <h1>这趟车慢下来了</h1>
+      <p>不是地铁在罢工，是<b>前方信号系统</b>正在核对路况。<br>预计 <b>8–12 分钟</b>恢复正常，请坐稳扶好。</p>
+    </section>
+
+    <div class="ticket">
+      <div>
+        <div class="l1">故障受理编号</div>
+        <div class="l2"># 2LINE-0714</div>
+        <div class="l3">记录时间 14:07 · 登记处 B1 客服台</div>
+      </div>
+      <span class="live">人工处理中</span>
+    </div>
+
+    <section class="ops">
+      <button class="retry" id="retryBtn" type="button">重新查询线路状态</button>
+      <button class="home" id="homeBtn" type="button">回到首页</button>
+    </section>
+
+    <div class="okprint" id="okprint">
+      <b>✓ 信号已恢复。</b> 2 号线全线恢复正常速度；你的行程未受影响。<br>若仍有延误，可凭编号 <b>#2LINE-0714</b> 申请免费改签。
+    </div>
+    <div style="height:30px"></div>
+  </div>
+</div>
+<script>
+(function(){
+  document.getElementById('retryBtn').addEventListener('click',function(){
+    var b=this;
+    b.textContent='核对中…';b.disabled=true;
+    setTimeout(function(){
+      b.textContent='已恢复 ✓';b.disabled=false;
+      document.getElementById('okprint').classList.add('show');
+      document.querySelector('.state .t2').textContent='已恢复 · 列车正常通过';
+    },900);
+  });
+  document.getElementById('homeBtn').addEventListener('click',function(){
+    this.textContent='正在返回首页…';
+  });
+})();
+</script>
+</body>
+</html>

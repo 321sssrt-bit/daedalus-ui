@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>夜航电台 · 账号设置</title>
+<style>
+  :root{
+    --band:#101825;
+    --band-2:#182233;
+    --panel:#1c2839;
+    --panel-2:#223044;
+    --signal:#4dd6c1;
+    --signal-deep:#2baa98;
+    --signal-soft:rgba(77,214,193,.12);
+    --amber:#f0b95c;
+    --amber-soft:rgba(240,185,92,.14);
+    --rose:#e97a6f;
+    --rose-soft:rgba(233,122,111,.12);
+    --text:#eef4f6;
+    --text-soft:#a6b6c2;
+    --text-mute:#6f8192;
+    --line:rgba(238,244,246,.1);
+    --line-soft:rgba(238,244,246,.06);
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    background:
+      radial-gradient(1000px 600px at 85% -15%, rgba(77,214,193,.09), transparent 60%),
+      linear-gradient(180deg,var(--band) 0%,var(--band-2) 100%);
+    color:var(--text);
+    font-family:"Microsoft YaHei","PingFang SC","Noto Sans SC",sans-serif;
+    min-height:100vh;display:flex;justify-content:center;padding:0 14px;
+  }
+  .app{width:100%;max-width:1240px;min-height:100vh;display:grid;grid-template-columns:220px 1fr}
+  /* 侧栏 */
+  .side{
+    padding:26px 16px;display:flex;flex-direction:column;border-right:1px solid var(--line);
+    background:rgba(13,20,31,.4);
+  }
+  .side .logo{display:flex;align-items:center;gap:10px;padding:0 8px 24px}
+  .side .logo .dot{width:32px;height:32px;border-radius:50%;background:var(--signal);color:#08121c;display:flex;align-items:center;justify-content:center;font-weight:900;box-shadow:0 0 18px rgba(77,214,193,.5)}
+  .side .logo .t{font-size:15px;font-weight:800;letter-spacing:.05em}
+  .side .logo .t small{display:block;font-size:9px;color:var(--text-mute);letter-spacing:.26em;font-weight:400;margin-top:2px}
+  .side .grp{font-size:9.5px;letter-spacing:.28em;color:var(--text-mute);padding:12px 10px 6px}
+  .side a{
+    display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-radius:9px;
+    color:var(--text-soft);font-size:13px;text-decoration:none;margin-bottom:2px;transition:all .15s;
+  }
+  .side a:hover{background:rgba(238,244,246,.05);color:var(--text)}
+  .side a.on{background:var(--signal-soft);color:var(--text);font-weight:700}
+  .side a.on::after{content:"";width:6px;height:6px;border-radius:50%;background:var(--signal);box-shadow:0 0 8px var(--signal)}
+  .side .status{
+    margin-top:auto;padding:12px;border:1px solid var(--line);border-radius:10px;font-size:10.5px;color:var(--text-mute);line-height:1.9;
+  }
+  .side .status b{color:var(--signal)}
+  /* 主区 */
+  .main{padding:30px 34px 50px}
+  .bread{font-size:11px;color:var(--text-mute);margin-bottom:18px}
+  .bread b{color:var(--text-soft)}
+  h1{font-size:23px;font-weight:800;margin-bottom:4px}
+  .sub1{font-size:12.5px;color:var(--text-soft);margin-bottom:26px}
+  /* 身份行 */
+  .ident{
+    display:flex;align-items:center;gap:16px;padding:18px 20px;border:1px solid var(--line);
+    border-radius:14px;background:var(--panel);margin-bottom:22px;
+  }
+  .ident .pf{width:54px;height:54px;border-radius:50%;background:linear-gradient(140deg,var(--signal),#3f8fd0);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;color:#08121c}
+  .ident .nm{font-size:16px;font-weight:800}
+  .ident .em{font-size:11.5px;color:var(--text-mute);margin-top:3px}
+  .ident .tag{margin-left:auto;font-size:10.5px;padding:5px 12px;border-radius:99px;background:var(--signal-soft);color:var(--signal);border:1px solid rgba(77,214,193,.3)}
+  /* 设置分组 */
+  .grpbox{margin-bottom:28px}
+  .grpbox .gh{font-size:12px;font-weight:700;color:var(--text-soft);letter-spacing:.1em;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+  .grpbox .gh::before{content:"";width:3px;height:12px;border-radius:2px;background:var(--signal)}
+  .rows{background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+  .row{
+    display:flex;justify-content:space-between;align-items:center;padding:15px 18px;
+    border-bottom:1px solid var(--line-soft);cursor:pointer;transition:background .15s;
+  }
+  .row:last-child{border-bottom:none}
+  .row:hover{background:rgba(238,244,246,.03)}
+  .row .rl .rt{font-size:13.5px;font-weight:600}
+  .row .rl .rm{font-size:11px;color:var(--text-mute);margin-top:3px}
+  .row .rr{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--text-soft)}
+  .row .rr .chev{color:var(--text-mute)}
+  .row.open{background:var(--panel-2)}
+  .row.open .detail{display:block}
+  .detail{display:none;padding:0 18px 16px;grid-column:1/-1}
+  .detail .field{margin-bottom:12px}
+  .detail .field label{display:block;font-size:11px;color:var(--text-soft);margin-bottom:6px}
+  .detail .field input{
+    width:100%;padding:11px 13px;font-size:13px;color:var(--text);background:rgba(8,18,28,.5);
+    border:1px solid var(--line);border-radius:8px;outline:none;font-family:inherit;transition:border-color .15s,box-shadow .15s;
+  }
+  .detail .field input:focus{border-color:var(--signal);box-shadow:0 0 0 3px var(--signal-soft)}
+  .detail .save{
+    padding:9px 20px;border:none;border-radius:8px;background:var(--signal);color:#08121c;font-size:12.5px;
+    font-weight:800;cursor:pointer;font-family:inherit;transition:background .15s;
+  }
+  .detail .save:hover{background:#63e0cd}
+  .toggle{position:relative;width:40px;height:22px;border-radius:99px;background:var(--line);cursor:pointer;transition:background .2s;flex:none}
+  .toggle::after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;transition:left .2s}
+  .toggle.on{background:var(--signal)}
+  .toggle.on::after{left:21px}
+  @media (max-width:900px){
+    .app{grid-template-columns:1fr}
+    .side{border-right:none;border-bottom:1px solid var(--line);padding:16px 14px;flex-direction:row;align-items:center;gap:8px;flex-wrap:wrap}
+    .side .logo{padding:0 8px 0 0}
+    .side .grp{display:none}
+    .side .status{display:none}
+    .main{padding:22px 18px 44px}
+    .ident{flex-wrap:wrap}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .side a,.row,.detail .field input,.toggle{transition:none}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <nav class="side" aria-label="设置导航">
+    <div class="logo"><span class="dot">▸</span><div class="t">夜航电台<small>NIGHTWAVE RADIO</small></div></div>
+    <p class="grp">电台</p>
+    <a href="#">主台面</a>
+    <a href="#">播客库存</a>
+    <a class="on" href="#">账号设置</a>
+    <p class="grp">更多</p>
+    <a href="#">收听记录</a>
+    <a href="#">帮助中心</a>
+    <div class="status">当前频率 <b>FM 98.7</b><br>每晚 22:00 更新 · 已连续播出 <b>1,327 天</b></div>
+  </nav>
+
+  <main class="main">
+    <p class="bread">账号设置 <b>/</b> 资料与偏好</p>
+    <h1>账号设置</h1>
+    <p class="sub1">调整你的电台身份、安全与收听偏好。改动即时生效。</p>
+
+    <section class="ident" aria-label="身份行">
+      <span class="pf">航</span>
+      <div>
+        <div class="nm">航行家·阿绫</div>
+        <div class="em">aling@nightwave.example</div>
+      </div>
+      <span class="tag">电波会员 · 3 级</span>
+    </section>
+
+    <section class="grpbox">
+      <p class="gh">个人资料</p>
+      <div class="rows">
+        <div class="row" data-open>
+          <div class="rl"><div class="rt">显示名称</div><div class="rm">在广播与听众页展示的名字</div></div>
+          <div class="rr">航行家·阿绫 <span class="chev">›</span></div>
+          <div class="detail"><div class="field"><label for="nm1">名称</label><input id="nm1" value="航行家·阿绫"></div><button class="save" type="button">保存修改</button></div>
+        </div>
+        <div class="row">
+          <div class="rl"><div class="rt">电台简介</div><div class="rm">一句话说明你在播什么</div></div>
+          <div class="rr">深夜故事与老唱片 <span class="chev">›</span></div>
+          <div class="detail"><div class="field"><label for="bio1">简介</label><input id="bio1" value="深夜故事与老唱片"></div><button class="save" type="button">保存修改</button></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="grpbox">
+      <p class="gh">安全</p>
+      <div class="rows">
+        <div class="row">
+          <div class="rl"><div class="rt">登录密码</div><div class="rm">上次修改：2 个月前</div></div>
+          <div class="rr">•••••• <span class="chev">›</span></div>
+          <div class="detail"><div class="field"><label>临时输框演示</label><input type="password" value="nightwave2026" placeholder="新密码"></div><button class="save" type="button">更新密码</button></div>
+        </div>
+        <div class="row">
+          <div class="rl"><div class="rt">两步验证</div><div class="rm">异地登录时需要短信验证</div></div>
+          <div class="rr">已开启 <span class="toggle on" data-k="2fa"></span></div>
+          <div class="detail"><div class="field"><label>验证方式</label><input value="手机 138****0021"></div><button class="save" type="button">确认</button></div>
+        </div>
+        <div class="row">
+          <div class="rl"><div class="rt">登录设备</div><div class="rm">当前 1 台设备在线（Windows·夜航台）</div></div>
+          <div class="rr">查看 <span class="chev">›</span></div>
+          <div class="detail"><div class="field"><label>暂显</label><input value="夜航台 · 桌面端 · 本次会话"></div><button class="save" type="button">好</button></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="grpbox">
+      <p class="gh">通知与收听</p>
+      <div class="rows">
+        <div class="row">
+          <div class="rl"><div class="rt">开播提醒</div><div class="rm">每晚 22:00 开播前 15 分钟提醒</div></div>
+          <div class="rr"><span class="toggle on" data-k="remind"></span></div>
+        </div>
+        <div class="row">
+          <div class="rl"><div class="rt">评论回复通知</div><div class="rm">有人回复你的听评时提醒</div></div>
+          <div class="rr"><span class="toggle" data-k="reply"></span></div>
+        </div>
+        <div class="row">
+          <div class="rl"><div class="rt">默认音量</div><div class="rm">新会话开始时使用的音量</div></div>
+          <div class="rr">62% <span class="chev">›</span></div>
+          <div class="detail"><div class="field"><label for="vol1">音量（0-100）</label><input id="vol1" type="number" min="0" max="100" value="62"></div><button class="save" type="button">保存</button></div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+<script>
+(function(){
+  document.querySelectorAll('.row[data-open], .row .chev').forEach(function(el){});
+  document.querySelectorAll('.row').forEach(function(row){
+    if(row.querySelector('.chev')||row.querySelector('.toggle'))return;
+    var opener=row;
+    row.addEventListener('click',function(){
+      row.classList.toggle('open');
+    });
+  });
+  document.querySelectorAll('.rows').forEach(function(box){
+    box.addEventListener('click',function(e){
+      // 点击行（有 detail 的）切换展开
+      var r=e.target.closest('.row');
+      if(r&&r.querySelector('.detail'))r.classList.toggle('open');
+    });
+    box.addEventListener('click',function(e){
+      var tg=e.target.closest('.toggle');
+      if(tg){tg.classList.toggle('on');}
+    });
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>水族馆 · 我的鱼缸</title>
+<style>
+  :root{
+    --deep:#0d2334;
+    --deep-2:#081b2a;
+    --aqua:#3fb6d4;
+    --aqua-deep:#2094b2;
+    --aqua-soft:rgba(63,182,212,.14);
+    --coral:#f2805c;
+    --coral-deep:#c95f3f;
+    --coral-soft:rgba(242,128,92,.14);
+    --sand:#d8c07f;
+    --sand-soft:rgba(216,192,127,.14);
+    --glass:#eaf6fa;
+    --text:#eaf6fa;
+    --text-soft:#a7c8d4;
+    --text-mute:#6f95a4;
+    --line:rgba(234,246,250,.12);
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    background:#0a1e2e;
+    font-family:"Microsoft YaHei","PingFang SC","Noto Sans SC",sans-serif;
+    min-height:100vh;display:flex;align-items:center;justify-content:center;padding:26px 14px;
+  }
+  .phone{
+    width:390px;max-width:100%;height:844px;max-height:calc(100vh - 40px);
+    background:linear-gradient(180deg,var(--deep) 0%,var(--deep-2) 100%);
+    border-radius:36px;border:1px solid #1c3a4c;overflow:hidden;
+    box-shadow:0 24px 60px rgba(0,0,0,.45),inset 0 0 0 6px #0d2334;
+    display:flex;flex-direction:column;position:relative;
+  }
+  .notch{position:absolute;top:8px;left:50%;transform:translateX(-50%);width:120px;height:22px;border-radius:99px;background:#050f18;z-index:20}
+  .screen{flex:1;display:flex;flex-direction:column;overflow-y:auto;position:relative}
+  .screen::-webkit-scrollbar{width:0}
+  .appbar{padding:48px 20px 10px;display:flex;justify-content:space-between;align-items:center}
+  .appbar .l{display:flex;align-items:center;gap:10px}
+  .appbar .l .b{width:34px;height:34px;border-radius:50%;background:rgba(234,246,250,.06);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:13px}
+  .appbar .t{font-size:14px;font-weight:800}
+  .appbar .r{font-size:10.5px;color:var(--text-mute)}
+  /* 水缸空态 */
+  .tank{
+    margin:26px 22px 0;background:rgba(63,182,212,.06);border:1px solid var(--line);border-radius:24px;
+    padding:34px 22px 26px;text-align:center;position:relative;overflow:hidden;
+  }
+  .tank .bub{position:absolute;border-radius:50%;border:1px solid rgba(63,182,212,.4);}
+  .tank h1{font-size:20px;font-weight:900;margin-top:16px;line-height:1.5}
+  .tank h1 em{font-style:normal;color:var(--aqua)}
+  .tank .lead{font-size:12.5px;line-height:2;color:var(--text-soft);margin-top:10px;max-width:280px;margin-left:auto;margin-right:auto}
+  .lead b{color:var(--coral)}
+  .fish-art{position:relative;width:220px;margin:0 auto;height:130px}
+  .fish-art svg{width:100%;height:100%}
+  .tank .home{width:100%;margin-top:22px;padding:14px;border:none;border-radius:14px;background:var(--aqua);color:#073340;font-size:15px;font-weight:900;letter-spacing:.08em;cursor:pointer;font-family:inherit;box-shadow:0 8px 22px rgba(63,182,212,.3);transition:background .15s,transform .1s}
+  .tank .home:hover{background:#55c4e0}
+  .tank .home:active{transform:translateY(1px)}
+  .tank .skip{background:none;border:none;margin-top:12px;font-size:12px;color:var(--text-soft);cursor:pointer;font-family:inherit;text-decoration:underline;text-underline-offset:3px}
+  .tank .skip:hover{color:var(--text)}
+  /* 已养列表示意 */
+  .owned{display:none;margin:16px 20px 0}
+  .owned.show{display:block}
+  .owned .oh{display:flex;justify-content:space-between;font-size:11px;color:var(--text-mute);margin-bottom:10px}
+  .owned .fs{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .owned .f{
+    background:rgba(63,182,212,.06);border:1px solid var(--line);border-radius:16px;padding:14px;
+  }
+  .owned .f .ic{font-size:26px}
+  .owned .f .n{font-size:12.5px;font-weight:800;margin-top:6px}
+  .owned .f .d{font-size:10px;color:var(--text-mute);margin-top:3px}
+  /* 底栏 */
+  .tabbar{
+    position:absolute;left:0;right:0;bottom:0;background:rgba(8,27,42,.92);backdrop-filter:blur(8px);
+    border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(4,1fr);padding:8px 6px 18px;
+  }
+  .tabbar .tb{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:9.5px;color:var(--text-mute);cursor:pointer}
+  .tabbar .tb .i{font-size:17px;line-height:1}
+  .tabbar .tb.on{color:var(--aqua);font-weight:800}
+  @media (prefers-reduced-motion:reduce){
+    .tank .home{transition:none}
+  }
+</style>
+</head>
+<body>
+<div class="phone">
+  <span class="notch"></span>
+  <div class="screen">
+    <header class="appbar">
+      <div class="l"><span class="b">‹</span><span class="t">我的鱼缸</span></div>
+      <span class="r">今日 0 条记录</span>
+    </header>
+
+    <section class="tank" id="tank">
+      <span class="bub" style="top:20px;left:30px;width:10px;height:10px"></span>
+      <span class="bub" style="top:56px;right:40px;width:7px;height:7px"></span>
+      <span class="bub" style="bottom:110px;left:56px;width:5px;height:5px"></span>
+      <div class="fish-art">
+        <svg viewBox="0 0 220 130" role="img" aria-label="空鱼缸里的两条小鱼">
+          <rect x="8" y="6" width="204" height="118" rx="18" fill="none" stroke="#3fb6d4" stroke-width="2" opacity=".55"/>
+          <path d="M14 8 Q60 0 108 8" stroke="#3fb6d4" stroke-width="2" fill="none" opacity=".4"/>
+          <path d="M30 84 q22 -26 34 0 q-12 20 -34 0 Z" fill="#f2805c"/>
+          <path d="M62 84 l16 -8 v16 Z" fill="#c95f3f"/>
+          <circle cx="48" cy="80" r="2" fill="#0d2334"/>
+          <path d="M150 70 q-22 -26 -34 0 q12 20 34 0" fill="#3fb6d4" transform="scale(-1,1) translate(-266,0)"/>
+          <circle cx="128" cy="66" r="2" fill="#0d2334"/>
+          <path d="M20 116 q90 8 180 0" stroke="#d8c07f" stroke-width="4" opacity=".5"/>
+        </svg>
+      </div>
+      <p class="q-tag" style="font-size:10.5px;color:var(--text-mute);letter-spacing:.2em">NO. 001 空缸 · 待入鱼</p>
+      <h1>缸还是空的<em>——</em><br>但水已经养好了</h1>
+      <p class="lead">你还没有记录任何一条鱼。加入第一条之后，<b>喂养提醒、水质变化和生长日记</b>都会从这里开始。</p>
+      <button class="home" id="addBtn" type="button">+ 添加第一条鱼</button>
+      <button class="skip" id="skipBtn" type="button">先随便看看别人的缸</button>
+    </section>
+
+    <section class="owned" id="owned">
+      <div class="oh"><span>我的鱼缸</span><span id="ownN">1 条</span></div>
+      <div class="fs">
+        <div class="f"><div class="ic">🐠</div><div class="n">红绿灯鱼 × 6</div><div class="d">入缸 · 今天 14:20</div></div>
+        <div class="f"><div class="ic">🌿</div><div class="n">水榕 1 盆</div><div class="d">已定植 · 第 3 天</div></div>
+      </div>
+    </section>
+
+    <div style="height:90px"></div>
+  </div>
+
+  <nav class="tabbar" aria-label="底部导航">
+    <span class="tb on"><span class="i">🐠</span>鱼缸</span>
+    <span class="tb"><span class="i">🫧</span>水质</span>
+    <span class="tb"><span class="i">🔎</span>图鉴</span>
+    <span class="tb"><span class="i">👤</span>我的</span>
+  </nav>
+</div>
+<script>
+(function(){
+  document.getElementById('addBtn').addEventListener('click',function(){
+    document.getElementById('tank').style.display='none';
+    document.getElementById('owned').classList.add('show');
+    document.querySelector('.appbar .r').textContent='今日 1 条记录';
+  });
+  document.getElementById('skipBtn').addEventListener('click',function(){
+    document.getElementById('tank').style.display='none';
+    document.getElementById('owned').classList.add('show');
+  });
+})();
+</script>
+</body>
+</html>

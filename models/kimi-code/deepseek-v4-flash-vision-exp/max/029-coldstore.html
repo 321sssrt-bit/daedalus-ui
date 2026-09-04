@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>冷链库 · 单据上传</title>
+<style>
+  :root{
+    --freezer:#0c1a24;
+    --freezer-2:#122434;
+    --ice:#3171a5;
+    --ice-deep:#24527c;
+    --ice-soft:rgba(49,113,165,.14);
+    --frost:#dceef8;
+    --frost-soft:#9fc2d8;
+    --frost-mute:#5f84a0;
+    --lime:#9ad96a;
+    --lime-soft:rgba(154,217,106,.14);
+    --warn:#f0b95c;
+    --warn-soft:rgba(240,185,92,.14);
+    --stress:#e9705d;
+    --stress-soft:rgba(233,112,93,.14);
+    --panel:#16293a;
+    --panel-2:#1c3245;
+    --line:rgba(220,238,248,.12);
+    --line-soft:rgba(220,238,248,.07);
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    background:
+      radial-gradient(1000px 600px at 80% -15%, rgba(49,113,165,.14), transparent 60%),
+      linear-gradient(180deg,var(--freezer) 0%,var(--freezer-2) 100%);
+    color:var(--frost);
+    font-family:"Microsoft YaHei","PingFang SC","Noto Sans SC",sans-serif;
+    min-height:100vh;display:flex;align-items:flex-start;justify-content:center;padding:34px 16px 70px;
+  }
+  .dock{width:100%;max-width:980px}
+  .dh{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:22px}
+  .dh .l{display:flex;align-items:center;gap:12px}
+  .dh .l .therm{width:42px;height:42px;border-radius:12px;background:var(--ice);color:#0c1a24;display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 0 24px rgba(49,113,165,.5)}
+  .dh h1{font-size:21px;font-weight:900;letter-spacing:.05em}
+  .dh .sub{font-size:11px;color:var(--frost-mute);margin-top:4px;letter-spacing:.14em}
+  .dh .temp{
+    font-size:12px;color:var(--frost-soft);border:1px solid var(--line);border-radius:99px;padding:8px 16px;
+    display:flex;align-items:center;gap:8px;
+  }
+  .dh .temp i{width:8px;height:8px;border-radius:50%;background:var(--lime);box-shadow:0 0 8px var(--lime)}
+  /* 拖放区 */
+  .drop{
+    border:2px dashed var(--ice);border-radius:16px;background:rgba(49,113,165,.07);
+    padding:44px 24px;text-align:center;cursor:pointer;transition:border-color .15s,background .15s;
+  }
+  .drop:hover{border-color:var(--ice-deep);background:rgba(49,113,165,.12)}
+  .drop.over{border-color:var(--lime);background:var(--lime-soft)}
+  .drop .ic{font-size:42px;margin-bottom:10px}
+  .drop .t{font-size:15px;font-weight:800}
+  .drop .s{font-size:11.5px;color:var(--frost-mute);margin-top:8px}
+  .drop .fmt{display:flex;gap:8px;justify-content:center;margin-top:14px}
+  .drop .fmt span{font-size:10px;padding:3px 10px;border-radius:99px;border:1px solid var(--line);color:var(--frost-soft)}
+  /* 文件列表 */
+  .files{margin-top:22px;display:flex;flex-direction:column;gap:10px}
+  .file{
+    display:grid;grid-template-columns:44px 1fr auto auto;gap:14px;align-items:center;
+    background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 16px;
+    transition:border-color .15s;
+  }
+  .file .fic{width:40px;height:40px;border-radius:9px;background:var(--panel-2);display:flex;align-items:center;justify-content:center;font-size:17px}
+  .file .nm{font-size:13.5px;font-weight:700}
+  .file .mt{font-size:11px;color:var(--frost-mute);margin-top:3px}
+  .file .sz{font-size:11.5px;color:var(--frost-soft);white-space:nowrap}
+  .file .state{display:flex;align-items:center;gap:8px;font-size:11.5px;min-width:120px;justify-content:flex-end}
+  .file .state .pct{color:var(--frost-soft);font-variant-numeric:tabular-nums}
+  .file .bar{width:80px;height:6px;border-radius:99px;background:rgba(220,238,248,.1);overflow:hidden}
+  .file .bar i{display:block;height:100%;border-radius:99px;background:var(--ice)}
+  .file.done .bar i{background:var(--lime)}
+  .file .rst{font-size:11px;padding:5px 12px;border-radius:7px;border:1px solid var(--line);background:none;color:var(--frost-soft);cursor:pointer;font-family:inherit;transition:all .15s}
+  .file .rst:hover{border-color:var(--stress);color:var(--stress)}
+  .file .del{font-size:12px;color:var(--frost-mute);background:none;border:none;cursor:pointer;font-family:inherit}
+  .file .del:hover{color:var(--stress)}
+  .file.fail{border-color:rgba(233,112,93,.5)}
+  .file.fail .state .stxt{color:var(--stress)}
+  .file .stxt{font-size:10.5px;color:var(--frost-mute)}
+  /* 底部 */
+  .acts{display:flex;justify-content:space-between;align-items:center;margin-top:20px;flex-wrap:wrap;gap:10px}
+  .acts .sum{font-size:11.5px;color:var(--frost-mute)}
+  .acts .sum b{color:var(--lime)}
+  .acts .btns{display:flex;gap:10px}
+  .acts .btns button{padding:12px 24px;border-radius:10px;font-size:13.5px;font-weight:800;cursor:pointer;font-family:inherit;transition:all .15s}
+  .acts .clean{background:none;border:1.5px solid var(--line);color:var(--frost-soft)}
+  .acts .clean:hover{border-color:var(--frost);color:var(--frost)}
+  .acts .start{background:var(--ice);border:1.5px solid var(--ice-deep);color:#0c1a24}
+  .acts .start:hover{background:#3d80b8}
+  .acts .start:disabled{opacity:.45;cursor:default}
+  @media (max-width:760px){
+    .file{grid-template-columns:44px 1fr;grid-template-rows:auto auto}
+    .file .sz{grid-column:2}
+    .file .state{grid-column:2;justify-content:flex-start}
+    .stackn{display:none}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .drop,.file,.acts .btns button,.rst{transition:none}
+  }
+</style>
+</head>
+<body>
+<div class="dock">
+  <header class="dh">
+    <div class="l">
+      <span class="therm">❄</span>
+      <div>
+        <h1>冷链库 · 单据上传</h1>
+        <p class="sub">批次 BF-0904 · 收货单/检疫证/温控记录</p>
+      </div>
+    </div>
+    <span class="temp"><i></i>库温 -18.2°C · 链路正常</span>
+  </header>
+
+  <section class="drop" id="drop" role="button" tabindex="0" aria-label="拖放或选择文件">
+    <div class="ic">📄</div>
+    <div class="t">把单据拖到这里，或点击选择文件</div>
+    <div class="s">单文件 ≤ 20MB · 可一次多选 · 上传后自动进入待处理</div>
+    <div class="fmt"><span>PDF</span><span>JPG</span><span>PNG</span><span>XLSX</span></div>
+  </section>
+  <input type="file" id="fileIn" multiple hidden accept=".pdf,.jpg,.jpeg,.png,.xlsx">
+
+  <section class="files" id="files" aria-label="已入列文件"></section>
+
+  <div class="acts">
+    <span class="sum">已入列 <b id="cnt">0</b> 份 · 可就绪 <b id="okN">0</b> 份</span>
+    <div class="btns">
+      <button class="clean" id="cleanBtn" type="button">清空列表</button>
+      <button class="start" id="startBtn" type="button" disabled>开始处理全部</button>
+    </div>
+  </div>
+</div>
+<script>
+(function(){
+  var files=[],seq=0;
+  var drop=document.getElementById('drop'),input=document.getElementById('fileIn'),
+      listEl=document.getElementById('files'),
+      cnt=document.getElementById('cnt'),okN=document.getElementById('okN'),
+      start=document.getElementById('startBtn'),clean=document.getElementById('cleanBtn');
+  var extIcons={pdf:'📕',jpg:'🖼',jpeg:'🖼',png:'🖼',xlsx:'📊'};
+  function addFiles(list){
+    [].slice.call(list).forEach(function(f){
+      if(f.size>20*1024*1024)return;
+      seq++;
+      files.push({id:seq,name:f.name,size:f.size,state:'uploading',pct:0,fail:false});
+    });
+    render();
+  }
+  function sizeStr(b){if(b<1024)return b+' B';if(b<1048576)return (b/1024).toFixed(1)+' KB';return (b/1048576).toFixed(1)+' MB'}
+  function render(){
+    listEl.innerHTML='';
+    files.forEach(function(f){
+      var d=document.createElement('div');d.className='file'+(f.state==='done'?' done':(f.fail?' fail':''));
+      var ext=(f.name.split('.').pop()||'').toLowerCase();
+      d.innerHTML='<div class="fic">'+(extIcons[ext]||'📄')+'</div>'+
+        '<div><div class="nm">'+f.name+'</div><div class="mt">'+sizeStr(f.size)+' · '+(ext==='xlsx'?'表格':(ext==='pdf'?'文档':'图片'))+'</div></div>'+
+        '<div class="sz stackn">'+(f.state==='done'?'—':(f.state==='uploading'?Math.round(f.pct)+'%':'—'))+'</div>'+
+        '<div class="state">'+
+          (f.state==='uploading'?'<span class="bar"><i style="width:'+f.pct+'%"></i></span><span class="pct">'+Math.round(f.pct)+'%</span>':
+           f.fail?'<span class="stxt">✕ 上传失败 · 格式或网络</span><button class="rst">重试</button>':
+           '<span class="stxt" style="color:var(--lime)">✓ 已就绪</span><button class="del">移除</button>')+
+        '</div>';
+      if(f.state==='uploading'){
+        (function(f,d){
+          d.querySelector('.bar i').style.width=f.pct+'%';
+        })(f,d);
+        var t=setInterval(function(){
+          if(f.state!=='uploading'){clearInterval(t);return;}
+          f.pct=Math.min(100,f.pct+Math.random()*14);
+          var bar=d.querySelector('.bar i'),pct=d.querySelector('.pct'),sz=d.querySelector('.stackn');
+          if(bar)bar.style.width=f.pct+'%';
+          if(pct)pct.textContent=Math.round(f.pct)+'%';
+          if(sz)sz.textContent=Math.round(f.pct)+'%';
+          if(f.pct>=100){
+            clearInterval(t);f.state='done';
+            var st=d.querySelector('.state');
+            st.innerHTML='<span class="stxt" style="color:var(--lime)">✓ 已就绪</span><button class="del">移除</button>';
+            sync();
+          }
+        },160);
+      }
+      if(f.fail){
+        d.querySelector('.rst').addEventListener('click',function(){
+          f.fail=false;f.state='uploading';f.pct=0;render();
+        });
+      }
+      if(f.state==='done'){
+        d.querySelector('.del').addEventListener('click',function(){
+          files.splice(files.indexOf(f),1);render();sync();
+        });
+      }
+      listEl.appendChild(d);
+    });
+    sync();
+  }
+  function sync(){
+    cnt.textContent=files.length;
+    okN.textContent=files.filter(function(f){return f.state==='done'&&!f.fail}).length;
+    start.disabled=!files.some(function(f){return f.state==='done'})||files.some(function(f){return f.state==='uploading'});
+  }
+  drop.addEventListener('click',function(){input.click()});
+  drop.addEventListener('dragover',function(e){e.preventDefault();drop.classList.add('over')});
+  drop.addEventListener('dragleave',function(){drop.classList.remove('over')});
+  drop.addEventListener('drop',function(e){e.preventDefault();drop.classList.remove('over');addFiles(e.dataTransfer.files)});
+  input.addEventListener('change',function(){addFiles(input.files);input.value='';});
+  clean.addEventListener('click',function(){files=[];render();});
+  start.addEventListener('click',function(){
+    files.forEach(function(f){
+      if(f.state==='done'&&Math.random()<0.2){f.fail=true;f.state='fail';}
+    });
+    render();
+    synchint:;
+    sync();
+  });
+  render();
+})();
+</script>
+</body>
+</html>

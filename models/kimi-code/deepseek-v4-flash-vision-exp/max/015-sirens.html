@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>红旗消防站 · 告警总台</title>
+<style>
+  :root{
+    --steel:#eef1f4;
+    --steel-2:#e2e7ec;
+    --wall:#f8fafc;
+    --navy:#27364f;
+    --navy-2:#33445e;
+    --red:#c8342c;
+    --red-deep:#9f2b25;
+    --red-soft:#f8e3e0;
+    --gold:#e0a437;
+    --gold-soft:#faf0da;
+    --teal:#3f8d86;
+    --teal-soft:#e0f0ee;
+    --ink:#222c3c;
+    --ink-soft:#5b687c;
+    --ink-mute:#8e99aa;
+    --line:#d3dae2;
+    --line-soft:#e6ebf0;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    background:
+      linear-gradient(180deg,#e9edf2 0%,#dfe5ec 100%);
+    color:var(--ink);
+    font-family:"Microsoft YaHei","PingFang SC","Noto Sans SC",sans-serif;
+    min-height:100vh;display:flex;justify-content:center;padding:0 12px;
+  }
+  .hall{
+    width:100%;max-width:1320px;min-height:100vh;background:var(--wall);
+    display:flex;flex-direction:column;box-shadow:0 0 60px rgba(39,54,79,.12);
+  }
+  .hband{
+    background:var(--navy);color:#f4f6fa;padding:20px 28px 16px;
+    display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;
+    border-bottom:4px solid var(--red);
+  }
+  .hband .unit{display:flex;align-items:center;gap:14px}
+  .hband .unit .badge{
+    width:44px;height:44px;background:var(--red);border-radius:8px;display:flex;align-items:center;justify-content:center;
+    font-size:22px;color:#fff;box-shadow:0 4px 12px rgba(200,52,44,.4);
+  }
+  .hband .unit h1{font-size:19px;font-weight:800;letter-spacing:.06em}
+  .hband .unit .sub{font-size:11px;color:#aab6c9;margin-top:3px;letter-spacing:.16em}
+  .hband .live{display:flex;align-items:center;gap:8px;font-size:12px;color:#e8ecf3;border:1px solid rgba(255,255,255,.22);padding:8px 14px;border-radius:99px}
+  .hband .live i{width:9px;height:9px;border-radius:50%;background:#45d0a8;box-shadow:0 0 8px #45d0a8}
+  .toolbar{
+    display:flex;justify-content:space-between;align-items:center;padding:16px 28px 6px;flex-wrap:wrap;gap:10px;
+    border-bottom:1px solid var(--line-soft);
+  }
+  .tabs{display:flex;gap:6px}
+  .tabs button{
+    padding:8px 16px;font-size:12.5px;border-radius:8px;border:1px solid var(--line);
+    background:var(--wall);color:var(--ink-soft);cursor:pointer;font-family:inherit;transition:all .15s;
+  }
+  .tabs button.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+  .tools2{display:flex;gap:8px;align-items:center}
+  .tools2 button{
+    padding:8px 14px;font-size:12px;border-radius:8px;border:1px solid var(--line);
+    background:none;color:var(--ink-soft);cursor:pointer;font-family:inherit;transition:all .15s;
+  }
+  .tools2 button:hover{border-color:var(--ink);color:var(--ink)}
+  .count-chip{font-size:11.5px;color:var(--ink-mute);padding:8px 10px}
+  /* 列表 */
+  .feed{padding:10px 28px 30px;display:flex;flex-direction:column;gap:10px;flex:1}
+  .row{
+    display:grid;grid-template-columns:52px 1fr auto;gap:14px;align-items:start;
+    background:var(--wall);border:1px solid var(--line-soft);border-left:4px solid var(--teal);
+    border-radius:10px;padding:14px 16px;transition:box-shadow .15s,opacity .2s;
+  }
+  .row:hover{box-shadow:0 6px 18px rgba(39,54,79,.1)}
+  .row .ic{
+    width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;
+    font-size:20px;background:var(--steel-2);
+  }
+  .row .mid{min-width:0}
+  .row .mid .tt{font-size:14px;font-weight:700;color:var(--ink)}
+  .row .mid .tt .pct{font-size:10.5px;font-weight:700;padding:2px 7px;border-radius:99px;margin-left:8px;vertical-align:2px}
+  .pct.fire{background:var(--red-soft);color:var(--red-deep)}
+  .pct.ops{background:var(--gold-soft);color:#8a6415}
+  .pct.hq{background:var(--teal-soft);color:#2a615c}
+  .row .mid .desc{font-size:12px;color:var(--ink-soft);margin-top:5px;line-height:1.7;max-width:560px}
+  .row .mid .meta{font-size:11px;color:var(--ink-mute);margin-top:7px;display:flex;gap:14px;flex-wrap:wrap}
+  .row .side{display:flex;flex-direction:column;align-items:flex-end;gap:10px;justify-content:space-between;min-height:60px}
+  .row .time{font-size:11px;color:var(--ink-mute);white-space:nowrap}
+  .row .expand{
+    font-size:11.5px;color:var(--ink-soft);cursor:pointer;background:none;border:none;font-family:inherit;text-decoration:underline;
+  }
+  .row .expand:hover{color:var(--ink)}
+  .row .read-state{display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--ink-mute)}
+  .row.unread{border-left-color:var(--red);background:#fffefe}
+  .row.unread .read-state{color:var(--red-deep);font-weight:700}
+  .row.is-open .detail{display:block}
+  .detail{display:none;margin-top:10px;padding:12px 14px;background:var(--steel);border-radius:8px;font-size:12px;color:var(--ink-soft);line-height:1.9}
+  .detail b{color:var(--ink)}
+  @media (max-width:900px){
+    .row{grid-template-columns:44px 1fr;}
+    .row .side{grid-column:2;flex-direction:row;align-items:center;justify-content:flex-start}
+    .feed{padding:10px 14px 24px}
+    .tools2 .wide{display:none}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .tabs button,.tools2 button,.row{transition:none}
+  }
+</style>
+</head>
+<body>
+<div class="hall">
+  <header class="hband">
+    <div class="unit">
+      <span class="badge">🚒</span>
+      <div>
+        <h1>红旗消防站 · 告警总台</h1>
+        <p class="sub">第一站区 · 值班主任 洪师傅 · 2026-09-04 星期五</p>
+      </div>
+    </div>
+    <span class="live"><i></i>调度在线 · 通信正常</span>
+  </header>
+
+  <div class="toolbar">
+    <div class="tabs" role="group" aria-label="通知筛选">
+      <button class="on" data-f="all" type="button">全部通知</button>
+      <button data-f="fire" type="button">火警</button>
+      <button data-f="ops" type="button">出动</button>
+      <button data-f="hq" type="button">队务</button>
+    </div>
+    <div class="tools2">
+      <span class="count-chip" id="cnt">未读 3 条</span>
+      <button id="readAll" type="button">全部标为已读</button>
+      <button class="wide" id="filterUnread" data-t="unread" type="button">只看未读</button>
+    </div>
+  </div>
+
+  <section class="feed" id="feed" aria-label="通知列表"></section>
+</div>
+
+<script>
+(function(){
+  var items=[
+    {id:1,cat:'fire',icon:'🔥',title:'芝麻胡同 37 号 · 灶台冒烟',desc:'报警器触发两路，到场确认是油锅起火，已扑灭。',meta:'11 分钟前 · 1 小队到场 · 无人伤亡',time:'09:41',unread:true,expand:'联动：和平里中队备勤；调取屋主电话 138****2201；火调员已约 15:00 复勘。'},
+    {id:2,cat:'ops',icon:'🚒',title:'第二小队出勤 · 前往试验路',desc:'民宅楼道杂物起火，双车出动，预计 12 分钟到达。',meta:'8 分钟前 · 2 车 9 人',time:'09:48',unread:true,expand:'出动单号 C-0904-12；消防通道畅通；水源点 3 号栓可用。'},
+    {id:3,cat:'fire',icon:'📟',title:'自动巡检测试 · 机场北仓库',desc:'消防主机例行巡检通过，未发现误报。',meta:'25 分钟前 · 系统自动',time:'09:24',unread:true,expand:'巡检项：感烟 64 路、手报 12 路；全部正常。'},
+    {id:4,cat:'hq',icon:'📋',title:'值班表调整 → 本周六夜班由小郑代',desc:'原值班主任请假，夜班调整公告。',meta:'1 小时前 · 站部通知',time:'08:40',unread:false,expand:'调整范围：9 月 6 日 22:00–次日 06:00。'},
+    {id:5,cat:'ops',icon:'🧯',title:'演习复盘 · 上期化工场演练',desc:'三车 18 人参加，耗时 22 分钟，处突结论正常。',meta:'2 小时前 · 训练科',time:'07:52',unread:false,expand:'改进项：泵浦接驳再快 20 秒；已列入下周训练大纲。'},
+    {id:6,cat:'hq',icon:'📝',title:'本周消防宣传：周三 14:00 校园讲座',desc:'送宣到实验小学，征集两名讲解员。',meta:'昨天 17:20',time:'昨天',unread:false,expand:'报名截止今晚 22:00；演示器材已封箱。'},
+    {id:7,cat:'fire',icon:'📟',title:'夜巡：南巷平房区无异常',desc:'夜间巡逻结束，未发现火情隐患。',meta:'昨天 06:10',time:'昨天',unread:false,expand:'巡查 42 户，走访独居老人 3 户。'}
+  ];
+  var feed=document.getElementById('feed'),tab='all',onlyUnread=false;
+  function count(){return items.filter(function(i){return i.unread}).length}
+  function render(){
+    feed.innerHTML='';
+    document.getElementById('cnt').textContent='未读 '+count()+' 条';
+    items.forEach(function(it){
+      if(tab!=='all'&&it.cat!==tab)return;
+      if(onlyUnread&&!it.unread)return;
+      var d=document.createElement('div');
+      d.className='row'+(it.unread?' unread':'');
+      var cls=it.cat;
+      d.innerHTML=
+        '<div class="ic" style="background:var(--steel-2)">'+it.icon+'</div>'+
+        '<div class="mid">'+
+          '<div class="tt">'+it.title+'<span class="pct '+cls+'">'+({fire:'火警',ops:'出动',hq:'队务'})[it.cat]+'</span></div>'+
+          '<div class="desc">'+it.desc+'</div>'+
+          '<div class="meta"><span>'+it.meta+'</span><span class="read-state">'+(it.unread?'● 未读':'已读')+'</span></div>'+
+          '<div class="detail">'+it.expand+'</div>'+
+        '</div>'+
+        '<div class="side"><span class="time">'+it.time+'</span>'+
+          '<button class="expand" type="button">展开详情</button></div>';
+      d.querySelector('.expand').addEventListener('click',function(){
+        d.classList.toggle('is-open');
+        this.textContent=d.classList.contains('is-open')?'收起详情':'展开详情';
+      });
+      feed.appendChild(d);
+    });
+  }
+  document.querySelectorAll('.tabs button').forEach(function(b){
+    b.addEventListener('click',function(){
+      document.querySelectorAll('.tabs button').forEach(function(x){x.classList.remove('on')});
+      b.classList.add('on');tab=b.dataset.f;render();
+    });
+  });
+  document.getElementById('readAll').addEventListener('click',function(){
+    items.forEach(function(i){i.unread=false});render();
+  });
+  document.getElementById('filterUnread').addEventListener('click',function(){
+    onlyUnread=!onlyUnread;this.textContent=onlyUnread?'显示全部':'只看未读';
+    this.classList.toggle('on',onlyUnread);render();
+  });
+  render();
+})();
+</script>
+</body>
+</html>

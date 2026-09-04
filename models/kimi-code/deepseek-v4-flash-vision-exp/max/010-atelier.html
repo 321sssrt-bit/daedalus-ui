@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>尺间 · 样衣看板</title>
+<style>
+  :root{
+    --paper:#efe9dc;
+    --paper-2:#e5ddca;
+    --cloth:#f7f2e6;
+    --ink:#26221c;
+    --ink-soft:#554e42;
+    --ink-mute:#8d8574;
+    --graphite:#3d3a33;
+    --leather:#7a5a3a;
+    --lime:#a7c04b;
+    --lime-soft:#e5ecc9;
+    --russet:#b0522d;
+    --russet-soft:#f0d7c8;
+    --teal-w:#3e7d74;
+    --teal-soft:#d8e7e2;
+    --line:#c9bea5;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    background:
+      linear-gradient(rgba(38,34,28,.045) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(38,34,28,.045) 1px,transparent 1px),
+      var(--paper);
+    background-size:32px 32px;
+    color:var(--ink);
+    font-family:"Microsoft YaHei","PingFang SC","Noto Sans SC",sans-serif;
+    min-height:100vh;display:flex;align-items:center;justify-content:center;padding:32px 16px;
+  }
+  .board{
+    width:100%;max-width:1220px;background:var(--paper-2);
+    border:1px solid var(--line);border-radius:3px;
+    box-shadow:0 14px 40px rgba(38,34,28,.18),inset 0 0 0 8px rgba(255,255,255,.45);
+    padding:30px 34px 38px;
+  }
+  .bhead{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid var(--graphite);padding-bottom:16px;margin-bottom:24px}
+  .bhead .lt{display:flex;align-items:center;gap:14px}
+  .bhead .pin{width:14px;height:14px;border-radius:50%;background:var(--russet);box-shadow:0 2px 4px rgba(0,0,0,.3)}
+  .bhead h1{font-size:22px;font-weight:800;letter-spacing:.04em}
+  .bhead .sub{font-size:11px;color:var(--ink-mute);margin-top:4px;letter-spacing:.12em}
+  .bhead .tools{display:flex;gap:10px}
+  .addBtn{
+    display:flex;align-items:center;gap:8px;padding:11px 20px;border:none;border-radius:4px;
+    background:var(--graphite);color:var(--cloth);font-size:14px;font-weight:700;font-family:inherit;
+    cursor:pointer;box-shadow:0 4px 0 #211f1a;transition:background .15s,transform .1s,box-shadow .15s;
+  }
+  .addBtn:hover{background:#4c483e}
+  .addBtn:active{transform:translateY(2px);box-shadow:0 2px 0 #211f1a}
+  .filter{border:1.5px solid var(--graphite);background:var(--cloth);border-radius:4px;padding:9px 14px;font-size:12.5px;color:var(--ink-soft);font-family:inherit;outline:none}
+  /* 列 */
+  .cols{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+  .col{display:flex;flex-direction:column;min-width:0}
+  .colh{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:4px 4px 0 0;background:var(--cloth)}
+  .colh .cl{display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:700;letter-spacing:.16em}
+  .colh .cl i{width:10px;height:10px;border-radius:50%}
+  .colh .cnt{font-size:11px;color:var(--ink-mute)}
+  .colbody{padding:12px 4px 4px;display:flex;flex-direction:column;gap:14px;min-height:200px}
+  .card{
+    background:var(--cloth);border:1px solid var(--line);border-radius:4px;padding:16px 16px 14px;
+    box-shadow:0 3px 0 rgba(38,34,28,.1);cursor:grab;transition:box-shadow .15s,transform .15s;
+  }
+  .card:hover{box-shadow:0 6px 0 rgba(38,34,28,.14);transform:translateY(-1px)}
+  .card .swatch{width:100%;height:86px;border-radius:3px;border:1px solid rgba(0,0,0,.08);margin-bottom:12px;position:relative;overflow:hidden}
+  .card .swatch::after{content:"";position:absolute;inset:0;background:linear-gradient(135deg,transparent 46%,rgba(255,255,255,.4) 50%,transparent 54%)}
+  .card h3{font-size:15px;font-weight:700;margin-bottom:4px}
+  .card .meta{font-size:11px;color:var(--ink-mute);line-height:1.8}
+  .card .tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+  .card .tag{font-size:10px;padding:3px 8px;border-radius:99px;border:1px solid var(--line);color:var(--ink-soft)}
+  .card .who{display:flex;align-items:center;gap:8px;margin-top:12px;padding-top:10px;border-top:1px dashed var(--line)}
+  .card .who .ava{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;color:#fdfaf2;font-weight:700}
+  .card .who span{font-size:11px;color:var(--ink-soft)}
+  .card .move{width:100%;margin-top:10px;padding:7px;font-size:11px;border:1px solid var(--line);border-radius:3px;background:none;color:var(--ink-soft);cursor:pointer;font-family:inherit;transition:border-color .15s,color .15s}
+  .card .move:hover{border-color:var(--graphite);color:var(--ink)}
+  /* 新建弹层 */
+  .sheet{position:fixed;inset:0;background:rgba(38,34,28,.4);display:none;align-items:flex-end;justify-content:center;z-index:20}
+  .sheet.show{display:flex}
+  .form{
+    width:100%;max-width:560px;background:var(--cloth);border-radius:8px 8px 0 0;padding:26px 30px 30px;
+    box-shadow:0 -10px 40px rgba(38,34,28,.3);
+  }
+  .form h2{font-size:18px;margin-bottom:16px}
+  .form label{display:block;font-size:12px;font-weight:700;color:var(--ink-soft);margin:12px 0 6px}
+  .form input,.form select{
+    width:100%;padding:11px 13px;font-size:14px;border:1.5px solid var(--line);border-radius:4px;
+    background:#fffdf7;color:var(--ink);font-family:inherit;outline:none;transition:border-color .15s,box-shadow .15s;
+  }
+  .form input:focus,.form select:focus{border-color:var(--russet);box-shadow:0 0 0 3px rgba(176,82,45,.15)}
+  .form .row{display:flex;gap:12px;margin-top:18px}
+  .form .row button{flex:1;padding:12px;font-size:14px;border-radius:4px;cursor:pointer;font-family:inherit}
+  .form .save{background:var(--graphite);border:2px solid #211f1a;color:var(--cloth);font-weight:700}
+  .form .save:hover{background:#4c483e}
+  .form .cancel{border:1.5px solid var(--line);background:none;color:var(--ink-soft)}
+  .form .cancel:hover{border-color:var(--graphite);color:var(--ink)}
+  @media (max-width:900px){
+    .cols{grid-template-columns:1fr}
+    .board{padding:22px 18px 30px}
+    .bhead{flex-direction:column;align-items:flex-start;gap:14px}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .card,.addBtn,.form input,.form select,.move{transition:none}
+    .card:hover{transform:none}
+  }
+</style>
+</head>
+<body>
+<main class="board">
+  <header class="bhead">
+    <div class="lt">
+      <span class="pin"></span>
+      <div>
+        <h1>样衣看板 · 秋冬企划</h1>
+        <p class="sub">WORKROOM 2F · 裁剪台 · 第 21 周</p>
+      </div>
+    </div>
+    <div class="tools">
+      <select class="filter" id="colFilter" aria-label="按打样人筛选">
+        <option value="">全部打样人</option>
+        <option value="阿黛">阿黛</option>
+        <option value="小舟">小舟</option>
+        <option value="Mia">Mia</option>
+        <option value="老莫">老莫</option>
+      </select>
+      <button class="addBtn" id="addCard" type="button">+ 新建样片</button>
+    </div>
+  </header>
+
+  <section class="cols" id="cols">
+    <div class="col" data-col="样布阶段">
+      <div class="colh"><span class="cl"><i style="background:#b0522d"></i>样布阶段</span><span class="cnt" data-cnt>2</span></div>
+      <div class="colbody"></div>
+    </div>
+    <div class="col" data-col="试身中">
+      <div class="colh"><span class="cl"><i style="background:#3e7d74"></i>试身中</span><span class="cnt" data-cnt>2</span></div>
+      <div class="colbody"></div>
+    </div>
+    <div class="col" data-col="已定版">
+      <div class="colh"><span class="cl"><i style="background:#a7c04b"></i>已定版</span><span class="cnt" data-cnt>2</span></div>
+      <div class="colbody"></div>
+    </div>
+  </section>
+</main>
+
+<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-label="新建样片">
+  <form class="form" id="cardForm">
+    <h2>新建样片卡</h2>
+    <label for="fTitle">样衣名称</label>
+    <input id="fTitle" type="text" maxlength="20" placeholder="例如：立领短款风衣" required>
+    <label for="fFabric">面料 / 颜色</label>
+    <input id="fFabric" type="text" maxlength="20" placeholder="例如：粗纺羊毛 · 石墨灰" required>
+    <label for="fPerson">打样人</label>
+    <select id="fPerson">
+      <option>阿黛</option><option>小舟</option><option>Mia</option><option>老莫</option>
+    </select>
+    <label for="fCol">放入列</label>
+    <select id="fCol">
+      <option>样布阶段</option><option>试身中</option><option>已定版</option>
+    </select>
+    <div class="row">
+      <button type="button" class="cancel" id="fCancel">放下（取消）</button>
+      <button type="submit" class="save">钉上样片卡</button>
+    </div>
+  </form>
+</div>
+
+<script>
+(function(){
+  var seed=[
+    {t:'立领短款风衣',f:'粗纺羊毛 · 石墨灰',p:'阿黛',c:'样布阶段',av:'#4b4a45',meta:'版型 2.0 · 含腰带钩眼 6 对'},
+    {t:'双面呢大衣切样',f:'羊驼混纺 · 雾灰',p:'小舟',c:'样布阶段',av:'#8e9aa6',meta:'廓形待定 · 试扣未配'},
+    {t:'收腰连衣裙',f:'醋酸缎 · 深楝木',p:'Mia',c:'试身中',av:'#7a4a32',meta:'二试完成 · 腰线改 +0.5cm'},
+    {t:'廓形西装外套',f:'羊毛砾纹 · 暖棕',p:'老莫',c:'试身中',av:'#6e5136',meta:'肩宽需再审 · 下周三前'},
+    {t:'直筒九分裤',f:'斜纹棉 · 米白',p:'阿黛',c:'已定版',av:'#d8cdb4',meta:'已录工艺单 · 编号 F-114'},
+    {t:'针织开衫',f:'羊毛混纺 · 苔绿',p:'小舟',c:'已定版',av:'#6b7d5a',meta:'已录工艺单 · 编号 F-121'},
+    {t:'衬衫式外套',f:'水洗棉 · 浅蓝',p:'Mia',c:'试身中',av:'#9db4c0',meta:'一试通过 · 等待二试排期'}
+  ];
+  var colsEl=document.querySelectorAll('.col');
+  function avColor(n){var h=0;for(var i=0;i<n.length;i++)h=(h*31+n.charCodeAt(i))%360;return 'hsl('+h+',26%,46%)'}
+  function render(filter){
+    colsEl.forEach(function(col){
+      var body=col.querySelector('.colbody');body.innerHTML='';
+      seed.forEach(function(c){
+        if(c.c!==col.dataset.col)return;
+        if(filter&&c.p!==filter)return;
+        var d=document.createElement('div');d.className='card';
+        d.innerHTML='<div class="swatch" style="background:'+c.av+'"></div>'+
+          '<h3>'+c.t+'</h3><div class="meta">'+c.f+'<br>'+c.meta+'</div>'+
+          '<div class="who"><span class="ava" style="background:'+avColor(c.p)+'">'+c.p.slice(0,1)+'</span><span>打样：'+c.p+'</span></div>'+
+          '<button class="move" type="button">移到下一列 →</button>';
+        body.appendChild(d);
+      });
+    });
+  }
+  document.querySelectorAll('.move').length; // sync not needed; delegate:
+  document.getElementById('cols').addEventListener('click',function(e){
+    var btn=e.target.closest('.move');if(!btn)return;
+    var card=btn.closest('.card'),title=card.querySelector('h3').textContent;
+    var item=seed.find(function(c){return c.t===title});if(!item)return;
+    var order=['样布阶段','试身中','已定版'],i=order.indexOf(item.c);
+    if(i<order.length-1){item.c=order[i+1];}
+    render(document.getElementById('colFilter').value);
+  });
+  document.getElementById('colFilter').addEventListener('change',function(){render(this.value)});
+  var sheet=document.getElementById('sheet');
+  document.getElementById('addCard').addEventListener('click',function(){
+    sheet.classList.add('show');document.getElementById('fTitle').focus();
+  });
+  document.getElementById('fCancel').addEventListener('click',function(){sheet.classList.remove('show')});
+  sheet.addEventListener('click',function(e){if(e.target===sheet)sheet.classList.remove('show')});
+  document.getElementById('cardForm').addEventListener('submit',function(e){
+    e.preventDefault();
+    var t=document.getElementById('fTitle').value.trim(),
+        f=document.getElementById('fFabric').value.trim(),
+        p=document.getElementById('fPerson').value,
+        c=document.getElementById('fCol').value;
+    if(!t||!f)return;
+    seed.push({t:t,f:f,p:p,c:c,av:'#b9ad93',meta:'新钉卡片 · 待打样'});
+    render(document.getElementById('colFilter').value);
+    sheet.classList.remove('show');
+    document.getElementById('fTitle').value='';document.getElementById('fFabric').value='';
+  });
+  render('');
+})();
+</script>
+</body>
+</html>

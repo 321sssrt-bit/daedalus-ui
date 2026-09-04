@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>蓝湄钱包 · 转账</title>
+<style>
+  :root{
+    --sea:#0d2437;
+    --sea-2:#123047;
+    --jade:#2fbfa0;
+    --jade-deep:#1e8f76;
+    --jade-soft:rgba(47,191,160,.13);
+    --coral:#e8654f;
+    --coral-soft:rgba(232,101,79,.13);
+    --gold:#e8b64c;
+    --ink:#1d3447;
+    --ink-soft:#54687b;
+    --ink-mute:#93a5b5;
+    --line:#cfdde6;
+    --line-soft:#e2ecf2;
+    --page:#f2f7f9;
+    --white:#ffffff;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:#d8e5ec;font-family:"Microsoft YaHei","PingFang SC","Noto Sans SC",sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:26px 14px}
+  .phone{
+    width:390px;max-width:100%;height:844px;max-height:calc(100vh - 40px);background:linear-gradient(180deg,#f2f7f9,#e7f0f4);
+    border-radius:36px;border:1px solid #b6c9d4;overflow:hidden;box-shadow:0 24px 60px rgba(13,36,55,.28),inset 0 0 0 6px #fff;
+    display:flex;flex-direction:column;position:relative;
+  }
+  .notch{position:absolute;top:8px;left:50%;transform:translateX(-50%);width:120px;height:22px;border-radius:99px;background:#0d2437;z-index:20}
+  .screen{flex:1;display:flex;flex-direction:column;overflow-y:auto;position:relative}
+  .screen::-webkit-scrollbar{width:0}
+  .bar{
+    position:sticky;top:0;z-index:20;background:linear-gradient(135deg,var(--sea) 0%,var(--sea-2) 100%);
+    padding:44px 16px 12px;color:#f4fbf9;display:flex;align-items:center;gap:12px;
+  }
+  .bar .b{width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.14);display:flex;align-items:center;justify-content:center;font-size:13px;cursor:pointer}
+  .bar .t{font-size:15px;font-weight:900}
+  .bar .bal{margin-left:auto;font-size:10.5px;color:#9ecfc2;text-align:right}
+  .bar .bal b{display:block;font-size:15px;color:#fff;margin-top:2px}
+  /* 视图 */
+  .view{display:none;padding:16px 16px 30px}
+  .view.show{display:block}
+  .card{background:var(--white);border:1px solid var(--line);border-radius:16px;padding:16px 18px}
+  .card h2{font-size:13px;font-weight:900;color:var(--ink-soft);margin-bottom:10px}
+  /* 收款人 */
+  .ppl{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+  .pp{
+    background:var(--white);border:1.5px solid var(--line);border-radius:14px;padding:14px 12px;text-align:center;cursor:pointer;transition:all .12s;
+  }
+  .pp:hover{border-color:var(--jade-deep)}
+  .pp.sel{border-color:var(--jade);background:var(--jade-soft)}
+  .pp .ava{width:44px;height:44px;border-radius:50%;margin:0 auto 8px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;font-weight:800}
+  .pp .nm{font-size:12.5px;font-weight:800;color:var(--ink)}
+  .pp .acc{font-size:9.5px;color:var(--ink-mute);margin-top:3px}
+  .pp .tag{font-size:9.5px;color:var(--jade-deep);margin-top:5px}
+  /* 金额 */
+  .amt-row{display:flex;align-items:center;gap:8px;background:#fff;border:1.5px solid var(--line);border-radius:14px;padding:12px 16px;margin-bottom:12px}
+  .amt-row .cny{font-size:24px;font-weight:900;color:var(--ink-soft)}
+  .amt-row input{flex:1;border:none;outline:none;font-size:26px;font-weight:900;color:var(--ink);background:none;font-family:inherit;min-width:0}
+  .amt-row input::placeholder{color:var(--ink-mute)}
+  .amt-row.bad{border-color:var(--coral);background:var(--coral-soft)}
+  .quick{display:flex;gap:8px;margin-bottom:12px}
+  .quick button{
+    flex:1;padding:9px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink-soft);
+    font-size:12.5px;cursor:pointer;font-family:inherit;
+  }
+  .quick button:hover{border-color:var(--jade)}
+  .balnote{font-size:11px;color:var(--ink-mute);margin-bottom:14px;line-height:1.8}
+  .balnote b{color:var(--ink)}
+  .balnote .warn{color:var(--coral);font-weight:800}
+  /* 来源 */
+  .src{display:flex;gap:10px;margin-bottom:16px}
+  .src .s{
+    flex:1;border:1.5px solid var(--line);border-radius:12px;padding:11px 10px;text-align:center;cursor:pointer;background:#fff;transition:all .12s;font-size:11.5px;
+  }
+  .src .s.sel{border-color:var(--jade);background:var(--jade-soft)}
+  .src .s .n{font-size:12.5px;font-weight:900;color:var(--ink)}
+  .src .s .d{font-size:9.5px;color:var(--ink-mute);margin-top:3px}
+  .src .s.dim{opacity:.5}
+  /* 行动 */
+  .go{
+    width:100%;padding:14px;border:none;border-radius:14px;background:var(--jade);color:#062e24;font-size:15px;font-weight:900;
+    cursor:pointer;font-family:inherit;box-shadow:0 5px 0 var(--jade-deep);transition:background .15s,transform .1s;
+  }
+  .go:active{transform:translateY(2px);box-shadow:0 2px 0 var(--jade-deep)}
+  .go:disabled{background:var(--ink-mute);box-shadow:0 5px 0 #7c8b96;cursor:default}
+  tap{color:#000}
+  .fb{min-height:38px;margin-top:12px;padding:10px 13px;border-radius:12px;font-size:12px;line-height:1.8;background:var(--jade-soft);color:#0e5f4c}
+  .fb.err{background:var(--coral-soft);color:#8f3d2c}
+  .fb.ok{background:rgba(47,191,160,.16);color:#0e5f4c}
+  /* 凭证 */
+  .receipt{text-align:center;padding-top:6px}
+  .receipt .check{width:70px;height:70px;border-radius:50%;background:var(--jade);color:#062e24;display:flex;align-items:center;justify-content:center;font-size:30px;margin:0 auto 14px}
+  .receipt h1{font-size:20px;font-weight:900}
+  .receipt .no{font-size:12px;color:var(--ink-mute);margin-top:6px;font-family:"Courier New",Consolas,monospace}
+  .receipt .rows{margin-top:16px;text-align:left}
+  .receipt .row{display:flex;justify-content:space-between;padding:8px 0;font-size:12.5px;color:var(--ink-soft);border-bottom:1px solid var(--line-soft)}
+  .receipt .row:last-child{border-bottom:none}
+  .receipt .row b{color:var(--ink)}
+  .receipt .again{
+    margin-top:18px;width:100%;padding:12px;border:1.5px solid var(--line);border-radius:12px;background:#fff;color:var(--ink-soft);font-size:13px;font-weight:800;cursor:pointer;font-family:inherit;
+  }
+  @media (prefers-reduced-motion:reduce){
+    .pp,.src .s,.go{transition:none}
+  }
+</style>
+</head>
+<body>
+<div class="phone">
+  <span class="notch"></span>
+  <div class="screen">
+    <header class="bar">
+      <span class="b" id="navBack">‹</span>
+      <span class="t">转账</span>
+      <span class="bal">可用余额<b id="balTop">¥1,286.40</b></span>
+    </header>
+
+    <!-- 1 选收款人 -->
+    <section class="view show" id="v1">
+      <p style="font-size:11px;color:var(--ink-mute);letter-spacing:.2em;margin:0 2px 12px">STEP 1 · 收款人</p>
+      <div class="ppl">
+        <div class="pp sel" data-n="三叔" data-a="137****8811"><span class="ava" style="background:#e8654f">三</span><div class="nm">三叔</div><div class="acc">137****8811</div><div class="tag">常用 · 最近</div></div>
+        <div class="pp" data-n="豆豆（妹）" data-a="136****2044"><span class="ava" style="background:#2fbfa0">豆</span><div class="nm">豆豆（妹）</div><div class="acc">136****2044</div><div class="tag">家人</div></div>
+        <div class="pp" data-n="房东王姐" data-a="188****3412"><span class="ava" style="background:#3f79c2">王</span><div class="nm">房东王姐</div><div class="acc">188****3412</div><div class="tag">房租</div></div>
+        <div class="pp" data-n="修车铺老康" data-a="159****6720"><span class="ava" style="background:#e8b64c">康</span><div class="nm">修车铺老康</div><div class="acc">159****6720</div><div class="tag">生活</div></div>
+      </div>
+      <button class="go" id="next1" type="button">下一步：输金额</button>
+    </section>
+
+    <!-- 2 输金额 -->
+    <section class="view" id="v2">
+      <p style="font-size:11px;color:var(--ink-mute);letter-spacing:.2em;margin:0 2px 12px">STEP 2 · 金额（收款人：<b id="who2" style="color:var(--ink)">三叔</b>）</p>
+      <div class="amt-row" id="amtRow">
+        <span class="cny">¥</span>
+        <input id="amt" type="number" inputmode="decimal" placeholder="0.00">
+      </div>
+      <div class="quick">
+        <button data-v="88" type="button">¥88</button>
+        <button data-v="200" type="button">¥200</button>
+        <button data-v="500" type="button">¥500</button>
+        <button data-v="全" type="button">全部转出</button>
+      </div>
+      <p class="balnote" id="balNote">可用余额 <b>¥1,286.40</b> · 单笔限 2,000 元</p>
+      <div style="margin-bottom:16px;font-size:12px;color:var(--ink-soft)">资金来源</div>
+      <div class="src">
+        <div class="s sel" data-s="蓝湄余额"><div class="n">蓝湄余额</div><div class="d">¥1,286.40</div></div>
+        <div class="s" data-s="工行尾号7731"><div class="n">工行 尾号7731</div><div class="d">¥4,530.00</div></div>
+      </div>
+      <button class="go" id="next2" type="button">确认转账</button>
+      <div class="fb" id="fb2" style="display:none"></div>
+    </section>
+
+    <!-- 3 确认 -->
+    <section class="view" id="v3">
+      <p style="font-size:11px;color:var(--ink-mute);letter-spacing:.2em;margin:0 2px 12px">STEP 3 · 最后核对</p>
+      <div class="card">
+        <div class="row" style="display:flex;justify-content:space-between;padding:6px 0;font-size:12.5px;color:var(--ink-soft)"><span>收款人</span><b style="color:var(--ink)">三叔</b></div>
+        <div class="row" style="display:flex;justify-content:space-between;padding:6px 0;font-size:12.5px;color:var(--ink-soft)"><span>转账金额</span><b id="cAmt" style="color:var(--ink)">¥0.00</b></div>
+        <div class="row" style="display:flex;justify-content:space-between;padding:6px 0;font-size:12.5px;color:var(--ink-soft)"><span>资金来源</span><b id="cSrc" style="color:var(--ink)">蓝湄余额</b></div>
+        <div class="row" style="display:flex;justify-content:space-between;padding:6px 0;font-size:12.5px;color:var(--ink-soft)"><span>手续费</span><b id="cFee" style="color:var(--ink)">¥0.00</b></div>
+      </div>
+      <button class="go" id="next3" type="button" style="margin-top:14px">确认转出</button>
+      <div class="fb err" id="fb3" style="display:none"></div>
+    </section>
+
+    <!-- 4 凭证 -->
+    <section class="view" id="v4">
+      <div class="receipt">
+        <span class="check">✓</span>
+        <h1>转账成功</h1>
+        <p class="no" id="rcNo">#TX-260904-8841</p>
+        <div class="card rows" id="rcRows"></div>
+        <button class="again" id="rcAgain" type="button">再转一笔</button>
+      </div>
+    </section>
+  </div>
+</div>
+<script>
+(function(){
+  var BAL=1286.40,BANK=4530.00;
+  var pick=null,amt='',src='蓝湄余额';
+  var views={1:document.getElementById('v1'),2:document.getElementById('v2'),3:document.getElementById('v3'),4:document.getElementById('v4')};
+  var backMap={1:'',2:1,3:2,4:''};
+  function show(n){Object.keys(views).forEach(function(k){views[k].classList.toggle('show',String(k)===String(n))});}
+  function money(n){return '¥'+n.toFixed(2)}
+  function getAvail(){return src==='蓝湄余额'?BAL:BANK}
+  document.querySelectorAll('.pp').forEach(function(p){
+    p.addEventListener('click',function(){
+      document.querySelectorAll('.pp').forEach(function(x){x.classList.remove('sel')});
+      p.classList.add('sel');pick=p.dataset;
+      updateWho();
+    });
+  });
+  function updateWho(){document.getElementById('who2').textContent=pick?pick.n:'—'}
+  pick=document.querySelector('.pp.sel').dataset;updateWho();
+  document.getElementById('next1').addEventListener('click',function(){show(2)});
+  document.querySelectorAll('.quick button').forEach(function(b){
+    b.addEventListener('click',function(){
+      var v=b.dataset.v;
+      amt=v==='全'?String(BAL):v;
+      document.getElementById('amt').value=amt;
+      refresh2();
+    });
+  });
+  var amtInput=document.getElementById('amt');
+  amtInput.addEventListener('input',function(){
+    amt=amtInput.value;refresh2();
+  });
+  function refresh2(){
+    var a=parseFloat(amt)||0;
+    var row=document.getElementById('amtRow'),fb=document.getElementById('fb2');
+    row.classList.remove('bad');fb.style.display='none';
+    if(a>getAvail()){
+      row.classList.add('bad');
+      fb.style.display='block';
+      fb.className='fb err';
+      fb.innerHTML='将超出可用余额（当前可用 <b>'+money(getAvail())+'</b>）——仍可点「确认转账」，系统会阻止并让你改。';
+    }
+    document.getElementById('next2').disabled=false;
+    document.getElementById('next2').textContent='确认转账';
+  }
+  document.querySelectorAll('.src .s').forEach(function(s){
+    s.addEventListener('click',function(){
+      document.querySelectorAll('.src .s').forEach(function(x){x.classList.remove('sel')});
+      s.classList.add('sel');src=s.dataset.s;refresh2();
+      document.getElementById('balNote').innerHTML='可用余额 <b>'+money(getAvail())+'</b> · 单笔限 2,000 元';
+    });
+  });
+  document.getElementById('next2').addEventListener('click',function(){
+    var a=parseFloat(amt)||0;
+    if(!(a>0)){
+      var fb=document.getElementById('fb2');fb.style.display='block';fb.className='fb err';
+      fb.textContent='请输入一个大于 0 的金额。';
+      return;
+    }
+    if(a>getAvail()){
+      var fb=document.getElementById('fb2');fb.style.display='block';fb.className='fb err';
+      fb.innerHTML='× 余额不足：可用 <b>'+money(getAvail())+'</b>，已阻止转账。<br>请降低金额或切换到「工行 尾号7731」，然后再次点击确认。';
+      return;
+    }
+    document.getElementById('cAmt').textContent=money(a);
+    document.getElementById('cSrc').textContent=src;
+    document.getElementById('cFee').textContent='¥0.00';
+    show(3);
+  });
+  document.getElementById('next3').addEventListener('click',function(){
+    var a=parseFloat(amt)||0;
+    if(a>getAvail()){
+      var fb=document.getElementById('fb3');fb.style.display='block';
+      fb.innerHTML='× 余额不足（可用 '+money(getAvail())+'）。<br>已返回金额页：降低金额或切换资金来源后可重新确认。';
+      setTimeout(function(){show(2);fb3hide();},1600);
+      return;
+    }
+    // 成功
+    var rows=document.getElementById('rcRows');rows.innerHTML='';
+    [['转账编号','#TX-260904-8841'],['收款人',pick?pick.n:'—'],['金额',money(a)],['资金来源',src],['到账','实时 · 已入对方账户']].forEach(function(r){
+      var d=document.createElement('div');d.className='row';
+      d.innerHTML='<span>'+r[0]+'</span><b>'+r[1]+'</b>';
+      rows.appendChild(d);
+    });
+    show(4);
+    document.getElementById('next3').textContent='确认转出';
+  });
+  function fb3hide(){document.getElementById('fb3').style.display='none'}
+  document.getElementById('rcAgain').addEventListener('click',function(){
+    amt='';amtInput.value='';fb3hide();show(1);
+    document.querySelectorAll('.pp').forEach(function(x){x.classList.remove('sel')});
+    document.querySelectorAll('.pp')[0].classList.add('sel');
+    pick=document.querySelector('.pp.sel').dataset;updateWho();
+  });
+  document.getElementById('navBack').addEventListener('click',function(){
+    // 从非第一步返回
+    var cur=Object.keys(views).find(function(k){return views[k].classList.contains('show')});
+    if(String(cur)!=='1'){show(backMap[cur]||1);}
+  });
+  show(1);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>渡口粮行 · 最后验单</title>
+<style>
+  :root{
+    --dock:#eaf3f6;
+    --dock-2:#dce9ee;
+    --canvas:#fbfdff;
+    --deck:#16455b;
+    --deck-2:#0e3446;
+    --water:#2f8fb3;
+    --water-deep:#1f6b8c;
+    --water-soft:rgba(47,143,179,.12);
+    --ink:#1c3442;
+    --ink-soft:#4b6472;
+    --ink-mute:#8aa0ab;
+    --sun:#e0a33a;
+    --sun-soft:#f8ecd4;
+    --line:#c9dbe3;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    background:
+      radial-gradient(900px 520px at 50% -10%, rgba(255,255,255,.55), transparent 60%),
+      var(--dock);
+    color:var(--ink);
+    font-family:"Microsoft YaHei","PingFang SC","Noto Sans SC",sans-serif;
+    min-height:100vh;display:flex;justify-content:center;padding:0 16px 70px;
+  }
+  .wrap{width:100%;max-width:1020px}
+  .mast{
+    background:var(--deck);color:var(--canvas);padding:18px 26px;border-radius:10px 10px 0 0;
+    display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;
+  }
+  .mast .nm{font-size:18px;font-weight:900;letter-spacing:.1em;display:flex;align-items:center;gap:10px}
+  .mast .nm .w{width:30px;height:30px;border-radius:50%;background:var(--sun);color:#3a2c10;display:flex;align-items:center;justify-content:center;font-size:15px}
+  .mast .step{font-size:11.5px;color:#bcd7e2}
+  .main{
+    background:var(--canvas);border:1px solid var(--line);border-top:none;
+    border-radius:0 0 12px 12px;padding:30px 34px 34px;
+    display:grid;grid-template-columns:1.5fr 1fr;gap:30px;
+  }
+  .confirm h2{font-size:15px;font-weight:800;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+  .confirm h2 .n{width:22px;height:22px;border-radius:50%;background:var(--water);color:#fff;font-size:12px;display:flex;align-items:center;justify-content:center}
+  .sum-card{
+    border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:20px;
+  }
+  .sum-head{
+    background:var(--water-soft);padding:12px 18px;font-size:12.5px;font-weight:800;color:var(--water-deep);
+    display:flex;justify-content:space-between;
+  }
+  .sum-row{
+    padding:19px 18px;border-bottom:1px solid var(--line);display:grid;grid-template-columns:52px 1fr;gap:12px;align-items:center;
+  }
+  .sum-row:last-child{border-bottom:none}
+  .sum-row .pic{width:52px;height:52px;border-radius:8px;background:var(--dock-2);overflow:hidden}
+  .sum-row .pic svg{width:100%;height:100%}
+  .sum-row .nm{font-size:13px;font-weight:700}
+  .sum-row .mm{font-size:11px;color:var(--ink-soft);margin-top:3px}
+  .sum-row .rr{text-align:right;font-size:12px;color:var(--ink-soft)}
+  .sum-row .rr b{display:block;font-size:14.5px;color:var(--ink)}
+  .deliver{
+    display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;
+  }
+  .deliver .dc{
+    border:1px solid var(--line);border-radius:10px;padding:14px 16px;
+  }
+  .deliver .dc .t{font-size:11px;color:var(--ink-mute);margin-bottom:6px}
+  .deliver .dc .v{font-size:13px;font-weight:700;line-height:1.6}
+  /* 支付方式 */
+  .payways{display:flex;flex-direction:column;gap:10px}
+  .pw{
+    display:flex;align-items:center;gap:12px;border:1.5px solid var(--line);border-radius:10px;
+    padding:14px 16px;cursor:pointer;transition:all .15s;background:#fff;
+  }
+  .pw:hover{border-color:var(--water-deep)}
+  .pw.sel{border-color:var(--water);background:var(--water-soft)}
+  .pw .radio{width:18px;height:18px;border-radius:50%;border:2px solid var(--ink-mute);flex:none;position:relative}
+  .pw.sel .radio{border-color:var(--water)}
+  .pw.sel .radio::after{content:"";position:absolute;inset:3px;border-radius:50%;background:var(--water)}
+  .pw .icon{font-size:18px}
+  .pw .lbl{font-size:13px;font-weight:700}
+  .pw .lbl small{display:block;font-size:10.5px;color:var(--ink-mute);font-weight:400;margin-top:2px}
+  .extra{font-size:11px;color:var(--ink-mute);margin-top:10px;display:flex;align-items:center;gap:6px}
+  /* 账单 */
+  .bill{
+    background:var(--dock);border:1px solid var(--line);border-radius:12px;padding:20px 20px 18px;
+    align-self:start;position:sticky;top:20px;
+  }
+  .bill h3{font-size:13px;font-weight:800;margin-bottom:12px}
+  .bill .r{display:flex;justify-content:space-between;font-size:12.5px;color:var(--ink-soft);padding:6px 0}
+  .bill .r.big{font-size:15px;font-weight:900;color:var(--ink);border-top:1px dashed var(--line);margin-top:8px;padding-top:14px}
+  .bill .r.big b{font-size:22px;color:var(--water-deep)}
+  .bill .free{font-size:11px;color:var(--water-deep);background:var(--water-soft);border-radius:8px;padding:8px 10px;margin-top:12px;line-height:1.7}
+  .pay{
+    width:100%;margin-top:16px;padding:15px;border:none;border-radius:10px;background:var(--water);
+    color:#fff;font-size:15.5px;font-weight:900;letter-spacing:.16em;cursor:pointer;font-family:inherit;
+    box-shadow:0 6px 0 var(--water-deep);transition:background .15s,transform .1s,box-shadow .1s;
+  }
+  .pay:hover{background:#38a0c6}
+  .pay:active{transform:translateY(2px);box-shadow:0 3px 0 var(--water-deep)}
+  .pay.paid{background:var(--sun);box-shadow:0 5px 0 #b8862e}
+  .note{font-size:10.5px;color:var(--ink-mute);text-align:center;margin-top:12px;line-height:1.8}
+  @media (max-width:860px){
+    .main{grid-template-columns:1fr}
+    .bill{position:static}
+    .deliver{grid-template-columns:1fr}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .pw,.pay{transition:none}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="mast">
+    <div class="nm"><span class="w">●</span>渡口粮行 · 结账</div>
+    <span class="step">共 3 步 · 当前第 3 步：核对与支付</span>
+  </header>
+
+  <section class="main">
+    <div class="confirm" aria-label="订单确认">
+      <h2><span class="n">1</span> 验单</h2>
+      <div class="sum-card">
+        <div class="sum-head"><span>订单 D-0931 · 渡口粮行</span><span>3 件</span></div>
+        <div class="sum-row">
+          <span class="pic"><svg viewBox="0 0 52 52"><rect width="52" height="52" fill="#dce9ee"/><rect x="10" y="14" width="32" height="26" fill="#c9b07a"/><path d="M14 18 h24" stroke="#8a6f3e" stroke-width="2"/></svg></span>
+          <div><div class="nm">蜜枣 500g</div><div class="mm">大颗粒 · 罐装</div></div>
+          <div class="rr">×2<b>¥35.6</b></div>
+        </div>
+        <div class="sum-row">
+          <span class="pic"><svg viewBox="0 0 52 52"><rect width="52" height="52" fill="#dce9ee"/><circle cx="26" cy="26" r="15" fill="#e0a33a"/><circle cx="26" cy="26" r="7" fill="#b8862e"/></svg></span>
+          <div><div class="nm">桂圆干 250g</div><div class="mm">无核 · 纸盒</div></div>
+          <div class="rr">×1<b>¥23.0</b></div>
+        </div>
+        <div class="sum-row">
+          <span class="pic"><svg viewBox="0 0 52 52"><rect width="52" height="52" fill="#dce9ee"/><rect x="12" y="12" width="28" height="28" rx="4" fill="#2f8fb3"/><circle cx="26" cy="26" r="6" fill="#eaf3f6"/></svg></span>
+          <div><div class="nm">藕粉 400g</div><div class="mm">古法 · 含糖低</div></div>
+          <div class="rr">×1<b>¥19.9</b></div>
+        </div>
+      </div>
+
+      <div class="deliver">
+        <div class="dc"><div class="t">收货地址</div><div class="v">江畔新村 3 栋 502<br>沈阿婆（138****0021）</div></div>
+        <div class="dc"><div class="t">预计送达</div><div class="v">9 月 6 日 上午<br>渡口自提点 · 12 号窗口</div></div>
+      </div>
+
+      <h2><span class="n">2</span> 支付方式</h2>
+      <div class="payways" id="payways">
+        <div class="pw sel" data-p="沿岸电子钱包"><span class="radio"></span><span class="icon">📱</span><span class="lbl">沿岸电子钱包<small>余额 ¥128.4 可用 · 免手续费</small></span></div>
+        <div class="pw" data-p="银行卡"><span class="radio"></span><span class="icon">💳</span><span class="lbl">尾号 7731 银行卡<small>单笔限额 ¥5,000</small></span></div>
+        <div class="pw" data-p="到店付现"><span class="radio"></span><span class="icon">💴</span><span class="lbl">到店付现<small>自提时在窗口扫码/现金</small></span></div>
+      </div>
+      <p class="extra">☑ 开电子发票（抬头：沈阿婆）</p>
+    </div>
+
+    <aside class="bill" aria-label="账单">
+      <h3>本次应付</h3>
+      <div class="r"><span>商品小计</span><span>¥78.5</span></div>
+      <div class="r"><span>配送费</span><span>免运费</span></div>
+      <div class="r"><span>优惠</span><span>−¥5.0（新客券）</span></div>
+      <div class="r big"><span>应付合计</span><b>¥73.5</b></div>
+      <p class="free">用沿岸电子钱包支付立减 ¥2——本单应付 ¥71.5。</p>
+      <button class="pay" id="payBtn" type="button">确认支付 ¥73.5</button>
+      <p class="note">支付后可在「订单 » 待收」查看凭证 · 支持 7 天退换</p>
+    </aside>
+  </section>
+</div>
+<script>
+(function(){
+  var ways=[].slice.call(document.querySelectorAll('.pw')),
+      payBtn=document.getElementById('payBtn'),
+      current='沿岸电子钱包';
+  ways.forEach(function(w){
+    w.addEventListener('click',function(){
+      ways.forEach(function(x){x.classList.remove('sel')});
+      w.classList.add('sel');current=w.dataset.p;
+      payBtn.textContent=current==='沿岸电子钱包'?'确认支付 ¥71.5':'确认支付 ¥73.5';
+    });
+  });
+  payBtn.addEventListener('click',function(){
+    payBtn.classList.add('paid');
+    payBtn.textContent='✓ 支付完成 · 凭证已生成';
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>标本园 · 研究员名录</title>
+<style>
+  :root{
+    --meadow:#eef2e6;
+    --meadow-2:#e3ead7;
+    --leaf:#4d6b3a;
+    --leaf-deep:#37512a;
+    --leaf-soft:#dfe8cf;
+    --oak:#6d4f33;
+    --oak-deep:#4e3722;
+    --clay:#b9773f;
+    --clay-soft:#f0e2d0;
+    --ink:#25301e;
+    --ink-soft:#4c5a3c;
+    --ink-mute:#8a927b;
+    --line:#c8cdaa;
+    --card:#fbfcf5;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    background:
+      radial-gradient(900px 520px at 12% -12%, rgba(77,107,58,.14), transparent 60%),
+      var(--meadow);
+    color:var(--ink);
+    font-family:"Microsoft YaHei","PingFang SC","Noto Sans SC",sans-serif;
+    min-height:100vh;display:flex;justify-content:center;padding:0 12px;
+  }
+  .lab{
+    width:100%;max-width:1240px;min-height:100vh;background:var(--meadow-2);
+    border-left:1px solid var(--line);border-right:1px solid var(--line);
+    display:flex;flex-direction:column;
+  }
+  .labhead{
+    display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:14px;
+    padding:28px 34px 18px;border-bottom:3px solid var(--leaf-deep);
+    background:linear-gradient(180deg,#f4f7ec,#eef2e6);
+  }
+  .labhead .idn{display:flex;align-items:center;gap:14px}
+  .labhead .idn .stem{
+    width:44px;height:44px;border-radius:50%;background:var(--leaf);
+    display:flex;align-items:center;justify-content:center;color:#f2f6e8;font-size:20px;
+    box-shadow:0 6px 14px rgba(77,107,58,.3);
+  }
+  .labhead h1{font-size:20px;font-weight:800;letter-spacing:.08em}
+  .labhead .sub{font-size:11px;color:var(--ink-mute);margin-top:4px;letter-spacing:.2em}
+  .labhead .actions{display:flex;gap:10px}
+  .search{
+    display:flex;align-items:center;gap:8px;background:var(--card);border:1.5px solid var(--line);
+    border-radius:99px;padding:9px 16px;min-width:260px;
+  }
+  .search input{flex:1;border:none;outline:none;background:none;font-size:13px;color:var(--ink);font-family:inherit}
+  .search input::placeholder{color:var(--ink-mute)}
+  .invite{
+    padding:10px 20px;border:none;border-radius:99px;background:var(--leaf);color:#f2f6e8;
+    font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;
+    box-shadow:0 6px 14px rgba(77,107,58,.28);transition:background .15s,transform .1s;
+  }
+  .invite:hover{background:var(--leaf-deep)}
+  .invite:active{transform:translateY(1px)}
+  /* 过滤 */
+  .filters{display:flex;align-items:center;gap:10px;padding:14px 34px 4px;flex-wrap:wrap}
+  .filters .taggrp{display:flex;gap:6px}
+  .filters button,.filters select{
+    padding:7px 14px;font-size:12px;border:1px solid var(--line);border-radius:99px;
+    background:var(--card);color:var(--ink-soft);cursor:pointer;font-family:inherit;transition:all .15s;
+  }
+  .filters button.on{background:var(--leaf-deep);color:#f2f6e8;border-color:var(--leaf-deep)}
+  .filters .count{margin-left:auto;font-size:11.5px;color:var(--ink-mute)}
+  /* 网格 */
+  .grid{padding:20px 34px 40px;display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+  .member{
+    background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px 20px 18px;
+    box-shadow:0 3px 10px rgba(78,55,34,.08);cursor:pointer;transition:box-shadow .15s,transform .15s;
+    display:flex;flex-direction:column;gap:0;
+  }
+  .member:hover{box-shadow:0 10px 24px rgba(78,55,34,.16);transform:translateY(-2px)}
+  .member .top{display:flex;align-items:center;gap:13px}
+  .member .ava{
+    width:52px;height:52px;border-radius:50%;flex:none;
+    display:flex;align-items:center;justify-content:center;color:#f6f9ef;font-size:20px;font-weight:700;
+  }
+  .member .nm{font-size:15.5px;font-weight:800;color:var(--ink)}
+  .member .role{font-size:11.5px;color:var(--ink-soft);margin-top:3px}
+  .member .tagrow{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+  .member .tag{font-size:10.5px;padding:3px 9px;border-radius:99px;border:1px solid var(--line);color:var(--ink-soft);background:var(--meadow)}
+  .member .tag.leaf{background:var(--leaf-soft);border-color:transparent;color:var(--leaf-deep)}
+  .member .bio{margin-top:12px;font-size:12px;line-height:1.8;color:var(--ink-soft)}
+  .member .foot{margin-top:auto;padding-top:12px;border-top:1px dashed var(--line);display:flex;justify-content:space-between;font-size:11px;color:var(--ink-mute)}
+  /* 详情弹层 */
+  .modal{position:fixed;inset:0;background:rgba(37,48,30,.5);display:none;align-items:center;justify-content:center;z-index:30;padding:20px}
+  .modal.show{display:flex}
+  .mcard{
+    width:100%;max-width:420px;background:var(--card);border:2px solid var(--leaf-deep);border-radius:16px;
+    padding:28px 30px;box-shadow:0 24px 60px rgba(37,48,30,.35);
+  }
+  .mcard .head{display:flex;align-items:center;gap:14px;margin-bottom:14px}
+  .mcard .ava{width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#f6f9ef;font-size:22px;font-weight:700}
+  .mcard h2{font-size:18px}
+  .mcard .r2{font-size:12px;color:var(--ink-soft);margin-top:3px}
+  .mcard .sections{margin-top:8px;font-size:12.5px;color:var(--ink-soft);line-height:2}
+  .mcard .sections b{color:var(--ink)}
+  .mcard .close{
+    width:100%;margin-top:18px;padding:11px;border:none;border-radius:10px;background:var(--leaf);
+    color:#f2f6e8;font-size:13.5px;font-weight:700;cursor:pointer;font-family:inherit;transition:background .15s;
+  }
+  .mcard .close:hover{background:var(--leaf-deep)}
+  @media (max-width:1000px){.grid{grid-template-columns:repeat(2,1fr)}}
+  @media (max-width:640px){
+    .grid{grid-template-columns:1fr;padding:18px 14px 32px}
+    .labhead,.filters{padding-left:18px;padding-right:18px}
+    .search{min-width:0;flex:1}
+    .member .foot{flex-direction:column;gap:4px}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .member,.invite,.filters button,.filters select{transition:none}
+    .member:hover{transform:none}
+  }
+</style>
+</head>
+<body>
+<div class="lab">
+  <header class="labhead">
+    <div class="idn">
+      <span class="stem">🌿</span>
+      <div>
+        <h1>标本园 · 研究员名录</h1>
+        <p class="sub">FIELD STATION · 本园在册 24 位 · 2026 秋</p>
+      </div>
+    </div>
+    <div class="actions">
+      <div class="search">
+        <span style="color:var(--ink-mute)">⌕</span>
+        <input id="q" type="text" placeholder="搜索姓名 / 研究方向…">
+      </div>
+      <button class="invite" type="button">邀请新研究员</button>
+    </div>
+  </header>
+
+  <div class="filters">
+    <div class="taggrp" role="group" aria-label="研究方向筛选">
+      <button class="on" data-f="all" type="button">全部</button>
+      <button data-f="苔藓植物" type="button">苔藓植物</button>
+      <button data-f="种子植物" type="button">种子植物</button>
+      <button data-f="菌物" type="button">菌物</button>
+      <button data-f="保育" type="button">保育</button>
+    </div>
+    <select id="grade" aria-label="职级筛选">
+      <option value="">全部职级</option>
+      <option>所长</option><option>研究员</option><option>副研究员</option><option>助理研究员</option><option>标本员</option>
+    </select>
+    <span class="count" id="cnt">在册 24 位 · 显示 7 位</span>
+  </div>
+
+  <section class="grid" id="grid" aria-label="研究员网格"></section>
+</div>
+
+<div class="modal" id="modal" role="dialog" aria-modal="true" aria-label="研究员简介">
+  <div class="mcard">
+    <div class="head">
+      <span class="ava" id="mAva"></span>
+      <div><h2 id="mName"></h2><p class="r2" id="mRole"></p></div>
+    </div>
+    <div class="sections" id="mBody"></div>
+    <button class="close" id="mClose" type="button">回到名录</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  var people=[
+    {name:'林观禾',role:'所长',grade:'所长',tags:['植被生态'],bio:'主持全园植物编目与迁地保育，三十年园龄。',detail:'办公室：东圃 1-101<br>研究：东亚落叶阔叶林群落动态<br>协作项目：山地云杉迁地试验','c':'#4d6b3a'},
+    {name:'苏苔',role:'研究员',grade:'研究员',tags:['苔藓植物'],bio:'专注苔藓分类与湿生指示种，完成园内 214 种苔藓志。',detail:'办公室：标本楼 2-204<br>研究：苔藓植物分类学<br>可咨询：标本鉴定 / 湿地苔藓样本','c':'#5e8b3f'},
+    {name:'袁果',role:'副研究员',grade:'副研究员',tags:['种子植物','保育'],bio:'樟科与山矾属分类，负责珍稀果木迁地保育。',detail:'办公室：标本楼 1-107<br>研究：樟科系统发育<br>可咨询：种子库入库手续','c':'#b9773f'},
+    {name:'郁小满',role:'助理研究员',grade:'助理研究员',tags:['菌物'],bio:'绘制园内大型真菌图谱 300 种，带队秋季采菌。',detail:'办公室：地衣室 B-12<br>研究：红菇属 / 牛肝菌科<br>可咨询：菌物临时展览','c':'#8a6f4d'},
+    {name:'何瓦',role:'标本员',grade:'标本员',tags:['苔藓植物'],bio:'负责苔藓标本压制、排序与信息补录。',detail:'办公室：标本楼 3-301<br>职责：标本制作与数字化<br>可咨询：标本交换','c':'#4c7a68'},
+    {name:'邵荇',role:'副研究员',grade:'副研究员',tags:['种子植物'],bio:'蔷薇科与蝶形花科分类，兼顾园内引种记录。',detail:'办公室：标本楼 1-109<br>研究：蔷薇科分类<br>可咨询：引种记录查询','c':'#7a8f4a'},
+    {name:'何苹',role:'助理研究员',grade:'助理研究员',tags:['菌物','保育'],bio:'调查园内保育名录中的地衣类群。',detail:'办公室：地衣室 B-14<br>研究：地衣保育<br>可咨询：地衣样本','c':'#a86f3f'}
+  ];
+  var grid=document.getElementById('grid');
+  function render(){
+    var q=document.getElementById('q').value.trim().toLowerCase(),
+        f=document.querySelector('.filters button.on').dataset.f,
+        g=document.getElementById('grade').value;
+    var rows=people.filter(function(p){
+      if(f!=='all'&&p.tags.indexOf(f)<0)return false;
+      if(g&&p.grade!==g)return false;
+      if(q&&(p.name.toLowerCase().indexOf(q)<0)&&(p.bio.toLowerCase().indexOf(q)<0))return false;
+      return true;
+    });
+    grid.innerHTML='';
+    rows.forEach(function(p){
+      var d=document.createElement('div');d.className='member';
+      d.innerHTML='<div class="top"><span class="ava" style="background:'+p.c+'">'+p.name.slice(0,1)+'</span>'+
+        '<div><div class="nm">'+p.name+'</div><div class="role">'+p.role+' · '+p.grade+'</div></div></div>'+
+        '<div class="tagrow">'+p.tags.map(function(t){return '<span class="tag leaf">'+t+'</span>'}).join('')+'</div>'+
+        '<p class="bio">'+p.bio+'</p>'+
+        '<div class="foot"><span>标本贡献：'+p.detail.substring(0,10)+'…</span><span>详情 ›</span></div>';
+      d.addEventListener('click',function(){open(p)});
+      grid.appendChild(d);
+    });
+    document.getElementById('cnt').textContent='在册 24 位 · 显示 '+rows.length+' 位';
+  }
+  function open(p){
+    document.getElementById('mAva').style.background=p.c;
+    document.getElementById('mAva').textContent=p.name.slice(0,1);
+    document.getElementById('mName').textContent=p.name;
+    document.getElementById('mRole').textContent=p.role+' · '+p.grade;
+    document.getElementById('mBody').innerHTML=p.detail;
+    document.getElementById('modal').classList.add('show');
+  }
+  document.querySelectorAll('.filters button').forEach(function(b){
+    b.addEventListener('click',function(){
+      document.querySelectorAll('.filters button').forEach(function(x){x.classList.remove('on')});
+      b.classList.add('on');render();
+    });
+  });
+  document.getElementById('grade').addEventListener('change',render);
+  document.getElementById('q').addEventListener('input',render);
+  document.getElementById('mClose').addEventListener('click',function(){document.getElementById('modal').classList.remove('show')});
+  document.getElementById('modal').addEventListener('click',function(e){if(e.target===this)this.classList.remove('show')});
+  render();
+})();
+</script>
+</body>
+</html>

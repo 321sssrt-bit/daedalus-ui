@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>零钱匣 · 钱包</title>
+<style>
+  :root{
+    --ink:#21252d;
+    --ink-soft:#5a6270;
+    --ink-mute:#9ba3b0;
+    --coin:#d4a12e;
+    --coin-deep:#a87c1d;
+    --coin-soft:rgba(212,161,46,.14);
+    --jade:#2f8f74;
+    --jade-deep:#20695a;
+    --jade-soft:rgba(47,143,116,.12);
+    --paper:#f2f4f6;
+    --paper-2:#e6e9ed;
+    --line:#d7dce2;
+    --line-soft:#e4e8ed;
+    --warn:#c2663a;
+    --warn-soft:#f6e4d8;
+    --night:#20262e;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    background:#dfe3e8;
+    font-family:"Microsoft YaHei","PingFang SC","Noto Sans SC",sans-serif;
+    min-height:100vh;display:flex;align-items:center;justify-content:center;padding:26px 14px;
+  }
+  .phone{
+    width:390px;max-width:100%;height:844px;max-height:calc(100vh - 40px);
+    background:var(--paper);border-radius:36px;border:1px solid #c5cdd6;overflow:hidden;
+    box-shadow:0 24px 60px rgba(32,38,46,.22),inset 0 0 0 6px #fff;
+    display:flex;flex-direction:column;position:relative;
+  }
+  .notch{
+    position:absolute;top:8px;left:50%;transform:translateX(-50%);width:120px;height:22px;border-radius:99px;
+    background:#20262e;z-index:20;
+  }
+  .screen{flex:1;display:flex;flex-direction:column;overflow-y:auto;position:relative}
+  .screen::-webkit-scrollbar{width:0}
+  /* 顶部 */
+  .appbar{
+    padding:46px 20px 14px;display:flex;justify-content:space-between;align-items:center;
+  }
+  .appbar .hi{font-size:12px;color:var(--ink-soft)}
+  .appbar .nm{font-size:16px;font-weight:800;margin-top:2px}
+  .appbar .act{width:36px;height:36px;border-radius:50%;background:#fff;border:1px solid var(--line-soft);display:flex;align-items:center;justify-content:center;font-size:15px;box-shadow:0 2px 6px rgba(32,38,46,.08)}
+  /* 余额卡 */
+  .balance{
+    margin:6px 16px 16px;background:linear-gradient(135deg,#2b323c 0%,#1c222a 100%);
+    border-radius:20px;padding:22px 22px 18px;color:#f4f6f8;position:relative;overflow:hidden;
+  }
+  .balance::before{content:"";position:absolute;right:-50px;top:-50px;width:180px;height:180px;border-radius:50%;background:rgba(212,161,46,.14)}
+  .balance .lbl{font-size:11.5px;color:#aeb7c2;letter-spacing:.06em}
+  .balance .val{font-size:32px;font-weight:900;margin-top:8px;font-variant-numeric:tabular-nums}
+  .balance .val small{font-size:15px;color:#cfd6de;font-weight:600}
+  .balance .meta{display:flex;gap:14px;margin-top:14px;font-size:11px;color:#9fb6ad}
+  .balance .meta span{display:flex;align-items:center;gap:5px}
+  .balance .meta i{width:6px;height:6px;border-radius:50%;background:var(--jade);display:inline-block}
+  /* 快捷操作 */
+  .quick{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:0 16px 16px}
+  .quick .q{
+    background:#fff;border:1px solid var(--line-soft);border-radius:16px;padding:14px 6px 12px;text-align:center;
+    cursor:pointer;transition:transform .1s,box-shadow .15s;
+  }
+  .quick .q:hover{box-shadow:0 6px 14px rgba(32,38,46,.1)}
+  .quick .q:active{transform:scale(.97)}
+  .quick .q .ic{width:34px;height:34px;border-radius:50%;margin:0 auto 8px;display:flex;align-items:center;justify-content:center;font-size:16px}
+  .quick .q span{font-size:11.5px;color:var(--ink-soft)}
+  /* 分段 */
+  .segbar{display:flex;padding:0 16px;margin-bottom:10px}
+  .segbar .sg{
+    flex:1;padding:9px;text-align:center;font-size:12px;color:var(--ink-mute);border-radius:10px;cursor:pointer;background:transparent;
+  }
+  .segbar .sg.on{background:#fff;color:var(--ink);font-weight:800;box-shadow:0 2px 8px rgba(32,38,46,.08)}
+  /* 流水 */
+  .flow{padding:0 16px 90px;display:flex;flex-direction:column;gap:8px}
+  .frow{
+    display:grid;grid-template-columns:40px 1fr auto;gap:12px;align-items:center;background:#fff;
+    border:1px solid var(--line-soft);border-radius:14px;padding:12px 14px;
+  }
+  .frow .ic{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;background:var(--paper-2)}
+  .frow .nm{font-size:13px;font-weight:700;color:var(--ink)}
+  .frow .tm{font-size:10.5px;color:var(--ink-mute);margin-top:3px}
+  .frow .amt{font-size:14px;font-weight:800;text-align:right;font-variant-numeric:tabular-nums}
+  .frow .amt.in{color:var(--jade-deep)}
+  .frow .amt.out{color:var(--ink)}
+  .frow .amt small{display:block;font-size:9.5px;color:var(--ink-mute);font-weight:400;margin-top:2px}
+  /* 底栏 */
+  .tabbar{
+    position:absolute;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line-soft);
+    display:grid;grid-template-columns:repeat(4,1fr);padding:8px 6px 18px;
+  }
+  .tabbar .tb{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:9.5px;color:var(--ink-mute);cursor:pointer}
+  .tabbar .tb .i{font-size:17px;line-height:1}
+  .tabbar .tb.on{color:var(--jade-deep);font-weight:800}
+  /* 转出弹层 */
+  .sheet{position:absolute;left:0;right:0;bottom:0;background:#fff;border-radius:22px 22px 0 0;padding:16px 20px 26px;display:none;box-shadow:0 -10px 40px rgba(32,38,46,.18);z-index:30}
+  .sheet.show{display:block}
+  .sheet .grip{width:40px;height:4px;border-radius:99px;background:var(--line);margin:0 auto 14px}
+  .sheet .st{font-size:14px;font-weight:800;margin-bottom:12px}
+  .sheet .amount{font-size:30px;font-weight:900;text-align:center;color:var(--coin-deep);margin:10px 0}
+  .sheet .row{display:flex;gap:8px;margin-bottom:12px}
+  .sheet .row button{
+    flex:1;padding:10px;font-size:12px;border-radius:10px;border:1px solid var(--line);
+    background:var(--paper);color:var(--ink-soft);cursor:pointer;font-family:inherit;
+  }
+  .sheet .row button.on{background:var(--coin-soft);border-color:var(--coin);color:var(--coin-deep);font-weight:800}
+  .sheet .confirm{
+    width:100%;margin-top:6px;padding:13px;border:none;border-radius:12px;background:var(--coin);color:#33260b;
+    font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;
+  }
+  .sheet .confirm:disabled{background:var(--line);color:var(--ink-mute);cursor:default}
+  @media (prefers-reduced-motion:reduce){
+    .quick .q{transition:none}
+    .quick .q:active{transform:none}
+  }
+</style>
+</head>
+<body>
+<div class="phone">
+  <span class="notch"></span>
+  <div class="screen">
+    <header class="appbar">
+      <div><p class="hi">下午好，林小满</p><p class="nm">零钱匣</p></div>
+      <span class="act">👤</span>
+    </header>
+
+    <section class="balance" aria-label="余额">
+      <p class="lbl">可用余额</p>
+      <p class="val">¥ 268.40<small> · 总资产 ¥ 1,286.00</small></p>
+      <div class="meta">
+        <span><i></i>零钱罐 2 个</span>
+        <span><i></i>本周支出 ¥182.00</span>
+      </div>
+    </section>
+
+    <section class="quick" aria-label="快捷操作">
+      <div class="q" id="qout"><span class="ic" style="background:rgba(212,161,46,.14)">⤴</span><span>转出</span></div>
+      <div class="q"><span class="ic" style="background:rgba(47,143,116,.12)">⤵</span><span>收款</span></div>
+      <div class="q"><span class="ic" style="background:rgba(90,98,112,.1)">☰</span><span>明细</span></div>
+    </section>
+
+    <div class="segbar">
+      <span class="sg on">全部</span>
+      <span class="sg">收入</span>
+      <span class="sg">支出</span>
+      <span class="sg">零钱罐</span>
+    </div>
+
+    <section class="flow" aria-label="近几笔流水">
+      <div class="frow"><span class="ic">🍜</span><div><div class="nm">老面馆 · 早餐</div><div class="tm">今天 08:32</div></div><span class="amt out">−¥12.00</span></div>
+      <div class="frow"><span class="ic">🧧</span><div><div class="nm">三叔发的红包</div><div class="tm">今天 09:14</div></div><span class="amt in">+¥66.66</span></div>
+      <div class="frow"><span class="ic">🚇</span><div><div class="nm">地铁 · 通勤</div><div class="tm">昨天 19:02</div></div><span class="amt out">−¥5.00</span></div>
+      <div class="frow"><span class="ic">🏦</span><div><div class="nm">工资入账</div><div class="tm">9 月 1 日</div></div><span class="amt in">+¥485.00</span></div>
+      <div class="frow"><span class="ic">🛒</span><div><div class="nm">楼下便利店</div><div class="tm">8 月 30 日</div></div><span class="amt out">−¥27.50</span></div>
+      <div class="frow"><span class="ic">📱</span><div><div class="nm">手机充值</div><div class="tm">8 月 28 日</div></div><span class="amt out">−¥100.00</span></div>
+    </section>
+
+    <nav class="tabbar" aria-label="底部导航">
+      <span class="tb on"><span class="i">💰</span>钱包</span>
+      <span class="tb"><span class="i">🧾</span>账单</span>
+      <span class="tb"><span class="i">🎁</span>零钱罐</span>
+      <span class="tb"><span class="i">⚙️</span>我的</span>
+    </nav>
+
+    <div class="sheet" id="sheet">
+      <div class="grip"></div>
+      <p class="st">转出到银行卡</p>
+      <p class="amount" id="amount">¥ 0.00</p>
+      <div class="row">
+        <button class="on" data-v="100" type="button">¥100</button>
+        <button data-v="200" type="button">¥200</button>
+        <button data-v="全部" type="button">全部转出</button>
+      </div>
+      <button class="confirm" id="confirm" type="button" disabled>确认转出</button>
+      <div id="done" style="margin-top:12px;font-size:12px;color:var(--jade-deep);display:none">✓ 已转出，1 分钟内到账</div>
+    </div>
+  </div>
+</div>
+<script>
+(function(){
+  var sheet=document.getElementById('sheet')||document.createElement('div');
+  document.getElementById('qout').addEventListener('click',function(){
+    document.getElementById('sheet').classList.add('show');
+  });
+  var cur=100;
+  document.querySelectorAll('.sheet .row button').forEach(function(b){
+    b.addEventListener('click',function(){
+      document.querySelectorAll('.sheet .row button').forEach(function(x){x.classList.remove('on')});
+      b.classList.add('on');
+      cur=b.dataset.v==='全部'?268.4:parseFloat(b.dataset.v);
+      document.getElementById('amount').textContent='¥ '+cur.toFixed(2);
+      document.getElementById('confirm').disabled=false;
+    });
+  });
+  document.getElementById('confirm').addEventListener('click',function(){
+    document.getElementById('done').style.display='block';
+    document.getElementById('confirm').textContent='已转出 ✓';
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>嗒嗒磁带 · 正在播放</title>
+<style>
+  :root{
+    --peach:#f7d9c4;
+    --peach-2:#f2c9ae;
+    --cream:#fdf6ec;
+    --ink:#413530;
+    --ink-soft:#7a685e;
+    --ink-mute:#a9968a;
+    --coral:#e2794f;
+    --coral-deep:#c05c38;
+    --coral-soft:rgba(226,121,79,.14);
+    --tape:#8a5c42;
+    --tape-deep:#6b442f;
+    --teal:#3f7f74;
+    --teal-soft:rgba(63,127,116,.12);
+    --line:#e8d6c8;
+    --line-soft:#f0e2d8;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    background:#e8d3c3;
+    font-family:"Microsoft YaHei","PingFang SC","Noto Sans SC",sans-serif;
+    min-height:100vh;display:flex;align-items:center;justify-content:center;padding:26px 14px;
+  }
+  .phone{
+    width:390px;max-width:100%;height:844px;max-height:calc(100vh - 40px);
+    background:var(--peach);border-radius:36px;border:1px solid #d8bda9;overflow:hidden;
+    box-shadow:0 24px 60px rgba(90,62,50,.28),inset 0 0 0 6px var(--cream);
+    display:flex;flex-direction:column;position:relative;
+  }
+  .notch{position:absolute;top:8px;left:50%;transform:translateX(-50%);width:120px;height:22px;border-radius:99px;background:#413530;z-index:20}
+  .screen{flex:1;display:flex;flex-direction:column;overflow-y:auto;position:relative}
+  .screen::-webkit-scrollbar{width:0}
+  .appbar{padding:48px 20px 10px;display:flex;justify-content:space-between;align-items:center}
+  .appbar .t{font-size:13px;font-weight:800;letter-spacing:.08em}
+  .appbar .m{font-size:10px;color:var(--ink-mute)}
+  .appbar .caret{width:34px;height:34px;border-radius:50%;background:var(--cream);display:flex;align-items:center;justify-content:center;font-size:13px;border:1px solid var(--line)}
+  /* 主视觉：磁带 */
+  .viz{margin:6px 24px 0;display:flex;flex-direction:column;align-items:center}
+  .tape-art{
+    width:250px;aspect-ratio:1;border-radius:14px;background:var(--tape);position:relative;
+    box-shadow:0 14px 30px rgba(107,68,47,.3),inset 0 0 0 6px rgba(255,255,255,.08);
+    display:flex;align-items:center;justify-content:center;
+  }
+  .tape-art .win{
+    width:190px;height:96px;background:var(--cream);border-radius:8px;position:relative;overflow:hidden;
+    display:flex;align-items:center;justify-content:space-around;padding:0 14px;
+  }
+  .tape-art .reel{
+    width:64px;height:64px;border-radius:50%;background:var(--tape-deep);position:relative;
+    border:4px solid #4e3322;box-shadow:inset 0 0 0 4px #4e3322;
+  }
+  .tape-art .reel::after{content:"";position:absolute;inset:14px;border-radius:50%;background:#4e3322}
+  .tape-art .reel.running{animation:spin 2.4s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .tape-art .label{
+    position:absolute;bottom:10px;left:16px;right:16px;font-size:8.5px;color:#e5cdb8;letter-spacing:.2em;text-align:center;
+  }
+  .song-info{text-align:center;margin-top:20px}
+  .song-info .band{font-size:11.5px;color:var(--coral-deep);letter-spacing:.2em;font-weight:700}
+  .song-info h1{font-size:21px;font-weight:900;margin-top:6px;color:var(--ink)}
+  .song-info .album{font-size:12px;color:var(--ink-soft);margin-top:6px}
+  /* 进度 */
+  .prog{margin:20px 24px 0}
+  .prog .times{display:flex;justify-content:space-between;font-size:10.5px;color:var(--ink-mute);margin-bottom:8px}
+  .prog .track{height:5px;border-radius:99px;background:var(--line);overflow:hidden;cursor:pointer}
+  .prog .track .fill{height:100%;border-radius:99px;background:var(--coral);width:38%}
+  /* 控制 */
+  .controls{display:flex;justify-content:center;align-items:center;gap:34px;margin:24px 0 0}
+  .controls .cbtn{background:none;border:none;cursor:pointer;font-family:inherit}
+  .controls .cbtn.prev,.controls .cbtn.next{font-size:15px;color:var(--ink-soft);width:40px;height:40px;border-radius:50%}
+  .controls .play{
+    width:74px;height:74px;border-radius:50%;background:var(--coral);color:var(--cream);border:none;cursor:pointer;
+    font-size:26px;box-shadow:0 8px 20px rgba(192,92,56,.35);display:flex;align-items:center;justify-content:center;
+    transition:transform .1s,background .15s;
+  }
+  .controls .play:active{transform:scale(.94)}
+  .controls .play.paused{background:var(--teal)}
+  /* 附加行 */
+  .extra{margin:22px 24px 0;display:flex;justify-content:space-between;font-size:11.5px;color:var(--ink-soft)}
+  .extra .chip{padding:8px 14px;border-radius:99px;background:var(--cream);border:1px solid var(--line);cursor:pointer}
+  .extra .chip.on{background:var(--teal-soft);color:var(--teal);border-color:var(--teal)}
+  .list{margin:16px 24px 30px}
+  .list .lt{font-size:10.5px;color:var(--ink-mute);letter-spacing:.16em;margin-bottom:8px}
+  .list .li{
+    display:flex;justify-content:space-between;padding:11px 2px;border-bottom:1px solid var(--line-soft);
+  }
+  .list .li .n{font-size:12.5px;color:var(--ink-soft)}
+  .list .li .d{font-size:10px;color:var(--ink-mute)}
+  .list .li.cur .n{color:var(--coral-deep);font-weight:800}
+  @media (prefers-reduced-motion:reduce){
+    .tape-art .reel.running{animation:none}
+    .controls .play{transition:none}
+  }
+</style>
+</head>
+<body>
+<div class="phone">
+  <span class="notch"></span>
+  <div class="screen">
+    <header class="appbar">
+      <div><p class="t">正在播放</p><p class="m">嗒嗒磁带 · VOL.12</p></div>
+      <span class="caret">⌄</span>
+    </header>
+
+    <section class="viz" aria-label="主视觉">
+      <div class="tape-art">
+        <div class="win">
+          <span class="reel" id="reelL"></span>
+          <span class="reel" id="reelR"></span>
+        </div>
+        <span class="label">U.S. WALKMAN · TYPE II · 60 MIN</span>
+      </div>
+      <div class="song-info">
+        <p class="band">THE PEACHES</p>
+        <h1>橘子汽水的下午</h1>
+        <p class="album">专辑《夏末小卖部》 · 第 3 首 / 共 12 首</p>
+      </div>
+    </section>
+
+    <section class="prog" aria-label="进度">
+      <div class="times"><span id="cur">01:42</span><span id="dur">04:30</span></div>
+      <div class="track" id="track"><div class="fill" id="fill"></div></div>
+    </section>
+
+    <section class="controls">
+      <button class="cbtn prev" id="prevBtn" type="button">⏮</button>
+      <button class="play paused" id="playBtn" type="button">▶</button>
+      <button class="cbtn next" id="nextBtn" type="button">⏭</button>
+    </section>
+
+    <section class="extra">
+      <span class="chip" id="loopChip">单曲循环</span>
+      <span class="chip" id="sleepChip">🌙 定时 30 分</span>
+    </section>
+
+    <section class="list">
+      <p class="lt">本带曲目 · 12</p>
+      <div class="li cur"><span class="n">3. 橘子汽水的下午</span><span class="d">04:30</span></div>
+      <div class="li"><span class="n">4. 玻璃鞋与单车</span><span class="d">03:58</span></div>
+      <div class="li"><span class="n">5. 巷口冰棍车</span><span class="d">04:12</span></div>
+      <div class="li"><span class="n">6. 台风过境的星期天</span><span class="d">05:03</span></div>
+    </section>
+  </div>
+</div>
+<script>
+(function(){
+  var playing=false,t=102,dur=270,timer=null;
+  var playBtn=document.getElementById('playBtn'),
+      cur=document.getElementById('cur'),fill=document.getElementById('fill'),
+      reels=[document.getElementById('reelL'),document.getElementById('reelR')];
+  function fmt(s){var m=Math.floor(s/60),ss=String(Math.floor(s%60)).padStart(2,'0');return m+':'+ss}
+  function render(){
+    cur.textContent=fmt(t);fill.style.width=(t/dur*100)+'%';
+  }
+  function tick(){t++;if(t>=dur){t=0;}render();}
+  function setUI(){
+    playBtn.textContent=playing?'Ⅱ':'▶';
+    playBtn.classList.toggle('paused',!playing);
+    reels.forEach(function(r){r.classList.toggle('running',playing)});
+  }
+  playBtn.addEventListener('click',function(){
+    playing=!playing;
+    if(playing){clearInterval(timer);timer=setInterval(tick,1000);}
+    else{clearInterval(timer);}
+    setUI();
+  });
+  document.getElementById('prevBtn').addEventListener('click',function(){t=Math.max(0,t-15);render();});
+  document.getElementById('nextBtn').addEventListener('click',function(){t=Math.min(dur,t+15);render();});
+  document.getElementById('loopChip').addEventListener('click',function(){this.classList.toggle('on');this.textContent=this.classList.contains('on')?'单曲循环 ✓':'单曲循环';});
+  document.getElementById('sleepChip').addEventListener('click',function(){this.classList.toggle('on');this.textContent=this.classList.contains('on')?'🌙 已定时 30 分':'🌙 定时 30 分';});
+  setUI();render();
+})();
+</script>
+</body>
+</html>

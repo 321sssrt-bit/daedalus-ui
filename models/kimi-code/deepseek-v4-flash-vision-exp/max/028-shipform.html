@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>进港申报 · 船舶资料</title>
+<style>
+  :root{
+    --sea-paper:#f2f5f7;
+    --sea-paper-2:#e6ebee;
+    --hull:#2e5368;
+    --hull-deep:#1e3c4e;
+    --hull-soft:#e0e9ee;
+    --navy:#3c5f7d;
+    --navy-deep:#2a455e;
+    --line:#cdd8de;
+    --line-soft:#e1e8ec;
+    --ink:#22303a;
+    --ink-soft:#52636e;
+    --ink-mute:#8ba0ab;
+    --alert:#c25e3a;
+    --alert-soft:#f7e6de;
+    --ok:#3f7f68;
+    --ok-soft:#e3efe8;
+    --gold:#d9a441;
+    --gold-soft:#f6ecd8;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    background:
+      radial-gradient(900px 520px at 50% -10%, rgba(255,255,255,.6), transparent 60%),
+      var(--sea-paper);
+    color:var(--ink);
+    font-family:"Microsoft YaHei","PingFang SC","Noto Sans SC",sans-serif;
+    min-height:100vh;display:flex;justify-content:center;padding:0 16px 70px;
+  }
+  .wrap{width:100%;max-width:1080px}
+  .mast{
+    background:var(--hull);color:var(--sea-paper);padding:20px 28px;border-radius:12px 12px 0 0;
+    display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;
+  }
+  .mast .t{font-size:17px;font-weight:900;letter-spacing:.08em;display:flex;align-items:center;gap:10px}
+  .mast .t .anchor{width:28px;height:28px;border-radius:50%;background:var(--gold);color:#3a2d10;display:flex;align-items:center;justify-content:center;font-size:14px}
+  .mast .fr{font-size:11.5px;color:#c0d4de}
+  .board{
+    background:#fbfdfe;border:1px solid var(--line);border-top:none;border-radius:0 0 12px 12px;
+    padding:30px 36px 36px;
+  }
+  /* 步骤条 */
+  .steps{display:flex;gap:6px;margin-bottom:28px}
+  .steps .st{
+    flex:1;text-align:center;font-size:11.5px;color:var(--ink-mute);padding:9px 6px;border-radius:8px;
+    background:var(--sea-paper-2);position:relative;
+  }
+  .steps .st .n{display:inline-flex;width:18px;height:18px;border-radius:50%;background:#fff;border:1.5px solid var(--ink-mute);color:var(--ink-mute);align-items:center;justify-content:center;font-size:10px;margin-right:6px}
+  .steps .st.on{background:var(--hull-soft);color:var(--hull-deep);font-weight:700}
+  .steps .st.on .n{background:var(--hull);border-color:var(--hull);color:#fff}
+  .steps .st.done{color:var(--ok)}
+  .steps .st.done .n{background:var(--ok);border-color:var(--ok);color:#fff}
+  /* 分区 */
+  .sec{margin-bottom:26px}
+  .sech{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+  .sech .sn{width:26px;height:26px;border-radius:8px;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800}
+  .sech h2{font-size:14.5px;font-weight:800}
+  .sech .req{margin-left:auto;font-size:10.5px;color:var(--ink-mute)}
+  .sech .req em{font-style:normal;color:var(--alert);font-weight:800}
+  .fields{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .f{display:flex;flex-direction:column}
+  .f.full{grid-column:1/-1}
+  .f label{font-size:11.5px;font-weight:700;color:var(--ink-soft);margin-bottom:6px}
+  .f label em{font-style:normal;color:var(--alert)}
+  .f input,.f select,.f textarea{
+    padding:11px 13px;font-size:13.5px;border:1.5px solid var(--line);border-radius:8px;background:#fff;
+    font-family:inherit;color:var(--ink);outline:none;transition:border-color .15s,box-shadow .15s;
+  }
+  .f input:focus,.f select:focus,.f textarea:focus{border-color:var(--navy);box-shadow:0 0 0 3px rgba(60,95,125,.12)}
+  .f input.bad,.f select.bad{border-color:var(--alert);background:var(--alert-soft)}
+  .f textarea{min-height:88px;resize:vertical}
+  .f .hint{font-size:10.5px;color:var(--ink-mute);margin-top:5px}
+  .f .err{font-size:10.5px;color:var(--alert);margin-top:5px;display:none}
+  .f.bad .err{display:block}
+  /* 底部栏 */
+  .footbar{
+    display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;
+    background:var(--sea-paper-2);border:1px solid var(--line);border-radius:10px;padding:14px 18px;
+  }
+  .footbar .saved{font-size:11.5px;color:var(--ok);display:none}
+  .footbar .saved.on{display:block}
+  .footbar .draft{font-size:11.5px;color:var(--ink-soft)}
+  .footbar .btns{display:flex;gap:10px}
+  .footbar .btns button{padding:12px 24px;border-radius:9px;font-size:13.5px;font-weight:800;cursor:pointer;font-family:inherit;transition:all .15s}
+  .footbar .dr{background:none;border:1.5px solid var(--line);color:var(--ink-soft)}
+  .footbar .dr:hover{border-color:var(--ink);color:var(--ink)}
+  .footbar .sub{background:var(--navy);border:1.5px solid var(--navy-deep);color:#fff}
+  .footbar .sub:hover{background:var(--navy-deep)}
+  .jump{display:flex;gap:8px;margin-top:18px}
+  .jump button{padding:8px 16px;font-size:11.5px;border:1px solid var(--line);border-radius:99px;background:#fff;color:var(--navy);cursor:pointer;font-family:inherit;transition:all .15s}
+  .jump button:hover{border-color:var(--navy)}
+  @media (max-width:760px){
+    .fields{grid-template-columns:1fr}
+    .board{padding:22px 18px 28px}
+    .steps{flex-wrap:wrap}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .f input,.f select,.f textarea,.footbar .btns button,.jump button{transition:none}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="mast">
+    <div class="t"><span class="anchor">⚓</span>进港申报 · 船舶资料</div>
+    <span class="fr">单号 PR-2026-0904-07 · 受理窗口 3 号</span>
+  </header>
+
+  <main class="board">
+    <div class="steps" aria-label="申报进度">
+      <span class="st done"><span class="n">✓</span>第一节 船体信息</span>
+      <span class="st on"><span class="n">2</span>第二节 船员与货物</span>
+      <span class="st"><span class="n">3</span>第三节 检疫申报</span>
+    </div>
+
+    <form id="shipForm" novalidate>
+      <section class="sec">
+        <div class="sech"><span class="sn">1</span><h2>船体信息</h2><span class="req"><em>*</em> 必填 4 项</span></div>
+        <div class="fields">
+          <div class="f">
+            <label for="ship">船名<em>*</em></label>
+            <input id="ship" value="青屿 7 号">
+            <span class="hint">与船舶证书一致的全名</span>
+            <span class="err">船名不能为空</span>
+          </div>
+          <div class="f">
+            <label for="mmsi">MMSI / 呼号<em>*</em></label>
+            <input id="mmsi" value="4136 88774">
+            <span class="err">呼号格式：9 位数字</span>
+          </div>
+          <div class="f">
+            <label for="type">船型<em>*</em></label>
+            <select id="type">
+              <option>散货船</option><option selected>集装箱船</option><option>客滚船</option><option>油化船</option>
+            </select>
+          </div>
+          <div class="f">
+            <label for="tonnage">总吨位<em>*</em></label>
+            <input id="tonnage" type="number" value="12840">
+            <span class="err">总吨位需为正数</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="sec">
+        <div class="sech"><span class="sn">2</span><h2>船员与货物</h2><span class="req"><em>*</em> 必填 3 项</span></div>
+        <div class="fields">
+          <div class="f">
+            <label for="crew">船员人数<em>*</em></label>
+            <input id="crew" type="number" value="21">
+            <span class="err">船员 1–50 人</span>
+          </div>
+          <div class="f">
+            <label for="cargo">货物类型<em>*</em></label>
+            <select id="cargo">
+              <option selected>集装箱（普货）</option><option>散杂货</option><option>冷藏货</option><option>危险品</option>
+            </select>
+          </div>
+          <div class="f full">
+            <label for="remark">备注（选填）</label>
+            <textarea id="remark" placeholder="如有特殊装卸要求、压载水情况可在此说明…"></textarea>
+          </div>
+        </div>
+      </section>
+
+      <section class="sec">
+        <div class="sech"><span class="sn">3</span><h2>检疫申报</h2><span class="req">选填</span></div>
+        <div class="fields">
+          <div class="f">
+            <label for="ballast">压载水</label>
+            <select id="ballast"><option>本地置换</option><option selected>远洋直排</option><option>无压载</option></select>
+          </div>
+          <div class="f">
+            <label for="port">上一港口</label>
+            <input id="port" value="胡志明市（越南）">
+          </div>
+        </div>
+      </section>
+
+      <div class="jump" aria-label="章节跳转">
+        <button type="button" data-sec="1">跳至第一节</button>
+        <button type="button" data-sec="2">跳至第二节</button>
+        <button type="button" data-sec="3">跳至第三节</button>
+      </div>
+
+      <div class="footbar">
+        <span class="saved" id="saved">✓ 草稿已保存到本机</span>
+        <span class="draft">上次保存：本例自动保存未启用</span>
+        <div class="btns">
+          <button class="dr" id="draftBtn" type="button">保存草稿</button>
+          <button class="sub" id="submitBtn" type="submit">提交申报</button>
+        </div>
+      </div>
+    </form>
+  </main>
+</div>
+<script>
+(function(){
+  var form=document.getElementById('shipForm');
+  var saved=document.getElementById('saved');
+  document.getElementById('draftBtn').addEventListener('click',function(){
+    saved.classList.add('on');
+    setTimeout(function(){saved.classList.remove('on')},2200);
+  });
+  form.addEventListener('submit',function(e){
+    e.preventDefault();
+    var ok=true;
+    function chk(id,valid,msgId){
+      var el=document.getElementById(id),f=el.closest('.f');
+      if(!valid){f.classList.add('bad');ok=false;}else{f.classList.remove('bad');}
+    }
+    chk('ship',document.getElementById('ship').value.trim()!=='');
+    chk('mmsi',/^\d{4}\s?\d{5}$/.test(document.getElementById('mmsi').value.trim()));
+    chk('tonnage',parseFloat(document.getElementById('tonnage').value)>0);
+    chk('crew',(function(){var v=parseInt(document.getElementById('crew').value);return v>=1&&v<=50})());
+    if(ok){
+      var b=document.getElementById('submitBtn');
+      b.textContent='已提交 ✓';
+      setTimeout(function(){b.textContent='提交申报'},1800);
+      saved.classList.add('on');saved.textContent='✓ 申报已受理，回执将发送至港口邮箱';
+      setTimeout(function(){saved.classList.remove('on')},2600);
+    }else{
+      document.querySelector('.f.bad input, .f.bad select').focus();
+    }
+  });
+  document.querySelectorAll('.jump button').forEach(function(b){
+    b.addEventListener('click',function(){
+      var s=document.querySelectorAll('.sec')[parseInt(b.dataset.sec)-1];
+      s.scrollIntoView({behavior:'smooth',block:'start'});
+    });
+  });
+})();
+</script>
+</body>
+</html>

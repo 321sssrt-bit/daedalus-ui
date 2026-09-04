@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>旧物阁 · 收藏架</title>
+<style>
+  :root{
+    --loft:#2c2118;
+    --loft-2:#38291d;
+    --shelf:#4a3423;
+    --shelf-2:#5c422c;
+    --amber:#e8a94e;
+    --amber-deep:#c8862e;
+    --amber-soft:rgba(232,169,78,.14);
+    --cream:#f5e9d2;
+    --cream-soft:#d9c6a0;
+    --cream-mute:#a58f6a;
+    --ink:#3a2a18;
+    --ink-soft:#6b5138;
+    --rust:#b04a30;
+    --rust-soft:#f3e0d6;
+    --teal-old:#5c7d72;
+    --teal-old-soft:#e0eae4;
+    --line:#6b5138;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    background:
+      radial-gradient(1000px 600px at 50% -10%, rgba(232,169,78,.12), transparent 60%),
+      linear-gradient(180deg,var(--loft) 0%,var(--loft-2) 100%);
+    color:var(--cream);
+    font-family:"Microsoft YaHei","PingFang SC","Noto Sans SC",sans-serif;
+    min-height:100vh;display:flex;justify-content:center;padding:30px 16px 80px;
+  }
+  .attic{width:100%;max-width:1120px}
+  /* 阁楼头 */
+  .top{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;margin-bottom:24px}
+  .top .head{display:flex;align-items:center;gap:14px}
+  .top .head .lamp{width:40px;height:40px;border-radius:10px;background:var(--amber);color:#3a2a18;display:flex;align-items:center;justify-content:center;font-size:19px;box-shadow:0 0 26px rgba(232,169,78,.5)}
+  .top h1{font-size:22px;font-weight:900;letter-spacing:.06em}
+  .top .sub{font-size:11px;color:var(--cream-mute);margin-top:4px}
+  .top .counts{font-size:12px;color:var(--cream-soft);border:1px solid rgba(232,169,78,.35);border-radius:99px;padding:8px 16px}
+  .top .counts b{color:var(--amber)}
+  /* 分类切换 */
+  .shelfbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}
+  .shelfbar button{
+    padding:9px 18px;font-size:13px;border-radius:8px;border:1px solid rgba(232,169,78,.3);
+    background:rgba(232,169,78,.05);color:var(--cream-soft);cursor:pointer;font-family:inherit;transition:all .15s;
+  }
+  .shelfbar button:hover{border-color:var(--amber);color:var(--cream)}
+  .shelfbar button.on{background:var(--amber);color:var(--ink);border-color:var(--amber-deep);font-weight:800}
+  /* 收藏架 */
+  .rack{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+  .item{
+    background:linear-gradient(180deg,#f7ecd7,#f1e3c6);
+    border:1px solid var(--line);border-radius:6px;padding:14px 14px 12px;position:relative;
+    box-shadow:0 12px 26px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.4);
+    transition:transform .15s,box-shadow .15s;color:var(--ink);
+  }
+  .item:hover{transform:translateY(-3px);box-shadow:0 18px 40px rgba(0,0,0,.4)}
+  .item .thing{height:120px;border-radius:4px;overflow:hidden;display:flex;align-items:center;justify-content:center;margin-bottom:12px;position:relative}
+  .item .thing svg{width:100%;height:100%}
+  .item .nm{font-size:14px;font-weight:800;color:var(--ink)}
+  .item .from{font-size:11px;color:var(--ink-soft);margin-top:4px}
+  .item .foot{display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding-top:10px;border-top:1px dashed #c3ab82}
+  .item .price{font-size:12.5px;font-weight:800;color:var(--rust)}
+  .item .take{
+    font-size:11px;padding:6px 12px;border-radius:6px;border:1px solid var(--rust);background:none;
+    color:var(--rust);cursor:pointer;font-family:inherit;transition:all .15s;font-weight:700;
+  }
+  .item .take:hover{background:var(--rust);color:var(--cream)}
+  .item .off{position:absolute;top:10px;right:10px;width:24px;height:24px;border-radius:50%;background:var(--ink);color:var(--cream);display:flex;align-items:center;justify-content:center;font-size:12px;cursor:pointer;border:none}
+  .item.gone{opacity:.45;outline:2px dashed var(--rust);outline-offset:-6px}
+  .item.gone .thing{filter:grayscale(.6)}
+  .item.gone .nm{text-decoration:line-through}
+  .empty-rack{
+    grid-column:1/-1;text-align:center;padding:70px 20px;color:var(--cream-soft);
+  }
+  .empty-rack .big{font-size:44px;margin-bottom:12px}
+  .empty-rack .txt{font-size:13px;line-height:2}
+  .empty-rack .restore{
+    margin-top:14px;padding:9px 20px;border-radius:8px;border:1px solid var(--amber);background:none;
+    color:var(--amber);font-size:12.5px;cursor:pointer;font-family:inherit;
+  }
+  .empty-rack .restore:hover{background:var(--amber-soft)}
+  @media (max-width:900px){.rack{grid-template-columns:repeat(2,1fr)}}
+  @media (max-width:560px){.rack{grid-template-columns:1fr}}
+  @media (prefers-reduced-motion:reduce){
+    .item,.shelfbar button,.item .take{transition:none}
+    .item:hover{transform:none}
+  }
+</style>
+</head>
+<body>
+<div class="attic">
+  <header class="top">
+    <div class="head">
+      <span class="lamp">◐</span>
+      <div>
+        <h1>旧物阁 · 我的收藏架</h1>
+        <p class="sub">信箱里攒下来的小东西 · 每件都有来路</p>
+      </div>
+    </div>
+    <span class="counts">收藏 <b id="cnt">6</b> 件 · 已搁下 <b id="cntOff">0</b> 件</span>
+  </header>
+
+  <nav class="shelfbar" aria-label="收藏分类">
+    <button class="on" data-f="all" type="button">全部</button>
+    <button data-f="老票据" type="button">老票据</button>
+    <button data-f="手作" type="button">手作</button>
+    <button data-f="旧书" type="button">旧书</button>
+    <button data-f="杂件" type="button">杂件</button>
+  </nav>
+
+  <section class="rack" id="rack" aria-label="收藏品"></section>
+</div>
+<script>
+(function(){
+  var items=[
+    {id:1,cat:'老票据',name:'1987 年轮渡月票',from:'浦口—汉口 · 纸质票 24 张',price:'收于 4.2 元',art:'a',off:false},
+    {id:2,cat:'手作',name:'粗陶盐罐（捏制）',from:'村口刘婆 2021 年赠',price:'占地方 0 元',art:'b',off:false},
+    {id:3,cat:'旧书',name:'《农谚录》1963 版',from:'旧书摊 8 元 · 字口完整',price:'估 40 元',art:'c',off:false},
+    {id:4,cat:'杂件',name:'黄铜钥匙牌 154 号',from:'老宿舍拆迁时捡的',price:'无价',art:'d',off:false},
+    {id:5,cat:'老票据',name:'1999 年电影票根',from:'人民剧场《甲方乙方》',price:'票根 5 元',art:'e',off:false},
+    {id:6,cat:'手作',name:'竹节笔筒',from:'外公手作 · 涂过桐油',price:'非卖品',art:'f',off:false}
+  ];
+  var arts={
+    a:'<svg viewBox="0 0 200 140"><rect width="200" height="140" fill="#e8d9b8"/><rect x="30" y="36" width="140" height="80" rx="3" fill="#f7efdd" stroke="#b04a30" stroke-width="2"/><text x="100" y="68" font-size="13" fill="#3a2a18" text-anchor="middle">浦汉轮渡</text><text x="100" y="90" font-size="9" fill="#6b5138" text-anchor="middle">1987 年 4 月 · 月票</text></svg>',
+    b:'<svg viewBox="0 0 200 140"><rect width="200" height="140" fill="#e3d2b0"/><path d="M66 48 q34 -22 68 0 l-10 62 q-24 12 -48 0 Z" fill="#8a5b38"/><path d="M60 50 q40 -26 80 0" stroke="#6b4a26" stroke-width="4" fill="none"/><rect x="92" y="34" width="16" height="14" rx="4" fill="#3a2a18"/></svg>',
+    c:'<svg viewBox="0 0 200 140"><rect width="200" height="140" fill="#e9ddc2"/><rect x="52" y="28" width="96" height="86" rx="3" fill="#c8442e"/><rect x="60" y="36" width="80" height="70" fill="#f7efdd"/><text x="100" y="60" font-size="10" fill="#3a2a18" text-anchor="middle">农谚录</text><path d="M64 74 h72 M64 84 h72 M64 94 h48" stroke="#6b5138" stroke-width="2"/></svg>',
+    d:'<svg viewBox="0 0 200 140"><rect width="200" height="140" fill="#e6d6b6"/><circle cx="100" cy="70" r="38" fill="#b98a4a"/><circle cx="100" cy="70" r="22" fill="#e0a94e"/><path d="M84 52 h32 M84 62 h32 M84 72 h32 M84 82 h24" stroke="#6b4a26" stroke-width="4"/></svg>',
+    e:'<svg viewBox="0 0 200 140"><rect width="200" height="140" fill="#e9dcc0"/><rect x="44" y="40" width="112" height="66" rx="4" fill="#b04a30"/><text x="100" y="72" font-size="12" fill="#f5e9d2" text-anchor="middle">人民剧场</text><text x="100" y="90" font-size="9" fill="#f5e9d2" text-anchor="middle">1999 · 甲方乙方</text></svg>',
+    f:'<svg viewBox="0 0 200 140"><rect width="200" height="140" fill="#e6d3ae"/><path d="M84 40 l-8 60 M116 40 l8 60" stroke="#8a5b38" stroke-width="5"/><rect x="96" y="30" width="10" height="74" fill="#a06a40"/><ellipse cx="101" cy="30" rx="26" ry="8" fill="#7a4f2c"/></svg>'
+  };
+  var rack=document.getElementById('rack'),cur='all';
+  function count(){
+    var on=items.filter(function(i){return !i.off}).length;
+    var off=items.length-on;
+    document.getElementById('cnt').textContent=on;
+    document.getElementById('cntOff').textContent=off;
+  }
+  function render(){
+    rack.innerHTML='';
+    var rows=items.filter(function(i){return cur==='all'||i.cat===cur});
+    if(!rows.length){
+      rack.innerHTML='<div class="empty-rack"><div class="big">🕯</div>'+
+        '<div class="txt">这格架子空了——分类里还囤着别的阁楼物件，<br>或者去信筒里再淘点什么。</div>'+
+        '<button class="restore" id="restore" type="button">回到全部收藏</button></div>';
+      document.getElementById('restore').addEventListener('click',function(){
+        cur='all';
+        document.querySelectorAll('.shelfbar button').forEach(function(b){b.classList.toggle('on',b.dataset.f==='all')});
+        render();
+      });
+    }
+    rows.forEach(function(it){
+      var d=document.createElement('div');d.className='item'+(it.off?' gone':'');
+      d.innerHTML='<div class="thing">'+arts[it.art]+'</div>'+
+        '<button class="off" title="搁下" type="button">✕</button>'+
+        '<div class="nm">'+it.name+'</div><div class="from">'+it.from+'</div>'+
+        '<div class="foot"><span class="price">'+it.price+'</span><button class="take" type="button">'+(it.off?'放回架上':'搁到柜底')+'</button></div>';
+      d.querySelector('.off').addEventListener('click',function(){
+        it.off=true;count();render();
+      });
+      d.querySelector('.take').addEventListener('click',function(){
+        it.off=!it.off;count();render();
+      });
+      rack.appendChild(d);
+    });
+  }
+  document.querySelectorAll('.shelfbar button').forEach(function(b){
+    b.addEventListener('click',function(){
+      document.querySelectorAll('.shelfbar button').forEach(function(x){x.classList.remove('on')});
+      b.classList.add('on');cur=b.dataset.f;render();
+    });
+  });
+  count();render();
+})();
+</script>
+</body>
+</html>

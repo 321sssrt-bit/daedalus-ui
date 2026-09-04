@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>活字坊 · 排印工作室</title>
+<style>
+  :root{
+    --ink-black:#1b1b1b;
+    --ink-2:#2a2a2a;
+    --paper:#f6f2e8;
+    --paper-2:#ece5d5;
+    --white:#fffdf8;
+    --type-red:#b03828;
+    --type-red-soft:rgba(176,56,40,.1);
+    --gold:#c9a24a;
+    --gold-soft:rgba(201,162,74,.12);
+    --err:#c0584a;
+    --err-soft:rgba(192,88,74,.12);
+    --ok:#3f7f5c;
+    --ok-soft:rgba(63,127,92,.12);
+    --text:#2a2620;
+    --text-soft:#6b6557;
+    --text-mute:#9a9484;
+    --line:#d8d2c2;
+    --line-soft:#e6e1d4;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    background:
+      radial-gradient(1000px 600px at 50% -10%, rgba(255,255,255,.5), transparent 60%),
+      var(--paper-2);
+    color:var(--text);
+    font-family:"Microsoft YaHei","PingFang SC","Noto Sans SC",sans-serif;
+    min-height:100vh;padding:26px 18px 50px;
+  }
+  .wrap{max-width:1120px;margin:0 auto}
+  .head{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;padding-bottom:16px;border-bottom:3px solid var(--ink-black)}
+  .head .idn{display:flex;align-items:center;gap:12px}
+  .head .idn .bk{width:42px;height:42px;border-radius:6px;background:var(--ink-black);color:var(--paper);display:flex;align-items:center;justify-content:center;font-size:19px;font-weight:900}
+  .head h1{font-size:21px;font-weight:900;letter-spacing:.02em}
+  .head .sub{font-size:11px;color:var(--text-mute);margin-top:4px}
+  .head .save{font-size:11.5px;color:var(--ok);background:var(--ok-soft);border-radius:99px;padding:7px 14px;font-weight:800}
+  /* 三栏 */
+  .cols{display:grid;grid-template-columns:300px 1fr 260px;gap:18px;margin-top:22px}
+  .panel{background:var(--white);border:1px solid var(--line);border-radius:14px;padding:18px}
+  .panel h2{font-size:12.5px;font-weight:900;color:var(--text-soft);margin-bottom:14px}
+  /* 参数 */
+  .param{margin-bottom:16px}
+  .param .pl{display:flex;justify-content:space-between;font-size:11.5px;font-weight:700;color:var(--text-soft);margin-bottom:8px}
+  .param .pl .v{color:var(--type-red);font-weight:900}
+  .param input[type=range]{width:100%;accent-color:var(--ink-black)}
+  .param select{
+    width:100%;padding:10px 12px;border:1.5px solid var(--line);border-radius:8px;background:#fff;font-size:13px;font-family:inherit;
+    color:var(--text);outline:none;
+  }
+  .segs{display:flex;gap:6px}
+  .segs button{
+    flex:1;padding:9px;border:1.5px solid var(--line);border-radius:8px;background:none;font-size:12px;cursor:pointer;font-family:inherit;color:var(--text-soft);transition:all .12s;
+  }
+  .segs button.on{border-color:var(--ink-black);background:var(--ink-black);color:var(--paper)}
+  /* 预览 */
+  .preview{position:relative}
+  .page{
+    background:var(--paper);border:1px solid var(--line);min-height:300px;padding:26px 30px;
+    box-shadow:0 10px 26px rgba(42,38,32,.12);
+  }
+  .page .mt{font-size:10px;letter-spacing:.3em;color:var(--text-mute)}
+  .page h3{font-size:22px;font-weight:900;margin-top:8px;line-height:1.4}
+  .page .by{font-size:12px;color:var(--text-soft);margin-top:8px}
+  .page .content{margin-top:16px;font-size:14px;line-height:2;color:var(--text-soft)}
+  .page .footer{margin-top:24px;border-top:1px solid var(--line);padding-top:10px;font-size:10px;color:var(--text-mute);display:flex;justify-content:space-between}
+  /* 导出 */
+  .fmt{display:flex;flex-direction:column;gap:8px;margin-bottom:10px}
+  .fmt .f{
+    display:flex;align-items:center;gap:10px;padding:11px 12px;border:1.5px solid var(--line);border-radius:10px;
+    cursor:pointer;transition:all .12s;background:#fff;
+  }
+  .fmt .f:hover{border-color:var(--ink-black)}
+  .fmt .f.sel{border-color:var(--type-red);background:var(--type-red-soft)}
+  .fmt .f .fn{font-size:12.5px;font-weight:800}
+  .fmt .f .fd{font-size:10px;color:var(--text-mute);margin-top:2px}
+  .fmt .f .bad{font-size:10px;color:var(--err);font-weight:800;margin-left:auto}
+  .export{
+    width:100%;padding:13px;border:none;border-radius:12px;background:var(--ink-black);color:var(--paper);font-size:14px;font-weight:900;cursor:pointer;font-family:inherit;
+  }
+  .export:disabled{background:var(--text-mute);cursor:default}
+  .fb{min-height:38px;margin-top:12px;padding:10px 13px;border-radius:12px;font-size:12px;line-height:1.9;background:var(--ok-soft);color:#31583f}
+  .fb.err{background:var(--err-soft);color:#8f3d30}
+  .result{
+    display:none;margin-top:14px;background:#fff;border:2px solid var(--ink-black);border-radius:10px;padding:14px 16px;
+    font-size:12.5px;color:var(--text-soft);line-height:1.9;
+  }
+  .result.show{display:block}
+  .result b{color:var(--ink-black)}
+  @media (max-width:1000px){
+    .cols{grid-template-columns:1fr 1fr}
+    .preview{grid-column:1/-1;order:-1}
+  }
+  @media (max-width:680px){.cols{grid-template-columns:1fr}}
+  @media (prefers-reduced-motion:reduce){
+    .segs button,.fmt .f{transition:none}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="head">
+    <div class="idn">
+      <span class="bk">字</span>
+      <div>
+        <h1>活字坊 · 排印工作室</h1>
+        <p class="sub">胡同里的微型印刷所 · 稿件 04：晨报「面包房的一天」</p>
+      </div>
+    </div>
+    <span class="save">✓ 自动保存于 12:41</span>
+  </header>
+
+  <div class="cols">
+    <!-- 参数 -->
+    <section class="panel" aria-label="参数">
+      <h2>排印参数</h2>
+      <div class="param">
+        <div class="pl"><span>正文字号</span><span class="v" id="fsv">13pt</span></div>
+        <input type="range" id="fs" min="10" max="20" value="13">
+      </div>
+      <div class="param">
+        <div class="pl"><span>栏宽</span><span class="v" id="lwv">标准</span></div>
+        <div class="segs" id="lw">
+          <button data-v="窄栏">窄栏</button>
+          <button class="on" data-v="标准">标准</button>
+          <button data-v="宽栏">宽栏</button>
+        </div>
+      </div>
+      <div class="param">
+        <div class="pl"><span>墨色</span></div>
+        <select id="inkSel">
+          <option selected>油墨黑</option>
+          <option>茶棕</option>
+          <option>朱红</option>
+          <option>藏青</option>
+        </select>
+      </div>
+      <div class="param">
+        <div class="pl"><span>衬线</span></div>
+        <div class="segs" id="serif">
+          <button class="on" data-v="宋体">宋体</button>
+          <button data-v="黑体">黑体</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 预览 -->
+    <section class="panel preview" aria-label="实时预览">
+      <h2>实时预览</h2>
+      <div class="page" id="page">
+        <p class="mt">第 4 版 · 夜班排印</p>
+        <h3 id="pvTitle">面包房的一天</h3>
+        <p class="by" id="pvBy">文 / 冯铁匠 图 / 小满</p>
+        <div class="content" id="pvBody">
+          凌晨四点，面包房的灯先亮。第一炉面包的香味在晨报付印前已绕过半条街。<br><br>老师傅说，面包好吃的秘密只有一个：把面团当活儿，把活儿当日子。
+        </div>
+        <div class="footer"><span id="pvFoot">晨报 · 副刊 | 字号 <span id="pvFs">13pt</span></span><span id="pvInk">油墨黑</span></div>
+      </div>
+    </section>
+
+    <!-- 导出 -->
+    <section class="panel" aria-label="导出">
+      <h2>导出</h2>
+      <div class="fmt" id="fmts">
+        <div class="f sel" data-f="PDF（印刷用）"><div><div class="fn">PDF（印刷用）</div><div class="fd">彩色 · 12MB</div></div></div>
+        <div class="f" data-f="PNG（预览用）"><div><div class="fn">PNG（预览用）</div><div class="fd">单色 · 2.8MB</div></div></div>
+        <div class="f" data-f="XML（排版交换）"><div><div class="fn">XML（排版交换）</div><div class="fd">无图模式</div></div><span class="bad" id="fmtBad" style="display:none">⚠ 当前不支持</span></div>
+      </div>
+      <button class="export" id="exportBtn" type="button">导出稿件</button>
+      <div class="fb" id="fb" style="display:none"></div>
+      <div class="result" id="result"></div>
+    </section>
+  </div>
+</div>
+<script>
+(function(){
+  var fs=document.getElementById('fs'),fsv=document.getElementById('fsv'),pvFs=document.getElementById('pvFs');
+  var inkSel=document.getElementById('inkSel');
+  var INKS={'油墨黑':'#1b1b1b','茶棕':'#4e3a24','朱红':'#b03828','藏青':'#26364a'};
+  var ink='油墨黑';
+  function renderPreview(){
+    document.getElementById('page').style.color=INKS[ink];
+    document.getElementById('pvInk').textContent=ink;
+    document.getElementById('pvBody').style.fontSize=(parseInt(fs.value))+'pt';
+    document.getElementById('pvTitle').style.fontFamily=document.getElementById('serif').querySelector('.on').dataset.v==='宋体'?'"Songti SC",SimSun,serif':'"Microsoft YaHei",sans-serif';
+    fsv.textContent=fs.value+'pt';
+    pvFs.textContent=fs.value+'pt';
+  }
+  fs.addEventListener('input',function(){renderPreview();rebuildBad()});
+  document.querySelectorAll('#lw button').forEach(function(b){
+    b.addEventListener('click',function(){
+      document.querySelectorAll('#lw button').forEach(function(x){x.classList.remove('on')});
+      b.classList.add('on');document.getElementById('lwv').textContent=b.dataset.v;
+    });
+  });
+  inkSel.addEventListener('change',function(){ink=inkSel.value;renderPreview()});
+  document.querySelectorAll('#serif button').forEach(function(b){
+    b.addEventListener('click',function(){
+      document.querySelectorAll('#serif button').forEach(function(x){x.classList.remove('on')});
+      b.classList.add('on');renderPreview();
+    });
+  });
+  // 导出逻辑：XML 在「宽栏」时冲突
+  var selFmt='PDF（印刷用）',xmlBad=false;
+  function rebuildBad(){
+    var lw=document.querySelector('#lw .on').dataset.v;
+    xmlBad=(lw==='宽栏');
+    document.getElementById('fmtBad').style.display=xmlBad?'block':'none';
+    var xf=[].slice.call(document.querySelectorAll('#fmts .f')).find(function(f){return f.dataset.f.indexOf('XML')>-1});
+    xf.classList.toggle('conflict',xmlBad);
+    if(xmlBad&&selFmt.indexOf('XML')>-1){
+      selFmt='PDF（印刷用）';syncFmt();
+    }
+  }
+  function syncFmt(){
+    document.querySelectorAll('#fmts .f').forEach(function(f){f.classList.toggle('sel',f.dataset.f===selFmt)});
+  }
+  document.querySelectorAll('#fmts .f').forEach(function(f){
+    f.addEventListener('click',function(){
+      selFmt=f.dataset.f;syncFmt();
+    });
+  });
+  document.getElementById('exportBtn').addEventListener('click',function(){
+    var fb=document.getElementById('fb'),res=document.getElementById('result');
+    fb.style.display='none';res.classList.remove('show');
+    if(selFmt.indexOf('XML')>-1&&xmlBad){
+      fb.style.display='block';fb.className='fb err';
+      fb.innerHTML='× 导出冲突：<b>XML（排版交换）</b>不支持「宽栏」版式与「朱红/藏青」非油墨色。<br>请改回「标准/窄栏」或换 PDF / PNG，然后重新导出。';
+      return;
+    }
+    // 成功
+    res.classList.add('show');
+    res.innerHTML='✓ 已导出 <b>'+selFmt+'</b>（'+document.getElementById('pvTitle').textContent+' · '+fs.value+'pt）<br>文件名：bread-04.'+(selFmt.indexOf('PDF')>-1?'pdf':(selFmt.indexOf('PNG')>-1?'png':'xml'));
+    fb.style.display='block';fb.className='fb';
+    fb.textContent='导出完成 · 已放入本机下载夹。';
+  });
+  renderPreview();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>晨跑日记 · 记录打卡</title>
+<style>
+  :root{
+    --dawn:#fdf4e7;
+    --dawn-2:#f7e8d2;
+    --orange:#e8794a;
+    --orange-deep:#c25e36;
+    --orange-soft:rgba(232,121,74,.12);
+    --sun:#f2b64c;
+    --sun-soft:rgba(242,182,76,.14);
+    --teal:#3f8f86;
+    --teal-deep:#2f6f68;
+    --teal-soft:rgba(63,143,134,.12);
+    --ink:#3a2f22;
+    --ink-soft:#6a5b48;
+    --ink-mute:#a49a80;
+    --err:#c06546;
+    --err-soft:rgba(192,101,70,.13);
+    --line:#e3d7bf;
+    --line-soft:#eee4d2;
+    --white:#fffdf8;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:#ead9bd;font-family:"Microsoft YaHei","PingFang SC","Noto Sans SC",sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:26px 14px}
+  .phone{
+    width:390px;max-width:100%;height:844px;max-height:calc(100vh - 40px);background:linear-gradient(180deg,#fdf4e7,#f7e8d2);
+    border-radius:36px;border:1px solid #cdbb95;overflow:hidden;box-shadow:0 24px 60px rgba(90,60,30,.28),inset 0 0 0 6px #fffdf8;
+    display:flex;flex-direction:column;position:relative;
+  }
+  .notch{position:absolute;top:8px;left:50%;transform:translateX(-50%);width:120px;height:22px;border-radius:99px;background:#3a2f22;z-index:20}
+  .screen{flex:1;display:flex;flex-direction:column;overflow-y:auto;position:relative}
+  .screen::-webkit-scrollbar{width:0}
+  .appbar{padding:48px 18px 10px;display:flex;justify-content:space-between;align-items:center}
+  .appbar .t{font-size:15px;font-weight:900;color:var(--ink)}
+  .appbar .date{font-size:11px;color:var(--ink-mute)}
+  .greet{padding:0 18px 10px;font-size:12px;color:var(--ink-soft)}
+  /* 目标卡 */
+  .goal{
+    margin:6px 16px 14px;background:linear-gradient(135deg,#3a2f22,#2c241a);border-radius:20px;padding:20px 20px 18px;color:#f6efe2;
+  }
+  .goal .g1{display:flex;justify-content:space-between;font-size:11px;color:#c9bca2}
+  .goal .g2{display:flex;align-items:baseline;gap:8px;margin-top:8px}
+  .goal .g2 b{font-size:30px;font-weight:900;color:#f6efe2}
+  .goal .g2 span{font-size:11px;color:#b7a98d}
+  .goal .g3{height:8px;border-radius:99px;background:rgba(255,255,255,.12);overflow:hidden;margin-top:12px}
+  .goal .g3 i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--orange),var(--sun))}
+  .goal .g4{display:flex;justify-content:space-between;font-size:10px;color:#b7a98d;margin-top:8px}
+  /* 记录表单 */
+  .form{background:var(--white);border:1px solid var(--line);border-radius:16px;margin:0 16px 12px;padding:16px 18px}
+  .form h2{font-size:13px;font-weight:900;color:var(--ink-soft);margin-bottom:12px}
+  .fld{margin-bottom:12px}
+  .fld label{display:block;font-size:11px;font-weight:800;color:var(--ink-soft);margin-bottom:6px}
+  .fld .inbox{display:flex;align-items:center;gap:8px;border:1.5px solid var(--line);border-radius:12px;padding:12px 14px;background:#fff}
+  .fld .inbox input{flex:1;border:none;outline:none;font-size:15px;color:var(--ink);background:none;font-family:inherit}
+  .fld .inbox .unit{font-size:11px;color:var(--ink-mute)}
+  .fld .inbox.bad{border-color:var(--err);background:var(--err-soft)}
+  .fld .hint{font-size:10px;color:var(--ink-mute);margin-top:5px}
+  .fld .hint.bad{color:var(--err);font-weight:800}
+  .save{
+    width:100%;padding:14px;border:none;border-radius:14px;background:var(--orange);color:#fff;font-size:15px;font-weight:900;cursor:pointer;font-family:inherit;box-shadow:0 5px 0 var(--orange-deep);
+  }
+  .save:active{transform:translateY(2px);box-shadow:0 3px 0 var(--orange-deep)}
+  /* 趋势 */
+  .trend{margin:4px 16px 30px;background:var(--white);border:1px solid var(--line);border-radius:16px;padding:16px 18px}
+  .trend .th{display:flex;justify-content:space-between;font-size:12px;font-weight:800;color:var(--ink-soft)}
+  .trend .bars{display:flex;align-items:flex-end;gap:6px;height:90px;margin-top:14px}
+  .trend .bars .b{flex:1;background:var(--sun-soft);border-radius:6px 6px 0 0;position:relative;min-height:8px}
+  .trend .bars .b i{position:absolute;top:-16px;left:0;right:0;text-align:center;font-size:8px;color:var(--ink-mute);font-style:normal}
+  .trend .bars .b.cur{background:var(--orange-soft);border:1.5px solid var(--orange)}
+  .trend .bars .b.cur i{color:var(--orange-deep);font-weight:800}
+  .trend .days{display:flex;gap:6px;margin-top:6px;font-size:9px;color:var(--ink-mute)}
+  .trend .days span{flex:1;text-align:center}
+  .fb{min-height:34px;margin:0 16px 10px;padding:9px 13px;border-radius:12px;font-size:12px;line-height:1.8;background:var(--teal-soft);color:#2d5a54;display:none}
+  .fb.show{display:block}
+  .fb.err{background:var(--err-soft);color:#8f4530}
+  @media (prefers-reduced-motion:reduce){
+    .save{transition:none}
+  }
+</style>
+</head>
+<body>
+<div class="phone">
+  <span class="notch"></span>
+  <div class="screen">
+    <header class="appbar">
+      <span class="t">晨跑日记</span>
+      <span class="date">9 月 4 日 周五</span>
+    </header>
+    <p class="greet">早，阿慎。今天想跑多远？</p>
+
+    <section class="goal" aria-label="目标进度">
+      <div class="g1"><span>本周目标：跑 5 次</span><span id="goalDays">已完成 2 次</span></div>
+      <div class="g2"><b id="goalKm">9.2</b><span>/ 18 km · 已完成里程</span></div>
+      <div class="g3"><i id="goalFill" style="width:51%"></i></div>
+      <div class="g4"><span>已跑 2 天</span><span>本周剩余 5.0 km 达上限</span></div>
+    </section>
+
+    <section class="form" aria-label="记录一次">
+      <h2>记录一次晨跑</h2>
+      <div class="fld" id="fldKm">
+        <label for="km">本次距离</label>
+        <div class="inbox" id="inKm"><input id="km" type="number" inputmode="decimal" placeholder="0.0"><span class="unit">公里</span></div>
+        <p class="hint" id="hintKm">范围 0.5 – 20.0 公里（超出会提示无效）</p>
+      </div>
+      <div class="fld" id="fldDur">
+        <label for="dur">用时</label>
+        <div class="inbox" id="inDur"><input id="dur" type="number" inputmode="numeric" placeholder="00"><span class="unit">分钟</span></div>
+        <p class="hint" id="hintDur">范围 5 – 180 分钟</p>
+      </div>
+      <button class="save" id="saveBtn" type="button">保存这一次</button>
+    </section>
+
+    <div class="fb" id="fb"></div>
+
+    <section class="trend" aria-label="趋势">
+      <div class="th"><span>本周每日距离（km）</span><span>日均 1.5 km</span></div>
+      <div class="bars" id="bars"></div>
+      <div class="days"><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span></div>
+    </section>
+  </div>
+</div>
+<script>
+(function(){
+  var week=[2.4,0,3.1,0,3.7,0,0]; // 周一..周日, 今天=周五 index4
+  var todayIdx=4;
+  function total(){return week.reduce(function(a,b){return a+b},0)}
+  function daysDone(){return week.filter(function(v){return v>0}).length}
+  function rederUp(){
+    document.getElementById('goalKm').textContent=total().toFixed(1);
+    document.getElementById('goalFill').style.width=Math.min(100,total()/18*100)+'%';
+    document.getElementById('goalDays').textContent='已完成 '+daysDone()+' 次';
+    var bars=document.getElementById('bars');bars.innerHTML='';
+    week.forEach(function(v,i){
+      var b=document.createElement('div');b.className='b'+(i===todayIdx?' cur':'');b.style.height=Math.max(8,v/8*90)+'px';
+      b.innerHTML='<i>'+v.toFixed(1)+'</i>';
+      bars.appendChild(b);
+    });
+    document.querySelector('.trend .th span:last-child').textContent='日均 '+((total()/7).toFixed(1))+' km';
+  }
+  function badInput(id,boxId,hintId,msg){
+    document.getElementById(id).classList.add('bad');
+    document.getElementById(boxId).classList.add('bad');
+    document.getElementById(hintId).classList.add('bad');
+    document.getElementById(hintId).textContent=msg;
+  }
+  function clearBad(id,boxId,hintId,normal){
+    document.getElementById(id).classList.remove('bad');
+    document.getElementById(boxId).classList.remove('bad');
+    document.getElementById(hintId).classList.remove('bad');
+    document.getElementById(hintId).textContent=normal;
+  }
+  document.getElementById('saveBtn').addEventListener('click',function(){
+    var km=parseFloat(document.getElementById('km').value),
+        dur=parseFloat(document.getElementById('dur').value),
+        fb=document.getElementById('fb'),ok=true;
+    fb.className='fb';
+    if(isNaN(km)||km<0.5||km>20){
+      badInput('fldKm','inKm','hintKm','× 无效：本次距离需在 0.5–20.0 公里之间。');ok=false;
+    }else{clearBad('fldKm','inKm','hintKm','范围 0.5 – 20.0 公里（超出会提示无效）');}
+    if(isNaN(dur)||dur<5||dur>180){
+      badInput('fldDur','inDur','hintDur','× 无效：用时需在 5–180 分钟之间。');ok=false;
+    }else{clearBad('fldDur','inDur','hintDur','范围 5 – 180 分钟');}
+    if(!ok){
+      fb.className='fb err';fb.classList.add('show');
+      fb.textContent='这次记录没保存：请修正标红的字段（超出的值用红字指出具体范围）。';
+      return;
+    }
+    // 成功
+    week[todayIdx]=km; // 覆盖当日
+    rederUp();
+    fb.className='fb';fb.classList.add('show');
+    fb.textContent='✓ 已保存：今日 '+km.toFixed(1)+' km / '+Math.round(dur)+' 分钟，进度与趋势已更新。';
+    document.getElementById('km').value='';document.getElementById('dur').value='';
+  });
+  rederUp();
+})();
+</script>
+</body>
+</html>

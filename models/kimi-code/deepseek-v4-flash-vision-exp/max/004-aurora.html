@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>极光哨站 · 新手引导</title>
+<style>
+  :root{
+    --night:#081426;
+    --night-2:#0d2038;
+    --aurora:#4fe3c1;
+    --aurora-deep:#2bb9a4;
+    --aurora-soft:rgba(79,227,193,.14);
+    --snow:#eef7f9;
+    --snow-soft:#b9d2da;
+    --snow-mute:#7e9aa8;
+    --amber:#ffb457;
+    --frost:rgba(238,247,249,.08);
+    --line:rgba(238,247,249,.14);
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    background:
+      radial-gradient(900px 500px at 80% -10%, rgba(79,227,193,.10), transparent 60%),
+      radial-gradient(700px 500px at 10% 110%, rgba(43,185,164,.10), transparent 60%),
+      linear-gradient(180deg,var(--night) 0%,var(--night-2) 100%);
+    color:var(--snow);
+    font-family:"Microsoft YaHei","PingFang SC","Noto Sans SC",sans-serif;
+    min-height:100vh;display:flex;align-items:center;justify-content:center;padding:32px 16px;
+  }
+  .station{
+    width:100%;max-width:980px;min-height:620px;
+    background:linear-gradient(180deg,#0c1c33 0%,#0a1a2e 100%);
+    border:1px solid var(--line);border-radius:22px;
+    box-shadow:0 40px 100px rgba(0,0,0,.5);
+    display:grid;grid-template-columns:340px 1fr;overflow:hidden;
+    position:relative;
+  }
+  .station::after{
+    content:"";position:absolute;inset:0;pointer-events:none;
+    background:radial-gradient(600px 300px at 30% 8%, var(--aurora-soft), transparent 70%);
+  }
+  /* 左侧：场景插画 + 步骤 */
+  .scene{
+    padding:36px 30px;display:flex;flex-direction:column;justify-content:space-between;
+    background:linear-gradient(180deg,rgba(79,227,193,.07),transparent 40%);
+  }
+  .scene .sled{position:relative;margin:8px 0}
+  .scene .sled svg{width:100%;height:auto;display:block;filter:drop-shadow(0 12px 30px rgba(0,0,0,.4))}
+  .scene .cap{font-size:11px;letter-spacing:.28em;color:var(--snow-mute);text-transform:uppercase}
+  .steps{display:flex;flex-direction:column;gap:8px;margin-top:14px}
+  .steps .s{display:flex;gap:10px;align-items:flex-start;opacity:.45;transition:opacity .2s}
+  .steps .s.on{opacity:1}
+  .steps .s .n{
+    width:22px;height:22px;border-radius:50%;border:1px solid var(--aurora);
+    color:var(--aurora);font-size:11px;display:flex;align-items:center;justify-content:center;flex:none;
+  }
+  .steps .s.on .n{background:var(--aurora);color:var(--night);font-weight:700}
+  .steps .s .t{font-size:12.5px;line-height:1.5;color:var(--snow-soft)}
+  .steps .s.on .t{color:var(--snow)}
+  .steps .s .t b{display:block;font-size:12.5px;color:var(--snow)}
+  .steps .s .t span{font-size:11px;color:var(--snow-mute)}
+  /* 右侧：内容 */
+  .panel{padding:52px 52px 40px;display:flex;flex-direction:column}
+  .skip{position:absolute;top:22px;right:26px;z-index:2}
+  .skip button{
+    background:none;border:1px solid var(--line);color:var(--snow-soft);border-radius:999px;
+    padding:7px 16px;font-size:12px;cursor:pointer;font-family:inherit;transition:border-color .15s,color .15s;
+  }
+  .skip button:hover{border-color:var(--aurora);color:var(--snow)}
+  .panel .head{margin-bottom:28px}
+  .panel .head .tag{font-size:11px;letter-spacing:.3em;color:var(--aurora);margin-bottom:10px}
+  .panel h1{font-size:28px;line-height:1.35;font-weight:700}
+  .panel .lead{font-size:13px;line-height:1.9;color:var(--snow-soft);margin-top:10px;max-width:460px}
+  .slide{display:none;flex:1;flex-direction:column;justify-content:flex-start}
+  .slide.on{display:flex}
+  .opt-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:6px}
+  .opt{
+    border:1px solid var(--line);border-radius:14px;padding:18px 16px;cursor:pointer;
+    background:rgba(238,247,249,.03);transition:border-color .15s,background .15s;
+  }
+  .opt:hover{border-color:var(--aurora);background:rgba(79,227,193,.06)}
+  .opt.sel{border-color:var(--aurora);background:var(--aurora-soft)}
+  .opt .o{font-size:14px;color:var(--snow);margin-bottom:6px}
+  .opt .d{font-size:11px;color:var(--snow-mute);line-height:1.6}
+  .opt.sel .d{color:var(--snow-soft)}
+  .field-row{margin-top:6px}
+  .field-row label{display:block;font-size:12px;color:var(--snow-soft);margin-bottom:8px}
+  .field-row input{
+    width:100%;padding:14px 16px;font-size:15px;color:var(--snow);
+    background:rgba(0,0,0,.22);border:1px solid var(--line);border-radius:12px;outline:none;
+    font-family:inherit;transition:border-color .15s,box-shadow .15s;
+  }
+  .field-row input::placeholder{color:#5d7a88}
+  .field-row input:focus{border-color:var(--aurora);box-shadow:0 0 0 3px var(--aurora-soft)}
+  .note{margin-top:14px;font-size:12px;line-height:1.8;color:var(--snow-mute);background:rgba(0,0,0,.18);
+    border-left:3px solid var(--aurora-deep);padding:12px 14px;border-radius:0 10px 10px 0}
+  .cta{display:flex;align-items:center;gap:14px;margin-top:auto;padding-top:26px}
+  .back{
+    background:none;border:1px solid var(--line);color:var(--snow-soft);border-radius:12px;
+    padding:13px 22px;font-size:14px;cursor:pointer;font-family:inherit;transition:border-color .15s,color .15s;
+  }
+  .back:hover{border-color:var(--snow-mute);color:var(--snow)}
+  .next{
+    flex:1;background:var(--aurora);color:var(--night);font-size:15px;font-weight:700;letter-spacing:.08em;
+    border:none;border-radius:12px;padding:13px;cursor:pointer;font-family:inherit;
+    transition:background .15s,transform .1s,box-shadow .15s;
+  }
+  .next:hover{background:#7af0d4;box-shadow:0 10px 24px rgba(79,227,193,.25)}
+  .next:active{transform:translateY(1px)}
+  .next:disabled{background:#29514a;color:#8fb8b0;cursor:default}
+  .count{font-size:11px;color:var(--snow-mute);letter-spacing:.2em}
+  @media (max-width:840px){
+    .station{grid-template-columns:1fr;min-height:0}
+    .scene{pading:0;padding:24px 24px 8px}
+    .scene .sled svg{max-height:150px}
+    .scene .sled{margin:8px 0 0}
+    .steps{flex-direction:row;gap:6px;margin-top:12px;overflow:hidden}
+    .steps .s{flex:1;flex-direction:column;gap:4px;opacity:.5}
+    .steps .s .t b{font-size:11px}
+    .steps .s .t span{display:none}
+    .panel{padding:30px 24px 34px;min-height:520px}
+    .panel .head h1{font-size:22px}
+    .opt-grid{grid-template-columns:1fr}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .opt,.next,.back,.skip button,.field-row input{transition:none}
+  }
+</style>
+</head>
+<body>
+<main class="station">
+  <section class="scene" aria-label="场景插画">
+    <div class="cap">POLAR STATION · 北纬 67°</div>
+    <div class="sled">
+      <svg viewBox="0 0 320 220" role="img" aria-label="雪山极光小屋插画">
+        <path d="M0 176 L70 108 L120 152 L176 92 L250 160 L320 118 L320 220 L0 220 Z" fill="#10294a"/>
+        <path d="M0 190 L64 150 L120 192 L190 138 L260 196 L320 160 L320 220 L0 220 Z" fill="#0b1f3c"/>
+        <path d="M96 96 q30 -14 46 -38 q8 22 -14 40 Z" fill="#4fe3c1" opacity=".7"/>
+        <path d="M170 70 q26 -12 40 -34 q10 20 -10 38 Z" fill="#7af0d4" opacity=".55"/>
+        <path d="M226 108 q20 -10 30 -28 q8 16 -8 32 Z" fill="#4fe3c1" opacity=".6"/>
+        <rect x="196" y="150" width="88" height="58" rx="6" fill="#17334f"/>
+        <path d="M188 150 L240 108 L292 150 Z" fill="#f0f6f7"/>
+        <path d="M232 148 L240 122 L248 148 Z" fill="#ffb457"/>
+        <rect x="216" y="172" width="18" height="36" rx="2" fill="#ffb457"/>
+        <circle cx="292" cy="66" r="17" fill="#eef7f9"/>
+        <circle cx="300" cy="58" r="14" fill="#0a1a2e"/>
+      </svg>
+    </div>
+    <div class="steps" role="list">
+      <div class="s on" role="listitem"><span class="n">1</span><span class="t"><b>装备自己</b><span>选择观察模式</span></span></div>
+      <div class="s" role="listitem"><span class="n">2</span><span class="t"><b>选站位置</b><span>驻站名</span></span></div>
+      <div class="s" role="listitem"><span class="n">3</span><span class="t"><b>调好望远镜</b><span>完成设置</span></span></div>
+    </div>
+  </section>
+
+  <section class="panel" aria-label="引导内容">
+    <div class="skip"><button id="skipBtn" type="button">跳过引导</button></div>
+
+    <div class="slide on" data-i="0">
+      <div class="head">
+        <p class="tag">STEP 1 / 3</p>
+        <h1>欢迎来到极光哨站</h1>
+        <p class="lead">这里是离光最近的一间小屋。接下来三步，帮你搭好观察坐标，然后就可以开始记录今晚的极光。</p>
+      </div>
+      <div class="opt-grid" role="group" aria-label="选择观察模式">
+        <div class="opt sel" data-v="巡光员"><div class="o">巡光员</div><div class="d">每晚自动巡检，记录光带强度与风向，适合长期跟踪。</div></div>
+        <div class="opt" data-v="守夜人"><div class="o">守夜人</div><div class="d">只在预报强烈时提醒你，适合偶尔抬头看天的人。</div></div>
+      </div>
+    </div>
+
+    <div class="slide" data-i="1">
+      <div class="head">
+        <p class="tag">STEP 2 / 3</p>
+        <h1>给哨站起个名字</h1>
+        <p class="lead">这个名字只会出现在你自己的观测日志里。取一个万一以后要讲到这里的名字。</p>
+      </div>
+      <div class="field-row">
+        <label for="stationName">哨站名称</label>
+        <input id="stationName" type="text" maxlength="12" placeholder="例如：冰蓝日志站" value="">
+      </div>
+      <p class="note">▸ 之后随时可在「哨站档案」里改名，不影响任何已记录的观测。</p>
+    </div>
+
+    <div class="slide" data-i="2">
+      <div class="head">
+        <p class="tag">STEP 3 / 3</p>
+        <h1>最后确认一句话</h1>
+        <p class="lead">极光哨站不会卖任何东西，只在你打开它时，替你多记一次光。</p>
+      </div>
+      <p class="note">▸ 默认开启「低光通知」：夜里出现 Kp≥4 的绿色光带时，哨站灯会亮一下。</p>
+    </div>
+
+    <div class="cta">
+      <button class="back" id="backBtn" type="button">上一步</button>
+      <button class="next" id="nextBtn" type="button">下一步</button>
+      <span class="count" id="count">1 / 3</span>
+    </div>
+  </section>
+</main>
+<script>
+(function(){
+  var slides=[].slice.call(document.querySelectorAll('.slide')),
+      steps=[].slice.call(document.querySelectorAll('.steps .s')),
+      back=document.getElementById('backBtn'),next=document.getElementById('nextBtn'),
+      skip=document.getElementById('skipBtn'),count=document.getElementById('count'),
+      cur=0;
+
+  function render(){
+    slides.forEach(function(s,i){s.classList.toggle('on',i===cur)});
+    steps.forEach(function(s,i){s.classList.toggle('on',i===cur)});
+    count.textContent=(cur+1)+' / '+3;
+    back.disabled=cur===0;
+    back.textContent=cur===0?'':'上一步';
+    if(cur===2){next.textContent='开始观察';}else{next.textContent='下一步';}
+  }
+  function go(i){cur=Math.max(0,Math.min(2,i));render();}
+
+  back.addEventListener('click',function(){go(cur-1)});
+  next.addEventListener('click',function(){
+    if(cur<2){go(cur+1);return;}
+    var name=document.getElementById('stationName').value.trim()||'未命名哨站';
+    next.disabled=true;next.textContent='观测线已点亮…';
+    setTimeout(function(){
+      next.textContent='已进入 · 今晚见';
+      count.innerHTML='全站就绪 <span style="color:#4fe3c1">✓</span>';
+      back.disabled=true;
+    },800);
+  });
+  skip.addEventListener('click',function(){
+    next.disabled=true;next.textContent='已跳过 · 直接开始';
+    count.textContent='已跳过引导';
+    slides.forEach(function(s){s.classList.remove('on')});
+    steps.forEach(function(s){s.classList.add('on')});
+  });
+  // 单选观察模式
+  var opts=[].slice.call(document.querySelectorAll('.opt'));
+  opts.forEach(function(o){o.addEventListener('click',function(){
+    opts.forEach(function(x){x.classList.remove('sel')});
+    o.classList.add('sel');
+  })});
+
+  back.disabled=true;render();
+})();
+</script>
+</body>
+</html>

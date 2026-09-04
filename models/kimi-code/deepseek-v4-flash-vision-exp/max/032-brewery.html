@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>酿德坊 · 整库注销</title>
+<style>
+  :root{
+    --bott:#2a1c12;
+    --bott-2:#382517;
+    --barley:#e8b64c;
+    --barley-deep:#c2912c;
+    --barley-soft:rgba(232,182,76,.12);
+    --cask:#8a5c38;
+    --cask-deep:#6b4428;
+    --cream:#f3ead6;
+    --cream-soft:#d8c9a6;
+    --cream-mute:#a5946f;
+    --ink:#3a2a18;
+    --ink-soft:#6b5138;
+    --warn:#c8552f;
+    --warn-soft:#f6e2d6;
+    --ok:#5c7d4a;
+    --line:#b9a077;
+    --line-soft:#cbb68f;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    background:
+      radial-gradient(1000px 620px at 50% -14%, rgba(232,182,76,.12), transparent 60%),
+      linear-gradient(180deg,var(--bott) 0%,var(--bott-2) 100%);
+    color:var(--cream);
+    font-family:"Microsoft YaHei","PingFang SC","Noto Sans SC",sans-serif;
+    min-height:100vh;display:flex;align-items:center;justify-content:center;padding:34px 16px;
+  }
+  .card{
+    width:100%;max-width:640px;background:var(--cream);color:var(--ink);
+    border-radius:16px;overflow:hidden;box-shadow:0 34px 90px rgba(0,0,0,.5);
+  }
+  .cband{
+    background:var(--barley);color:#3a2a10;padding:12px 22px;display:flex;justify-content:space-between;align-items:center;
+    font-size:11px;font-weight:800;letter-spacing:.22em;
+  }
+  .cband .amt{background:#3a2a10;color:var(--barley);border-radius:99px;padding:3px 11px;font-size:10.5px}
+  .inner{padding:34px 40px 32px}
+  .head{display:flex;gap:16px;align-items:center;margin-bottom:20px}
+  .head .tank{width:56px;height:56px;border-radius:50%;background:var(--barley-soft);border:2px solid var(--barley);display:flex;align-items:center;justify-content:center;flex:none}
+  .head .tank svg{width:36px;height:36px}
+  .head h1{font-size:23px;font-weight:900;line-height:1.4}
+  .head .sub{font-size:12px;color:var(--ink-soft);margin-top:6px}
+  .head .sub b{color:var(--warn)}
+  .loss{
+    border:1px solid var(--line);border-radius:12px;background:#faf3e2;padding:16px 18px 14px;margin-bottom:20px;
+  }
+  .loss .lt{font-size:11px;font-weight:800;letter-spacing:.18em;color:var(--warn);margin-bottom:10px}
+  .loss ul{list-style:none}
+  .loss li{display:flex;gap:9px;font-size:12.5px;color:var(--ink-soft);line-height:2}
+  .loss li::before{content:"×";color:var(--warn);font-weight:800;flex:none}
+  .loss li b{color:var(--ink)}
+  .loss li.win::before{content:"✓";color:var(--ok)}
+  .typein{
+    border:1.5px solid var(--line);border-radius:10px;padding:16px 18px;margin-bottom:20px;background:#fdf8eb;
+  }
+  .typein label{display:block;font-size:12px;font-weight:700;color:var(--ink-soft);margin-bottom:8px}
+  .typein .row{display:flex;align-items:center;gap:8px}
+  .typein input{
+    flex:1;padding:11px 13px;font-size:14px;border:1.5px solid var(--line);border-radius:8px;background:#fffdf5;
+    outline:none;font-family:inherit;color:var(--ink);transition:border-color .15s,box-shadow .15s;
+  }
+  .typein input:focus{border-color:var(--barley-deep);box-shadow:0 0 0 3px rgba(194,145,44,.18)}
+  .typein input.good{border-color:var(--ok)}
+  .typein .why{font-size:11px;color:var(--ink-mute);margin-top:8px}
+  .typein .why span{background:var(--barley-soft);color:var(--barley-deep);border-radius:4px;padding:1px 8px;font-weight:800}
+  /* 操作区 */
+  .acts{display:flex;gap:12px}
+  .del{
+    flex:1;padding:14px;border:none;border-radius:10px;font-size:15px;font-weight:800;letter-spacing:.12em;
+    cursor:pointer;font-family:inherit;background:var(--warn);color:#fff;
+    box-shadow:0 5px 0 #9c3f20;transition:background .15s,transform .1s,box-shadow .1s;
+  }
+  .del:hover:not(:disabled){background:#d0653f}
+  .del:active:not(:disabled){transform:translateY(2px);box-shadow:0 3px 0 #9c3f20}
+  .del:disabled{background:var(--cream-mute);box-shadow:0 5px 0 #8a7a5c;cursor:default}
+  .cancel{
+    padding:14px 24px;border-radius:10px;border:1.5px solid var(--line);background:none;
+    font-size:14px;font-weight:700;color:var(--ink-soft);cursor:pointer;font-family:inherit;transition:all .15s;
+  }
+  .cancel:hover{border-color:var(--ink);color:var(--ink)}
+  .done{
+    display:none;margin-top:16px;padding:13px 16px;border-radius:10px;border:1.5px dashed var(--ok);
+    background:rgba(92,125,74,.1);color:var(--ok);font-size:13px;line-height:1.8;
+  }
+  .done.show{display:block}
+  @media (max-width:520px){
+    .inner{padding:26px 22px 26px}
+    .acts{flex-direction:column}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .typein input,.del,.cancel{transition:none}
+  }
+</style>
+</head>
+<body>
+<main class="card">
+  <header class="cband">
+    <span>酿德坊 · 整库注销</span>
+    <span class="amt">305 个酒样</span>
+  </header>
+  <div class="inner">
+    <div class="head">
+      <span class="tank">
+        <svg viewBox="0 0 40 40"><path d="M14 6 h12 v6 h-12 Z" fill="#c2912c"/><rect x="12" y="12" width="16" height="22" rx="3" fill="#a5721f"/><path d="M12 24 c6 -4 10 2 16 -2" fill="none" stroke="#e8b64c" stroke-width="2"/></svg>
+      </span>
+      <div>
+        <h1>删除整个酒样库？</h1>
+        <p class="sub">这一步要<a style="color:var(--warn);font-weight:800">认真</a>：305 个酒样先从库中移除，没问题再出账。</p>
+      </div>
+    </div>
+
+    <div class="loss">
+      <p class="lt">将失去</p>
+      <ul>
+        <li><b>305 个酒样的历史记录</b>：年份、糖度、酸度、品鉴笔记</li>
+        <li>已生成但未导出的 <b>12 份酒单</b>（可先导出再删）</li>
+        <li>库位占用与<b>化验预约</b>将被释放</li>
+        <li class="win"><b>保留</b>：已出入库的成品记录与财务台账</li>
+      </ul>
+    </div>
+
+    <div class="typein">
+      <label for="confirm">输入「酿德坊」确认删除</label>
+      <div class="row">
+        <input id="confirm" type="text" placeholder="酿德坊" autocomplete="off">
+      </div>
+      <p class="why">为什么这么麻烦：防止误删。「<span>酿德坊</span>」是库名，输对了才可以按。</p>
+    </div>
+
+    <div class="acts">
+      <button class="cancel" id="cancelBtn" type="button">不删了（更醒目选项）</button>
+      <button class="del" id="delBtn" type="button" disabled>删除库「酿德坊」</button>
+    </div>
+    <div class="done" id="done">✓ 已删除。305 个酒样清空；12 份酒单若已导出可正常打开。库位已释放，随时可以重新建库。</div>
+  </div>
+</main>
+<script>
+(function(){
+  var input=document.getElementById('confirm'),
+      del=document.getElementById('delBtn'),
+      done=document.getElementById('done');
+  input.addEventListener('input',function(){
+    var ok=input.value.trim()==='酿德坊';
+    del.disabled=!ok;
+    input.classList.toggle('good',ok);
+  });
+  del.addEventListener('click',function(){
+    del.textContent='正在倒空…';del.disabled=true;
+    setTimeout(function(){
+      done.classList.add('show');
+      del.textContent='已删除 ✓';
+    },700);
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>白页 · 独立刊物目录</title>
+<style>
+  :root{
+    --paper:#faf8f2;
+    --paper-2:#f1ede2;
+    --ink:#191713;
+    --ink-soft:#4a463d;
+    --ink-mute:#948e80;
+    --accent:#c8492e;
+    --accent-soft:#f7e0d7;
+    --slate:#54617a;
+    --slate-soft:#e8ebf2;
+    --line:#ddd7c7;
+    --line-soft:#e8e3d5;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    background:
+      radial-gradient(900px 500px at 80% -10%, rgba(200,73,46,.05), transparent 60%),
+      var(--paper);
+    color:var(--ink);
+    font-family:"Microsoft YaHei","PingFang SC","Noto Sans SC",sans-serif;
+    min-height:100vh;display:flex;justify-content:center;padding:0 16px 70px;
+  }
+  .wrap{width:100%;max-width:1140px}
+  /* 报头 */
+  .mast{
+    display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:14px;
+    padding:44px 4px 20px;border-bottom:3px solid var(--ink);
+  }
+  .mast .brand{font-size:40px;font-weight:900;letter-spacing:.1em;line-height:1}
+  .mast .brand em{font-style:normal;color:var(--accent)}
+  .mast .tagline{font-size:12px;color:var(--ink-soft);border-left:1px solid var(--ink);padding-left:12px;margin-top:10px;line-height:1.9}
+  .mast .issue{text-align:right;font-size:11px;color:var(--ink-mute);letter-spacing:.18em;line-height:2}
+  /* 过滤条 */
+  .rowbar{
+    display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;
+    padding:14px 2px;border-bottom:1px solid var(--line-soft);
+  }
+  .rowbar .tabs{display:flex;gap:6px}
+  .rowbar .tabs button{
+    padding:7px 15px;font-size:12px;border-radius:4px;border:1px solid var(--line);
+    background:none;color:var(--ink-soft);cursor:pointer;font-family:inherit;transition:all .15s;
+  }
+  .rowbar .tabs button.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+  .rowbar .count{font-size:11.5px;color:var(--ink-mute)}
+  /* 目录网格 */
+  .catalog{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;padding:24px 0 10px}
+  .entry{
+    background:var(--paper);border:1px solid var(--line);border-radius:2px;overflow:hidden;
+    box-shadow:0 4px 0 rgba(25,23,19,.06);transition:box-shadow .15s,transform .15s;cursor:pointer;
+    display:flex;flex-direction:column;
+  }
+  .entry:hover{box-shadow:0 12px 26px rgba(25,23,19,.14);transform:translateY(-2px)}
+  .entry .cover{height:180px;position:relative;overflow:hidden;border-bottom:1px solid var(--line-soft)}
+  .entry .cover svg{width:100%;height:100%;display:block}
+  .entry .cover .no{
+    position:absolute;top:8px;left:-34px;width:120px;text-align:center;background:var(--accent);
+    color:#fff;font-size:10px;font-weight:800;letter-spacing:.1em;transform:rotate(-38deg);padding:2px 0;
+  }
+  .entry .body{padding:14px 16px 16px;display:flex;flex-direction:column;flex:1}
+  .entry .m{font-size:10px;letter-spacing:.24em;color:var(--ink-mute);display:flex;justify-content:space-between;margin-bottom:8px}
+  .entry h3{font-size:16.5px;font-weight:800;line-height:1.45}
+  .entry .sum{font-size:12px;color:var(--ink-soft);line-height:1.85;margin-top:8px;flex:1}
+  .entry .byline{margin-top:12px;padding-top:10px;border-top:1px dashed var(--line);font-size:11px;color:var(--ink-soft);display:flex;justify-content:space-between}
+  .entry .byline .who{color:var(--accent);font-weight:700}
+  /* 摘要弹层 */
+  .reader{position:fixed;inset:0;background:rgba(25,23,19,.5);display:none;align-items:center;justify-content:center;z-index:40;padding:20px}
+  .reader.show{display:flex}
+  .sheet{
+    width:100%;max-width:640px;background:var(--paper);border:2px solid var(--ink);border-radius:2px;
+    max-height:78vh;overflow:auto;padding:36px 42px 30px;box-shadow:0 24px 70px rgba(25,23,19,.4);
+  }
+  .sheet .k{font-size:10px;letter-spacing:.3em;color:var(--ink-mute);margin-bottom:10px}
+  .sheet h2{font-size:26px;font-weight:900;line-height:1.4;margin-bottom:6px}
+  .sheet .meta{font-size:11.5px;color:var(--ink-soft);display:flex;gap:10px;margin-bottom:18px}
+  .sheet .meta b{color:var(--accent)}
+  .sheet .excerpt{font-size:13.5px;line-height:2.1;color:var(--ink-soft);padding-top:6px}
+  .sheet .excerpt p{margin-bottom:12px}
+  .sheet .excerpt p:first-child::first-letter{font-size:30px;font-weight:900;color:var(--accent);float:left;margin:0 6px 0 0}
+  .sheet .cta-row{display:flex;gap:10px;margin-top:22px}
+  .sheet .cta-row button{flex:1;padding:12px;font-size:13px;border-radius:4px;cursor:pointer;font-family:inherit}
+  .sheet .read{background:var(--accent);border:1.5px solid #a63a22;color:#fff;font-weight:800}
+  .sheet .read:hover{background:#b23f26}
+  .sheet .close{background:none;border:1.5px solid var(--line);color:var(--ink-soft)}
+  .sheet .close:hover{border-color:var(--ink)}
+  @media (max-width:960px){.catalog{grid-template-columns:repeat(2,1fr)}}
+  @media (max-width:600px){.catalog{grid-template-columns:1fr}.mast .brand{font-size:30px}.sheet{padding:26px 24px 24px}}
+  @media (prefers-reduced-motion:reduce){
+    .entry,.rowbar .tabs button{transition:none}
+    .entry:hover{transform:none}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="mast">
+    <div>
+      <p class="brand">白页<em>。</em></p>
+      <p class="tagline">独立刊物目录——从印刷机里长出来的<br>那些不长在主流货架上的纸。</p>
+    </div>
+    <p class="issue">VOL. 7 · 2026 秋<br>共收录 128 种 · 本期上新 9 种</p>
+  </header>
+
+  <div class="rowbar">
+    <div class="tabs" role="group" aria-label="分类筛选">
+      <button class="on" data-f="all" type="button">全部</button>
+      <button data-f="文学" type="button">文学</button>
+      <button data-f="设计" type="button">设计</button>
+      <button data-f="摄影" type="button">摄影</button>
+      <button data-f="生活" type="button">生活</button>
+    </div>
+    <span class="count" id="cnt">显示 6 种</span>
+  </div>
+
+  <section class="catalog" id="catalog" aria-label="刊物目录"></section>
+</div>
+
+<div class="reader" id="reader" role="dialog" aria-modal="true" aria-label="刊物摘要">
+  <div class="sheet">
+    <p class="k" id="rK">—</p>
+    <h2 id="rT">—</h2>
+    <p class="meta" id="rM"></p>
+    <div class="excerpt" id="rX"></div>
+    <div class="cta-row">
+      <button class="read" type="button">买一本来读</button>
+      <button class="close" id="rClose" type="button">合上目录</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var items=[
+    {id:1,no:'NO.19',cat:'文学',title:'南方渔火',sum:'一本在沿海县城里做的季刊，写渔汛、晚潮和慢慢熄灯的渔市。',by:'编 · 徐潮生 杨十七',src:'上饶 / 季刊',m:'文学 · 双月刊 · 第 4 期',ex:'<p>潮水退到防波堤以下时，码头就安静了。渔市的人把塑料凳收进车厢，只剩一个补网的老头把梭子举到灯前。</p><p>这本刊物不做大叙事。它记录潮位表、船号与打烊的时间，像给一座县城留一个长长的尾注。</p>'},
+    {id:2,no:'NO.27',cat:'设计',title:'Type 观察室',sum:'一份关于字体排印的小报，每期只拆解一块路牌、一张发票或一份菜单。',by:'编 · 北原工作室',src:'杭州 / 月报',m:'设计 · 月报 · 第 27 期',ex:'<p>这一期拆的是三线城市的公交站牌：数字的宽度、拼音的缩进、以及为什么「下一站」永远比站名更醒目。</p><p>我们不教做字，只教看字。看得多了，手自然会老实。</p>'},
+    {id:3,no:'NO.8',cat:'摄影',title:'暗角',sum:'不收商业图的城市影像小册，专发被城市遗忘的边角与夜色。',by:'编 · 老皮 周悠',src:'北京 / 半年刊',m:'摄影 · 半年刊 · 第 8 期',ex:'<p>胡同口的路灯把井盖拉出长长的影子。我们在凌晨四点来到垃圾楼前，等第一辆清运车。</p><p>「暗角」只印我们觉得应该被记住的角落，不印好看但无话的照片。</p>'},
+    {id:4,no:'NO.33',cat:'生活',title:'早饭研究所',sum:'一本教人认真吃早饭的薄刊：食谱、街边摊访谈与早起的方法论。',by:'编 · 白粥小组',src:'成都 / 月刊',m:'生活 · 月刊 · 第 33 期',ex:'<p>这一期我们蹲了四家红油抄手店，量了每一家的碗沿高度——碗沿的高度，决定了你愿不愿意在店里多坐五分钟。</p><p>早饭不是仪式，是今天第一件自己说了算的事。</p>'},
+    {id:5,no:'NO.5',cat:'文学',title:'北纬四十八度',sum:'东北林区题材的小说合集，每期是一个冬天、一座林场。',by:'编 · 林场文学社',src:'伊春 / 半年刊',m:'文学 · 半年刊 · 第 5 期',ex:'<p>大雪封山的时候，林场的广播就只剩天气预报和寻人启事。</p><p>我们把这里的雪写下来，不是给南方人看，是给雪自己留个底。</p>'},
+    {id:6,no:'NO.41',cat:'生活',title:'屋檐下',sum:'关注老城居住与手艺人的社区刊物，由街坊共同供稿。',by:'编 · 街坊会',src:'厦门 / 季刊',m:'生活 · 季刊 · 第 41 期',ex:'<p>三楼阿婆今年 82，她记得这栋楼每一户换过的门锁。</p><p>「屋檐下」由街坊供稿、街坊分发，稿费是一包茶叶或一袋米。</p>'}
+  ];
+  var covers={
+    1:'<svg viewBox="0 0 300 180"><rect width="300" height="180" fill="#f1ede2"/><rect x="24" y="24" width="252" height="132" fill="#d94f33"/><circle cx="252" cy="30" r="34" fill="#f1ede2"/><path d="M40 100 q30 -24 60 0 t60 0 t60 0" stroke="#f1ede2" stroke-width="3" fill="none"/></svg>',
+    2:'<svg viewBox="0 0 300 180"><rect width="300" height="180" fill="#191713"/><text x="26" y="112" font-size="64" fill="#faf8f2" font-family="serif">Aa</text><rect x="26" y="128" width="120" height="8" fill="#c8492e"/><text x="26" y="52" font-size="16" fill="#948e80" letter-spacing="6">TYPE OBSERVATORY</text></svg>',
+    3:'<svg viewBox="0 0 300 180"><rect width="300" height="180" fill="#10100f"/><circle cx="150" cy="86" r="46" fill="#3a3a38"/><circle cx="150" cy="86" r="18" fill="#c8492e"/><rect x="0" y="150" width="300" height="30" fill="#1c1c1a"/><text x="18" y="172" font-size="11" fill="#948e80">暗角 · VOL.8</text></svg>',
+    4:'<svg viewBox="0 0 300 180"><rect width="300" height="180" fill="#f5ecd7"/><circle cx="78" cy="92" r="46" fill="#e8d5a8"/><circle cx="78" cy="92" r="30" fill="#f7f0dd"/><rect x="130" y="70" width="120" height="44" rx="8" fill="#191713"/><text x="190" y="98" font-size="18" fill="#f5ecd7" text-anchor="middle">早 饭</text></svg>',
+    5:'<svg viewBox="0 0 300 180"><rect width="300" height="180" fill="#e8edf2"/><path d="M0 150 L90 84 L150 120 L220 70 L300 130 L300 180 L0 180 Z" fill="#fff"/><rect x="24" y="24" width="110" height="20" fill="#191713"/><text x="29" y="39" font-size="12" fill="#e8edf2">北纬四十八度</text></svg>',
+    6:'<svg viewBox="0 0 300 180"><rect width="300" height="180" fill="#efe3d2"/><path d="M30 150 L70 96 L110 150 Z M150 150 L190 96 L230 150 Z" fill="#8a6236"/><rect x="60" y="46" width="180" height="60" fill="#f7f0e2" stroke="#c8492e" stroke-width="2"/><text x="150" y="84" font-size="15" fill="#191713" text-anchor="middle">屋檐下</text></svg>'
+  };
+  var catalog=document.getElementById('catalog');
+  function render(f){
+    catalog.innerHTML='';
+    var rows=items.filter(function(i){return f==='all'||i.cat===f});
+    document.getElementById('cnt').textContent='显示 '+rows.length+' 种';
+    rows.forEach(function(i){
+      var d=document.createElement('div');d.className='entry';
+      d.innerHTML='<div class="cover">'+covers[i.id]+'<span class="no">'+i.no+'</span></div>'+
+        '<div class="body"><div class="m"><span>'+i.m+'</span></div><h3>'+i.title+'</h3>'+
+        '<p class="sum">'+i.sum+'</p><div class="byline"><span class="who">'+i.by+'</span><span>'+i.src+'</span></div></div>';
+      d.addEventListener('click',function(){open(i)});
+      catalog.appendChild(d);
+    });
+  }
+  function open(i){
+    document.getElementById('rK').textContent=i.no+' · '+i.m;
+    document.getElementById('rT').textContent=i.title;
+    document.getElementById('rM').innerHTML='<b>'+i.by+'</b> <span>·</span> '+i.src;
+    document.getElementById('rX').innerHTML=i.ex;
+    document.getElementById('reader').classList.add('show');
+  }
+  document.querySelectorAll('.rowbar .tabs button').forEach(function(b){
+    b.addEventListener('click',function(){
+      document.querySelectorAll('.rowbar .tabs button').forEach(function(x){x.classList.remove('on')});
+      b.classList.add('on');render(b.dataset.f);
+    });
+  });
+  document.getElementById('rClose').addEventListener('click',function(){document.getElementById('reader').classList.remove('show')});
+  document.getElementById('reader').addEventListener('click',function(e){if(e.target===this)this.classList.remove('show')});
+  render('all');
+})();
+</script>
+</body>
+</html>

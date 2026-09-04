@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>格物 GeoBox · 四步上手</title>
+<style>
+:root{
+  --paper:#faf8f3;--ink:#121212;--red:#d8432a;--blue:#1f45b5;--yellow:#f0b429;
+  --teal:#17836a;--line:#e2ddd0;--muted:#6b675e;--block:24px;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.65 system-ui,"Microsoft YaHei",sans-serif}
+.wrap{max-width:1280px;margin:0 auto;padding:26px 40px 34px;min-height:100vh;display:flex;flex-direction:column}
+.top{display:flex;align-items:center;gap:14px;border-bottom:3px solid var(--ink);padding-bottom:14px}
+.mark{width:30px;height:30px;flex:none}
+.mark div{position:absolute}
+.logo{display:flex;align-items:center;gap:10px;font:900 19px/1 system-ui;letter-spacing:.02em}
+.logo em{font-style:normal;color:var(--red)}
+.top .tag{font:600 11px/1 ui-monospace,Consolas,monospace;letter-spacing:.14em;color:var(--muted);border:1px solid var(--line);padding:5px 8px}
+.skip{margin-left:auto;appearance:none;background:transparent;border:1px solid var(--ink);color:var(--ink);font:inherit;font-size:13px;padding:8px 14px;cursor:pointer}
+.skip:hover{background:var(--ink);color:var(--paper)}
+.skip:focus-visible{outline:3px solid var(--yellow);outline-offset:2px}
+.body{display:grid;grid-template-columns:300px 1fr;gap:48px;flex:1;padding-top:34px}
+.rail{display:flex;flex-direction:column;gap:2px}
+.rail button{
+  display:grid;grid-template-columns:44px 1fr;gap:12px;align-items:center;text-align:left;
+  appearance:none;border:0;border-left:3px solid var(--line);background:transparent;cursor:pointer;
+  padding:14px 12px;font:inherit;color:var(--muted);
+}
+.rail button b{display:block;font:900 15px/1.3 system-ui;color:var(--ink)}
+.rail button i{font-style:normal;font-size:12.5px}
+.rail button .n{font:900 26px/1 ui-monospace,Consolas,monospace;color:var(--line)}
+.rail button:hover{background:#fff}
+.rail button[aria-current="step"]{border-left-color:var(--red);background:#fff}
+.rail button[aria-current="step"] .n{color:var(--red)}
+.rail button[done="1"] .n{color:var(--teal)}
+.rail button:focus-visible{outline:2px solid var(--blue);outline-offset:-2px}
+.scale{margin-top:22px;display:flex;gap:6px}
+.scale span{height:8px;flex:1;background:var(--line)}
+.scale span.on{background:var(--ink)}
+.scale span.done{background:var(--teal)}
+.stage{display:grid;gap:26px}
+.figure{background:#fff;border:3px solid var(--ink);height:300px;display:grid;place-items:center;position:relative;overflow:hidden}
+.figure .cap{position:absolute;left:0;bottom:0;background:var(--ink);color:var(--paper);font:600 11px/1 ui-monospace,Consolas,monospace;letter-spacing:.14em;padding:8px 12px}
+.figure .art{display:grid;place-items:center;width:100%;height:100%}
+.figure .art svg{width:min(420px,86%);height:auto}
+.step h2{margin:0;font:900 clamp(32px,4.4vw,50px)/1.1 system-ui;letter-spacing:-.02em}
+.step h2 small{display:block;font:600 12px/1 ui-monospace,Consolas,monospace;letter-spacing:.2em;color:var(--red);margin-bottom:12px}
+.step p.lead{margin:14px 0 0;font-size:16.5px;max-width:56ch;color:#2c2a26}
+.points{list-style:none;margin:22px 0 0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:12px 22px}
+.points li{display:grid;grid-template-columns:14px 1fr;gap:10px;font-size:14px;color:var(--muted);align-items:start}
+.points li::before{content:"";width:12px;height:12px;background:var(--yellow);margin-top:5px}
+.points li:nth-child(2)::before{background:var(--blue)}
+.points li:nth-child(3)::before{background:var(--red)}
+.points li:nth-child(4)::before{background:var(--teal)}
+.bar{display:flex;align-items:center;gap:12px;margin-top:auto;padding-top:30px;border-top:1px solid var(--line)}
+.count{font:600 12px/1 ui-monospace,Consolas,monospace;letter-spacing:.16em;color:var(--muted)}
+.nav{margin-left:auto;display:flex;gap:12px}
+.ghost,.next{font:inherit;cursor:pointer;padding:14px 26px;border:3px solid var(--ink)}
+.ghost{background:transparent;color:var(--ink)}
+.ghost:hover:not([disabled]){background:#fff}
+.ghost[disabled]{border-color:var(--line);color:var(--line);cursor:not-allowed}
+.next{background:var(--ink);color:var(--paper);font-weight:700;letter-spacing:.04em}
+.next:hover{background:var(--blue);border-color:var(--blue)}
+.ghost:focus-visible,.next:focus-visible{outline:3px solid var(--yellow);outline-offset:2px}
+.done-mask{position:absolute;inset:0;background:var(--ink);color:var(--paper);display:none;place-items:center;text-align:center;padding:20px}
+.done-mask.show{display:grid}
+.done-mask h3{margin:0 0 8px;font:900 30px/1.2 system-ui}
+.done-mask p{margin:0;color:#b9b5aa;font-size:14px}
+[hidden]{display:none!important}
+@media (max-width:960px){
+  .wrap{padding:20px 20px 28px}
+  .body{grid-template-columns:1fr;gap:24px}
+  .rail{flex-direction:row;overflow-x:auto;gap:8px}
+  .rail button{border-left:0;border-bottom:3px solid var(--line);min-width:150px}
+  .rail button[aria-current="step"]{border-left:0;border-bottom-color:var(--red)}
+  .rail button i{display:none}
+  .points{grid-template-columns:1fr}
+  .figure{height:220px}
+}
+@media (prefers-reduced-motion:reduce){
+  *{transition:none!important;animation:none!important;scroll-behavior:auto!important}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <span class="logo">
+      <svg class="mark" viewBox="0 0 30 30" aria-hidden="true"><rect x="1" y="1" width="13" height="13" fill="#d8432a"/><rect x="16" y="1" width="13" height="13" fill="#1f45b5"/><rect x="1" y="16" width="13" height="13" fill="#f0b429"/><circle cx="22.5" cy="22.5" r="6.5" fill="#121212"/></svg>
+      格物 <em>GeoBox</em>
+    </span>
+    <span class="tag">ONBOARDING · 4 STEPS</span>
+    <button class="skip" id="skip" type="button">跳过引导</button>
+  </header>
+
+  <div class="body">
+    <aside>
+      <div class="rail" id="rail" role="list"></div>
+      <div class="scale" id="scale" aria-hidden="true"></div>
+    </aside>
+
+    <section class="stage">
+      <div class="figure" id="figure">
+        <span class="cap" id="cap">STEP 01 / CANVAS</span>
+        <div class="done-mask" id="mask"><div><h3>引导已收起</h3><p id="maskline">你随时可以从右上角「帮助」再走一遍。</p></div></div>
+      </div>
+      <div class="step" id="step"></div>
+      <div class="bar">
+        <span class="count" id="count">01 / 04</span>
+        <div class="nav">
+          <button class="ghost" id="prev" type="button">上一步</button>
+          <button class="next" id="next" type="button">下一步</button>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<script>
+(function(){
+  'use strict';
+  var STEPS = [
+    {
+      key:'CANVAS', name:'认识画板', sub:'把表格、图卡和便签拖到同一张纸上',
+      points:['左侧素材库按「数据 / 文字 / 图形」分三格，拖出即成形。','画板以 24px 为基准网格，吸附可按住 Alt 临时关闭。','一张画板最多 60 个对象，超出会提示拆成第二张。','右键任意对象可另存为「我的组件」。'],
+      art:'<rect x="40" y="40" width="120" height="90" fill="none" stroke="#121212" stroke-width="4"/><rect x="180" y="60" width="86" height="66" fill="#f0b429"/><circle cx="100" cy="185" r="34" fill="#d8432a"/><rect x="150" y="150" width="120" height="46" fill="#1f45b5"/>'
+    },
+    {
+      key:'DATA', name:'连一条数据线', sub:'从来源到图卡，两步就跑通',
+      points:['支持粘贴 CSV、连接表格库与手填三种来源。','连线带方向，删掉来源时图卡会保留最后一次快照。','同一来源最多被 8 张图卡引用，超出时提示复用。','刷新失败只在角标显示红点，不打断编辑。'],
+      art:'<circle cx="60" cy="120" r="30" fill="#17836a"/><rect x="130" y="52" width="150" height="46" fill="none" stroke="#121212" stroke-width="4"/><rect x="130" y="150" width="150" height="46" fill="#121212"/><path d="M90 120h40M130 75h0M170 98v52" stroke="#d8432a" stroke-width="4" fill="none"/>'
+    },
+    {
+      key:'TEMPLATE', name:'存成一个模板', sub:'每周都要做的事，只搭一次',
+      points:['模板保留对象位置与数据绑定，不带成员权限。','替换数据源后所有图卡按同一口径重算。','模板支持版本号，回退只影响结构不影响历史。','团队模板需管理员批准，个人模板即时可用。'],
+      art:'<rect x="52" y="34" width="200" height="132" fill="#f0b429"/><rect x="72" y="54" width="200" height="132" fill="#fff" stroke="#121212" stroke-width="4"/><rect x="96" y="80" width="72" height="12" fill="#121212"/><rect x="96" y="106" width="124" height="12" fill="#1f45b5"/><rect x="96" y="132" width="52" height="12" fill="#d8432a"/>'
+    },
+    {
+      key:'TEAM', name:'拉同事进来', sub:'一张画板最多 30 人同时编辑',
+      points:['邀请只到邮箱域内成员，外部需管理员放行。','权限分「可看 / 可评论 / 可编辑」三档，默认第三档。','光标带姓名色块，冲突时后写入的一方收到提示。','任何改动都留在活动记录里，可追溯 90 天。'],
+      art:'<circle cx="80" cy="80" r="30" fill="#1f45b5"/><circle cx="150" cy="60" r="30" fill="#d8432a"/><circle cx="216" cy="96" r="30" fill="#17836a"/><rect x="48" y="134" width="228" height="42" fill="#121212"/><rect x="60" y="146" width="80" height="18" fill="#f0b429"/>'
+    }
+  ];
+  var rail = document.getElementById('rail');
+  var scale = document.getElementById('scale');
+  var step = document.getElementById('step');
+  var figure = document.getElementById('figure');
+  var cap = document.getElementById('cap');
+  var count = document.getElementById('count');
+  var prev = document.getElementById('prev');
+  var next = document.getElementById('next');
+  var mask = document.getElementById('mask');
+  var current = 0, skipped = false;
+
+  STEPS.forEach(function(item, i){
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.setAttribute('role','listitem');
+    b.innerHTML = '<span class="n">' + (i + 1) + '</span><span><b>' + item.name + '</b><i>' + item.sub + '</i></span>';
+    b.addEventListener('click', function(){ go(i); });
+    rail.appendChild(b);
+    var s = document.createElement('span');
+    scale.appendChild(s);
+  });
+
+  function pad(n){ return (n < 10 ? '0' : '') + n; }
+
+  function render(){
+    var item = STEPS[current];
+    step.innerHTML = '<h2><small>STEP ' + pad(current + 1) + ' &nbsp;/&nbsp; ' + item.key + '</small>' + item.name + '</h2>' +
+      '<p class="lead">' + item.sub + '。这一步只需三十秒，之后每次都会省你十几分钟。</p>' +
+      '<ul class="points">' + item.points.map(function(p){ return '<li>' + p + '</li>'; }).join('') + '</ul>';
+    var old = figure.querySelector('.art');
+    if (old){ old.remove(); }
+    var art = document.createElement('div');
+    art.className = 'art';
+    art.setAttribute('aria-hidden', 'true');
+    art.innerHTML = '<svg viewBox="0 0 320 240" width="420" height="315">' + item.art + '</svg>';
+    figure.insertBefore(art, cap);
+    Array.prototype.forEach.call(rail.children, function(b, i){
+      b.setAttribute('aria-current', i === current ? 'step' : 'false');
+      b.setAttribute('done', i < current ? '1' : '0');
+    });
+    Array.prototype.forEach.call(scale.children, function(s, i){
+      s.className = i === current ? 'on' : (i < current ? 'done' : '');
+    });
+    cap.textContent = 'STEP ' + pad(current + 1) + ' / ' + item.key;
+    count.textContent = pad(current + 1) + ' / ' + pad(STEPS.length);
+    prev.disabled = current === 0;
+    next.textContent = current === STEPS.length - 1 ? '开始使用' : '下一步';
+    mask.classList.toggle('show', skipped);
+  }
+  function go(i){ skipped = false; current = Math.max(0, Math.min(STEPS.length - 1, i)); render(); }
+
+  prev.addEventListener('click', function(){ go(current - 1); });
+  next.addEventListener('click', function(){
+    if (current === STEPS.length - 1){
+      mask.classList.add('show');
+      document.getElementById('maskline').textContent = '四步已过完，画板已为你建好，直接开始摆放对象。';
+      document.getElementById('mask').querySelector('h3').textContent = '可以开工了';
+      next.textContent = '进入画板';
+      return;
+    }
+    go(current + 1);
+  });
+  document.getElementById('skip').addEventListener('click', function(){
+    skipped = !skipped;
+    this.textContent = skipped ? '继续引导' : '跳过引导';
+    document.getElementById('maskline').textContent = '你随时可以从右上角「帮助」再走一遍。';
+    document.getElementById('mask').querySelector('h3').textContent = '引导已收起';
+    render();
+  });
+  document.addEventListener('keydown', function(e){
+    if (e.key === 'ArrowRight' && !prev.disabled) go(current + 1);
+    if (e.key === 'ArrowLeft') go(current - 1);
+  });
+  render();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>舵手舱 · 工作台总览</title>
+<style>
+  :root{
+    --dusk:#101a2b;
+    --dusk-2:#16233a;
+    --dock:#1d2c48;
+    --dock-2:#22345a;
+    --sea:#4fc3e8;
+    --sea-deep:#2f96c0;
+    --signal:#ffcf4d;
+    --mint:#7fe0c3;
+    --coral:#ff7e6b;
+    --paper:#eef3fb;
+    --text:#f2f6fd;
+    --text-soft:#a9bcd8;
+    --text-mute:#6d84a6;
+    --line:rgba(232,240,255,.14);
+    --grid:rgba(232,240,255,.07);
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    background:
+      radial-gradient(1100px 640px at 85% -20%, rgba(79,195,232,.12), transparent 60%),
+      linear-gradient(180deg,var(--dusk) 0%,var(--dusk-2) 100%);
+    color:var(--text);
+    font-family:"Microsoft YaHei","PingFang SC","Noto Sans SC",sans-serif;
+    min-height:100vh;display:flex;justify-content:center;padding:0 12px;
+  }
+  .shell{
+    width:100%;max-width:1400px;display:grid;grid-template-columns:230px 1fr;min-height:100vh;
+  }
+  /* 侧边导航 */
+  .nav{
+    border-right:1px solid var(--line);padding:28px 18px;display:flex;flex-direction:column;
+    background:rgba(11,18,34,.35);
+  }
+  .nav .logo{display:flex;align-items:center;gap:10px;padding:0 8px 26px}
+  .nav .logo .wheel{width:34px;height:34px;border:2px solid var(--sea);border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--sea);font-weight:800;font-size:16px}
+  .nav .logo .t{font-size:16px;font-weight:800;letter-spacing:.04em}
+  .nav .logo .t small{display:block;font-size:9px;color:var(--text-mute);letter-spacing:.3em;font-weight:400;margin-top:2px}
+  .nav .grp{font-size:10px;letter-spacing:.28em;color:var(--text-mute);padding:14px 8px 8px}
+  .nav a{
+    display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:9px;
+    color:var(--text-soft);font-size:13.5px;text-decoration:none;margin-bottom:2px;
+    transition:background .15s,color .15s;
+  }
+  .nav a .dot{width:7px;height:7px;border-radius:50%;background:var(--text-mute);flex:none}
+  .nav a.on{background:rgba(79,195,232,.13);color:var(--text);font-weight:700}
+  .nav a.on .dot{background:var(--sea);box-shadow:0 0 8px var(--sea)}
+  .nav a:hover:not(.on){background:rgba(232,240,255,.05);color:var(--text)}
+  .nav .foot{margin-top:auto;padding:12px 8px;border-top:1px solid var(--line);font-size:11.5px;color:var(--text-mute);line-height:1.9}
+  .nav .foot b{color:var(--mint)}
+  /* 主区 */
+  .main{padding:26px 30px 40px}
+  .topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px}
+  .topbar h1{font-size:21px;font-weight:800}
+  .topbar .sub{font-size:11.5px;color:var(--text-mute);margin-top:4px}
+  .topbar .actions{display:flex;gap:10px}
+  .ghost{
+    padding:9px 16px;font-size:12.5px;border-radius:8px;border:1px solid var(--line);
+    background:none;color:var(--text-soft);cursor:pointer;font-family:inherit;transition:border-color .15s,color .15s;
+  }
+  .ghost:hover{border-color:var(--sea);color:var(--text)}
+  .primary-sm{
+    padding:9px 18px;font-size:12.5px;font-weight:700;border:none;border-radius:8px;
+    background:var(--sea);color:#08222f;cursor:pointer;font-family:inherit;
+    box-shadow:0 6px 16px rgba(79,195,232,.25);transition:background .15s,transform .1s;
+  }
+  .primary-sm:hover{background:#74d5f3}
+  .primary-sm:active{transform:translateY(1px)}
+  /* KPI */
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px}
+  .kpi{
+    background:var(--dock);border:1px solid var(--line);border-radius:12px;padding:16px 16px 14px;
+    position:relative;overflow:hidden;
+  }
+  .kpi::after{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--kcol,var(--sea))}
+  .kpi .lbl{font-size:11px;color:var(--text-mute);letter-spacing:.06em}
+  .kpi .val{font-size:26px;font-weight:800;margin-top:6px;font-variant-numeric:tabular-nums}
+  .kpi .trend{font-size:11px;margin-top:4px}
+  .kpi .trend.up{color:var(--mint)}
+  .kpi .trend.flat{color:var(--text-mute)}
+  .kpi .spark{margin-top:8px;height:22px}
+  .kpi .spark svg{width:100%;height:100%}
+  /* 中部双栏 */
+  .mid{display:grid;grid-template-columns:1.5fr 1fr;gap:14px;margin-bottom:22px}
+  .panel{background:var(--dock);border:1px solid var(--line);border-radius:12px;padding:18px 18px 16px}
+  .panel .ph{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+  .panel .ph h2{font-size:14.5px;font-weight:700}
+  .panel .ph .more{font-size:11.5px;color:var(--sea);cursor:pointer;background:none;border:none;font-family:inherit}
+  .panel .ph .more:hover{text-decoration:underline}
+  canvas{width:100%;height:190px;display:block}
+  .legend{display:flex;gap:16px;margin-top:10px;font-size:11px;color:var(--text-soft)}
+  .legend span{display:flex;align-items:center;gap:6px}
+  .legend i{width:9px;height:9px;border-radius:2px;display:inline-block}
+  .seg{display:flex;gap:6px;margin-bottom:12px}
+  .seg button{
+    padding:5px 12px;font-size:11px;border-radius:7px;border:1px solid var(--line);
+    background:none;color:var(--text-soft);cursor:pointer;font-family:inherit;
+  }
+  .seg button.on{background:rgba(79,195,232,.16);border-color:var(--sea);color:var(--text)}
+  /* 队列 */
+  .queue{list-style:none}
+  .queue li{
+    display:grid;grid-template-columns:36px 1fr auto;gap:12px;align-items:start;
+    padding:11px 4px;border-bottom:1px solid var(--grid);
+  }
+  .queue li:last-child{border-bottom:none}
+  .queue .ic{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:14px;background:rgba(232,240,255,.07)}
+  .queue .qtitle{font-size:13px;font-weight:600}
+  .queue .qmeta{font-size:11px;color:var(--text-mute);margin-top:3px}
+  .queue .stamp{font-size:10.5px;padding:3px 9px;border-radius:99px;font-weight:700;white-space:nowrap}
+  .stamp.warn{background:rgba(255,126,107,.16);color:var(--coral)}
+  .stamp.ok{background:rgba(127,224,195,.14);color:var(--mint)}
+  .stamp.wait{background:rgba(255,207,77,.14);color:var(--signal)}
+  /* 底部 */
+  .bottom{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .rowline{display:flex;justify-content:space-between;align-items:center;padding:10px 2px;border-bottom:1px solid var(--grid);font-size:12.5px}
+  .rowline:last-child{border-bottom:none}
+  .rowline .rname{color:var(--text-soft)}
+  .rowline .rval{color:var(--text);font-weight:600;font-variant-numeric:tabular-nums}
+  .bar{height:6px;border-radius:99px;background:rgba(232,240,255,.09);overflow:hidden;margin-top:6px}
+  .bar i{display:block;height:100%;border-radius:99px;background:var(--sea)}
+  .badge-t{display:inline-flex;align-items:center;gap:6px;font-size:10.5px;color:var(--text-mute)}
+  .badge-t i{width:6px;height:6px;border-radius:50%;background:var(--sea)}
+  @media (max-width:1080px){
+    .shell{grid-template-columns:200px 1fr}
+    .kpis{grid-template-columns:repeat(2,1fr)}
+    .mid,.bottom{grid-template-columns:1fr}
+  }
+  @media (max-width:760px){
+    .shell{grid-template-columns:1fr}
+    .nav{border-right:none;border-bottom:1px solid var(--line);padding:16px 14px;flex-direction:row;flex-wrap:wrap;gap:4px}
+    .nav .logo{padding:0 8px 8px;width:100%}
+    .nav .grp{display:none}
+    .nav a{padding:8px 10px}
+    .nav .foot{display:none}
+    .main{padding:18px 14px 30px}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .nav a,.ghost,.primary-sm{transition:none}
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+  <nav class="nav" aria-label="主导航">
+    <div class="logo">
+      <span class="wheel">✦</span>
+      <div class="t">舵手舱<small>HELM DECK · 值勤台</small></div>
+    </div>
+    <p class="grp">今日视图</p>
+    <a class="on" href="#"><span class="dot"></span>总览驾驶台</a>
+    <a href="#"><span class="dot"></span>航行任务</a>
+    <a href="#"><span class="dot"></span>航迹回放</a>
+    <p class="grp">管理</p>
+    <a href="#"><span class="dot"></span>船员名册</a>
+    <a href="#"><span class="dot"></span>停靠计划</a>
+    <a href="#"><span class="dot"></span>警报与日志</a>
+    <a href="#"><span class="dot"></span>港口设置</a>
+    <div class="foot">
+      当前班次 <b>夜航 22:00–06:00</b><br>
+      换班倒计时 3 小时 42 分
+    </div>
+  </nav>
+
+  <main class="main">
+    <div class="topbar">
+      <div>
+        <h1>晚上好，林舵手</h1>
+        <p class="sub">2026-09-04 星期五 · 夜航值班 · 东南航区风浪偏大</p>
+      </div>
+      <div class="actions">
+        <button class="ghost" type="button">导出班报</button>
+        <button class="primary-sm" type="button">下达航行令</button>
+      </div>
+    </div>
+
+    <section class="kpis" aria-label="今日关键数字">
+      <div class="kpi" style="--kcol:#4fc3e8">
+        <div class="lbl">在航船舶</div>
+        <div class="val">38<span style="font-size:14px;color:var(--text-mute)"> 艘</span></div>
+        <div class="trend up">▲ 较昨日 +4</div>
+        <div class="spark"><svg viewBox="0 0 100 22" preserveAspectRatio="none"><path d="M0 18 L14 15 L28 16 L42 11 L56 12 L70 8 L84 9 L100 4" stroke="#4fc3e8" stroke-width="2" fill="none"/></svg></div>
+      </div>
+      <div class="kpi" style="--kcol:#7fe0c3">
+        <div class="lbl">准点靠泊</div>
+        <div class="val">96.4<span style="font-size:14px;color:var(--text-mute)"> %</span></div>
+        <div class="trend up">▲ 周均值 94.1%</div>
+        <div class="spark"><svg viewBox="0 0 100 22" preserveAspectRatio="none"><path d="M0 14 L14 12 L28 13 L42 9 L56 10 L70 6 L84 7 L100 5" stroke="#7fe0c3" stroke-width="2" fill="none"/></svg></div>
+      </div>
+      <div class="kpi" style="--kcol:#ffcf4d">
+        <div class="lbl">待处理告警</div>
+        <div class="val">7<span style="font-size:14px;color:var(--text-mute)"> 条</span></div>
+        <div class="trend flat">— 与昨日持平</div>
+        <div class="spark"><svg viewBox="0 0 100 22" preserveAspectRatio="none"><path d="M0 10 L14 12 L28 9 L42 13 L56 11 L70 14 L84 12 L100 13" stroke="#ffcf4d" stroke-width="2" fill="none"/></svg></div>
+      </div>
+      <div class="kpi" style="--kcol:#ff7e6b">
+        <div class="lbl">计划外停航</div>
+        <div class="val">2<span style="font-size:14px;color:var(--text-mute)"> 次</span></div>
+        <div class="trend up">▲ 较昨日 -1</div>
+        <div class="spark"><svg viewBox="0 0 100 22" preserveAspectRatio="none"><path d="M0 16 L14 14 L28 15 L42 12 L56 13 L70 10 L84 11 L100 8" stroke="#ff7e6b" stroke-width="2" fill="none"/></svg></div>
+      </div>
+    </section>
+
+    <section class="mid">
+      <div class="panel" style="min-width:0">
+        <div class="ph">
+          <h2>东南航区离港吞吐</h2>
+          <button class="more" type="button">查看周报 →</button>
+        </div>
+        <div class="seg" role="group" aria-label="切换粒度">
+          <button type="button" data-r="7">近7天</button>
+          <button type="button" class="on" data-r="30">近30天</button>
+          <button type="button" data-r="90">近90天</button>
+        </div>
+        <canvas id="chart" width="760" height="190" aria-label="离港吞吐趋势图"></canvas>
+        <div class="legend"><span><i style="background:#4fc3e8"></i>离港</span><span><i style="background:#8a6cc4"></i>到港</span><span>单位: 千吨</span></div>
+      </div>
+
+      <div class="panel">
+        <div class="ph">
+          <h2>值班队列</h2>
+          <button class="more" type="button">全部 →</button>
+        </div>
+        <ul class="queue">
+          <li>
+            <span class="ic">⚓</span>
+            <div><div class="qtitle">「青龙号」货轮靠泊卸货</div><div class="qmeta">3 号泊位 · 剩余 1 小时 20 分</div></div>
+            <span class="stamp wait">进行中</span>
+          </li>
+          <li>
+            <span class="ic">📡</span>
+            <div><div class="qtitle">东海 12 号灯浮漂移告警</div><div class="qmeta">待人工确认 · 8 分钟前</div></div>
+            <span class="stamp warn">高优先</span>
+          </li>
+          <li>
+            <span class="ic">📋</span>
+            <div><div class="qtitle">「观风」号检疫申报核查</div><div class="qmeta">已排班 · 23:30</div></div>
+            <span class="stamp wait">排队中</span>
+          </li>
+          <li>
+            <span class="ic">✅</span>
+            <div><div class="qtitle">「白鹭」渡轮夜航放行</div><div class="qmeta">已完成 · 21:48</div></div>
+            <span class="stamp ok">已完成</span>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="bottom">
+      <div class="panel">
+        <div class="ph"><h2>各泊位利用率</h2></div>
+        <div class="rowline"><span class="rname">1 号 · 滚装码头</span><span class="rval">82%</span></div>
+        <div class="bar"><i style="width:82%"></i></div>
+        <div class="rowline"><span class="rname">2 号 · 集装箱</span><span class="rval">67%</span></div>
+        <div class="bar"><i style="width:67%"></i></div>
+        <div class="rowline"><span class="rname">3 号 · 散货</span><span class="rval">44%</span></div>
+        <div class="bar"><i style="width:44%"></i></div>
+        <div class="rowline"><span class="rname">4 号 · 客渡</span><span class="rval">28%</span></div>
+        <div class="bar"><i style="width:28%"></i></div>
+      </div>
+      <div class="panel">
+        <div class="ph"><h2>下一班到港</h2></div>
+        <div class="rowline"><span class="rname">「远山」轮 · 集装箱 300 TEU</span><span class="rval">00:12</span></div>
+        <div class="rowline"><span class="rname">「海豚」号 · 客滚 客 180 位</span><span class="rval">00:47</span></div>
+        <div class="rowline"><span class="rname">「长晴」轮 · 散杂 2.1 万吨</span><span class="rval">01:35</span></div>
+        <div class="rowline"><span class="rname">「雾桥」号 · 拖轮编队</span><span class="rval">02:20</span></div>
+        <p style="margin-top:12px;font-size:11px;color:var(--text-mute)"><span class="badge-t"><i></i>预报：凌晨转东北风 5 级，影响 3 号泊位作业，请关注。</span></p>
+      </div>
+    </section>
+  </main>
+</div>
+<script>
+(function(){
+  var canvas=document.getElementById('chart'),ctx=canvas.getContext('2d'),
+      seg=document.querySelectorAll('.seg button'),
+      data={
+        '7':{a:[46,52,49,58,61,55,63],b:[41,44,47,50,52,49,55]},
+        '30':{a:[38,42,46,49,53,57,61,58,64,67,62,66,70,73,69,74,71,76,79,75,80,78,83,81,85,88,84,89,92,90],b:[33,36,40,42,45,48,51,50,54,57,55,59,61,64,62,66,64,68,70,67,72,70,74,73,77,79,76,80,83,81]},
+        '90':{a:[30,33,37,35,41,44,47,45,50,52,55,58,56,60,63,66,64,68,71,69,73,76,74,78,80,83,81,85,88,90],b:[26,29,31,30,34,37,39,38,42,44,46,48,47,51,53,55,54,57,60,58,62,64,63,66,68,70,69,72,75,76]}
+      };
+  function draw(r){
+    var d=data[r],W=canvas.width,H=canvas.height,pad=18,
+        xs=function(i){return pad+i*(W-pad*2)/(d.a.length-1)},
+        ys=function(v){return H-pad-v/95*(H-pad*2)};
+    ctx.clearRect(0,0,W,H);
+    ctx.strokeStyle='rgba(232,240,255,.08)';
+    for(var g=0;g<=4;g++){ctx.beginPath();ctx.moveTo(0,H*(g/4));ctx.lineTo(W,H*(g/4));ctx.stroke();}
+    function line(arr,color){
+      ctx.beginPath();
+      for(var i=0;i<arr.length;i++){i?ctx.lineTo(xs(i),ys(arr[i])):ctx.moveTo(xs(i),ys(arr[i]));}
+      ctx.strokeStyle=color;ctx.lineWidth=2.5;ctx.stroke();
+    }
+    line(d.a,'#4fc3e8');line(d.b,'#8a6cc4');
+    ctx.fillStyle='rgba(232,240,255,.5)';ctx.font='10px sans-serif';
+    ctx.fillText(''+Math.max.apply(null,d.a),W-34,ys(Math.max.apply(null,d.a))+14);
+  }
+  seg.forEach(function(b){b.addEventListener('click',function(){
+    seg.forEach(function(x){x.classList.remove('on')});b.classList.add('on');
+    try{draw(b.dataset.r)}catch(e){}
+  })});
+  draw('30');
+})();
+</script>
+</body>
+</html>

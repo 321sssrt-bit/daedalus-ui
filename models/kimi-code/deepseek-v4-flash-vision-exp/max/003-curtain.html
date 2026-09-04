@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>幕间 · 邀请核验</title>
+<style>
+  :root{
+    --night:#14100d;
+    --night-2:#1e1813;
+    --gold:#d4a94e;
+    --gold-soft:#e7c987;
+    --gold-line:#6b5426;
+    --ivory:#f2e8d5;
+    --ivory-soft:#c9bda2;
+    --ivory-mute:#94876c;
+    --red:#c04b3a;
+    --green:#5f8f60;
+    --ticket:#f7efdd;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    background:
+      radial-gradient(1200px 700px at 50% -10%, #2a2118 0%, transparent 60%),
+      var(--night);
+    color:var(--ivory);
+    font-family:"Microsoft YaHei","PingFang SC","Noto Sans SC",sans-serif;
+    min-height:100vh;display:flex;align-items:center;justify-content:center;padding:40px 16px;
+  }
+  .stage{width:100%;max-width:880px}
+  .marquee{text-align:center;font-size:11px;letter-spacing:.5em;color:var(--gold);margin-bottom:22px}
+  .marquee span{display:inline-block;border:1px solid var(--gold-line);padding:8px 18px;border-radius:999px}
+  /* 票根 */
+  .ticket{
+    background:var(--ticket);color:#2b2418;
+    border-radius:10px;box-shadow:0 30px 80px rgba(0,0,0,.55);
+    display:grid;grid-template-columns:1fr 250px;
+    position:relative;overflow:hidden;
+  }
+  .ticket::before,.ticket::after{
+    content:"";position:absolute;top:0;bottom:0;width:30px;background:var(--night);
+    border-radius:50%;
+  }
+  .ticket::before{left:-18px}
+  .ticket::after{right:-18px}
+  .perf{padding:44px 40px 36px}
+  .perf .kicker{font-size:11px;letter-spacing:.32em;color:#8a6b2f;font-weight:700}
+  .perf h1{font-size:26px;line-height:1.35;margin:10px 0 4px;color:#241d12}
+  .perf .meta{font-size:13px;color:#5d5138;line-height:1.9}
+  .perf .meta b{color:#8a6b2f}
+  .perf .desc{margin-top:16px;font-size:12.5px;line-height:2;color:#443a26;border-left:3px solid var(--gold);padding-left:12px}
+  /* 撕线 */
+  .tear{border-left:2px dashed #c4b28c;position:relative}
+  .tear::before,.tear::after{content:"";position:absolute;left:-7px;width:12px;height:12px;border-radius:50%;background:var(--night)}
+  .tear::before{top:-6px}
+  .tear::after{bottom:-6px}
+  .gate{padding:44px 28px 36px;display:flex;flex-direction:column;justify-content:center;text-align:center}
+  .gate .glyph{font-size:30px;color:var(--gold);margin-bottom:10px}
+  .gate h2{font-size:17px;color:#241d12;margin-bottom:6px}
+  .gate p{font-size:12px;color:#6a5c3f;margin-bottom:20px}
+  .gate form{display:flex;flex-direction:column;gap:12px}
+  .gate input{
+    width:100%;text-align:center;font-size:16px;letter-spacing:.28em;
+    padding:13px 10px;border-radius:8px;border:1.5px solid #c4b28c;
+    background:#fffdf5;color:#241d12;font-family:"Courier New",Consolas,monospace;
+    outline:none;text-transform:uppercase;transition:border-color .15s,box-shadow .15s;
+  }
+  .gate input::placeholder{letter-spacing:.05em;color:#b3a684;text-transform:none}
+  .gate input:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(212,169,78,.25)}
+  .gate input.bad{border-color:#c04b3a;box-shadow:0 0 0 3px rgba(192,75,58,.2);animation:shake .3s}
+  @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+  .check{
+    padding:13px;font-size:14px;font-weight:700;letter-spacing:.18em;border:none;border-radius:8px;
+    background:var(--gold);color:#241d12;cursor:pointer;font-family:inherit;
+    transition:background .15s,transform .1s;
+  }
+  .check:hover{background:var(--gold-soft)}
+  .check:active{transform:translateY(1px)}
+  .check:disabled{background:#c9b98d;cursor:default}
+  .feedback{min-height:40px;font-size:12px;line-height:1.8;padding:8px 10px;border-radius:8px;color:#443a26}
+  .feedback.err{background:#f6e3dd;color:#a23a2c}
+  .feedback.ok{background:#e5ede1;color:#3c5c40;display:flex;align-items:center;justify-content:center;gap:8px}
+  .feedback .stamp{
+    display:inline-block;transform:rotate(-8deg);border:2px solid #3c5c40;border-radius:6px;
+    padding:3px 10px;font-weight:800;letter-spacing:.2em;font-size:13px;color:#3c5c40;
+  }
+  .foot{text-align:center;font-size:12px;color:var(--ivory-mute);margin-top:20px}
+  .foot a{color:var(--gold-soft);text-decoration:none;border-bottom:1px dashed var(--gold-line)}
+  .foot a:hover{color:var(--ivory)}
+  @media (max-width:760px){
+    .ticket{grid-template-columns:1fr}
+    .tear{border-left:none;border-top:2px dashed #c4b28c;position:relative}
+    .tear::before{left:-6px;top:-7px;bottom:auto;right:auto}
+    .tear::after{right:-6px;top:-7px;bottom:auto}
+    .perf{padding:32px 24px 26px}
+    .gate{padding:30px 24px 32px}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .gate input.bad{animation:none}
+    .gate input,.check{transition:none}
+  }
+</style>
+</head>
+<body>
+<main class="stage">
+  <p class="marquee"><span>幕间剧场 · 今日夜场</span></p>
+  <section class="ticket" aria-label="邀请票根">
+    <div class="perf">
+      <p class="kicker">PRIVATE SCREENING</p>
+      <h1>《雾中来客》</h1>
+      <p class="meta">
+        演出：<b>19:45 开演 · 第五幕</b><br>
+        场地：<b>幕间剧场 · 二层包厢</b><br>
+        座位：<b>D 排 07 号</b>（凭邀请码入座）
+      </p>
+      <p class="desc">本场只对收到邀请函的人开放。请在票根正面输入函面上的六位核验码——验过之后，幕布才拉开。</p>
+    </div>
+    <div class="tear"></div>
+    <div class="gate">
+      <div class="glyph">✦</div>
+      <h2>输入邀请码</h2>
+      <p>六位字符，字母不区分大小写</p>
+      <form id="gateForm" novalidate>
+        <input id="code" type="text" maxlength="6" placeholder="如：MIST07" autocomplete="off" spellcheck="false" aria-label="邀请码">
+        <button class="check" id="checkBtn" type="submit">验票入场</button>
+        <div class="feedback" id="feedback" role="status" aria-live="polite"></div>
+      </form>
+    </div>
+  </section>
+  <p class="foot">没有邀请函？可以<a href="#">在售票处候补</a>，或联系当晚持票人。</p>
+</main>
+<script>
+(function(){
+  var form=document.getElementById('gateForm'),
+      code=document.getElementById('code'),
+      btn=document.getElementById('checkBtn'),
+      fb=document.getElementById('feedback'),
+      valid=['MIST07','CURTAIN','NIGHT05','VALT03','WIST15'];
+
+  function accept(val){return valid.indexOf(val.toUpperCase().trim())>-1;}
+
+  form.addEventListener('submit',function(e){
+    e.preventDefault();
+    var v=code.value.toUpperCase().trim();
+    fb.className='feedback';
+    if(v.length!==6){
+      fb.classList.add('err');
+      fb.textContent='× 需要六位核验码，您现在输入了 '+v.length+' 位。';
+      code.classList.add('bad');
+    }else if(!accept(v)){
+      fb.classList.add('err');
+      fb.textContent='× 核验码 '+v+' 不对应今晚的场次——请与发函人核对，或重看票根。';
+      code.classList.add('bad');
+    }else{
+      code.classList.remove('bad');
+      fb.classList.add('ok');
+      fb.innerHTML='<span class="stamp">已核验</span> 欢迎入场，D 排 07 号。<br>幕布正在升起…';
+      btn.disabled=true;
+    }
+  });
+  code.addEventListener('input',function(){code.classList.remove('bad')});
+  code.focus();
+})();
+</script>
+</body>
+</html>

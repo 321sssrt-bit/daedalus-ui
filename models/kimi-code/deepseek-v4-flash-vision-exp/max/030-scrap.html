@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>旧货行 · 档案检索</title>
+<style>
+  :root{
+    --kraft:#e8dcc2;
+    --kraft-2:#dccdaf;
+    --ink:#3a3020;
+    --ink-soft:#6b5d43;
+    --ink-mute:#9c8f72;
+    --seal:#8a9a52;
+    --seal-deep:#6c7a3c;
+    --seal-soft:#e6ead2;
+    --ochre:#c98a3a;
+    --ochre-soft:#f3e6cf;
+    --brick:#b04a30;
+    --brick-soft:#f3e0d6;
+    --line:#c9b98e;
+    --line-soft:#dccfb2;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    background:
+      repeating-linear-gradient(45deg,rgba(90,72,40,.03) 0 1px,transparent 1px 9px),
+      var(--kraft);
+    color:var(--ink);
+    font-family:"Microsoft YaHei","PingFang SC","Noto Sans SC",sans-serif;
+    min-height:100vh;display:flex;justify-content:center;padding:0 16px 70px;
+  }
+  .wrap{width:100%;max-width:1100px}
+  .top{
+    display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;
+    padding:28px 4px 16px;border-bottom:3px solid var(--ink);
+  }
+  .top .idn{display:flex;align-items:center;gap:12px}
+  .top .idn .stamp{width:42px;height:42px;border:2.5px solid var(--seal-deep);border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--seal-deep);font-family:"KaiTi",STKaiti,serif;font-weight:800;font-size:17px;transform:rotate(-6deg)}
+  .top h1{font-size:22px;font-weight:900;letter-spacing:.06em}
+  .top .sub{font-size:11px;color:var(--ink-mute);margin-top:4px}
+  .top .total{font-size:12px;color:var(--ink-soft);background:var(--kraft-2);border-radius:99px;padding:8px 16px}
+  /* 左筛选栏 + 右结果 */
+  .main{display:grid;grid-template-columns:280px 1fr;gap:24px;margin-top:22px}
+  .filters{
+    background:var(--kraft-2);border:1px solid var(--line);border-radius:12px;padding:18px 18px 20px;
+    align-self:start;position:sticky;top:20px;
+  }
+  .filters h2{font-size:12px;font-weight:800;letter-spacing:.14em;color:var(--ink-soft);margin-bottom:12px}
+  .fgroup{margin-bottom:16px}
+  .fgroup .gl{font-size:11.5px;font-weight:700;color:var(--ink-soft);margin-bottom:8px}
+  .fgroup .opts{display:flex;flex-direction:column;gap:6px}
+  .fgroup .opt{
+    display:flex;align-items:center;gap:9px;padding:7px 10px;border-radius:8px;cursor:pointer;
+    font-size:12.5px;color:var(--ink-soft);transition:background .12s;
+  }
+  .fgroup .opt:hover{background:var(--kraft)}
+  .fgroup .opt.on{background:#f7efda;color:var(--ink);font-weight:700}
+  .fgroup .opt .box{width:16px;height:16px;border-radius:4px;border:1.5px solid var(--ink-mute);flex:none;display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff}
+  .fgroup .opt.on .box{background:var(--seal);border-color:var(--seal-deep)}
+  .fgroup .opt .cnt{margin-left:auto;font-size:10.5px;color:var(--ink-mute)}
+  .range{display:flex;align-items:center;gap:8px}
+  .range input{flex:1;padding:8px 10px;font-size:12px;border:1.5px solid var(--line);border-radius:8px;background:#faf4e6;font-family:inherit}
+  .clear{
+    width:100%;margin-top:8px;padding:10px;border-radius:8px;border:1.5px solid var(--line);
+    background:none;color:var(--ink-soft);font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .12s;
+  }
+  .clear:hover{border-color:var(--brick);color:var(--brick)}
+  /* 结果区 */
+  .result .rh{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px}
+  .result .rh .cnt{font-size:13px;font-weight:800;color:var(--seal-deep)}
+  .result .rh .line{font-size:11px;color:var(--ink-mute)}
+  .items{display:flex;flex-direction:column;gap:12px}
+  .item{
+    background:var(--kraft);border:1px solid var(--line);border-radius:12px;padding:16px 18px;
+    display:grid;grid-template-columns:56px 1fr auto;gap:14px;align-items:center;
+    transition:box-shadow .12s,transform .12s;
+  }
+  .item:hover{box-shadow:0 10px 22px rgba(90,72,40,.16);transform:translateY(-2px)}
+  .item .thumb{width:56px;height:56px;border-radius:8px;background:#f7efda;border:1px solid var(--line-soft);display:flex;align-items:center;justify-content:center;font-size:22px}
+  .item .nm{font-size:14.5px;font-weight:800}
+  .item .meta{font-size:11px;color:var(--ink-mute);margin-top:5px;line-height:1.7}
+  .item .meta b{color:var(--ink-soft)}
+  .item .tags{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+  .item .tags span{font-size:10px;padding:2px 8px;border-radius:99px;background:var(--seal-soft);color:var(--seal-deep);border:1px solid rgba(108,122,60,.3)}
+  .item .price{font-size:15px;font-weight:900;color:var(--brick)}
+  .item .price small{display:block;font-size:10px;color:var(--ink-mute);font-weight:400;text-align:right;margin-top:4px}
+  .empty{
+    background:var(--kraft);border:1px dashed var(--line);border-radius:12px;padding:44px 24px;text-align:center;
+    color:var(--ink-soft);font-size:13px;line-height:2;
+  }
+  .empty .big{font-size:34px;margin-bottom:8px}
+  @media (max-width:860px){
+    .main{grid-template-columns:1fr}
+    .filters{position:static}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .fgroup .opt,.clear,.item{transition:none}
+    .item:hover{transform:none}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="idn">
+      <span class="stamp">录</span>
+      <div>
+        <h1>旧货行 · 档案检索</h1>
+        <p class="sub">Y 市旧货市场 · 货品档案 2,108 条</p>
+      </div>
+    </div>
+    <span class="total">当前筛选范围：全部货品</span>
+  </header>
+
+  <div class="main">
+    <aside class="filters" aria-label="筛选条件">
+      <h2>收窄你的货</h2>
+      <div class="fgroup">
+        <p class="gl">货类</p>
+        <div class="opts" id="fg-cat"></div>
+      </div>
+      <div class="fgroup">
+        <p class="gl">新旧程度</p>
+        <div class="opts" id="fg-cond"></div>
+      </div>
+      <div class="fgroup">
+        <p class="gl">价格区间（元）</p>
+        <div class="range">
+          <input id="pmin" type="number" placeholder="最低" value="">
+          <span>—</span>
+          <input id="pmax" type="number" placeholder="最高" value="">
+        </div>
+      </div>
+      <button class="clear" id="clearBtn" type="button">清除全部条件</button>
+    </aside>
+
+    <section class="result" aria-label="检索结果">
+      <div class="rh">
+        <span class="cnt" id="cnt">找到 8 件</span>
+        <span class="line">价格从低到高 · 共 8 件可交易</span>
+      </div>
+      <div class="items" id="items"></div>
+    </section>
+  </div>
+</div>
+<script>
+(function(){
+  var stuff=[
+    {id:1,cat:'家具',cond:'九成新',name:'榉木五斗柜（叠架）',meta:'<b>阿财阁</b> · 1985 年产 · 长 92cm',price:680,tags:['榉木','五斗柜'],'ico':'🪑'},
+    {id:2,cat:'家电',cond:'八成新',name:'飞碟牌案上电扇',meta:'<b>陈家铺</b> · 绿铁皮 · 三档',price:320,tags:['老电扇','铁皮'],'ico':'🌀'},
+    {id:3,cat:'纸质',cond:'品相好',name:'《南城板报》合订本 1962-64',meta:'<b>纸边书社</b> · 24 册 · 无缺页',price:460,tags:['合订本','1960s'],'ico':'📰'},
+    {id:4,cat:'家具',cond:'需整修',name:'樟木箱（门轴松）',meta:'<b>老周木作</b> · 可代修装新锁',price:150,tags:['樟木','整修'],'ico':'🧰'},
+    {id:5,cat:'杂项',cond:'全新',name:'库存铁皮饼干听（空）',meta:'<b>南货部</b> · 未拆封 12 只',price:45,tags:['铁皮','复古'],'ico':'🥫'},
+    {id:6,cat:'纸质',cond:'品相好',name:'线装《医方集解》下册',meta:'<b>拾遗轩</b> · 光绪刻本',price:520,tags:['线装','古籍'],'ico':'📚'},
+    {id:7,cat:'杂项',cond:'八成新',name:'铜质门牌「朝阳里 3」',meta:'<b>王家杂铺</b> · 带原白漆底',price:88,tags:['门牌','铜'],'ico':'🔩'},
+    {id:8,cat:'家电',cond:'九成新',name:'红灯牌收音机 739',meta:'<b>阿财阁</b> · 可亮灯收听',price:260,tags:['收音机','红灯牌'],'ico':'📻'},
+    {id:9,cat:'家具',cond:'九成新',name:'折叠圆桌（桐油面）',meta:'<b>老周木作</b> · 可折叠三叶',price:210,tags:['圆桌','桐油'],'ico':'🪑'},
+    {id:10,cat:'纸质',cond:'需整修',name:'民国《燕京画报》散页一叠',meta:'<b>纸边书社</b> · 约 40 张边损',price:95,tags:['画报','民国'],'ico':'📄'}
+  ];
+  var cats=['家具','家电','纸质','杂项'],conds=['全新','九成新','八成新','品相好','需整修'];
+  var selCat=null,selCond=null;
+  function buildGroups(){
+    var c=document.getElementById('fg-cat');c.innerHTML='';
+    cats.forEach(function(k){
+      var n=stuff.filter(function(s){return s.cat===k}).length;
+      var d=document.createElement('div');d.className='opt'+(selCat===k?' on':'');d.dataset.k=k;
+      d.innerHTML='<span class="box">'+(selCat===k?'✓':'')+'</span>'+k+'<span class="cnt">'+n+'</span>';
+      d.addEventListener('click',function(){selCat=selCat===k?null:k;render();});
+      c.appendChild(d);
+    });
+    var co=document.getElementById('fg-cond');co.innerHTML='';
+    conds.forEach(function(k){
+      var n=stuff.filter(function(s){return s.cond===k}).length;
+      var d=document.createElement('div');d.className='opt'+(selCond===k?' on':'');d.dataset.k=k;
+      d.innerHTML='<span class="box">'+(selCond===k?'✓':'')+'</span>'+k+'<span class="cnt">'+n+'</span>';
+      d.addEventListener('click',function(){selCond=selCond===k?null:k;render();});
+      co.appendChild(d);
+    });
+  }
+  function render(){
+    buildGroups();
+    var min=parseFloat(document.getElementById('pmin').value)||0,
+        max=parseFloat(document.getElementById('pmax').value)||Infinity;
+    var rows=stuff.filter(function(s){
+      if(selCat&&s.cat!==selCat)return false;
+      if(selCond&&s.cond!==selCond)return false;
+      if(s.price<min||s.price>max)return false;
+      return true;
+    });
+    rows.sort(function(a,b){return a.price-b.price});
+    var items=document.getElementById('items');items.innerHTML='';
+    document.getElementById('cnt').textContent='找到 '+rows.length+' 件';
+    if(!rows.length){
+      items.innerHTML='<div class="empty"><div class="big">🕸</div>这一格里没有对上的货——<br>放宽价格区间或换一个条件试试。</div>';
+      return;
+    }
+    rows.forEach(function(s){
+      var d=document.createElement('div');d.className='item';
+      d.innerHTML='<span class="thumb">'+s.ico+'</span>'+
+        '<div><div class="nm">'+s.name+'</div><div class="meta">'+s.meta+'</div>'+
+        '<div class="tags">'+s.tags.map(function(t){return '<span>'+t+'</span>'}).join('')+'</div></div>'+
+        '<div class="price">¥'+s.price+'<small>'+s.cond+'</small></div>';
+      items.appendChild(d);
+    });
+  }
+  document.getElementById('pmin').addEventListener('input',render);
+  document.getElementById('pmax').addEventListener('input',render);
+  document.getElementById('clearBtn').addEventListener('click',function(){
+    selCat=null;selCond=null;
+    document.getElementById('pmin').value='';document.getElementById('pmax').value='';
+    render();
+  });
+  render();
+})();
+</script>
+</body>
+</html>

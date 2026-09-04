@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>夜巡通知</title>
+<style>
+:root{
+  --bg:#151a2b;--panel:#1d2438;--panel-2:#242c45;--line:#30395a;--text:#e8eaf2;--muted:#8b93ad;
+  --cyan:#55c9c0;--magenta:#e0568a;--amber:#e0a63c;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:14px/1.65 system-ui,"Microsoft YaHei",sans-serif;
+  background-image:radial-gradient(90% 60% at 50% 0%,#2a355c66,transparent 70%)}
+.wrap{max-width:760px;margin:0 auto;padding:26px 22px 60px}
+.top{display:flex;align-items:center;gap:12px;padding-bottom:14px;border-bottom:1px solid var(--line)}
+.top h1{margin:0;font:800 20px/1.3 system-ui;letter-spacing:.02em}
+.pill{font:700 11px/1 ui-monospace,Consolas,monospace;letter-spacing:.08em;background:var(--magenta);color:#fff;padding:6px 9px;border-radius:999px}
+.top .read{margin-left:auto;appearance:none;cursor:pointer;font:inherit;font-size:12.5px;border:1px solid var(--line);background:var(--panel);color:var(--text);padding:9px 14px;border-radius:8px}
+.top .read:hover{border-color:var(--cyan);color:var(--cyan)}
+.top .read:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+.top .read[disabled]{opacity:.5;cursor:default}
+.filters{display:flex;gap:8px;margin:16px 0 6px;flex-wrap:wrap}
+.filters button{appearance:none;cursor:pointer;font:inherit;font-size:12.5px;border:1px solid var(--line);background:transparent;color:var(--muted);padding:7px 13px;border-radius:999px}
+.filters button[aria-pressed="true"]{background:var(--panel-2);border-color:var(--cyan);color:var(--cyan);font-weight:600}
+.filters button:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+.group{margin-top:22px;font:600 11px/1 ui-monospace,Consolas,monospace;letter-spacing:.16em;color:var(--muted);padding-left:2px}
+.item{margin-top:10px;background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.item.unread{border-left:3px solid var(--cyan)}
+.item.sev-hi.unread{border-left-color:var(--magenta)}
+.head-row{display:grid;grid-template-columns:34px 1fr auto;gap:12px;align-items:start;width:100%;text-align:left;appearance:none;
+  border:0;background:transparent;color:inherit;font:inherit;padding:13px 16px;cursor:pointer}
+.head-row:hover{background:var(--panel-2)}
+.head-row:focus-visible{outline:2px solid var(--cyan);outline-offset:-2px}
+.ico{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;background:var(--panel-2);border:1px solid var(--line)}
+.ico svg{width:17px;height:17px}
+.ico.hi{background:#e0568a1f;border-color:#e0568a5c}
+.ico.md{background:#e0a63c1f;border-color:#e0a63c5c}
+.ico.lo{background:#55c9c01f;border-color:#55c9c05c}
+.ttl{font-size:14px;font-weight:600;line-height:1.45}
+.item:not(.unread) .ttl{font-weight:400;color:#cdd2e2}
+.ttl i{font-style:normal;font-size:11px;font-family:ui-monospace,Consolas,monospace;letter-spacing:.06em;padding:3px 6px;border-radius:4px;margin-right:8px;vertical-align:1px}
+.ttl i.hi{background:#e0568a2e;color:#f0a8c2}
+.ttl i.md{background:#e0a63c2e;color:#f0cf94}
+.ttl i.lo{background:#55c9c02e;color:#a6e6e0}
+.sub{margin:3px 0 0;font-size:12.5px;color:var(--muted);line-height:1.6}
+.right{display:grid;justify-items:end;gap:8px;align-content:start}
+.right time{font:500 11px/1.4 ui-monospace,Consolas,monospace;color:var(--muted);white-space:nowrap}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--cyan)}
+.chev{width:16px;height:16px;color:var(--muted);transition:transform .2s ease}
+.item[data-open="1"] .chev{transform:rotate(180deg)}
+.detail{display:none;border-top:1px solid var(--line);padding:14px 16px 16px;background:#1a2033}
+.item[data-open="1"] .detail{display:block}
+.detail p{margin:0 0 12px;font-size:13px;color:#c8cee0;line-height:1.75}
+.kv{display:grid;grid-template-columns:repeat(3,auto);gap:6px 22px;font-size:12px;justify-content:start;margin-bottom:14px}
+.kv dt{color:var(--muted)}
+.kv dd{margin:0;font-family:ui-monospace,Consolas,monospace;color:var(--text)}
+.acts{display:flex;gap:8px;flex-wrap:wrap}
+.acts button{appearance:none;cursor:pointer;font:inherit;font-size:12.5px;padding:9px 15px;border-radius:8px;border:1px solid var(--line);background:var(--panel-2);color:var(--text)}
+.acts button.pri{background:var(--cyan);border-color:var(--cyan);color:#0f1a24;font-weight:700}
+.acts button.pri:hover{background:#6fdcd4}
+.acts button:hover{border-color:var(--cyan)}
+.acts button:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+.state{margin-left:auto;font-size:12px;color:var(--cyan);align-self:center}
+.allclear{margin-top:18px;text-align:center;font-size:12.5px;color:var(--muted)}
+[hidden]{display:none!important}
+@media (max-width:560px){
+  .wrap{padding:18px 14px 44px}
+  .kv{grid-template-columns:repeat(2,auto)}
+  .top .read{margin-left:0}
+  .head-row{grid-template-columns:30px 1fr auto;padding:12px 13px}
+  .ico{width:30px;height:30px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}.item[data-open="1"] .chev{transform:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>夜巡通知</h1><span class="pill" id="pill">5 未读</span>
+    <button class="read" id="readAll" type="button">全部标已读</button>
+  </header>
+
+  <div class="filters" role="group" aria-label="按类型过滤">
+    <button type="button" data-f="all" aria-pressed="true">全部</button>
+    <button type="button" data-f="hi" aria-pressed="false">需立即处理</button>
+    <button type="button" data-f="md" aria-pressed="false">运行提醒</button>
+    <button type="button" data-f="lo" aria-pressed="false">系统与维护</button>
+    <button type="button" data-f="unread" aria-pressed="false">只看未读</button>
+  </div>
+
+  <div id="feed"></div>
+  <p class="allclear" id="tail"></p>
+</div>
+
+<script>
+(function(){
+  'use strict';
+  var ICONS = {
+    hi:'<path d="M9 2.4 16.6 15.6H1.4z" fill="none" stroke="#e0568a" stroke-width="1.6"/><path d="M9 6.6v4" stroke="#e0568a" stroke-width="1.8" stroke-linecap="round"/><circle cx="9" cy="12.8" r="1" fill="#e0568a"/>',
+    md:'<circle cx="9" cy="9" r="7.2" fill="none" stroke="#e0a63c" stroke-width="1.6"/><path d="M9 5v4.4l3 1.8" stroke="#e0a63c" stroke-width="1.7" fill="none" stroke-linecap="round"/>',
+    lo:'<path d="M2.6 4.4h12.8v8.2H2.6z" fill="none" stroke="#55c9c0" stroke-width="1.6"/><path d="M2.6 7.2h12.8" stroke="#55c9c0" stroke-width="1.6"/>'
+  };
+  var SEV = {hi:['需立即处理','i hi'],md:['运行提醒','i md'],lo:['系统与维护','i lo']};
+  var NOTE = [
+    {g:'今天',id:'A-1',sev:'hi',t:'东门道口管制升级，N-23:00 预计再延 8 分钟',s:'调度中心已启动 B 预案，区间车 22:58 待发。',time:'21:36',read:false,
+     body:['管制由 20 分钟延长至 40 分钟，B 预案已启动：区间车 22:58 从 2 站台发出，接 23:00 的客流。','请在 2 站台广播引导，并把「机场直达」指示牌翻到备用面。'],kv:[['来源','调度中心'],['影响班次','N-23:00'],['时限','今晚']]},
+    {g:'今天',id:'A-2',sev:'md',t:'3 号车胎压传感器两次巡检读数不一致',s:'设备科建议明天进站前复检一次，暂不影响派车。',time:'20:12',read:false,
+     body:['20:05 与 20:45 两次读数相差 12 kPa，超出容差。','车辆暂列可派，但请避免安排长途班次；明日进场复检已由设备科预约。'],kv:[['来源','设备科'],['关联车辆','3 号车'],['工单','W-313']]},
+    {g:'今天',id:'A-3',sev:'lo',t:'系统与排班表今晨完成同步，共 42 条',s:'含 6 条夜间加班与 2 条请假审批结果。',time:'06:00',read:false,
+     body:['排班表已同步 42 条，其中 6 条为周末夜间加班、2 条请假已批准（09-02、09-04）。','请核对本人席位，异常请在系统内提交变更，不要口头改班。'],kv:[['来源','人事系统'],['条目','42']]},
+    {g:'今天',id:'A-4',sev:'hi',t:'失物柜 12 号已锁定，需当班双人开启',s:'乘客来电称内有就诊复查单，领取人需核验身份。',time:'17:41',read:false,
+     body:['包内有一张下周三的复查单，乘客王女士希望今日或明早领取。','领取需当班两人共同开锁并登记证件号，代领需出示委托书。'],kv:[['来源','乘客事务'],['存放','失物柜 12 号'],['工单','L-2207']]},
+    {g:'今天',id:'A-5',sev:'md',t:'夜间照明延时参数将于 22:00 生效',s:'由 30 秒改为 40 秒，关灯顺序不变。',time:'16:20',read:false,
+     body:['5 回路延时统一由 30 秒改为 40 秒，22:00 起生效。','夜班巡查请按新顺序确认，如仍有回路提前熄灭，报安全科并附照片。'],kv:[['来源','安全科'],['生效','22:00']]},
+    {g:'更早',id:'A-6',sev:'md',t:'N-22:15 石门线客流超预估 18%',s:'已在 22:20 加开一班区间车。',time:'昨天 22:31',read:true,
+     body:['实际候车 62 人，超预估 18%。已加开区间车一班，22:40 清空。','建议明日把该时段预估上调 12%。'],kv:[['来源','站口摄像'],['影响班次','N-22:15']]},
+    {g:'更早',id:'A-7',sev:'lo',t:'调度台 v2.4 已发布，报站屏字体放大一档',s:'如仍觉得偏小，可在设置中再调。',time:'08-25 09:12',read:true,
+     body:['v2.4：报站屏字号 +1 档，夜间对比度提升；修正 3 号线到站时间显示跳秒。','设置中另有两档字号可选。'],kv:[['来源','信息系统'],['版本','v2.4']]},
+    {g:'更早',id:'A-8',sev:'lo',t:'每周例行数据库备份已完成',s:'耗时 4 分 12 秒，校验通过。',time:'08-25 03:00',read:true,
+     body:['08-25 03:00 完成全量备份，耗时 4 分 12 秒，校验通过。','保留策略：近 30 天日备、近 12 周周备。'],kv:[['来源','运维'],['耗时','4′12″']]}
+  ];
+  var feed = document.getElementById('feed');
+  var tail = document.getElementById('tail');
+  var pill = document.getElementById('pill');
+  var filter = 'all', open = {};
+
+  function visible(n){
+    if (filter === 'unread'){ return !n.read; }
+    if (filter === 'all'){ return true; }
+    return n.sev === filter;
+  }
+  function paint(){
+    var rows = NOTE.filter(visible);
+    var groups = [];
+    rows.forEach(function(n){
+      var g = groups.filter(function(x){ return x.name === n.g; })[0];
+      if (!g){ g = {name:n.name, items:[]}; groups.push(g); }
+      g.items.push(n);
+    });
+    feed.innerHTML = '';
+    groups.forEach(function(g){
+      var h = document.createElement('p');
+      h.className = 'group';
+      h.textContent = g.name;
+      feed.appendChild(h);
+      g.items.forEach(function(n){
+        var el = document.createElement('article');
+        el.className = 'item' + (n.read ? '' : ' unread') + ' sev-' + n.sev;
+        el.setAttribute('data-open', open[n.id] ? '1' : '0');
+        var head = document.createElement('button');
+        head.type = 'button';
+        head.className = 'head-row';
+        head.setAttribute('aria-expanded', open[n.id] ? 'true' : 'false');
+        head.innerHTML =
+          '<span class="ico ' + n.sev + '" aria-hidden="true"><svg viewBox="0 0 18 18">' + ICONS[n.sev] + '</svg></span>' +
+          '<span><span class="ttl"><i class="' + n.sev + '">' + SEV[n.sev][0] + '</i>' + n.t + '</span><p class="sub">' + n.s + '</p></span>' +
+          '<span class="right"><time>' + n.time + '</time>' + (n.read ? '<span style="width:8px"></span>' : '<span class="dot" aria-label="未读"></span>') +
+          '<svg class="chev" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.4 6.2 8 10.8l4.6-4.6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>';
+        var detail = document.createElement('div');
+        detail.className = 'detail';
+        detail.innerHTML = n.body.map(function(p){ return '<p>' + p + '</p>'; }).join('') +
+          '<dl class="kv">' + n.kv.map(function(p){ return '<dt>' + p[0] + '</dt><dd>' + p[1] + '</dd>'; }).join('') + '</dl>' +
+          '<div class="acts"><button class="pri" type="button" data-a="handle">' + (n.sev === 'hi' ? '去处理' : '查看现场') + '</button>' +
+          '<button type="button" data-a="mute">同类不再提醒</button><button type="button" data-a="read">' + (n.read ? '标为未读' : '仅标已读') + '</button>' +
+          '<span class="status"></span></div>';
+        head.addEventListener('click', function(){
+          open[n.id] = !open[n.id];
+          if (!open[n.id]){ el.setAttribute('data-open','0'); head.setAttribute('aria-expanded','false'); return; }
+          el.setAttribute('data-open','1');
+          head.setAttribute('aria-expanded','true');
+          if (!n.read){ n.read = true; setTimeout(function(){ paint(); }, 260); }
+        });
+        Array.prototype.forEach.call(detail.querySelectorAll('button'), function(b){
+          b.addEventListener('click', function(e){
+            e.stopPropagation();
+            var st = detail.querySelector('.status');
+            if (b.dataset.a === 'read'){ n.read = !n.read; st.textContent = n.read ? '已标为已读' : '已退回未读'; paint(); return; }
+            if (b.dataset.a === 'mute'){ st.textContent = '已静音该类，可在设置里恢复'; return; }
+            st.textContent = '已跳到处理页（本页为演示）';
+          });
+        });
+        el.appendChild(head);
+        el.appendChild(detail);
+        feed.appendChild(el);
+      });
+    });
+    if (!rows.length){
+      feed.innerHTML = '<p class="group">结果</p><div class="item"><div class="detail" style="display:block;border-top:0"><p>这一类没有通知了，说明都处理完了。</p></div></div>';
+    }
+    var unread = NOTE.filter(function(n){ return !n.read; }).length;
+    pill.textContent = unread + ' 未读';
+    pill.style.background = unread ? 'var(--magenta)' : 'var(--panel-2)';
+    pill.style.color = unread ? '#fff' : 'var(--muted)';
+    document.getElementById('readAll').disabled = !unread;
+    tail.textContent = '共 ' + NOTE.length + ' 条 · 只显示最近 30 天';
+  }
+
+  Array.prototype.forEach.call(document.querySelectorAll('.filters button'), function(b){
+    b.addEventListener('click', function(){
+      filter = b.dataset.f;
+      Array.prototype.forEach.call(document.querySelectorAll('.filters button'), function(x){ x.setAttribute('aria-pressed', String(x === b)); });
+      paint();
+    });
+  });
+  document.getElementById('readAll').addEventListener('click', function(){
+    NOTE.forEach(function(n){ n.read = true; });
+    open = {};
+    paint();
+    this.insertAdjacentHTML('afterend','');
+    tail.textContent = '已全部标为已读 · 共 ' + NOTE.length + ' 条';
+  });
+
+  paint();
+})();
+</script>
+</body>
+</html>

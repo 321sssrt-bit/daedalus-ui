@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>北门票务 · 登录</title>
+<style>
+:root{
+  --pine:#0f2b26;--pine-2:#123630;--paper:#fbfaf7;--paper-2:#f2efe6;
+  --ink:#14201d;--muted:#6d7470;--line:#d7d2c6;--brass:#b8863b;--brass-2:#e0c188;
+  --signal:#2f6f5e;--alert:#a4332a;--radius:2px;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;background:var(--paper);color:var(--ink);
+  font:15px/1.55 system-ui,"Microsoft YaHei",sans-serif;
+}
+.stage{display:grid;grid-template-columns:1.02fr 1fr;min-height:100vh;max-width:1440px;margin:0 auto}
+
+/* 左：站台 */
+.platform{
+  position:relative;background:var(--pine);color:#eef3ef;padding:44px 52px;
+  display:flex;flex-direction:column;justify-content:space-between;overflow:hidden;
+}
+.platform::before{
+  content:"";position:absolute;inset:22px;border:1px solid #b8863b40;pointer-events:none;
+}
+.platform::after{
+  content:"";position:absolute;left:-160px;bottom:-220px;width:520px;height:520px;
+  background:radial-gradient(circle at 50% 50%,#2f6f5e3d,transparent 65%);pointer-events:none;
+}
+.brand{display:flex;align-items:baseline;gap:14px;position:relative;z-index:1}
+.brand svg{width:34px;height:34px;flex:none}
+.brand b{font:700 19px/1.2 system-ui;letter-spacing:.26em}
+.brand span{font:500 11px/1 ui-monospace,Consolas,monospace;letter-spacing:.2em;color:#9fb8ae}
+.gate{position:relative;z-index:1;margin-top:auto}
+.gate .no{
+  font:700 clamp(78px,11vw,146px)/0.82 system-ui;letter-spacing:-.03em;
+  color:#fbfaf70f;-webkit-text-stroke:1px #b8863b91;display:block;
+}
+.gate h1{margin:-42px 0 0;position:relative;font:700 40px/1.25 system-ui;letter-spacing:.06em}
+.gate p{margin:14px 0 0;max-width:34ch;color:#a9c0b7;font-size:14px}
+.board{
+  position:relative;z-index:1;margin-top:34px;border-top:1px solid #b8863b40;
+  padding-top:16px;display:grid;gap:9px;
+}
+.board i{
+  font:500 11px/1.5 ui-monospace,Consolas,monospace;letter-spacing:.14em;
+  color:#87a497;font-style:normal;display:flex;gap:12px;
+}
+.board i b{color:#e6d4ab;font-weight:600;min-width:64px}
+.board i em{margin-left:auto;color:#d8e3dc;font-style:normal}
+
+/* 右：窗口 */
+.window{padding:56px clamp(36px,5vw,72px);display:flex;flex-direction:column}
+.window-head{display:flex;justify-content:space-between;align-items:flex-start;gap:20px}
+.eyebrow{font:600 11px/1 ui-monospace,Consolas,monospace;letter-spacing:.22em;color:var(--brass);margin:0}
+.window-head h2{margin:12px 0 4px;font:700 30px/1.25 system-ui;letter-spacing:.03em}
+.window-head .sub{margin:0;color:var(--muted);font-size:13px}
+.stamp{
+  flex:none;width:92px;height:92px;border:1px solid var(--line);border-radius:50%;
+  display:grid;place-items:center;text-align:center;color:var(--signal);
+  font:600 9px/1.35 ui-monospace,Consolas,monospace;letter-spacing:.1em;background:var(--paper-2);
+  transform:rotate(-8deg);
+}
+.tabs{display:flex;gap:0;margin:38px 0 26px;border-bottom:1px solid var(--line)}
+.tabs button{
+  appearance:none;border:0;background:transparent;cursor:pointer;padding:11px 2px;margin-right:26px;
+  font:inherit;font-weight:600;color:var(--muted);letter-spacing:.04em;position:relative;
+}
+.tabs button::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:2px;background:transparent}
+.tabs button:hover{color:var(--ink)}
+.tabs button[aria-selected="true"]{color:var(--pine)}
+.tabs button[aria-selected="true"]::after{background:var(--brass)}
+.tabs button:focus-visible{outline:2px solid var(--signal);outline-offset:4px}
+
+.field{margin-bottom:18px}
+.field label{display:block;font:600 11px/1 ui-monospace,Consolas,monospace;letter-spacing:.16em;color:var(--muted);margin-bottom:8px}
+.shell{position:relative;display:flex;align-items:center;border:1px solid var(--line);background:var(--paper-2);border-radius:var(--radius);transition:border-color .16s ease,background .16s ease}
+.shell:hover{border-color:#b9b1a0}
+.shell:focus-within{border-color:var(--signal);background:#fff;box-shadow:0 0 0 3px #2f6f5e24}
+.shell input{
+  flex:1;min-width:0;border:0;background:transparent;padding:14px 14px;font:inherit;color:var(--ink);
+}
+.shell input::placeholder{color:#a6aba5}
+.shell input:focus{outline:0}
+.shell .prefix{padding-left:14px;color:var(--muted);font:500 13px/1 ui-monospace,Consolas,monospace}
+.icon-btn{
+  appearance:none;border:0;background:transparent;cursor:pointer;padding:14px;color:var(--muted);
+  font:600 11px/1 ui-monospace,Consolas,monospace;letter-spacing:.1em;
+}
+.icon-btn:hover{color:var(--signal)}
+.icon-btn:focus-visible{outline:2px solid var(--signal);outline-offset:-2px}
+.field.bad .shell{border-color:var(--alert);background:#a4332a0f}
+.err{display:none;margin:8px 0 0;color:var(--alert);font-size:12px;letter-spacing:.02em}
+.field.bad .err{display:block}
+.hintrow{display:flex;justify-content:space-between;align-items:center;gap:16px;margin:22px 0 26px}
+.check{display:flex;align-items:center;gap:9px;cursor:pointer;font-size:13px;color:var(--muted);user-select:none}
+.check input{position:absolute;opacity:0;width:0;height:0}
+.check .box{width:16px;height:16px;border:1px solid #a9a293;background:#fff;display:grid;place-items:center;flex:none;transition:background .16s ease,border-color .16s ease}
+.check .box svg{width:11px;height:11px;opacity:0;transform:scale(.6);transition:opacity .16s ease,transform .16s ease}
+.check input:checked + .box{background:var(--pine);border-color:var(--pine)}
+.check input:checked + .box svg{opacity:1;transform:scale(1)}
+.check input:focus-visible + .box{outline:2px solid var(--signal);outline-offset:3px}
+.link{color:var(--signal);text-decoration:none;border-bottom:1px solid #2f6f5e59;font-size:13px}
+.link:hover{color:var(--pine);border-bottom-color:var(--pine)}
+.link:focus-visible{outline:2px solid var(--signal);outline-offset:3px}
+.enter{
+  appearance:none;cursor:pointer;width:100%;border:1px solid var(--pine);background:var(--pine);color:#f7f4ea;
+  padding:16px 20px;font:inherit;font-weight:700;letter-spacing:.22em;border-radius:var(--radius);
+  display:flex;align-items:center;justify-content:space-between;gap:14px;transition:transform .16s ease,background .16s ease;
+}
+.enter span.k{font:500 11px/1 ui-monospace,Consolas,monospace;letter-spacing:.1em;color:#b9cfc4}
+.enter:hover{background:var(--pine-2);transform:translateY(-1px)}
+.enter:active{transform:translateY(0)}
+.enter:focus-visible{outline:2px solid var(--brass);outline-offset:3px}
+.enter[disabled]{cursor:progress;background:#40514c;border-color:#40514c;transform:none}
+.foot{margin-top:auto;padding-top:34px;border-top:1px solid var(--line);display:flex;flex-wrap:wrap;gap:8px 18px;align-items:baseline;color:var(--muted);font-size:12px}
+.foot a{color:var(--ink);text-decoration:none;border-bottom:1px solid var(--line)}
+.foot a:hover{border-bottom-color:var(--brass)}
+.notice{
+  margin:0 0 22px;padding:12px 14px;border-left:2px solid var(--alert);background:#a4332a0f;
+  color:#7d2c25;font-size:13px;display:none;
+}
+.notice.show{display:block}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+[hidden]{display:none!important}
+
+@media (max-width:1000px){
+  .stage{grid-template-columns:1fr}
+  .platform{padding:30px 32px 34px;min-height:auto}
+  .gate{margin-top:22px}
+  .gate .no{font-size:80px}
+  .gate h1{font-size:28px;margin-top:-24px}
+  .board{display:none}
+  .window{padding:38px 32px 44px}
+  .stamp{display:none}
+}
+@media (prefers-reduced-motion:reduce){
+  *{transition-duration:.001ms!important;animation-duration:.001ms!important}
+  .enter:hover{transform:none}
+}
+</style>
+</head>
+<body>
+<div class="stage">
+  <section class="platform" aria-label="北门票务站台信息">
+    <div class="brand">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M3 24h26M6 24V9l10-5 10 5v15" fill="none" stroke="#b8863b" stroke-width="1.6"/><path d="M12 24v-8h8v8" fill="none" stroke="#e0c188" stroke-width="1.6"/></svg>
+      <b>北门票务</b><span>NORTH GATE · 24H</span>
+    </div>
+    <div class="gate">
+      <span class="no" aria-hidden="true">01</span>
+      <h1>欢迎回到窗口</h1>
+      <p>老乘客凭工号或取票码进站。夜班车次仍在售票，请带好随身凭证。</p>
+    </div>
+    <div class="board" aria-label="本班次时刻">
+      <i><b>N-21:40</b> 环湖线 <em>正在检票</em></i>
+      <i><b>N-22:15</b> 石门线 <em>待发车</em></i>
+      <i><b>N-23:00</b> 机场直达 <em>延误 6 分</em></i>
+    </div>
+  </section>
+
+  <section class="window">
+    <div class="window-head">
+      <div>
+        <p class="eyebrow">TICKET WINDOW 01</p>
+        <h2>登录</h2>
+        <p class="sub">凭证遗失可改用取票码，一次有效。</p>
+      </div>
+      <div class="stamp" aria-hidden="true"><div>NORTH<br>GATE<br>已核验</div></div>
+    </div>
+
+    <div class="tabs" role="tablist" aria-label="登录方式">
+      <button type="button" role="tab" id="tab-pw" aria-selected="true" aria-controls="form-area">密码进站</button>
+      <button type="button" role="tab" id="tab-otp" aria-selected="false" aria-controls="form-area">取票码进站</button>
+    </div>
+
+    <p class="notice" id="notice" role="alert">工号或密码不正确，还可以试 4 次。</p>
+
+    <form id="form-area" novalidate>
+      <div class="field" id="f-account">
+        <label for="account">工号 / 已绑手机号</label>
+        <div class="shell">
+          <span class="prefix">ID</span>
+          <input id="account" name="account" type="text" inputmode="text" autocomplete="username" placeholder="如 NG-104282" spellcheck="false">
+        </div>
+        <p class="err">请填写工号或手机号，例如 NG-104282。</p>
+      </div>
+
+      <div class="field" id="f-secret">
+        <label for="secret">进站密码</label>
+        <div class="shell">
+          <input id="secret" name="secret" type="password" autocomplete="current-password" placeholder="至少 8 位">
+          <button type="button" class="icon-btn" id="reveal" aria-pressed="false">显示</button>
+        </div>
+        <p class="err">密码不少于 8 位。</p>
+      </div>
+
+      <div class="field" id="f-code" hidden>
+        <label for="code">取票码</label>
+        <div class="shell">
+          <span class="prefix">SMS</span>
+          <input id="code" name="code" type="text" inputmode="numeric" autocomplete="one-time-code" placeholder="6 位数字" maxlength="6" spellcheck="false">
+        </div>
+        <p class="err">取票码为 6 位数字。</p>
+      </div>
+
+      <div class="hintrow">
+        <label class="check"><input type="checkbox" id="keep" checked><span class="box" aria-hidden="true"><svg viewBox="0 0 12 12"><path d="M1.5 6.4 4.4 9.3 10.6 2.7" fill="none" stroke="#fbfaf7" stroke-width="2"/></svg></span>记住这个窗口</label>
+        <a class="link" href="#reset" id="forgot">忘记密码，走补办通道</a>
+      </div>
+
+      <button class="enter" type="submit" id="submit">进站 <span class="k">ENTER ↵</span></button>
+      <p class="sr" id="live" role="status" aria-live="polite"></p>
+    </form>
+
+    <div class="foot">
+      <span>第一次乘车？</span><a href="#signup">办一张长期票</a>
+      <span>窗口故障？</span><a href="#help">呼叫值班员</a>
+      <span style="margin-left:auto">服务时间 05:20–01:10</span>
+    </div>
+  </section>
+</div>
+
+<script>
+(function(){
+  'use strict';
+  var tabPw = document.getElementById('tab-pw');
+  var tabOtp = document.getElementById('tab-otp');
+  var fAccount = document.getElementById('f-account');
+  var fSecret = document.getElementById('f-secret');
+  var fCode = document.getElementById('f-code');
+  var account = document.getElementById('account');
+  var secret = document.getElementById('secret');
+  var code = document.getElementById('code');
+  var reveal = document.getElementById('reveal');
+  var notice = document.getElementById('notice');
+  var live = document.getElementById('live');
+  var submit = document.getElementById('submit');
+  var form = document.getElementById('form-area');
+  var mode = 'pw';
+
+  function setMode(next){
+    mode = next;
+    var pw = next === 'pw';
+    tabPw.setAttribute('aria-selected', String(pw));
+    tabOtp.setAttribute('aria-selected', String(!pw));
+    fSecret.hidden = !pw;
+    fCode.hidden = pw;
+    document.querySelector('label[for="secret"]').textContent = pw ? '进站密码' : '进站密码';
+    clear(fSecret); clear(fCode);
+    notice.classList.remove('show');
+    (pw ? account : account).focus();
+  }
+  function clear(field){ field.classList.remove('bad'); }
+
+  tabPw.addEventListener('click', function(){ setMode('pw'); });
+  tabOtp.addEventListener('click', function(){ setMode('otp'); });
+
+  reveal.addEventListener('click', function(){
+    var on = secret.type === 'password';
+    secret.type = on ? 'text' : 'password';
+    reveal.textContent = on ? '隐藏' : '显示';
+    reveal.setAttribute('aria-pressed', String(on));
+    secret.focus();
+  });
+
+  [account, secret, code].forEach(function(el){
+    el.addEventListener('input', function(){ clear(el.closest('.field')); });
+  });
+
+  code.addEventListener('input', function(){
+    code.value = code.value.replace(/[^0-9]/g, '').slice(0, 6);
+  });
+
+  form.addEventListener('submit', function(event){
+    event.preventDefault();
+    var bad = false;
+    if (!account.value.trim()){ fAccount.classList.add('bad'); bad = true; }
+    if (mode === 'pw' && secret.value.length < 8){ fSecret.classList.add('bad'); bad = true; }
+    if (mode === 'otp' && code.value.length !== 6){ fCode.classList.add('bad'); bad = true; }
+    if (bad){
+      notice.classList.remove('show');
+      live.textContent = '表单有未通过的项目，请检查后重试。';
+      return;
+    }
+    submit.disabled = true;
+    submit.firstChild.nodeValue = '核验中 ';
+    setTimeout(function(){
+      submit.disabled = false;
+      submit.firstChild.nodeValue = '进站 ';
+      notice.classList.add('show');
+      live.textContent = '凭证未通过核验，请核对后重试或走补办通道。';
+    }, 900);
+  });
+
+  document.getElementById('forgot').addEventListener('click', function(event){
+    event.preventDefault();
+    notice.classList.add('show');
+    live.textContent = '补办通道：请凭身份证到 2 号窗口办理，本页仅为演示。';
+  });
+})();
+</script>
+</body>
+</html>

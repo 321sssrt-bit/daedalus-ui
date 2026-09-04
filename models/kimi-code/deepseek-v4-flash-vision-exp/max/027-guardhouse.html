@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>哨兵团 · 角色权限</title>
+<style>
+  :root{
+    --field:#eef0e6;
+    --field-2:#e2e5d6;
+    --olive:#55663c;
+    --olive-deep:#3f4d2c;
+    --olive-soft:#e4e9d8;
+    --khaki:#c9c2a8;
+    --khaki-deep:#a89f80;
+    --amber:#e2a93d;
+    --amber-soft:#f7ecd4;
+    --red:#b64b35;
+    --red-soft:#f3e0da;
+    --ink:#2f3327;
+    --ink-soft:#5d614f;
+    --ink-mute:#929682;
+    --line:#cfd1bd;
+    --line-soft:#e2e4d4;
+    --card:#fafbf4;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    background:
+      radial-gradient(900px 520px at 50% -10%, rgba(255,255,255,.5), transparent 60%),
+      var(--field);
+    color:var(--ink);
+    font-family:"Microsoft YaHei","PingFang SC","Noto Sans SC",sans-serif;
+    min-height:100vh;display:flex;justify-content:center;padding:0 16px 70px;
+  }
+  .wrap{width:100%;max-width:1160px}
+  .top{
+    display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;
+    padding:26px 4px 16px;border-bottom:2px solid var(--olive-deep);
+  }
+  .top .idn{display:flex;align-items:center;gap:12px}
+  .top .idn .em{width:40px;height:40px;border-radius:8px;background:var(--olive);color:var(--field);display:flex;align-items:center;justify-content:center;font-size:19px}
+  .top h1{font-size:22px;font-weight:900;letter-spacing:.06em}
+  .top .sub{font-size:11px;color:var(--ink-mute);margin-top:4px;letter-spacing:.14em}
+  .top .state{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--ink-soft)}
+  .top .state .saved{background:var(--amber-soft);color:#8a6415;border-radius:99px;padding:7px 14px;font-weight:700}
+  /* 角色卡行 */
+  .roles{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:24px}
+  .role{
+    border:1.5px solid var(--line);border-radius:14px;background:var(--card);padding:18px 18px 14px;
+    cursor:pointer;transition:all .15s;position:relative;
+  }
+  .role:hover{border-color:var(--khaki-deep)}
+  .role.on{border-color:var(--olive);box-shadow:0 0 0 3px var(--olive-soft)}
+  .role .rn{display:flex;justify-content:space-between;align-items:center}
+  .role .rn .n{font-size:15.5px;font-weight:800}
+  .role .rn .peop{font-size:11px;color:var(--ink-mute)}
+  .role .rtxt{font-size:11.5px;color:var(--ink-soft);margin-top:6px;line-height:1.7}
+  .role .rbar{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+  .role .rbar span{font-size:10px;padding:3px 8px;border-radius:99px;border:1px solid var(--line);color:var(--ink-soft)}
+  .role .owned{position:absolute;top:12px;right:12px;font-size:10px;background:var(--olive);color:var(--field);border-radius:99px;padding:2px 8px;font-weight:700;display:none}
+  .role.on .owned{display:block}
+  .role .tagself{position:absolute;bottom:12px;right:12px;font-size:9.5px;color:var(--ink-mute)}
+  /* 预览区 */
+  .preview{margin-top:26px}
+  .preview .ph{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+  .preview .ph h2{font-size:15px;font-weight:800}
+  .preview .ph .who{font-size:12px;color:var(--ink-soft)}
+  .matrix{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  .mrow{
+    display:grid;grid-template-columns:1.2fr 1fr 1fr 1fr 1fr 1fr;gap:0;align-items:center;
+    border-bottom:1px solid var(--line-soft);
+  }
+  .mrow:last-child{border-bottom:none}
+  .mrow.head{background:var(--field-2);font-size:10.5px;color:var(--ink-mute);font-weight:700}
+  .mrow .c{padding:12px 12px;font-size:12.5px;color:var(--ink-soft)}
+  .mrow .c.mod{font-weight:700;color:var(--ink)}
+  .mrow .c.center{text-align:center}
+  .mrow .chk{width:18px;height:18px;border-radius:5px;border:2px solid var(--khaki-deep);margin:0 auto;display:block;background:transparent;transition:all .12s}
+  .mrow .chk.yes{background:var(--olive);border-color:var(--olive);position:relative}
+  .mrow .chk.yes::after{content:"✓";color:var(--field);font-size:12px;position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
+  .mrow .chk.no{background:transparent;border-color:var(--khaki-deep)}
+  .mrow .chk.once{background:var(--amber);border-color:var(--amber-deep);position:relative}
+  .mrow .chk.once::after{content:"◐";color:#4a3210;font-size:11px;position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
+  .mrow .chk:not(.fixed):hover{border-color:var(--olive-deep);cursor:pointer}
+  .rowlabel{font-size:10.5px;color:var(--ink-mute);padding:12px;text-align:center}
+  /* 保存 */
+  .savebar{
+    margin-top:18px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;
+    background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 18px;
+  }
+  .savebar .hint{font-size:11.5px;color:var(--ink-soft)}
+  .savebar .hint b{color:var(--amber);background:var(--amber-soft);border-radius:6px;padding:2px 8px;font-weight:800}
+  .savebar .btns{display:flex;gap:10px}
+  .savebar .btns button{padding:11px 22px;border-radius:9px;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit;transition:all .15s}
+  .savebar .btns .rev{background:none;border:1.5px solid var(--line);color:var(--ink-soft)}
+  .savebar .btns .rev:hover{border-color:var(--ink);color:var(--ink)}
+  .savebar .btns .sav{background:var(--olive);border:1.5px solid var(--olive-deep);color:var(--field)}
+  .savebar .btns .sav:hover{background:var(--olive-deep)}
+  @media (max-width:900px){.roles{grid-template-columns:1fr}}
+  @media (prefers-reduced-motion:reduce){
+    .role,.mrow .chk,.savebar .btns button{transition:none}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="idn">
+      <span class="em">⚑</span>
+      <div>
+        <h1>哨兵团 · 角色权限</h1>
+        <p class="sub">南岭巡防队 · 共 24 人 · 3 个角色</p>
+      </div>
+    </div>
+    <div class="state"><span class="saved">权限快照已同步</span><span>最近改动：昨天 21:14</span></div>
+  </header>
+
+  <section class="roles" aria-label="角色列表">
+    <div class="role on">
+      <span class="owned">预览中</span>
+      <div class="rn"><span class="n">哨长</span><span class="peop">2 人</span></div>
+      <p class="rtxt">全队最高权限：调度、巡查、核准放行，均可做。</p>
+      <div class="rbar"><span>调度</span><span>巡查安排</span><span>放行核准</span></div>
+      <span class="tagself"></span>
+    </div>
+    <div class="role">
+      <div class="rn"><span class="n">巡哨</span><span class="peop">14 人</span></div>
+      <p class="rtxt">分片巡检、上报异常；可发起放行但需哨长核准。</p>
+      <div class="rbar"><span>分片巡检</span><span>异常上报</span><span>发起放行</span></div>
+    </div>
+    <div class="role">
+      <div class="rn"><span class="n">文书</span><span class="peop">8 人</span></div>
+      <p class="rtxt">登记、存档、打印；不参与巡查与放行。</p>
+      <div class="rbar"><span>登记</span><span>存档</span><span>打印</span></div>
+    </div>
+  </section>
+
+  <section class="preview" aria-label="权限预览">
+    <div class="ph">
+      <h2>权限矩阵 · 「哨长」视角</h2>
+      <span class="who">模拟预览：点击右侧任一角色卡切换</span>
+    </div>
+    <div class="matrix">
+      <div class="mrow head">
+        <span class="c">能力</span><span class="c center">调度</span><span class="c center">巡查</span><span class="c center">放行</span><span class="c center">登记</span><span class="c center">存档</span>
+      </div>
+      <div class="mrow"><span class="c mod">哨长</span><span class="c center"><span class="chk yes"></span></span><span class="c center"><span class="chk yes"></span></span><span class="c center"><span class="chk yes"></span></span><span class="c center"><span class="chk yes"></span></span><span class="c center"><span class="chk yes"></span></span></div>
+      <div class="mrow"><span class="c mod">巡哨</span><span class="c center"><span class="chk no"></span></span><span class="c center"><span class="chk yes"></span></span><span class="c center"><span class="chk once"></span></span><span class="c center"><span class="chk yes"></span></span><span class="c center"><span class="chk no"></span></span></div>
+      <div class="mrow"><span class="c mod">文书</span><span class="c center"><span class="chk no"></span></span><span class="c center"><span class="chk no"></span></span><span class="c center"><span class="chk no"></span></span><span class="c center"><span class="chk yes"></span></span><span class="c center"><span class="chk yes"></span></span></div>
+      <div class="mrow"><span class="rowlabel">点击空白格可切换 ✓ / ◐ / —（保存后生效）</span></div>
+    </div>
+  </section>
+
+  <div class="savebar">
+    <span class="hint">有 <b id="dirty">0</b> 处未保存改动</span>
+    <div class="btns">
+      <button class="rev" id="revBtn" type="button">放弃改动</button>
+      <button class="sav" id="savBtn" type="button">保存权限</button>
+    </div>
+  </div>
+</div>
+<script>
+(function(){
+  var dirty=0,current='哨长';
+  var dirtyEl=document.getElementById('dirty');
+  function setDirty(n){dirty=n;dirtyEl.textContent=dirty;}
+  document.querySelectorAll('.chk:not(.fixed)').forEach(function(ch){
+    ch.addEventListener('click',function(){
+      if(ch.classList.contains('yes')){ch.className='chk no';}
+      else if(ch.classList.contains('once')){ch.className='chk yes';}
+      else{ch.className='chk once';}
+      setDirty(dirty+1);
+    });
+  });
+  document.querySelectorAll('.role').forEach(function(r,i){
+    r.addEventListener('click',function(){
+      document.querySelectorAll('.role').forEach(function(x){x.classList.remove('on')});
+      r.classList.add('on');
+      current=['哨长','巡哨','文书'][i];
+      document.querySelector('.preview .ph h2').textContent='权限矩阵 · 「'+current+'」视角';
+    });
+  });
+  document.getElementById('revBtn').addEventListener('click',function(){
+    document.querySelectorAll('.chk').forEach(function(ch){
+      ch.className='chk'+(ch.dataset.orig?(' '+ch.dataset.orig):'');
+    });
+    // 恢复默认矩阵（重新渲染简化：重置为初始状态）
+    document.querySelectorAll('.mrow .chk').forEach(function(ch,i){
+      var orig=ch.className;
+      ch.className=ch.className.replace(/ (yes|no|once)/g,'');
+    });
+    setDirty(0);
+    location.reload(); // 简化：整页还原
+  });
+  document.getElementById('savBtn').addEventListener('click',function(){
+    setDirty(0);
+    document.querySelector('.top .state .saved').textContent='权限已保存 ✓';
+  });
+})();
+</script>
+</body>
+</html>

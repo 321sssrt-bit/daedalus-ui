@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>界碑 · 二次验证</title>
+<style>
+  :root{
+    --olive:#4c5d3f;
+    --olive-deep:#39472f;
+    --khaki:#d8d2bd;
+    --khaki-2:#c9c2a8;
+    --cream:#f4f0e2;
+    --ink:#2c3324;
+    --ink-soft:#5c6350;
+    --ink-mute:#8c9079;
+    --stamp:#a6372c;
+    --stamp-soft:#f3d9d3;
+    --ok:#3e6b4f;
+    --ok-soft:#dfe9d5;
+    --wire:#6d7458;
+    --panel:#e9e4cf;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    background:
+      linear-gradient(rgba(44,51,36,.05) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(44,51,36,.05) 1px,transparent 1px),
+      var(--khaki);
+    background-size:36px 36px,36px 36px,auto;
+    color:var(--ink);
+    font-family:"Microsoft YaHei","PingFang SC","Noto Sans SC",sans-serif;
+    min-height:100vh;display:flex;align-items:center;justify-content:center;padding:32px 16px;
+  }
+  .desk{
+    width:100%;max-width:900px;background:var(--panel);border:1px solid var(--wire);
+    box-shadow:0 8px 0 rgba(44,51,36,.18),0 24px 60px rgba(44,51,36,.22);
+    padding:0;overflow:hidden;
+  }
+  .topbar{
+    background:var(--olive-deep);color:var(--cream);padding:12px 26px;
+    display:flex;justify-content:space-between;align-items:center;
+    border-bottom:3px solid var(--stamp);
+  }
+  .topbar .sitename{font-size:14px;font-weight:700;letter-spacing:.18em}
+  .topbar .station{font-size:10px;letter-spacing:.3em;color:#c9ceb4}
+  .inner{padding:44px 48px 40px;display:grid;grid-template-columns:0.9fr 1.1fr;gap:40px}
+  /* 左：说明 */
+  .brief h1{font-size:24px;line-height:1.35;margin-bottom:10px}
+  .brief .how{font-size:13px;line-height:2;color:var(--ink-soft)}
+  .brief .who{margin-top:18px;border:1px dashed var(--wire);padding:14px 16px;font-size:12.5px;line-height:1.8;color:var(--ink-soft);background:var(--cream)}
+  .brief .who b{color:var(--stamp)}
+  .brief .meta{margin-top:16px;font-size:11px;color:var(--ink-mute);letter-spacing:.06em;line-height:1.9}
+  /* 右：验证卡 */
+  .verify{
+    border:1px solid var(--wire);background:var(--cream);padding:28px 28px 24px;
+    display:flex;flex-direction:column;
+  }
+  .verify .label{font-size:11px;font-weight:700;letter-spacing:.24em;color:var(--ink-mute);text-align:center}
+  .verify h2{font-size:17px;text-align:center;margin:8px 0 4px}
+  .verify .sub{text-align:center;font-size:12px;color:var(--ink-soft);margin-bottom:20px}
+  .code-row{display:flex;gap:10px;justify-content:center}
+  .code-row input{
+    width:52px;height:64px;text-align:center;font-size:26px;font-family:"Courier New",Consolas,monospace;
+    border:1.5px solid var(--wire);border-radius:8px;background:#fbf7e8;color:var(--ink);
+    outline:none;transition:border-color .15s,box-shadow .15s,transform .1s;
+  }
+  .code-row input:focus{border-color:var(--olive);box-shadow:0 0 0 3px rgba(76,93,63,.18)}
+  .code-row input.filled{border-color:var(--olive)}
+  .code-row input.bad{border-color:var(--stamp);background:var(--stamp-soft);animation:shake .3s}
+  @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+  .status{
+    min-height:44px;margin-top:16px;padding:10px 12px;border-radius:8px;font-size:12.5px;line-height:1.8;
+    background:#f1ecd7;
+  }
+  .status.err{background:var(--stamp-soft);color:#8f2d22}
+  .status.ok{background:var(--ok-soft);color:#2f5238}
+  .countdown{margin-top:14px;font-size:12px;color:var(--ink-mute);display:flex;justify-content:space-between;align-items:center}
+  .countdown .cd{font-family:"Courier New",Consolas,monospace}
+  .resend{
+    background:none;border:none;font-size:12px;color:var(--olive);font-weight:700;cursor:pointer;
+    font-family:inherit;padding:0;
+  }
+  .resend:hover{text-decoration:underline}
+  .resend:disabled{color:var(--ink-mute);cursor:default}
+  .lock{
+    margin-top:10px;font-size:12px;padding:9px 12px;border-radius:8px;background:#f1ecd7;display:none;
+  }
+  .lock.show{display:block;background:var(--stamp-soft);color:#8f2d22}
+  .alt{text-align:center;margin-top:22px;font-size:12px;color:var(--ink-soft)}
+  .alt button{background:none;border:none;color:var(--olive);font-weight:700;font-size:12px;cursor:pointer;font-family:inherit}
+  .alt button:hover{text-decoration:underline}
+  @media (max-width:760px){
+    .inner{grid-template-columns:1fr;padding:30px 24px 34px;gap:26px}
+    .code-row input{width:46px;height:56px;font-size:22px}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .code-row input{transition:none}
+    .code-row input.bad{animation:none}
+  }
+</style>
+</head>
+<body>
+<main class="desk">
+  <div class="topbar">
+    <span class="sitename">界碑 · 边境档案站</span>
+    <span class="station">CHECKPOINT 3 · 第 202 班岗</span>
+  </div>
+  <div class="inner">
+    <section class="brief" aria-label="验证说明">
+      <h1>再核对一次身份</h1>
+      <p class="how">通行证已经验过，但边境的规矩是：<b>证件之外，还要对一句暗号。</b><br>我们刚才把六位暗号发到了你的登记手机 <b>183 **** 0021</b> 上。</p>
+      <div class="who">
+        正在办理：<b>调取你 2019 年以前的档案</b><br>
+        负责人：档案员 江辞 · 待办号 <b>#A-4107</b>
+      </div>
+      <p class="meta">暗号 2 分钟内有效 · 过期后可由岗哨重发<br>连续输错 5 次，本窗口自动封锁</p>
+    </section>
+
+    <section class="verify" aria-label="验证码输入">
+      <p class="label">SIX-DIGIT PASS</p>
+      <h2>输入暗号</h2>
+      <p class="sub">六位数字，按刚才短信里的顺序</p>
+      <div class="code-row" id="codeRow">
+        <input type="text" inputmode="numeric" maxlength="1" aria-label="第1位">
+        <input type="text" inputmode="numeric" maxlength="1" aria-label="第2位">
+        <input type="text" inputmode="numeric" maxlength="1" aria-label="第3位">
+        <input type="text" inputmode="numeric" maxlength="1" aria-label="第4位">
+        <input type="text" inputmode="numeric" maxlength="1" aria-label="第5位">
+        <input type="text" inputmode="numeric" maxlength="1" aria-label="第6位">
+      </div>
+      <div class="status" id="status" role="status" aria-live="polite">等待输入暗号。</div>
+      <div class="countdown">
+        <span>本次暗号</span>
+        <span class="cd" id="cd">02:00</span>
+        <button class="resend" id="resendBtn" type="button">重发暗号</button>
+      </div>
+      <div class="lock" id="lockBox">封锁：连续 5 次未对成功。请重发暗号后继续。</div>
+      <p class="alt">换一部手机收？<button id="altPhone" type="button">改用备用号 186 *** 7745</button></p>
+    </section>
+  </div>
+</main>
+<script>
+(function(){
+  var inputs=[].slice.call(document.querySelectorAll('#codeRow input')),
+      status=document.getElementById('status'),
+      cd=document.getElementById('cd'),
+      resend=document.getElementById('resendBtn'),
+      lockBox=document.getElementById('lockBox');
+  var CODE='482013';           // 正确暗号
+  var tries=0,left=120,timer=null,locked=false;
+
+  function tick(){
+    left--;
+    var m=String(Math.floor(left/60)).padStart(2,'0'),s=String(left%60).padStart(2,'0');
+    cd.textContent=m+':'+s;
+    if(left<=0){
+      clearInterval(timer);
+      status.textContent='暗号到期：岗哨已换班，请点击「重发暗号」领取新的。';
+      resend.disabled=false;
+    }
+  }
+  function startClock(){
+    left=120;clearInterval(timer);tick();timer=setInterval(tick,1000);
+    resend.disabled=true;
+  }
+  function resetRow(){
+    inputs.forEach(function(i){i.value='';i.classList.remove('bad','filled')});
+    inputs[0].focus();
+  }
+  function check(){
+    var val=inputs.map(function(i){return i.value}).join('');
+    if(val.length<6)return;
+    if(val===CODE){
+      status.className='status ok';
+      status.textContent='✓ 暗号对上：档案袋已开始解封，马上就好。';
+      inputs.forEach(function(i){i.classList.add('filled')});
+      clearInterval(timer);resend.disabled=false;
+    }else{
+      tries++;
+      status.className='status err';
+      inputs.forEach(function(i){i.classList.add('bad')});
+      status.textContent='× 暗号不对（已试 '+tries+'/5）：'+val+' 与csv口不符，请核对短信开头两位。';
+      lockBox.classList.toggle('show',tries>=5);
+      if(tries>=5)locked=true;
+      setTimeout(resetRow,260);
+    }
+  }
+  inputs.forEach(function(inp,i){
+    inp.addEventListener('input',function(){
+      inp.value=inp.value.replace(/\D/g,'').slice(0,1);
+      inp.classList.remove('bad');
+      if(inp.value)inp.classList.add('filled');
+      if(inp.value && i<5)inputs[i+1].focus();
+      check();
+    });
+    inp.addEventListener('keydown',function(e){
+      if(e.key==='Backspace' && !inp.value && i>0)inputs[i-1].focus();
+    });
+  });
+  resend.addEventListener('click',function(){
+    status.className='status';
+    status.textContent='新暗号已发出：请查收短信（183 **** 0021）。';
+    tries=0;locked=false;lockBox.classList.remove('show');
+    resetRow();startClock();
+  });
+  document.getElementById('altPhone').addEventListener('click',function(){
+    status.className='status';
+    status.textContent='备用号已登记：下一封暗号将发到 186 *** 7745。';
+    resetRow();startClock();
+  });
+  startClock();inputs[0].focus();
+})();
+</script>
+</body>
+</html>

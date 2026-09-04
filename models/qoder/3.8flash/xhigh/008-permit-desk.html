@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>应用权限申请单</title>
+<style>
+:root{
+  --frost:#eef1f2;--white:#ffffff;--teal:#0d6b7a;--teal-2:#0a5462;--ink:#16232a;
+  --muted:#5d7079;--line:#d8e2e5;--line-2:#b9ccd1;--amber:#b5761f;--red:#b03a2e;--ok:#2b6b4f;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;min-height:100vh;background:var(--frost);color:var(--ink);padding:42px 20px;
+  font:14.5px/1.65 system-ui,"Microsoft YaHei",sans-serif;
+  background-image:radial-gradient(circle,#cfdade 1px,transparent 1px);background-size:20px 20px;
+}
+.card{
+  max-width:660px;margin:0 auto;background:var(--white);border:1px solid var(--line);
+  border-radius:4px;box-shadow:0 18px 40px #16232a1f;overflow:hidden;
+}
+.band{background:var(--teal);color:#eaf4f6;padding:18px 26px;display:flex;align-items:center;gap:13px}
+.band svg{width:24px;height:24px;flex:none}
+.band b{font:700 16px/1.3 system-ui;letter-spacing:.04em}
+.band .no{margin-left:auto;font:500 11px/1 ui-monospace,Consolas,monospace;letter-spacing:.12em;color:#a9cdd4}
+.pad{padding:26px}
+.app{display:flex;gap:14px;align-items:center;padding-bottom:20px;border-bottom:1px solid var(--line)}
+.app .logo{width:46px;height:46px;border-radius:8px;background:var(--ink);color:#fff;display:grid;place-items:center;font:700 18px/1 system-ui;flex:none}
+.app h1{margin:0;font:700 17px/1.4 system-ui}
+.app p{margin:2px 0 0;color:var(--muted);font-size:13px}
+.app .ver{margin-left:auto;font:600 11px/1 ui-monospace,Consolas,monospace;letter-spacing:.1em;color:var(--muted);border:1px solid var(--line);padding:6px 9px;border-radius:3px}
+.why{margin:20px 0 22px;padding:14px 16px;background:#f4f8f9;border-left:3px solid var(--teal);font-size:13.5px;color:#31474f}
+.why b{color:var(--ink)}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+caption{text-align:left;font:600 11px/1 ui-monospace,Consolas,monospace;letter-spacing:.16em;color:var(--muted);padding-bottom:10px}
+th{
+  text-align:left;font:600 11px/1 ui-monospace,Consolas,monospace;letter-spacing:.1em;color:var(--muted);
+  padding:0 0 8px;border-bottom:1px solid var(--line);
+}
+td{padding:14px 8px 14px 0;border-bottom:1px solid var(--line);vertical-align:top}
+tbody tr:hover td{background:#f7fbfc}
+tbody tr[data-s="no"] .name{color:var(--red)}
+tbody tr[data-s="once"] .name{color:var(--amber)}
+tbody tr[data-s="always"] .name{color:var(--ok)}
+.name{font-weight:700;display:flex;align-items:center;gap:8px}
+.name svg{width:17px;height:17px;flex:none;opacity:.85}
+.use{color:#3b4f57;max-width:23ch}
+.freq{color:var(--muted);font-size:12.5px;white-space:nowrap}
+.seg{display:flex;gap:0;border:1px solid var(--line-2);border-radius:3px;overflow:hidden;margin-top:8px}
+.seg button{
+  appearance:none;border:0;background:var(--white);color:var(--muted);font:inherit;font-size:12px;
+  padding:7px 10px;cursor:pointer;border-right:1px solid var(--line-2);white-space:nowrap;
+}
+.seg button:last-child{border-right:0}
+.seg button:hover{background:#eff5f6;color:var(--ink)}
+.seg button:focus-visible{outline:2px solid var(--teal);outline-offset:-2px}
+.seg button[aria-pressed="true"]{background:var(--teal);color:#fff;font-weight:600}
+.more{margin-top:6px;background:none;border:0;padding:0;color:var(--teal);font:inherit;font-size:12px;cursor:pointer;text-decoration:underline dotted}
+.more:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+.detail{display:none;margin:8px 0 0;padding:10px 12px;background:#f7fafb;border:1px solid var(--line);border-radius:3px;font-size:12.5px;color:#42575f}
+.detail.show{display:block}
+.foot{margin-top:22px;padding-top:18px;border-top:1px solid var(--line);display:grid;gap:14px}
+.summary{font-size:13px;color:var(--muted)}
+.summary b{color:var(--ink)}
+.row{display:flex;gap:12px;flex-wrap:wrap}
+.deny,.allow{font:inherit;cursor:pointer;border-radius:3px;padding:14px 22px;transition:background .16s ease,border-color .16s ease}
+.deny{flex:1;background:var(--white);border:1px solid var(--line-2);color:var(--ink);font-weight:600}
+.deny:hover{border-color:var(--red);color:var(--red);background:#fbf4f3}
+.allow{flex:1.4;background:var(--teal);border:1px solid var(--teal);color:#fff;font-weight:700;letter-spacing:.06em}
+.allow:hover{background:var(--teal-2);border-color:var(--teal-2)}
+.deny:focus-visible,.allow:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
+.receipt{display:none;margin-top:4px;padding:14px 16px;border:1px solid var(--ok);background:#2b6b4f0f;border-radius:3px;font-size:13.5px}
+.receipt.show{display:block}
+.receipt b{display:block;color:var(--ok);margin-bottom:4px}
+.receipt.bad{border-color:var(--red);background:#b03a2e0d}
+.receipt.bad b{color:var(--red)}
+.legal{margin:16px 0 0;font-size:12px;color:var(--muted);text-align:center}
+.legal a{color:var(--teal)}
+[hidden]{display:none!important}
+@media (max-width:600px){
+  .pad{padding:18px}
+  .name{flex-direction:column;align-items:flex-start;gap:4px}
+  td{padding-right:0}
+  .row{flex-direction:column-reverse}
+  .deny,.allow{width:100%}
+  .freq{white-space:normal}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<section class="card">
+  <header class="band">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.6l8 3.2v6c0 5-3.4 8.4-8 9.6-4.6-1.2-8-4.6-8-9.6v-6z" fill="none" stroke="#eaf4f6" stroke-width="1.7"/><path d="M8.4 12.2l2.6 2.6 4.8-5.2" fill="none" stroke="#eaf4f6" stroke-width="1.7" stroke-linecap="round"/></svg>
+    <b>系统能力授权申请</b><span class="no">FORM · PERM-2026-0827</span>
+  </header>
+
+  <div class="pad">
+    <div class="app">
+      <span class="logo" aria-hidden="true">拾</span>
+      <div>
+        <h1>拾光集 想使用以下三项能力</h1>
+        <p>开发者 砚舟科技 · 已在系统内登记，用途由开发者声明</p>
+      </div>
+      <span class="ver">v3.2.1</span>
+    </div>
+
+    <p class="why"><b>为什么现在问：</b>你点了「按拍摄地点成组」。这一项需要定位能力才能把照片归到正确的街道；不给也能用，只是不会自动分组。你可以逐项决定，之后都能在「设置 › 权限」里改。</p>
+
+    <table>
+      <caption>SCOPE LIST / 申请范围</caption>
+      <thead>
+        <tr><th style="width:29%">能力</th><th style="width:31%">用来做什么</th><th style="width:19%">发生频率</th><th style="width:21%">你的选择</th></tr>
+      </thead>
+      <tbody id="rows"></tbody>
+    </table>
+
+    <div class="foot">
+      <p class="summary" id="summary">3 项能力中：允许 0 项 · 仅此一次 0 项 · 拒绝 3 项（默认）。</p>
+      <div class="row">
+        <button class="deny" type="button" id="denyAll">全部拒绝并返回</button>
+        <button class="allow" type="button" id="allowAll">按上表选择允许</button>
+      </div>
+      <div class="receipt" id="receipt"><b>已提交授权</b><span id="receiptText"></span></div>
+      <p class="legal">授权记录会写入本机日志，可在 <a href="#settings">设置 › 权限 › 历史</a> 查看与撤销。</p>
+    </div>
+  </div>
+</section>
+
+<script>
+(function(){
+  'use strict';
+  var ITEMS = [
+    {
+      key:'location', name:'大致位置', icon:'<circle cx="12" cy="10" r="3.2" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M12 21c4.4-5 6.6-8.2 6.6-11A6.6 6.6 0 005.4 10c0 2.8 2.2 6 6.6 11z" fill="none" stroke="currentColor" stroke-width="1.7"/>',
+      use:'把照片按拍摄街道成组', freq:'每次成组时', once:true,
+      detail:'仅读取网络与基站级的大致位置（精度约 1 公里），不读取实时轨迹，不上传到服务器；地点名称在你确认后才会写进照片页。'
+    },
+    {
+      key:'album', name:'相册读取', icon:'<rect x="3" y="5" width="18" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M3 15l5-4 4 3 3-2 6 4" fill="none" stroke="currentColor" stroke-width="1.7"/>',
+      use:'读取你选中的照片与拍摄参数', freq:'每次导入时', once:true,
+      detail:'只会拿到你亲手勾选的那几张照片，不会扫描整个相册；EXIF 中的拍摄时间、胶卷型号与镜头参数会一并读入用于建档。'
+    },
+    {
+      key:'notify', name:'通知', icon:'<path d="M6 16V11a6 6 0 1112 0v5l1.6 2.4H4.4z" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M9.6 21h4.8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>',
+      use:'冲扫店回片时提醒你一次', freq:'预计每月 1–2 次', once:false,
+      detail:'只用于回片与备份失败两类事件，不含推广内容；关闭后仍可在应用内的「进度」页随时查看，不会有功能缺失。'
+    }
+  ];
+  var state = {};
+  var rows = document.getElementById('rows');
+  var summary = document.getElementById('summary');
+  var receipt = document.getElementById('receipt');
+  var receiptText = document.getElementById('receiptText');
+  var allowAll = document.getElementById('allowAll');
+  var denyAll = document.getElementById('denyAll');
+
+  ITEMS.forEach(function(item){
+    state[item.key] = 'no';
+    var tr = document.createElement('tr');
+    tr.setAttribute('data-s','no');
+    tr.innerHTML =
+      '<td><span class="name"><svg viewBox="0 0 24 24" aria-hidden="true">' + item.icon + '</svg>' + item.name + '</span>' +
+        '<button class="more" type="button" aria-expanded="false">为什么要这一项</button>' +
+        '<p class="detail" id="d-' + item.key + '">' + item.detail + '</p></td>' +
+      '<td class="use">' + item.use + '</td>' +
+      '<td class="freq">' + item.freq + '</td>' +
+      '<td><div class="seg" role="group" aria-label="' + item.name + ' 的授权选择"></div></td>';
+    var seg = tr.querySelector('.seg');
+    var choices = [['no','拒绝'],['once','仅此一次'],['always','允许']].filter(function(c){ return c[0] !== 'once' || item.once; });
+    choices.forEach(function(c, i){
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.textContent = c[1];
+      b.setAttribute('aria-pressed', c[0] === 'no' ? 'true' : 'false');
+      b.dataset.choice = c[0];
+      b.addEventListener('click', function(){
+        state[item.key] = c[0];
+        Array.prototype.forEach.call(seg.children, function(x){ x.setAttribute('aria-pressed', String(x === b)); });
+        tr.setAttribute('data-s', c[0]);
+        refresh();
+      });
+      seg.appendChild(b);
+      if (i === 0){ b.style.fontWeight = '600'; }
+    });
+    var more = tr.querySelector('.more');
+    more.addEventListener('click', function(){
+      var open = tr.querySelector('.detail').classList.toggle('show');
+      more.setAttribute('aria-expanded', String(open));
+      more.textContent = open ? '收起说明' : '为什么要这一项';
+    });
+    rows.appendChild(tr);
+  });
+
+  function tally(){
+    var t = {no:0, once:0, always:0};
+    ITEMS.forEach(function(i){ t[state[i.key]] += 1; });
+    return t;
+  }
+  function refresh(){
+    var t = tally();
+    summary.textContent = '3 项能力中：允许 ' + t.always + ' 项 · 仅此一次 ' + t.once + ' 项 · 拒绝 ' + t.no + ' 项。';
+    allowAll.textContent = (t.always + t.once) ? '按上表允许 ' + (t.always + t.once) + ' 项' : '尚无允许项';
+    allowAll.disabled = (t.always + t.once) === 0;
+    allowAll.style.opacity = allowAll.disabled ? '.55' : '1';
+    receipt.classList.remove('show','bad');
+  }
+  function done(kind, text){
+    receipt.classList.add('show');
+    receipt.classList.toggle('bad', kind === 'bad');
+    receipt.firstElementChild.textContent = kind === 'bad' ? '未授予任何能力' : '已提交授权';
+    receiptText.textContent = text;
+  }
+
+  allowAll.addEventListener('click', function(){
+    var t = tally();
+    var parts = ITEMS.filter(function(i){ return state[i.key] !== 'no'; })
+      .map(function(i){ return i.name + '（' + (state[i.key] === 'once' ? '仅此一次' : '一直允许') + '）'; });
+    allowAll.disabled = true;
+    allowAll.textContent = '提交中';
+    setTimeout(function(){
+      allowAll.textContent = '按上表允许 ' + (t.always + t.once) + ' 项';
+      allowAll.disabled = false;
+      done('ok', '已授予 ' + parts.join('、') + '。拒绝的 ' + t.no + ' 项保持原状，随时可改。');
+    }, 700);
+  });
+
+  denyAll.addEventListener('click', function(){
+    ITEMS.forEach(function(i){ state[i.key] = 'no'; });
+    Array.prototype.forEach.call(rows.querySelectorAll('tr'), function(tr, i){
+      tr.setAttribute('data-s','no');
+      Array.prototype.forEach.call(tr.querySelectorAll('.seg button'), function(b, j){
+        b.setAttribute('aria-pressed', String(j === 0));
+      });
+    });
+    refresh();
+    done('bad', '三项能力全部未授予。照片仍可存放与浏览，但不会按地点成组；回片进度需到应用内「进度」页查看。');
+  });
+
+  refresh();
+})();
+</script>
+</body>
+</html>

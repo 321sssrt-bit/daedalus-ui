@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>社区卫服 · 接种回执</title>
+<style>
+  :root{
+    --clinic:#eef7f2;
+    --clinic-2:#e0efe7;
+    --ivory:#fbfdfb;
+    --green:#2f8a63;
+    --green-deep:#206747;
+    --green-soft:rgba(47,138,99,.12);
+    --teal:#3a8f84;
+    --teal-soft:rgba(58,143,132,.12);
+    --ink:#21332b;
+    --ink-soft:#4c6056;
+    --ink-mute:#8ba297;
+    --line:#cfdfd5;
+    --line-soft:#e2ece5;
+    --gold:#d9a441;
+    --gold-soft:rgba(217,164,65,.14);
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    background:#d9e7df;
+    font-family:"Microsoft YaHei","PingFang SC","Noto Sans SC",sans-serif;
+    min-height:100vh;display:flex;align-items:center;justify-content:center;padding:26px 14px;
+  }
+  .phone{
+    width:390px;max-width:100%;height:844px;max-height:calc(100vh - 40px);
+    background:linear-gradient(180deg,#eef7f2 0%,#e0efe7 100%);
+    border-radius:36px;border:1px solid #b5cfc1;overflow:hidden;
+    box-shadow:0 24px 60px rgba(32,66,52,.25),inset 0 0 0 6px #fff;
+    display:flex;flex-direction:column;position:relative;
+  }
+  .notch{position:absolute;top:8px;left:50%;transform:translateX(-50%);width:120px;height:22px;border-radius:99px;background:#21332b;z-index:20}
+  .screen{flex:1;display:flex;flex-direction:column;overflow-y:auto;position:relative}
+  .screen::-webkit-scrollbar{width:0}
+  .appbar{padding:48px 20px 8px;display:flex;justify-content:center;font-size:11px;color:var(--ink-mute);letter-spacing:.22em}
+  /* 主回执 */
+  .main{margin:14px 18px 0;background:var(--ivory);border:1px solid var(--line);border-radius:22px;overflow:hidden;box-shadow:0 14px 40px rgba(32,66,52,.14)}
+  .main .band{background:linear-gradient(135deg,var(--green) 0%,var(--teal) 100%);padding:26px 22px 22px;text-align:center;color:#f2fbf6}
+  .main .band .big{width:64px;height:64px;border-radius:50%;background:rgba(255,255,255,.2);border:2.5px solid rgba(255,255,255,.6);display:flex;align-items:center;justify-content:center;font-size:30px;margin:0 auto 12px}
+  .main .band h1{font-size:22px;font-weight:900;letter-spacing:.04em}
+  .main .band .s{font-size:12px;margin-top:6px;color:rgba(242,251,246,.85)}
+  /* 关键行 */
+  .keys{padding:16px 20px 6px;border-bottom:1px dashed var(--line)}
+  .krow{display:flex;justify-content:space-between;align-items:baseline;padding:10px 0;border-bottom:1px solid var(--line-soft)}
+  .krow:last-child{border-bottom:none}
+  .krow .kl{font-size:11.5px;color:var(--ink-mute)}
+  .krow .kv{font-size:14px;font-weight:800;color:var(--ink);text-align:right}
+  .krow .kv.bignum{font-size:17px;font-family:"Courier New",Consolas,monospace;color:var(--green-deep)}
+  /* 印章 */
+  .sealed{display:flex;justify-content:center;align-items:center;padding:18px 0 14px}
+  .sealed .st{
+    width:120px;height:120px;border:3px solid var(--green);border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    color:var(--green-deep);transform:rotate(-8deg);
+  }
+  .sealed .st .a{font-size:13px;font-weight:900;letter-spacing:.06em}
+  .sealed .st .b{font-size:9.5px;margin-top:4px;letter-spacing:.2em}
+  .sealed .st .c{font-size:15px;margin-top:2px}
+  /* 详情展开 */
+  .more{margin:0 18px 14px;background:var(--ivory);border:1px solid var(--line);border-radius:14px}
+  .more .mh{
+    display:flex;justify-content:space-between;align-items:center;padding:15px 16px;cursor:pointer;font-size:13px;font-weight:800;color:var(--ink);
+  }
+  .more .mh .arr{transition:transform .15s;color:var(--ink-mute)}
+  .more.open .mh .arr{transform:rotate(180deg)}
+  .more .md{display:none;padding:4px 16px 16px;font-size:12px;color:var(--ink-soft);line-height:2;border-top:1px solid var(--line-soft)}
+  .more.open .md{display:block}
+  /* 操作 */
+  .acts{margin:4px 18px 30px;display:flex;flex-direction:column;gap:10px}
+  .done{
+    width:100%;padding:14px;border:none;border-radius:14px;background:var(--green);color:#f2fbf6;font-size:15px;font-weight:900;
+    cursor:pointer;font-family:inherit;box-shadow:0 6px 0 var(--green-deep);transition:background .15s,transform .1s,box-shadow .1s;
+  }
+  .done:hover{background:#37996f}
+  .done:active{transform:translateY(2px);box-shadow:0 3px 0 var(--green-deep)}
+  .min{
+    width:100%;padding:13px;border-radius:14px;border:1.5px solid var(--line);background:none;font-size:13.5px;font-weight:700;
+    color:var(--ink-soft);cursor:pointer;font-family:inherit;transition:border-color .15s,color .15s;
+  }
+  .min:hover{border-color:var(--ink);color:var(--ink)}
+  @media (prefers-reduced-motion:reduce){
+    .more .mh .arr,.done,.min{transition:none}
+  }
+</style>
+</head>
+<body>
+<div class="phone">
+  <span class="notch"></span>
+  <div class="screen">
+    <header class="appbar">社区卫服 · 预约回执</header>
+
+    <section class="main" aria-label="回执">
+      <div class="band">
+        <span class="big">✓</span>
+        <h1>预约成功</h1>
+        <p class="s">你已锁定流感疫苗（四价）接种席位</p>
+      </div>
+      <div class="keys">
+        <div class="krow"><span class="kl">接种编号</span><span class="kv bignum">VS-260904-0741</span></div>
+        <div class="krow"><span class="kl">日期</span><span class="kv">9 月 9 日（周三）</span></div>
+        <div class="krow"><span class="kl">时段</span><span class="kv">09:30 – 10:00</span></div>
+        <div class="krow"><span class="kl">接种点</span><span class="kv">梧桐里社区卫生服务站 · 二楼接种区</span></div>
+        <div class="krow"><span class="kl">登记人</span><span class="kv">林小满 · 138 **** 0021</span></div>
+      </div>
+      <div class="sealed">
+        <span class="st"><span class="a">已锁定</span><span class="b">RE BOOKED</span><span class="c">◉</span></span>
+      </div>
+    </section>
+
+    <section class="more" id="moreBox">
+      <div class="mh" id="moreHead"><span>展开接种准备事项</span><span class="arr">▾</span></div>
+      <div class="md">
+        1. 请携带身份证或医保卡至二楼接种区签到；<br>
+        2. 接种前请确认无发热、无已知疫苗过敏；<br>
+        3. 接种后现场留观 30 分钟，无不适再离开；<br>
+        4. 如需取消，至少提前 4 小时联系 400-27-0000-11。
+      </div>
+    </section>
+
+    <section class="acts">
+      <button class="done" type="button">完成 · 已知晓</button>
+      <button class="min" id="minBtn" type="button">加入手机日历</button>
+    </section>
+  </div>
+</div>
+<script>
+(function(){
+  var box=document.getElementById('moreBox');
+  document.getElementById('moreHead').addEventListener('click',function(){
+    box.classList.toggle('open');
+  });
+  document.getElementById('minBtn').addEventListener('click',function(){
+    this.textContent='✓ 已加入 9 月 9 日 09:30';
+  });
+})();
+</script>
+</body>
+</html>

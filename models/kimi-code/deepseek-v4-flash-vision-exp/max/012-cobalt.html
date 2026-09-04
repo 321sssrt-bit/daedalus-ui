@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>青窑 · 排窑历</title>
+<style>
+  :root{
+    --porcelain:#f7f4ea;
+    --porcelain-2:#efeadd;
+    --cobalt:#2c4f8f;
+    --cobalt-deep:#1e3a6d;
+    --cobalt-soft:#dbe4f2;
+    --cobalt-faint:#eef2f9;
+    --celadon:#5f7f74;
+    --celadon-soft:#e2eae5;
+    --rust:#a3563c;
+    --rust-soft:#f0e0d6;
+    --ink:#22304a;
+    --ink-soft:#4c5c78;
+    --ink-mute:#8d99ad;
+    --line:#c8cdd9;
+    --line-soft:#e2e6ee;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    background:
+      radial-gradient(1000px 600px at 50% -20%, #ffffff 0%, transparent 70%),
+      var(--porcelain);
+    color:var(--ink);
+    font-family:"Microsoft YaHei","PingFang SC","Noto Sans SC",sans-serif;
+    min-height:100vh;display:flex;align-items:flex-start;justify-content:center;padding:36px 16px 60px;
+  }
+  .wall{
+    width:100%;max-width:1180px;background:var(--porcelain-2);
+    border:2px solid var(--cobalt-deep);border-radius:6px;
+    box-shadow:0 3px 0 rgba(30,58,109,.4),0 24px 60px rgba(30,58,109,.14);
+    padding:0 0 0;
+  }
+  .wallhead{
+    display:flex;justify-content:space-between;align-items:center;padding:22px 28px 16px;
+    border-bottom:1px solid var(--cobalt);position:relative;margin-bottom:0;
+  }
+  .wallhead::after{content:"";position:absolute;left:0;right:0;bottom:-6px;height:2px;background:var(--cobalt);opacity:.25}
+  .wallhead .seal{display:flex;align-items:center;gap:12px}
+  .wallhead .seal .stamp{
+    width:40px;height:40px;border:2.5px solid var(--rust);border-radius:4px;
+    display:flex;align-items:center;justify-content:center;color:var(--rust);
+    font-family:"KaiTi",STKaiti,serif;font-size:15px;font-weight:700;transform:rotate(-3deg);
+  }
+  .wallhead h1{font-size:20px;font-weight:800;letter-spacing:.14em;color:var(--cobalt-deep)}
+  .wallhead .sub{font-size:11px;color:var(--ink-mute);margin-top:4px;letter-spacing:.2em}
+  .nav2{display:flex;align-items:center;gap:10px}
+  .arrow{
+    width:36px;height:36px;border:1.5px solid var(--cobalt);background:var(--porcelain);
+    color:var(--cobalt);border-radius:50%;cursor:pointer;font-size:15px;font-family:inherit;
+    transition:background .15s,color .15s;
+  }
+  .arrow:hover{background:var(--cobalt);color:var(--porcelain)}
+  .nav2 .ym{font-size:16px;font-weight:700;letter-spacing:.1em;min-width:120px;text-align:center}
+  /* 周头 */
+  .dow{display:grid;grid-template-columns:repeat(7,1fr);background:var(--cobalt-soft);border-bottom:1px solid var(--line)}
+  .dow span{padding:10px 6px;text-align:center;font-size:11.5px;font-weight:700;letter-spacing:.12em;color:var(--cobalt-deep)}
+  .dow span.weekend{color:var(--rust)}
+  /* 网格 */
+  .grid{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;padding:14px 16px 18px}
+  .cell{
+    background:var(--porcelain);border:1px solid var(--line-soft);border-radius:4px;
+    min-height:112px;padding:8px 8px 6px;display:flex;flex-direction:column;gap:5px;
+  }
+  .cell .d{font-size:11px;color:var(--ink-mute);text-align:right}
+  .cell .d.gone{color:var(--line)}
+  .cell.blank{background:transparent;border:none}
+  .cell.today{border:2px solid var(--cobalt);box-shadow:0 0 0 3px var(--cobalt-soft)}
+  .ev{
+    border-left:3px solid var(--cobalt);background:var(--cobalt-faint);border-radius:3px;
+    padding:5px 7px;cursor:pointer;transition:background .15s,transform .1s;
+  }
+  .ev:hover{background:var(--cobalt-soft);transform:translateY(-1px)}
+  .ev .t{font-size:11px;font-weight:700;color:var(--cobalt-deep);line-height:1.4}
+  .ev .m{font-size:9.5px;color:var(--ink-soft);margin-top:1px}
+  .ev.celadon{border-left-color:var(--celadon);background:#eef4ef}
+  .ev.celadon .t{color:#40584f}
+  .ev.rust{border-left-color:var(--rust);background:#f8ede7}
+  .ev.rust .t{color:#7e3f2b}
+  /* 详情弹层 */
+  .detail{
+    position:fixed;inset:0;background:rgba(34,48,74,.42);display:none;align-items:center;justify-content:center;z-index:30;padding:20px;
+  }
+  .detail.show{display:flex}
+  .dbox{
+    width:100%;max-width:460px;background:var(--porcelain);border:2px solid var(--cobalt-deep);
+    border-radius:6px;padding:28px 30px 24px;box-shadow:0 20px 60px rgba(30,58,109,.3);
+  }
+  .dbox .cat{font-size:10.5px;letter-spacing:.24em;color:var(--ink-mute);margin-bottom:8px}
+  .dbox h2{font-size:19px;color:var(--cobalt-deep);margin-bottom:6px}
+  .dbox .line{font-size:12.5px;color:var(--ink-soft);line-height:2}
+  .dbox .gory{margin-top:14px;border-top:1px dashed var(--line);padding-top:12px;font-size:12px;color:var(--ink-soft);line-height:1.9}
+  .dbox .btns{margin-top:20px;display:flex;gap:10px}
+  .dbox .btns button{flex:1;padding:11px;font-size:13px;border-radius:4px;cursor:pointer;font-family:inherit}
+  .dbox .ok{background:var(--cobalt);border:1.5px solid var(--cobalt-deep);color:var(--porcelain);font-weight:700}
+  .dbox .ok:hover{background:var(--cobalt-deep)}
+  .dbox .no{background:none;border:1.5px solid var(--line);color:var(--ink-soft)}
+  .dbox .no:hover{border-color:var(--cobalt)}
+  @media (max-width:860px){
+    .grid{gap:5px;padding:10px 10px 14px}
+    .cell{min-height:78px;padding:5px 5px 4px}
+    .ev .m{display:none}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .ev,.arrow{transition:none}
+    .ev:hover{transform:none}
+  }
+</style>
+</head>
+<body>
+<main class="wall">
+  <header class="wallhead">
+    <div class="seal">
+      <span class="stamp">窑</span>
+      <div>
+        <h1>排窑历</h1>
+        <p class="sub">青窑工坊 · 庚子年 丁未月 · 柴烧档期</p>
+      </div>
+    </div>
+    <div class="nav2">
+      <button class="arrow" id="prevM" type="button" aria-label="上月">‹</button>
+      <span class="ym" id="ym">2026 年 9 月</span>
+      <button class="arrow" id="nextM" type="button" aria-label="下月">›</button>
+    </div>
+  </header>
+  <div class="dow" id="dow"></div>
+  <section class="grid" id="grid" aria-label="月历网格"></section>
+</main>
+
+<div class="detail" id="detail" role="dialog" aria-modal="true" aria-label="日程详情">
+  <div class="dbox">
+    <p class="cat" id="dCat">—</p>
+    <h2 id="dTitle">—</h2>
+    <p class="line" id="dLine"></p>
+    <p class="gory" id="dGory"></p>
+    <div class="btns">
+      <button class="ok" id="dClose" type="button">知道了</button>
+      <button class="no" id="dEditable" type="button">调整档期</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var MONTHS=['1 月','2 月','3 月','4 月','5 月','6 月','7 月','8 月','9 月','10 月','11 月','12 月'];
+  var year=2026,month=8; // 0-based, 9月
+  var events={
+    '2026-9-2':[{t:'入窑 · 青花瓶 32 件',m:'满窑 · 柴烧 72h',cat:'烧窑',cat2:'当日 06:00 点火',more:'釉料：青花缠枝；预计 9-5 出窑，窑门夜间不得开。'}],
+    '2026-9-6':[{t:'开窑取器',m:'白日 · 晴',cat:'出窑',cat2:'上午 09:00 揭门',more:'含残次品清理；瑕疵品按「九折惠友」转窑口柜台。'}],
+    '2026-9-9':[{t:'拉坯课 · 第三期',m:'晚课 19:00–21:00',cat:'课程',cat2:'阶梯工坊 · 12 位学员',more:'本次练耳煲与茶盏；工具由学徒房备齐。'}],
+    '2026-9-12':[{t:'巡窑 · 白瓷备料',m:'素坯检点',cat:'备料',cat2:'上午 10:30 由师父带队',more:'核查高岭土与釉料库存；缺项今天下单。'}],
+    '2026-9-18':[{t:'客单 · 茶具礼盒',m:'交货 60 套',cat:'交货',cat2:'下午 14:00 装箱',more:'定制款「松石」纹样；随附手写签条。'}],
+    '2026-9-21':[{t:'入窑 · 餐具 18 件',m:'半窑 · 素烧',cat:'烧窑',cat2:'当日 17:00 封门',more:'温度曲线 1250°C；请值班匠人夜间 22:00 复查火色。'}],
+    '2026-9-27':[{t:'瓷片故事会（休窑日）',m:'分享 · 茶点',cat:'活动',cat2:'全天 10:00 开始',more:'老匠人讲「碎瓷修补」；对外开放 60 个席位。'}]
+  };
+  var DOW=['一','二','三','四','五','六','日'];
+  var dowEl=document.getElementById('dow');
+  dowEl.innerHTML=DOW.map(function(d,i){return '<span class="'+(i>4?'weekend':'')+'">周'+d+'</span>'}).join('');
+
+  function draw(){
+    var grid=document.getElementById('grid');grid.innerHTML='';
+    document.getElementById('ym').textContent=year+' 年 '+MONTHS[month];
+    var first=new Date(year,month,1).getDay(); // 0=Sun
+    var days=new Date(year,month+1,0).getDate();
+    var cells=[];
+    if(first===0)first=7;
+    for(var i=1;i<first;i++)cells.push(null);
+    for(var d=1;d<=days;d++)cells.push(d);
+    while(cells.length%7!==0)cells.push(null);
+    var today='2026-9-4';
+    cells.forEach(function(d){
+      var cell=document.createElement('div');
+      if(d===null){cell.className='cell blank';grid.appendChild(cell);return;}
+      var key=year+'-'+(month+1)+'-'+d;
+      cell.className='cell'+(key===today?' today':'');
+      var dd=document.createElement('span');dd.className='d'+(month===8?'':'gone');dd.textContent=d;
+      // 简化：仅显示 2026 年内非 9 月日期淡显
+      dd.className='d';
+      if(month!==8)dd.classList.add('gone');
+      cell.appendChild(dd);
+      (events[key]||[]).forEach(function(ev){
+        var e=document.createElement('div');
+        e.className='ev'+(ev.cat==='出窑'||ev.cat==='活动'?' celery' : (ev.cat==='交货'?' rust':''));
+        e.style.cssText='';
+        e.className='ev'+(ev.cat==='出窑'?' celadon':(ev.cat==='交货'?' rust':''));
+        e.innerHTML='<div class="t">'+ev.t+'</div><div class="m">'+ev.m+'</div>';
+        e.addEventListener('click',function(){show(ev);});
+        cell.appendChild(e);
+      });
+      grid.appendChild(cell);
+    });
+  }
+  function show(ev){
+    document.getElementById('dCat').textContent=ev.cat+' · '+ev.cat2;
+    document.getElementById('dTitle').textContent=ev.t;
+    document.getElementById('dLine').textContent=ev.m;
+    document.getElementById('dGory').textContent=ev.more;
+    document.getElementById('detail').classList.add('show');
+  }
+  document.getElementById('prevM').addEventListener('click',function(){month--;if(month<0){month=11;year--;}draw();});
+  document.getElementById('nextM').addEventListener('click',function(){month++;if(month>11){month=0;year++;}draw();});
+  document.getElementById('dClose').addEventListener('click',function(){document.getElementById('detail').classList.remove('show');});
+  document.getElementById('dEditable').addEventListener('click',function(){document.getElementById('detail').classList.remove('show');});
+  document.getElementById('detail').addEventListener('click',function(e){if(e.target===this)this.classList.remove('show');});
+  draw();
+})();
+</script>
+</body>
+</html>

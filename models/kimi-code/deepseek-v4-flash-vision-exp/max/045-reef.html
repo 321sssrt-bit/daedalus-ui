@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>深蓝视界 · 深海纪录</title>
+<style>
+  :root{
+    --abyss:#06131f;
+    --abyss-2:#0a1e30;
+    --panel:#0e2536;
+    --panel-2:#143150;
+    --aqua:#3fb6d4;
+    --aqua-deep:#2094b2;
+    --aqua-soft:rgba(63,182,212,.13);
+    --sand:#e0c288;
+    --sand-soft:rgba(224,194,136,.14);
+    --coral:#f2805c;
+    --coral-soft:rgba(242,128,92,.13);
+    --white:#eef8fb;
+    --text-soft:#a7c8d4;
+    --text-mute:#6f95a4;
+    --line:rgba(238,248,251,.14);
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:#04101a;font-family:"Microsoft YaHei","PingFang SC","Noto Sans SC",sans-serif;min-height:100vh}
+  .phone{
+    width:100%;min-height:100vh;max-width:1000px;margin:0 auto;background:linear-gradient(180deg,#06131f,#0a1e30);
+    overflow:hidden;display:flex;flex-direction:column;position:relative;
+  }
+  .notch{display:none}
+  .screen{flex:1;display:flex;flex-direction:column;overflow-y:auto;position:relative}
+  .screen::-webkit-scrollbar{width:0}
+  .appbar{padding:20px 20px 10px;display:flex;align-items:center;justify-content:space-between}
+  .appbar .t{font-size:14px;font-weight:900;color:var(--white)}
+  .appbar .r{font-size:10.5px;color:var(--text-mute);letter-spacing:.2em}
+  /* 发现 */
+  .discover{padding:12px 20px 30px}
+  .discover .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
+  .dc{
+    background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:10px;cursor:pointer;transition:border-color .12s;
+  }
+  .dc:hover{border-color:var(--aqua)}
+  .dc.sel{border-color:var(--aqua);background:var(--panel-2)}
+  .dc .thumb{height:88px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:34px;background:rgba(63,182,212,.1)}
+  .dc .nm{font-size:12px;font-weight:800;color:var(--white);margin-top:8px}
+  .dc .mt{font-size:9.5px;color:var(--text-mute);margin-top:3px}
+  /* 播放器 */
+  .player{display:none;padding:12px 20px 30px}
+  .player.show{display:block}
+  .stage{
+    position:relative;border-radius:16px;overflow:hidden;height:260px;
+    background:linear-gradient(180deg,#0c2a40,#0a1e30);cursor:pointer;
+  }
+  .stage svg{width:100%;height:100%;display:block}
+  .stage .replay{
+    position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(4,16,26,.6);flex-direction:column;gap:8px;
+  }
+  .stage .replay .big{width:64px;height:64px;border-radius:50%;background:var(--aqua);color:#052029;display:flex;align-items:center;justify-content:center;font-size:24px}
+  .stage .offline{position:absolute;top:10px;left:10px;background:var(--coral-soft);border:1px solid rgba(242,128,92,.4);color:var(--coral);font-size:10px;padding:4px 10px;border-radius:99px;font-weight:800}
+  .stage .timechip{position:absolute;bottom:10px;right:10px;background:rgba(6,19,31,.85);color:var(--white);font-size:10.5px;padding:4px 10px;border-radius:99px;font-family:"Courier New",Consolas,monospace}
+  .pinfo{padding:14px 4px 0}
+  .pinfo h1{font-size:17px;font-weight:900;color:var(--white)}
+  .pinfo .sub{font-size:11px;color:var(--text-mute);margin-top:5px}
+  .progress{margin-top:16px}
+  .progress .track{height:6px;border-radius:99px;background:rgba(238,248,251,.12);overflow:hidden;cursor:pointer}
+  .progress .track .fill{height:100%;border-radius:99px;background:var(--aqua)}
+  .progress .times{display:flex;justify-content:space-between;margin-top:8px;font-size:10px;color:var(--text-mute);font-family:"Courier New",Consolas,monospace}
+  .ctrl{display:flex;align-items:center;gap:22px;justify-content:center;margin-top:18px}
+  .ctrl .play{
+    width:64px;height:64px;border-radius:50%;background:var(--aqua);color:#052029;border:none;font-size:22px;cursor:pointer;font-family:inherit;
+    box-shadow:0 8px 20px rgba(63,182,212,.3);
+  }
+  .ctrl .sm{width:40px;height:40px;border-radius:50%;background:var(--panel);border:1px solid var(--line);color:var(--text-soft);font-size:14px;cursor:pointer;font-family:inherit}
+  .ctrl .sm.on{background:var(--aqua-soft);border-color:var(--aqua);color:var(--aqua)}
+  .queue{margin-top:18px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px}
+  .queue .qt{font-size:11px;color:var(--text-mute);margin-bottom:8px;display:flex;justify-content:space-between}
+  .qrow{display:flex;justify-content:space-between;align-items:center;padding:9px 4px;border-bottom:1px solid rgba(238,248,251,.08);font-size:12px;color:var(--text-soft)}
+  .qrow:last-child{border-bottom:none}
+  .qrow.cur{color:var(--aqua);font-weight:800}
+  .qrow button{border:none;background:none;color:var(--aqua);font-size:10.5px;cursor:pointer;font-family:inherit}
+  .net{display:flex;margin-top:14px}
+  .net button{
+    flex:1;padding:11px;border:1px solid var(--line);border-radius:10px;background:var(--panel);color:var(--text-soft);
+    font-size:12px;font-weight:800;cursor:pointer;font-family:inherit;
+  }
+  .net button.on{border-color:var(--coral);background:var(--coral-soft);color:var(--coral)}
+  @media (prefers-reduced-motion:reduce){
+    .dc,.ctrl .sm{transition:none}
+  }
+</style>
+</head>
+<body>
+<div class="phone">
+  <span class="notch"></span>
+  <div class="screen">
+    <header class="appbar">
+      <span class="t">深蓝视界</span>
+      <span class="r">深海纪录 · LIVE 精选</span>
+    </header>
+
+    <!-- 发现页 -->
+    <section class="discover" id="discover">
+      <div class="grid" id="dGrid"></div>
+    </section>
+
+    <!-- 播放器页 -->
+    <section class="player" id="player">
+      <div class="stage" id="stage">
+        <svg viewBox="0 0 390 190" preserveAspectRatio="xMidYMid slice">
+          <rect width="390" height="190" fill="#0c2a40"/>
+          <path d="M0 150 Q120 118 240 152 T390 160 L390 190 L0 190 Z" fill="#06131f"/>
+          <path d="M0 168 Q150 140 390 172 L390 190 L0 190 Z" fill="#04101a"/>
+          <circle cx="70" cy="60" r="17" fill="rgba(63,182,212,.35)"/>
+          <circle cx="70" cy="60" r="9" fill="#3fb6d4"/>
+          <path d="M120 86 q14 -10 28 0 M160 70 q12 -8 24 0" stroke="#3fb6d4" stroke-width="2.5" fill="none" opacity=".7"/>
+          <circle cx="310" cy="42" r="6" fill="#e0c288"/>
+        </svg>
+        <div class="replay" id="replay" style="display:none">
+          <span class="big" id="replayBtn">▶</span>
+          <span style="font-size:11px;color:var(--text-soft)">已离线 · 点击重连</span>
+        </div>
+        <div class="offline" id="offTag" style="display:none">⚡ 网络中断 · 进度已保留</div>
+        <div class="timechip" id="tchip">00:00 / 26:40</div>
+      </div>
+      <div class="pinfo">
+        <h1 id="pTitle">《鲸落之后 · 第一集》</h1>
+        <p class="sub" id="pSub">深蓝视界出品 · 4K 深海 · 国语解说</p>
+      </div>
+      <div class="progress">
+        <div class="track" id="ptrack"><div class="fill" id="pfill"></div></div>
+        <div class="times"><span id="tcur">00:00</span><span id="tdur">26:40</span></div>
+      </div>
+      <div class="ctrl">
+        <button class="sm" id="skipBack" type="button">⏪10</button>
+        <button class="play" id="playBtn" type="button">▶</button>
+        <button class="sm" id="skipFwd" type="button">10⏩</button>
+      </div>
+      <div class="net">
+        <button class="on" id="netBtn" type="button">⚡ 模拟网络中断</button>
+      </div>
+      <div class="queue">
+        <div class="qt"><span>本剧集播放队列</span><span id="qSaved">进度未保存</span></div>
+        <div class="qrow" data-cur><span>第 1 集 鲸落之后</span><span>26:40</span></div>
+        <div class="qrow"><span>第 2 集 蓝鲸回声</span><span>31:12</span></div>
+        <div class="qrow"><span>第 3 集 冷泉绿洲</span><span>24:05</span></div>
+      </div>
+    </section>
+  </div>
+</div>
+<script>
+(function(){
+  var eps=[
+    {t:'《鲸落之后 · 第一集》',d:'26:40',len:1600,thumb:'🐋'},
+    {t:'《蓝鲸回声 · 第二集》',d:'31:12',len:1872,thumb:'🐳'},
+    {t:'《冷泉绿洲 · 第三集》',d:'24:05',len:1445,thumb:'🌋'}
+  ];
+  var items=[{t:'《鲸落之后 · 第一集》',d:'26:40',thumb:'🐋'},{t:'《蓝鲸回声 · 第二集》',d:'31:12',thumb:'🐳'},{t:'《冷泉绿洲 · 第三集》',d:'24:05',thumb:'🌋'}];
+  var grid=document.getElementById('dGrid');
+  items.forEach(function(it,i){
+    var d=document.createElement('div');d.className='dc';
+    d.innerHTML='<div class="thumb">'+it.thumb+'</div><div class="nm">'+it.t+'</div><div class="mt">'+it.d+' · 4K</div>';
+    d.addEventListener('click',function(){
+      openPlayer(i);pick(i);
+    });
+    grid.appendChild(d);
+  });
+  var cur=0,t=145,playing=false,timer=null,offline=false,saved=false;
+  function fmt(s){var m=Math.floor(s/60),ss=String(Math.floor(s%60)).padStart(2,'0');return m+':'+ss}
+  function pick(i){
+    cur=i;
+    document.getElementById('pTitle').textContent=eps[i].t;
+    document.getElementById('pSub').textContent='深蓝视界出品 · 4K 深海 · 国语解说';
+    document.getElementById('tdur').textContent=eps[i].d;
+    t=Math.min(t,eps[i].len);
+    render();
+  }
+  function render(){
+    document.getElementById('tcur').textContent=fmt(t);
+    document.getElementById('tchip').textContent=fmt(t)+' / '+eps[cur].d;
+    document.getElementById('pfill').style.width=(t/eps[cur].len*100)+'%';
+    document.getElementById('playBtn').textContent=playing?'Ⅱ':'▶';
+  }
+  function tick(){
+    if(!playing||offline)return;
+    t++;if(t>=eps[cur].len)t=0;
+    render();
+  }
+  function openPlayer(i){pick(i);document.getElementById('discover').style.display='none';document.getElementById('player').classList.add('show');}
+  document.getElementById('playBtn').addEventListener('click',function(){
+    if(offline)return;
+    playing=!playing;
+    if(playing){timer=setInterval(tick,1000);}else{clearInterval(timer);}
+    render();updateQueue();
+  });
+  document.getElementById('skipBack').addEventListener('click',function(){t=Math.max(0,t-10);render();markSaved()});
+  document.getElementById('skipFwd').addEventListener('click',function(){t=Math.min(eps[cur].len,t+10);render();markSaved()});
+  document.getElementById('ptrack').addEventListener('click',function(e){
+    var r=this.getBoundingClientRect();
+    t=Math.floor((e.clientX-r.left)/r.width*eps[cur].len);
+    render();markSaved();
+  });
+  var netBtn=document.getElementById('netBtn');
+  function markSaved(){
+    saved=true;
+    document.getElementById('qSaved').textContent='进度已保存 · '+fmt(t);
+  }
+  function updateQueue(){
+    var rows=[].slice.call(document.querySelectorAll('.qrow'));
+    rows.forEach(function(r,i){r.classList.toggle('cur',i===cur)});
+  }
+  netBtn.addEventListener('click',function(){
+    if(!offline){
+      offline=true;playing=false;clearInterval(timer);
+      document.getElementById('offTag').style.display='block';
+      document.getElementById('replay').style.display='flex';
+      document.getElementById('netBtn').textContent='⚡ 已断线 · 点我恢复';
+      document.getElementById('qSaved').textContent='进度已保留 · '+fmt(t);
+      render();
+    }else{
+      offline=false;
+      document.getElementById('offTag').style.display='none';
+      document.getElementById('replay').style.display='none';
+      document.getElementById('netBtn').textContent='⚡ 模拟网络中断';
+      // 从保留进度继续播放
+      playing=true;timer=setInterval(tick,1000);
+      render();
+    }
+  });
+  document.getElementById('replayBtn').addEventListener('click',function(){netBtn.click();});
+  render();updateQueue();
+})();
+</script>
+</body>
+</html>

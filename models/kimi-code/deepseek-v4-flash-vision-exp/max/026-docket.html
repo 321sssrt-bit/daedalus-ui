@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>仓单簿 · 账单中心</title>
+<style>
+  :root{
+    --milk:#fbf8f0;
+    --milk-2:#f2ece0;
+    --ink:#2c2a22;
+    --ink-soft:#605c4e;
+    --ink-mute:#9a9482;
+    --brass:#a27b3c;
+    --brass-deep:#7c5a26;
+    --brass-soft:#efe6d2;
+    --indigo:#3c4d78;
+    --indigo-deep:#2c3a5c;
+    --indigo-soft:#e5e9f2;
+    --rust:#b04a30;
+    --rust-soft:#f3e0d6;
+    --line:#d9d2bf;
+    --line-soft:#e7e1d1;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    background:
+      radial-gradient(900px 520px at 50% -10%, rgba(252,248,240,.7), transparent 60%),
+      var(--milk);
+    color:var(--ink);
+    font-family:"Microsoft YaHei","PingFang SC","Noto Sans SC",sans-serif;
+    min-height:100vh;display:flex;justify-content:center;padding:0 16px 70px;
+  }
+  .wrap{width:100%;max-width:1060px}
+  .top{
+    display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;
+    padding:26px 4px 16px;border-bottom:2px solid var(--ink);
+  }
+  .top .idn{display:flex;align-items:center;gap:12px}
+  .top .idn .seal{width:42px;height:42px;border:2.5px solid var(--rust);border-radius:4px;display:flex;align-items:center;justify-content:center;font-family:"KaiTi",STKaiti,serif;font-size:16px;font-weight:700;color:var(--rust);transform:rotate(-3deg)}
+  .top h1{font-size:22px;font-weight:900;letter-spacing:.08em}
+  .top .sub{font-size:11px;color:var(--ink-mute);margin-top:4px;letter-spacing:.18em}
+  .top .help{font-size:12px;color:var(--indigo);cursor:pointer;border-bottom:1px dashed var(--indigo)}
+  /* 当前方案 */
+  .plan{
+    display:grid;grid-template-columns:1fr 260px;gap:18px;margin-top:24px;
+  }
+  .plan-card{
+    background:var(--indigo-deep);color:var(--milk);border-radius:14px;padding:24px 26px;
+    display:flex;justify-content:space-between;flex-wrap:wrap;gap:16px;
+  }
+  .plan-card .p1{font-size:11px;letter-spacing:.3em;color:#aab7d4;margin-bottom:10px}
+  .plan-card .p2{font-size:21px;font-weight:900}
+  .plan-card .p3{font-size:12px;color:#c6d0e4;margin-top:8px;line-height:1.9}
+  .plan-card .p4{font-size:12px;color:#c6d0e4;margin-top:8px}
+  .plan-card .charges{background:rgba(255,255,255,.08);border-radius:10px;padding:12px 16px;font-size:12px;color:#dbe2ee;min-width:220px}
+  .plan-card .charges .r{display:flex;justify-content:space-between;padding:4px 0}
+  .plan-card .charges .r b{font-size:16px}
+  .plan-card .charges .r.t{border-top:1px solid rgba(255,255,255,.15);margin-top:6px;padding-top:10px;font-weight:800}
+  .plan-actions{display:flex;flex-direction:column;gap:10px;justify-content:center}
+  .plan-actions button{
+    padding:12px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .15s;
+  }
+  .plan-actions .downgrade{background:var(--milk);border:1.5px solid var(--indigo);color:var(--indigo-deep)}
+  .plan-actions .downgrade:hover{background:var(--indigo-soft)}
+  .plan-actions .pay{background:var(--brass);border:1.5px solid var(--brass-deep);color:var(--ink)}
+  .plan-actions .pay:hover{background:var(--brass-soft)}
+  /* 记录 */
+  .logs{margin-top:26px}
+  .logs .lh{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+  .logs .lh h2{font-size:15px;font-weight:800}
+  .logs .lh .acts{display:flex;gap:8px}
+  .logs .lh .acts button{
+    padding:7px 14px;font-size:11.5px;border-radius:8px;border:1px solid var(--line);
+    background:var(--milk);color:var(--ink-soft);cursor:pointer;font-family:inherit;transition:all .15s;
+  }
+  .logs .lh .acts button:hover{border-color:var(--rust);color:var(--rust)}
+  .table{background:var(--milk);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  .trow{
+    display:grid;grid-template-columns:1.1fr 1fr auto 90px 70px;gap:14px;align-items:center;
+    padding:13px 18px;border-bottom:1px solid var(--line-soft);font-size:12.5px;
+  }
+  .trow.head{background:var(--milk-2);font-size:11px;color:var(--ink-mute);font-weight:700}
+  .trow:last-child{border-bottom:none}
+  .trow .date{font-family:"Courier New",Consolas,monospace;font-size:12px}
+  .trow .no{color:var(--ink-soft)}
+  .trow .amt{text-align:right;font-weight:800;font-variant-numeric:tabular-nums}
+  .trow .amt.in{color:var(--indigo-deep)}
+  .trow .amt.out{color:var(--rust)}
+  .trow .st{font-size:11px;text-align:center;padding:3px 8px;border-radius:99px;font-weight:700}
+  .st.paid{background:var(--indigo-soft);color:var(--indigo-deep)}
+  .st.wait{background:var(--brass-soft);color:var(--brass-deep)}
+  .trow .dl{font-size:11px;color:var(--ink-mute);cursor:pointer;text-align:right}
+  .trow .dl:hover{color:var(--rust)}
+  .pager{display:flex;justify-content:space-between;align-items:center;margin-top:14px;font-size:11.5px;color:var(--ink-mute)}
+  .pager button{border:none;background:none;cursor:pointer;font-family:inherit;font-size:11.5px;color:var(--indigo)}
+  .pager button:hover{text-decoration:underline}
+  @media (max-width:860px){
+    .plan{grid-template-columns:1fr}
+    .trow{grid-template-columns:1fr 1fr;row-gap:4px}
+    .trow.head{display:none}
+    .trow .no{grid-row:1}
+    .trow .date{grid-row:2}
+    .trow .amt{grid-column:2;grid-row:1}
+    .trow .st{grid-column:2;grid-row:2;justify-self:end}
+    .trow .dl{grid-column:2;grid-row:3}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .plan-actions button,.logs .lh .acts button{transition:none}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="idn">
+      <span class="seal">仓</span>
+      <div>
+        <h1>仓单簿 · 账单中心</h1>
+        <p class="sub">XX 港储 · 账户 2201-884-07 · 记账起始 2024</p>
+      </div>
+    </div>
+    <span class="help">需要开发票？找值班会计</span>
+  </header>
+
+  <section class="plan" aria-label="当前方案">
+    <div class="plan-card">
+      <div>
+        <p class="p1">当前方案</p>
+        <p class="p2">整仓包月 · 标准仓 12 席</p>
+        <p class="p3">合同期 2026-01-01 至 2026-12-31<br>下次自动续费：2027-01-01</p>
+        <p class="p4">已含：12 个仓位、不限装卸次、A/B 类损耗险</p>
+      </div>
+      <div class="charges">
+        <div class="r"><span>本仓月度费用</span><span>¥1,280.0</span></div>
+        <div class="r"><span>服务费（计价含税）</span><span>¥128.0</span></div>
+        <div class="r"><span>上期结转</span><span>¥0.0</span></div>
+        <div class="r t"><span>本账期应付</span><b>¥1,408.0</b></div>
+      </div>
+    </div>
+    <div class="plan-actions">
+      <button class="pay" type="button">更换支付方式</button>
+      <button class="downgrade" type="button">查看更低档位</button>
+    </div>
+  </section>
+
+  <section class="logs" aria-label="账目记录">
+    <div class="lh">
+      <h2>账目记录 · 2026</h2>
+      <div class="acts">
+        <button type="button">下载对账单（PDF）</button>
+        <button type="button">开具电子发票</button>
+      </div>
+    </div>
+    <div class="table">
+      <div class="trow head"><span>日期</span><span>单号 / 摘要</span><span>类型</span><span>金额</span><span>状态</span></div>
+      <div class="trow"><span class="date">2026-09-01</span><span class="no">RL-20260901 · 9 月仓租</span><span>收费</span><span class="amt out">−¥1,408.0</span><span class="st wait">待付</span><span class="dl">凭证</span></div>
+      <div class="trow"><span class="date">2026-08-01</span><span class="no">RL-20260801 · 8 月仓租</span><span>收费</span><span class="amt out">−¥1,408.0</span><span class="st paid">已付</span><span class="dl">凭证</span></div>
+      <div class="trow"><span class="date">2026-07-15</span><span class="no">CR-20260715 · 滞纳金退回</span><span>退费</span><span class="amt in">+¥86.0</span><span class="st paid">已付</span><span class="dl">凭证</span></div>
+      <div class="trow"><span class="date">2026-07-01</span><span class="no">RL-20260701 · 7 月仓租</span><span>收费</span><span class="amt out">−¥1,408.0</span><span class="st paid">已付</span><span class="dl">凭证</span></div>
+      <div class="trow"><span class="date">2026-06-01</span><span class="no">RL-20260601 · 6 月仓租</span><span>收费</span><span class="amt out">−¥1,408.0</span><span class="st paid">已付</span><span class="dl">凭证</span></div>
+      <div class="trow"><span class="date">2026-05-12</span><span class="no">AD-20260512 · 增席 2 位（补差）</span><span>调账</span><span class="amt out">−¥640.0</span><span class="st paid">已付</span><span class="dl">凭证</span></div>
+    </div>
+    <div class="pager"><span>共 18 条 · 当前 1–6</span><span><button type="button">‹ 上一页</button><button type="button">下一页 ›</button></span></div>
+  </section>
+</div>
+<script>
+(function(){
+  var logs=document.querySelectorAll('.trow');
+  var page=0,PER=6;
+  function render(){
+    logs.forEach(function(row,i){row.style.display=(i>=page*PER&&i<(page+1)*PER)?'':'none';});
+  }
+  document.querySelector('.pager button').addEventListener('click',function(){
+    page=Math.max(0,page-1);render();
+  });
+  document.querySelectorAll('.pager button')[1].addEventListener('click',function(){
+    page=Math.min(2,page+1);render();
+  });
+  document.querySelector('.logs .lh .acts button').addEventListener('click',function(){
+    this.textContent='对账单已生成 ✓ 开始下载';
+  });
+  var pk=document.querySelectorAll('.logs .lh .acts button')[1];
+  pk.addEventListener('click',function(){
+    var span=pk.parentElement.insertBefore(document.createElement('div'),null)||null;
+    var note=document.createElement('span');
+    note.textContent='  · 已开票：票号 XX-2026-0904-778';
+    note.style.cssText='font-size:11px;color:var(--indigo-deep);align-self:center';
+    pk.parentElement.appendChild(note);
+    pk.textContent='发票已开 ✓';
+  });
+  document.querySelector('.plan-actions .pay').addEventListener('click',function(){
+    this.textContent='默认卡已更改为 工行尾号7731 ✓';
+  });
+  render();
+})();
+</script>
+</body>
+</html>

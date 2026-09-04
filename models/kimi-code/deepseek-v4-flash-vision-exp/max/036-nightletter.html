@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>晚风电台 · 深夜来信</title>
+<style>
+  :root{
+    --dusk:#1d1836;
+    --dusk-2:#241d42;
+    --panel:#2a2250;
+    --panel-2:#332a5e;
+    --violet:#9d7ff0;
+    --violet-deep:#7a5cce;
+    --violet-soft:rgba(157,127,240,.14);
+    --gold:#f2c14e;
+    --gold-deep:#c99a2c;
+    --gold-soft:rgba(242,193,78,.14);
+    --rose:#e77b8b;
+    --rose-soft:rgba(231,123,139,.14);
+    --text:#f0ecfb;
+    --text-soft:#b7aede;
+    --text-mute:#8d83b8;
+    --line:rgba(240,236,251,.12);
+    --line-soft:rgba(240,236,251,.07);
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    background:
+      radial-gradient(900px 560px at 50% -14%, rgba(157,127,240,.16), transparent 60%),
+      linear-gradient(180deg,var(--dusk) 0%,var(--dusk-2) 100%);
+    color:var(--text);
+    font-family:"Microsoft YaHei","PingFang SC","Noto Sans SC",sans-serif;
+    min-height:100vh;display:flex;align-items:center;justify-content:center;padding:26px 14px;
+  }
+  .phone{
+    width:390px;max-width:100%;height:844px;max-height:calc(100vh - 40px);
+    background:linear-gradient(180deg,#241d42 0%,#1d1836 100%);
+    border-radius:36px;border:1px solid #3a3168;overflow:hidden;
+    box-shadow:0 24px 60px rgba(10,7,26,.5),inset 0 0 0 6px #2a2250;
+    display:flex;flex-direction:column;position:relative;
+  }
+  .notch{position:absolute;top:8px;left:50%;transform:translateX(-50%);width:120px;height:22px;border-radius:99px;background:#110d22;z-index:20}
+  .screen{flex:1;display:flex;flex-direction:column;overflow-y:auto;position:relative}
+  .screen::-webkit-scrollbar{width:0}
+  .appbar{padding:48px 20px 12px;display:flex;justify-content:space-between;align-items:center}
+  .appbar .l{display:flex;align-items:center;gap:10px}
+  .appbar .l .b{width:34px;height:34px;border-radius:50%;background:var(--panel);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:13px;cursor:pointer}
+  .appbar .l .t{font-size:14px;font-weight:800}
+  .appbar .r{font-size:10.5px;color:var(--text-mute);letter-spacing:.14em}
+  /* 提示条 */
+  .tipbar{
+    margin:0 16px;background:var(--gold-soft);border:1px solid rgba(242,193,78,.25);border-radius:10px;
+    padding:8px 12px;font-size:11px;color:var(--gold);display:flex;align-items:center;gap:8px;
+  }
+  /* 编辑 */
+  .editor{margin:14px 16px 0;background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:16px 18px}
+  .etitle{display:flex;gap:8px;align-items:center;border-bottom:1px solid var(--line-soft);padding-bottom:12px}
+  .etitle .bar2{width:3px;height:22px;border-radius:2px;background:var(--violet)}
+  .etitle input{
+    flex:1;background:none;border:none;outline:none;color:var(--text);font-size:16px;font-weight:800;font-family:inherit;
+  }
+  .etitle input::placeholder{color:var(--text-mute)}
+  .ebody{margin-top:12px}
+  .ebody textarea{
+    width:100%;min-height:170px;background:none;border:none;outline:none;resize:none;
+    color:var(--text);font-size:13.5px;line-height:2;font-family:inherit;
+  }
+  .ebody textarea::placeholder{color:var(--text-mute)}
+  /* 字数与状态 */
+  .counts{
+    display:flex;justify-content:space-between;align-items:center;padding:10px 2px 0;font-size:10.5px;color:var(--text-mute);
+  }
+  .counts .warn{color:var(--rose)}
+  .counts .okc{color:var(--gold)}
+  /* 附加 */
+  .attach{margin:12px 16px 0;display:flex;gap:10px}
+  .attach .chip{
+    display:flex;align-items:center;gap:6px;padding:9px 14px;border-radius:99px;background:var(--panel);
+    border:1px solid var(--line);font-size:11.5px;color:var(--text-soft);cursor:pointer;transition:all .12s;
+  }
+  .attach .chip.on{border-color:var(--violet);color:var(--violet);background:var(--violet-soft)}
+  .attach .chip .x{font-size:10px;color:var(--text-mute)}
+  /* 底栏 */
+  .bar{
+    position:absolute;left:0;right:0;bottom:0;background:rgba(24,19,44,.92);backdrop-filter:blur(8px);
+    border-top:1px solid var(--line);padding:12px 16px 20px;display:flex;gap:10px;align-items:center;
+  }
+  .bar .draft{
+    flex:1;display:flex;align-items:center;justify-content:center;gap:6px;background:var(--panel);color:var(--text-soft);
+    border:1px solid var(--line);border-radius:12px;padding:12px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;
+  }
+  .bar .draft:hover{border-color:var(--text-mute)}
+  .bar .send{
+    flex:2;display:flex;align-items:center;justify-content:center;gap:8px;background:var(--violet);color:#160f30;
+    border:none;border-radius:12px;padding:12px;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;
+    transition:background .15s;
+  }
+  .bar .send:hover{background:#b090ff}
+  .bar .send.sent{background:var(--gold);color:#2c2008}
+  /* 成功卡 */
+  .sent-card{
+    display:none;margin:12px 16px 96px;background:var(--panel-2);border:1px solid rgba(242,193,78,.3);
+    border-radius:14px;padding:14px 18px;font-size:12.5px;color:var(--text-soft);line-height:1.9;
+  }
+  .sent-card.show{display:block}
+  .sent-card b{color:var(--gold)}
+  @media (prefers-reduced-motion:reduce){
+    .attach .chip,.bar .send{transition:none}
+  }
+</style>
+</head>
+<body>
+<div class="phone">
+  <span class="notch"></span>
+  <div class="screen">
+    <header class="appbar">
+      <div class="l">
+        <span class="b">‹</span>
+        <span class="t">深夜来信</span>
+      </div>
+      <span class="r">晚风电台 · 投稿</span>
+    </header>
+
+    <div class="tipbar">◉ 今晚 22:00 前发出，可上「晚来风」栏目</div>
+
+    <section class="editor" aria-label="编辑区">
+      <div class="etitle">
+        <span class="bar2"></span>
+        <input id="title" type="text" maxlength="30" placeholder="给这封信起个头（30 字内）" value="楼下的桂花开了">
+      </div>
+      <div class="ebody">
+        <textarea id="content" maxlength="500" placeholder="写点今晚的事…">下晚自习路过老樟树，闻到一阵桂花香。以前总嫌它腻，今年闻着，却想起外公院子里的那棵。他说桂花要拌糖收着，过年蒸米糕用。忽然很想回趟家。</textarea>
+      </div>
+      <div class="counts">
+        <span id="warn">正文 71 / 500 字</span>
+        <span>脱机上屏 · 每秒自动保存</span>
+      </div>
+    </section>
+
+    <section class="attach" aria-label="附加">
+      <span class="chip" id="picChip">🧺 配一张图</span>
+      <span class="chip" id="sigChip">✦ 匿名寄出</span>
+      <span class="chip" id="tagChip"># 桂花的季节</span>
+    </section>
+
+    <section class="sent-card" id="sentCard">
+      <b>✓ 已投入电台信箱</b><br>
+      无需署名，明晚 22:00 在「晚来风」栏目播出；电台编辑组会先听一次。
+    </section>
+    <div style="height:96px"></div>
+  </div>
+
+  <div class="bar">
+    <button class="draft" id="draftBtn" type="button">↵ 存草稿</button>
+    <button class="send" id="sendBtn" type="button">✉ 投入信箱</button>
+  </div>
+</div>
+<script>
+(function(){
+  var title=document.getElementById('title'),content=document.getElementById('content'),
+      warn=document.getElementById('warn'),
+      sentCard=document.getElementById('sentCard'),
+      sendBtn=document.getElementById('sendBtn');
+  function updCount(){
+    var n=content.value.length;
+    warn.textContent='正文 '+n+' / 500 字';
+    warn.className=n>=450?'warn':(n>0?'okc':'');
+  }
+  content.addEventListener('input',updCount);
+  updCount();
+  document.querySelectorAll('.attach .chip').forEach(function(c){
+    c.addEventListener('click',function(){
+      if(this.id==='picChip'){this.classList.toggle('on');}
+      else if(this.id==='sigChip'){this.classList.toggle('on');this.textContent=this.classList.contains('on')?'✦ 匿名寄出 ✓':'✦ 匿名寄出';}
+      else if(this.id==='tagChip'){this.classList.toggle('on');}
+    });
+  });
+  document.getElementById('draftBtn').addEventListener('click',function(){
+    this.textContent='已存 ✓';
+    setTimeout(function(){this.textContent='↵ 存草稿'}.bind(this),1200);
+  });
+  sendBtn.addEventListener('click',function(){
+    if(!content.value.trim()){warn.textContent='正文还空着哦（≥ 1 字）';return;}
+    sendBtn.classList.add('sent');sendBtn.textContent='已投入 ✓';
+    sentCard.classList.add('show');
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>拓荒志 · 欢迎</title>
+<style>
+  :root{
+    --hide:#8c6239;
+    --hide-deep:#6e4b2a;
+    --hide-dark:#4a3117;
+    --sand:#e8dcc3;
+    --sand-2:#ddccaa;
+    --paper:#f6eeda;
+    --rust:#b5572e;
+    --rust-deep:#8f3f1f;
+    --sage:#5c7351;
+    --ink:#3a2c1c;
+    --ink-soft:#6b573d;
+    --ink-mute:#9a8a6e;
+    --line:#c9b48d;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    background:
+      radial-gradient(900px 500px at 80% -10%, rgba(181,87,46,.08), transparent 60%),
+      var(--hide);
+    color:var(--ink);
+    font-family:"Microsoft YaHei","PingFang SC","Noto Sans SC",sans-serif;
+    min-height:100vh;display:flex;align-items:center;justify-content:center;padding:36px 16px;
+  }
+  .board{
+    width:100%;max-width:980px;min-height:600px;
+    background:var(--paper);
+    border:1px solid var(--hide-dark);
+    box-shadow:0 10px 0 rgba(42,28,12,.35),0 34px 90px rgba(20,12,4,.5);
+    display:grid;grid-template-columns:400px 1fr;overflow:hidden;
+  }
+  /* 左：版画 */
+  .etch{
+    background:linear-gradient(180deg,#f2e7cd 0%,#e6d5b3 100%);
+    border-right:3px solid var(--hide);
+    padding:40px 34px;display:flex;flex-direction:column;justify-content:space-between;
+    position:relative;
+  }
+  .etch .brand{font-size:21px;font-weight:800;letter-spacing:.08em;color:var(--hide-dark)}
+  .etch .brand small{display:block;font-size:10px;letter-spacing:.34em;color:var(--ink-mute);margin-top:6px;font-weight:500}
+  .etch .print{margin:6px 0;text-align:center}
+  .etch .print svg{width:100%;max-width:300px;height:auto;filter:sepia(.2)}
+  .etch .saying{font-size:12.5px;line-height:2;color:var(--ink-soft);border-top:1px dashed var(--line);padding-top:14px}
+  .etch .saying em{font-style:normal;color:var(--rust-deep);font-weight:700}
+  /* 右：空态 */
+  .empty{padding:64px 52px 44px;display:flex;flex-direction:column;justify-content:center}
+  .kicker{font-size:11px;letter-spacing:.3em;color:var(--rust);font-weight:700;margin-bottom:12px}
+  .empty h1{font-size:30px;line-height:1.3;margin-bottom:12px}
+  .empty .lead{font-size:14px;line-height:2;color:var(--ink-soft);max-width:440px;margin-bottom:30px}
+  .empty .lead b{color:var(--hide-dark)}
+  .cta{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+  .primary{
+    padding:15px 30px;font-size:15px;font-weight:700;letter-spacing:.1em;
+    background:var(--rust);color:#fbefdd;border:2px solid var(--rust-deep);border-radius:6px;
+    cursor:pointer;font-family:inherit;box-shadow:0 4px 0 var(--rust-deep);
+    transition:background .15s,transform .1s,box-shadow .15s;
+  }
+  .primary:hover{background:var(--rust-deep)}
+  .primary:active{transform:translateY(2px);box-shadow:0 2px 0 var(--rust-deep)}
+  .secondary{
+    padding:13px 22px;font-size:14px;font-weight:600;color:var(--ink-soft);
+    background:none;border:1.5px solid var(--line);border-radius:6px;cursor:pointer;font-family:inherit;
+    transition:border-color .15s,color .15s;
+  }
+  .secondary:hover{border-color:var(--hide);color:var(--hide-dark)}
+  .tip{margin-top:34px;font-size:12px;color:var(--ink-mute);line-height:2;border-top:1px dashed var(--line);padding-top:16px;max-width:440px}
+  .tip b{color:var(--sage)}
+  /* 开垦弹层 */
+  .dig{position:fixed;inset:0;background:rgba(74,49,23,.45);display:none;align-items:center;justify-content:center;padding:20px;z-index:10}
+  .dig.show{display:flex}
+  .dig-card{
+    width:100%;max-width:440px;background:var(--paper);border:2px solid var(--hide-dark);
+    padding:34px 34px 28px;box-shadow:0 10px 0 rgba(42,28,12,.3);
+  }
+  .dig-card h2{font-size:20px;margin-bottom:6px}
+  .dig-card p{font-size:12.5px;color:var(--ink-soft);margin-bottom:20px}
+  .dig-card label{display:block;font-size:12px;font-weight:700;color:var(--ink-soft);margin-bottom:8px}
+  .dig-card input{
+    width:100%;padding:13px 14px;font-size:15px;color:var(--ink);
+    background:#fffdf6;border:1.5px solid var(--line);border-radius:6px;outline:none;font-family:inherit;
+    transition:border-color .15s,box-shadow .15s;
+  }
+  .dig-card input:focus{border-color:var(--rust);box-shadow:0 0 0 3px rgba(181,87,46,.18)}
+  .dig-card .row{display:flex;gap:12px;margin-top:22px}
+  .dig-card .row button{flex:1;padding:12px;font-size:14px;border-radius:6px;cursor:pointer;font-family:inherit}
+  .dig-card .row .cancel{background:none;border:1.5px solid var(--line);color:var(--ink-soft)}
+  .dig-card .row .cancel:hover{border-color:var(--hide)}
+  .dig-card .row .go{background:var(--hide);border:2px solid var(--hide-dark);color:#f3e8d2;font-weight:700}
+  .dig-card .row .go:hover{background:var(--hide-deep)}
+  .done-msg{display:none;margin-top:26px;padding:14px 16px;border:1.5px dashed var(--sage);border-radius:8px;font-size:13px;line-height:1.9;color:#3c4f35;background:rgba(92,115,81,.08)}
+  .done-msg.show{display:block}
+  @media (max-width:840px){
+    .board{grid-template-columns:1fr;min-height:0}
+    .etch{border-right:none;border-bottom:3px solid var(--hide);padding:26px 24px}
+    .etch .print svg{max-width:220px}
+    .empty{padding:44px 26px 40px}
+    .empty h1{font-size:24px}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .primary,.secondary,.dig-card input{transition:none}
+  }
+</style>
+</head>
+<body>
+<main class="board">
+  <section class="etch" aria-label="版画区">
+    <div class="brand">拓荒志<small>FRONTIER JOURNAL · 第 108 刊</small></div>
+    <div class="print">
+      <svg viewBox="0 0 300 240" role="img" aria-label="木刻版画：拓荒者与地平线">
+        <circle cx="230" cy="86" r="34" fill="#b5572e"/>
+        <circle cx="230" cy="86" r="26" fill="#8f3f1f"/>
+        <path d="M0 176 L84 122 L150 168 L226 112 L300 172 L300 240 L0 240 Z" fill="#6e4b2a"/>
+        <path d="M0 202 L70 168 L140 206 L214 162 L300 204 L300 240 L0 240 Z" fill="#4a3117"/>
+        <g stroke="#f6eeda" stroke-width="3" opacity=".8">
+          <path d="M30 140 L96 96 M60 150 L120 110" />
+        </g>
+        <path d="M40 74 q16 -10 32 0 M52 62 q12 -8 24 0" stroke="#b5572e" stroke-width="3" fill="none"/>
+        <rect x="236" y="158" width="42" height="52" rx="3" fill="#f6eeda" stroke="#4a3117" stroke-width="4"/>
+        <path d="M230 158 L257 128 L284 158 Z" fill="#b5572e" stroke="#4a3117" stroke-width="4"/>
+        <rect x="266" y="182" width="12" height="28" rx="2" fill="#8f3f1f"/>
+        <path d="M300 210 L226 210 L214 240 L300 240 Z" fill="#d9bf8f"/>
+        <g stroke="#6e4b2a" stroke-width="2.5" opacity=".55">
+          <path d="M246 210 h40 M252 222 h34 M244 232 h40"/>
+        </g>
+      </svg>
+    </div>
+    <p class="saying">「先有路，再有驿站。」——<em>《拓荒者手册》第一条</em>。你的第一份日志，就从这片空白开始写。</p>
+  </section>
+
+  <section class="empty" aria-label="欢迎空态">
+    <p class="kicker">WELCOME · 你已抵达</p>
+    <h1>这里还是一片荒地</h1>
+    <p class="lead">欢迎来到<b>拓荒志</b>。你还没有任何日志、标记或足迹——这本手册的每一个字，都要由你亲手写下来。</p>
+    <div class="cta">
+      <button class="primary" id="openDig" type="button">开垦第一块地 →</button>
+      <button class="secondary" id="tourBtn" type="button">先看看别人的拓荒日记</button>
+    </div>
+    <p class="tip"><b>小提示：</b>开垦之后，你写下的路线、观察与坐标都会长成你自己的地图；这里不会出现任何模板样例。</p>
+  </section>
+</main>
+
+<div class="dig" id="digOverlay" role="dialog" aria-modal="true" aria-label="开垦第一块地">
+  <div class="dig-card">
+    <h2>给第一块地命名</h2>
+    <p>这块地的名字只会显示在你的手册页眉。之后可以随时再改。</p>
+    <label for="plotName">地块名称</label>
+    <input id="plotName" type="text" maxlength="14" placeholder="例如：后院的老槐树下" value="">
+    <div class="row">
+      <button class="cancel" id="cancelDig" type="button">再想想</button>
+      <button class="go" id="confirmDig" type="button">开垦</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var overlay=document.getElementById('digOverlay'),
+      plot=document.getElementById('plotName'),
+      open=document.getElementById('openDig'),
+      cancel=document.getElementById('cancelDig'),
+      confirm=document.getElementById('confirmDig'),
+      tour=document.getElementById('tourBtn'),
+      empty=document.querySelector('.empty');
+
+  open.addEventListener('click',function(){overlay.classList.add('show');plot.focus();});
+  cancel.addEventListener('click',function(){overlay.classList.remove('show');});
+  overlay.addEventListener('click',function(e){if(e.target===overlay)overlay.classList.remove('show');});
+  confirm.addEventListener('click',function(){
+    var name=plot.value.trim()||'无名之地';
+    overlay.classList.remove('show');
+    empty.querySelector('.lead').innerHTML='<b>'+name.replace(/</g,'&lt;')+'</b> 已开垦。手册的第一页已经写好，等你在上面留下第一个记号。';
+    empty.querySelector('h1').textContent='第一块地已经开垦';
+    open.style.display='none';
+    var d=document.createElement('div');
+    d.className='done-msg show';
+    d.innerHTML='✓ 已创建「'+name.replace(/</g,'&lt;')+'」· 坐标 (0,0)。从今晚的篝火边开始记录吧。';
+    empty.appendChild(d);
+  });
+  tour.addEventListener('click',function(){
+    var d=document.createElement('div');
+    d.className='done-msg show';
+    d.innerHTML='◌ 翻翻别人的手册：共有 <b>1,208</b> 位拓荒者，你在第 1,209 位。';
+    if(empty.lastElementChild.tagName!=='DIV'||!empty.lastElementChild.classList.contains('done-msg'))
+      empty.appendChild(d);
+  });
+  plot.addEventListener('keydown',function(e){if(e.key==='Enter')confirm.click();});
+})();
+</script>
+</body>
+</html>
