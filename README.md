@@ -33,7 +33,7 @@ Daedalus 是一套面向 UI Agent 与模型的公开产品设计评测，也是�
 
 ## 当前公开答卷
 
-五份完整答卷现已发布。点击下方入口进入各自的专属展厅，或打开 **[综合展厅](https://321sssrt-bit.github.io/daedalus-ui/)** 统一浏览。
+六份完整答卷现已发布。点击下方入口进入各自的专属展厅，或打开 **[综合展厅](https://321sssrt-bit.github.io/daedalus-ui/)** 统一浏览。
 
 | Harness | Model | 思考档位 | 完成度 | 状态 | 专属展厅 |
 | --- | --- | --- | --- | --- | --- |
@@ -42,6 +42,15 @@ Daedalus 是一套面向 UI Agent 与模型的公开产品设计评测，也是�
 | Kimi Code | K3 | `max` | 50 / 50 | Complete | [进入展厅 →](https://321sssrt-bit.github.io/daedalus-ui/submissions/kimi-code--k3--max/) |
 | Grok Build | Grok 4.6 | `xhigh` | 50 / 50 | Complete | [进入展厅 →](https://321sssrt-bit.github.io/daedalus-ui/submissions/grok-build--grok-4.6--xhigh/) |
 | Qoder | Qwen3.8 | `max` | 50 / 50 | Complete | [进入展厅 →](https://321sssrt-bit.github.io/daedalus-ui/submissions/qoder--qwen3.8--max/) |
+| Codex | GPT-6 Astra | `max` | 50 / 50 | Complete | [进入展厅 →](https://321sssrt-bit.github.io/daedalus-ui/submissions/codex--gpt-6-astra--max/) |
+
+## GPT-6 Astra · max · 2026.09.05
+
+[![Codex GPT-6 Astra max 答卷的六个真实页面预览](docs/assets/codex-gpt-6-astra-max-preview.png)](https://321sssrt-bit.github.io/daedalus-ui/submissions/codex--gpt-6-astra--max/)
+
+**50 / 50 完成。** 每题均附离线 HTML、复现规范和设计意图；后 10 题包含正常闭环与异常恢复。项目验证、展厅构建均通过，3 个独立新会话完成 QA 并复核返修。
+
+[进入本次展厅 →](https://321sssrt-bit.github.io/daedalus-ui/submissions/codex--gpt-6-astra--max/) · [查看答卷源码](models/codex/gpt-6-astra/max) · [QA 范围与结果](models/codex/gpt-6-astra/max/qa-report.md) · [运行回执](models/codex/gpt-6-astra/max/run-receipt.json)
 
 ## 浏览与复用
 

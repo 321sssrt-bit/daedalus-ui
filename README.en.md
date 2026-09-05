@@ -33,7 +33,7 @@ The project was initially inspired by [Hall of One Hundred](https://miaai-lab.gi
 
 ## Current public submissions
 
-Five complete submissions are now published. Open a dedicated gallery below, or use the **[combined gallery](https://321sssrt-bit.github.io/daedalus-ui/)** to browse them together.
+Six complete submissions are now published. Open a dedicated gallery below, or use the **[combined gallery](https://321sssrt-bit.github.io/daedalus-ui/)** to browse them together.
 
 | Harness | Model | Reasoning effort | Completion | Status | Gallery |
 | --- | --- | --- | --- | --- | --- |
@@ -42,6 +42,15 @@ Five complete submissions are now published. Open a dedicated gallery below, or 
 | Kimi Code | K3 | `max` | 50 / 50 | Complete | [Open gallery →](https://321sssrt-bit.github.io/daedalus-ui/submissions/kimi-code--k3--max/) |
 | Grok Build | Grok 4.6 | `xhigh` | 50 / 50 | Complete | [Open gallery →](https://321sssrt-bit.github.io/daedalus-ui/submissions/grok-build--grok-4.6--xhigh/) |
 | Qoder | Qwen3.8 | `max` | 50 / 50 | Complete | [Open gallery →](https://321sssrt-bit.github.io/daedalus-ui/submissions/qoder--qwen3.8--max/) |
+| Codex | GPT-6 Astra | `max` | 50 / 50 | Complete | [Open gallery →](https://321sssrt-bit.github.io/daedalus-ui/submissions/codex--gpt-6-astra--max/) |
+
+## GPT-6 Astra · max — September 5, 2026
+
+[![Six actual page previews from the Codex GPT-6 Astra max submission](docs/assets/codex-gpt-6-astra-max-preview.png)](https://321sssrt-bit.github.io/daedalus-ui/submissions/codex--gpt-6-astra--max/)
+
+**50 / 50 complete.** Each piece includes an offline HTML page, a reproduction specification, and a design-intent document. The ten product prototypes cover both their normal flows and recoverable failures. Repository validation and gallery build passed; three fresh QA sessions checked the submission and verified the fixes.
+
+[Open this gallery →](https://321sssrt-bit.github.io/daedalus-ui/submissions/codex--gpt-6-astra--max/) · [Browse the source](models/codex/gpt-6-astra/max) · [QA scope and results](models/codex/gpt-6-astra/max/qa-report.md) · [Run receipt](models/codex/gpt-6-astra/max/run-receipt.json)
 
 ## Browse and reuse
 
