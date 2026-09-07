@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>霓虹电台 · 通知中心</title>
+<style>
+  :root{
+    --night:#12101f;
+    --panel:#1d1936;
+    --panel2:#262045;
+    --line:#322b57;
+    --text:#ece7ff;
+    --muted:#8079ad;
+    --magenta:#ff4d8d;
+    --violet:#8b5cf6;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  [hidden]{display:none!important}
+  body{
+    background:
+      radial-gradient(1100px 480px at 18% -8%, rgba(139,92,246,.20), rgba(0,0,0,0) 62%),
+      radial-gradient(900px 420px at 86% -4%, rgba(255,77,141,.14), rgba(0,0,0,0) 60%),
+      var(--night);
+    color:var(--text);
+    font-family:"PingFang SC","Microsoft YaHei",system-ui,-apple-system,sans-serif;
+    min-height:100vh;padding:30px 24px 60px;
+  }
+  .wrap{max-width:1060px;margin:0 auto}
+
+  /* ── 顶栏 ── */
+  .nr-top{display:flex;align-items:center;justify-content:space-between;gap:18px;
+    padding:0 6px 20px;border-bottom:1px solid var(--line);margin-bottom:24px}
+  .nr-title{display:flex;align-items:baseline;gap:14px;font-size:21px;font-weight:700;letter-spacing:4px}
+  .wave{display:inline-block;width:11px;height:11px;border-radius:50%;background:var(--magenta);
+    box-shadow:0 0 12px var(--magenta),0 0 26px rgba(255,77,141,.55);align-self:center;
+    animation:waveGlow 2.6s ease-in-out infinite}
+  @keyframes waveGlow{0%,100%{box-shadow:0 0 8px var(--magenta)}50%{box-shadow:0 0 16px var(--magenta),0 0 34px rgba(255,77,141,.6)}}
+  .freq{font-size:11px;font-weight:400;letter-spacing:3px;color:var(--muted)}
+  .nr-topright{display:flex;align-items:center;gap:14px}
+  .unreadpill{font-size:12.5px;letter-spacing:2px;color:var(--text);border:1px solid var(--violet);
+    border-radius:999px;padding:5px 15px;box-shadow:0 0 10px rgba(139,92,246,.35);background:rgba(139,92,246,.10)}
+  .unreadpill b{color:var(--magenta);font-size:14px;padding:0 2px}
+  .unreadpill.is-clear{color:var(--muted);border-color:var(--line);box-shadow:none;background:transparent}
+  .unreadpill.is-clear b{color:var(--muted)}
+  .allbtn{font:inherit;font-size:12.5px;letter-spacing:2px;color:var(--night);background:var(--magenta);
+    border:0;border-radius:999px;padding:8px 20px;cursor:pointer;
+    box-shadow:0 0 16px rgba(255,77,141,.45);transition:filter .18s ease,box-shadow .18s ease,transform .18s ease}
+  .allbtn:hover{filter:brightness(1.12);transform:translateY(-1px)}
+  .allbtn.is-off{background:transparent;color:var(--muted);box-shadow:none;border:1px solid var(--line);cursor:default}
+  .allbtn:focus-visible,.pill:focus-visible,.nt-exp:focus-visible,.note:focus-visible{
+    outline:2px solid var(--violet);outline-offset:2px}
+
+  /* ── 主体：左过滤胶囊 + 右通知流 ── */
+  .nr-main{display:grid;grid-template-columns:172px minmax(0,1fr);gap:26px;align-items:start}
+  .rail{display:flex;flex-direction:column;gap:9px;position:sticky;top:24px}
+  .pill{font:inherit;font-size:12.5px;letter-spacing:2px;color:var(--muted);background:var(--panel);
+    border:1px solid var(--line);border-radius:999px;padding:8px 14px;cursor:pointer;text-align:left;
+    transition:color .15s ease,border-color .15s ease,box-shadow .15s ease}
+  .pill i{font-style:normal;float:right;color:var(--muted)}
+  .pill:hover{color:var(--text);border-color:var(--violet)}
+  .pill.is-on{color:var(--text);border-color:var(--magenta);background:rgba(255,77,141,.12);
+    box-shadow:0 0 12px rgba(255,77,141,.3)}
+  .pill.is-on i{color:var(--magenta)}
+
+  .notes{list-style:none;display:flex;flex-direction:column;gap:14px}
+  .note{background:var(--panel);border:1px solid var(--line);border-radius:18px;
+    padding:16px 20px 15px;cursor:pointer;transition:border-color .18s ease,transform .18s ease,box-shadow .18s ease}
+  .note:hover{border-color:var(--violet);transform:translateY(-1px)}
+  .note.is-new{background:linear-gradient(0deg,rgba(139,92,246,.08),rgba(139,92,246,.08)),var(--panel);
+    border-color:rgba(139,92,246,.55)}
+  .note.is-dim .nt-title{color:var(--muted)}
+
+  .nt-head{display:flex;align-items:center;gap:12px;margin-bottom:9px}
+  .glyph{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    font-size:15px;flex:none}
+  .g-magenta{color:var(--magenta);background:rgba(255,77,141,.14);border:1px solid rgba(255,77,141,.55);
+    box-shadow:0 0 12px rgba(255,77,141,.4)}
+  .g-violet{color:var(--violet);background:rgba(139,92,246,.14);border:1px solid rgba(139,92,246,.55);
+    box-shadow:0 0 12px rgba(139,92,246,.4)}
+  .nt-type{font-size:11.5px;letter-spacing:3px;color:var(--muted)}
+  .breathe{width:8px;height:8px;border-radius:50%;background:var(--magenta);
+    box-shadow:0 0 9px var(--magenta);animation:breathe 1.9s ease-in-out infinite;flex:none}
+  @keyframes breathe{0%,100%{opacity:.35;transform:scale(.8)}50%{opacity:1;transform:scale(1)}}
+  .nt-head time{margin-left:auto;font-size:11.5px;color:var(--muted);letter-spacing:1px}
+  .nt-exp{font:inherit;font-size:11.5px;letter-spacing:2px;color:var(--violet);background:transparent;
+    border:1px solid var(--line);border-radius:999px;padding:4px 13px;cursor:pointer;
+    transition:border-color .15s ease,color .15s ease}
+  .nt-exp:hover{border-color:var(--violet);color:var(--text)}
+  .nt-title{font-size:15.5px;font-weight:600;letter-spacing:1px;line-height:1.6}
+  .nt-brief{font-size:13px;line-height:1.9;color:var(--muted);margin-top:5px;letter-spacing:.5px}
+  .nt-detail{margin-top:12px;border-top:1px dashed var(--line);padding-top:12px}
+  .nt-detail p{font-size:12.5px;color:var(--muted);letter-spacing:1px;margin-bottom:6px}
+  .nt-detail ol,.nt-detail dl{margin-left:18px;font-size:12.5px;line-height:2;color:var(--text)}
+  .nt-detail dl b{color:var(--magenta);font-weight:400}
+  .nt-tags{display:flex;gap:8px;margin-top:10px}
+  .tag{font-size:11px;letter-spacing:2px;color:var(--muted);border:1px solid var(--line);
+    border-radius:999px;padding:2px 10px}
+
+  .nr-toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);background:var(--panel2);
+    color:var(--text);border:1px solid var(--violet);border-radius:999px;padding:9px 24px;
+    font-size:13px;letter-spacing:2px;box-shadow:0 0 22px rgba(139,92,246,.4);animation:pop .22s ease}
+  @keyframes pop{from{opacity:0;transform:translate(-50%,10px)}to{opacity:1;transform:translate(-50%,0)}}
+
+  @media (max-width:768px){
+    .nr-main{grid-template-columns:minmax(0,1fr)}
+    .rail{flex-direction:row;flex-wrap:wrap;position:static;order:-1}
+    .pill i{float:none;padding-left:6px}
+    .nr-top{flex-wrap:wrap}
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{animation:none!important;transition:none!important}
+    .breathe{opacity:1;transform:none}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="nr-top">
+    <div class="nr-title"><span class="wave" aria-hidden="true"></span>通知中心<span class="freq">NEON RADIO · FM 87.9</span></div>
+    <div class="nr-topright">
+      <span class="unreadpill" id="nr-badge">未读 <b>4</b></span>
+      <button class="allbtn" id="nr-allbtn" type="button">全部标已读</button>
+    </div>
+  </header>
+
+  <main class="nr-main">
+    <nav class="rail" id="nr-rail" aria-label="按类型过滤">
+      <button class="pill is-on" data-type="all" type="button">全部<i>6</i></button>
+      <button class="pill" data-type="live" type="button">开播<i>1</i></button>
+      <button class="pill" data-type="talk" type="button">弹幕互动<i>2</i></button>
+      <button class="pill" data-type="sys" type="button">系统<i>1</i></button>
+      <button class="pill" data-type="bill" type="button">闪电豆<i>1</i></button>
+      <button class="pill" data-type="safe" type="button">安全<i>1</i></button>
+    </nav>
+
+    <ul class="notes" id="nr-list">
+      <li class="note is-new" data-type="live" tabindex="0">
+        <div class="nt-head">
+          <span class="glyph g-magenta" aria-hidden="true">▶</span>
+          <span class="nt-type">开播提醒</span>
+          <span class="breathe" aria-hidden="true"></span>
+          <button class="nt-exp" type="button" aria-expanded="false">展开详情</button>
+          <time>2 分钟前</time>
+        </div>
+        <h2 class="nt-title">《午夜点歌台》将在 5 分钟后开播</h2>
+        <p class="nt-brief">今晚主题是「夜间开车听的歌」，已有 32 首排进队列，开播前 3 分钟仍可插队。</p>
+        <div class="nt-detail" hidden>
+          <p>今晚排队前三首：</p>
+          <ol>
+            <li>《晚风百货》 · 点播人 @雾原七</li>
+            <li>《隧道信号》 · 点播人 @404 号副驾</li>
+            <li>《凌晨两点半的高架》 · 点播人 @你自己</li>
+          </ol>
+          <div class="nt-tags"><span class="tag">主题 夜间开车</span><span class="tag">主播 阿电</span></div>
+        </div>
+      </li>
+
+      <li class="note is-new" data-type="talk" tabindex="0">
+        <div class="nt-head">
+          <span class="glyph g-violet" aria-hidden="true">✦</span>
+          <span class="nt-type">弹幕互动</span>
+          <span class="breathe" aria-hidden="true"></span>
+          <button class="nt-exp" type="button" aria-expanded="false">展开详情</button>
+          <time>18 分钟前</time>
+        </div>
+        <h2 class="nt-title">@霓虹鲸鱼 回复了你的弹幕</h2>
+        <p class="nt-brief">在《午夜点歌台》上一场直播里，对方接住了你关于「副驾座位」的那句玩笑。</p>
+        <div class="nt-detail" hidden>
+          <p>往来弹幕：</p>
+          <dl>
+            <dt>你：这条高架我熟，副驾常年空着。</dt>
+            <dd><b>@霓虹鲸鱼：</b>空着也是留给对的人的，主播作证。</dd>
+          </dl>
+        </div>
+      </li>
+
+      <li class="note is-new" data-type="sys" tabindex="0">
+        <div class="nt-head">
+          <span class="glyph g-violet" aria-hidden="true">⚙</span>
+          <span class="nt-type">系统公告</span>
+          <span class="breathe" aria-hidden="true"></span>
+          <time>1 小时前</time>
+        </div>
+        <h2 class="nt-title">点歌系统升级：新增「排队置顶」与弹幕表情包</h2>
+        <p class="nt-brief">今晚 21:00 起生效。置顶每张券可将你的歌提升至队列前 3 位，未使用的存量点歌券不受影响。</p>
+      </li>
+
+      <li class="note is-new" data-type="bill" tabindex="0">
+        <div class="nt-head">
+          <span class="glyph g-magenta" aria-hidden="true">¥</span>
+          <span class="nt-type">闪电豆账单</span>
+          <span class="breathe" aria-hidden="true"></span>
+          <time>今天 09:12</time>
+        </div>
+        <h2 class="nt-title">上月闪电豆共消耗 1,280 枚，点歌占 86%</h2>
+        <p class="nt-brief">余额 412 枚。按上月用量估算，将在 9 月 19 日前后见底的，明细在钱包页。</p>
+      </li>
+
+      <li class="note is-dim" data-type="safe" tabindex="0">
+        <div class="nt-head">
+          <span class="glyph g-violet" aria-hidden="true">⚠</span>
+          <span class="nt-type">安全提醒</span>
+          <button class="nt-exp" type="button" aria-expanded="false">展开详情</button>
+          <time>昨天 23:47</time>
+        </div>
+        <h2 class="nt-title">新设备登录：上海 · 车载浏览器</h2>
+        <p class="nt-brief">如果不是你本人操作，请立即踢掉该会话并重置密码。</p>
+        <div class="nt-detail" hidden>
+          <p>会话信息：</p>
+          <dl>
+            <dt>设备</dt><dd><b>车载车机浏览器 · 上海 浦东</b></dd>
+            <dt>时间</dt><dd><b>昨天 23:47 · 仍在在线</b></dd>
+          </dl>
+        </div>
+      </li>
+
+      <li class="note is-dim" data-type="talk" tabindex="0">
+        <div class="nt-head">
+          <span class="glyph g-magenta" aria-hidden="true">✧</span>
+          <span class="nt-type">弹幕互动</span>
+          <time>昨天 22:10</time>
+        </div>
+        <h2 class="nt-title">你排了 47 分钟的《隧道信号》被主播翻牌了</h2>
+        <p class="nt-brief">回听切片已生成，可直接跳到第 1 小时 12 分 04 秒。</p>
+      </li>
+    </ul>
+  </main>
+</div>
+
+<div class="nr-toast" id="nr-toast" hidden></div>
+
+<script>
+/* 通知中心：类型过滤、点开即读、展开详情、全部已读 */
+var nrList = document.getElementById("nr-list");
+var nrBadge = document.getElementById("nr-badge");
+var nrAllBtn = document.getElementById("nr-allbtn");
+var nrToast = document.getElementById("nr-toast");
+var nrToastTimer = 0;
+
+function nrUnread(){
+  return nrList.querySelectorAll(".note.is-new").length;
+}
+function nrSync(){
+  var n = nrUnread();
+  nrBadge.innerHTML = "未读 <b>" + n + "</b>";
+  nrBadge.classList.toggle("is-clear", n === 0);
+  nrAllBtn.classList.toggle("is-off", n === 0);
+  nrAllBtn.textContent = n === 0 ? "已全部读完" : "全部标已读";
+}
+function nrToastShow(msg){
+  nrToast.textContent = msg;
+  nrToast.hidden = false;
+  clearTimeout(nrToastTimer);
+  nrToastTimer = setTimeout(function(){ nrToast.hidden = true; }, 2200);
+}
+function nrRead(note){
+  if(!note.classList.contains("is-new")){ return; }
+  note.classList.remove("is-new");
+  note.classList.add("is-dim");
+  var dot = note.querySelector(".breathe");
+  if(dot){ dot.remove(); }
+  nrSync();
+}
+
+document.getElementById("nr-rail").addEventListener("click", function(e){
+  var p = e.target.closest(".pill");
+  if(!p){ return; }
+  var pills = this.querySelectorAll(".pill");
+  for(var i=0;i<pills.length;i++){ pills[i].classList.toggle("is-on", pills[i] === p); }
+  var type = p.dataset.type;
+  var notes = nrList.querySelectorAll(".note");
+  for(var j=0;j<notes.length;j++){
+    notes[j].hidden = (type !== "all" && notes[j].dataset.type !== type);
+  }
+});
+
+nrList.addEventListener("click", function(e){
+  var note = e.target.closest(".note");
+  if(!note){ return; }
+  var exp = e.target.closest(".nt-exp");
+  if(exp){
+    var detail = note.querySelector(".nt-detail");
+    var opening = detail.hasAttribute("hidden");
+    if(opening){ detail.removeAttribute("hidden"); }
+    else{ detail.setAttribute("hidden", ""); }
+    exp.textContent = opening ? "收起详情" : "展开详情";
+    exp.setAttribute("aria-expanded", opening ? "true" : "false");
+  }
+  nrRead(note);
+});
+
+nrList.addEventListener("keydown", function(e){
+  if(e.key === "Enter" || e.key === " "){
+    var note = e.target.closest(".note");
+    if(note && e.target === note){ e.preventDefault(); nrRead(note); }
+  }
+});
+
+nrAllBtn.addEventListener("click", function(){
+  if(nrUnread() === 0){ return; }
+  var news = nrList.querySelectorAll(".note.is-new");
+  for(var i=0;i<news.length;i++){
+    news[i].classList.remove("is-new");
+    news[i].classList.add("is-dim");
+    var dot = news[i].querySelector(".breathe");
+    if(dot){ dot.remove(); }
+  }
+  nrSync();
+  nrToastShow("已全部标为已读 · 呼吸灯熄灭");
+});
+
+nrSync();
+</script>
+</body>
+</html>

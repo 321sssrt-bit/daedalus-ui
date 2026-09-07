@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>透镜实验室 · 检测记录检索台</title>
+<style>
+:root{
+  --frost:#e9f3f7;
+  --white:#ffffff;
+  --cobalt:#2b6cb0;
+  --deep:#1e4f82;
+  --hair:#c9dcea;
+  --ink:#132f47;
+  --muted:#6d8aa0;
+  --tint:#dcebf5;
+  --glow:#8fc1e3;
+  --live:#3a9bd6;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  background:var(--frost);
+  color:var(--ink);
+  font-family:system-ui,-apple-system,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  font-size:14px;
+  line-height:1.55;
+}
+.num{font-variant-numeric:tabular-nums;font-family:ui-monospace,"Cascadia Mono",Consolas,monospace}
+/* ── 顶部仪表条 ── */
+.instrument{
+  background:var(--white);
+  border-bottom:1px solid var(--hair);
+  padding:0 32px;
+  height:58px;
+  display:flex;
+  align-items:center;
+  gap:14px;
+}
+.mark{
+  width:26px;height:26px;border:1px solid var(--cobalt);border-radius:50%;
+  position:relative;flex:none;
+}
+.mark::before{content:"";position:absolute;inset:6px;border:1px solid var(--cobalt);border-radius:50%}
+.mark::after{content:"";position:absolute;left:50%;top:50%;width:5px;height:5px;margin:-3px 0 0 -3px;background:var(--cobalt);border-radius:50%}
+.instrument .name{font-weight:700;font-size:15px;letter-spacing:2px}
+.instrument .sub{font-size:11px;letter-spacing:3px;color:var(--muted);text-transform:uppercase}
+.calib{margin-left:auto;display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted)}
+.calib .dot{width:8px;height:8px;border-radius:50%;background:var(--live);box-shadow:0 0 0 3px rgba(58,155,214,.22);animation:pulse 2.4s ease-in-out infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 3px rgba(58,155,214,.22)}50%{box-shadow:0 0 0 6px rgba(58,155,214,0)}}
+/* ── 主区 ── */
+.lab{
+  max-width:1280px;margin:0 auto;padding:24px 32px 48px;
+  display:grid;grid-template-columns:320px 1fr;gap:24px;align-items:start;
+}
+.card{background:var(--white);border:1px solid var(--hair)}
+/* ── 滤光栏 ── */
+.rail{position:sticky;top:16px}
+.rail-h{
+  padding:14px 18px;border-bottom:1px solid var(--hair);
+  display:flex;align-items:baseline;justify-content:space-between;
+}
+.rail-h b{font-size:14px;letter-spacing:2px}
+.rail-h span{font-size:11px;color:var(--muted);letter-spacing:1px}
+.fgroup{padding:14px 18px;border-bottom:1px solid var(--hair)}
+.fgroup h3{
+  font-size:11px;font-weight:600;letter-spacing:3px;color:var(--muted);
+  margin-bottom:9px;display:flex;justify-content:space-between;align-items:center;
+}
+.fgroup h3 em{font-style:normal;font-size:10px;letter-spacing:1px;color:var(--cobalt)}
+.search{
+  width:100%;border:1px solid var(--hair);background:var(--white);
+  padding:8px 10px;font-size:13px;color:var(--ink);border-radius:2px;
+  transition:border-color .15s, box-shadow .15s;
+}
+.search:focus{outline:none;border-color:var(--cobalt);box-shadow:0 0 0 3px var(--tint)}
+.search::placeholder{color:#9db4c4}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips label{
+  border:1px solid var(--hair);border-radius:2px;
+  font-size:12px;padding:4px 11px;cursor:pointer;color:var(--muted);
+  transition:border-color .15s,color .15s,background .15s;
+  user-select:none;
+}
+.chips label:hover{border-color:var(--glow);color:var(--cobalt)}
+.chips input{position:absolute;opacity:0;pointer-events:none}
+.chips input:checked + span{color:var(--white)}
+.chips label.on{background:var(--cobalt);border-color:var(--cobalt)}
+.chips label.on::before{content:"✓ ";font-size:10px}
+.chips label.on{color:var(--white)}
+.seg{display:flex;border:1px solid var(--hair);border-radius:2px;overflow:hidden}
+.seg label{
+  flex:1;text-align:center;font-size:12px;padding:6px 2px;cursor:pointer;color:var(--muted);
+  border-right:1px solid var(--hair);transition:background .15s,color .15s;
+}
+.seg label:last-child{border-right:none}
+.seg label:hover{background:var(--frost)}
+.seg label.on{background:var(--deep);color:var(--white)}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.timewin{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.timewin label{
+  border:1px solid var(--hair);font-size:12px;padding:5px 8px;text-align:center;
+  border-radius:2px;cursor:pointer;color:var(--muted);transition:all .15s;
+}
+.timewin label:hover{border-color:var(--glow)}
+.timewin label.on{border-color:var(--cobalt);background:var(--tint);color:var(--deep);font-weight:600}
+.timewin input{position:absolute;opacity:0;pointer-events:none}
+select.sortsel{
+  width:100%;border:1px solid var(--hair);background:var(--white);color:var(--ink);
+  font-size:13px;padding:7px 8px;border-radius:2px;
+}
+select.sortsel:focus{outline:none;border-color:var(--cobalt);box-shadow:0 0 0 3px var(--tint)}
+.clearbtn{
+  margin:14px 18px 18px;width:calc(100% - 36px);
+  background:var(--white);border:1px solid var(--cobalt);color:var(--cobalt);
+  font-size:13px;letter-spacing:3px;padding:8px 0;border-radius:2px;cursor:pointer;
+  transition:all .15s;
+}
+.clearbtn:hover{background:var(--cobalt);color:var(--white)}
+/* ── 结果区 ── */
+.res-h{
+  padding:16px 22px;border-bottom:1px solid var(--hair);
+  display:flex;align-items:flex-end;gap:14px;background:var(--white);
+}
+.res-h .count{font-size:34px;font-weight:800;line-height:1;color:var(--deep)}
+.res-h .count.zero{color:var(--muted)}
+.res-h .cl{text-align:center}
+.res-h .cl small{display:block;font-size:10px;letter-spacing:3px;color:var(--muted);margin-top:4px}
+.res-h .of{margin-left:auto;font-size:12px;color:var(--muted);letter-spacing:1px}
+.res-h .of b{color:var(--cobalt)}
+.res-list{padding:14px 22px 22px;display:flex;flex-direction:column;gap:10px}
+.item{
+  border:1px solid var(--hair);border-radius:2px;background:var(--white);
+  padding:12px 16px;display:flex;align-items:center;gap:16px;
+  transition:border-color .15s, box-shadow .15s;
+}
+.item:hover{border-color:var(--glow);box-shadow:0 0 0 3px var(--frost)}
+.item .oid{font-size:12px;color:var(--cobalt);letter-spacing:1px;flex:none;width:70px}
+.item .main{flex:1;min-width:0}
+.item .main b{font-size:14px;font-weight:600;display:block}
+.item .main .meta{font-size:12px;color:var(--muted);margin-top:2px;display:flex;gap:10px;flex-wrap:wrap}
+.item .main .meta i{font-style:normal;border-left:1px solid var(--hair);padding-left:10px}
+.item .main .meta i:first-child{border-left:none;padding-left:0}
+.item .lines{text-align:right;flex:none}
+.item .lines b{font-size:16px;font-weight:700;color:var(--ink);display:block;line-height:1.1}
+.item .lines small{font-size:10px;letter-spacing:2px;color:var(--muted)}
+.item .badge{
+  flex:none;font-size:11px;border:1px solid var(--hair);color:var(--deep);
+  background:var(--tint);padding:2px 8px;border-radius:2px;letter-spacing:1px;
+}
+.emptyres{
+  border:1px dashed var(--hair);padding:44px 20px;text-align:center;color:var(--muted);
+  font-size:13px;letter-spacing:1px;border-radius:2px;
+}
+.emptyres b{display:block;color:var(--ink);font-size:15px;margin-bottom:6px}
+@media (max-width:768px){
+  .lab{grid-template-columns:1fr;padding:16px}
+  .rail{position:static}
+  .instrument{padding:0 16px}
+  .instrument .sub{display:none}
+  .item{flex-wrap:wrap}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none !important;transition:none !important}
+}
+</style>
+</head>
+<body>
+<header class="instrument">
+  <div class="mark" aria-hidden="true"></div>
+  <div>
+    <div class="name">透镜实验室 · 检索台</div>
+    <div class="sub">LENS LAB / RECORD CONSOLE</div>
+  </div>
+  <div class="calib"><span class="dot"></span>光路标定正常 · 上次标定 <span class="num">2026-09-05</span></div>
+</header>
+
+<main class="lab">
+  <aside class="card rail" id="filterRail">
+    <div class="rail-h"><b>筛选条件</b><span>5 组 · 实时生效</span></div>
+    <div class="fgroup">
+      <h3>关键词 <em>代号 / 项目名</em></h3>
+      <input class="search" id="qSearch" type="text" placeholder="如：紫外、LL-1147、标定" autocomplete="off">
+    </div>
+    <div class="fgroup">
+      <h3>检测类型</h3>
+      <div class="chips" data-group="type">
+        <label><input type="checkbox" value="光谱"><span>光谱</span></label>
+        <label><input type="checkbox" value="成像"><span>成像</span></label>
+        <label><input type="checkbox" value="干涉"><span>干涉</span></label>
+      </div>
+    </div>
+    <div class="fgroup">
+      <h3>波段</h3>
+      <div class="chips" data-group="band">
+        <label><input type="checkbox" value="紫外"><span>紫外</span></label>
+        <label><input type="checkbox" value="可见"><span>可见</span></label>
+        <label><input type="checkbox" value="近红外"><span>近红外</span></label>
+      </div>
+    </div>
+    <div class="fgroup">
+      <h3>分辨率档位</h3>
+      <div class="seg" data-group="res">
+        <label class="on"><input type="radio" name="res" value="全部" checked><span>全部</span></label>
+        <label><input type="radio" name="res" value="高"><span>高</span></label>
+        <label><input type="radio" name="res" value="中"><span>中</span></label>
+        <label><input type="radio" name="res" value="标准"><span>标准</span></label>
+      </div>
+    </div>
+    <div class="fgroup">
+      <h3>时间窗</h3>
+      <div class="timewin" data-group="win">
+        <label class="on"><input type="radio" name="win" value="全部" checked><span>全部</span></label>
+        <label><input type="radio" name="win" value="7"><span>近 7 天</span></label>
+        <label><input type="radio" name="win" value="30"><span>近 30 天</span></label>
+        <label><input type="radio" name="win" value="90"><span>近 90 天</span></label>
+      </div>
+    </div>
+    <div class="fgroup">
+      <h3>排序</h3>
+      <select class="sortsel" id="sortSel">
+        <option value="date">按记录日期 · 新在前</option>
+        <option value="lines">按谱线数 · 多在前</option>
+      </select>
+    </div>
+    <button class="clearbtn" id="clearBtn" type="button">清 除 全 部 筛 选</button>
+  </aside>
+
+  <section class="card">
+    <div class="res-h">
+      <div class="cl"><span class="count num" id="hitCount">9</span><small>检出记录</small></div>
+      <div class="of">库存 <b class="num" id="allCount">9</b> 条 · 条件命中 <b class="num" id="hitPct">100%</b></div>
+    </div>
+    <div class="res-list" id="resList"></div>
+  </section>
+</main>
+
+<script>
+/* ── 检测记录数据集（9 条） ── */
+var records = [
+  {id:"LL-1147", name:"紫外反射率标定 · A 光路", type:"光谱", band:"紫外", res:"高", days:2,  date:"2026-09-05", lines:1284},
+  {id:"LL-1148", name:"干涉台震动自检基线",     type:"干涉", band:"可见", res:"高", days:3,  date:"2026-09-04", lines:96},
+  {id:"LL-1142", name:"红外窗片透射率复测",     type:"光谱", band:"近红外", res:"中", days:6,  date:"2026-09-01", lines:512},
+  {id:"LL-1136", name:"内窥镜阵列分辨率验证",   type:"成像", band:"可见", res:"高", days:9,  date:"2026-08-29", lines:2048},
+  {id:"LL-1131", name:"UV 固化灯均匀性拍摄",    type:"成像", band:"紫外", res:"标准", days:12, date:"2026-08-26", lines:320},
+  {id:"LL-1124", name:"近红外天文场光谱底账",   type:"光谱", band:"近红外", res:"高", days:21, date:"2026-08-17", lines:8192},
+  {id:"LL-1117", name:"干涉面形微粗糙度复测",   type:"干涉", band:"可见", res:"中", days:34, date:"2026-08-04", lines:128},
+  {id:"LL-1103", name:"可见光杂散光抑制评估",   type:"光谱", band:"可见", res:"标准", days:47, date:"2026-07-22", lines:256},
+  {id:"LL-1096", name:"UV 镜头膜层成像点扩",    type:"成像", band:"紫外", res:"中", days:76, date:"2026-06-23", lines:640}
+];
+function esc(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;")}
+function checkedValues(group){
+  var out = [];
+  document.querySelectorAll('[data-group="' + group + '"] input:checked').forEach(function(i){out.push(i.value)});
+  return out;
+}
+function radioValue(group){
+  var el = document.querySelector('[data-group="' + group + '"] input:checked');
+  return el ? el.value : "全部";
+}
+function syncVisual(){
+  document.querySelectorAll(".chips label, .seg label, .timewin label").forEach(function(l){
+    var i = l.querySelector("input");
+    l.classList.toggle("on", i.checked);
+  });
+}
+function apply(){
+  var kw = document.getElementById("qSearch").value.trim().toLowerCase();
+  var types = checkedValues("type");
+  var bands = checkedValues("band");
+  var res = radioValue("res");
+  var win = radioValue("win");
+  var sort = document.getElementById("sortSel").value;
+  var hit = records.filter(function(r){
+    if(kw && (r.id + " " + r.name).toLowerCase().indexOf(kw) < 0) return false;
+    if(types.length && types.indexOf(r.type) < 0) return false;
+    if(bands.length && bands.indexOf(r.band) < 0) return false;
+    if(res !== "全部" && r.res !== res) return false;
+    if(win !== "全部" && r.days > +win) return false;
+    return true;
+  });
+  hit.sort(function(a,b){
+    if(sort === "lines") return b.lines - a.lines;
+    return a.days - b.days;
+  });
+  var n = hit.length;
+  var cnt = document.getElementById("hitCount");
+  cnt.textContent = n;
+  cnt.classList.toggle("zero", n === 0);
+  document.getElementById("hitPct").textContent = Math.round(n / records.length * 100) + "%";
+  var box = document.getElementById("resList");
+  if(n === 0){
+    box.innerHTML = '<div class="emptyres"><b>未检出符合条件的光路</b>试着放宽时间窗，或点左下「清除全部筛选」回到全量 9 条。</div>';
+    return;
+  }
+  box.innerHTML = hit.map(function(r){
+    return '<div class="item">' +
+      '<span class="oid num">' + r.id + '</span>' +
+      '<div class="main"><b>' + esc(r.name) + '</b>' +
+      '<div class="meta"><i>' + r.type + '</i><i>' + r.band + '波段</i><i>分辨率 ' + r.res + '</i><i class="num">' + r.date + '</i></div></div>' +
+      '<span class="badge">' + r.res + '档</span>' +
+      '<div class="lines"><b class="num">' + r.lines.toLocaleString("zh-CN") + '</b><small>谱线数</small></div>' +
+      '</div>';
+  }).join("");
+}
+document.getElementById("filterRail").addEventListener("change", function(){
+  syncVisual();
+  apply();
+});
+document.getElementById("qSearch").addEventListener("input", apply);
+document.getElementById("clearBtn").addEventListener("click", function(){
+  document.getElementById("qSearch").value = "";
+  document.querySelectorAll('[data-group="type"] input, [data-group="band"] input').forEach(function(i){i.checked = false});
+  document.querySelector('[data-group="res"] input[value="全部"]').checked = true;
+  document.querySelector('[data-group="win"] input[value="全部"]').checked = true;
+  document.getElementById("sortSel").value = "date";
+  syncVisual();
+  apply();
+});
+document.getElementById("allCount").textContent = records.length;
+syncVisual();
+apply();
+</script>
+</body>
+</html>

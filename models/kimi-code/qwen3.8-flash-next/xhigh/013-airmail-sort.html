@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>鸿雁信箱 · 收件箱</title>
+<style>
+  :root{
+    --desk:#4a3b2a;
+    --kraft:#cbb18f;
+    --kraft-deep:#b3966d;
+    --paper:#f5ecd7;
+    --ink:#33291d;
+    --muted:#7d6b52;
+    --am-red:#c0392b;
+    --am-blue:#2c5aa0;
+    --seal:#b8862b;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  [hidden]{display:none!important}
+  body{
+    background:var(--desk);
+    background-image:repeating-linear-gradient(0deg,rgba(0,0,0,.06) 0 2px,rgba(0,0,0,0) 2px 7px);
+    color:var(--ink);
+    font-family:Georgia,"Times New Roman","Songti SC","STSong","SimSun",serif;
+    padding:22px 28px 34px;
+    min-height:100vh;
+  }
+  .frame{max-width:1216px;margin:0 auto}
+
+  /* ── 顶栏 ── */
+  .top{display:flex;align-items:baseline;justify-content:space-between;padding:0 4px 10px}
+  .brand{display:flex;align-items:baseline;gap:14px}
+  .brand-name{font-size:24px;font-weight:700;letter-spacing:10px;color:var(--paper)}
+  .brand-sub{font-size:11px;letter-spacing:3px;color:var(--kraft);opacity:.85}
+  .top-meta{display:flex;align-items:baseline;gap:18px;font-size:12.5px;color:var(--kraft)}
+  .waitmark{color:var(--paper);border:1px solid var(--seal);padding:3px 10px;letter-spacing:2px}
+  .waitmark b{color:var(--am-red);font-size:15px;padding:0 2px}
+  .stripe{height:9px;background:repeating-linear-gradient(45deg,var(--am-red) 0 12px,var(--am-blue) 12px 24px)}
+
+  /* ── 双栏 ── */
+  .cols{display:grid;grid-template-columns:428px minmax(0,1fr);gap:22px;margin-top:20px;align-items:start}
+
+  /* 左栏：格目签 */
+  .tabs{display:flex;gap:8px;margin-bottom:12px}
+  .tab{
+    font:inherit;font-size:13px;letter-spacing:2px;color:var(--kraft);
+    background:transparent;border:1px solid var(--kraft-deep);padding:5px 13px;cursor:pointer;
+    transition:background .15s ease,color .15s ease;
+  }
+  .tab:hover{color:var(--paper);border-color:var(--paper)}
+  .tab i{font-style:normal;padding-left:4px;color:var(--seal)}
+  .tab.is-on{background:var(--kraft);border-color:var(--kraft);color:var(--ink)}
+  .tab.is-on i{color:var(--am-red)}
+
+  .list{display:flex;flex-direction:column;gap:12px}
+  .list-empty,.read-empty{
+    color:var(--kraft);border:1px dashed var(--kraft-deep);padding:26px 18px;
+    text-align:center;letter-spacing:3px;font-size:13px;
+  }
+
+  /* 信封卡 */
+  .env{
+    background:repeating-linear-gradient(45deg,var(--am-red) 0 9px,var(--am-blue) 9px 18px);
+    padding:6px;cursor:pointer;border:0;text-align:left;width:100%;font:inherit;color:inherit;
+    transition:transform .16s ease,box-shadow .16s ease;
+  }
+  .env:hover{transform:translateY(-2px)}
+  .env.is-on{box-shadow:0 0 0 3px var(--seal)}
+  .env-face{background:var(--kraft);padding:13px 15px 12px;position:relative;
+    box-shadow:inset 0 0 46px rgba(74,48,12,.22)}
+  .env-face::before{content:"";position:absolute;left:0;right:0;top:0;height:24px;
+    background:linear-gradient(180deg,rgba(60,38,8,.14),rgba(60,38,8,0))}
+  .env-to{font-size:11px;letter-spacing:2px;color:var(--muted);margin:2px 0 4px}
+  .env-subj{font-size:15.5px;font-weight:700;letter-spacing:1px;line-height:1.5;padding-right:64px}
+  .env-meta{font-size:12px;color:var(--muted);margin-top:5px;letter-spacing:1px}
+  .wax{
+    position:absolute;top:10px;left:12px;font-size:11px;letter-spacing:3px;
+    color:var(--am-red);border:1px solid var(--am-red);padding:1px 5px;transform:rotate(-4deg);
+  }
+  .pmark{
+    position:absolute;right:12px;bottom:9px;font-size:11px;letter-spacing:3px;
+    color:var(--am-blue);border:1px dashed var(--am-blue);padding:1px 6px;transform:rotate(3deg);
+  }
+  .starbtn{
+    position:absolute;top:8px;right:10px;font-size:19px;line-height:1;color:var(--muted);
+    background:transparent;border:0;cursor:pointer;padding:3px 5px;transition:color .15s ease,transform .15s ease;
+  }
+  .starbtn:hover{color:var(--seal);transform:scale(1.15)}
+  .starbtn.is-star{color:var(--seal)}
+  .env:focus-visible,.tab:focus-visible,.act:focus-visible,.starbtn:focus-visible{
+    outline:2px dashed var(--seal);outline-offset:2px;
+  }
+
+  /* 右栏：信笺 */
+  .read-frame{
+    background:repeating-linear-gradient(-45deg,var(--am-red) 0 9px,var(--am-blue) 9px 18px);
+    padding:7px;box-shadow:0 14px 34px rgba(0,0,0,.38);
+  }
+  .read-paper{background:var(--paper);padding:30px 36px 26px;position:relative;
+    background-image:repeating-linear-gradient(0deg,rgba(125,107,82,.07) 0 1px,rgba(0,0,0,0) 1px 30px)}
+  .par{font-size:11px;letter-spacing:4px;color:var(--am-red);margin-bottom:16px}
+  .par::after{content:"航空邮件 · 亲启";color:var(--am-blue);margin-left:10px;letter-spacing:2px}
+  .subject{font-size:23px;font-weight:700;letter-spacing:2px;line-height:1.5;margin-bottom:12px}
+  .meta{font-size:12.5px;color:var(--muted);letter-spacing:1px;line-height:2}
+  .meta b{color:var(--ink);font-weight:400;border-bottom:1px dotted var(--muted)}
+  .hair{border:0;border-top:1px solid var(--kraft-deep);margin:14px 0 18px}
+  .read-body p{font-size:14.5px;line-height:2;letter-spacing:.5px;margin-bottom:12px;text-align:justify}
+  .read-body .lineitem{padding-left:1.4em;position:relative}
+  .read-body .lineitem::before{content:"◆";position:absolute;left:0;font-size:10px;color:var(--am-blue);top:.55em}
+  .sig{margin-top:22px;text-align:right;font-size:12.5px;color:var(--muted);letter-spacing:2px}
+  .archstamp{
+    position:absolute;top:34px;right:38px;font-size:15px;letter-spacing:5px;color:var(--am-blue);
+    border:2px solid var(--am-blue);padding:7px 10px;transform:rotate(8deg);opacity:.8;
+  }
+  .actbar{display:flex;align-items:center;gap:12px;background:var(--kraft);padding:11px 14px}
+  .act{
+    font:inherit;font-size:13px;letter-spacing:2px;color:var(--paper);
+    background:var(--am-blue);border:0;padding:7px 18px;cursor:pointer;transition:filter .15s ease;
+  }
+  .act:hover{filter:brightness(1.18)}
+  .act-arch{background:var(--am-red)}
+  .act-note{margin-left:auto;font-size:12px;letter-spacing:2px;color:var(--muted)}
+
+  .toast{
+    position:fixed;left:50%;bottom:30px;transform:translateX(-50%);
+    background:var(--kraft);color:var(--ink);border-left:9px solid var(--am-red);
+    border-right:9px solid var(--am-blue);padding:10px 22px;font-size:13.5px;letter-spacing:2px;
+    box-shadow:0 10px 26px rgba(0,0,0,.45);animation:rise .22s ease;
+  }
+  @keyframes rise{from{opacity:0;transform:translate(-50%,10px)}to{opacity:1;transform:translate(-50%,0)}}
+
+  @media (max-width:1023px){
+    .cols{grid-template-columns:minmax(0,1fr)}
+    .list{max-height:340px;overflow:auto;padding-right:4px}
+    .read-paper{padding:24px 22px 20px}
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{animation:none!important;transition:none!important}
+  }
+</style>
+</head>
+<body>
+<div class="frame">
+  <header class="top">
+    <div class="brand">
+      <span class="brand-name">鸿雁信箱</span>
+      <span class="brand-sub">POSTE AÉRIENNE · 示例巷 * 号 · 第 3 分拣格</span>
+    </div>
+    <div class="top-meta">
+      <span class="daymark">9 月 7 日 · 午后班</span>
+      <span class="waitmark">待拆 <b id="am-count">0</b> 封</span>
+    </div>
+  </header>
+  <div class="stripe" aria-hidden="true"></div>
+
+  <main class="cols">
+    <section aria-label="信件列表">
+      <nav class="tabs" id="am-tabs" aria-label="信件格目">
+        <button class="tab is-on" data-f="inbox" type="button">在架</button>
+        <button class="tab" data-f="unread" type="button">待拆</button>
+        <button class="tab" data-f="star" type="button">星标</button>
+        <button class="tab" data-f="arch" type="button">已归档</button>
+      </nav>
+      <div class="list" id="am-list"></div>
+      <p class="list-empty" id="am-list-empty" hidden>这一格目暂时空着。</p>
+    </section>
+
+    <section aria-label="读信区">
+      <div class="read-frame">
+        <div class="read-paper">
+          <p class="par">PAR AVION</p>
+          <h1 class="subject" id="am-subject">从架上取一封信</h1>
+          <div class="meta" id="am-meta">点选左栏任一封信封，这里会拆开给你读。拆开后的信会退出「待拆」。</div>
+          <hr class="hair">
+          <div class="read-body" id="am-body"><p>今日午后班共到信七封，其中四封火漆未拆。</p></div>
+          <span class="archstamp" id="am-archstamp" hidden>已归档</span>
+        </div>
+        <div class="actbar">
+          <button class="act" id="am-starbtn" type="button" disabled>☆ 星标本函</button>
+          <button class="act act-arch" id="am-archbtn" type="button" disabled>归档此函</button>
+          <span class="act-note" id="am-actnote"></span>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+<div class="toast" id="am-toast" hidden></div>
+
+<script>
+/* 鸿雁信箱：格目过滤、开拆阅信、星标与归档 */
+var AM_LETTERS = [
+  {id:1, subj:"雨季末班飞机的三卷底片", from:"沈昭 · 旅行摄影师", place:"昆明", date:"9 月 5 日 14:20",
+   unread:true, star:true, archived:false, body:[
+   "分拣处台鉴：雨季收尾那天我赶上了末班飞机，随身三卷底片没有被雨淋到，特此报平安。",
+   "第一卷是滇池边的渔火，第二卷是机场上最后一班延误牌，第三卷留白两张，是留给回程的。冲洗排期若有了空档，请回信告知，我好把取件单一起寄来。",
+   "又：托你代收的《山茶小志》校样若到了，先压在第三格，不要垫桌脚。"]},
+  {id:2, subj:"《山茶小志》修订本二校样张，请批注", from:"青芷印刷所 · 校勘部", place:"杭州", date:"9 月 5 日 09:40",
+   unread:true, star:false, archived:false, body:[
+   "敬启者：修订本第二校样共四十六页随函附上，红色批注为编辑所改，蓝色为上次您圈定的异体字。",
+   "请特别留意第三十一页的图版说明，字号从九点改为八点半后，脚注与图注的间距需要您目测定夺。批注请在九月中旬前回寄，过期印期就要顺延到下月。"]},
+  {id:3, subj:"9 月 9 日城南片区供电检修通知", from:"城南供电所 · 营业班", place:"本市", date:"9 月 4 日 16:05",
+   unread:false, star:false, archived:false, body:[
+   "因线路改造，南三巷一带将于下列时段停电检修，请提前安排：",
+   "◆ 停电时间：9 月 9 日 8:00 至 17:00（如遇雨顺延）",
+   "◆ 影响范围：南三巷全段、纸仓巷东段",
+   "◆ 值班电话：****-***（白天有人接听）",
+   "给您带来不便，深表歉意。检修完毕后电压会短暂波动，请暂缓开启大型设备。"]},
+  {id:4, subj:"旧书摊上替你留了一本船政笔记", from:"许砚北", place:"苏州", date:"9 月 3 日 21:12",
+   unread:true, star:true, archived:false, body:[
+   "见信好。上周在潘兜巷的旧书摊翻到一本民国十九年的船政笔记，纸脆但字迹清楚，扉页有藏书印，我替你压下了，出价八十整。",
+   "摊主说这书是从老仓库里散出来的，一共出了四五本，剩下的不知道去了哪里。你若有意，汇款或到付都行；若不要，我就自己留下了。",
+   "入秋后平门一带风很大，写信的手有点僵。盼回音。"]},
+  {id:5, subj:"调阅回执：档号 J-114 已归库", from:"市文献馆 · 典藏组", place:"本市", date:"9 月 2 日 10:30",
+   unread:false, star:false, archived:false, body:[
+   "您于八月下旬调阅的 J-114 号卷宗（南关河道测绘图八幅）已按期归还入库，库房验收无缺损。",
+   "如需再次调阅，请于开架日携本回执办理；同一卷宗每季度调阅以两次为限。"]},
+  {id:6, subj:"灯塔书讯秋季刊与续订单随函", from:"灯塔出版社 · 邮购部", place:"厦门", date:"9 月 1 日 08:50",
+   unread:true, star:false, archived:false, body:[
+   "先生信箱里的秋季刊已如期刊出，本期刊登河道测绘图整理一篇，恰与您近来的课题相合，请务必一读。",
+   "另附续订单一纸：明年全年十二期，邮资已含。续订请在十一月底前寄回，过期名额让予候补。"]},
+  {id:7, subj:"装订完工通知：两册年鉴可取", from:"合页装订坊", place:"本市", date:"8 月 28 日 15:44",
+   unread:false, star:false, archived:true, body:[
+   "您送装的两册年鉴已完成锁线装订，书脊烫号按样完成，请凭单取件。取件期限至十月底，逾期入库另收寄存费。"]}
+];
+
+var filt = "inbox", curId = 0, toastTimer = 0;
+var $ = function(id){ return document.getElementById(id); };
+
+function findLetter(id){
+  for(var i=0;i<AM_LETTERS.length;i++){ if(AM_LETTERS[i].id===id) return AM_LETTERS[i]; }
+  return null;
+}
+function inFilt(m){
+  if(filt==="arch") return m.archived;
+  if(m.archived) return false;
+  if(filt==="unread") return m.unread;
+  if(filt==="star") return m.star;
+  return true;
+}
+function esc(s){ return String(s); }
+
+function renderList(){
+  var rows = AM_LETTERS.filter(inFilt);
+  var html = rows.map(function(m){
+    return '<button class="env'+(m.id===curId?" is-on":"")+'" type="button" data-id="'+m.id+'">'
+      +'<div class="env-face">'
+      +(m.unread?'<span class="wax">未拆</span>':'')
+      +(m.archived?'<span class="pmark">已归档</span>':'')
+      +'<span class="starbtn'+(m.star?" is-star":"")+'" data-star="'+m.id+'" role="button" aria-label="星标此函">'+(m.star?"★":"☆")+'</span>'
+      +'<p class="env-to">寄达 · 示例巷 * 号 分拣处</p>'
+      +'<h2 class="env-subj">'+esc(m.subj)+'</h2>'
+      +'<p class="env-meta">'+esc(m.from)+' · '+esc(m.place)+' · '+esc(m.date)+'</p>'
+      +'</div></button>';
+  }).join("");
+  $("am-list").innerHTML = html;
+  $("am-list-empty").hidden = rows.length>0;
+
+  var waiting = AM_LETTERS.filter(function(m){ return !m.archived && m.unread; }).length;
+  $("am-count").textContent = waiting;
+
+  var tabs = $("am-tabs").children;
+  for(var i=0;i<tabs.length;i++){
+    tabs[i].classList.toggle("is-on", tabs[i].dataset.f===filt);
+  }
+}
+
+function renderRead(){
+  var m = findLetter(curId);
+  if(!m){ $("am-starbtn").disabled = true; $("am-archbtn").disabled = true; return; }
+  $("am-subject").textContent = m.subj;
+  $("am-meta").innerHTML = "寄件人 <b>"+esc(m.from)+"</b>　发信地 <b>"+esc(m.place)+"</b>　到信时间 <b>"+esc(m.date)+"</b>";
+  $("am-body").innerHTML = m.body.map(function(t){ return "<p>"+esc(t)+"</p>"; }).join("");
+  $("am-archstamp").hidden = !m.archived;
+  $("am-starbtn").disabled = false;
+  $("am-starbtn").textContent = m.star ? "★ 已加星标" : "☆ 星标本函";
+  $("am-archbtn").disabled = false;
+  $("am-archbtn").textContent = m.archived ? "退回架上" : "归档此函";
+}
+
+function toast(msg){
+  var t = $("am-toast");
+  t.textContent = msg;
+  t.hidden = false;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function(){ t.hidden = true; }, 2200);
+}
+
+function openLetter(id){
+  var m = findLetter(id);
+  if(!m) return;
+  curId = id;
+  var wasNew = m.unread;
+  m.unread = false;
+  renderList();
+  renderRead();
+  if(wasNew) toast("已拆封 1 封 · 待拆数已更新");
+}
+
+$("am-tabs").addEventListener("click", function(e){
+  var b = e.target.closest(".tab");
+  if(!b) return;
+  filt = b.dataset.f;
+  renderList();
+});
+
+$("am-list").addEventListener("click", function(e){
+  var s = e.target.closest("[data-star]");
+  if(s){
+    e.stopPropagation();
+    var ms = findLetter(Number(s.dataset.star));
+    if(ms){
+      ms.star = !ms.star;
+      renderList();
+      renderRead();
+      toast(ms.star ? "已星标：收件到时会置顶" : "已取消星标");
+    }
+    return;
+  }
+  var env = e.target.closest(".env");
+  if(env) openLetter(Number(env.dataset.id));
+});
+
+$("am-starbtn").addEventListener("click", function(){
+  var m = findLetter(curId);
+  if(!m) return;
+  m.star = !m.star;
+  $("am-actnote").textContent = m.star ? "星标已落章" : "星标已擦去";
+  renderList();
+  renderRead();
+});
+
+$("am-archbtn").addEventListener("click", function(){
+  var m = findLetter(curId);
+  if(!m) return;
+  m.archived = !m.archived;
+  renderList();
+  renderRead();
+  toast(m.archived ? "已归档 · 可在「已归档」格目取回" : "已退回架上");
+});
+
+renderList();
+</script>
+</body>
+</html>

@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>苔痕 · 活动记录</title>
+<style>
+:root{
+  --bg:#edf1e4;
+  --paper:#fbfcf6;
+  --moss:#3f7a5b;
+  --forest:#2c5941;
+  --sprout:#dcebd9;
+  --ink:#24372c;
+  --muted:#6d7f6f;
+  --line:#d7e0cc;
+  --err:#a8442a;
+  --err-bg:#f3ddd2;
+  --ok-bg:#e2efdd;
+  --r-card:18px;
+  --r-pill:999px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  display:grid;place-items:center;
+  font-family:system-ui,-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+  color:var(--ink);
+  background:
+    repeating-linear-gradient(135deg,rgba(63,122,91,.05) 0 6px,rgba(63,122,91,0) 6px 14px),
+    var(--bg);
+}
+.phone{
+  width:390px;height:844px;
+  display:flex;flex-direction:column;
+  background:var(--bg);
+  border:1px solid #c9d5bb;
+  border-radius:26px;
+  box-shadow:0 24px 60px rgba(44,89,65,.28);
+  overflow:hidden;
+  position:relative;
+}
+.top{
+  padding:18px 20px 12px;
+  background:
+    repeating-linear-gradient(90deg,rgba(255,255,255,.35) 0 2px,rgba(255,255,255,0) 2px 7px),
+    linear-gradient(180deg,var(--forest),var(--moss));
+  color:#f2f7ec;
+}
+.top .brand{font-size:13px;letter-spacing:.35em;opacity:.85}
+.top h1{font-size:22px;font-weight:700;margin-top:4px}
+.top .sub{font-size:12px;opacity:.85;margin-top:4px}
+.body{flex:1;overflow-y:auto;padding:16px 16px 12px;display:flex;flex-direction:column;gap:14px}
+.scr{display:none;flex-direction:column;gap:14px}
+.scr.on{display:flex}
+.card{
+  background:var(--paper);
+  border:1px solid var(--line);
+  border-radius:var(--r-card);
+  padding:16px;
+}
+.card h2{font-size:14px;font-weight:700;color:var(--forest);margin-bottom:10px}
+.card .hint{font-size:12px;color:var(--muted)}
+.ringwrap{display:flex;align-items:center;gap:16px}
+.ring{position:relative;width:150px;height:150px;flex:none}
+.ring svg{transform:rotate(-90deg)}
+.ring .track{fill:none;stroke:var(--sprout);stroke-width:14}
+.ring .fg{
+  fill:none;stroke:var(--moss);stroke-width:14;stroke-linecap:round;
+  transition:stroke-dashoffset .9s cubic-bezier(.22,.9,.3,1);
+}
+.ring .pct{
+  position:absolute;inset:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+}
+.ring .pct b{font-size:28px;color:var(--forest)}
+.ring .pct span{font-size:11px;color:var(--muted)}
+.ringmeta{display:flex;flex-direction:column;gap:8px}
+.ringmeta .big{font-size:17px;font-weight:700;color:var(--forest)}
+.ringmeta .small{font-size:12px;color:var(--muted);line-height:1.6}
+.pill{
+  align-self:flex-start;display:inline-block;
+  padding:5px 12px;border-radius:var(--r-pill);
+  background:var(--sprout);color:var(--forest);font-size:12px;font-weight:600;
+}
+.pill.warn{background:var(--err-bg);color:var(--err)}
+.mini{display:flex;align-items:flex-end;gap:8px;height:74px;margin-top:12px}
+.mini .col{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px}
+.mini .bar{
+  width:100%;border-radius:7px 7px 3px 3px;
+  background:var(--sprout);
+  min-height:4px;
+  transition:height .6s cubic-bezier(.22,.9,.3,1);
+}
+.mini .bar.hit{background:var(--moss)}
+.mini .bar.today{background:var(--forest)}
+.mini .lab{font-size:10px;color:var(--muted)}
+.list{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.rec{
+  display:flex;align-items:center;gap:10px;
+  background:var(--paper);border:1px solid var(--line);
+  border-radius:14px;padding:10px 12px;font-size:13px;
+}
+.rec .dot{width:10px;height:10px;border-radius:50%;background:var(--moss);flex:none}
+.rec .t{font-weight:600;color:var(--forest)}
+.rec .m{margin-left:auto;color:var(--muted);font-size:12px}
+.empty{
+  border:1px dashed var(--line);border-radius:14px;
+  padding:18px 12px;text-align:center;color:var(--muted);font-size:13px;
+  background:rgba(220,235,217,.35);
+}
+.newitem{animation:growin .5s cubic-bezier(.22,.9,.3,1)}
+@keyframes growin{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.cta{
+  width:100%;border:0;cursor:pointer;
+  background:var(--forest);color:#f2f7ec;
+  font-size:15px;font-weight:700;padding:13px 0;
+  border-radius:var(--r-pill);
+}
+.cta:active{transform:translateY(1px)}
+.seg{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;background:var(--sprout);padding:5px;border-radius:var(--r-pill)}
+.seg button{
+  border:0;cursor:pointer;background:transparent;
+  padding:8px 0;border-radius:var(--r-pill);
+  font-size:13px;color:var(--forest);font-weight:600;
+}
+.seg button.on{background:var(--paper);color:var(--forest);box-shadow:0 1px 4px rgba(44,89,65,.18)}
+.field{margin-top:12px}
+.field label{display:block;font-size:13px;font-weight:600;color:var(--forest);margin-bottom:6px}
+.field .range{font-weight:400;color:var(--muted);font-size:12px;margin-left:6px}
+.field input{
+  width:100%;border:1px solid var(--line);border-radius:14px;
+  background:var(--paper);padding:12px 14px;
+  font-size:15px;color:var(--ink);outline:none;
+  transition:border-color .2s,background .2s;
+}
+.field input:focus{border-color:var(--moss)}
+.field input.err{border-color:var(--err);background:var(--err-bg)}
+.fieldmsg{display:none;margin-top:6px;font-size:12px;color:var(--err);line-height:1.6}
+.fieldmsg.on{display:block}
+.fieldmsg .fix{
+  border:1px solid var(--err);background:transparent;color:var(--err);
+  font-size:12px;font-weight:700;border-radius:var(--r-pill);
+  padding:4px 10px;margin-top:6px;cursor:pointer;
+}
+.demo{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  border:1px dashed var(--err);background:var(--err-bg);
+  border-radius:var(--r-card);padding:12px 14px;
+}
+.demo p{font-size:12px;color:var(--err);line-height:1.5}
+.demo button{
+  flex:none;border:0;cursor:pointer;background:var(--err);color:#fdf3ee;
+  font-size:12px;font-weight:700;border-radius:var(--r-pill);padding:8px 12px;
+}
+.trendbars{display:flex;align-items:flex-end;gap:10px;height:170px;margin-top:12px}
+.trendbars .col{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end}
+.trendbars .val{font-size:11px;color:var(--muted)}
+.trendbars .bar{
+  width:100%;border-radius:9px 9px 4px 4px;background:var(--sprout);min-height:5px;
+  transition:height .6s cubic-bezier(.22,.9,.3,1);
+}
+.trendbars .bar.hit{background:var(--moss)}
+.trendbars .bar.today{background:var(--forest)}
+.trendbars .lab{font-size:11px;color:var(--muted)}
+.sumrow{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
+.sum{background:rgba(220,235,217,.45);border-radius:14px;padding:10px 8px;text-align:center}
+.sum b{display:block;font-size:18px;color:var(--forest)}
+.sum span{font-size:11px;color:var(--muted)}
+.tabs{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  background:var(--paper);border-top:1px solid var(--line);
+  padding:8px 12px 14px;
+}
+.tabs button{
+  border:0;background:transparent;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;gap:4px;
+  font-size:12px;color:var(--muted);padding:6px 0;border-radius:14px;
+}
+.tabs button .ic{width:22px;height:22px}
+.tabs button.on{color:var(--forest);background:var(--sprout);font-weight:700}
+.toast{
+  position:absolute;left:24px;right:24px;bottom:92px;z-index:9;
+  opacity:0;transform:translateY(12px);pointer-events:none;
+  transition:opacity .25s,transform .25s;
+  border-radius:14px;padding:12px 14px;font-size:13px;font-weight:600;
+  box-shadow:0 8px 22px rgba(44,89,65,.25);
+}
+.toast.on{opacity:1;transform:none}
+.toast.ok{background:var(--ok-bg);color:var(--forest);border:1px solid var(--moss)}
+.toast.err{background:var(--err-bg);color:var(--err);border:1px solid var(--err)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="phone">
+  <header class="top">
+    <div class="brand">MOSS TRACE</div>
+    <h1>苔痕 · 活动记录</h1>
+    <div class="sub" id="topSub">第 7 天 · 周日 · 本周目标 150 分钟</div>
+  </header>
+
+  <div class="body">
+    <!-- 今日 -->
+    <section class="scr on" id="scrToday">
+      <div class="card">
+        <h2>本周进度</h2>
+        <div class="ringwrap">
+          <div class="ring">
+            <svg width="150" height="150" viewBox="0 0 150 150" aria-hidden="true">
+              <circle class="track" cx="75" cy="75" r="62"></circle>
+              <circle class="fg" id="ringFg" cx="75" cy="75" r="62"></circle>
+            </svg>
+            <div class="pct"><b id="ringPct">0%</b><span>周目标</span></div>
+          </div>
+          <div class="ringmeta">
+            <div class="big" id="metaMin">0 / 150 分钟</div>
+            <div class="small" id="metaNote"></div>
+            <span class="pill" id="metaPill">进行中</span>
+          </div>
+        </div>
+        <div class="mini" id="miniBars"></div>
+      </div>
+      <div class="card">
+        <h2>今天的记录</h2>
+        <div class="list" id="todayList"></div>
+      </div>
+      <button class="cta" id="goRecord">去记一笔</button>
+    </section>
+
+    <!-- 记录 -->
+    <section class="scr" id="scrRecord">
+      <div class="card">
+        <h2>添加活动</h2>
+        <div class="seg" id="segType">
+          <button class="on" type="button">步行</button>
+          <button type="button">跑步</button>
+          <button type="button">骑行</button>
+          <button type="button">瑜伽</button>
+        </div>
+        <div class="field">
+          <label for="inMin">时长<span class="range">合理范围 1–600 分钟，整数</span></label>
+          <input id="inMin" type="text" inputmode="numeric" placeholder="例如 45">
+          <div class="fieldmsg" id="msgMin">
+            <span id="msgMinText"></span><br>
+            <button class="fix" id="fixMin" type="button">一键把时长改为 45</button>
+          </div>
+        </div>
+        <div class="field">
+          <label for="inKm">距离<span class="range">选填 · 合理范围 0.1–100 公里</span></label>
+          <input id="inKm" type="text" inputmode="decimal" placeholder="例如 3.2">
+          <div class="fieldmsg" id="msgKm"><span id="msgKmText"></span></div>
+        </div>
+        <button class="cta" id="btnSave" style="margin-top:16px">保存记录</button>
+      </div>
+      <div class="demo">
+        <p>演示无效数据：把时长填成 999 并保存，看页面如何定位错误、保住原有进度。</p>
+        <button id="btnDemo" type="button">填 999</button>
+      </div>
+    </section>
+
+    <!-- 趋势 -->
+    <section class="scr" id="scrTrend">
+      <div class="card">
+        <h2>近 7 日时长趋势</h2>
+        <div class="trendbars" id="trendBars"></div>
+      </div>
+      <div class="card">
+        <h2>周汇总</h2>
+        <div class="sumrow">
+          <div class="sum"><b id="sumMin">0</b><span>本周分钟数</span></div>
+          <div class="sum"><b id="sumCnt">0</b><span>记录条数</span></div>
+          <div class="sum"><b id="sumLeft">0</b><span>距目标还差</span></div>
+        </div>
+        <p class="hint" id="trendNote" style="margin-top:10px"></p>
+      </div>
+    </section>
+  </div>
+
+  <nav class="tabs" id="tabs">
+    <button class="on" type="button" data-scr="scrToday">
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/></svg>
+      今日
+    </button>
+    <button type="button" data-scr="scrRecord">
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+      记录
+    </button>
+    <button type="button" data-scr="scrTrend">
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19h16M6 15l4-6 4 4 5-8"/></svg>
+      趋势
+    </button>
+  </nav>
+
+  <div class="toast" id="toast" role="status"></div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var GOAL=150, TODAY=7, DAY_NAMES=["一","二","三","四","五","六","日"];
+  var records=[
+    {day:1,type:"步行",minutes:20,km:1.2},
+    {day:2,type:"跑步",minutes:15,km:2.4},
+    {day:3,type:"骑行",minutes:25,km:6},
+    {day:4,type:"瑜伽",minutes:10,km:null},
+    {day:5,type:"步行",minutes:15,km:0.9},
+    {day:6,type:"跑步",minutes:10,km:1.6}
+  ];
+  var curType="步行";
+  var $=function(id){return document.getElementById(id)};
+  var ringFg=$("ringFg"), CIRC=2*Math.PI*62;
+  ringFg.style.strokeDasharray=CIRC;
+
+  function total(){var s=0;for(var i=0;i<records.length;i++)s+=records[i].minutes;return s}
+  function dayMin(d){var s=0;for(var i=0;i<records.length;i++)if(records[i].day===d)s+=records[i].minutes;return s}
+  function dayCnt(d){var n=0;for(var i=0;i<records.length;i++)if(records[i].day===d)n++;return n}
+
+  function renderRing(){
+    var t=total(), p=Math.min(t/GOAL,1);
+    ringFg.style.strokeDashoffset=CIRC*(1-p);
+    $("ringPct").textContent=Math.round(t/GOAL*100)+"%";
+    $("metaMin").textContent=t+" / "+GOAL+" 分钟";
+    var left=Math.max(GOAL-t,0);
+    $("metaNote").textContent=left>0?"再动 "+left+" 分钟就达成周目标":"周目标已达成，苔藓为你鼓掌";
+    var pill=$("metaPill");
+    if(left<=0){pill.textContent="已达成";pill.classList.remove("warn")}
+    else{pill.textContent="还差 "+left+" 分钟";pill.classList.add("warn")}
+  }
+
+  function barCols(el,maxV,hitToday){
+    el.innerHTML="";
+    for(var d=1;d<=7;d++){
+      var m=dayMin(d);
+      var col=document.createElement("div");col.className="col";
+      var bar=document.createElement("div");bar.className="bar";
+      bar.style.height=Math.max(Math.round(m/maxV*100),4)+"%";
+      if(m>0)bar.classList.add("hit");
+      if(d===TODAY)bar.classList.add("today");
+      var lab=document.createElement("div");lab.className="lab";lab.textContent=DAY_NAMES[d-1];
+      if(el.classList.contains("trendbars")){
+        var val=document.createElement("div");val.className="val";val.textContent=m>0?m:"–";
+        col.appendChild(val);
+      }
+      col.appendChild(bar);col.appendChild(lab);
+      el.appendChild(col);
+    }
+  }
+  function renderBars(){barCols($("miniBars"),60);barCols($("trendBars"),60)}
+
+  function renderToday(){
+    var el=$("todayList");el.innerHTML="";
+    var items=records.filter(function(r){return r.day===TODAY});
+    if(!items.length){
+      var e=document.createElement("div");e.className="empty";
+      e.textContent="今天还没有记录。切到「记录」页，记下第一条活动。";
+      el.appendChild(e);return;
+    }
+    items.forEach(function(r){
+      var row=document.createElement("div");row.className="rec"+(r.fresh?" newitem":"");
+      row.innerHTML='<span class="dot"></span><span class="t">'+r.type+'</span>'+
+        '<span class="m">'+r.minutes+" 分钟"+(r.km?" · "+r.km+" 公里":"")+"</span>";
+      el.appendChild(row);
+    });
+  }
+
+  function renderSum(){
+    var t=total();
+    $("sumMin").textContent=t;
+    $("sumCnt").textContent=records.length;
+    $("sumLeft").textContent=Math.max(GOAL-t,0);
+    $("trendNote").textContent=t>=GOAL
+      ?"本周目标已完成；柱状图会随每次保存实时重算。"
+      :"周一至周六累计 "+t+" 分钟，周日（今天）的记录会即时并入趋势与进度。";
+  }
+  function renderAll(){renderRing();renderBars();renderToday();renderSum()}
+
+  /* 屏幕与页签 */
+  function showScr(id){
+    var scrs=document.querySelectorAll(".scr");
+    for(var i=0;i<scrs.length;i++)scrs[i].classList.toggle("on",scrs[i].id===id);
+    var tabs=$("tabs").querySelectorAll("button");
+    for(var j=0;j<tabs.length;j++)tabs[j].classList.toggle("on",tabs[j].getAttribute("data-scr")===id);
+  }
+  $("tabs").addEventListener("click",function(ev){
+    var b=ev.target.closest("button[data-scr]");
+    if(b)showScr(b.getAttribute("data-scr"));
+  });
+  $("goRecord").addEventListener("click",function(){showScr("scrRecord")});
+
+  /* 类型选择 */
+  $("segType").addEventListener("click",function(ev){
+    var b=ev.target.closest("button");if(!b)return;
+    curType=b.textContent;
+    var bs=this.querySelectorAll("button");
+    for(var i=0;i<bs.length;i++)bs[i].classList.toggle("on",bs[i]===b);
+  });
+
+  /* 提示条 */
+  var toastTimer=null;
+  function toast(msg,kind){
+    var el=$("toast");
+    el.textContent=msg;el.className="toast on "+kind;
+    if(toastTimer)clearTimeout(toastTimer);
+    toastTimer=setTimeout(function(){el.classList.remove("on")},2600);
+  }
+
+  /* 校验与保存 */
+  var inMin=$("inMin"), inKm=$("inKm");
+  function setErr(input,msgEl,text){
+    input.classList.add("err");
+    $(msgEl+"Text").textContent=text;
+    $(msgEl).classList.add("on");
+  }
+  function clearErr(input,msgEl){
+    input.classList.remove("err");
+    $(msgEl).classList.remove("on");
+  }
+  inMin.addEventListener("input",function(){clearErr(inMin,"msgMin")});
+  inKm.addEventListener("input",function(){clearErr(inKm,"msgKm")});
+  $("fixMin").addEventListener("click",function(){
+    inMin.value="45";clearErr(inMin,"msgMin");inMin.focus();
+  });
+  $("btnDemo").addEventListener("click",function(){
+    showScr("scrRecord");inMin.value="999";clearErr(inMin,"msgMin");inMin.focus();
+    toast("已把时长填成 999，点「保存记录」试试","err");
+  });
+
+  $("btnSave").addEventListener("click",function(){
+    var ok=true;
+    clearErr(inMin,"msgMin");clearErr(inKm,"msgKm");
+    var m=inMin.value.trim(), mv=Number(m);
+    if(m===""||!isFinite(mv)||Math.floor(mv)!==mv||mv<1||mv>600){
+      setErr(inMin,"msgMin","时长需要 1–600 之间的整数分钟，当前「"+(m||"空")+"」不在合理范围。");
+      ok=false;
+    }
+    var k=inKm.value.trim();
+    if(ok&&k!==""){
+      var kv=Number(k);
+      if(!isFinite(kv)||kv<0.1||kv>100){
+        setErr(inKm,"msgKm","距离（选填）需在 0.1–100 公里之间，当前「"+k+"」无效。");
+        ok=false;
+      }
+    }
+    if(!ok){
+      (inMin.classList.contains("err")?inMin:inKm).scrollIntoView({behavior:"smooth",block:"center"});
+      toast("数据无效：记录未保存，原有进度与趋势保持不变","err");
+      return;
+    }
+    records.push({day:TODAY,type:curType,minutes:mv,km:k?Number(k):null,fresh:true});
+    renderAll();
+    showScr("scrToday");
+    toast("已记录，周目标进度与趋势已重算","ok");
+    inMin.value="";inKm.value="";
+  });
+
+  renderAll();
+})();
+</script>
+</body>
+</html>

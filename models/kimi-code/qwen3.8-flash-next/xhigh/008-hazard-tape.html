@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>权限申请单 · 铆钉工场</title>
+<style>
+:root{
+  --asphalt:#161616;
+  --tape:#f2b705;
+  --panel:#201f1c;
+  --panel2:#2a2823;
+  --text:#f2efe9;
+  --muted:#95908a;
+  --line:#3d3a34;
+  --red:#d3502e;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{min-height:100%;}
+body{
+  background:var(--asphalt);
+  background-image:
+    repeating-linear-gradient(45deg,rgba(242,183,5,0.05) 0 2px,transparent 2px 26px);
+  color:var(--text);
+  font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans CJK SC",sans-serif;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:56px 24px;
+}
+.permit{
+  width:100%;
+  max-width:860px;
+  background:var(--panel);
+  border:1px solid var(--line);
+}
+.hazard{
+  height:18px;
+  background:repeating-linear-gradient(-45deg,var(--tape) 0 22px,var(--asphalt) 22px 44px);
+}
+.head{
+  display:flex;
+  align-items:center;
+  gap:18px;
+  padding:26px 34px 22px;
+  border-bottom:1px solid var(--line);
+}
+.head .stencil{
+  width:52px;height:52px;
+  flex:none;
+  background:var(--tape);
+  color:var(--asphalt);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.head .stencil svg{width:30px;height:30px;display:block;}
+.head h1{
+  font-size:26px;
+  font-weight:800;
+  letter-spacing:0.14em;
+}
+.head .doc-no{
+  margin-left:auto;
+  text-align:right;
+  font-size:11px;
+  letter-spacing:0.18em;
+  color:var(--muted);
+  line-height:1.9;
+}
+.head .doc-no b{color:var(--tape);font-weight:600;}
+.requester{
+  padding:20px 34px;
+  border-bottom:1px solid var(--line);
+  background:var(--panel2);
+  font-size:14px;
+  line-height:1.9;
+  color:var(--text);
+  font-weight:300;
+}
+.requester b{color:var(--tape);font-weight:600;letter-spacing:0.06em;}
+.items{padding:8px 34px 4px;}
+.item{
+  display:grid;
+  grid-template-columns:44px 1fr;
+  gap:16px;
+  padding:18px 0;
+  border-bottom:1px dashed var(--line);
+}
+.item:last-child{border-bottom:none;}
+.item .ico{
+  width:44px;height:44px;
+  border:2px solid var(--tape);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.item .ico svg{width:24px;height:24px;display:block;}
+.item h3{font-size:15.5px;font-weight:700;letter-spacing:0.1em;margin-bottom:5px;}
+.item h3 .chip{
+  display:inline-block;
+  font-size:10px;
+  font-weight:600;
+  letter-spacing:0.2em;
+  color:var(--asphalt);
+  background:var(--tape);
+  padding:2px 7px;
+  margin-left:10px;
+  vertical-align:2px;
+}
+.item p{font-size:13px;color:var(--muted);line-height:1.85;font-weight:300;}
+.item p b{color:var(--text);font-weight:500;}
+.verdict{
+  display:none;
+  margin:14px 34px 0;
+  border-left:6px solid var(--tape);
+  background:var(--panel2);
+  padding:16px 20px;
+  font-size:13.5px;
+  line-height:1.8;
+  letter-spacing:0.04em;
+}
+.verdict.show{display:block;}
+.verdict b{letter-spacing:0.14em;}
+.verdict.ok b{color:var(--tape);}
+.verdict.once b{color:var(--text);}
+.verdict.no{border-left-color:var(--red);}
+.verdict.no b{color:var(--red);}
+.controls{
+  display:grid;
+  grid-template-columns:1.3fr 1fr 1fr;
+  gap:12px;
+  padding:24px 34px 30px;
+}
+.ctl{
+  appearance:none;
+  font:inherit;
+  font-weight:700;
+  font-size:15px;
+  letter-spacing:0.2em;
+  text-indent:0.2em;
+  padding:17px 0;
+  cursor:pointer;
+  border:2px solid transparent;
+  transition:filter 140ms ease,transform 100ms ease,color 140ms ease,border-color 140ms ease;
+}
+.ctl:active{transform:translateY(2px);}
+.ctl-allow{background:var(--tape);color:var(--asphalt);}
+.ctl-allow:hover{filter:brightness(1.12);}
+.ctl-once{background:transparent;border-color:var(--tape);color:var(--tape);}
+.ctl-once:hover{background:rgba(242,183,5,0.12);}
+.ctl-deny{background:transparent;border-color:var(--red);color:var(--red);}
+.ctl-deny:hover{background:rgba(211,80,46,0.14);}
+.ctl:disabled{opacity:0.4;cursor:not-allowed;filter:none;}
+.footnote{
+  padding:0 34px 26px;
+  font-size:11.5px;
+  letter-spacing:0.12em;
+  color:var(--muted);
+  line-height:1.9;
+}
+.footnote .stamp{
+  display:inline-block;
+  border:1px solid var(--muted);
+  padding:2px 8px;
+  margin-right:10px;
+}
+@media (max-width:768px){
+  body{padding:24px 12px;}
+  .head{padding:20px 18px 16px;flex-wrap:wrap;}
+  .head h1{font-size:20px;}
+  .head .doc-no{margin-left:0;width:100%;text-align:left;}
+  .requester,.items,.controls,.footnote{padding-left:18px;padding-right:18px;}
+  .verdict{margin-left:18px;margin-right:18px;}
+  .controls{grid-template-columns:1fr;}
+}
+@media (prefers-reduced-motion:reduce){
+  .ctl{transition:none;}
+}
+</style>
+</head>
+<body>
+<main class="permit" aria-labelledby="008-title">
+  <div class="hazard" aria-hidden="true"></div>
+
+  <header class="head">
+    <span class="stencil" aria-hidden="true">
+      <svg viewBox="0 0 24 24" focusable="false">
+        <path d="M12 2 L21 19 L3 19 Z" fill="none" stroke="#161616" stroke-width="2.4" stroke-linejoin="round"></path>
+        <rect x="11" y="8" width="2" height="6" fill="#161616"></rect>
+        <rect x="11" y="15.4" width="2" height="2" fill="#161616"></rect>
+      </svg>
+    </span>
+    <h1 id="008-title">权限申请单</h1>
+    <span class="doc-no">单据号 <b>PERMIT-0922</b><br>签发：铆钉工场安管科</span>
+  </header>
+
+  <p class="requester">
+    <b>「铆钉工场」网页版</b> 申请在你本机执行「排产图纸导出」任务。
+    该任务需要以下 <b>3 项</b> 权限。安管科提示：逐项看清用途再放行，本单随时可撤回。
+  </p>
+
+  <section class="items" aria-label="申请权限明细">
+    <div class="item">
+      <span class="ico" aria-hidden="true">
+        <svg viewBox="0 0 24 24" focusable="false">
+          <rect x="3" y="7" width="18" height="13" fill="none" stroke="#f2b705" stroke-width="2"></rect>
+          <circle cx="12" cy="13.5" r="3.4" fill="none" stroke="#f2b705" stroke-width="2"></circle>
+          <path d="M8 7 L9.5 4 L14.5 4 L16 7" fill="none" stroke="#f2b705" stroke-width="2"></path>
+        </svg>
+      </span>
+      <div>
+        <h3>摄像头<span class="chip">仅拍照</span></h3>
+        <p>用于拍摄纸质图纸并矫正透视。<b>只做单次抓拍，不录制视频</b>，画面只留在本机处理。</p>
+      </div>
+    </div>
+    <div class="item">
+      <span class="ico" aria-hidden="true">
+        <svg viewBox="0 0 24 24" focusable="false">
+          <path d="M3 6 H10 L12 9 H21 V19 H3 Z" fill="none" stroke="#f2b705" stroke-width="2" stroke-linejoin="round"></path>
+          <path d="M8 14 H16 M12 10.5 V17.5" stroke="#f2b705" stroke-width="2"></path>
+        </svg>
+      </span>
+      <div>
+        <h3>选定文件夹的读写<span class="chip">范围受限</span></h3>
+        <p>仅访问你在下一步<b>亲手指定的一个「图纸导出」文件夹</b>，用于写入 PDF 与 DXF 成品。其他目录一律不可见。</p>
+      </div>
+    </div>
+    <div class="item">
+      <span class="ico" aria-hidden="true">
+        <svg viewBox="0 0 24 24" focusable="false">
+          <path d="M4 12 A8 8 0 0 1 20 12" fill="none" stroke="#f2b705" stroke-width="2"></path>
+          <path d="M7.5 12 A4.5 4.5 0 0 1 16.5 12" fill="none" stroke="#f2b705" stroke-width="2"></path>
+          <rect x="11" y="12" width="2" height="8" fill="#f2b705"></rect>
+        </svg>
+      </span>
+      <div>
+        <h3>局域网设备发现<span class="chip">出厂 Needed</span></h3>
+        <p>用于找到车间里的 <b>3 号激光切割打印机</b>。只读取设备名称与型号，不发送任何打印指令。</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="verdict" id="008-verdict" role="status" aria-live="polite"></div>
+
+  <div class="controls">
+    <button class="ctl ctl-allow" id="008-allow" type="button">批 准</button>
+    <button class="ctl ctl-once" id="008-once" type="button">仅此一次</button>
+    <button class="ctl ctl-deny" id="008-deny" type="button">驳 回</button>
+  </div>
+
+  <p class="footnote">
+    <span class="stamp">安管科留痕</span>
+    你的每一次批复都会写入本机审计流水，可在「工场设置 → 权限台账」中查看与撤销。
+  </p>
+
+  <div class="hazard" aria-hidden="true"></div>
+</main>
+
+<script>
+(function(){
+  "use strict";
+  var verdict=document.getElementById("008-verdict");
+  var allow=document.getElementById("008-allow");
+  var once=document.getElementById("008-once");
+  var deny=document.getElementById("008-deny");
+
+  function stamp(){
+    var d=new Date();
+    function p(n){return (n<10?"0":"")+n;}
+    return p(d.getHours())+":"+p(d.getMinutes())+":"+p(d.getSeconds());
+  }
+  function show(cls,html){
+    verdict.className="verdict show "+cls;
+    verdict.innerHTML=html;
+  }
+  function relockButtons(keepId){
+    [allow,once,deny].forEach(function(b){
+      b.disabled=(b.id!==keepId);
+    });
+  }
+
+  allow.addEventListener("click",function(){
+    show("ok","<b>【批准 · 长期生效】</b> "+stamp()+" 三项权限已放行。导出任务已排入队列，「图纸导出」文件夹选择器即将弹出。想改主意的话，安管科台账里随时撤回。");
+    relockButtons("008-allow");
+    once.textContent="改选「仅此一次」";
+    once.disabled=false;
+    deny.textContent="改选「驳回」";
+    deny.disabled=false;
+  });
+  once.addEventListener("click",function(){
+    show("once","<b>【仅此一次 · 本次任务有效】</b> "+stamp()+" 权限已随任务单签发，任务收尾后自动回收。下次导出会重新递交本申请单。");
+    relockButtons("008-once");
+    allow.textContent="改选「批准」";
+    allow.disabled=false;
+    deny.textContent="改选「驳回」";
+    deny.disabled=false;
+  });
+  deny.addEventListener("click",function(){
+    show("no","<b>【驳回 · 任务挂起】</b> "+stamp()+" 申请单已退回安管科。「排产图纸导出」已挂起——不会读取摄像头、文件夹与局域网。不批准也能用：网页端仍可查看图纸，只是无法导出。");
+    relockButtons("008-deny");
+    allow.textContent="改选「批准」";
+    allow.disabled=false;
+    once.textContent="改选「仅此一次」";
+    once.disabled=false;
+  });
+})();
+</script>
+</body>
+</html>

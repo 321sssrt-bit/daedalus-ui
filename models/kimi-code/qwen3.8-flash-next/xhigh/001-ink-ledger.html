@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>裕丰源票号 · 账房登录</title>
+<style>
+:root{
+  --navy:#1d3557;
+  --navy-deep:#142642;
+  --navy-line:#33547f;
+  --paper:#f1e8d8;
+  --paper-deep:#e4d7bd;
+  --copper:#9a6b3f;
+  --copper-black:#2a2118;
+  --rule-red:#a63a2e;
+  --gold:#c9a15a;
+  --text:#2b2416;
+  --muted:#7a6a4f;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{
+  font-family:Georgia,"Times New Roman","Songti SC","STSong","SimSun",serif;
+  color:var(--text);
+  background:radial-gradient(1100px 660px at 50% 24%,#24425f 0%,#182b45 52%,#101d30 100%);
+  min-height:100vh;
+  padding:38px 24px 26px;
+}
+.book{
+  width:min(1080px,100%);
+  margin:0 auto;
+  display:grid;
+  grid-template-columns:430px 1px 1fr;
+  background:var(--paper);
+  border:1px solid #0e1826;
+  border-top:4px solid var(--gold);
+  box-shadow:0 26px 58px rgba(6,12,24,.55);
+}
+/* ── 左页：庄口与告示 ── */
+.plate{
+  padding:50px 42px 36px;
+  background:
+    repeating-linear-gradient(0deg,rgba(154,107,63,.05) 0 2px,transparent 2px 7px),
+    var(--paper);
+  display:flex;
+  flex-direction:column;
+}
+.brand{display:flex;align-items:center;gap:18px;}
+.coin{width:74px;height:74px;flex:none;}
+.brand h1{font-size:34px;letter-spacing:8px;color:var(--navy);font-weight:700;}
+.brand-sub{margin-top:8px;font-size:12px;letter-spacing:6px;color:var(--muted);}
+.plate-rule{height:3px;background:var(--navy);margin:26px 0 6px;position:relative;}
+.plate-rule::after{content:"";position:absolute;left:0;right:0;top:5px;height:1px;background:var(--rule-red);}
+.plate-h{font-size:15px;letter-spacing:5px;color:var(--copper);margin:22px 0 12px;}
+.notice{list-style:none;}
+.notice li{
+  display:flex;gap:14px;align-items:baseline;
+  padding:11px 2px;font-size:14px;line-height:1.6;
+  border-bottom:1px solid var(--paper-deep);
+}
+.ndate{font-size:12px;color:var(--rule-red);letter-spacing:1px;flex:none;font-variant-numeric:tabular-nums;}
+.ntxt{color:#4c4130;}
+.plate-foot{margin-top:auto;padding-top:26px;font-size:12.5px;line-height:2;color:var(--muted);}
+.plate-foot b{color:var(--navy);font-weight:700;}
+/* ── 书脊 ── */
+.spine{background:var(--navy-line);opacity:.35;}
+/* ── 右页：登录柜台 ── */
+.counter{
+  padding:52px 56px 40px;
+  background:repeating-linear-gradient(180deg,rgba(166,58,46,.14) 0 1px,transparent 1px 56px);
+}
+.vol{font-size:12px;letter-spacing:4px;color:var(--muted);}
+.counter h2{font-size:32px;letter-spacing:14px;color:var(--navy);margin:10px 0 8px;font-weight:700;}
+.c-sub{font-size:13.5px;color:var(--muted);letter-spacing:1px;margin-bottom:30px;}
+.row{
+  display:grid;grid-template-columns:64px 1fr;gap:20px;align-items:start;
+  padding:14px 0 16px;border-bottom:1px solid #cdb98f;
+}
+.row label{
+  text-align:right;font-size:15px;letter-spacing:5px;color:var(--muted);padding-top:10px;
+}
+.row-field{min-width:0;}
+input[type="text"],input[type="password"]{
+  width:100%;background:transparent;border:0;border-bottom:1px solid transparent;
+  font-family:inherit;font-size:17px;color:var(--text);padding:9px 2px;letter-spacing:1px;
+}
+input::placeholder{color:#a99a7c;letter-spacing:1px;}
+input:focus{outline:none;background:rgba(29,53,87,.06);border-bottom-color:var(--navy);}
+.pwd-wrap{position:relative;}
+.peek{
+  position:absolute;right:0;top:4px;width:42px;height:32px;
+  background:var(--paper-deep);border:1px solid #cdb98f;color:var(--navy);
+  font-family:inherit;font-size:14px;letter-spacing:2px;cursor:pointer;
+  transition:background .18s ease,color .18s ease;
+}
+.peek:hover{background:var(--gold);border-color:var(--copper);}
+.peek.on{background:var(--navy);color:var(--paper);border-color:var(--navy);}
+.peek:focus-visible{outline:2px dashed var(--rule-red);outline-offset:2px;}
+.err{color:var(--rule-red);font-size:12.5px;margin-top:7px;letter-spacing:1px;}
+.err::before{content:"批 · ";color:var(--copper);}
+.row-aux{border-bottom:none;padding-top:6px;}
+.aux{display:flex;justify-content:space-between;align-items:center;}
+.keep{display:flex;align-items:center;gap:8px;font-size:13.5px;color:var(--muted);cursor:pointer;letter-spacing:2px;}
+.keep input{
+  appearance:none;width:16px;height:16px;border:1px solid var(--copper);background:var(--paper);
+  position:relative;cursor:pointer;
+}
+.keep input:checked{background:var(--rule-red);border-color:var(--rule-red);}
+.keep input:checked::after{content:"✓";position:absolute;inset:0;color:var(--paper);font-size:12px;line-height:14px;text-align:center;}
+.keep input:focus-visible{outline:2px dashed var(--navy);outline-offset:2px;}
+.forgot{color:var(--navy);font-size:13.5px;text-decoration:none;border-bottom:1px dotted var(--navy);letter-spacing:1px;}
+.forgot:hover{color:var(--rule-red);border-bottom-color:var(--rule-red);}
+.row-btn{display:block;padding:20px 0 8px;border-bottom:none;}
+.seal-btn{
+  width:100%;height:58px;background:var(--copper-black);color:var(--paper);
+  border:1px solid var(--gold);outline:1px solid var(--copper);outline-offset:3px;
+  font-family:inherit;font-size:19px;letter-spacing:12px;text-indent:12px;cursor:pointer;
+  transition:background .18s ease;
+}
+.seal-btn:hover{background:var(--navy);}
+.seal-btn:active{transform:translateY(1px);}
+.seal-btn:focus-visible{outline:2px dashed var(--rule-red);outline-offset:5px;}
+.notice-line{margin-top:16px;text-align:center;font-size:13px;color:var(--muted);}
+.notice-line a{color:var(--copper);text-decoration:none;border-bottom:1px solid var(--copper);}
+.notice-line a:hover{color:var(--rule-red);}
+/* ── 找回密码 ── */
+.helpbox{max-width:480px;}
+.helpbox h2{font-size:26px;letter-spacing:8px;margin-bottom:22px;color:var(--navy);}
+.ways{list-style:none;}
+.ways li{padding:14px 2px;border-bottom:1px solid #cdb98f;}
+.ways b{display:block;font-size:15.5px;letter-spacing:3px;color:var(--copper-black);margin-bottom:5px;}
+.ways span{font-size:13.5px;color:var(--muted);line-height:1.7;}
+.ghost{
+  margin-top:9px;background:transparent;border:1px solid var(--navy);color:var(--navy);
+  font-family:inherit;font-size:13px;letter-spacing:3px;padding:7px 18px;cursor:pointer;
+  transition:background .18s ease,color .18s ease;
+}
+.ghost:hover{background:var(--navy);color:var(--paper);}
+.back{
+  margin-top:26px;background:transparent;border:1px solid #cdb98f;color:var(--muted);
+  font-family:inherit;font-size:13.5px;letter-spacing:4px;padding:9px 26px;cursor:pointer;
+}
+.back:hover{border-color:var(--navy);color:var(--navy);}
+/* ── 核验通过 ── */
+.donebox{max-width:480px;text-align:center;padding-top:26px;}
+.stamp{
+  width:128px;height:128px;transform:rotate(-14deg);
+  animation:a1-stampDrop .45s ease-out;
+}
+@keyframes a1-stampDrop{
+  from{transform:scale(1.9) rotate(-26deg);opacity:0;}
+  to{transform:scale(1) rotate(-14deg);opacity:1;}
+}
+.donebox h2{font-size:27px;letter-spacing:8px;color:var(--navy);margin:18px 0 8px;}
+.donebox p{font-size:14px;color:var(--muted);letter-spacing:1px;}
+.outside-foot{
+  width:min(1080px,100%);margin:16px auto 0;text-align:center;
+  font-size:12px;letter-spacing:3px;color:rgba(241,232,216,.55);
+}
+@media (max-width:768px){
+  body{padding:20px 12px;}
+  .book{grid-template-columns:1fr;}
+  .spine{display:none;}
+  .plate{padding:34px 26px 26px;}
+  .counter{padding:34px 26px 30px;}
+  .row{grid-template-columns:52px 1fr;gap:12px;}
+  .counter h2{letter-spacing:8px;}
+}
+@media (prefers-reduced-motion: reduce){
+  .stamp{animation:none;}
+  *{transition-duration:.01ms !important;transition-delay:0s !important;}
+}
+</style>
+</head>
+<body>
+<div class="book">
+  <aside class="plate">
+    <div class="brand">
+      <svg class="coin" viewBox="0 0 64 64" aria-hidden="true">
+        <circle cx="32" cy="32" r="29" fill="none" stroke="#a63a2e" stroke-width="2.5"></circle>
+        <circle cx="32" cy="32" r="23.5" fill="none" stroke="#a63a2e" stroke-width="1"></circle>
+        <rect x="24" y="24" width="16" height="16" fill="none" stroke="#a63a2e" stroke-width="1.5"></rect>
+        <text x="32" y="16" text-anchor="middle" font-size="9" fill="#1d3557">裕</text>
+        <text x="32" y="56" text-anchor="middle" font-size="9" fill="#1d3557">丰</text>
+        <text x="12.5" y="35.5" text-anchor="middle" font-size="9" fill="#1d3557">源</text>
+        <text x="51.5" y="35.5" text-anchor="middle" font-size="9" fill="#1d3557">号</text>
+      </svg>
+      <div>
+        <h1>裕丰源票号</h1>
+        <p class="brand-sub">账 房 · 联 网 校 验</p>
+      </div>
+    </div>
+    <div class="plate-rule"></div>
+    <h2 class="plate-h">本号近启</h2>
+    <ul class="notice">
+      <li><span class="ndate">09-01</span><span class="ntxt">夜间结算，02:00 前后暂停存取与登录。</span></li>
+      <li><span class="ndate">08-28</span><span class="ntxt">新版密押规则上线，短于八位的旧押将停用。</span></li>
+      <li><span class="ndate">08-15</span><span class="ntxt">沪上三处柜面迁址，新址详见各号门前告示。</span></li>
+    </ul>
+    <div class="plate-foot">
+      <p>账房值班：<b>400-***-****</b>（辰时至戌时）</p>
+      <p>本号自 1908 年立柱，账册分毫可查。</p>
+    </div>
+  </aside>
+  <div class="spine"></div>
+  <main class="counter">
+    <div id="a1-formbox">
+      <p class="vol">账簿 · 第 128 卷</p>
+      <h2>登录账簿</h2>
+      <p class="c-sub">凭账号与密押，当面核验入内。</p>
+      <form id="a1-loginForm" novalidate>
+        <div class="row">
+          <label for="a1-acct">账号</label>
+          <div class="row-field">
+            <input id="a1-acct" type="text" autocomplete="username" placeholder="柜面立户时发给你的编号">
+            <p class="err" id="a1-errAcct" hidden>账号尚未填写</p>
+          </div>
+        </div>
+        <div class="row">
+          <label for="a1-pwd">密押</label>
+          <div class="row-field">
+            <div class="pwd-wrap">
+              <input id="a1-pwd" type="password" autocomplete="current-password" placeholder="八位以上，本号不记录明文">
+              <button type="button" class="peek" id="a1-peek" aria-label="显示或收起密押">显</button>
+            </div>
+            <p class="err" id="a1-errPwd" hidden>密押尚未填写</p>
+          </div>
+        </div>
+        <div class="row row-aux">
+          <span></span>
+          <div class="aux">
+            <label class="keep"><input type="checkbox" id="a1-keep">记在本册上</label>
+            <a href="#" class="forgot" id="a1-forgot">密押忘在哪页了？</a>
+          </div>
+        </div>
+        <div class="row row-btn">
+          <button class="seal-btn" type="submit">登录账房</button>
+        </div>
+        <p class="notice-line">尚未立户？<a href="#" onclick="return false">往柜面立户，或申请线上申立</a></p>
+      </form>
+    </div>
+    <section class="helpbox" id="a1-helpbox" hidden>
+      <h2>密押遗失</h2>
+      <ol class="ways">
+        <li>
+          <b>壹 · 自助换押</b>
+          <span>凭开户预留手机号收取校验码，当页重置新押，即时生效。</span>
+          <button class="ghost" type="button" onclick="return false">开始核验</button>
+        </li>
+        <li>
+          <b>贰 · 柜面挂失</b>
+          <span>持本人证照至任一柜面，账房先生验身后当场换押，不收分文。</span>
+        </li>
+        <li>
+          <b>叁 · 电话挂失</b>
+          <span>致电 400-***-****，报立户庄号与预留信息，先封押再重置。</span>
+        </li>
+      </ol>
+      <button class="back" id="a1-back" type="button">回登录页</button>
+    </section>
+    <section class="donebox" id="a1-donebox" hidden>
+      <svg class="stamp" viewBox="0 0 120 120" aria-hidden="true">
+        <circle cx="60" cy="60" r="52" fill="none" stroke="#a63a2e" stroke-width="4"></circle>
+        <circle cx="60" cy="60" r="44" fill="none" stroke="#a63a2e" stroke-width="1.5"></circle>
+        <text x="60" y="71" text-anchor="middle" font-size="32" fill="#a63a2e" font-family="Georgia,SimSun,serif">验讫</text>
+      </svg>
+      <h2>核验通过</h2>
+      <p>账簿已为你打开，今日流水正在誊录。</p>
+      <button class="back" id="a1-revert" type="button">回账房门外</button>
+    </section>
+  </main>
+</div>
+<footer class="outside-foot">裕丰源票号 · 始创 1908 · 账房系统 v3.7 · 沪房备 0871 号</footer>
+<script>
+(function () {
+  var formbox = document.getElementById('a1-formbox');
+  var helpbox = document.getElementById('a1-helpbox');
+  var donebox = document.getElementById('a1-donebox');
+  var form = document.getElementById('a1-loginForm');
+  var acct = document.getElementById('a1-acct');
+  var pwd = document.getElementById('a1-pwd');
+  var errA = document.getElementById('a1-errAcct');
+  var errP = document.getElementById('a1-errPwd');
+  var peek = document.getElementById('a1-peek');
+  var forgot = document.getElementById('a1-forgot');
+  var back = document.getElementById('a1-back');
+  var revert = document.getElementById('a1-revert');
+
+  /* 密押显隐 */
+  peek.addEventListener('click', function () {
+    var shown = pwd.type === 'text';
+    pwd.type = shown ? 'password' : 'text';
+    peek.textContent = shown ? '显' : '收';
+    peek.classList.toggle('on', !shown);
+    pwd.focus();
+  });
+
+  /* 忘记密押出路 */
+  forgot.addEventListener('click', function (e) {
+    e.preventDefault();
+    formbox.hidden = true;
+    helpbox.hidden = false;
+  });
+  back.addEventListener('click', function () {
+    helpbox.hidden = true;
+    formbox.hidden = false;
+    acct.focus();
+  });
+
+  /* 提交核验 */
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var ok = true;
+    if (!acct.value.trim()) { errA.hidden = false; ok = false; } else { errA.hidden = true; }
+    if (!pwd.value) { errP.hidden = false; ok = false; } else { errP.hidden = true; }
+    if (!ok) {
+      if (acct.value.trim()) { pwd.focus(); } else { acct.focus(); }
+      return;
+    }
+    formbox.hidden = true;
+    helpbox.hidden = true;
+    donebox.hidden = false;
+  });
+
+  revert.addEventListener('click', function () {
+    donebox.hidden = true;
+    formbox.hidden = false;
+    pwd.value = '';
+    peek.textContent = '显';
+    peek.classList.remove('on');
+    pwd.type = 'password';
+  });
+
+  acct.addEventListener('input', function () {
+    if (acct.value.trim()) { errA.hidden = true; }
+  });
+  pwd.addEventListener('input', function () {
+    if (pwd.value) { errP.hidden = true; }
+  });
+})();
+</script>
+</body>
+</html>

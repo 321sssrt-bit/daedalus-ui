@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>环球通 · 出境订单结账 | 通行许可签发处</title>
+<style>
+:root{
+  --cover:#23406e;
+  --cover-deep:#16294a;
+  --page:#f6f2e7;
+  --stamp-red:#b23a3a;
+  --stamp-blue:#35608f;
+  --ink:#2b3b55;
+  --gold:#c8a866;
+  --hairline:#c9bfa5;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:"Helvetica Neue",Arial,"PingFang SC","Microsoft YaHei",sans-serif;
+  background:
+    radial-gradient(rgba(200,168,102,.06) 1px,transparent 1px),
+    var(--cover-deep);
+  background-size:30px 30px,auto;
+  color:var(--ink);
+  line-height:1.6;
+  padding:42px 20px 60px;
+}
+.mono{font-family:ui-monospace,"Courier New",monospace}
+.desk{max-width:1160px;margin:0 auto}
+.cover-frame{
+  background:var(--cover);
+  border:1px solid var(--gold);
+  box-shadow:0 26px 60px rgba(0,0,0,.5);
+  padding:16px 16px 18px;
+}
+.cover-head{
+  display:flex;justify-content:space-between;align-items:baseline;
+  gap:16px;flex-wrap:wrap;
+  padding:4px 8px 12px;
+  border-bottom:1px solid rgba(200,168,102,.5);
+  margin-bottom:14px;
+}
+.cover-head .brand{color:var(--gold);font-size:19px;font-weight:700;letter-spacing:.32em}
+.cover-head .brand small{display:block;font-size:11px;letter-spacing:.24em;color:rgba(200,168,102,.75);font-weight:400;margin-top:2px}
+.cover-head .post{color:rgba(246,242,231,.7);font-size:11.5px;letter-spacing:.16em}
+.spread{display:grid;grid-template-columns:1fr 2px 1fr;background:var(--page)}
+.pg{
+  position:relative;
+  background:
+    repeating-linear-gradient(0deg,rgba(53,96,143,.05) 0 1px,transparent 1px 8px),
+    repeating-linear-gradient(90deg,rgba(53,96,143,.04) 0 1px,transparent 1px 26px),
+    var(--page);
+  padding:26px 30px 30px;
+  min-width:0;
+}
+.pg.left{box-shadow:inset -16px 0 22px -18px rgba(43,59,85,.5)}
+.pg.right{box-shadow:inset 16px 0 22px -18px rgba(43,59,85,.5)}
+.spine{
+  background:repeating-linear-gradient(180deg,var(--gold) 0 6px,transparent 6px 13px);
+  opacity:.8;
+}
+.pg-head{
+  display:flex;justify-content:space-between;align-items:baseline;gap:12px;
+  border-bottom:2px solid var(--ink);
+  padding-bottom:10px;
+}
+.pg-head h2{font-size:20px;font-weight:800;letter-spacing:.2em}
+.pg-head .en{display:block;font-size:10.5px;color:var(--stamp-blue);letter-spacing:.28em;font-weight:400}
+.pg-head .no{font-size:11px;letter-spacing:.12em;color:var(--stamp-blue);white-space:nowrap}
+.holder{
+  margin-top:12px;padding-bottom:12px;
+  border-bottom:1px dashed var(--hairline);
+  font-size:12.5px;letter-spacing:.06em;color:rgba(43,59,85,.85);
+  display:flex;gap:18px;flex-wrap:wrap;
+}
+table.fees{width:100%;border-collapse:collapse;margin-top:14px}
+table.fees th{
+  font-family:ui-monospace,"Courier New",monospace;
+  font-size:10.5px;letter-spacing:.2em;color:var(--stamp-blue);
+  text-align:left;padding:6px 4px;border-bottom:1px solid var(--ink);
+}
+table.fees th.r,table.fees td.r{text-align:right}
+table.fees td{
+  font-family:ui-monospace,"Courier New",monospace;
+  font-size:13px;letter-spacing:.03em;
+  padding:10px 4px;border-bottom:1px dotted var(--hairline);
+}
+table.fees td .nm{font-family:inherit}
+table.fees td .sub{display:block;font-family:"Helvetica Neue",Arial,"PingFang SC",sans-serif;font-size:11px;color:rgba(43,59,85,.6)}
+.totals{margin-top:14px;display:grid;gap:6px;justify-items:end;font-size:13px}
+.totals .trow{display:flex;justify-content:space-between;gap:26px;font-family:ui-monospace,"Courier New",monospace;letter-spacing:.04em;min-width:270px}
+.totals .disc{color:var(--stamp-red)}
+.due{
+  margin-top:16px;justify-self:end;
+  border:2px solid var(--stamp-red);
+  background:rgba(178,58,58,.05);
+  padding:10px 20px 12px;
+  text-align:right;
+}
+.due .k{font-size:11px;letter-spacing:.3em;color:var(--stamp-red)}
+.due .v{font-size:40px;font-weight:800;color:var(--stamp-red);line-height:1.1;letter-spacing:.01em}
+.deco{position:absolute;left:26px;bottom:20px;pointer-events:none;mix-blend-mode:multiply}
+.stamp-blue{position:absolute;opacity:.55;transform:rotate(-8deg)}
+.stamp-recv{position:absolute;left:74px;top:34px;opacity:.6;transform:rotate(11deg)}
+.chans{margin-top:14px;display:grid;gap:12px}
+.chan{
+  display:grid;grid-template-columns:40px 1fr 44px;gap:14px;align-items:center;
+  width:100%;text-align:left;
+  font:inherit;color:var(--ink);
+  background:rgba(255,255,255,.55);
+  border:1px solid var(--hairline);
+  padding:12px 14px;cursor:pointer;
+  position:relative;
+  transition:border-color .18s,background-color .18s,box-shadow .18s;
+}
+.chan:hover{background:#fff;border-color:var(--stamp-blue)}
+.chan:focus-visible{outline:2px solid var(--cover);outline-offset:2px}
+.chan[aria-pressed="true"]{
+  border-color:var(--cover);
+  background:rgba(35,64,110,.07);
+  box-shadow:inset 5px 0 0 var(--cover);
+}
+.chan .ic{width:40px;height:40px}
+.chan .nm{font-size:16px;font-weight:700;letter-spacing:.08em}
+.chan .nt{font-size:12px;color:rgba(43,59,85,.65);letter-spacing:.04em}
+.chan .sel{
+  width:38px;height:38px;border-radius:50%;
+  border:2px solid var(--stamp-red);color:var(--stamp-red);
+  display:grid;place-items:center;
+  font-size:13px;font-weight:800;
+  transform:rotate(8deg);
+  opacity:0;transition:opacity .18s;
+}
+.chan[aria-pressed="true"] .sel{opacity:.9}
+.chan-note{
+  margin-top:4px;
+  font-family:ui-monospace,"Courier New",monospace;
+  font-size:11.5px;letter-spacing:.08em;color:var(--stamp-blue);
+  border-top:1px dashed var(--hairline);
+  padding-top:8px;
+}
+.btn-pay{
+  margin-top:16px;width:100%;
+  font:inherit;font-size:17px;font-weight:800;letter-spacing:.12em;
+  color:#fff;background:var(--cover);
+  border:1px solid var(--gold);
+  padding:15px 0;cursor:pointer;
+  transition:background-color .18s;
+}
+.btn-pay:hover:not(:disabled){background:var(--cover-deep)}
+.btn-pay:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.btn-pay:disabled{background:rgba(35,64,110,.45);color:rgba(255,255,255,.7);cursor:default}
+.receipt{
+  position:relative;
+  margin-top:16px;
+  border:1px dashed var(--ink);
+  background:rgba(255,255,255,.5);
+  padding:14px 16px 16px;
+}
+.receipt[hidden]{display:none}
+.receipt .rt{font-size:11px;letter-spacing:.3em;color:var(--stamp-blue);margin-bottom:8px}
+.receipt .rrow{
+  display:flex;justify-content:space-between;gap:14px;
+  font-family:ui-monospace,"Courier New",monospace;
+  font-size:12.5px;letter-spacing:.05em;
+  padding:3px 0;border-bottom:1px dotted var(--hairline);
+}
+.receipt .rrow:last-of-type{border-bottom:0}
+.stamp-big{position:absolute;top:-30px;right:10px;opacity:0;transform:rotate(-14deg) scale(2.2);pointer-events:none;mix-blend-mode:multiply}
+.receipt.on .stamp-big{animation:q24-slam .5s cubic-bezier(.2,1.4,.4,1) forwards}
+@keyframes q24-slam{
+  from{opacity:0;transform:rotate(-24deg) scale(2.4)}
+  60%{opacity:.95;transform:rotate(-11deg) scale(.94)}
+  to{opacity:.9;transform:rotate(-14deg) scale(1)}
+}
+.btn-again{
+  margin-top:12px;
+  font:inherit;font-size:13px;letter-spacing:.14em;
+  color:var(--cover);background:transparent;
+  border:1px solid var(--cover);
+  padding:6px 18px;cursor:pointer;
+}
+.btn-again:hover{background:var(--cover);color:#fff}
+.barcode{
+  margin-top:22px;display:flex;align-items:flex-end;gap:14px;
+}
+.barcode .bars{
+  flex:1;height:34px;
+  background:repeating-linear-gradient(90deg,var(--ink) 0 2px,transparent 2px 5px,var(--ink) 5px 7px,transparent 7px 11px);
+  opacity:.75;
+}
+.barcode .code{font-size:11px;letter-spacing:.2em;color:rgba(43,59,85,.7);white-space:nowrap}
+@media (max-width:860px){
+  body{padding:18px 10px 40px}
+  .cover-frame{padding:10px}
+  .spread{grid-template-columns:1fr}
+  .spine{height:2px;width:100%;background:repeating-linear-gradient(90deg,var(--gold) 0 6px,transparent 6px 13px)}
+  .pg{padding:20px 18px 24px}
+  .pg.left,.pg.right{box-shadow:none}
+  .due{justify-self:start}
+  .deco{opacity:.4}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{transition:none !important;animation:none !important}
+  .stamp-big{opacity:.9;transform:rotate(-14deg) scale(1)}
+}
+</style>
+</head>
+<body>
+<div class="desk">
+  <div class="cover-frame">
+    <div class="cover-head">
+      <div class="brand">环球通 · 通行许可签发处<small>PASSAGE GRAND · CLEARANCE ISSUANCE</small></div>
+      <span class="post mono">签发点 上海浦东 T2 · 窗口 09 · 2026-09-06</span>
+    </div>
+
+    <div class="spread">
+      <section class="pg left" aria-label="订单摘要">
+        <header class="pg-head">
+          <h2>行程与费用<span class="en">ITINERARY &amp; FEES</span></h2>
+          <span class="no mono">凭证号 TR-9214</span>
+        </header>
+        <div class="holder">
+          <span>持证人：何某</span>
+          <span class="mono">证件 E*********</span>
+          <span>航段：上海浦东 PVG → 大阪关西 KIX</span>
+        </div>
+
+        <table class="fees">
+          <thead>
+            <tr><th>项目 ITEM</th><th class="r">单价</th><th class="r">数量</th><th class="r">小计</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="nm">单程机票 9月26日 MU523</span><span class="sub">含基建燃油与随身行李 1 件</span></td>
+              <td class="r">¥1,090.00</td><td class="r">2</td><td class="r">¥2,180.00</td>
+            </tr>
+            <tr>
+              <td><span class="nm">前排选座 32排 A/C</span><span class="sub">同排相邻，含免费改签一次</span></td>
+              <td class="r">¥60.00</td><td class="r">2</td><td class="r">¥120.00</td>
+            </tr>
+            <tr>
+              <td><span class="nm">旅行保障 基础版</span><span class="sub">航变延误与行李延误补偿</span></td>
+              <td class="r">¥45.00</td><td class="r">1</td><td class="r">¥45.00</td>
+            </tr>
+            <tr>
+              <td><span class="nm">行李快送 2 件上门</span><span class="sub">次日 18:00 前送达关西酒店</span></td>
+              <td class="r">¥128.00</td><td class="r">1</td><td class="r">¥128.00</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="totals">
+          <div class="trow"><span>费用合计 SUBTOTAL</span><span>¥2,473.00</span></div>
+          <div class="trow disc"><span id="disc-name">通道优惠</span><span id="disc-val">-¥15.00</span></div>
+        </div>
+        <div class="due">
+          <div class="k">应缴 DUE</div>
+          <div class="v" id="due">¥2,458.00</div>
+        </div>
+
+        <div class="deco" aria-hidden="true">
+          <svg class="stamp-blue" width="122" height="122" viewBox="0 0 122 122">
+            <g fill="none" stroke="#35608f">
+              <circle cx="61" cy="61" r="54" stroke-width="3"/>
+              <circle cx="61" cy="61" r="45" stroke-width="1.2"/>
+            </g>
+            <text x="61" y="54" text-anchor="middle" fill="#35608f" font-size="16" font-weight="700" letter-spacing="4">受理</text>
+            <text x="61" y="72" text-anchor="middle" fill="#35608f" font-size="9" letter-spacing="1.5">ACCEPTED</text>
+            <text x="61" y="88" text-anchor="middle" fill="#35608f" font-size="9" letter-spacing="1">2026·09·06</text>
+          </svg>
+          <svg class="stamp-recv" width="94" height="54" viewBox="0 0 94 54">
+            <rect x="2.5" y="2.5" width="89" height="49" fill="none" stroke="#b23a3a" stroke-width="2.5"/>
+            <text x="47" y="26" text-anchor="middle" fill="#b23a3a" font-size="15" font-weight="700" letter-spacing="4">验讫</text>
+            <text x="47" y="42" text-anchor="middle" fill="#b23a3a" font-size="8" letter-spacing="1">PVG T2 · 09</text>
+          </svg>
+        </div>
+      </section>
+
+      <div class="spine" aria-hidden="true"></div>
+
+      <section class="pg right" aria-label="支付通道">
+        <header class="pg-head">
+          <h2>通行通道<span class="en">CLEARANCE CHANNEL</span></h2>
+          <span class="no mono">第 1 / 1 联</span>
+        </header>
+
+        <div class="chans" role="group" aria-label="选择支付方式">
+          <button class="chan" type="button" id="chan-hui" data-ch="hui" aria-pressed="false">
+            <svg class="ic" viewBox="0 0 40 40" aria-hidden="true">
+              <circle cx="20" cy="20" r="16" fill="none" stroke="#2b3b55" stroke-width="1.6"/>
+              <text x="20" y="26" text-anchor="middle" fill="#2b3b55" font-size="17" font-weight="700">¥</text>
+            </svg>
+            <span><span class="nm">汇通余额</span><br><span class="nt">可用 ¥2,473.00 · 即期扣款</span></span>
+            <span class="sel" aria-hidden="true">选</span>
+          </button>
+          <button class="chan" type="button" id="chan-wx" data-ch="wx" aria-pressed="true">
+            <svg class="ic" viewBox="0 0 40 40" aria-hidden="true">
+              <rect x="4" y="9" width="22" height="16" rx="4" fill="none" stroke="#2b3b55" stroke-width="1.6"/>
+              <rect x="15" y="16" width="21" height="15" rx="4" fill="none" stroke="#2b3b55" stroke-width="1.6"/>
+              <circle cx="11" cy="17" r="1.4" fill="#2b3b55"/><circle cx="17" cy="17" r="1.4" fill="#2b3b55"/>
+            </svg>
+            <span><span class="nm">微信支付</span><br><span class="nt">满 ¥2,000 立减 ¥15</span></span>
+            <span class="sel" aria-hidden="true">选</span>
+          </button>
+          <button class="chan" type="button" id="chan-bank" data-ch="bank" aria-pressed="false">
+            <svg class="ic" viewBox="0 0 40 40" aria-hidden="true">
+              <rect x="4" y="10" width="32" height="21" rx="2.5" fill="none" stroke="#2b3b55" stroke-width="1.6"/>
+              <line x1="4" y1="17" x2="36" y2="17" stroke="#2b3b55" stroke-width="1.6"/>
+              <line x1="9" y1="25" x2="20" y2="25" stroke="#2b3b55" stroke-width="1.6"/>
+            </svg>
+            <span><span class="nm">银行卡</span><br><span class="nt">储蓄卡 / 信用卡 · 预计 T+1 入账</span></span>
+            <span class="sel" aria-hidden="true">选</span>
+          </button>
+        </div>
+
+        <p class="chan-note" id="chan-note">通道 · 微信支付 | 立减 ¥15.00 已计入应缴，以通道回执为准</p>
+
+        <button class="btn-pay" id="btn-pay" type="button">确认支付 · ¥2,458.00</button>
+
+        <div class="receipt" id="receipt" hidden>
+          <svg class="stamp-big" width="132" height="132" viewBox="0 0 132 132" aria-hidden="true">
+            <g fill="none" stroke="#b23a3a">
+              <circle cx="66" cy="66" r="58" stroke-width="4"/>
+              <circle cx="66" cy="66" r="48" stroke-width="1.4" stroke-dasharray="3 3"/>
+            </g>
+            <text x="66" y="58" text-anchor="middle" fill="#b23a3a" font-size="19" font-weight="800" letter-spacing="3">放行</text>
+            <text x="66" y="76" text-anchor="middle" fill="#b23a3a" font-size="9" letter-spacing="1.5">RELEASED</text>
+            <text x="66" y="92" text-anchor="middle" fill="#b23a3a" font-size="8.5" letter-spacing="1">2026·09·06 PVG</text>
+          </svg>
+          <div class="rt">放行回执 RECEIPT</div>
+          <div class="rrow"><span>通道</span><span id="rc-chan">微信支付</span></div>
+          <div class="rrow"><span>交易流水</span><span class="mono" id="rc-flow">HZ-20260906-92143</span></div>
+          <div class="rrow"><span>金额</span><span id="rc-amt">¥2,458.00</span></div>
+          <div class="rrow"><span>状态</span><span>准许通行 · 出票中</span></div>
+          <button class="btn-again" id="btn-again" type="button">重新办理</button>
+        </div>
+
+        <div class="barcode" aria-hidden="true">
+          <span class="bars"></span>
+          <span class="code mono">DEMO-REDACTED-024</span>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var SUB = 2473;
+  var CHANNELS = {
+    hui:  {name: '汇通余额', disc: 0,  note: '通道 · 汇通余额 | 即期扣款 · 免手续费，无通道优惠'},
+    wx:   {name: '微信支付', disc: 15, note: '通道 · 微信支付 | 立减 ¥15.00 已计入应缴，以通道回执为准'},
+    bank: {name: '银行卡',   disc: 0,  note: '通道 · 银行卡 | 确认后可在银行 App 查看扣款，预计 T+1 入账'}
+  };
+  var ch = 'wx';
+  var paid = false;
+  var chans = Array.prototype.slice.call(document.querySelectorAll('.chan'));
+  var due = document.getElementById('due');
+  var discVal = document.getElementById('disc-val');
+  var discName = document.getElementById('disc-name');
+  var chanNote = document.getElementById('chan-note');
+  var btnPay = document.getElementById('btn-pay');
+  var receipt = document.getElementById('receipt');
+  var rcChan = document.getElementById('rc-chan');
+  var rcAmt = document.getElementById('rc-amt');
+  var btnAgain = document.getElementById('btn-again');
+
+  function money(n){
+    return '¥' + n.toLocaleString('zh-CN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+  }
+  function apply(){
+    var c = CHANNELS[ch];
+    var total = SUB - c.disc;
+    due.textContent = money(total);
+    discVal.textContent = c.disc > 0 ? '-' + money(c.disc) : '¥0.00';
+    discName.textContent = c.disc > 0 ? '通道优惠（' + c.name + '）' : '通道优惠';
+    chanNote.textContent = c.note;
+    if(!paid){ btnPay.textContent = '确认支付 · ' + money(total); }
+  }
+  chans.forEach(function(b){
+    b.addEventListener('click', function(){
+      if(paid){ return; }
+      ch = b.dataset.ch;
+      chans.forEach(function(x){ x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
+      apply();
+    });
+  });
+  btnPay.addEventListener('click', function(){
+    if(paid){ return; }
+    paid = true;
+    var c = CHANNELS[ch];
+    rcChan.textContent = c.name;
+    rcAmt.textContent = money(SUB - c.disc);
+    receipt.hidden = false;
+    receipt.classList.add('on');
+    btnPay.disabled = true;
+    btnPay.textContent = '已盖印放行 · 请查收回执';
+  });
+  btnAgain.addEventListener('click', function(){
+    paid = false;
+    receipt.classList.remove('on');
+    receipt.hidden = true;
+    btnPay.disabled = false;
+    apply();
+  });
+  apply();
+})();
+</script>
+</body>
+</html>

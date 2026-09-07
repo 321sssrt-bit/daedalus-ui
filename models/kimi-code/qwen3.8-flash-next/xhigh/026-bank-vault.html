@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>金库联营 · 账单与结算</title>
+<style>
+:root{
+  --vault:#1b3a2f;
+  --vault-deep:#12261f;
+  --vault-panel:#234a3b;
+  --brass:#b98d4f;
+  --brass-hi:#d9bb80;
+  --paper:#f2ead6;
+  --paper-hi:#f8f3e4;
+  --ink:#24352c;
+  --muted:#7e9187;
+  --seal:#8c3b2e;
+  --verd:#3f7d54;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:Georgia,"Times New Roman","Songti SC","STSong",SimSun,serif;
+  background:
+    repeating-linear-gradient(0deg, rgba(255,255,255,.015) 0 1px, transparent 1px 4px),
+    radial-gradient(circle at 50% 0%, var(--vault) 0%, var(--vault-deep) 68%);
+  color:var(--paper);
+  padding:36px 24px 72px;
+}
+.hall{max-width:1080px;margin:0 auto}
+/* 抬头 */
+.masthead{
+  text-align:center;padding:10px 0 22px;
+  border-bottom:3px double var(--brass);
+  margin-bottom:26px;
+}
+.masthead h1{font-size:24px;letter-spacing:.35em;font-weight:600;text-indent:.35em}
+.masthead .est{margin-top:8px;font-size:12px;letter-spacing:.28em;color:var(--brass-hi)}
+.masthead .est::before,.masthead .est::after{content:" ❖ ";color:var(--brass)}
+/* 雕纹纸卡 */
+.deed{
+  background:
+    repeating-linear-gradient(45deg, rgba(36,53,44,.05) 0 2px, transparent 2px 7px),
+    linear-gradient(180deg,var(--paper-hi),var(--paper));
+  color:var(--ink);
+  border:2px solid var(--brass);
+  outline:1px solid var(--brass);
+  outline-offset:4px;
+  padding:26px 30px;
+  position:relative;
+}
+.deed h2{
+  font-size:13px;letter-spacing:.3em;color:var(--muted);font-weight:600;
+  border-bottom:1px solid rgba(36,53,44,.3);padding-bottom:8px;margin-bottom:16px;
+}
+.top{display:grid;grid-template-columns:1.15fr .85fr;gap:36px;margin-bottom:44px}
+/* 当前方案 */
+.plan .tier{display:flex;align-items:baseline;gap:14px}
+.plan .tier b{font-size:26px;letter-spacing:.08em}
+.plan .tier span{font-size:13px;color:var(--muted);letter-spacing:.12em}
+.plan .price{margin-top:14px;font-size:44px;letter-spacing:.02em;font-variant-numeric:lining-nums tabular-nums}
+.plan .price small{font-size:15px;color:var(--muted);letter-spacing:.1em}
+.plan dl{margin-top:16px;display:grid;grid-template-columns:auto 1fr;gap:6px 18px;font-size:14px}
+.plan dt{color:var(--muted);letter-spacing:.1em}
+.plan dd{text-align:right;letter-spacing:.06em}
+.stamp{
+  position:absolute;right:26px;top:22px;width:96px;height:96px;border:3px double var(--seal);
+  border-radius:50%;color:var(--seal);display:grid;place-items:center;text-align:center;
+  font-size:15px;letter-spacing:.18em;line-height:1.5;transform:rotate(-14deg);opacity:.85;
+}
+/* 支付方式 */
+.pay .card-face{
+  display:flex;align-items:center;gap:16px;
+  background:var(--vault);color:var(--paper);
+  border:1px solid var(--brass);padding:16px 18px;margin-bottom:16px;
+}
+.chip{
+  width:44px;height:32px;flex:none;border-radius:4px;
+  background:linear-gradient(135deg,var(--brass-hi),var(--brass) 55%,#8a6a3c);
+  border:1px solid rgba(18,38,31,.6);
+}
+.pay .card-meta b{display:block;font-size:16px;letter-spacing:.14em;font-variant-numeric:tabular-nums}
+.pay .card-meta span{display:block;margin-top:4px;font-size:12px;color:var(--muted);letter-spacing:.12em}
+.btn{
+  font:inherit;cursor:pointer;letter-spacing:.22em;text-indent:.22em;
+  border:1px solid var(--brass);background:var(--vault);color:var(--brass-hi);
+  padding:10px 22px;transition:background-color .18s ease,color .18s ease,box-shadow .18s ease;
+}
+.btn:hover{background:var(--vault-panel);box-shadow:0 0 0 3px rgba(185,141,79,.25)}
+.btn:focus-visible{outline:2px solid var(--brass-hi);outline-offset:2px}
+.btn:disabled{opacity:.4;cursor:not-allowed;box-shadow:none}
+.btn.solid{background:var(--brass);color:#182b22;border-color:var(--brass)}
+.btn.solid:hover{background:var(--brass-hi)}
+.pay-actions{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.pay-note{font-size:12px;color:var(--muted);letter-spacing:.1em;min-height:18px}
+/* 更换面板 */
+.swap{
+  overflow:hidden;max-height:0;opacity:0;transition:max-height .3s ease,opacity .25s ease;
+  border-top:1px dashed rgba(36,53,44,.35);margin-top:18px;
+}
+.swap.open{max-height:420px;opacity:1}
+.swap h3{font-size:12px;letter-spacing:.26em;color:var(--muted);margin:16px 0 10px;font-weight:600}
+.opt{
+  display:grid;grid-template-columns:20px 1fr auto;gap:12px;align-items:center;width:100%;
+  background:none;border:1px solid rgba(36,53,44,.25);color:var(--ink);
+  padding:11px 14px;margin-bottom:8px;cursor:pointer;text-align:left;font:inherit;
+  transition:border-color .15s ease,background-color .15s ease;
+}
+.opt:hover{border-color:var(--brass)}
+.opt[aria-checked="true"]{border-color:var(--brass);background:rgba(185,141,79,.14);box-shadow:inset 3px 0 0 var(--brass)}
+.opt .mark{width:14px;height:14px;border:1px solid var(--ink);border-radius:50%;justify-self:center}
+.opt[aria-checked="true"] .mark{background:var(--seal);border-color:var(--seal);box-shadow:inset 0 0 0 3px var(--paper)}
+.opt b{font-size:15px;letter-spacing:.1em;font-variant-numeric:tabular-nums}
+.opt small{display:block;margin-top:2px;font-size:11px;color:var(--muted);letter-spacing:.12em}
+.opt .kind{font-size:11px;color:var(--muted);letter-spacing:.18em}
+.swap-foot{display:flex;gap:12px;align-items:center;margin-top:10px}
+/* 账簿 */
+.ledger .tools{display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap}
+.tag{
+  font:inherit;font-size:12px;letter-spacing:.18em;cursor:pointer;
+  border:1px solid rgba(36,53,44,.4);background:none;color:var(--ink);padding:6px 14px;
+  transition:border-color .15s ease,background-color .15s ease,color .15s ease;
+}
+.tag:hover{border-color:var(--brass)}
+.tag[aria-pressed="true"]{background:var(--vault);color:var(--paper);border-color:var(--vault)}
+.ledger-note{margin-left:auto;font-size:12px;color:var(--seal);letter-spacing:.1em;min-height:18px}
+table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums lining-nums}
+thead th{
+  font-size:12px;letter-spacing:.22em;color:var(--muted);font-weight:600;text-align:left;
+  border-top:2px solid var(--ink);border-bottom:1px solid var(--ink);padding:9px 10px;
+}
+tbody td{font-size:14px;padding:11px 10px;border-bottom:1px solid rgba(36,53,44,.22);letter-spacing:.04em}
+tbody tr{transition:background-color .15s ease}
+tbody tr:hover{background:rgba(185,141,79,.12)}
+td.money{text-align:right;font-size:16px}
+td.money .cur{font-size:11px;color:var(--muted);margin-right:3px}
+.st{font-size:12px;letter-spacing:.16em;white-space:nowrap}
+.st.ok{color:var(--verd)}
+.st.wait{color:var(--brass);}
+.st.aud{color:var(--seal)}
+.st.ok::before{content:"✓ ";}
+.st.aud::before{content:"⊘ ";}
+.doc{
+  font:inherit;font-size:12px;letter-spacing:.14em;cursor:pointer;
+  border:1px solid var(--ink);background:none;color:var(--ink);padding:5px 12px;
+  transition:background-color .15s ease,color .15s ease,border-color .15s ease;
+}
+.doc:hover{background:var(--ink);color:var(--paper-hi)}
+.doc.done{border-color:var(--verd);color:var(--verd);cursor:default}
+tr.hid{display:none}
+.footnote{
+  margin-top:34px;text-align:center;font-size:11px;color:var(--muted);letter-spacing:.24em;
+}
+.footnote::before{content:"— ❖ —";display:block;color:var(--brass);margin-bottom:10px;letter-spacing:.5em}
+@media (max-width:768px){
+  .top{grid-template-columns:1fr;gap:26px}
+  .stamp{width:74px;height:74px;font-size:12px;right:14px;top:14px}
+  .plan .price{font-size:34px}
+  .deed{padding:20px 18px;outline-offset:3px}
+  .tablewrap{overflow-x:auto}
+  table{min-width:640px}
+}
+@media (prefers-reduced-motion:reduce){
+  *{transition:none !important;animation:none !important}
+}
+</style>
+</head>
+<body>
+<div class="hall">
+  <header class="masthead">
+    <h1>金库联营 · 账单与结算</h1>
+    <p class="est">EST. MMXIV · 第 47 号分库 · 凭票据核对</p>
+  </header>
+
+  <div class="top">
+    <section class="deed plan" aria-labelledby="planH">
+      <h2 id="planH">当前方案 CURRENT PLAN</h2>
+      <div class="tier"><b>金库 · 企业版</b><span>VAULT ENTERPRISE</span></div>
+      <div class="price">¥ 1,280.00<small> / 月 · 含税</small></div>
+      <dl>
+        <dt>合同号</dt><dd>VC-2024-0091-047</dd>
+        <dt>下次扣款</dt><dd>2026-10-01</dd>
+        <dt>席位</dt><dd>25 / 30 已占用</dd>
+        <dt>自动扣款</dt><dd>已授权 · 免密代扣</dd>
+      </dl>
+      <div class="stamp" aria-hidden="true">已生效<br>EFFECTIVE</div>
+    </section>
+
+    <section class="deed pay" aria-labelledby="payH">
+      <h2 id="payH">支付方式 PAYMENT ON FILE</h2>
+      <div class="card-face">
+        <span class="chip" aria-hidden="true"></span>
+        <div class="card-meta">
+          <b id="payNo">•••• •••• •••• 4021</b>
+          <span id="payMeta">银联信用卡 · 商业银行 · 有效期 09/28 · 持卡人 俞某某</span>
+        </div>
+      </div>
+      <div class="pay-actions">
+        <button class="btn" id="btnChange" aria-expanded="false" aria-controls="swapPanel">更换支付方式</button>
+        <span class="pay-note" id="payNote">扣款顺序：本卡失败时改用备用卡</span>
+      </div>
+      <div class="swap" id="swapPanel">
+        <h3>SELECT ANOTHER INSTRUMENT · 选择新票据</h3>
+        <div role="radiogroup" aria-label="候选支付方式">
+          <button class="opt" role="radio" aria-checked="false"
+            data-no="•••• •••• •••• 8891" data-meta="银联储蓄卡 · 蓄金银行 · 有效期长期 · 持卡人 俞某某">
+            <span class="mark" aria-hidden="true"></span>
+            <span><b>•••• •••• •••• 8891</b><small>银联储蓄卡 · 蓄金银行 · 余额充足</small></span>
+            <span class="kind">备用</span>
+          </button>
+          <button class="opt" role="radio" aria-checked="false"
+            data-no="•••• •••• •••• 7734" data-meta="万事达金卡 · 环球银行 · 有效期 03/27 · 持卡人 俞某某">
+            <span class="mark" aria-hidden="true"></span>
+            <span><b>•••• •••• •••• 7734</b><small>万事达金卡 · 环球银行 · 限额 ¥50,000/月</small></span>
+            <span class="kind">个人</span>
+          </button>
+          <button class="opt" role="radio" aria-checked="false"
+            data-no="对公转账 · 分行 047" data-meta="对公电汇 · 金库联营分行 · 账期 T+3 · 需附合同号">
+            <span class="mark" aria-hidden="true"></span>
+            <span><b>对公转账 · 分行 047</b><small>对公电汇 · 账期 T+3 · 每次需人工核票</small></span>
+            <span class="kind">对公</span>
+          </button>
+        </div>
+        <div class="swap-foot">
+          <button class="btn solid" id="btnConfirm" disabled>确认更换</button>
+          <button class="btn" id="btnCancel">取消</button>
+          <span class="pay-note" id="swapNote">更换后首期扣款顺延至下一账期</span>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <section class="deed ledger" aria-labelledby="ledH">
+    <h2 id="ledH">结算记录 SETTLEMENT LEDGER</h2>
+    <div class="tools" role="group" aria-label="账簿筛选">
+      <button class="tag" aria-pressed="true" data-filter="all">全部</button>
+      <button class="tag" aria-pressed="false" data-filter="ok">已结清</button>
+      <button class="tag" aria-pressed="false" data-filter="other">未结与核验</button>
+      <span class="ledger-note" id="ledgerNote"></span>
+    </div>
+    <div class="tablewrap">
+      <table>
+        <thead>
+          <tr><th>票据号</th><th>账期</th><th class="money">金额</th><th>状态</th><th>票据</th></tr>
+        </thead>
+        <tbody id="ledgerBody">
+          <tr data-st="ok">
+            <td>INV-2026-0412</td><td>2026 年 9 月</td>
+            <td class="money"><span class="cur">¥</span>1,280.00</td>
+            <td><span class="st ok">已结清</span></td>
+            <td><button class="doc" data-no="INV-2026-0412">下载发票</button></td>
+          </tr>
+          <tr data-st="ok">
+            <td>INV-2026-0365</td><td>2026 年 8 月</td>
+            <td class="money"><span class="cur">¥</span>1,280.00</td>
+            <td><span class="st ok">已结清</span></td>
+            <td><button class="doc" data-no="INV-2026-0365">下载发票</button></td>
+          </tr>
+          <tr data-st="wait">
+            <td>INV-2026-0318</td><td>2026 年 7 月</td>
+            <td class="money"><span class="cur">¥</span>1,342.50</td>
+            <td><span class="st wait">扣款处理中</span></td>
+            <td><button class="doc" data-no="INV-2026-0318">下载发票</button></td>
+          </tr>
+          <tr data-st="ok">
+            <td>INV-2026-0271</td><td>2026 年 6 月</td>
+            <td class="money"><span class="cur">¥</span>1,280.00</td>
+            <td><span class="st ok">已结清</span></td>
+            <td><button class="doc" data-no="INV-2026-0271">下载发票</button></td>
+          </tr>
+          <tr data-st="aud">
+            <td>INV-2026-0225</td><td>2026 年 5 月</td>
+            <td class="money"><span class="cur">¥</span>1,508.00</td>
+            <td><span class="st aud">人工核验中</span></td>
+            <td><button class="doc" data-no="INV-2026-0225">下载发票</button></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="footnote">本账簿每日子时结转 · 票据存根保留十年 · 异议请在出账后 15 日内向分号柜面提出</p>
+  </section>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  /* 账簿筛选 */
+  var tags = Array.prototype.slice.call(document.querySelectorAll(".tag"));
+  var rows = Array.prototype.slice.call(document.querySelectorAll("#ledgerBody tr"));
+  tags.forEach(function(tag){
+    tag.addEventListener("click", function(){
+      tags.forEach(function(t){ t.setAttribute("aria-pressed","false"); });
+      tag.setAttribute("aria-pressed","true");
+      var f = tag.getAttribute("data-filter");
+      rows.forEach(function(tr){
+        var st = tr.getAttribute("data-st");
+        var show = f === "all" || (f === "ok" && st === "ok") || (f === "other" && st !== "ok");
+        tr.classList.toggle("hid", !show);
+      });
+    });
+  });
+
+  /* 发票下载（演示：仅登记存根，不产生外链） */
+  var ledgerNote = document.getElementById("ledgerNote");
+  Array.prototype.slice.call(document.querySelectorAll(".doc")).forEach(function(btn){
+    btn.addEventListener("click", function(){
+      if(btn.classList.contains("done")){ return; }
+      btn.classList.add("done");
+      btn.textContent = "存根已取";
+      ledgerNote.textContent = "发票 " + btn.getAttribute("data-no") + " 存根已放入下载槽";
+    });
+  });
+
+  /* 更换支付方式 */
+  var panel = document.getElementById("swapPanel");
+  var btnChange = document.getElementById("btnChange");
+  var btnConfirm = document.getElementById("btnConfirm");
+  var btnCancel = document.getElementById("btnCancel");
+  var opts = Array.prototype.slice.call(document.querySelectorAll(".opt"));
+  var payNo = document.getElementById("payNo");
+  var payMeta = document.getElementById("payMeta");
+  var payNote = document.getElementById("payNote");
+  var swapNote = document.getElementById("swapNote");
+  var picked = null;
+
+  function closePanel(){
+    panel.classList.remove("open");
+    btnChange.setAttribute("aria-expanded","false");
+    btnChange.textContent = "更换支付方式";
+  }
+  btnChange.addEventListener("click", function(){
+    var open = panel.classList.toggle("open");
+    btnChange.setAttribute("aria-expanded", open ? "true" : "false");
+    btnChange.textContent = open ? "收起票据夹" : "更换支付方式";
+  });
+  opts.forEach(function(opt){
+    opt.addEventListener("click", function(){
+      opts.forEach(function(o){ o.setAttribute("aria-checked","false"); });
+      opt.setAttribute("aria-checked","true");
+      picked = opt;
+      btnConfirm.disabled = false;
+      swapNote.textContent = "待确认：更换后首期扣款顺延至下一账期";
+    });
+  });
+  btnConfirm.addEventListener("click", function(){
+    if(!picked){ return; }
+    payNo.textContent = picked.getAttribute("data-no");
+    payMeta.textContent = picked.getAttribute("data-meta");
+    payNote.textContent = "支付方式已于 " + stamp() + " 更换并通过票面核验";
+    closePanel();
+  });
+  btnCancel.addEventListener("click", function(){
+    opts.forEach(function(o){ o.setAttribute("aria-checked","false"); });
+    picked = null; btnConfirm.disabled = true;
+    swapNote.textContent = "更换后首期扣款顺延至下一账期";
+    closePanel();
+  });
+  function stamp(){
+    var d = new Date();
+    var p = function(n){ return (n < 10 ? "0" : "") + n; };
+    return d.getFullYear() + "-" + p(d.getMonth()+1) + "-" + p(d.getDate()) + " " + p(d.getHours()) + ":" + p(d.getMinutes());
+  }
+})();
+</script>
+</body>
+</html>

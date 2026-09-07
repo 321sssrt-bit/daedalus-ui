@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>云岭钱庄 · 钱包首页</title>
+<style>
+:root{
+  --paper:#f3ead8;
+  --paper-deep:#e7dbbc;
+  --jade:#3e7a5e;
+  --jade-deep:#2c5a45;
+  --gold:#b8933e;
+  --gold-pale:#d9bd7a;
+  --ink:#33291c;
+  --muted:#8a7a5e;
+  --cinnabar:#a8462f;
+  --cream:#f7efdd;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  background:#1d1911 radial-gradient(circle at 50% 26%,#3c3423 0%,#1d1911 62%);
+  display:grid;place-items:center;padding:28px 0;
+  font-family:-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+  color:var(--ink);
+  -webkit-font-smoothing:antialiased;
+}
+.phone{
+  position:relative;padding:13px;border-radius:56px;
+  background:linear-gradient(160deg,#3a352a,#16130d 70%);
+  box-shadow:0 34px 90px rgba(0,0,0,.62),inset 0 1px 0 rgba(255,255,255,.09);
+}
+.phone::before{content:"";position:absolute;left:-3px;top:170px;width:4px;height:34px;border-radius:2px;background:#4c4536}
+.phone::after{content:"";position:absolute;right:-3px;top:196px;width:4px;height:64px;border-radius:2px;background:#4c4536}
+.screen{
+  position:relative;width:390px;height:844px;overflow:hidden;
+  border-radius:43px;background:var(--paper);
+  display:flex;flex-direction:column;
+  box-shadow:inset 0 0 0 2px #0c0a07;
+}
+.statusbar{
+  flex:none;height:44px;display:flex;align-items:center;justify-content:space-between;
+  padding:0 22px;font-size:13px;font-weight:600;color:var(--ink);letter-spacing:.5px;
+}
+.sicons{display:flex;align-items:center;gap:6px}
+.sicons .net{font-size:10px;font-weight:700;letter-spacing:0}
+.scroller{
+  flex:1 1 auto;overflow-y:auto;overscroll-behavior:contain;
+  scrollbar-width:none;
+}
+.scroller::-webkit-scrollbar{display:none}
+.homebar{flex:none;height:22px;display:flex;align-items:center;justify-content:center}
+.homebar i{display:block;width:128px;height:5px;border-radius:3px;background:rgba(51,41,28,.32)}
+
+.apphead{display:flex;align-items:center;justify-content:space-between;padding:2px 18px 10px}
+.apphead .brand{display:flex;align-items:baseline;gap:8px}
+.apphead .brand b{font-size:19px;letter-spacing:2px;color:var(--jade-deep)}
+.apphead .brand span{font-size:11px;color:var(--muted);letter-spacing:1px}
+.iconbtn{
+  width:44px;height:44px;border:none;border-radius:14px;background:transparent;
+  display:grid;place-items:center;color:var(--jade-deep);cursor:pointer;
+}
+.iconbtn:hover{background:var(--paper-deep)}
+.iconbtn:active{background:#dccfa8}
+
+.panel{display:none;padding:0 18px 96px}
+.panel.on{display:block}
+
+/* 余额令牌卡 */
+.tally{
+  position:relative;border-radius:26px;padding:20px 18px;
+  background:linear-gradient(155deg,var(--jade) 0%,var(--jade-deep) 88%);
+  border:1px solid var(--gold);
+  box-shadow:0 10px 26px rgba(44,90,69,.34),inset 0 0 0 3px rgba(217,189,122,.28);
+  color:var(--cream);display:flex;gap:14px;
+}
+.tally .col{flex:1 1 auto;min-width:0}
+.tally .lbl{font-size:12px;letter-spacing:3px;color:var(--gold-pale)}
+.tally .amt{
+  font-family:Georgia,"Songti SC","SimSun",serif;
+  font-size:36px;font-weight:700;line-height:1.25;margin-top:2px;
+  letter-spacing:1px;white-space:nowrap;
+}
+.tally .sub{display:flex;gap:16px;margin-top:10px;font-size:12px;color:rgba(247,239,221,.82)}
+.tally .sub b{font-weight:600;font-family:Georgia,"Songti SC",serif}
+.eyebtn{
+  margin-top:12px;min-height:28px;padding:0 12px;border-radius:14px;
+  border:1px solid rgba(217,189,122,.7);background:rgba(247,239,221,.08);
+  color:var(--gold-pale);font-size:12px;letter-spacing:2px;cursor:pointer;
+}
+.eyebtn:hover{background:rgba(247,239,221,.18)}
+.seal{
+  flex:none;writing-mode:vertical-rl;border-radius:10px;
+  background:var(--cinnabar);color:#f6e9d8;border:1px solid rgba(246,233,216,.55);
+  padding:12px 7px;font-size:13px;letter-spacing:6px;font-weight:600;
+  font-family:"Songti SC","SimSun",serif;
+  box-shadow:inset 0 0 0 2px rgba(168,70,47,.9);
+}
+
+/* 转出 / 收款 */
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+.abtn{
+  min-height:62px;border-radius:18px;cursor:pointer;display:flex;align-items:center;
+  gap:10px;padding:0 14px;text-align:left;border:1px solid transparent;
+}
+.abtn .tt{font-size:16px;font-weight:700;letter-spacing:2px;display:block}
+.abtn .ss{font-size:11px;margin-top:2px;display:block;opacity:.82}
+.abtn.main{background:var(--jade);color:var(--cream);box-shadow:0 6px 16px rgba(62,122,94,.32)}
+.abtn.main:hover{background:var(--jade-deep)}
+.abtn.main:active{transform:translateY(1px)}
+.abtn.ghost{background:transparent;border-color:var(--gold);color:var(--jade-deep)}
+.abtn.ghost:hover{background:var(--paper-deep)}
+.abtn svg{flex:none}
+
+/* 流水列表 */
+.sect{display:flex;align-items:baseline;justify-content:space-between;margin:22px 0 6px}
+.sect h2{font-size:15px;letter-spacing:3px;color:var(--jade-deep);font-weight:700}
+.sect .link{border:none;background:none;color:var(--gold);font-size:13px;cursor:pointer;min-height:44px;letter-spacing:1px}
+.sect .link:hover{color:var(--cinnabar)}
+.ledger{border-top:1px solid rgba(184,147,62,.35)}
+.lrow{
+  display:flex;align-items:center;gap:12px;min-height:60px;
+  border-bottom:1px dashed rgba(184,147,62,.32);
+}
+.lrow .glyph{
+  flex:none;width:38px;height:38px;border-radius:12px;display:grid;place-items:center;
+  background:var(--paper-deep);border:1px solid rgba(184,147,62,.5);
+  font-family:"Songti SC","SimSun",serif;font-size:16px;color:var(--jade-deep);font-weight:700;
+}
+.lrow .mid{flex:1 1 auto;min-width:0}
+.lrow .mid b{display:block;font-size:14px;font-weight:600}
+.lrow .mid span{display:block;font-size:11px;color:var(--muted);margin-top:2px}
+.lrow .num{flex:none;font-family:Georgia,"Songti SC",serif;font-size:15px;font-weight:700}
+.num.out{color:var(--cinnabar)}
+.num.in{color:var(--jade)}
+
+/* 流水页 */
+.chips{display:flex;gap:8px;margin:14px 0 4px}
+.chip{
+  min-height:44px;padding:0 18px;border-radius:22px;cursor:pointer;
+  border:1px solid var(--gold);background:transparent;color:var(--ink);
+  font-size:13px;letter-spacing:2px;
+}
+.chip:hover{background:var(--paper-deep)}
+.chip.on{background:var(--jade);border-color:var(--jade);color:var(--cream)}
+.lrow.hide{display:none}
+
+/* 理财页 */
+.vault{
+  border-radius:20px;padding:16px;margin-top:14px;background:var(--cream);
+  border:1px solid rgba(184,147,62,.55);box-shadow:inset 0 0 0 3px rgba(184,147,62,.14);
+  display:flex;align-items:center;gap:12px;
+}
+.vault .rate{flex:none;text-align:right}
+.vault .rate b{display:block;font-family:Georgia,"Songti SC",serif;font-size:26px;color:var(--cinnabar)}
+.vault .rate s{display:block;text-decoration:none;font-size:10px;color:var(--muted)}
+.vault .info{flex:1 1 auto}
+.vault .info b{font-size:15px;letter-spacing:1px;color:var(--jade-deep)}
+.vault .info p{font-size:11px;color:var(--muted);margin-top:4px}
+.vault .buy{
+  flex:none;min-height:44px;padding:0 16px;border-radius:14px;cursor:pointer;
+  border:none;background:var(--jade);color:var(--cream);font-size:14px;letter-spacing:2px;
+}
+.vault .buy:hover{background:var(--jade-deep)}
+
+/* 我的页 */
+.profile{display:flex;align-items:center;gap:14px;padding:16px;border-radius:20px;background:var(--cream);border:1px solid rgba(184,147,62,.55);margin-top:14px}
+.profile .face{
+  flex:none;width:52px;height:52px;border-radius:50%;display:grid;place-items:center;
+  background:var(--jade);color:var(--cream);font-family:"Songti SC","SimSun",serif;font-size:22px;font-weight:700;
+  box-shadow:inset 0 0 0 2px var(--gold-pale);
+}
+.profile b{font-size:16px}
+.profile span{display:block;font-size:11px;color:var(--muted);margin-top:3px;letter-spacing:1px}
+.melist{margin-top:12px;border-top:1px solid rgba(184,147,62,.35)}
+.melist button{
+  width:100%;min-height:56px;display:flex;align-items:center;justify-content:space-between;
+  border:none;border-bottom:1px dashed rgba(184,147,62,.32);background:none;cursor:pointer;
+  font-size:14px;color:var(--ink);padding:0 4px;text-align:left;
+}
+.melist button:hover{background:var(--paper-deep)}
+.melist button span{color:var(--muted);font-size:12px}
+.melist button em{font-style:normal;color:var(--jade);font-size:13px}
+
+/* 底部导航 */
+.tabbar{
+  flex:none;display:flex;border-top:1px solid rgba(184,147,62,.5);
+  background:linear-gradient(180deg,var(--paper) 0%,var(--paper-deep) 100%);
+}
+.tabbar button{
+  flex:1 1 0;min-height:60px;border:none;background:none;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+  color:var(--muted);font-size:11px;letter-spacing:2px;padding-top:8px;
+}
+.tabbar button .dot{width:4px;height:4px;border-radius:50%;background:transparent}
+.tabbar button.on{color:var(--jade-deep);font-weight:700}
+.tabbar button.on .dot{background:var(--gold)}
+.tabbar button:hover{color:var(--jade)}
+
+/* 提示条 */
+.toast{
+  position:absolute;left:50%;bottom:110px;transform:translate(-50%,8px);
+  background:rgba(44,90,69,.94);color:var(--cream);font-size:13px;letter-spacing:1px;
+  padding:10px 18px;border-radius:20px;opacity:0;pointer-events:none;
+  transition:opacity .25s ease,transform .25s ease;max-width:320px;text-align:center;
+}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+
+@media (max-width:430px){
+  body{padding:0;background:var(--paper)}
+  .phone{padding:0;border-radius:0;background:transparent;box-shadow:none}
+  .phone::before,.phone::after{display:none}
+  .screen{width:100vw;height:100dvh;border-radius:0;box-shadow:none}
+}
+@media (prefers-reduced-motion: reduce){
+  .toast{transition:none}
+  *{animation:none !important;transition:none !important}
+}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="screen" id="screen033">
+
+    <div class="statusbar">
+      <span>19:32</span>
+      <span class="sicons">
+        <span class="net">5G</span>
+        <svg width="17" height="11" viewBox="0 0 17 11" fill="currentColor"><rect x="0" y="7" width="3" height="4" rx="1"/><rect x="4.5" y="5" width="3" height="6" rx="1"/><rect x="9" y="2.5" width="3" height="8.5" rx="1"/><rect x="13.5" y="0" width="3" height="11" rx="1"/></svg>
+        <svg width="23" height="11" viewBox="0 0 23 11" fill="none" stroke="currentColor" stroke-width="1"><rect x="0.5" y="0.5" width="19" height="10" rx="2.5"/><rect x="2" y="2" width="13.5" height="7" rx="1.5" fill="currentColor" stroke="none"/><path d="M21.5 3.5v4" stroke-linecap="round"/></svg>
+      </span>
+    </div>
+
+    <div class="apphead">
+      <span class="brand"><b>云岭钱庄</b><span>晚市已收 · 安全守护中</span></span>
+      <button class="iconbtn" id="bellBtn" aria-label="钱庄消息">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5a5 5 0 0 0-5 5v3.2L4.6 15.6h14.8L17 13.2V10a5 5 0 0 0-5-5z"/><path d="M10.4 18a1.6 1.6 0 0 0 3.2 0"/></svg>
+      </button>
+    </div>
+
+    <div class="scroller" id="scroller033">
+
+      <!-- 首页 -->
+      <section class="panel on" id="panel-home">
+        <div class="tally">
+          <div class="col">
+            <span class="lbl">余 额（元）</span>
+            <div class="amt amt-mask" data-v="128,460.52">128,460.52</div>
+            <div class="sub">
+              <span>可用 <b class="amt-mask" data-v="121,300.00">121,300.00</b></span>
+              <span>冻结 <b>7,160.52</b></span>
+            </div>
+            <button class="eyebtn" id="eyeBtn">隐去金额</button>
+          </div>
+          <div class="seal">云岭通用钱牌</div>
+        </div>
+
+        <div class="actions">
+          <button class="abtn main" data-toast="演示环境：转出通道未接入">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><rect x="9.4" y="9.4" width="5.2" height="5.2"/><path d="M12 2.6V5M12 19v2.4"/></svg>
+            <span><span class="tt">转出</span><span class="ss">转至钱票 · 到卡</span></span>
+          </button>
+          <button class="abtn ghost" data-toast="钱牌码已生成，可出示给付款人">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="7" height="7" rx="1"/><rect x="14" y="4" width="6" height="3"/><rect x="14" y="9.5" width="6" height="3"/><rect x="4" y="14" width="6" height="6" rx="1"/><path d="M14.5 15h2v5M19.5 15v5"/></svg>
+            <span><span class="tt">收款</span><span class="ss">出示钱牌码</span></span>
+          </button>
+        </div>
+
+        <div class="sect">
+          <h2>最近流水</h2>
+          <button class="link" data-goto="flow">查看全部 ›</button>
+        </div>
+        <div class="ledger">
+          <div class="lrow"><span class="glyph">房</span><span class="mid"><b>房租支出</b><span>付：房东陈某 · 今天 09:12</span></span><span class="num out">-3,800.00</span></div>
+          <div class="lrow"><span class="glyph">薪</span><span class="mid"><b>工资入账</b><span>云岭纺织九月薪资 · 昨天 18:03</span></span><span class="num in">+18,600.00</span></div>
+          <div class="lrow"><span class="glyph">水</span><span class="mid"><b>水电燃气代扣</b><span>市政钱线 · 昨天 08:30</span></span><span class="num out">-216.40</span></div>
+          <div class="lrow"><span class="glyph">转</span><span class="mid"><b>转账入账</b><span>来自 林某某 · 09-04 21:47</span></span><span class="num in">+520.00</span></div>
+          <div class="lrow"><span class="glyph">息</span><span class="mid"><b>钱庄利息</b><span>活期结息 · 09-03 06:00</span></span><span class="num in">+38.92</span></div>
+        </div>
+      </section>
+
+      <!-- 流水 -->
+      <section class="panel" id="panel-flow">
+        <div class="sect"><h2>九月流水</h2><span style="font-size:11px;color:var(--muted)">共 8 笔 · 支出 9,102.90 / 入账 21,158.92</span></div>
+        <div class="chips" id="flowChips">
+          <button class="chip on" data-kind="all">全部</button>
+          <button class="chip" data-kind="out">支出</button>
+          <button class="chip" data-kind="in">入账</button>
+        </div>
+        <div class="ledger" id="flowList">
+          <div class="lrow" data-kind="out"><span class="glyph">房</span><span class="mid"><b>房租支出</b><span>付：房东陈某 · 09-06 09:12</span></span><span class="num out">-3,800.00</span></div>
+          <div class="lrow" data-kind="in"><span class="glyph">薪</span><span class="mid"><b>工资入账</b><span>云岭纺织九月薪资 · 09-05 18:03</span></span><span class="num in">+18,600.00</span></div>
+          <div class="lrow" data-kind="out"><span class="glyph">水</span><span class="mid"><b>水电燃气代扣</b><span>市政钱线 · 09-05 08:30</span></span><span class="num out">-216.40</span></div>
+          <div class="lrow" data-kind="in"><span class="glyph">转</span><span class="mid"><b>转账入账</b><span>来自 林某某 · 09-04 21:47</span></span><span class="num in">+520.00</span></div>
+          <div class="lrow" data-kind="in"><span class="glyph">息</span><span class="mid"><b>钱庄利息</b><span>活期结息 · 09-03 06:00</span></span><span class="num in">+38.92</span></div>
+          <div class="lrow" data-kind="out"><span class="glyph">市</span><span class="mid"><b>市集采买</b><span>南街生鲜行 · 09-02 17:26</span></span><span class="num out">-86.50</span></div>
+          <div class="lrow" data-kind="out"><span class="glyph">定</span><span class="mid"><b>定期转存</b><span>稳盈 90 天 申购 · 09-01 10:05</span></span><span class="num out">-5,000.00</span></div>
+          <div class="lrow" data-kind="in"><span class="glyph">亲</span><span class="mid"><b>亲友转入</b><span>来自 父亲 · 08-30 19:40</span></span><span class="num in">+2,000.00</span></div>
+        </div>
+      </section>
+
+      <!-- 理财 -->
+      <section class="panel" id="panel-wealth">
+        <div class="sect"><h2>钱庄生息</h2><span style="font-size:11px;color:var(--muted)">在存 12,000.00 元</span></div>
+        <div class="vault">
+          <div class="info"><b>稳盈 90 天</b><p>1,000 元起存 · T+1 起息 · 到期自动回钱牌</p></div>
+          <div class="rate"><b>2.85%</b><s>预期年化</s></div>
+          <button class="buy" data-toast="演示环境：申购未接入">买入</button>
+        </div>
+        <div class="vault">
+          <div class="info"><b>活期钱串</b><p>随存随取 · 日日结息 · 单日快取 5,000 元</p></div>
+          <div class="rate"><b>1.65%</b><s>预期年化</s></div>
+          <button class="buy" data-toast="演示环境：申购未接入">存入</button>
+        </div>
+        <div class="vault">
+          <div class="info"><b>新客见山礼</b><p>首存满 3,000 元 · 赠 60 天加息券</p></div>
+          <div class="rate"><b>+0.4%</b><s>加息券</s></div>
+          <button class="buy" data-toast="演示环境：活动未接入">领取</button>
+        </div>
+      </section>
+
+      <!-- 我的 -->
+      <section class="panel" id="panel-me">
+        <div class="profile">
+          <span class="face">周</span>
+          <span><b>周先生</b><span>钱庄号 8612 **** 3307 · 信用甲等</span></span>
+        </div>
+        <div class="melist">
+          <button data-toast="演示环境：卡管未接入">银行卡管理 <span>已绑 2 张 ›</span></button>
+          <button data-toast="演示环境：钱牌码未接入">收款钱牌与二维码 <span>›</span></button>
+          <button data-toast="演示环境：导出未接入">账单导出（PDF） <span>›</span></button>
+          <button data-toast="演示环境：安全设置未接入">指纹与面容锁 <em>已开启</em></button>
+          <button data-toast="云岭钱庄 v4.2.0 · 演示版">关于云岭钱庄 <span>›</span></button>
+        </div>
+      </section>
+
+    </div>
+
+    <nav class="tabbar" id="tabbar033" aria-label="主导航">
+      <button class="on" data-panel="home" aria-label="首页">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11.5 12 5l8 6.5"/><path d="M6.5 10.2V19h11v-8.8"/></svg>
+        <span>首页</span><span class="dot"></span>
+      </button>
+      <button data-panel="flow" aria-label="流水">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 7h14M5 12h9M5 17h11"/><circle cx="18" cy="12" r="1.4" fill="currentColor"/></svg>
+        <span>流水</span><span class="dot"></span>
+      </button>
+      <button data-panel="wealth" aria-label="理财">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><rect x="9.4" y="9.4" width="5.2" height="5.2"/></svg>
+        <span>理财</span><span class="dot"></span>
+      </button>
+      <button data-panel="me" aria-label="我的">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="8" r="3.6"/><path d="M5 20c1.6-4.2 12.4-4.2 14 0"/></svg>
+        <span>我的</span><span class="dot"></span>
+      </button>
+    </nav>
+
+    <div class="homebar"><i></i></div>
+    <div class="toast" id="toast033" role="status"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var screenEl = document.getElementById('screen033');
+  var toastEl = document.getElementById('toast033');
+  var toastTimer = null;
+  function toast(msg){
+    toastEl.textContent = msg;
+    toastEl.classList.add('on');
+    if(toastTimer){ clearTimeout(toastTimer); }
+    toastTimer = setTimeout(function(){ toastEl.classList.remove('on'); }, 1800);
+  }
+
+  /* 底部导航切换四个面板 */
+  var nav = document.getElementById('tabbar033');
+  var navBtns = nav.querySelectorAll('button[data-panel]');
+  var panels = document.querySelectorAll('.panel');
+  function showPanel(id){
+    panels.forEach(function(p){ p.classList.toggle('on', p.id === 'panel-' + id); });
+    navBtns.forEach(function(b){ b.classList.toggle('on', b.dataset.panel === id); });
+    document.getElementById('scroller033').scrollTop = 0;
+  }
+  navBtns.forEach(function(b){
+    b.addEventListener('click', function(){ showPanel(b.dataset.panel); });
+  });
+
+  /* 转出 / 收款 / 买入 / 我的列表等演示按钮 */
+  document.querySelectorAll('[data-toast]').forEach(function(b){
+    b.addEventListener('click', function(){ toast(b.dataset.toast); });
+  });
+
+  /* 首页「查看全部」跳到流水页 */
+  document.querySelectorAll('[data-goto]').forEach(function(b){
+    b.addEventListener('click', function(){ showPanel(b.dataset.goto); });
+  });
+
+  /* 金额隐显 */
+  var eye = document.getElementById('eyeBtn');
+  var hidden = false;
+  eye.addEventListener('click', function(){
+    hidden = !hidden;
+    document.querySelectorAll('.amt-mask').forEach(function(el){
+      el.textContent = hidden ? ' *** ' : el.dataset.v;
+    });
+    eye.textContent = hidden ? '显示金额' : '隐去金额';
+  });
+
+  /* 消息铃铛 */
+  document.getElementById('bellBtn').addEventListener('click', function(){
+    toast('钱庄公告：中秋假期到账顺延一天');
+  });
+
+  /* 流水筛选 */
+  var chips = document.querySelectorAll('#flowChips .chip');
+  var rows = document.querySelectorAll('#flowList .lrow');
+  chips.forEach(function(c){
+    c.addEventListener('click', function(){
+      chips.forEach(function(x){ x.classList.toggle('on', x === c); });
+      rows.forEach(function(r){
+        var k = c.dataset.kind;
+        r.classList.toggle('hide', k !== 'all' && r.dataset.kind !== k);
+      });
+    });
+  });
+})();
+</script>
+</body>
+</html>

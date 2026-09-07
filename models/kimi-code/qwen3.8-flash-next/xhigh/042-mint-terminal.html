@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>042 钱包支付产品 · 薄荷随身转账终端</title>
+<style>
+:root{
+  --page:#0e1713;
+  --panel:#1f2d27;
+  --inset:#15201b;
+  --panel-hi:#263a31;
+  --line:#2b3d34;
+  --line-hi:#3d594b;
+  --text:#dfeae3;
+  --muted:#8ba698;
+  --dim:#5f7a6d;
+  --mint:#3ddc97;
+  --ink:#061710;
+  --mint-soft:rgba(61,220,151,.12);
+  --warn:#cf7d6b;
+  --warn-line:#7d4a40;
+  --warn-soft:rgba(207,125,107,.10);
+  --amber:#d3b571;
+  --ff-ui:system-ui,-apple-system,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  --ff-mono:ui-monospace,"SF Mono","Cascadia Mono","Roboto Mono",Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  background:#0a120e;
+  color:var(--text);
+  font:14px/1.6 var(--ff-ui);
+  -webkit-font-smoothing:antialiased;
+  display:flex;
+  justify-content:center;
+}
+button{font-family:inherit;font-size:inherit;color:inherit;background:none;border:0;cursor:pointer;text-align:left}
+button:focus-visible{outline:1px solid var(--mint);outline-offset:-1px}
+::selection{background:var(--mint);color:var(--ink)}
+.num{font-family:var(--ff-mono);font-variant-numeric:tabular-nums}
+.app{
+  width:100%;
+  max-width:390px;
+  min-height:100vh;
+  background:var(--page);
+  border-left:1px solid var(--line);
+  border-right:1px solid var(--line);
+  display:flex;
+  flex-direction:column;
+  position:relative;
+}
+.bar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:9px 12px;background:var(--inset);
+  border-bottom:1px solid var(--line);
+  font-family:var(--ff-mono);font-size:10px;letter-spacing:.12em;color:var(--dim);
+}
+.bar-mid{color:var(--muted);letter-spacing:.2em}
+.bar b{color:var(--mint);font-weight:600}
+.ticker{
+  height:28px;overflow:hidden;background:var(--inset);
+  border-bottom:1px solid var(--line);position:relative;
+}
+.tk-track{display:flex;width:max-content;animation:tk 26s linear infinite}
+.tk-run{display:flex}
+.tk{
+  display:flex;align-items:center;gap:6px;height:28px;padding:0 12px;
+  border-right:1px solid var(--line);white-space:nowrap;
+  font-family:var(--ff-mono);font-size:10px;color:var(--muted);
+}
+.tk i{font-style:normal;color:var(--text)}
+.tk .up{color:var(--mint)}
+.tk .dn{color:var(--warn)}
+@keyframes tk{to{transform:translateX(-50%)}}
+.stage{flex:1;overflow-y:auto;scrollbar-width:thin;position:relative}
+.view{display:none;flex-direction:column}
+.view.is-active{display:flex;animation:viewin .22s ease-out}
+@keyframes viewin{from{opacity:0;transform:translateY(6px)}}
+.sect-label{
+  display:flex;justify-content:space-between;align-items:baseline;
+  padding:12px 12px 7px;font-family:var(--ff-mono);
+  font-size:10px;letter-spacing:.16em;color:var(--dim);
+}
+.sect-label b{color:var(--muted);font-weight:400;letter-spacing:.06em}
+.panel{background:var(--panel);border:1px solid var(--line)}
+.row{
+  display:grid;grid-template-columns:34px 1fr auto;gap:10px;align-items:center;
+  width:100%;padding:10px 12px;background:var(--page);
+  border:0;border-bottom:1px solid var(--line);
+  transition:background .15s ease;
+}
+.row:hover{background:var(--panel)}
+.row:active{background:var(--panel-hi)}
+.tg{
+  width:34px;height:34px;display:grid;place-items:center;
+  border:1px solid var(--line-hi);background:var(--inset);
+  font-family:var(--ff-mono);font-size:14px;color:var(--mint);
+}
+.row-main{min-width:0}
+.row-main b{display:block;font-size:13px;font-weight:600;color:var(--text)}
+.row-main i{display:block;font-style:normal;font-family:var(--ff-mono);font-size:10px;color:var(--muted);letter-spacing:.04em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row-side{display:flex;flex-direction:column;align-items:flex-end;gap:2px}
+.row-side i{font-style:normal;font-family:var(--ff-mono);font-size:10px;color:var(--dim)}
+.row-side em{font-style:normal;font-family:var(--ff-mono);font-size:10px;letter-spacing:.1em;color:var(--mint)}
+.row-side .amt-w{color:var(--warn);font-size:12px}
+.bal-panel{margin:0 12px;padding:12px 14px 0}
+.bal-row{display:flex;justify-content:space-between;align-items:flex-end;gap:8px;padding-bottom:12px}
+.bal-num{font-family:var(--ff-mono);font-variant-numeric:tabular-nums;font-size:30px;line-height:1;font-weight:700;color:var(--mint);letter-spacing:-.5px}
+.bal-cur{font-size:15px;color:var(--muted);font-weight:400;margin-right:4px}
+.bal-sub{font-family:var(--ff-mono);font-size:10px;color:var(--dim);letter-spacing:.06em;margin-top:6px}
+.spark{width:110px;height:34px;flex:none;opacity:.9}
+.spark polyline{fill:none;stroke:var(--mint);stroke-width:1.5}
+.spark circle{fill:var(--mint)}
+.src-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:1px;
+  background:var(--line);border-top:1px solid var(--line);
+  margin:0 -1px -1px;
+}
+.src{
+  display:block;background:var(--inset);padding:9px 8px 10px;width:100%;
+  transition:background .15s ease;
+}
+.src:hover{background:var(--panel-hi)}
+.src .src-h{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--muted);letter-spacing:.02em}
+.src .sdot{width:6px;height:6px;flex:none;background:var(--dim)}
+.src .src-v{display:block;font-family:var(--ff-mono);font-variant-numeric:tabular-nums;font-size:12px;color:var(--text);margin-top:4px}
+.src.is-sel{background:var(--panel);box-shadow:inset 0 0 0 1px var(--mint)}
+.src.is-sel .sdot{background:var(--mint)}
+.src.is-sel .src-h{color:var(--mint)}
+.stat-row{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--line);border-left:0;border-right:0;margin:12px 0 0;background:var(--inset)}
+.stat{padding:9px 12px;border-left:1px solid var(--line)}
+.stat:first-child{border-left:0}
+.stat b{display:block;font-family:var(--ff-mono);font-variant-numeric:tabular-nums;font-size:13px;font-weight:600;color:var(--text)}
+.stat i{display:block;font-style:normal;font-size:10px;color:var(--dim);letter-spacing:.08em;margin-top:2px}
+</style>
+<style>
+.ctx{
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+  padding:9px 12px;background:var(--panel);border-bottom:1px solid var(--line);
+}
+.link-back{font-family:var(--ff-mono);font-size:11px;letter-spacing:.08em;color:var(--muted);padding:2px 4px;transition:color .15s ease}
+.link-back:hover{color:var(--mint)}
+.ctx-pay{font-family:var(--ff-mono);font-size:10px;letter-spacing:.1em;color:var(--dim)}
+.amt-box{padding:20px 16px 10px;border-bottom:1px solid var(--line)}
+.amt-label{font-family:var(--ff-mono);font-size:10px;letter-spacing:.18em;color:var(--dim);margin-bottom:10px}
+.amt-main{
+  font-family:var(--ff-mono);font-variant-numeric:tabular-nums;
+  font-size:40px;line-height:1;font-weight:700;color:var(--text);letter-spacing:-1px;
+  display:flex;align-items:baseline;
+}
+.amt-cur{font-size:18px;color:var(--muted);font-weight:400;margin-right:6px}
+.caret{
+  display:inline-block;width:8px;height:26px;background:var(--mint);
+  margin-left:4px;animation:blink 1.1s steps(1) infinite;
+}
+@keyframes blink{50%{opacity:0}}
+.amt-sub{display:flex;justify-content:space-between;font-family:var(--ff-mono);font-size:10px;color:var(--muted);letter-spacing:.04em;margin-top:10px}
+.amt-note{
+  display:none;margin-top:10px;padding:7px 9px;
+  border:1px solid var(--warn-line);background:var(--warn-soft);
+  color:var(--warn);font-family:var(--ff-mono);font-size:10px;line-height:1.5;letter-spacing:.02em;
+}
+.amt-note.is-on{display:block}
+.chips{display:flex;flex-wrap:wrap;gap:6px;padding:12px 12px 4px}
+.chip{
+  font-family:var(--ff-mono);font-variant-numeric:tabular-nums;font-size:11px;
+  padding:6px 10px;background:var(--inset);border:1px solid var(--line);
+  color:var(--muted);letter-spacing:.04em;transition:all .15s ease;
+}
+.chip:hover{border-color:var(--mint);color:var(--mint)}
+.chip-over{border-color:var(--warn-line);color:var(--warn)}
+.chip-over:hover{border-color:var(--warn);background:var(--warn-soft);color:var(--warn)}
+.pad{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:1px;
+  background:var(--line);border:1px solid var(--line);margin:12px;
+}
+.key{
+  background:var(--inset);padding:15px 0;text-align:center;
+  font-family:var(--ff-mono);font-size:19px;color:var(--text);
+  transition:background .1s ease,color .1s ease;
+}
+.key:hover{background:var(--panel-hi)}
+.key:active{background:var(--panel);color:var(--mint)}
+.key.fn{font-size:13px;color:var(--muted);letter-spacing:.08em}
+.btn{
+  display:block;width:calc(100% - 24px);margin:12px;
+  padding:14px 12px;text-align:center;
+  font-family:var(--ff-mono);font-size:13px;font-weight:700;letter-spacing:.14em;
+  transition:background .15s ease,color .15s ease,border-color .15s ease,transform .1s ease;
+}
+.btn-primary{background:var(--mint);color:var(--ink);border:1px solid var(--mint)}
+.btn-primary:hover{filter:brightness(1.08)}
+.btn-primary:active{transform:translateY(1px)}
+.btn-primary:disabled{
+  background:var(--inset);color:var(--dim);border:1px solid var(--line);
+  cursor:not-allowed;filter:none;transform:none;
+}
+.btn-ghost{background:var(--inset);color:var(--text);border:1px solid var(--line-hi);font-weight:400}
+.btn-ghost:hover{border-color:var(--mint);color:var(--mint)}
+.ticket{margin:0 12px}
+.kv{
+  display:flex;justify-content:space-between;align-items:baseline;gap:12px;
+  padding:10px 12px;border-bottom:1px solid var(--line);
+}
+.kv:last-child{border-bottom:0}
+.kv label{font-size:11px;color:var(--muted);letter-spacing:.06em;flex:none}
+.kv .v{font-family:var(--ff-mono);font-variant-numeric:tabular-nums;font-size:13px;color:var(--text);text-align:right}
+.kv .v.big{font-size:16px;font-weight:700;color:var(--mint)}
+.kv .v.neg{color:var(--warn)}
+.kv .v.dim{color:var(--dim);font-weight:400}
+.seg-wrap{margin:0 12px}
+.seg-wrap .src-grid{border:1px solid var(--line);margin:0}
+.err{
+  display:none;margin:12px;padding:12px 12px 10px;
+  border:1px solid var(--warn);background:var(--warn-soft);
+}
+.err.is-on{display:block;animation:shake .3s ease}
+@keyframes shake{20%{transform:translateX(-4px)}45%{transform:translateX(3px)}70%{transform:translateX(-2px)}}
+.err-head{
+  display:flex;align-items:center;gap:7px;
+  font-family:var(--ff-mono);font-size:12px;font-weight:700;letter-spacing:.1em;color:var(--warn);
+}
+.err-body{font-family:var(--ff-mono);font-size:10px;line-height:1.7;color:var(--text);margin-top:8px;letter-spacing:.02em}
+.err-body b{color:var(--warn)}
+.btn-err{
+  display:block;width:100%;margin-top:10px;padding:9px 0;text-align:center;
+  border:1px solid var(--warn);color:var(--warn);background:transparent;
+  font-family:var(--ff-mono);font-size:11px;letter-spacing:.12em;
+  transition:background .15s ease;
+}
+.btn-err:hover{background:var(--warn-soft)}
+.err-hint{font-size:10px;color:var(--muted);margin-top:8px;line-height:1.5}
+.proc{padding:64px 28px 40px;display:flex;flex-direction:column;align-items:center}
+.proc-title{font-family:var(--ff-mono);font-size:16px;font-weight:700;letter-spacing:.24em;color:var(--mint)}
+.proc-sub{font-size:11px;color:var(--dim);margin-top:8px;letter-spacing:.1em}
+.p-steps{width:100%;margin:28px 0 22px;border:1px solid var(--line);background:var(--panel)}
+.p-step{
+  display:flex;align-items:center;gap:10px;padding:11px 12px;
+  border-bottom:1px solid var(--line);
+  font-family:var(--ff-mono);font-size:11px;letter-spacing:.08em;color:var(--dim);
+  transition:color .2s ease;
+}
+.p-step:last-child{border-bottom:0}
+.p-step i{font-style:normal;width:14px;flex:none;text-align:center}
+.p-step.run{color:var(--amber)}
+.p-step.run i::after{content:"▸";animation:pulse .8s steps(1) infinite}
+.p-step.done{color:var(--mint)}
+.p-step.done i::after{content:"■"}
+@keyframes pulse{50%{opacity:.3}}
+.proc-bar{width:100%;height:6px;background:var(--inset);border:1px solid var(--line)}
+.proc-bar i{display:block;height:100%;width:100%;background:var(--amber);animation:fill 1.9s linear forwards}
+@keyframes fill{from{width:0}}
+.rc-head{display:flex;align-items:center;justify-content:space-between;padding:20px 14px 14px}
+.rc-title{font-size:17px;font-weight:700;letter-spacing:.06em}
+.rc-title span{display:block;font-family:var(--ff-mono);font-size:10px;font-weight:400;letter-spacing:.24em;color:var(--mint);margin-top:3px}
+.stamp{
+  transform:rotate(-7deg);border:2px solid var(--mint);color:var(--mint);
+  padding:5px 12px 5px 15px;font-family:var(--ff-mono);font-size:15px;font-weight:700;letter-spacing:.3em;
+  animation:stampin .3s ease-out;
+}
+@keyframes stampin{from{opacity:0;transform:rotate(-7deg) scale(1.5)}}
+.rc-panel{margin:0 12px}
+.rc-note{font-family:var(--ff-mono);font-size:10px;color:var(--dim);padding:10px 14px 0;letter-spacing:.04em}
+.rc-btns{display:grid;grid-template-columns:1fr 1.4fr}
+.rc-btns .btn{margin:12px 0 12px 12px;width:auto}
+.rc-btns .btn + .btn{margin-left:1px}
+.foot{
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+  padding:8px 12px;background:var(--inset);border-top:1px solid var(--line);
+  font-family:var(--ff-mono);font-size:9px;letter-spacing:.12em;color:var(--dim);
+}
+.foot-state{display:flex;align-items:center;gap:6px}
+.fdot{width:7px;height:7px;background:var(--mint);animation:pulse 1.6s steps(1) infinite}
+.fdot.steady{animation:none}
+.fdot.warn{background:var(--warn);animation:none}
+.fdot.amber{background:var(--amber)}
+@media (max-width:360px){
+  .bal-num{font-size:26px}
+  .amt-main{font-size:34px}
+  .key{padding:13px 0;font-size:17px}
+  .src .src-v{font-size:11px}
+}
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation:none !important;transition:none !important}
+  .caret{animation:none}
+  .proc-bar i{width:100%}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="bar">
+    <span>MT-042 <b>·</b> SEC</span>
+    <span class="bar-mid">薄荷终端 MINT TERMINAL</span>
+    <span id="clock">--:--:--</span>
+  </header>
+
+  <div class="ticker" aria-hidden="true">
+    <div class="tk-track">
+      <div class="tk-run">
+        <span class="tk">黄金9999 <i>786.40</i><span class="up">+0.62%</span></span>
+        <span class="tk">WTI原油 <i>68.21</i><span class="dn">-1.83%</span></span>
+        <span class="tk">美元/人民币 <i>7.0912</i><span class="up">+0.04%</span></span>
+        <span class="tk">恒生科技 <i>4,312</i><span class="dn">-0.57%</span></span>
+        <span class="tk">沪指 <i>3,241</i><span class="up">+0.88%</span></span>
+        <span class="tk">十年国债 <i>2.18%</i><span class="dn">-0.02%</span></span>
+        <span class="tk">薄荷指数 <i>1,042</i><span class="up">+2.14%</span></span>
+      </div>
+      <div class="tk-run">
+        <span class="tk">黄金9999 <i>786.40</i><span class="up">+0.62%</span></span>
+        <span class="tk">WTI原油 <i>68.21</i><span class="dn">-1.83%</span></span>
+        <span class="tk">美元/人民币 <i>7.0912</i><span class="up">+0.04%</span></span>
+        <span class="tk">恒生科技 <i>4,312</i><span class="dn">-0.57%</span></span>
+        <span class="tk">沪指 <i>3,241</i><span class="up">+0.88%</span></span>
+        <span class="tk">十年国债 <i>2.18%</i><span class="dn">-0.02%</span></span>
+        <span class="tk">薄荷指数 <i>1,042</i><span class="up">+2.14%</span></span>
+      </div>
+    </div>
+  </div>
+
+  <main class="stage">
+
+    <section class="view" data-view="market">
+      <div class="sect-label"><span>AVAILABLE <b>可用余额</b></span><b id="srcTag">活期余额 ****8021</b></div>
+      <div class="panel bal-panel">
+        <div class="bal-row">
+          <div>
+            <div class="bal-num"><span class="bal-cur">¥</span><span id="balNum">8,642.30</span></div>
+            <div class="bal-sub">冻结 0.00 · 在途 0.00 · 实时清算</div>
+          </div>
+          <svg class="spark" viewBox="0 0 110 34" preserveAspectRatio="none" aria-hidden="true">
+            <polyline points="0,28 12,25 22,27 34,20 46,23 58,15 70,17 82,10 94,12 110,4"></polyline>
+            <circle cx="107" cy="5" r="2.2"></circle>
+          </svg>
+        </div>
+        <div class="src-grid" id="srcGrid"></div>
+      </div>
+      <div class="stat-row">
+        <div class="stat"><b id="statOut">3,140.50</b><i>30日出账</i></div>
+        <div class="stat"><b>4</b><i>已验证收款人</i></div>
+        <div class="stat"><b>100.0%</b><i>清算成功率</i></div>
+      </div>
+      <div class="sect-label"><span>RECIPIENTS <b>收款人名录</b></span><b>点击发起转账</b></div>
+      <div id="payGrid"></div>
+      <div class="sect-label"><span>RECENT <b>近期出账</b></span><b id="recentTag">共 3 笔</b></div>
+      <div id="recentGrid"></div>
+    </section>
+
+    <section class="view" data-view="amount">
+      <div class="ctx">
+        <button class="link-back" data-go="market">‹ 返回行情</button>
+        <span class="ctx-pay" id="ctxPay">未选收款人</span>
+      </div>
+      <div class="amt-box">
+        <div class="amt-label">TRANSFER AMOUNT · 转账金额</div>
+        <div class="amt-main"><span class="amt-cur">¥</span><span id="amtNum">0.00</span><i class="caret" aria-hidden="true"></i></div>
+        <div class="amt-sub">
+          <span id="amtAvail">可用 8,642.30</span>
+          <span id="amtTotal">含手续费合计 0.50</span>
+        </div>
+        <div class="amt-note" id="amtNote"></div>
+      </div>
+      <div class="chips">
+        <button class="chip" data-amt="500">500.00</button>
+        <button class="chip" data-amt="2000">2,000.00</button>
+        <button class="chip" data-amt="8000">8,000.00</button>
+        <button class="chip chip-over" data-amt="12000">超限 12,000.00</button>
+      </div>
+      <div class="pad" id="pad">
+        <button class="key" data-k="1">1</button>
+        <button class="key" data-k="2">2</button>
+        <button class="key" data-k="3">3</button>
+        <button class="key" data-k="4">4</button>
+        <button class="key" data-k="5">5</button>
+        <button class="key" data-k="6">6</button>
+        <button class="key" data-k="7">7</button>
+        <button class="key" data-k="8">8</button>
+        <button class="key" data-k="9">9</button>
+        <button class="key fn" data-k=".">.</button>
+        <button class="key" data-k="0">0</button>
+        <button class="key fn" data-k="back">退格 ⌫</button>
+      </div>
+      <button class="btn btn-primary" id="btnVerify" disabled>下一步 · 核对指令 VERIFY</button>
+    </section>
+
+    <section class="view" data-view="confirm">
+      <div class="ctx">
+        <button class="link-back" data-go="amount">‹ 改金额</button>
+        <span class="ctx-pay">TICKET 482-042</span>
+      </div>
+      <div class="sect-label"><span>ORDER TICKET <b>转账指令</b></span><b>待确认</b></div>
+      <div class="panel ticket" id="ticket"></div>
+      <div class="sect-label"><span>FUNDING <b>资金来源</b></span><b>可在此切换</b></div>
+      <div class="seg-wrap"><div class="src-grid" id="srcSeg"></div></div>
+      <div class="err" id="errPanel" role="alert">
+        <div class="err-head"><i class="fdot warn" aria-hidden="true"></i>余额不足 · INSUFFICIENT</div>
+        <div class="err-body" id="errBody"></div>
+        <button class="btn-err" id="btnAmend">调整金额 AMEND</button>
+        <div class="err-hint">转账已拦截，款项未提交。可调整金额，或在上方切换可用资金来源后重新确认。</div>
+      </div>
+      <button class="btn btn-primary" id="btnSend">确认转账 EXECUTE</button>
+    </section>
+
+    <section class="view" data-view="processing">
+      <div class="proc">
+        <div class="proc-title">EXECUTING</div>
+        <div class="proc-sub">指令执行中 · 请勿关闭随身终端</div>
+        <div class="p-steps">
+          <div class="p-step" id="ps0"><i aria-hidden="true"></i>校验资金与限额</div>
+          <div class="p-step" id="ps1"><i aria-hidden="true"></i>路由签名</div>
+          <div class="p-step" id="ps2"><i aria-hidden="true"></i>清算入账</div>
+        </div>
+        <div class="proc-bar"><i aria-hidden="true"></i></div>
+      </div>
+    </section>
+
+    <section class="view" data-view="receipt">
+      <div class="rc-head">
+        <div class="rc-title">转账成功<span>SETTLED · 已清算</span></div>
+        <div class="stamp">已清算</div>
+      </div>
+      <div class="panel rc-panel" id="rcPanel"></div>
+      <div class="rc-note">凭证编号可在「近期出账」回溯核对 · 接收方实时到账</div>
+      <div class="rc-btns">
+        <button class="btn btn-ghost" data-go="market">返回行情</button>
+        <button class="btn btn-primary" id="btnAgain">再来一笔 AGAIN</button>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="foot">
+    <span>SESSION 48-2211</span>
+    <span class="foot-state"><i class="fdot" id="fdot" aria-hidden="true"></i><span id="footState">IDLE 待机</span></span>
+    <span>AES-256</span>
+  </footer>
+</div>
+<script>
+(function(){
+"use strict";
+var FEE = 0.50;
+var RM = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+var sources = [
+  {id:"wallet",  name:"活期余额",   tail:"****8021", bal:8642.30},
+  {id:"margin",  name:"保证金账户", tail:"****3367", bal:24500.00},
+  {id:"reserve", name:"经营备用金", tail:"****0149", bal:1020.18}
+];
+var payees = [
+  {id:"p1", tg:"林", name:"林某某", tag:"晚晴工作室", tail:"****8823", last:"09-05 21:14"},
+  {id:"p2", tg:"陈", name:"陈某某", tag:"听树设计",   tail:"****4410", last:"09-06 16:02"},
+  {id:"p3", tg:"陆", name:"陆某某", tag:"承业贸易",   tail:"****7156", last:"09-02 09:47"},
+  {id:"p4", tg:"苏", name:"苏某",   tag:"衡顺物流",   tail:"****2094", last:"08-29 18:30"}
+];
+var recents = [
+  {name:"陈某某", memo:"设计费尾款", srcName:"活期余额",   amt:1200.00, when:"09-06 16:02"},
+  {name:"林某某", memo:"样品货款",   srcName:"保证金账户", amt:1540.50, when:"09-05 21:14"},
+  {name:"苏某",   memo:"运费月结",   srcName:"活期余额",   amt:400.00,  when:"08-29 18:30"}
+];
+var monthOut = 3140.50;
+var state = {view:"market", srcId:"wallet", payeeId:null, amount:"", errOn:false};
+var receipt = null;
+
+function el(id){ return document.getElementById(id); }
+function curSrc(){
+  for(var i=0;i<sources.length;i++){ if(sources[i].id===state.srcId) return sources[i]; }
+  return sources[0];
+}
+function curPayee(){
+  for(var i=0;i<payees.length;i++){ if(payees[i].id===state.payeeId) return payees[i]; }
+  return null;
+}
+function amt(){ return Number(state.amount || 0) || 0; }
+function round2(n){ return Math.round(n*100)/100; }
+function fmtInt(s){ return s.replace(/\B(?=(\d{3})+(?!\d))/g, ","); }
+function fmt(n){
+  var parts = Math.abs(n).toFixed(2).split(".");
+  return (n<0?"-":"") + fmtInt(parts[0]) + "." + parts[1];
+}
+function pad2(n){ return (n<10?"0":"")+n; }
+function nowShort(){
+  var d = new Date();
+  return pad2(d.getMonth()+1)+"-"+pad2(d.getDate())+" "+pad2(d.getHours())+":"+pad2(d.getMinutes());
+}
+
+function go(v){
+  state.view = v;
+  var views = document.querySelectorAll(".view");
+  for(var i=0;i<views.length;i++){
+    views[i].classList.toggle("is-active", views[i].getAttribute("data-view")===v);
+  }
+  var stage = document.querySelector(".stage");
+  stage.scrollTop = 0;
+  if(v==="confirm"){
+    if(state.errOn && round2(amt()+FEE) <= curSrc().bal){
+      state.errOn = false;
+      el("errPanel").classList.remove("is-on");
+    }
+    renderTicket(); renderSeg();
+  }
+  if(v==="market"){ renderSrcGrid(); renderBalance(); renderRecents(); }
+  if(v==="amount"){
+    var p = curPayee();
+    el("ctxPay").textContent = p ? (p.name+" "+p.tail) : "未选收款人";
+    renderAmount();
+  }
+  if(v==="confirm"){ phase(state.errOn ? "warn" : "armed"); }
+  else if(v==="processing"){ phase("exec"); }
+  else if(v==="receipt"){ phase("ok"); }
+  else { phase("idle"); }
+}
+
+function phase(k){
+  var dot = el("fdot"), txt = el("footState");
+  dot.className = "fdot";
+  if(k==="idle"){ txt.textContent="IDLE 待机"; dot.classList.add("steady"); }
+  else if(k==="armed"){ txt.textContent="ARMED 待确认"; }
+  else if(k==="exec"){ txt.textContent="EXEC 执行中"; dot.classList.add("amber"); dot.classList.add("steady"); }
+  else if(k==="warn"){ txt.textContent="BLOCKED 已拦截"; dot.classList.add("warn"); }
+  else { txt.textContent="SETTLED 已清算"; dot.classList.add("steady"); }
+}
+
+function srcTileHTML(s, sel){
+  return '<button class="src'+(sel?" is-sel":"")+'" data-src="'+s.id+'">'
+    + '<span class="src-h"><i class="sdot" aria-hidden="true"></i>'+s.name+'</span>'
+    + '<span class="src-v">'+fmt(s.bal)+'</span></button>';
+}
+function renderSrcGrid(){
+  var h = "";
+  for(var i=0;i<sources.length;i++){ h += srcTileHTML(sources[i], sources[i].id===state.srcId); }
+  el("srcGrid").innerHTML = h;
+}
+function renderSeg(){
+  var h = "";
+  for(var i=0;i<sources.length;i++){ h += srcTileHTML(sources[i], sources[i].id===state.srcId); }
+  el("srcSeg").innerHTML = h;
+}
+function renderBalance(){
+  var s = curSrc();
+  el("balNum").textContent = fmt(s.bal);
+  el("srcTag").textContent = s.name+" "+s.tail;
+  el("statOut").textContent = fmt(monthOut);
+}
+function renderPayees(){
+  var h = "";
+  for(var i=0;i<payees.length;i++){
+    var p = payees[i];
+    h += '<button class="row pay" data-pay="'+p.id+'">'
+      + '<span class="tg">'+p.tg+'</span>'
+      + '<span class="row-main"><b>'+p.name+'</b><i>'+p.tag+' · '+p.tail+'</i></span>'
+      + '<span class="row-side"><i>上次 '+p.last+'</i><em>发起 ›</em></span>'
+      + '</button>';
+  }
+  el("payGrid").innerHTML = h;
+}
+function renderRecents(){
+  var h = "";
+  for(var i=0;i<recents.length;i++){
+    var r = recents[i];
+    h += '<div class="row rec">'
+      + '<span class="tg">付</span>'
+      + '<span class="row-main"><b>'+r.name+'</b><i>'+r.memo+' · '+r.srcName+'</i></span>'
+      + '<span class="row-side"><em class="amt-w">-'+fmt(r.amt)+'</em><i>'+r.when+'</i></span>'
+      + '</div>';
+  }
+  el("recentGrid").innerHTML = h;
+  el("recentTag").textContent = "共 "+recents.length+" 笔";
+}
+
+function amtDisplay(){
+  var a = state.amount;
+  if(a==="") return "0.00";
+  var dot = a.indexOf(".");
+  if(dot<0) return fmtInt(a);
+  return fmtInt(a.slice(0,dot)||"0") + a.slice(dot);
+}
+function renderAmount(){
+  var s = curSrc(), a = amt(), total = round2(a+FEE);
+  el("amtNum").textContent = amtDisplay();
+  el("amtAvail").textContent = "可用 "+fmt(s.bal)+" · "+s.name;
+  el("amtTotal").textContent = "含手续费合计 "+fmt(total);
+  var note = el("amtNote");
+  if(a>0 && total>s.bal){
+    note.classList.add("is-on");
+    note.textContent = "本笔需扣减 ¥"+fmt(total)+"，超出「"+s.name+"」可用 ¥"+fmt(s.bal)+"（含手续费 ¥0.50）。确认时将被拦截。";
+  }else{
+    note.classList.remove("is-on");
+    note.textContent = "";
+  }
+  el("btnVerify").disabled = !(a>0);
+}
+
+function kvRow(label, value, cls){
+  return '<div class="kv"><label>'+label+'</label><span class="v '+(cls||"")+'">'+value+'</span></div>';
+}
+function renderTicket(){
+  var p = curPayee(), s = curSrc(), a = amt(), total = round2(a+FEE), rest = round2(s.bal-total);
+  if(!p) return;
+  var h = "";
+  h += kvRow("收款人", p.name+" · "+p.tag);
+  h += kvRow("收款账号", p.tail);
+  h += kvRow("转账金额", "¥ "+fmt(a), "big");
+  h += kvRow("手续费", "¥ "+fmt(FEE));
+  h += kvRow("扣减合计", "¥ "+fmt(total));
+  h += kvRow("预计结余", "¥ "+fmt(rest), rest<0 ? "neg" : "dim");
+  h += kvRow("到账时间", "实时到账");
+  el("ticket").innerHTML = h;
+}
+function renderErr(){
+  var s = curSrc(), a = amt(), total = round2(a+FEE);
+  var gap = round2(total - s.bal);
+  el("errBody").innerHTML =
+    "「"+s.name+"」可用余额 <b>¥"+fmt(s.bal)+"</b><br>"
+    + "本笔需扣减 <b>¥"+fmt(total)+"</b>（含手续费 ¥"+fmt(FEE)+"），缺口 <b>¥"+fmt(gap)+"</b><br>"
+    + "转账已拦截，款项未提交。";
+}
+
+function pressKey(k){
+  var a = state.amount;
+  if(k==="back"){ a = a.slice(0,-1); }
+  else if(k==="."){
+    if(a.indexOf(".")>=0) return;
+    a = (a==="") ? "0." : a+".";
+  }else{
+    if(a.replace(".","").length>=10) return;
+    if(a==="0") a = "";
+    a = a+k;
+  }
+  var m = a.match(/^(\d*)\.(\d{3,})$/);
+  if(m) a = m[1]+"."+m[2].slice(0,2);
+  state.amount = a;
+  renderAmount();
+}
+
+function setStep(i, cls){
+  var e = el("ps"+i);
+  e.classList.remove("run","done");
+  if(cls) e.classList.add(cls);
+}
+function resetSteps(){
+  for(var i=0;i<3;i++) setStep(i, null);
+}
+
+function execute(){
+  var p = curPayee(), s = curSrc(), a = amt(), total = round2(a+FEE);
+  s.bal = round2(s.bal-total);
+  monthOut = round2(monthOut+total);
+  recents.unshift({name:p.name, memo:"随身转账", srcName:s.name, amt:a, when:nowShort()});
+  var d = new Date();
+  var ymd = ""+d.getFullYear()+pad2(d.getMonth()+1)+pad2(d.getDate());
+  var hex = "0123456789ABCDEF", ref = "";
+  for(var i=0;i<12;i++){ ref += hex.charAt(Math.floor(Math.random()*16)); }
+  receipt = {
+    serial: "4820-"+ymd+"-"+String(100000+Math.floor(Math.random()*900000)),
+    ref: "MT-"+ref,
+    when: ymd.slice(0,4)+"-"+ymd.slice(4,6)+"-"+ymd.slice(6,8)+" "+pad2(d.getHours())+":"+pad2(d.getMinutes())+":"+pad2(d.getSeconds()),
+    payee: p.name+" · "+p.tag,
+    tail: p.tail,
+    amt: a,
+    srcName: s.name,
+    total: total,
+    rest: s.bal
+  };
+  resetSteps();
+  state.errOn = false;
+  el("errPanel").classList.remove("is-on");
+  go("processing");
+  setStep(0,"run");
+  if(RM){
+    setStep(0,"done"); setStep(1,"done"); setStep(2,"done");
+    window.setTimeout(finishReceipt, 300);
+  }else{
+    window.setTimeout(function(){ setStep(0,"done"); setStep(1,"run"); }, 600);
+    window.setTimeout(function(){ setStep(1,"done"); setStep(2,"run"); }, 1200);
+    window.setTimeout(finishReceipt, 1900);
+  }
+}
+function finishReceipt(){
+  var r = receipt, h = "";
+  h += kvRow("凭证编号", r.serial);
+  h += kvRow("业务参考号", r.ref, "dim");
+  h += kvRow("收款人", r.payee);
+  h += kvRow("收款账号", r.tail);
+  h += kvRow("转账金额", "¥ "+fmt(r.amt), "big");
+  h += kvRow("手续费", "¥ "+fmt(FEE));
+  h += kvRow("资金来源", r.srcName);
+  h += kvRow("扣减合计", "¥ "+fmt(r.total));
+  h += kvRow("剩余可用", "¥ "+fmt(r.rest));
+  h += kvRow("完成时间", r.when);
+  el("rcPanel").innerHTML = h;
+  go("receipt");
+}
+
+document.addEventListener("click", function(ev){
+  var t = ev.target;
+  while(t && t !== document && t.nodeType===1){
+    if(t.getAttribute && t.getAttribute("data-pay")){
+      state.payeeId = t.getAttribute("data-pay");
+      go("amount");
+      return;
+    }
+    if(t.getAttribute && t.getAttribute("data-src")){
+      state.srcId = t.getAttribute("data-src");
+      if(state.view==="amount"){ renderAmount(); }
+      else if(state.view==="confirm"){
+        renderSeg(); renderTicket();
+        var total = round2(amt()+FEE);
+        if(total <= curSrc().bal){
+          state.errOn = false;
+          el("errPanel").classList.remove("is-on");
+          phase("armed");
+        }else if(state.errOn){
+          renderErr();
+        }
+      }else{
+        renderSrcGrid(); renderBalance();
+      }
+      return;
+    }
+    if(t.getAttribute && t.getAttribute("data-k")){ pressKey(t.getAttribute("data-k")); return; }
+    if(t.getAttribute && t.getAttribute("data-amt")){
+      state.amount = t.getAttribute("data-amt");
+      renderAmount();
+      return;
+    }
+    if(t.id==="btnVerify"){ go("confirm"); return; }
+    if(t.id==="btnSend"){
+      var total = round2(amt()+FEE);
+      if(total > curSrc().bal){
+        state.errOn = true;
+        renderErr();
+        el("errPanel").classList.add("is-on");
+        phase("warn");
+      }else{
+        execute();
+      }
+      return;
+    }
+    if(t.id==="btnAmend"){
+      state.errOn = false;
+      el("errPanel").classList.remove("is-on");
+      go("amount");
+      return;
+    }
+    if(t.id==="btnAgain"){
+      state.amount = "";
+      state.errOn = false;
+      el("errPanel").classList.remove("is-on");
+      go("amount");
+      return;
+    }
+    if(t.getAttribute && t.getAttribute("data-go")){ go(t.getAttribute("data-go")); return; }
+    t = t.parentNode;
+  }
+});
+
+function tickClock(){
+  var d = new Date();
+  el("clock").textContent = pad2(d.getHours())+":"+pad2(d.getMinutes())+":"+pad2(d.getSeconds());
+}
+window.setInterval(tickClock, 1000);
+tickClock();
+renderPayees();
+go("market");
+})();
+</script>
+</body>
+</html>

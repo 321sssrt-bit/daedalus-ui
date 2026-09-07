@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>银盐相册 · 胶片社区</title>
+<style>
+  :root {
+    --film: #2a2723;
+    --film-deep: #1e1c19;
+    --paper: #f3efe4;
+    --paper-dim: #e7e1d1;
+    --sun: #c9a45c;
+    --sun-soft: #e0c894;
+    --ink: #3a342c;
+    --muted: #8a7f6d;
+    --stamp: #b2543f;
+    --olive: #6f7a52;
+    --line: #cfc6ae;
+    --font-body: -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
+    --font-num: ui-monospace, "Courier New", monospace;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { background: #17150f; }
+  body {
+    font-family: var(--font-body);
+    width: 100%;
+    max-width: 390px;
+    min-height: 844px;
+    margin: 0 auto;
+    background: var(--film);
+    color: var(--paper);
+    position: relative;
+    overflow-x: hidden;
+  }
+  body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    max-width: 390px;
+    left: 50%;
+    transform: translateX(-50%);
+    pointer-events: none;
+    z-index: 60;
+    background-image:
+      radial-gradient(rgba(243, 239, 228, 0.05) 1px, transparent 1.6px),
+      radial-gradient(rgba(30, 28, 25, 0.06) 1px, transparent 1.6px);
+    background-size: 7px 7px, 9px 11px;
+    background-position: 0 0, 3px 5px;
+  }
+
+  /* 齿孔胶片条 */
+  .filmstrip {
+    height: 26px;
+    background:
+      repeating-linear-gradient(90deg, transparent 0 9px, rgba(243,239,228,0.34) 9px 21px, transparent 21px 30px)
+      center / auto 8px no-repeat,
+      var(--film-deep);
+    border-bottom: 1px solid rgba(243,239,228,0.12);
+  }
+
+  header.app {
+    padding: 14px 18px 12px;
+    border-bottom: 1px solid rgba(243,239,228,0.14);
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .brand { display: flex; flex-direction: column; gap: 3px; }
+  .brand h1 {
+    font-size: 21px;
+    letter-spacing: 3px;
+    font-weight: 700;
+    color: var(--paper);
+  }
+  .brand h1 em { font-style: normal; color: var(--sun); }
+  .brand small {
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--muted);
+  }
+  .counter {
+    font-family: var(--font-num);
+    font-size: 12px;
+    color: var(--sun-soft);
+    border: 1px solid rgba(201,164,92,0.55);
+    border-radius: 3px;
+    padding: 4px 8px;
+    letter-spacing: 1px;
+    white-space: nowrap;
+  }
+
+  main.feed {
+    padding: 18px 16px 120px;
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+  }
+  .feed-note {
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .feed-note::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(243,239,228,0.28), transparent);
+  }
+
+  /* 相纸卡片 */
+  article.post {
+    background: var(--paper);
+    color: var(--ink);
+    border-radius: 2px;
+    padding: 10px 10px 12px;
+    box-shadow: 0 10px 22px rgba(0,0,0,0.42), 0 1px 0 rgba(243,239,228,0.08);
+    position: relative;
+    transform: rotate(var(--tilt, 0deg));
+  }
+  article.post:nth-child(2) { --tilt: -0.7deg; }
+  article.post:nth-child(3) { --tilt: 0.8deg; }
+  article.post:nth-child(4) { --tilt: -0.4deg; }
+  article.post:nth-child(5) { --tilt: 0.5deg; }
+  article.post::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image:
+      radial-gradient(rgba(58,52,44,0.045) 1px, transparent 1.5px);
+    background-size: 6px 8px;
+  }
+  .post-figure {
+    background: var(--film-deep);
+    padding: 6px;
+    border-radius: 1px;
+  }
+  .post-figure svg { display: block; width: 100%; height: 168px; }
+  .post-caption {
+    font-size: 14px;
+    line-height: 1.6;
+    padding: 9px 4px 0;
+    color: var(--ink);
+  }
+  .post-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 4px 0;
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .who { color: var(--ink); font-weight: 600; letter-spacing: 0.5px; }
+  .scope {
+    font-size: 10px;
+    letter-spacing: 1px;
+    border: 1px solid var(--line);
+    color: var(--muted);
+    border-radius: 2px;
+    padding: 1px 6px;
+    background: var(--paper-dim);
+    white-space: nowrap;
+  }
+  .spacer { flex: 1; }
+  .like {
+    font-family: var(--font-body);
+    font-size: 12px;
+    color: var(--muted);
+    background: none;
+    border: 1px solid var(--line);
+    border-radius: 2px;
+    padding: 3px 9px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    transition: color 160ms ease, border-color 160ms ease, background-color 160ms ease;
+  }
+  .like:hover { color: var(--stamp); border-color: var(--stamp); }
+  .like:focus-visible { outline: 2px solid var(--sun); outline-offset: 2px; }
+  .like[aria-pressed="true"] {
+    color: #fff;
+    background: var(--stamp);
+    border-color: var(--stamp);
+  }
+  .like svg { width: 12px; height: 12px; display: block; }
+  .datestamp {
+    position: absolute;
+    right: 14px;
+    bottom: 12px;
+    font-family: var(--font-num);
+    font-size: 12px;
+    letter-spacing: 2px;
+    color: var(--stamp);
+    opacity: 0.82;
+    transform: rotate(-2deg);
+    text-shadow: 0 0 1px rgba(178,84,63,0.6);
+    pointer-events: none;
+  }
+  article.post.fresh {
+    animation: drop 520ms cubic-bezier(0.2, 0.9, 0.25, 1.15) both;
+  }
+  article.post.fresh .flag-new {
+    position: absolute;
+    top: -9px;
+    left: 12px;
+    font-family: var(--font-num);
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--film);
+    background: var(--sun);
+    padding: 2px 8px;
+    border-radius: 2px;
+    transform: rotate(-2deg);
+  }
+  @keyframes drop {
+    from { transform: translateY(26px) rotate(1.6deg); opacity: 0; }
+    to { transform: translateY(0) rotate(var(--tilt, 0deg)); opacity: 1; }
+  }
+
+  /* 快门悬浮钮 */
+  .shutter-fab {
+    position: fixed;
+    right: calc(50% - 195px + 18px);
+    bottom: 96px;
+    width: 62px;
+    height: 62px;
+    border-radius: 50%;
+    border: 3px solid var(--paper);
+    background:
+      radial-gradient(circle at 50% 42%, var(--sun-soft) 0 30%, var(--sun) 31% 100%);
+    color: var(--film);
+    font-family: var(--font-body);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    cursor: pointer;
+    z-index: 40;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+    transition: transform 140ms ease, box-shadow 140ms ease;
+  }
+  .shutter-fab:hover { transform: scale(1.06); }
+  .shutter-fab:active { transform: scale(0.94); box-shadow: 0 3px 10px rgba(0,0,0,0.5); }
+  .shutter-fab:focus-visible { outline: 2px solid var(--sun-soft); outline-offset: 3px; }
+
+  /* 底部齿孔导航条 */
+  nav.tabbar {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 390px;
+    background: var(--film-deep);
+    border-top: 1px solid rgba(243,239,228,0.16);
+    padding: 10px 26px 18px;
+    display: flex;
+    justify-content: space-between;
+    z-index: 30;
+  }
+  nav.tabbar .tab {
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--muted);
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: var(--font-body);
+    padding: 4px 2px;
+    border-bottom: 2px solid transparent;
+  }
+  nav.tabbar .tab[aria-current="true"] {
+    color: var(--sun-soft);
+    border-bottom-color: var(--sun);
+  }
+  nav.tabbar .tab:focus-visible { outline: 2px solid var(--sun); outline-offset: 2px; }
+
+  /* 吐司 */
+  .toast {
+    position: fixed;
+    top: 86px;
+    left: 50%;
+    transform: translate(-50%, -8px);
+    background: var(--paper);
+    color: var(--ink);
+    font-size: 13px;
+    letter-spacing: 1px;
+    padding: 9px 16px;
+    border-left: 4px solid var(--sun);
+    box-shadow: 0 10px 24px rgba(0,0,0,0.45);
+    opacity: 0;
+    pointer-events: none;
+    z-index: 70;
+    transition: opacity 220ms ease, transform 220ms ease;
+    white-space: nowrap;
+  }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+  .toast.bad { border-left-color: var(--stamp); }
+
+  /* 暗房编辑浮层 */
+  .darkroom {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    background: rgba(23,21,15,0.72);
+    display: flex;
+    align-items: flex-end;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 200ms ease;
+  }
+  .darkroom.open { opacity: 1; pointer-events: auto; }
+  .tray {
+    width: 100%;
+    max-height: 86%;
+    overflow-y: auto;
+    background: var(--paper);
+    color: var(--ink);
+    border-radius: 10px 10px 0 0;
+    border-top: 4px solid var(--sun);
+    padding: 16px 18px 26px;
+    transform: translateY(24px);
+    transition: transform 240ms cubic-bezier(0.2, 0.85, 0.3, 1);
+  }
+  .darkroom.open .tray { transform: translateY(0); }
+  .tray-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-bottom: 12px;
+    border-bottom: 1px dashed var(--line);
+  }
+  .tray-head h2 {
+    font-size: 16px;
+    letter-spacing: 3px;
+    color: var(--film);
+  }
+  .tray-head small {
+    font-family: var(--font-num);
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--muted);
+  }
+  .tray-head .spacer { flex: 1; }
+  .icon-btn {
+    width: 30px;
+    height: 30px;
+    border: 1px solid var(--line);
+    background: var(--paper-dim);
+    color: var(--ink);
+    border-radius: 2px;
+    font-size: 15px;
+    line-height: 1;
+    cursor: pointer;
+    transition: background-color 140ms ease, color 140ms ease;
+  }
+  .icon-btn:hover { background: var(--stamp); color: #fff; border-color: var(--stamp); }
+  .icon-btn:focus-visible { outline: 2px solid var(--sun); outline-offset: 2px; }
+
+  .field-label {
+    display: block;
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: var(--muted);
+    margin: 14px 0 7px;
+  }
+  textarea.draft {
+    width: 100%;
+    min-height: 96px;
+    resize: vertical;
+    font-family: var(--font-body);
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--ink);
+    background: #fbf8ef;
+    border: 1px solid var(--line);
+    border-radius: 2px;
+    padding: 10px 12px;
+    background-image: repeating-linear-gradient(transparent 0 37px, rgba(207,198,174,0.5) 37px 38px);
+    background-attachment: local;
+  }
+  textarea.draft:focus { outline: 2px solid var(--sun); outline-offset: -1px; }
+  .draft-count {
+    display: block;
+    text-align: right;
+    font-family: var(--font-num);
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  .scope-opts { display: flex; gap: 8px; flex-wrap: wrap; }
+  .scope-opts input { position: absolute; opacity: 0; pointer-events: none; }
+  .scope-opts label {
+    font-size: 12px;
+    letter-spacing: 1px;
+    color: var(--ink);
+    border: 1px solid var(--line);
+    background: #fbf8ef;
+    border-radius: 2px;
+    padding: 7px 12px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: background-color 140ms ease, color 140ms ease, border-color 140ms ease;
+  }
+  .scope-opts label::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border: 1px solid var(--muted);
+    border-radius: 50%;
+    background: transparent;
+    transition: background-color 140ms ease, border-color 140ms ease;
+  }
+  .scope-opts label:hover { border-color: var(--sun); }
+  .scope-opts input:checked + label {
+    background: var(--film);
+    color: var(--paper);
+    border-color: var(--film);
+  }
+  .scope-opts input:checked + label::before { background: var(--sun); border-color: var(--sun); }
+  .scope-opts input:focus-visible + label { outline: 2px solid var(--sun); outline-offset: 2px; }
+
+  .fault-row {
+    margin-top: 16px;
+    border: 1px dashed var(--stamp);
+    border-radius: 3px;
+    background: rgba(178,84,63,0.06);
+    padding: 10px 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .fault-row p { flex: 1; font-size: 12px; line-height: 1.55; color: var(--ink); }
+  .fault-row p b { color: var(--stamp); font-weight: 700; }
+  .fault-row p small { display: block; color: var(--muted); font-size: 10px; letter-spacing: 0.5px; }
+  .switch {
+    position: relative;
+    width: 46px;
+    height: 26px;
+    border-radius: 13px;
+    border: 1px solid var(--muted);
+    background: var(--paper-dim);
+    cursor: pointer;
+    flex: none;
+    transition: background-color 160ms ease, border-color 160ms ease;
+  }
+  .switch::after {
+    content: "";
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--film);
+    transition: left 160ms ease, background-color 160ms ease;
+  }
+  .switch[aria-checked="true"] { background: var(--stamp); border-color: var(--stamp); }
+  .switch[aria-checked="true"]::after { left: 22px; background: #fff; }
+  .switch:focus-visible { outline: 2px solid var(--sun); outline-offset: 2px; }
+
+  .fault-banner {
+    display: none;
+    margin-top: 14px;
+    border: 1px solid var(--stamp);
+    border-left-width: 5px;
+    background: rgba(178,84,63,0.1);
+    border-radius: 2px;
+    padding: 10px 12px;
+    font-size: 12.5px;
+    line-height: 1.6;
+    color: var(--ink);
+  }
+  .fault-banner.show { display: block; animation: shake 320ms ease both; }
+  .fault-banner b { color: var(--stamp); display: block; margin-bottom: 2px; letter-spacing: 1px; }
+  .fault-banner span.kept {
+    display: inline-block;
+    margin-top: 5px;
+    font-family: var(--font-num);
+    font-size: 10px;
+    letter-spacing: 1px;
+    color: var(--olive);
+    border: 1px solid var(--olive);
+    border-radius: 2px;
+    padding: 1px 6px;
+  }
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-4px); }
+    55% { transform: translateX(4px); }
+    80% { transform: translateX(-2px); }
+  }
+
+  .tray-actions { display: flex; gap: 10px; margin-top: 18px; }
+  .btn {
+    font-family: var(--font-body);
+    font-size: 14px;
+    letter-spacing: 2px;
+    border-radius: 2px;
+    padding: 12px 0;
+    cursor: pointer;
+    border: 1px solid var(--film);
+    transition: background-color 150ms ease, color 150ms ease, opacity 150ms ease;
+  }
+  .btn:focus-visible { outline: 2px solid var(--sun); outline-offset: 2px; }
+  .btn-publish { flex: 1; background: var(--film); color: var(--paper); }
+  .btn-publish:hover { background: #3b362e; }
+  .btn-publish.retry { background: var(--stamp); border-color: var(--stamp); color: #fff; }
+  .btn-publish.retry:hover { background: #9c4634; }
+  .btn-publish:disabled { opacity: 0.55; cursor: progress; }
+  .btn-ghost { flex: 0 0 96px; background: transparent; color: var(--muted); border-color: var(--line); }
+  .btn-ghost:hover { color: var(--ink); border-color: var(--ink); }
+
+  .developing {
+    display: none;
+    margin-top: 14px;
+    text-align: center;
+    font-family: var(--font-num);
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: var(--muted);
+  }
+  .developing.show { display: block; }
+  .developing i {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    margin-right: 6px;
+    border-radius: 50%;
+    background: var(--sun);
+    animation: blink 700ms steps(2, jump-none) infinite;
+    vertical-align: 1px;
+  }
+  @keyframes blink { 50% { opacity: 0.15; } }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+    article.post { transform: none; }
+    .darkroom .tray { transform: none; }
+  }
+</style>
+</head>
+<body>
+  <div class="filmstrip" aria-hidden="true"></div>
+  <header class="app">
+    <div class="brand">
+      <h1>银盐<em>·</em>相册</h1>
+      <small>把日子洗出来，再寄给想念的人</small>
+    </div>
+    <div class="counter" id="frameCounter" aria-live="polite">曝光 03/36</div>
+  </header>
+
+  <main class="feed" id="feed" aria-label="最新动态">
+    <p class="feed-note">今日暗房出品</p>
+
+    <article class="post" id="seedPost1">
+      <div class="post-figure" aria-hidden="true">
+        <svg viewBox="0 0 340 168" role="img" aria-label="傍晚江面照片">
+          <rect width="340" height="168" fill="#4a4238"></rect>
+          <rect y="106" width="340" height="62" fill="#2f2a24"></rect>
+          <circle cx="252" cy="62" r="24" fill="#c9a45c"></circle>
+          <path d="M0 106 L74 62 L128 106 Z" fill="#5a5044"></path>
+          <path d="M96 106 L168 48 L242 106 Z" fill="#665a4b"></path>
+          <rect x="40" y="118" width="260" height="3" fill="#c9a45c" opacity="0.5"></rect>
+          <rect x="70" y="132" width="200" height="3" fill="#c9a45c" opacity="0.32"></rect>
+          <rect x="120" y="146" width="120" height="3" fill="#c9a45c" opacity="0.2"></rect>
+        </svg>
+      </div>
+      <p class="post-caption">傍晚的江面，故意多曝了两格，落日糊成一枚蛋黄。值得。</p>
+      <div class="post-meta">
+        <span class="who">老周</span>
+        <span class="scope">关注可见</span>
+        <span class="spacer"></span>
+        <button class="like" type="button" aria-pressed="false" data-count="12">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 14 C4.5 11 1.5 8.4 1.5 5.5 C1.5 3.4 3.2 2 5 2 C6.2 2 7.3 2.7 8 3.8 C8.7 2.7 9.8 2 11 2 C12.8 2 14.5 3.4 14.5 5.5 C14.5 8.4 11.5 11 8 14 Z" fill="none" stroke="currentColor" stroke-width="1.5"></path></svg>
+          <span class="like-n">12</span>
+        </button>
+      </div>
+      <span class="datestamp" aria-hidden="true">98 07 14</span>
+    </article>
+
+    <article class="post" id="seedPost2">
+      <div class="post-figure" aria-hidden="true">
+        <svg viewBox="0 0 340 168" role="img" aria-label="巷口猫照片">
+          <rect width="340" height="168" fill="#3b352e"></rect>
+          <rect x="26" y="18" width="120" height="150" fill="#4c443a"></rect>
+          <rect x="228" y="0" width="94" height="110" fill="#453d34"></rect>
+          <rect x="52" y="44" width="44" height="56" fill="#c9a45c" opacity="0.72"></rect>
+          <path d="M150 168 L150 118 C150 102 166 92 182 92 C198 92 212 102 212 118 L212 168 Z" fill="#241f1a"></path>
+          <path d="M162 96 L154 74 L172 86 Z" fill="#241f1a"></path>
+          <path d="M202 96 L210 74 L192 86 Z" fill="#241f1a"></path>
+          <circle cx="172" cy="112" r="3.4" fill="#e0c894"></circle>
+          <circle cx="192" cy="112" r="3.4" fill="#e0c894"></circle>
+          <path d="M182 122 L178 127 L186 127 Z" fill="#b2543f"></path>
+        </svg>
+      </div>
+      <p class="post-caption">巷口的橘猫。等到它回头的那一秒才按快门，手抖了，它反而更像在动。</p>
+      <div class="post-meta">
+        <span class="who">阿柯</span>
+        <span class="scope">公开</span>
+        <span class="spacer"></span>
+        <button class="like" type="button" aria-pressed="false" data-count="28">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 14 C4.5 11 1.5 8.4 1.5 5.5 C1.5 3.4 3.2 2 5 2 C6.2 2 7.3 2.7 8 3.8 C8.7 2.7 9.8 2 11 2 C12.8 2 14.5 3.4 14.5 5.5 C14.5 8.4 11.5 11 8 14 Z" fill="none" stroke="currentColor" stroke-width="1.5"></path></svg>
+          <span class="like-n">28</span>
+        </button>
+      </div>
+      <span class="datestamp" aria-hidden="true">98 07 09</span>
+    </article>
+
+    <article class="post" id="seedPost3">
+      <div class="post-figure" aria-hidden="true">
+        <svg viewBox="0 0 340 168" role="img" aria-label="修表台照片">
+          <rect width="340" height="168" fill="#332e28"></rect>
+          <rect x="30" y="96" width="280" height="60" fill="#4d4338"></rect>
+          <path d="M120 0 L150 96 L226 96 L196 0 Z" fill="#e0c894" opacity="0.16"></path>
+          <circle cx="188" cy="118" r="26" fill="none" stroke="#c9a45c" stroke-width="3"></circle>
+          <circle cx="188" cy="118" r="18" fill="#241f1a"></circle>
+          <path d="M188 118 L188 106" stroke="#e0c894" stroke-width="2.4" stroke-linecap="round"></path>
+          <path d="M188 118 L197 124" stroke="#e0c894" stroke-width="2.4" stroke-linecap="round"></path>
+          <rect x="70" y="106" width="58" height="7" rx="3" fill="#6f7a52"></rect>
+          <rect x="74" y="122" width="42" height="7" rx="3" fill="#8a7f6d"></rect>
+          <circle cx="268" cy="128" r="9" fill="#b2543f" opacity="0.8"></circle>
+        </svg>
+      </div>
+      <p class="post-caption">修表台的一束光。齿轮摊开像一座小城，这条只留给自己看。</p>
+      <div class="post-meta">
+        <span class="who">林师傅</span>
+        <span class="scope">仅自己</span>
+        <span class="spacer"></span>
+        <button class="like" type="button" aria-pressed="false" data-count="3">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 14 C4.5 11 1.5 8.4 1.5 5.5 C1.5 3.4 3.2 2 5 2 C6.2 2 7.3 2.7 8 3.8 C8.7 2.7 9.8 2 11 2 C12.8 2 14.5 3.4 14.5 5.5 C14.5 8.4 11.5 11 8 14 Z" fill="none" stroke="currentColor" stroke-width="1.5"></path></svg>
+          <span class="like-n">3</span>
+        </button>
+      </div>
+      <span class="datestamp" aria-hidden="true">98 07 02</span>
+    </article>
+  </main>
+
+  <nav class="tabbar" aria-label="主导航">
+    <button class="tab" type="button" aria-current="true">暗房</button>
+    <button class="tab" type="button">胶卷</button>
+    <button class="tab" type="button">我</button>
+  </nav>
+
+  <button class="shutter-fab" id="btnShutter" type="button">＋快门</button>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <div class="darkroom" id="darkroom">
+    <div class="tray" role="dialog" aria-modal="true" aria-labelledby="trayTitle">
+      <div class="tray-head">
+        <h2 id="trayTitle">写一张新照片</h2>
+        <small>暗房工作台</small>
+        <span class="spacer"></span>
+        <button class="icon-btn" id="btnClose" type="button" aria-label="关闭暗房">✕</button>
+      </div>
+      <label class="field-label" for="draftBox">照片题记</label>
+      <textarea class="draft" id="draftBox" maxlength="140" rows="3" placeholder="给这一帧写几句题记……"></textarea>
+      <div class="draft-count"><span id="draftCount">0/140</span></div>
+      <p class="field-label" id="scopeLabel">可见范围</p>
+      <div class="scope-opts" role="radiogroup" aria-labelledby="scopeLabel">
+        <input type="radio" name="scope" id="scopePub" checked><label for="scopePub">公开</label>
+        <input type="radio" name="scope" id="scopeFollow"><label for="scopeFollow">关注可见</label>
+        <input type="radio" name="scope" id="scopeSelf"><label for="scopeSelf">仅自己</label>
+      </div>
+      <div class="fault-row">
+        <p><b>模拟线路故障</b><small>打开后，让这次发布失败</small></p>
+        <span class="spacer"></span>
+        <button class="switch" id="faultSwitch" type="button" role="switch" aria-checked="false" aria-label="模拟线路故障"></button>
+      </div>
+      <div class="fault-banner" id="faultBanner">
+        <b>冲印失败</b>·胶片卡在售卷轮，底片没有送出。草稿与可见范围已完整保留。
+        <span class="kept">已保留：正文 · 可见范围</span>
+      </div>
+      <div class="developing" id="developing">冲洗中<i></i><i></i><i></i></div>
+      <div class="tray-actions">
+        <button class="btn btn-publish" id="btnPublish" type="button">冲洗并发布</button>
+        <button class="btn btn-ghost" id="btnCancel" type="button">放回暗盒</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+(function () {
+  /* 银盐·相册 —— 开关暗房、发布、故障保留、点赞 */
+  var darkroom = document.getElementById("darkroom");
+  var btnShutter = document.getElementById("btnShutter");
+  var btnClose = document.getElementById("btnClose");
+  var btnCancel = document.getElementById("btnCancel");
+  var btnPublish = document.getElementById("btnPublish");
+  var draftBox = document.getElementById("draftBox");
+  var draftCount = document.getElementById("draftCount");
+  var faultSwitch = document.getElementById("faultSwitch");
+  var faultBanner = document.getElementById("faultBanner");
+  var developing = document.getElementById("developing");
+  var counter = document.getElementById("frameCounter");
+  var feed = document.getElementById("feed");
+  var toast = document.getElementById("toast");
+  var toastTimer = null;
+
+  function pad2(n) {
+    return (n < 10 ? "0" : "") + n;
+  }
+
+  function showToast(msg, bad) {
+    toast.textContent = msg;
+    toast.classList.toggle("bad", !!bad);
+    toast.classList.add("show");
+    if (toastTimer) { clearTimeout(toastTimer); }
+    toastTimer = setTimeout(function () { toast.classList.remove("show"); }, 2400);
+  }
+
+  function openTray() {
+    darkroom.classList.add("open");
+    draftBox.focus();
+  }
+
+  function closeTray() {
+    darkroom.classList.remove("open");
+  }
+
+  function currentScope() {
+    var radios = document.querySelectorAll("input[name=scope]");
+    for (var i = 0; i < radios.length; i++) {
+      if (radios[i].checked) {
+        var lab = document.querySelector("label[for=" + radios[i].id + "]");
+        return lab ? lab.textContent : "公开";
+      }
+    }
+    return "公开";
+  }
+
+  function bumpCounter() {
+    var text = counter.textContent;
+    var body = text.replace("曝光 ", "");
+    var parts = body.split("/");
+    var next = parseInt(parts[0], 10) + 1;
+    if (next > 36) { next = 36; }
+    counter.textContent = "曝光 " + pad2(next) + "/" + parts[1];
+  }
+
+  function todayStamp() {
+    var d = new Date();
+    return String(d.getFullYear()).slice(2) + " " + pad2(d.getMonth() + 1) + " " + pad2(d.getDate());
+  }
+
+  var FIGURE_SVG = "<svg viewBox=\"0 0 340 168\" role=\"img\" aria-label=\"刚洗出的一帧\">" +
+    "<rect width=\"340\" height=\"168\" fill=\"#4a4238\"></rect>" +
+    "<circle cx=\"170\" cy=\"74\" r=\"30\" fill=\"#e0c894\"></circle>" +
+    "<rect x=\"0\" y=\"118\" width=\"340\" height=\"50\" fill=\"#2f2a24\"></rect>" +
+    "<rect x=\"52\" y=\"130\" width=\"236\" height=\"3\" fill=\"#c9a45c\" opacity=\"0.55\"></rect>" +
+    "<rect x=\"96\" y=\"144\" width=\"148\" height=\"3\" fill=\"#c9a45c\" opacity=\"0.3\"></rect>" +
+    "</svg>";
+
+  var HEART_SVG = "<svg viewBox=\"0 0 16 16\" aria-hidden=\"true\"><path d=\"M8 14 C4.5 11 1.5 8.4 1.5 5.5 C1.5 3.4 3.2 2 5 2 C6.2 2 7.3 2.7 8 3.8 C8.7 2.7 9.8 2 11 2 C12.8 2 14.5 3.4 14.5 5.5 C14.5 8.4 11.5 11 8 14 Z\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\"></path></svg>";
+
+  function el(tag, cls, text) {
+    var node = document.createElement(tag);
+    if (cls) { node.className = cls; }
+    if (text !== undefined) { node.textContent = text; }
+    return node;
+  }
+
+  function buildFreshPost(text, scope) {
+    var art = el("article", "post fresh");
+    var fig = el("div", "post-figure");
+    fig.setAttribute("aria-hidden", "true");
+    fig.innerHTML = FIGURE_SVG;
+    art.appendChild(fig);
+    art.appendChild(el("p", "post-caption", text));
+    var meta = el("div", "post-meta");
+    meta.appendChild(el("span", "who", "我"));
+    meta.appendChild(el("span", "scope", scope));
+    meta.appendChild(el("span", "spacer"));
+    var like = el("button", "like");
+    like.type = "button";
+    like.setAttribute("aria-pressed", "false");
+    like.setAttribute("data-count", "0");
+    like.innerHTML = HEART_SVG + "<span class=\"like-n\">0</span>";
+    meta.appendChild(like);
+    art.appendChild(meta);
+    var stamp = el("span", "datestamp", todayStamp());
+    stamp.setAttribute("aria-hidden", "true");
+    art.appendChild(stamp);
+    return art;
+  }
+
+  btnShutter.addEventListener("click", openTray);
+  btnClose.addEventListener("click", closeTray);
+  btnCancel.addEventListener("click", closeTray);
+
+  draftBox.addEventListener("input", function () {
+    draftCount.textContent = draftBox.value.length + "/140";
+  });
+
+  faultSwitch.addEventListener("click", function () {
+    var on = faultSwitch.getAttribute("aria-checked") === "true";
+    faultSwitch.setAttribute("aria-checked", on ? "false" : "true");
+  });
+
+  btnPublish.addEventListener("click", function () {
+    var text = draftBox.value.trim();
+    if (!text) {
+      showToast("先写一句题记，再冲洗", true);
+      draftBox.focus();
+      return;
+    }
+    btnPublish.disabled = true;
+    btnPublish.classList.remove("retry");
+    btnPublish.textContent = "冲洗并发布";
+    developing.classList.add("show");
+    setTimeout(function () {
+      developing.classList.remove("show");
+      if (faultSwitch.getAttribute("aria-checked") === "true") {
+        btnPublish.disabled = false;
+        btnPublish.classList.add("retry");
+        btnPublish.textContent = "重试发布";
+        faultBanner.classList.add("show");
+        showToast("发布未完成，草稿已保留", true);
+        return;
+      }
+      faultBanner.classList.remove("show");
+      var post = buildFreshPost(text, currentScope());
+      feed.insertBefore(post, feed.children[1]);
+      bumpCounter();
+      draftBox.value = "";
+      draftCount.textContent = "0/140";
+      faultSwitch.setAttribute("aria-checked", "false");
+      btnPublish.disabled = false;
+      closeTray();
+      showToast("已发布 · 朋友能看到了", false);
+    }, 900);
+  });
+
+  feed.addEventListener("click", function (ev) {
+    var btn = ev.target.closest ? ev.target.closest("button.like") : null;
+    if (!btn || !feed.contains(btn)) { return; }
+    var on = btn.getAttribute("aria-pressed") === "true";
+    var n = parseInt(btn.getAttribute("data-count"), 10) || 0;
+    n = on ? n - 1 : n + 1;
+    btn.setAttribute("aria-pressed", on ? "false" : "true");
+    btn.setAttribute("data-count", String(n));
+    var span = btn.querySelector(".like-n");
+    if (span) { span.textContent = String(n); }
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>T-046 蓝图协作 · 桥面改造工程协同台</title>
+<style>
+  :root{
+    --blue:#0b2c4d;          /* 晒图纸蓝底 */
+    --blue2:#0f3a63;         /* 卡片面 */
+    --grid:rgba(127,180,224,.13);
+    --line:#7fb4e0;          /* 蓝图白线 */
+    --line-dim:rgba(127,180,224,.45);
+    --paper:#e8f0f7;         /* 图面文字 */
+    --dim:#8fb0cb;           /* 次要文字 */
+    --red:#e0564b;           /* 修订印章红 */
+    --amber:#f2c14e;         /* 待办图纸黄 */
+    --ok:#5fc98e;            /* 完成绿 */
+    --mono:ui-monospace,SFMono-Regular,Consolas,"Courier New",monospace;
+    --r:3px;
+    --sp1:8px; --sp2:12px; --sp3:16px; --sp4:24px; --sp5:32px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    font-family:-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    color:var(--paper);
+    background-color:var(--blue);
+    background-image:
+      linear-gradient(var(--grid) 1px,transparent 1px),
+      linear-gradient(90deg,var(--grid) 1px,transparent 1px),
+      linear-gradient(rgba(127,180,224,.06) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(127,180,224,.06) 1px,transparent 1px);
+    background-size:96px 96px,96px 96px,24px 24px,24px 24px;
+    font-size:14px;line-height:1.55;
+  }
+  .mono{font-family:var(--mono)}
+
+  /* ============ 顶部标题栏（图纸标题栏） ============ */
+  .titleblock{
+    display:grid;grid-template-columns:auto 1fr auto auto;
+    border-bottom:2px solid var(--line);
+    background:rgba(8,28,50,.82);
+    backdrop-filter:blur(2px);
+  }
+  .tb-cell{
+    padding:10px var(--sp4);border-right:1px solid var(--line-dim);
+    display:flex;flex-direction:column;justify-content:center;gap:2px;min-height:64px;
+  }
+  .tb-cell:last-child{border-right:none}
+  .tb-k{font-size:10px;letter-spacing:.18em;color:var(--dim);text-transform:uppercase}
+  .tb-v{font-size:15px;font-weight:600}
+  .tb-dwg{font-family:var(--mono);font-size:13px;color:var(--amber)}
+  .tb-role{display:flex;align-items:center;gap:var(--sp1)}
+  .rolechip{
+    display:inline-block;padding:3px 10px;border:1px solid var(--line);
+    border-radius:999px;font-size:12px;color:var(--paper);background:rgba(127,180,224,.12);
+  }
+  .rolechip.granted{border-color:var(--ok);color:var(--ok);background:rgba(95,201,142,.1)}
+
+  /* ============ 权限横幅 ============ */
+  .banner{
+    display:none;align-items:flex-start;gap:var(--sp3);
+    margin:var(--sp3) var(--sp4) 0;padding:var(--sp2) var(--sp3);
+    border:1px solid var(--red);border-left:4px solid var(--red);
+    background:rgba(224,86,75,.12);border-radius:var(--r);
+  }
+  .banner.on{display:flex}
+  .banner.granted-mode{border-color:var(--ok);border-left-color:var(--ok);background:rgba(95,201,142,.1)}
+  .banner-icon{flex:none;width:20px;height:20px;margin-top:2px}
+  .banner-body{flex:1}
+  .banner-title{font-weight:700;color:var(--red)}
+  .banner.granted-mode .banner-title{color:var(--ok)}
+  .banner-sub{color:var(--paper);font-size:13px;margin-top:2px}
+  .banner-acts{display:flex;gap:var(--sp1);flex:none}
+  .banner .btn{height:30px;padding:0 14px;font-size:12px}
+
+  /* ============ 三栏布局 ============ */
+  .layout{
+    display:grid;grid-template-columns:236px 1fr 320px;gap:var(--sp4);
+    padding:var(--sp4);align-items:start;
+    max-width:1440px;margin:0 auto;
+  }
+  .panel{
+    border:1px solid var(--line-dim);border-radius:var(--r);
+    background:rgba(11,40,69,.72);
+  }
+  .panel-head{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:10px var(--sp3);border-bottom:1px dashed var(--line-dim);
+  }
+  .panel-head h2{font-size:12px;font-weight:700;letter-spacing:.14em;color:var(--line)}
+  .panel-no{font-family:var(--mono);font-size:11px;color:var(--dim)}
+
+  /* ---- 左栏：成员名单 + 图例 ---- */
+  .member{
+    display:flex;align-items:center;gap:var(--sp2);
+    padding:9px var(--sp3);border-bottom:1px solid rgba(127,180,224,.12);
+  }
+  .member:last-child{border-bottom:none}
+  .avatar{
+    flex:none;width:28px;height:28px;border:1px solid var(--line);border-radius:50%;
+    display:grid;place-items:center;font-size:12px;color:var(--paper);
+    background:var(--blue2);font-family:var(--mono);
+  }
+  .m-name{font-size:13px}
+  .m-role{font-size:11px;color:var(--dim)}
+  .legend{padding:var(--sp2) var(--sp3) var(--sp3)}
+  .legend div{display:flex;align-items:center;gap:var(--sp1);font-size:12px;color:var(--dim);margin-top:6px}
+  .sw{width:12px;height:12px;border:1px solid var(--line-dim);border-radius:2px;flex:none}
+  .sw.s0{background:rgba(127,180,224,.25)}
+  .sw.s1{background:rgba(242,193,78,.5)}
+  .sw.s2{background:rgba(224,86,75,.45)}
+  .sw.s3{background:rgba(95,201,142,.4)}
+  .sw.lock{background:repeating-linear-gradient(-45deg,rgba(224,86,75,.55) 0 4px,transparent 4px 8px)}
+
+  /* ---- 中栏：任务区 ---- */
+  .toolbar{display:flex;gap:var(--sp2);padding:var(--sp2) var(--sp3);border-bottom:1px dashed var(--line-dim)}
+  .btn{
+    height:34px;padding:0 16px;border:1px solid var(--line);border-radius:var(--r);
+    background:transparent;color:var(--paper);font-size:13px;cursor:pointer;
+    display:inline-flex;align-items:center;gap:6px;font-family:inherit;
+  }
+  .btn:hover{background:rgba(127,180,224,.14)}
+  .btn.primary{background:var(--line);border-color:var(--line);color:#08243f;font-weight:600}
+  .btn.primary:hover{background:#9cc6ea}
+  .btn.mini{height:26px;padding:0 10px;font-size:12px}
+  .btn.danger-o{border-color:var(--red);color:var(--red)}
+  .btn.danger-o:hover{background:rgba(224,86,75,.15)}
+  .btn:disabled{opacity:.45;cursor:not-allowed}
+  .btn.ok{border-color:var(--ok);color:var(--ok)}
+  .btn.ok:hover{background:rgba(95,201,142,.14)}
+
+  form.newtask{display:none;grid-template-columns:1fr 150px 130px auto;gap:var(--sp2);
+    padding:var(--sp3);border-bottom:1px dashed var(--line-dim);background:rgba(15,58,99,.5)}
+  form.newtask.on{display:grid}
+  .field{display:flex;flex-direction:column;gap:4px}
+  .field label{font-size:10px;letter-spacing:.16em;color:var(--dim);text-transform:uppercase}
+  input[type=text],select{
+    height:34px;padding:0 10px;border:1px solid var(--line-dim);border-radius:var(--r);
+    background:rgba(8,28,50,.7);color:var(--paper);font-size:13px;font-family:inherit;outline:none;
+  }
+  input[type=text]:focus,select:focus{border-color:var(--line)}
+  .form-err{grid-column:1/-1;font-size:12px;color:var(--red);display:none}
+  .form-err.on{display:block}
+
+  .tasks{padding:var(--sp3);display:grid;gap:var(--sp3)}
+  .tcard{
+    position:relative;border:1px solid var(--line-dim);border-radius:var(--r);
+    background:var(--blue2);overflow:hidden;
+  }
+  .tcard.flash-deny{border-color:var(--red);box-shadow:0 0 0 2px rgba(224,86,75,.35)}
+  .t-head{
+    display:flex;align-items:center;gap:var(--sp2);
+    padding:9px var(--sp3);border-bottom:1px dashed var(--line-dim);
+  }
+  .t-dwg{font-family:var(--mono);font-size:11px;color:var(--amber);letter-spacing:.06em}
+  .t-title{flex:1;font-size:14px;font-weight:600}
+  .stamp{
+    flex:none;font-family:var(--mono);font-size:10px;letter-spacing:.14em;
+    border:1.5px solid currentColor;border-radius:2px;padding:2px 8px;
+    transform:rotate(-6deg);text-transform:uppercase;
+  }
+  .st0{color:var(--line)}
+  .st1{color:var(--amber)}
+  .st2{color:var(--red)}
+  .st3{color:var(--ok)}
+  .t-body{padding:var(--sp2) var(--sp3);display:grid;gap:var(--sp2)}
+  .t-meta{display:flex;flex-wrap:wrap;align-items:center;gap:var(--sp2);font-size:12px;color:var(--dim)}
+  .pill{border:1px solid var(--line-dim);border-radius:999px;padding:2px 10px;font-size:12px;color:var(--paper)}
+  .pill b{color:var(--amber);font-weight:600}
+  .owner-sel{height:28px;font-size:12px}
+  .t-acts{display:flex;gap:var(--sp1);align-items:center;padding:0 var(--sp3) var(--sp3)}
+  .t-hint{margin-left:auto;font-size:11px;color:var(--dim)}
+  /* 受限卡：斜纹警示 */
+  .tcard.locked{
+    background:
+      repeating-linear-gradient(-45deg,rgba(224,86,75,.07) 0 8px,transparent 8px 16px),
+      var(--blue2);
+    border-color:rgba(224,86,75,.6);
+  }
+  .lock-stamp{
+    position:absolute;top:34px;right:12px;font-family:var(--mono);font-size:10px;
+    color:var(--red);border:1.5px dashed var(--red);padding:2px 8px;border-radius:2px;
+    transform:rotate(6deg);letter-spacing:.18em;pointer-events:none;
+  }
+  .kicker{font-size:11px;color:var(--red);display:flex;align-items:center;gap:6px}
+
+  /* ---- 右栏：活动记录 ---- */
+  .feed{max-height:calc(100vh - 120px);overflow:auto}
+  .act{
+    display:grid;grid-template-columns:20px 1fr;gap:var(--sp2);
+    padding:10px var(--sp3);border-bottom:1px solid rgba(127,180,224,.12);
+  }
+  .act:last-child{border-bottom:none}
+  .act-dot{width:8px;height:8px;border-radius:50%;border:1px solid var(--line);margin:6px 0 0 5px;background:transparent}
+  .act.create .act-dot{background:var(--line)}
+  .act.assign .act-dot{background:var(--amber)}
+  .act.status .act-dot{background:var(--ok)}
+  .act.sec .act-dot{background:var(--red)}
+  .act-l1{font-size:13px}
+  .act-l1 b{font-weight:600;color:var(--amber)}
+  .act-l2{font-size:11px;color:var(--dim);font-family:var(--mono);margin-top:2px}
+  .act.sec .act-l1{color:var(--red)}
+  .feed-empty{padding:var(--sp4);text-align:center;color:var(--dim);font-size:12px}
+
+  /* ============ Toast ============ */
+  .toast{
+    position:fixed;left:50%;bottom:28px;transform:translate(-50%,16px);
+    background:#08243f;border:1px solid var(--line);border-radius:var(--r);
+    padding:10px 18px;font-size:13px;opacity:0;pointer-events:none;
+    transition:opacity .2s,transform .2s;box-shadow:0 8px 24px rgba(0,0,0,.4);
+  }
+  .toast.show{opacity:1;transform:translate(-50%,0)}
+  .toast.err{border-color:var(--red);color:#ffb4ac}
+  .toast.ok2{border-color:var(--ok);color:#b7ecd0}
+
+  @media (prefers-reduced-motion:reduce){
+    *{transition:none!important;animation:none!important}
+  }
+</style>
+</head>
+<body>
+
+  <!-- 图纸标题栏 -->
+  <header class="titleblock">
+    <div class="tb-cell">
+      <span class="tb-k">DWG NO.</span>
+      <span class="tb-dwg">BP-046-COLLAB</span>
+    </div>
+    <div class="tb-cell">
+      <span class="tb-k">工程名称 / PROJECT</span>
+      <span class="tb-v">tidal valley 桥面改造工程 · 协同出图台</span>
+    </div>
+    <div class="tb-cell tb-role">
+      <span class="tb-k">当前身份</span>
+      <span class="rolechip" id="roleTag">外来审图员（只读受限区）</span>
+    </div>
+    <div class="tb-cell">
+      <span class="tb-k">图面时刻</span>
+      <span class="tb-v mono" id="clock">--:--:--</span>
+    </div>
+  </header>
+
+  <!-- 权限不足 / 申请横幅 -->
+  <div class="banner" id="permBanner" role="alert">
+    <svg class="banner-icon" viewBox="0 0 20 20" aria-hidden="true">
+      <circle cx="10" cy="10" r="8.5" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--red)"/>
+      <line x1="7" y1="7" x2="13" y2="13" stroke="var(--red)" stroke-width="1.5"/>
+      <line x1="13" y1="7" x2="7" y2="13" stroke="var(--red)" stroke-width="1.5"/>
+    </svg>
+    <div class="banner-body">
+      <div class="banner-title" id="bannerTitle">权限不足：缺少「受限图签区编辑」权限</div>
+      <div class="banner-sub" id="bannerSub">目标图签 T-03 由结构组专有。本次变更<b>未写入</b>，任务状态与分派保持原样。</div>
+    </div>
+    <div class="banner-acts">
+      <button class="btn danger-o" id="btnAskPerm">申请访问</button>
+      <button class="btn" id="btnSafeBack">安全返回可见任务</button>
+    </div>
+  </div>
+
+  <main class="layout">
+
+    <!-- 左栏 -->
+    <div style="display:grid;gap:var(--sp4)">
+      <section class="panel">
+        <div class="panel-head"><h2>出图组成员</h2><span class="panel-no">REV-1.2</span></div>
+        <div id="memberList">
+          <div class="member"><span class="avatar">陈</span><div><div class="m-name">陈拓</div><div class="m-role">结构负责人</div></div></div>
+          <div class="member"><span class="avatar">林</span><div><div class="m-name">林一苇</div><div class="m-role">绘图员</div></div></div>
+          <div class="member"><span class="avatar">吴</span><div><div class="m-name">吴晚晴</div><div class="m-role">机电绘图</div></div></div>
+          <div class="member"><span class="avatar">我</span><div><div class="m-name">你（客人）</div><div class="m-role">外来审图员</div></div></div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head"><h2>图例</h2><span class="panel-no">LEGEND</span></div>
+        <div class="legend">
+          <div><span class="sw s0"></span>草图 DRAFT</div>
+          <div><span class="sw s1"></span>晒图中 IN PROGRESS</div>
+          <div><span class="sw s2"></span>待审 IN REVIEW</div>
+          <div><span class="sw s3"></span>已归档 ARCHIVED</div>
+          <div><span class="sw lock"></span>受限图签区 RESTRICTED</div>
+        </div>
+      </section>
+    </div>
+
+    <!-- 中栏：任务区 -->
+    <section class="panel">
+      <div class="toolbar">
+        <button class="btn primary" id="btnNew">＋ 新建图签任务</button>
+        <span class="t-hint" id="boardHint">共 <b id="taskCount">3</b> 个图签 · 点击卡片按钮推进晒图流程</span>
+      </div>
+
+      <form class="newtask" id="newTaskForm" novalidate>
+        <div class="field">
+          <label for="taskTitle">图签标题</label>
+          <input type="text" id="taskTitle" placeholder="例：南引桥 3 号墩钢筋配筋图">
+        </div>
+        <div class="field">
+          <label for="taskAssignee">分派给</label>
+          <select id="taskAssignee">
+            <option value="未分派">未分派</option>
+            <option value="陈拓">陈拓</option>
+            <option value="林一苇">林一苇</option>
+            <option value="吴晚晴">吴晚晴</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="taskPriority">优先级</label>
+          <select id="taskPriority">
+            <option>常规</option>
+            <option>加急</option>
+          </select>
+        </div>
+        <div class="field" style="justify-content:flex-end">
+          <label>&nbsp;</label>
+          <button type="submit" class="btn primary" id="btnCreate">登记图签</button>
+        </div>
+        <div class="form-err" id="formErr">图签标题不能为空，请先填写。</div>
+      </form>
+
+      <div class="tasks" id="taskList"><!-- JS 渲染 --></div>
+    </section>
+
+    <!-- 右栏：活动记录 -->
+    <section class="panel feed">
+      <div class="panel-head"><h2>活动记录</h2><span class="panel-no">LOG</span></div>
+      <div id="activityList"><!-- JS 渲染 --></div>
+    </section>
+
+  </main>
+
+  <div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  "use strict";
+  var STAGES=["草图","晒图中","待审","已归档"];
+  var STAGE_CLS=["st0","st1","st2","st3"];
+  var STAGE_EN=["DRAFT","IN PROGRESS","IN REVIEW","ARCHIVED"];
+
+  var state={
+    perms:{restrictedEdit:false},
+    asked:false,
+    tasks:[
+      {id:"T-01",title:"北引桥支座布置图 修改",owner:"林一苇",pri:"加急",stage:1,locked:false},
+      {id:"T-02",title:"主塔爬模预留孔位核对",owner:"未分派",pri:"常规",stage:0,locked:false},
+      {id:"T-03",title:"桁架节点焊接工艺图（结构组专有）",owner:"陈拓",pri:"加急",stage:1,locked:true}
+    ],
+    seq:4
+  };
+
+  var $=function(id){return document.getElementById(id)};
+  var taskList=$("taskList"),actList=$("activityList"),toastEl=$("toast"),toastT=null;
+
+  function now(){
+    var d=new Date(),p=function(n){return n<10?"0"+n:""+n};
+    return p(d.getHours())+":"+p(d.getMinutes())+":"+p(d.getSeconds());
+  }
+  function tickClock(){$("clock").textContent=now()}
+  tickClock();setInterval(tickClock,1000);
+
+  function toast(msg,cls){
+    toastEl.textContent=msg;toastEl.className="toast show"+(cls?" "+cls:"");
+    clearTimeout(toastT);toastT=setTimeout(function(){toastEl.className="toast"},2400);
+  }
+
+  /* ---------- 活动记录 ---------- */
+  var seed=[
+    {k:"status",l1:"林一苇 将 <b>T-01</b> 推进到「晒图中」",t:"09:12"},
+    {k:"assign", l1:"陈拓 把 <b>T-03</b> 分派给 陈拓（结构组）",t:"08:47"},
+    {k:"create", l1:"陈拓 登记图签 <b>T-03</b> 并划入受限图签区",t:"08:45"},
+    {k:"create", l1:"林一苇 登记图签 <b>T-01</b>",t:"08:30"}
+  ];
+  function actNode(a){
+    var d=document.createElement("div");
+    d.className="act "+a.k;
+    d.innerHTML='<span class="act-dot"></span><div><div class="act-l1">'+a.l1+'</div><div class="act-l2">'+a.t+" · "+({create:"CREATE",assign:"ASSIGN",status:"STATUS",sec:"SECURITY"}[a.k])+"</div></div>";
+    return d;
+  }
+  function logAct(k,l1){
+    var n=actNode({k:k,l1:l1,t:now()});
+    actList.insertBefore(n,actList.firstChild);
+  }
+  seed.forEach(function(a){actList.appendChild(actNode(a))});
+
+  /* ---------- 任务渲染 ---------- */
+  function ownerOptions(t){
+    var names=["未分派","陈拓","林一苇","吴晚晴"],h="";
+    names.forEach(function(n){h+='<option value="'+n+'"'+(t.owner===n?" selected":"")+">"+n+"</option>"});
+    return h;
+  }
+  function render(){
+    taskList.innerHTML="";
+    state.tasks.forEach(function(t){
+      var c=document.createElement("article");
+      c.className="tcard"+(t.locked&&!state.perms.restrictedEdit?" locked":"");
+      c.id="card-"+t.id;
+      var done=t.stage>=3;
+      var nextName=done?"已归档":"推进到「"+STAGES[t.stage+1]+"」";
+      c.innerHTML=
+        '<div class="t-head"><span class="t-dwg">'+t.id+' · DWG</span>'+
+        '<span class="t-title">'+t.title+'</span>'+
+        '<span class="stamp '+STAGE_CLS[t.stage]+'">'+STAGE_EN[t.stage]+'</span></div>'+
+        '<div class="t-body">'+
+          (t.locked&&!state.perms.restrictedEdit?'<span class="lock-stamp">RESTRICTED · 受限区</span>':'')+
+          '<div class="t-meta">'+
+            '<span class="pill">优先级 <b>'+t.pri+"</b></span>"+
+            '<label class="mono" style="font-size:11px">分派</label>'+
+            '<select class="owner-sel" data-id="'+t.id+'">'+ownerOptions(t)+"</select>"+
+            (t.locked&&!state.perms.restrictedEdit?'<span class="kicker">◆ 结构组专有 · 外来身份只读</span>':'')+
+          '</div>'+
+        '</div>'+
+        '<div class="t-acts">'+
+          '<button class="btn mini" data-act="advance" data-id="'+t.id+'"'+(done?" disabled":"")+">▸ "+nextName+"</button>"+
+          (t.locked&&!state.perms.restrictedEdit?'<span class="t-hint mono">操作将触发权限校验</span>':(done?'<span class="t-hint">图纸已入档案室</span>':'<span class="t-hint">下一站：'+(t.stage<2?STAGES[t.stage+1]:"归档")+"</span>"))+
+        '</div>';
+      taskList.appendChild(c);
+    });
+    $("taskCount").textContent=state.tasks.length;
+  }
+  render();
+
+  /* ---------- 权限横幅 ---------- */
+  var banner=$("permBanner");
+  function bannerOn(title,sub,granted){
+    $("bannerTitle").textContent=title;
+    $("bannerSub").innerHTML=sub;
+    banner.classList.add("on");
+    banner.classList.toggle("granted-mode",!!granted);
+  }
+  function bannerOff(){banner.classList.remove("on","granted-mode")}
+
+  function deny(t,verb){
+    bannerOn(
+      "权限不足：缺少「受限图签区编辑」权限",
+      "目标图签 "+t.id+" 由结构组专有，你当前的外来审图员身份不能"+verb+"。本次变更<b>未写入</b>，任务状态与分派保持原样。",false);
+    logAct("sec","访问被拒："+t.id+" 的"+verb+"被拦截 · <b>未写入任何变更</b>");
+    toast("权限不足，变更未写入","err");
+    var card=document.getElementById("card-"+t.id);
+    if(card){card.classList.add("flash-deny");setTimeout(function(){card.classList.remove("flash-deny")},1600)}
+  }
+
+  /* ---------- 操作 ---------- */
+  function findTask(id){for(var i=0;i<state.tasks.length;i++)if(state.tasks[i].id===id)return state.tasks[i];return null}
+  function lockedNow(t){return t.locked&&!state.perms.restrictedEdit}
+
+  taskList.addEventListener("change",function(e){
+    var sel=e.target.closest("select[data-id]");if(!sel)return;
+    var t=findTask(sel.dataset.id);if(!t)return;
+    if(lockedNow(t)){
+      var old=t.owner;sel.value=old;                 /* 回滚，不写入 */
+      deny(t,"变更分派");return;
+    }
+    if(sel.value===t.owner)return;
+    t.owner=sel.value;
+    logAct("assign","你 把 <b>"+t.id+"</b> 分派给 "+t.owner);
+    toast(t.id+" 已分派给 "+t.owner);
+    render();
+  });
+
+  taskList.addEventListener("click",function(e){
+    var btn=e.target.closest('button[data-act="advance"]');if(!btn)return;
+    var t=findTask(btn.dataset.id);if(!t||t.stage>=3)return;
+    if(lockedNow(t)){deny(t,"推进状态");return}
+    t.stage+=1;
+    logAct("status","你 把 <b>"+t.id+"</b> 推进到「"+STAGES[t.stage]+"」");
+    toast(t.id+" 已推进到「"+STAGES[t.stage]+"」");
+    render();
+  });
+
+  /* ---------- 新建任务 ---------- */
+  var form=$("newTaskForm");
+  $("btnNew").addEventListener("click",function(){
+    form.classList.toggle("on");
+    if(form.classList.contains("on"))$("taskTitle").focus();
+  });
+  form.addEventListener("submit",function(e){
+    e.preventDefault();
+    var title=$("taskTitle").value.trim();
+    if(!title){$("formErr").classList.add("on");$("taskTitle").focus();return}
+    $("formErr").classList.remove("on");
+    var id="T-0"+(state.seq++);
+    state.tasks.push({id:id,title:title,owner:$("taskAssignee").value,pri:$("taskPriority").value,stage:0,locked:false});
+    logAct("create","你 登记图签 <b>"+id+"</b>："+title);
+    toast("图签 "+id+" 已登记");
+    form.reset();form.classList.remove("on");
+    render();
+  });
+
+  /* ---------- 申请权限 → 批准 → 解锁 ---------- */
+  $("btnAskPerm").addEventListener("click",function(){
+    if(state.asked)return;
+    state.asked=true;
+    this.disabled=true;this.textContent="申请已发出";
+    bannerOn("访问申请已发出 · 等待结构组审批",
+      "申请对象：图签 T-03 · 权限：受限图签区编辑。审批结果会显示在这里。",false);
+    logAct("sec","你 提交了 T-03 的「受限图签区编辑」访问申请（未改动任务数据）");
+    bannerOn("访问申请已发出 · 等待结构组审批",
+      '申请对象：图签 T-03 · 权限：受限图签区编辑。 <button class="btn mini ok" id="btnGrant">演示：审批人点击批准</button>',false);
+    var g=document.getElementById("btnGrant");
+    if(g)g.addEventListener("click",function(){
+      state.perms.restrictedEdit=true;
+      var tag=$("roleTag");tag.textContent="项目协作员（含受限区编辑）";tag.classList.add("granted");
+      bannerOn("申请已批准：你已获得「受限图签区编辑」权限",
+        "T-03 已解锁。现在可以完成一次有权限的变更，例如把 T-03 推进到「待审」。",true);
+      $("btnAskPerm").style.display="none";
+      $("btnSafeBack").textContent="收起横幅";
+      logAct("sec","审批通过：你 获得 T-03 的「受限图签区编辑」权限 · 图签解锁");
+      toast("T-03 已解锁，可做有权限的变更","ok2");
+      render();
+    });
+  });
+
+  $("btnSafeBack").addEventListener("click",function(){
+    bannerOff();
+    toast("已安全返回可见任务区，未发生任何写入");
+    document.querySelector(".layout").scrollIntoView({behavior:"smooth",block:"start"});
+  });
+})();
+</script>
+</body>
+</html>

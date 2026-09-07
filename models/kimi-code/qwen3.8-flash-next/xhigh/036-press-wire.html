@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>夜班电讯台 · 发稿</title>
+<style>
+:root{
+  --paper:#f2efe6;
+  --paper-deep:#e7e2d2;
+  --punch:#cdc5ae;
+  --ink:#26241f;
+  --red:#cc3b24;
+  --muted:#71695a;
+  --wire:#3d5875;
+  --desk:#1c1912;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  background:radial-gradient(circle at 50% 20%,#332e22 0%,var(--desk) 60%);
+  display:grid;place-items:center;padding:28px 0;
+  font-family:-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+  color:var(--ink);
+  -webkit-font-smoothing:antialiased;
+}
+.mono{font-family:ui-monospace,"Cascadia Mono",Consolas,"Courier New",monospace}
+.phone{
+  position:relative;padding:13px;border-radius:56px;
+  background:linear-gradient(160deg,#3a3527,#14110b 70%);
+  box-shadow:0 34px 90px rgba(0,0,0,.66),inset 0 1px 0 rgba(242,239,230,.1);
+}
+.phone::before{content:"";position:absolute;left:-3px;top:170px;width:4px;height:34px;border-radius:2px;background:#514a35}
+.phone::after{content:"";position:absolute;right:-3px;top:196px;width:4px;height:64px;border-radius:2px;background:#514a35}
+.screen{
+  position:relative;width:390px;height:844px;overflow:hidden;border-radius:43px;
+  background:var(--paper);display:flex;flex-direction:column;
+  box-shadow:inset 0 0 0 2px #0c0b08;
+}
+.statusbar{
+  flex:none;height:44px;display:flex;align-items:center;justify-content:space-between;
+  padding:0 22px;font-size:13px;font-weight:600;letter-spacing:.5px;
+}
+.sicons{display:flex;align-items:center;gap:6px}
+.sicons .net{font-size:10px;font-weight:700}
+.scroller{flex:1 1 auto;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none;background:var(--paper)}
+.scroller::-webkit-scrollbar{display:none}
+.sheet{position:relative;min-height:100%;padding:0 18px}
+.sheet::before,.sheet::after{
+  content:"";position:absolute;top:10px;bottom:10px;width:9px;
+  background-image:radial-gradient(circle at center,var(--punch) 0 4px,rgba(0,0,0,0) 4.6px);
+  background-size:9px 26px;background-repeat:repeat-y;
+}
+.sheet::before{left:4px}
+.sheet::after{right:4px}
+.homebar{flex:none;height:22px;display:flex;align-items:center;justify-content:center;background:var(--paper);border-top:1px solid var(--paper-deep)}
+.homebar i{display:block;width:128px;height:5px;border-radius:3px;background:rgba(38,36,31,.3)}
+
+.masthead{
+  flex:none;padding:4px 18px 10px;border-bottom:2px solid var(--ink);
+  display:flex;align-items:flex-end;justify-content:space-between;background:var(--paper);
+}
+.masthead .m b{font-size:18px;letter-spacing:3px;font-weight:800}
+.masthead .m span{display:block;font-size:9px;letter-spacing:4px;color:var(--muted);margin-top:3px}
+.deadline{
+  display:flex;align-items:center;gap:6px;color:var(--red);
+  font-family:ui-monospace,"Cascadia Mono",Consolas,"Courier New",monospace;
+  font-size:12px;font-weight:700;letter-spacing:1px;
+}
+.deadline .live{width:8px;height:8px;border-radius:50%;background:var(--red);animation:blink 1.6s ease infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
+
+/* 栏目选择 */
+.capt{font-size:11px;letter-spacing:3px;color:var(--muted);margin:14px 0 8px}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{
+  min-height:44px;padding:0 16px;border-radius:4px;cursor:pointer;
+  border:1.5px solid var(--muted);background:none;color:var(--ink);
+  font-family:ui-monospace,"Cascadia Mono",Consolas,"Courier New",monospace;
+  font-size:14px;letter-spacing:2px;
+}
+.chip:hover{border-color:var(--ink)}
+.chip.on{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+
+/* 标题与正文 */
+.field{margin-top:16px}
+.field label{display:flex;justify-content:space-between;font-size:11px;letter-spacing:3px;color:var(--muted);margin-bottom:6px}
+.field input{
+  width:100%;min-height:48px;border:1.5px solid var(--ink);border-radius:4px;background:#f8f6ef;
+  padding:10px 12px;font-size:16px;font-weight:700;letter-spacing:1px;color:var(--ink);
+  font-family:inherit;
+}
+.field input:focus,.field textarea:focus{outline:2px solid var(--wire);outline-offset:1px}
+.field textarea{
+  width:100%;min-height:238px;resize:none;border:1.5px dashed var(--muted);border-radius:4px;
+  background:#f8f6ef;padding:12px;font-size:15px;line-height:1.75;letter-spacing:.5px;color:var(--ink);
+  font-family:ui-monospace,"Cascadia Mono",Consolas,"Courier New",monospace;
+}
+
+/* 字数与状态戳 */
+.countrow{display:flex;align-items:center;justify-content:space-between;margin-top:10px}
+.count{
+  font-family:ui-monospace,"Cascadia Mono",Consolas,"Courier New",monospace;
+  font-size:13px;color:var(--wire);letter-spacing:1px;
+}
+.count.over{color:var(--red);font-weight:700}
+.stamp{
+  font-family:ui-monospace,"Cascadia Mono",Consolas,"Courier New",monospace;
+  font-weight:700;font-size:13px;letter-spacing:2px;padding:5px 12px;border-radius:6px;
+  border:2px solid currentColor;transform:rotate(-6deg);background:rgba(255,255,255,.4);
+}
+.stamp.idle{color:var(--muted)}
+.stamp.saved{color:var(--wire)}
+.stamp.sent{color:var(--red);animation:stampin .3s ease}
+@keyframes stampin{from{transform:rotate(-6deg) scale(1.7);opacity:.2}}
+.hint{
+  display:none;margin-top:8px;padding:8px 10px;border-left:3px solid var(--red);
+  background:rgba(204,59,36,.08);color:var(--red);font-size:12px;letter-spacing:1px;
+}
+.hint.on{display:block}
+
+/* 回执 */
+.receipt{
+  display:none;margin-top:16px;border:1.5px dashed var(--wire);border-radius:4px;
+  background:var(--paper-deep);padding:12px 14px;
+  font-family:ui-monospace,"Cascadia Mono",Consolas,"Courier New",monospace;
+}
+.receipt.on{display:block}
+.receipt .rt{font-size:11px;letter-spacing:3px;color:var(--wire);margin-bottom:8px}
+.receipt .rl{display:flex;justify-content:space-between;font-size:12px;padding:3px 0;letter-spacing:1px}
+.receipt .rl b{font-weight:700}
+.regline{
+  margin:18px 0 8px;padding-top:10px;border-top:1px solid var(--punch);
+  font-size:10px;color:var(--muted);letter-spacing:1px;line-height:1.8;
+}
+
+/* 底部操作栏 */
+.actionbar{
+  flex:none;display:flex;gap:12px;padding:9px 18px 4px;background:var(--paper);
+  border-top:2px solid var(--ink);
+}
+.act{
+  min-height:48px;border-radius:4px;cursor:pointer;letter-spacing:3px;font-size:15px;
+  font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;
+}
+.act.draft{flex:0 0 120px;border:1.5px solid var(--ink);background:none;color:var(--ink)}
+.act.draft:hover{background:var(--paper-deep)}
+.act.pub{
+  flex:1;border:none;background:var(--red);color:#fbf1e6;font-weight:700;
+  box-shadow:0 3px 0 #94291a;
+}
+.act.pub:hover{background:#d94a30}
+.act.pub:active{transform:translateY(2px);box-shadow:none}
+.act.pub:disabled{background:#c9bfae;color:#8f8779;box-shadow:none;cursor:not-allowed}
+
+.toast{
+  position:absolute;left:50%;bottom:96px;transform:translate(-50%,8px);
+  background:rgba(38,36,31,.95);color:var(--paper);font-size:12px;letter-spacing:2px;
+  padding:10px 18px;border-radius:4px;opacity:0;pointer-events:none;
+  transition:opacity .25s ease,transform .25s ease;max-width:320px;text-align:center;z-index:9;
+  font-family:ui-monospace,"Cascadia Mono",Consolas,"Courier New",monospace;
+}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+
+@media (max-width:430px){
+  body{padding:0;background:var(--paper)}
+  .phone{padding:0;border-radius:0;background:transparent;box-shadow:none}
+  .phone::before,.phone::after{display:none}
+  .screen{width:100vw;height:100dvh;border-radius:0;box-shadow:none}
+}
+@media (prefers-reduced-motion: reduce){
+  .deadline .live{animation:none}
+  .stamp.sent{animation:none}
+  .toast{transition:none}
+  *{animation:none !important;transition:none !important}
+}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="screen" id="screen036">
+
+    <div class="statusbar">
+      <span>21:47</span>
+      <span class="sicons">
+        <span class="net">5G</span>
+        <svg width="17" height="11" viewBox="0 0 17 11" fill="currentColor"><rect x="0" y="7" width="3" height="4" rx="1"/><rect x="4.5" y="5" width="3" height="6" rx="1"/><rect x="9" y="2.5" width="3" height="8.5" rx="1"/><rect x="13.5" y="0" width="3" height="11" rx="1"/></svg>
+        <svg width="23" height="11" viewBox="0 0 23 11" fill="none" stroke="currentColor" stroke-width="1"><rect x="0.5" y="0.5" width="19" height="10" rx="2.5"/><rect x="2" y="2" width="16" height="7" rx="1.5" fill="currentColor" stroke="none"/><path d="M21.5 3.5v4" stroke-linecap="round"/></svg>
+      </span>
+    </div>
+
+    <div class="masthead">
+      <span class="m"><b>夜班电讯台</b><span>NIGHT WIRE DESK · 发稿</span></span>
+      <span class="deadline"><span class="live"></span>截稿 22:30 · 余 43 分</span>
+    </div>
+
+    <div class="scroller" id="scroller036">
+      <div class="sheet">
+
+        <div class="capt">栏目（决定电讯抬头）</div>
+        <div class="chips" id="chips036">
+          <button class="chip on" data-col="快讯">快讯</button>
+          <button class="chip" data-col="现场">现场</button>
+          <button class="chip" data-col="评论">评论</button>
+          <button class="chip" data-col="副刊">副刊</button>
+        </div>
+
+        <div class="field">
+          <label><span>标题 HEADLINE</span><span>一行以内</span></label>
+          <input id="title036" type="text" maxlength="40" value="环城南路跨江桥提前合龙，二十日通车" aria-label="稿件标题">
+        </div>
+
+        <div class="field">
+          <label><span>正文 BODY</span><span>电讯体 · 一段一事</span></label>
+          <textarea id="body036" aria-label="稿件正文">【快讯】二十一时四十分，环城南路跨江桥最后一节箱梁落位，合龙完成，比原计划提前十九小时。施工方介绍，桥面铺装与路灯管线将同步施工，本月底具备通车条件。届时老城区至南岛通勤时间将由三十五分钟缩短至十二分钟。</textarea>
+        </div>
+
+        <div class="countrow">
+          <span class="count" id="count036">正文 0 字 / 上限 280</span>
+          <span class="stamp idle" id="stamp036">未发</span>
+        </div>
+
+        <div class="hint" id="err036" role="alert"></div>
+
+        <div class="receipt" id="receipt036" aria-live="polite">
+          <div class="rt">回执 RECEIPT</div>
+          <div class="rl"><span>状态</span><b id="rcState">—</b></div>
+          <div class="rl"><span>时间</span><b id="rcTime">—</b></div>
+          <div class="rl"><span>栏目</span><b id="rcCol">—</b></div>
+          <div class="rl"><span>字数</span><b id="rcCount">—</b></div>
+          <div class="rl"><span>回执号</span><b id="rcNo">—</b></div>
+        </div>
+
+        <p class="regline">电讯规程：发稿后十五分钟内可撤改，逾期以回执为准；空白稿不得存档；超时限稿件自动转入次日早班。</p>
+      </div>
+    </div>
+
+    <div class="actionbar">
+      <button class="act draft" id="saveBtn">存草稿</button>
+      <button class="act pub" id="pubBtn">发 布</button>
+    </div>
+
+    <div class="homebar"><i></i></div>
+    <div class="toast" id="toast036" role="status"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var LIMIT = 280;
+  var col = '快讯';
+  var dirty = true;
+  var seq = 247;
+
+  var titleEl = document.getElementById('title036');
+  var bodyEl = document.getElementById('body036');
+  var countEl = document.getElementById('count036');
+  var stamp = document.getElementById('stamp036');
+  var err = document.getElementById('err036');
+  var pubBtn = document.getElementById('pubBtn');
+  var saveBtn = document.getElementById('saveBtn');
+  var receipt = document.getElementById('receipt036');
+  var toastEl = document.getElementById('toast036');
+  var toastTimer = null;
+
+  function toast(msg){
+    toastEl.textContent = msg;
+    toastEl.classList.add('on');
+    if(toastTimer){ clearTimeout(toastTimer); }
+    toastTimer = setTimeout(function(){ toastEl.classList.remove('on'); }, 1800);
+  }
+  function hm(){
+    var d = new Date();
+    var p = function(n){ return (n < 10 ? '0' : '') + n; };
+    return p(d.getHours()) + ':' + p(d.getMinutes());
+  }
+  function nchars(s){
+    return Array.from(s.replace(/\s/g, '')).length;
+  }
+  function showErr(msg){
+    err.textContent = msg;
+    err.classList.add('on');
+  }
+  function clearErr(){ err.classList.remove('on'); }
+
+  /* 实时字数与发布可用性 */
+  function refresh(){
+    var n = nchars(bodyEl.value);
+    var over = n > LIMIT;
+    countEl.textContent = '正文 ' + n + ' 字 / 上限 ' + LIMIT + ' · ' +
+      (over ? '超出 ' + (n - LIMIT) + ' 字' : '余 ' + (LIMIT - n) + ' 字');
+    countEl.classList.toggle('over', over);
+    var ok = titleEl.value.trim().length > 0 && n > 0 && !over;
+    pubBtn.disabled = !ok;
+    if(dirty){ stamp.textContent = '未发'; stamp.className = 'stamp idle'; }
+    clearErr();
+  }
+
+  /* 栏目选择 */
+  var chips = document.querySelectorAll('#chips036 .chip');
+  chips.forEach(function(c){
+    c.addEventListener('click', function(){
+      chips.forEach(function(x){ x.classList.toggle('on', x === c); });
+      col = c.dataset.col;
+      dirty = true;
+      refresh();
+    });
+  });
+
+  titleEl.addEventListener('input', function(){ dirty = true; refresh(); });
+  bodyEl.addEventListener('input', function(){ dirty = true; refresh(); });
+
+  function writeReceipt(state){
+    document.getElementById('rcState').textContent = state;
+    document.getElementById('rcTime').textContent = hm();
+    document.getElementById('rcCol').textContent = '【' + col + '】';
+    document.getElementById('rcCount').textContent = nchars(bodyEl.value) + ' 字';
+    document.getElementById('rcNo').textContent = 'HW-' + ('000' + seq).slice(-4);
+    receipt.classList.add('on');
+  }
+
+  /* 存草稿：空稿不得存档 */
+  saveBtn.addEventListener('click', function(){
+    var empty = titleEl.value.trim().length === 0 && nchars(bodyEl.value) === 0;
+    if(empty){
+      showErr('标题与正文均为空，空白稿不得存档。');
+      return;
+    }
+    stamp.textContent = '存稿 ' + hm();
+    stamp.className = 'stamp saved';
+    writeReceipt('草稿已存');
+    dirty = false;
+    toast('草稿已入库 · ' + hm());
+    document.getElementById('scroller036').scrollTop = document.getElementById('scroller036').scrollHeight;
+  });
+
+  /* 发布：签发回执号 */
+  pubBtn.addEventListener('click', function(){
+    if(pubBtn.disabled){ return; }
+    stamp.textContent = '已发 ' + hm();
+    stamp.className = 'stamp sent';
+    writeReceipt('已签发');
+    seq += 1;
+    dirty = false;
+    toast('电讯已拍发 · 回执 HW-' + ('000' + (seq - 1)).slice(-4));
+    document.getElementById('scroller036').scrollTop = document.getElementById('scroller036').scrollHeight;
+  });
+
+  refresh();
+})();
+</script>
+</body>
+</html>

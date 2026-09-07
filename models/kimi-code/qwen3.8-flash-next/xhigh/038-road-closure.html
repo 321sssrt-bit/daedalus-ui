@@ -1,0 +1,399 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>驿格子 · 取件码加载失败</title>
+<style>
+:root{
+  --page:#ecebe7;
+  --cement:#d9d9d6;
+  --cone:#f2711c;
+  --asphalt:#1f1f1e;
+  --chalk:#f7f5ef;
+  --grime:#77776f;
+  --deep:#2e2e2c;
+  --phone:#26262a;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+[hidden]{display:none !important}
+html,body{min-height:100%}
+body{
+  font-family:-apple-system,"PingFang SC","Segoe UI","Microsoft YaHei",sans-serif;
+  background:
+    repeating-linear-gradient(0deg, rgba(31,31,30,.035) 0 2px, transparent 2px 6px),
+    linear-gradient(180deg,#cfcfcb,#bdbdb8);
+  display:flex;
+  padding:28px 16px;
+  color:var(--asphalt);
+  -webkit-font-smoothing:antialiased;
+}
+.phone{
+  position:relative;
+  margin:auto;
+  padding:12px;
+  border-radius:54px;
+  background:linear-gradient(160deg,#3c3c42,#1c1c20 55%,#3d3d43);
+  box-shadow:0 44px 90px -34px rgba(20,20,22,.6), inset 0 0 0 1px rgba(255,255,255,.06);
+}
+.phone::before{content:"";position:absolute;left:-2px;top:158px;width:3px;height:66px;border-radius:3px 0 0 3px;background:#4c4c52}
+.phone::after{content:"";position:absolute;right:-2px;top:212px;width:3px;height:92px;border-radius:0 3px 3px 0;background:#4c4c52}
+.screen{
+  position:relative;
+  width:390px;
+  height:844px;
+  border-radius:42px;
+  overflow:hidden;
+  background:var(--page);
+  display:flex;
+  flex-direction:column;
+}
+.statusbar{
+  height:44px;flex:none;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 30px 0 32px;
+  font-size:14px;font-weight:600;color:var(--asphalt);
+  background:var(--cement);
+}
+.sig{display:flex;align-items:flex-end;gap:2px;margin-right:8px}
+.sig i{display:block;width:3px;height:10px;border-radius:1px;background:var(--asphalt)}
+.sig i:nth-child(4){opacity:.3}
+.sb-right{display:flex;align-items:center}
+.content{flex:1;overflow-y:auto;display:flex;flex-direction:column}
+.beam{
+  position:relative;
+  background:var(--cone);
+  padding:26px 24px 30px;
+  overflow:hidden;
+  color:var(--asphalt);
+}
+.beam::before{
+  content:"";
+  position:absolute;left:0;right:0;top:0;height:14px;
+  background:repeating-linear-gradient(135deg,var(--asphalt) 0 14px,var(--cone) 14px 28px);
+}
+.beam__stripes{
+  position:absolute;inset:0;
+  background:repeating-linear-gradient(135deg,var(--asphalt) 0 14px,transparent 14px 40px);
+  opacity:.13;
+  pointer-events:none;
+}
+.beam__kicker{
+  position:relative;
+  margin-top:8px;
+  font-size:11px;font-weight:700;letter-spacing:.42em;
+}
+.beam__title{
+  position:relative;
+  margin-top:12px;
+  font-size:27px;font-weight:900;line-height:1.32;letter-spacing:.03em;
+}
+.beam__sub{
+  position:relative;
+  margin-top:10px;
+  font-size:13px;font-weight:600;letter-spacing:.06em;
+  background:var(--chalk);
+  display:inline-block;
+  padding:4px 10px;
+  transform:rotate(-.6deg);
+}
+.body{
+  flex:1;
+  padding:22px 22px 24px;
+  display:flex;
+  flex-direction:column;
+}
+.sealwrap{display:flex;justify-content:center;margin:2px 0 20px}
+.seal{
+  border:3px double var(--asphalt);
+  padding:10px 22px;
+  text-align:center;
+  transform:rotate(-3.5deg);
+  background:var(--chalk);
+}
+.seal--stamp{animation:stampIn .34s cubic-bezier(.2,.9,.3,1.4) both}
+.seal__label{font-size:10px;font-weight:800;letter-spacing:.5em;text-indent:.5em;color:var(--deep)}
+.seal__no{
+  margin-top:4px;
+  font-family:ui-monospace,"SF Mono",Consolas,"Courier New",monospace;
+  font-size:17px;font-weight:700;letter-spacing:.06em;
+}
+.seal__time{margin-top:4px;font-size:10.5px;letter-spacing:.18em;color:var(--grime)}
+.note{
+  background:var(--cement);
+  border-left:6px solid var(--asphalt);
+  padding:18px 18px 16px;
+}
+.note__lead{font-size:14.5px;line-height:1.85;font-weight:500}
+.note ul{margin:12px 0 0 0;padding-left:0;list-style:none}
+.note li{
+  position:relative;
+  margin-top:9px;
+  font-size:13px;line-height:1.7;color:var(--deep);
+  padding-left:16px;
+}
+.note li::before{
+  content:"";
+  position:absolute;left:0;top:9px;
+  width:8px;height:8px;
+  background:var(--cone);
+}
+.note b{font-weight:800}
+.retryline{
+  margin-top:16px;
+  font-size:12px;color:var(--grime);letter-spacing:.05em;line-height:1.7;
+}
+.busybar{
+  height:10px;margin-top:14px;
+  background:var(--cement);
+  overflow:hidden;position:relative;
+}
+.busybar::after{
+  content:"";
+  position:absolute;inset:0;
+  background:repeating-linear-gradient(135deg,var(--cone) 0 12px,var(--page) 12px 24px);
+  animation:creep 1s linear infinite;
+}
+@keyframes creep{
+  from{transform:translateX(-24px)}
+  to{transform:translateX(0)}
+}
+.actions{
+  margin-top:auto;
+  padding-top:20px;
+  display:flex;flex-direction:column;gap:12px;
+}
+.btn{
+  min-height:52px;
+  border-radius:3px;
+  font-family:inherit;
+  font-size:16px;font-weight:800;letter-spacing:.32em;text-indent:.16em;
+  cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:transform .12s ease, box-shadow .15s ease, background .15s ease;
+}
+.btn:focus-visible{outline:3px solid var(--asphalt);outline-offset:2px}
+.btn:active{transform:translateY(2px)}
+.btn--go{
+  background:var(--cone);color:var(--asphalt);
+  border:none;
+  box-shadow:inset 0 -5px 0 rgba(31,31,30,.28);
+}
+.btn--go:hover{background:#d95f12}
+.btn--go[disabled]{background:var(--cement);color:var(--grime);cursor:default;box-shadow:none}
+.btn--home{
+  background:transparent;color:var(--asphalt);
+  border:3px solid var(--asphalt);
+}
+.btn--home:hover{background:var(--asphalt);color:var(--chalk)}
+.pass{
+  border:3px solid var(--asphalt);
+  background:var(--chalk);
+  padding:20px 20px 22px;
+  margin-top:6px;
+}
+.pass__flag{
+  display:inline-block;
+  background:var(--asphalt);color:var(--cone);
+  font-size:11px;font-weight:800;letter-spacing:.4em;text-indent:.4em;
+  padding:5px 12px 5px 8px;
+}
+.pass__label{margin-top:16px;font-size:12px;letter-spacing:.3em;color:var(--grime)}
+.pass__code{
+  margin-top:6px;
+  font-family:ui-monospace,"SF Mono",Consolas,"Courier New",monospace;
+  font-size:40px;font-weight:700;letter-spacing:.04em;
+}
+.pass__hint{margin-top:12px;font-size:12.5px;line-height:1.8;color:var(--deep)}
+.done-line{
+  margin-top:14px;
+  border-top:2px dashed var(--grime);
+  padding-top:10px;
+  font-size:12px;color:var(--grime);letter-spacing:.06em;
+}
+.toast{
+  position:absolute;left:50%;bottom:52px;
+  transform:translateX(-50%) translateY(8px);
+  background:var(--asphalt);color:var(--chalk);
+  font-size:12.5px;letter-spacing:.1em;font-weight:600;
+  padding:11px 20px;border-radius:2px;
+  opacity:0;pointer-events:none;
+  transition:opacity .26s ease, transform .26s ease;
+  z-index:9;white-space:nowrap;
+}
+.toast--show{opacity:1;transform:translateX(-50%) translateY(0)}
+.homebar{
+  position:absolute;left:50%;bottom:8px;
+  transform:translateX(-50%);
+  width:134px;height:5px;border-radius:3px;
+  background:rgba(31,31,30,.3);
+  z-index:7;
+}
+@keyframes stampIn{
+  from{transform:rotate(-14deg) scale(1.35);opacity:.2}
+  to{transform:rotate(-3.5deg) scale(1);opacity:1}
+}
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation:none !important;transition:none !important}
+}
+@media (max-width:460px){
+  body{padding:0;background:var(--page)}
+  .phone{padding:0;border-radius:0;background:none;box-shadow:none}
+  .phone::before,.phone::after{display:none}
+  .screen{width:100%;max-width:100%;height:100vh;height:100dvh;border-radius:0}
+}
+</style>
+</head>
+<body>
+<div class="phone" role="img" aria-label="手机演示框">
+  <div class="screen">
+
+    <header class="statusbar">
+      <span>9:41</span>
+      <span class="sb-right">
+        <span class="sig" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+        <svg width="25" height="12" viewBox="0 0 25 12" aria-hidden="true">
+          <rect x="0.5" y="0.5" width="20" height="11" rx="3" fill="none" stroke="currentColor"/>
+          <rect x="2.5" y="2.5" width="13" height="7" rx="1.5" fill="currentColor"/>
+          <rect x="22" y="4" width="2" height="4" rx="1" fill="currentColor"/>
+        </svg>
+      </span>
+    </header>
+
+    <div class="content">
+      <div class="beam">
+        <div class="beam__stripes" aria-hidden="true"></div>
+        <p class="beam__kicker" id="beamKicker">驿格子 · 服务异常</p>
+        <h1 class="beam__title" id="beamTitle">取件码这条路<br>暂时走不通</h1>
+        <p class="beam__sub" id="beamSub">3 号柜 · 丰安路服务点</p>
+      </div>
+
+      <div class="body">
+        <section id="failBlock">
+          <div class="sealwrap">
+            <div class="seal" id="seal038">
+              <p class="seal__label">维修工单</p>
+              <p class="seal__no">GD-2417-0837</p>
+              <p class="seal__time">已上报 · 今晨 09:26</p>
+            </div>
+          </div>
+
+          <section class="note">
+            <p class="note__lead">3 号柜的屏幕在换，师傅正在接线，取件码这一步拉不回来。别急，你手机号名下的其他柜子不受影响。</p>
+            <ul>
+              <li>预计 <b>10:30 前</b>恢复，修好后本页自动放行</li>
+              <li>急件可凭<b>手机号后四位</b>在旁边的自助机直接开柜</li>
+            </ul>
+          </section>
+
+          <p class="retryline" id="retryLine">最近一次取件码加载失败 · 09:24</p>
+        </section>
+
+        <section class="pass" id="passBlock" hidden>
+          <span class="pass__flag">通行恢复</span>
+          <p class="pass__label">你的取件码</p>
+          <p class="pass__code">6-2-4418</p>
+          <p class="pass__hint">6 号柜 · 第 2 列 · 凭码开柜<br>今晚 24:00 前有效，取完记得带柜门。</p>
+          <p class="done-line">工单 GD-2417-0837 已销 · 师傅 10:07 接线完毕</p>
+        </section>
+
+        <div class="busybar" id="busybar" hidden aria-hidden="true"></div>
+
+        <div class="actions">
+          <button class="btn btn--go" id="btnRetry" type="button">重试</button>
+          <button class="btn btn--home" id="btnHome" type="button">回首页</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="homebar" aria-hidden="true"></div>
+    <div class="toast" id="toast038" role="status"></div>
+
+  </div>
+</div>
+
+<script>
+(function(){
+  /* 驿格子 · 重试状态机：首次再失败，再次重试成功 */
+  var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var failBlock = document.getElementById("failBlock");
+  var passBlock = document.getElementById("passBlock");
+  var busybar = document.getElementById("busybar");
+  var retryLine = document.getElementById("retryLine");
+  var beamKicker = document.getElementById("beamKicker");
+  var beamTitle = document.getElementById("beamTitle");
+  var beamSub = document.getElementById("beamSub");
+  var seal = document.getElementById("seal038");
+  var btnRetry = document.getElementById("btnRetry");
+  var btnHome = document.getElementById("btnHome");
+  var toast = document.getElementById("toast038");
+  var toastTimer = null;
+  var attempts = 0;
+  var busy = false;
+  var ok = false;
+
+  function showToast(msg){
+    toast.textContent = msg;
+    toast.classList.add("toast--show");
+    if(toastTimer){ clearTimeout(toastTimer); }
+    toastTimer = setTimeout(function(){ toast.classList.remove("toast--show"); }, 2000);
+  }
+
+  function restamp(){
+    if(reduce){ return; }
+    seal.classList.remove("seal--stamp");
+    void seal.offsetWidth;
+    seal.classList.add("seal--stamp");
+  }
+
+  function reset(){
+    attempts = 0;
+    ok = false;
+    failBlock.hidden = false;
+    passBlock.hidden = true;
+    btnRetry.disabled = false;
+    btnRetry.textContent = "重试";
+    beamKicker.textContent = "驿格子 · 服务异常";
+    beamTitle.innerHTML = "取件码这条路<br>暂时走不通";
+    beamSub.textContent = "3 号柜 · 丰安路服务点";
+    retryLine.textContent = "最近一次取件码加载失败 · 09:24";
+  }
+
+  btnRetry.addEventListener("click", function(){
+    if(busy || ok){ return; }
+    busy = true;
+    btnRetry.disabled = true;
+    btnRetry.textContent = "呼叫柜机中…";
+    busybar.hidden = false;
+    setTimeout(function(){
+      busy = false;
+      busybar.hidden = true;
+      attempts = attempts + 1;
+      if(attempts === 1){
+        retryLine.textContent = "第 1 次重试仍未成功 · 柜机没有回应，工单还在师傅手里";
+        btnRetry.disabled = false;
+        btnRetry.textContent = "再试一次";
+        restamp();
+        showToast("还是不通，要不再试一次？");
+      }else{
+        ok = true;
+        failBlock.hidden = true;
+        passBlock.hidden = false;
+        btnRetry.disabled = true;
+        btnRetry.textContent = "已取到码";
+        beamKicker.textContent = "驿格子 · 服务恢复";
+        beamTitle.innerHTML = "这条路<br>重新放行";
+        beamSub.textContent = "工单 GD-2417-0837 已销";
+        showToast("取件码已到手");
+      }
+    }, 1250);
+  });
+
+  btnHome.addEventListener("click", function(){
+    reset();
+    showToast("已回首页 · 检修中的消息会推送给你");
+  });
+})();
+</script>
+</body>
+</html>

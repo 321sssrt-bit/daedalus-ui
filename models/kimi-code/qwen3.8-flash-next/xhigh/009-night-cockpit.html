@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>夜航控制台 · 工作台总览</title>
+<style>
+:root{
+  --void:#0c1116;
+  --panel:#121c24;
+  --panel2:#16222c;
+  --line:#1e2f3a;
+  --teal:#46d8c2;
+  --teal-dim:#1f6d5f;
+  --amber:#ffb454;
+  --red:#ff6b5e;
+  --text:#d7e5e1;
+  --muted:#7c949b;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  background:var(--void);
+  color:var(--text);
+  font:13px/1.55 -apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+.num{font-family:ui-monospace,"Cascadia Mono",Consolas,monospace;font-variant-numeric:tabular-nums}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+button:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
+
+.hud{display:flex;flex-direction:column;height:100vh;min-height:640px}
+
+/* ── 顶栏：航电状态条 ── */
+.strip{
+  display:flex;align-items:center;gap:18px;
+  height:46px;padding:0 16px;flex:none;
+  background:var(--panel);border-bottom:1px solid var(--line);
+}
+.brand{display:flex;align-items:center;gap:9px;letter-spacing:.14em;font-weight:700}
+.brand svg{display:block}
+.beacon{width:7px;height:7px;border-radius:50%;background:var(--teal);box-shadow:0 0 8px var(--teal);animation:blink 2.4s infinite}
+@keyframes blink{0%,70%{opacity:1}85%{opacity:.25}100%{opacity:1}}
+.strip .sep{width:1px;height:22px;background:var(--line)}
+.strip .clock{margin-left:auto;color:var(--teal);letter-spacing:.08em}
+.pill{border:1px solid var(--teal-dim);color:var(--teal);padding:2px 9px;font-size:11px;letter-spacing:.1em}
+.pill.warn{border-color:#7a5a2a;color:var(--amber)}
+.crew{color:var(--muted);font-size:12px}
+
+/* ── 主甲板：左仪表 · 中读数 · 右队列 ── */
+.deck{flex:1;display:grid;grid-template-columns:62px 238px 1fr 302px;min-height:0}
+
+nav.rail{
+  background:var(--panel);border-right:1px solid var(--line);
+  display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 0;
+}
+.rail button{
+  width:46px;height:46px;display:grid;place-items:center;gap:2px;
+  color:var(--muted);border:1px solid transparent;border-radius:4px;
+  position:relative;transition:color .15s,border-color .15s;
+}
+.rail button small{font-size:9px;letter-spacing:.06em}
+.rail button:hover{color:var(--text);border-color:var(--line)}
+.rail button[aria-selected="true"]{color:var(--teal);border-color:var(--teal-dim);background:#0e1a1f}
+.rail button[aria-selected="true"]::before{content:"";position:absolute;left:-9px;top:12px;bottom:12px;width:2px;background:var(--teal)}
+.rail .badge{position:absolute;top:3px;right:4px;min-width:15px;height:15px;border-radius:8px;background:var(--red);color:#20070a;font-size:9px;line-height:15px;font-weight:700}
+
+aside.pod{background:var(--panel);padding:12px;overflow:auto}
+.pod.left{border-right:1px solid var(--line)}
+.pod.right{border-left:1px solid var(--line)}
+.pod h3,main h3{font-size:10px;font-weight:700;letter-spacing:.22em;color:var(--muted);margin-bottom:10px}
+.pod h3 em{font-style:normal;color:var(--teal-dim)}
+
+.gauge{display:flex;align-items:center;gap:11px;padding:10px 6px;border-bottom:1px dashed var(--line)}
+.gauge:last-child{border-bottom:0}
+.gauge .read b{display:block;font-size:21px;color:var(--text);line-height:1.2}
+.gauge .read span{font-size:11px;color:var(--muted)}
+.gauge svg{flex:none}
+
+main{overflow:auto;padding:16px 20px;min-width:0;background:
+  linear-gradient(var(--void),var(--void)),
+  repeating-linear-gradient(0deg,transparent 0 39px,rgba(30,47,58,.28) 39px 40px)}
+main>section{display:none}
+main>section.on{display:block}
+.hdg{display:flex;align-items:baseline;gap:14px;margin-bottom:14px}
+.hdg h2{font-size:15px;letter-spacing:.28em;font-weight:700}
+.hdg .stamp{color:var(--muted);font-size:11px;letter-spacing:.08em}
+.hdg .live{margin-left:auto;color:var(--teal);font-size:11px;letter-spacing:.14em}
+
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
+.kpi{background:var(--panel2);border:1px solid var(--line);border-top:2px solid var(--teal-dim);padding:11px 13px;position:relative}
+.kpi.hot{border-top-color:var(--amber)}
+.kpi .k{font-size:11px;color:var(--muted);letter-spacing:.12em}
+.kpi .v{font-size:27px;line-height:1.25;margin:2px 0}
+.kpi .d{font-size:11px}
+.up{color:var(--teal)}.down{color:var(--red)}.flat{color:var(--muted)}
+
+.panelbox{background:var(--panel2);border:1px solid var(--line);padding:12px 14px;margin-bottom:14px}
+.panelbox .cap{display:flex;justify-content:space-between;align-items:baseline;color:var(--muted);font-size:11px;letter-spacing:.1em;margin-bottom:8px}
+.panelbox .cap b{color:var(--text);letter-spacing:.18em;font-size:11px}
+.sparkwrap svg{width:100%;height:110px;display:block}
+.axis text{fill:var(--muted);font-size:9px;font-family:ui-monospace,"Cascadia Mono",Consolas,monospace}
+
+.linkgrid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line)}
+.linkrow{background:var(--panel2);display:flex;align-items:center;gap:9px;padding:8px 11px;font-size:12px}
+.lamp{width:8px;height:8px;border-radius:50%;background:var(--teal);box-shadow:0 0 6px rgba(70,216,194,.7);flex:none}
+.lamp.amb{background:var(--amber);box-shadow:0 0 6px rgba(255,180,84,.7)}
+.linkrow .lat{margin-left:auto;color:var(--muted)}
+
+table.tab{width:100%;border-collapse:collapse;font-size:12px}
+.tab th{color:var(--muted);font-weight:600;text-align:left;letter-spacing:.1em;font-size:10px;padding:6px 9px;border-bottom:1px solid var(--teal-dim)}
+.tab td{padding:7px 9px;border-bottom:1px solid #16242e}
+.tab tr.row{cursor:pointer;transition:background .15s}
+.tab tr.row:hover{background:#132129}
+.tab tr.row.open{background:#0e1a1f}
+.tag{display:inline-block;padding:1px 8px;font-size:10px;letter-spacing:.08em;border:1px solid}
+.tag.run{color:var(--teal);border-color:var(--teal-dim)}
+.tag.wait{color:var(--muted);border-color:var(--line)}
+.tag.slow{color:var(--amber);border-color:#7a5a2a}
+.bar{height:5px;background:#0a1015;border:1px solid var(--line);width:110px}
+.bar i{display:block;height:100%;background:var(--teal)}
+.detail{display:none}
+tr.row.open + tr .detail{display:table-cell}
+tr.drow{background:#0e1a1f}
+tr.drow .detail{padding:2px 12px 10px 30px;color:var(--muted);font-size:11px}
+tr.drow .detail b{color:var(--text);font-weight:600}
+tr.drow td{padding:0;border-bottom:1px solid #16242e}
+
+.alarm{display:flex;align-items:center;gap:12px;border:1px solid var(--line);background:var(--panel2);padding:11px 13px;margin-bottom:9px}
+.alarm .code{color:var(--muted)}
+.alarm .msg b{display:block}
+.alarm .msg span{font-size:11px;color:var(--muted)}
+.alarm .ack{margin-left:auto;border:1px solid var(--amber);color:var(--amber);padding:4px 13px;font-size:11px;letter-spacing:.1em;transition:background .15s}
+.alarm .ack:hover{background:rgba(255,180,84,.12)}
+.alarm.ok{opacity:.55}
+.alarm.ok .lamp{background:var(--muted);box-shadow:none}
+.alarm.ok .ack{border-color:var(--teal-dim);color:var(--teal);pointer-events:none}
+
+/* 右舷队列 */
+.q{border:1px solid var(--line);background:var(--panel2);padding:9px 11px;margin-bottom:8px}
+.q .t{display:flex;justify-content:space-between;gap:8px}
+.q .t b{font-weight:600}
+.q .t .n{color:var(--amber)}
+.q .meta{color:var(--muted);font-size:11px;margin:2px 0 6px}
+.q .bar i{transition:width .3s}
+.log{border-top:1px solid var(--line);margin-top:14px;padding-top:10px}
+.log p{font-size:11px;color:var(--muted);margin-bottom:5px}
+.log p b{color:var(--teal);font-weight:400}
+
+footer.statusline{
+  flex:none;height:26px;display:flex;align-items:center;gap:20px;padding:0 16px;
+  border-top:1px solid var(--line);background:var(--panel);
+  color:var(--muted);font-size:10px;letter-spacing:.12em;
+}
+footer .ok{color:var(--teal)}
+footer .right{margin-left:auto}
+
+@media (max-width:1100px){.deck{grid-template-columns:62px 210px 1fr 250px}.kpis{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:780px){
+  .hud{height:auto}
+  .deck{grid-template-columns:1fr;grid-auto-rows:auto}
+  nav.rail{flex-direction:row;justify-content:center}
+  .rail button[aria-selected="true"]::before{display:none}
+  aside.pod{border:0;border-top:1px solid var(--line)}
+  .strip{flex-wrap:wrap;height:auto;padding:8px 12px}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important}
+}
+</style>
+</head>
+<body>
+<div class="hud">
+
+  <header class="strip">
+    <span class="brand">
+      <span class="beacon"></span>
+      <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
+        <path d="M9 1 L16 15 L9 11.5 L2 15 Z" fill="none" stroke="#46d8c2" stroke-width="1.4" stroke-linejoin="round"/>
+      </svg>
+      夜航控制台
+    </span>
+    <span class="sep"></span>
+    <span class="pill">链路稳定</span>
+    <span class="pill warn" id="alarm-pill">告警 3</span>
+    <span class="clock num" id="clock">-- --:--:--</span>
+    <span class="crew">值班 · 丁岚（B 班）· 席位 07</span>
+  </header>
+
+  <div class="deck">
+
+    <nav class="rail" role="tablist" aria-label="工作台导航">
+      <button role="tab" aria-selected="true" data-pane="ov">
+        <svg width="19" height="19" viewBox="0 0 19 19" aria-hidden="true"><path d="M2 14 A7.5 7.5 0 0 1 17 14" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M9.5 14 L13 8" stroke="currentColor" stroke-width="1.5"/><circle cx="9.5" cy="14" r="1.6" fill="currentColor"/></svg>
+        <small>总览</small>
+      </button>
+      <button role="tab" aria-selected="false" data-pane="queue">
+        <svg width="19" height="19" viewBox="0 0 19 19" aria-hidden="true"><rect x="2.5" y="3" width="14" height="3.2" fill="none" stroke="currentColor" stroke-width="1.4"/><rect x="2.5" y="8" width="14" height="3.2" fill="none" stroke="currentColor" stroke-width="1.4"/><rect x="2.5" y="13" width="9" height="3.2" fill="none" stroke="currentColor" stroke-width="1.4"/></svg>
+        <small>队列</small>
+      </button>
+      <button role="tab" aria-selected="false" data-pane="alarm">
+        <svg width="19" height="19" viewBox="0 0 19 19" aria-hidden="true"><path d="M9.5 2.5 L17 15.5 H2 Z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M9.5 8 V11.5" stroke="currentColor" stroke-width="1.5"/><circle cx="9.5" cy="13.4" r=".9" fill="currentColor"/></svg>
+        <small>告警</small>
+        <span class="badge num" id="rail-badge">3</span>
+      </button>
+      <button role="tab" aria-selected="false" data-pane="base">
+        <svg width="19" height="19" viewBox="0 0 19 19" aria-hidden="true"><path d="M2.5 14.5 H16.5 M4.5 14.5 V9 M8.5 14.5 V5.5 M12.5 14.5 V10.5 M16 14.5 V7" stroke="currentColor" stroke-width="1.4" fill="none"/></svg>
+        <small>基线</small>
+      </button>
+    </nav>
+
+    <aside class="pod left">
+      <h3>飞行仪表 <em>INST</em></h3>
+      <div class="gauge">
+        <svg width="74" height="74" viewBox="0 0 120 120" aria-hidden="true">
+          <circle cx="60" cy="60" r="44" fill="none" stroke="#1e2f3a" stroke-width="8" stroke-dasharray="207.35 276.5" stroke-dashoffset="0" transform="rotate(135 60 60)"/>
+          <circle cx="60" cy="60" r="44" fill="none" stroke="#46d8c2" stroke-width="8" stroke-dasharray="207.35 276.5" stroke-dashoffset="1.66" transform="rotate(135 60 60)"/>
+          <path d="M60 60 L83 40" stroke="#d7e5e1" stroke-width="2.4" stroke-linecap="round"/>
+          <circle cx="60" cy="60" r="3.4" fill="#0c1116" stroke="#46d8c2" stroke-width="1.6"/>
+        </svg>
+        <div class="read"><b class="num">99.2%</b><span>今日成功率</span></div>
+      </div>
+      <div class="gauge">
+        <svg width="74" height="74" viewBox="0 0 120 120" aria-hidden="true">
+          <circle cx="60" cy="60" r="44" fill="none" stroke="#1e2f3a" stroke-width="8" stroke-dasharray="207.35 276.5" transform="rotate(135 60 60)"/>
+          <circle cx="60" cy="60" r="44" fill="none" stroke="#ffb454" stroke-width="8" stroke-dasharray="207.35 276.5" stroke-dashoffset="66.35" transform="rotate(135 60 60)"/>
+          <path d="M60 60 L41 82" stroke="#d7e5e1" stroke-width="2.4" stroke-linecap="round"/>
+          <circle cx="60" cy="60" r="3.4" fill="#0c1116" stroke="#ffb454" stroke-width="1.6"/>
+        </svg>
+        <div class="read"><b class="num">68%</b><span>队列水位</span></div>
+      </div>
+      <h3 style="margin-top:16px">航段油量 <em>FUEL</em></h3>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:5px">日预算配额 已用 54%</div>
+      <div class="bar" style="width:100%"><i style="width:54%"></i></div>
+      <div style="font-size:11px;color:var(--muted);margin:12px 0 5px">重试预算 余 81%</div>
+      <div class="bar" style="width:100%"><i style="width:81%;background:var(--amber)"></i></div>
+    </aside>
+
+    <main>
+      <section id="pane-ov" class="on">
+        <div class="hdg"><h2>今日读数</h2><span class="stamp num" id="ov-date">—</span><span class="live">● 实时 · 10s 刷新</span></div>
+        <div class="kpis">
+          <div class="kpi"><div class="k">今日处理量</div><div class="v num" id="kpi-count">12,846</div><div class="d up">▲ 6.4% 对昨日</div></div>
+          <div class="kpi"><div class="k">端到端成功率</div><div class="v num">99.2%</div><div class="d up">▲ 0.3pt 对基线</div></div>
+          <div class="kpi"><div class="k">P95 延迟</div><div class="v num">318<span style="font-size:13px">ms</span></div><div class="d flat">— 持平昨日</div></div>
+          <div class="kpi hot"><div class="k">活动告警</div><div class="v num" id="kpi-alarm">3</div><div class="d down">需席位确认</div></div>
+        </div>
+        <div class="panelbox sparkwrap">
+          <div class="cap"><b>24 小时吞吐 · 次/分钟</b><span>峰值 09:30 · 412/s</span></div>
+          <svg viewBox="0 0 560 110" preserveAspectRatio="none" role="img" aria-label="24 小时吞吐曲线">
+            <defs>
+              <linearGradient id="nc9-spark" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#46d8c2" stop-opacity=".34"/>
+                <stop offset="1" stop-color="#46d8c2" stop-opacity="0"/>
+              </linearGradient>
+            </defs>
+            <path d="M0 92 L40 88 80 84 120 86 160 78 200 80 240 66 280 58 320 30 360 44 400 52 440 58 480 55 520 61 560 63 L560 110 L0 110 Z" fill="url(#nc9-spark)"/>
+            <polyline points="0,92 40,88 80,84 120,86 160,78 200,80 240,66 280,58 320,30 360,44 400,52 440,58 480,55 520,61 560,63" fill="none" stroke="#46d8c2" stroke-width="1.6"/>
+            <g class="axis"><text x="0" y="106">00:00</text><text x="266" y="106">08:00</text><text x="320" y="26">412/s</text><text x="528" y="106">现在</text></g>
+          </svg>
+        </div>
+        <div class="panelbox" style="padding:0">
+          <div class="linkgrid">
+            <div class="linkrow"><span class="lamp"></span>订单同步管线<span class="lat num">P95 121ms</span></div>
+            <div class="linkrow"><span class="lamp"></span>消息扇出集群<span class="lat num">P95 88ms</span></div>
+            <div class="linkrow"><span class="lamp amb"></span>支付对账作业<span class="lat num">P95 640ms</span></div>
+            <div class="linkrow"><span class="lamp"></span>检索索引重建<span class="lat num">P95 210ms</span></div>
+            <div class="linkrow"><span class="lamp amb"></span>图像转码节点 t-07<span class="lat num">心跳延迟</span></div>
+            <div class="linkrow"><span class="lamp"></span>日志归档通道<span class="lat num">P95 96ms</span></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="pane-queue">
+        <div class="hdg"><h2>任务队列</h2><span class="stamp">展开任意行查看下发参数</span></div>
+        <table class="tab">
+          <thead><tr><th>批次号</th><th>管线</th><th>状态</th><th>进度</th><th>预计完成</th></tr></thead>
+          <tbody id="qbody">
+            <tr class="row"><td class="num">B-30412</td><td>支付对账 · 月末全量</td><td><span class="tag slow">限速中</span></td><td><span class="bar"><i style="width:62%;background:var(--amber)"></i></span></td><td class="num">11:40</td></tr>
+            <tr class="drow"><td colspan="5"><div class="detail">提交人 <b>林可</b> · 分片 <b>48/128</b> · 重试 <b>2</b> 次 · 上次错误 <b>上游账期文件延迟 6 分钟</b> · 限速档 <b>300/s</b></div></td></tr>
+            <tr class="row"><td class="num">B-30411</td><td>图像转码 · 头像批量</td><td><span class="tag run">运行中</span></td><td><span class="bar"><i style="width:81%"></i></span></td><td class="num">10:05</td></tr>
+            <tr class="drow"><td colspan="5"><div class="detail">提交人 <b>系统计划</b> · 分片 <b>97/120</b> · 重试 <b>0</b> 次 · 节点池 <b>t-05…t-08</b></div></td></tr>
+            <tr class="row"><td class="num">B-30408</td><td>检索索引重建 · 商品库</td><td><span class="tag run">运行中</span></td><td><span class="bar"><i style="width:44%"></i></span></td><td class="num">13:20</td></tr>
+            <tr class="drow"><td colspan="5"><div class="detail">提交人 <b>何书明</b> · 文档 <b>4,120 万</b> · 影子索引 <b>是</b> · 切换窗口 <b>13:30</b></div></td></tr>
+            <tr class="row"><td class="num">B-30405</td><td>日志归档 · 冷存储搬运</td><td><span class="tag wait">排队</span></td><td><span class="bar"><i style="width:0%"></i></span></td><td class="num">待调度</td></tr>
+            <tr class="drow"><td colspan="5"><div class="detail">提交人 <b>系统计划</b> · 等待 <b>归档窗口 02:00</b> · 数据量 <b>1.9TB</b></div></td></tr>
+            <tr class="row"><td class="num">B-30402</td><td>报表导出 · 运营周报</td><td><span class="tag run">运行中</span></td><td><span class="bar"><i style="width:93%"></i></span></td><td class="num">09:52</td></tr>
+            <tr class="drow"><td colspan="5"><div class="detail">提交人 <b>丁岚</b> · 数据源 <b>warehouse.weekly</b> · 收件人 <b>增长组 7 人</b></div></td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="pane-alarm">
+        <div class="hdg"><h2>告警中心</h2><span class="stamp">确认后灯位熄灭，席位交班前须清零</span></div>
+        <div id="alarm-list">
+          <div class="alarm"><span class="lamp amb"></span><span class="code num">A-2231</span><div class="msg"><b>支付对账 P95 越过 600ms 阈值</b><span>09:18 触发 · 持续 23 分钟 · 建议核查上游账期文件</span></div><button class="ack">确认</button></div>
+          <div class="alarm"><span class="lamp" style="background:var(--red);box-shadow:0 0 6px rgba(255,107,94,.7)"></span><span class="code num">A-2228</span><div class="msg"><b>图像转码节点 t-07 心跳超时</b><span>09:11 触发 · 流量已切换至 t-05/t-06</span></div><button class="ack">确认</button></div>
+          <div class="alarm"><span class="lamp amb"></span><span class="code num">A-2225</span><div class="msg"><b>日志归档通道磁盘水位 82%</b><span>08:47 触发 · 预计 14:00 到达 90% 硬顶</span></div><button class="ack">确认</button></div>
+        </div>
+      </section>
+
+      <section id="pane-base">
+        <div class="hdg"><h2>基线对照</h2><span class="stamp">口径：近四周同时段均值</span></div>
+        <table class="tab">
+          <thead><tr><th>指标</th><th>今日</th><th>基线</th><th>偏差</th><th>判定</th></tr></thead>
+          <tbody>
+            <tr><td>吞吐（次/分钟）</td><td class="num">327</td><td class="num">308</td><td class="num up">+6.2%</td><td><span class="tag run">正常</span></td></tr>
+            <tr><td>成功率</td><td class="num">99.2%</td><td class="num">98.9%</td><td class="num up">+0.3pt</td><td><span class="tag run">正常</span></td></tr>
+            <tr><td>P95 延迟</td><td class="num">318ms</td><td class="num">302ms</td><td class="num" style="color:var(--amber)">+5.3%</td><td><span class="tag slow">观察</span></td></tr>
+            <tr><td>队列积压</td><td class="num">17</td><td class="num">9</td><td class="num down">+89%</td><td><span class="tag slow">观察</span></td></tr>
+            <tr><td>死信数</td><td class="num">2</td><td class="num">3</td><td class="num up">−33%</td><td><span class="tag run">正常</span></td></tr>
+          </tbody>
+        </table>
+      </section>
+    </main>
+
+    <aside class="pod right">
+      <h3>今日队列 <em>QUEUE</em></h3>
+      <div class="q"><div class="t"><b>支付对账 · 月末全量</b><span class="n num">62%</span></div><div class="meta">限速 300/s · 落后计划 8 分钟</div><div class="bar"><i style="width:62%;background:var(--amber)"></i></div></div>
+      <div class="q"><div class="t"><b>图像转码 · 头像批量</b><span class="n num" style="color:var(--teal)">81%</span></div><div class="meta">10:05 完成后释放 t-07</div><div class="bar"><i style="width:81%"></i></div></div>
+      <div class="q"><div class="t"><b>检索索引重建 · 商品库</b><span class="n num" style="color:var(--teal)">44%</span></div><div class="meta">13:30 影子切换窗口</div><div class="bar"><i style="width:44%"></i></div></div>
+      <div class="q"><div class="t"><b>报表导出 · 运营周报</b><span class="n num" style="color:var(--teal)">93%</span></div><div class="meta">推送增长组 7 人</div><div class="bar"><i style="width:93%"></i></div></div>
+      <div class="q"><div class="t"><b>日志归档 · 冷存储</b><span class="n num" style="color:var(--muted)">排队</span></div><div class="meta">等待 02:00 归档窗口</div><div class="bar"><i style="width:2%"></i></div></div>
+      <div class="log">
+        <h3>下行日志 <em>DL</em></h3>
+        <p><b class="num">09:41</b> 对账作业解除二次限速</p>
+        <p><b class="num">09:36</b> t-07 转码任务迁移至 t-06</p>
+        <p><b class="num">09:24</b> 商品库索引增量合并完成</p>
+        <p><b class="num">09:12</b> 队列 order-sync 自动重连成功</p>
+      </div>
+    </aside>
+  </div>
+
+  <footer class="statusline">
+    <span class="ok">SYS NOMINAL</span>
+    <span>链路 · 双专线 A/B</span>
+    <span>调度器 v4.2.1</span>
+    <span class="right">数据截至 <span class="num" id="foot-time">--:--:--</span> · 每 10 秒回传</span>
+  </footer>
+</div>
+
+<script>
+/* 时钟：每秒回传本机时间 */
+function pad(n){return String(n).padStart(2,"0")}
+function tick(){
+  var d=new Date();
+  var md=pad(d.getMonth()+1)+"-"+pad(d.getDate());
+  var hms=pad(d.getHours())+":"+pad(d.getMinutes())+":"+pad(d.getSeconds());
+  document.getElementById("clock").textContent=md+" "+hms+" UTC+8";
+  document.getElementById("foot-time").textContent=hms;
+}
+tick();setInterval(tick,1000);
+var now=new Date();
+document.getElementById("ov-date").textContent=now.getFullYear()+"-"+pad(now.getMonth()+1)+"-"+pad(now.getDate())+" · 第 251 航段";
+
+/* 导航切页 */
+var tabs=document.querySelectorAll(".rail [data-pane]");
+tabs.forEach(function(tab){
+  tab.addEventListener("click",function(){
+    tabs.forEach(function(t){t.setAttribute("aria-selected",String(t===tab))});
+    document.querySelectorAll("main>section").forEach(function(p){p.classList.remove("on")});
+    document.getElementById("pane-"+tab.dataset.pane).classList.add("on");
+  });
+});
+
+/* 队列行展开 */
+document.querySelectorAll("#qbody tr.row").forEach(function(row){
+  row.addEventListener("click",function(){
+    var was=row.classList.contains("open");
+    document.querySelectorAll("#qbody tr.row").forEach(function(r){r.classList.remove("open")});
+    if(!was)row.classList.add("open");
+  });
+});
+
+/* 告警确认：熄灭灯位并递减活动告警 */
+var pending=3;
+document.querySelectorAll("#alarm-list .ack").forEach(function(btn){
+  btn.addEventListener("click",function(){
+    var card=btn.closest(".alarm");
+    if(card.classList.contains("ok"))return;
+    card.classList.add("ok");
+    btn.textContent="已确认";
+    pending-=1;
+    document.getElementById("kpi-alarm").textContent=String(pending);
+    var pill=document.getElementById("alarm-pill");
+    var badge=document.getElementById("rail-badge");
+    if(pending>0){pill.textContent="告警 "+pending;badge.textContent=String(pending)}
+    else{pill.textContent="告警清零";pill.classList.remove("warn");badge.style.display="none"}
+  });
+});
+</script>
+</body>
+</html>

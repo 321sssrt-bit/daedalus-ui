@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>午夜场 · 本地影院台</title>
+<style>
+:root{
+  --ink:#101010;
+  --panel:#181716;
+  --panel2:#201e1c;
+  --line:#2c2926;
+  --velvet:#7a1f2b;
+  --velvet-deep:#5c1620;
+  --gold:#cfa952;
+  --gold-dim:#9a7f3f;
+  --text:#ece6da;
+  --muted:#8f8779;
+  --warn:#e3b04b;
+  --font-ui:-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei","Noto Sans CJK SC",sans-serif;
+  --font-mono:ui-monospace,"Courier New",monospace;
+  --r-card:10px;
+  --r-btn:6px;
+  --sp-1:8px;--sp-2:12px;--sp-3:16px;--sp-4:24px;--sp-5:32px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--ink);color:var(--text);font-family:var(--font-ui)}
+body{max-width:1280px;margin:0 auto;padding:0 var(--sp-4) var(--sp-5)}
+button{font-family:inherit;cursor:pointer}
+button:disabled{opacity:.45;cursor:not-allowed}
+
+/* 顶栏 */
+.topbar{display:flex;align-items:center;justify-content:space-between;height:64px;border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:10px}
+.brand .lamp{width:10px;height:10px;border-radius:50%;background:var(--velvet);box-shadow:0 0 12px 2px rgba(122,31,43,.8)}
+.brand .cn{font-size:20px;letter-spacing:.35em;color:var(--gold);font-weight:600}
+.brand .en{font-family:var(--font-mono);font-size:11px;color:var(--muted);letter-spacing:.22em}
+.topnote{font-family:var(--font-mono);font-size:11px;color:var(--muted);letter-spacing:.08em}
+
+/* 场刊 */
+.section-head{display:flex;align-items:baseline;gap:var(--sp-2);margin:var(--sp-4) 0 var(--sp-3)}
+.section-head h2{font-size:15px;letter-spacing:.3em;color:var(--text);font-weight:600}
+.section-head .tag{font-family:var(--font-mono);font-size:11px;color:var(--gold-dim);letter-spacing:.18em}
+.section-head .rule{flex:1;height:1px;background:var(--line)}
+.playbill{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--sp-3)}
+.film{background:var(--panel);border:1px solid var(--line);border-radius:var(--r-card);overflow:hidden;display:flex;flex-direction:column}
+.film:hover{border-color:var(--gold-dim)}
+.film .poster{aspect-ratio:16/10;display:block;width:100%}
+.film .info{padding:var(--sp-2) var(--sp-3) var(--sp-3);display:flex;flex-direction:column;gap:6px;flex:1}
+.film .meta{display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:11px;color:var(--muted)}
+.film .meta .dur{color:var(--gold)}
+.film h3{font-size:16px;font-weight:600;letter-spacing:.04em}
+.film .genre{font-size:12px;color:var(--muted)}
+.film .acts{display:flex;gap:var(--sp-1);margin-top:auto;padding-top:var(--sp-1)}
+.btn{border:1px solid var(--line);background:var(--panel2);color:var(--text);border-radius:var(--r-btn);padding:7px 14px;font-size:12px;letter-spacing:.06em}
+.btn:hover:not(:disabled){border-color:var(--gold-dim);color:var(--gold)}
+.btn.primary{background:var(--velvet);border-color:var(--velvet);color:#f6e9d8}
+.btn.primary:hover:not(:disabled){background:var(--velvet-deep);border-color:var(--velvet-deep);color:#fff}
+.btn.ghost-gold{background:transparent;border-color:var(--gold-dim);color:var(--gold)}
+.btn.danger{background:transparent;border-color:var(--velvet);color:#e08a92}
+.btn.danger:hover:not(:disabled){background:var(--velvet);color:#f6e9d8;border-color:var(--velvet)}
+
+/* 播放器 */
+.stage{display:grid;grid-template-columns:1fr 300px;gap:var(--sp-3);margin-top:var(--sp-4)}
+.screen-wrap{background:var(--panel);border:1px solid var(--line);border-radius:var(--r-card);overflow:hidden;display:flex;flex-direction:column}
+.screen{position:relative;aspect-ratio:16/9;background:#0a0a0a;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.screen svg.poster-big{position:absolute;inset:0;width:100%;height:100%}
+.screen .overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:var(--sp-2);background:rgba(10,10,10,.55)}
+.screen .overlay.hidden{display:none}
+.screen .overlay .big-icon{width:64px;height:64px;border-radius:50%;background:rgba(16,16,16,.85);border:1px solid var(--gold-dim);display:flex;align-items:center;justify-content:center}
+.screen .overlay .big-icon svg{width:26px;height:26px;fill:var(--gold)}
+.screen .overlay .hint{font-size:13px;color:var(--text);letter-spacing:.14em}
+.badge-live{position:absolute;top:var(--sp-2);left:var(--sp-2);display:none;align-items:center;gap:6px;background:rgba(122,31,43,.9);color:#f6e9d8;font-family:var(--font-mono);font-size:10px;letter-spacing:.16em;padding:4px 10px;border-radius:999px}
+.badge-live.on{display:inline-flex}
+.badge-live .dot{width:6px;height:6px;border-radius:50%;background:#f6e9d8;animation:blink 1.2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
+
+/* 断网横幅 */
+.banner{display:none;align-items:center;gap:var(--sp-2);padding:var(--sp-2) var(--sp-3);background:var(--velvet-deep);border-top:1px solid var(--velvet);color:#f3dede;font-size:13px}
+.banner.on{display:flex}
+.banner .ico{width:18px;height:18px;flex:none;border-radius:50%;border:1px solid #e08a92;color:#e08a92;display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:11px;font-weight:700}
+.banner .msg{flex:1}
+.banner .msg b{color:var(--gold);font-family:var(--font-mono)}
+.banner button{flex:none}
+
+/* 控制条 */
+.controls{padding:var(--sp-3);display:flex;flex-direction:column;gap:var(--sp-2);border-top:1px solid var(--line)}
+.nowline{display:flex;align-items:baseline;gap:var(--sp-2);min-height:20px}
+.nowline .st{font-size:12px;color:var(--muted);letter-spacing:.1em}
+.nowline .st b{color:var(--gold);font-weight:600}
+.nowline .tc{margin-left:auto;font-family:var(--font-mono);font-size:13px;color:var(--gold)}
+.nowline .tc .cur{color:var(--text)}
+.track-row{display:flex;align-items:center;gap:var(--sp-2)}
+.tt{font-family:var(--font-mono);font-size:11px;color:var(--muted);width:44px;text-align:center}
+.track{flex:1;height:6px;background:#2b2926;border-radius:999px;position:relative;cursor:pointer}
+.track .fill{position:absolute;left:0;top:0;bottom:0;width:0;background:linear-gradient(90deg,var(--velvet),var(--gold));border-radius:999px}
+.track .knob{position:absolute;top:50%;left:0;width:12px;height:12px;border-radius:50%;background:var(--gold);transform:translate(-50%,-50%);box-shadow:0 0 0 3px rgba(207,169,82,.25)}
+.track-row .tc2{width:auto}
+.btnrow{display:flex;align-items:center;gap:var(--sp-1);flex-wrap:wrap}
+.btnrow .spacer{flex:1}
+.pp{width:44px;height:44px;border-radius:50%;border:1px solid var(--velvet);background:var(--velvet);display:flex;align-items:center;justify-content:center;flex:none}
+.pp svg{width:18px;height:18px;fill:#f6e9d8}
+.pp:hover:not(:disabled){background:var(--velvet-deep)}
+.savenote{font-family:var(--font-mono);font-size:10px;color:var(--muted);letter-spacing:.06em}
+.savenote b{color:var(--gold-dim)}
+
+/* 队列 */
+.queue{background:var(--panel);border:1px solid var(--line);border-radius:var(--r-card);display:flex;flex-direction:column;overflow:hidden}
+.queue .qhead{padding:var(--sp-2) var(--sp-3);border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:baseline}
+.queue .qhead h3{font-size:13px;letter-spacing:.24em;color:var(--text);font-weight:600}
+.queue .qhead .en{font-family:var(--font-mono);font-size:10px;color:var(--gold-dim);letter-spacing:.14em}
+.qlist{flex:1;overflow-y:auto;max-height:420px;padding:var(--sp-1)}
+.qitem{display:flex;align-items:center;gap:var(--sp-1);padding:var(--sp-1) 10px;border-radius:var(--r-btn);border:1px solid transparent}
+.qitem:hover{background:var(--panel2)}
+.qitem.playing{background:var(--panel2);border-color:var(--gold-dim)}
+.qitem .idx{font-family:var(--font-mono);font-size:11px;color:var(--muted);width:18px;flex:none}
+.qitem.playing .idx{color:var(--gold)}
+.qitem .qt{flex:1;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.qitem.playing .qt{color:var(--gold)}
+.qitem .qd{font-family:var(--font-mono);font-size:11px;color:var(--muted);flex:none}
+.qitem .rm{flex:none;width:20px;height:20px;border:none;background:transparent;color:var(--muted);font-size:14px;line-height:1;border-radius:4px}
+.qitem .rm:hover{color:#e08a92;background:var(--panel)}
+.qfoot{padding:var(--sp-2) var(--sp-3);border-top:1px solid var(--line);font-family:var(--font-mono);font-size:11px;color:var(--muted)}
+.qempty{padding:var(--sp-4) var(--sp-3);text-align:center;color:var(--muted);font-size:12px;letter-spacing:.1em}
+
+/* 底部状态与提示 */
+.statusbar{margin-top:var(--sp-3);border:1px solid var(--line);border-radius:var(--r-card);background:var(--panel);padding:var(--sp-2) var(--sp-3);display:flex;align-items:center;gap:var(--sp-2);font-size:12px;color:var(--muted)}
+.statusbar .led{width:8px;height:8px;border-radius:50%;background:var(--muted);flex:none}
+.statusbar .led.play{background:var(--gold)}
+.statusbar .led.cut{background:var(--velvet)}
+.statusbar .txt b{color:var(--text);font-weight:500}
+.statusbar .txt b.gold{color:var(--gold)}
+.statusbar .tc{margin-left:auto;font-family:var(--font-mono);color:var(--gold)}
+.toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(16px);background:var(--panel2);border:1px solid var(--gold-dim);color:var(--text);font-size:13px;padding:10px 18px;border-radius:999px;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;max-width:80%;text-align:center}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast .g{color:var(--gold)}
+.footnote{margin-top:var(--sp-3);font-family:var(--font-mono);font-size:10px;color:#5c564d;letter-spacing:.08em;text-align:center}
+@media (prefers-reduced-motion: reduce){
+  .toast{transition:none}
+  .badge-live .dot{animation:none}
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <span class="lamp"></span>
+    <span class="cn">午夜场</span>
+    <span class="en">MIDNIGHT CLUB · LOCAL SCREEN</span>
+  </div>
+  <div class="topnote">本地演示 · 无外部网络请求</div>
+</header>
+
+<section aria-label="片单发现">
+  <div class="section-head">
+    <h2>今夜场刊</h2><span class="tag">TONIGHT'S PROGRAMME</span><span class="rule"></span>
+  </div>
+  <div class="playbill">
+    <article class="film">
+      <svg class="poster" viewBox="0 0 320 200" role="img" aria-label="霓虹巷海报"><defs><linearGradient id="g1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1b2440"/><stop offset="1" stop-color="#0d0f18"/></linearGradient></defs><rect width="320" height="200" fill="url(#g1)"/><circle cx="235" cy="62" r="34" fill="#7a1f2b"/><rect x="40" y="120" width="10" height="52" fill="#cfa952"/><rect x="66" y="98" width="10" height="74" fill="#cfa952" opacity=".7"/><rect x="92" y="132" width="10" height="40" fill="#cfa952" opacity=".45"/><rect x="0" y="184" width="320" height="16" fill="#7a1f2b" opacity=".35"/></svg>
+      <div class="info">
+        <div class="meta"><span>NO.01 · 城市纪录</span><span class="dur">24:00</span></div>
+        <h3>霓虹巷</h3>
+        <div class="genre">凌晨四点的招牌灯，替不睡的人亮着。</div>
+        <div class="acts"><button class="btn primary" data-play="0">立即放映</button><button class="btn" data-queue="0">加入队列</button></div>
+      </div>
+    </article>
+    <article class="film">
+      <svg class="poster" viewBox="0 0 320 200" role="img" aria-label="潮汐记录海报"><defs><linearGradient id="g2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#14312e"/><stop offset="1" stop-color="#0b1614"/></linearGradient></defs><rect width="320" height="200" fill="url(#g2)"/><path d="M0 132 Q40 112 80 132 T160 132 T240 132 T320 132 V200 H0 Z" fill="#cfa952" opacity=".28"/><path d="M0 152 Q40 134 80 152 T160 152 T240 152 T320 152 V200 H0 Z" fill="#cfa952" opacity=".5"/><circle cx="76" cy="56" r="22" fill="#ece6da" opacity=".85"/></svg>
+      <div class="info">
+        <div class="meta"><span>NO.02 · 自然影像</span><span class="dur">18:30</span></div>
+        <h3>潮汐记录</h3>
+        <div class="genre">一整个雨季，只拍同一片滩涂的呼吸。</div>
+        <div class="acts"><button class="btn primary" data-play="1">立即放映</button><button class="btn" data-queue="1">加入队列</button></div>
+      </div>
+    </article>
+    <article class="film">
+      <svg class="poster" viewBox="0 0 320 200" role="img" aria-label="无声广播海报"><defs><linearGradient id="g3" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#2a1e3a"/><stop offset="1" stop-color="#120d1a"/></linearGradient></defs><rect width="320" height="200" fill="url(#g3)"/><rect x="46" y="150" width="16" height="-0" fill="#7a1f2b"/><g fill="#7a1f2b"><rect x="46" y="118" width="16" height="52"/><rect x="78" y="92" width="16" height="78"/><rect x="110" y="60" width="16" height="110"/><rect x="142" y="102" width="16" height="68"/><rect x="174" y="74" width="16" height="96"/></g><rect x="226" y="60" width="58" height="58" fill="none" stroke="#cfa952" stroke-width="3" transform="rotate(12 255 89)"/></svg>
+      <div class="info">
+        <div class="meta"><span>NO.03 · 音乐短片</span><span class="dur">31:15</span></div>
+        <h3>无声广播</h3>
+        <div class="genre">废弃电台在午夜返场，乐队只演奏给灰尘听。</div>
+        <div class="acts"><button class="btn primary" data-play="2">立即放映</button><button class="btn" data-queue="2">加入队列</button></div>
+      </div>
+    </article>
+    <article class="film">
+      <svg class="poster" viewBox="0 0 320 200" role="img" aria-label="盐与尘海报"><defs><linearGradient id="g4" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3a2a1a"/><stop offset="1" stop-color="#171009"/></linearGradient></defs><rect width="320" height="200" fill="url(#g4)"/><polygon points="70,170 150,48 230,170" fill="#cfa952" opacity=".75"/><polygon points="150,170 205,86 260,170" fill="#7a1f2b" opacity=".8"/><circle cx="252" cy="42" r="14" fill="#ece6da" opacity=".8"/></svg>
+      <div class="info">
+        <div class="meta"><span>NO.04 · 旅途手记</span><span class="dur">12:08</span></div>
+        <h3>盐与尘</h3>
+        <div class="genre">盐湖边的一千公里，风把路擦了一遍又一遍。</div>
+        <div class="acts"><button class="btn primary" data-play="3">立即放映</button><button class="btn" data-queue="3">加入队列</button></div>
+      </div>
+    </article>
+    <article class="film">
+      <svg class="poster" viewBox="0 0 320 200" role="img" aria-label="夜航台海报"><defs><linearGradient id="g5" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#101a2a"/><stop offset="1" stop-color="#090d14"/></linearGradient></defs><rect width="320" height="200" fill="url(#g5)"/><g stroke="#8f8779" stroke-width="2" opacity=".8"><line x1="24" y1="52" x2="296" y2="52"/><line x1="24" y1="84" x2="296" y2="84"/><line x1="24" y1="116" x2="296" y2="116"/><line x1="24" y1="148" x2="296" y2="148"/></g><circle cx="160" cy="116" r="9" fill="#cfa952"/><circle cx="160" cy="116" r="26" fill="none" stroke="#cfa952" stroke-width="2" opacity=".6"/><circle cx="160" cy="116" r="44" fill="none" stroke="#7a1f2b" stroke-width="2" opacity=".7"/></svg>
+      <div class="info">
+        <div class="meta"><span>NO.05 · 访谈合集</span><span class="dur">27:44</span></div>
+        <h3>夜航台</h3>
+        <div class="genre">十二位夜班守台人，讲同一种亮着的孤独。</div>
+        <div class="acts"><button class="btn primary" data-play="4">立即放映</button><button class="btn" data-queue="4">加入队列</button></div>
+      </div>
+    </article>
+    <article class="film">
+      <svg class="poster" viewBox="0 0 320 200" role="img" aria-label="玻璃苔海报"><defs><linearGradient id="g6" x1="1" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#24331f"/><stop offset="1" stop-color="#0e140c"/></linearGradient></defs><rect width="320" height="200" fill="url(#g6)"/><g fill="#cfa952"><circle cx="58" cy="150" r="7"/><circle cx="96" cy="128" r="5"/><circle cx="132" cy="152" r="8"/><circle cx="178" cy="122" r="4"/><circle cx="214" cy="146" r="9"/><circle cx="256" cy="126" r="6"/></g><g fill="#7a1f2b"><circle cx="80" cy="98" r="4"/><circle cx="158" cy="88" r="6"/><circle cx="238" cy="94" r="4"/></g><rect x="24" y="172" width="272" height="3" fill="#ece6da" opacity=".3"/></svg>
+      <div class="info">
+        <div class="meta"><span>NO.06 · 艺术实验</span><span class="dur">16:52</span></div>
+        <h3>玻璃苔</h3>
+        <div class="genre">微距镜头下，苔藓用十六分钟过完一生。</div>
+        <div class="acts"><button class="btn primary" data-play="5">立即放映</button><button class="btn" data-queue="5">加入队列</button></div>
+      </div>
+    </article>
+  </div>
+</section>
+
+<section class="stage" aria-label="放映厅">
+  <div class="screen-wrap">
+    <div class="screen" id="elScreen">
+      <div class="badge-live" id="elBadge"><span class="dot"></span>放映中</div>
+      <div class="overlay" id="elOverlay">
+        <div class="big-icon" id="elBigIcon"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
+        <div class="hint" id="elHint">从场刊选一部影片，开演</div>
+      </div>
+    </div>
+    <div class="banner" id="elBanner" role="alert">
+      <span class="ico">!</span>
+      <span class="msg" id="elBannerMsg">信号中断</span>
+      <button class="btn ghost-gold" id="btnReconnect">重新连接</button>
+    </div>
+    <div class="controls">
+      <div class="nowline">
+        <span class="st" id="elNowSt">待机 · 未选择影片</span>
+        <span class="tc"><span class="cur" id="elTcCur">00:00</span> / <span id="elTcTot">00:00</span></span>
+      </div>
+      <div class="track-row">
+        <span class="tt" id="elTtCur">00:00</span>
+        <div class="track" id="elTrack" title="点击或拖动调整进度"><div class="fill" id="elFill"></div><div class="knob" id="elKnob"></div></div>
+        <span class="tt" id="elTtTot">00:00</span>
+      </div>
+      <div class="btnrow">
+        <button class="btn" id="btnPrev">上一部</button>
+        <button class="pp" id="btnPlay" aria-label="播放或暂停"></button>
+        <button class="btn" id="btnNext">下一部</button>
+        <span class="spacer"></span>
+        <span class="savenote" id="elSaveNote">进度未保存</span>
+        <button class="btn danger" id="btnCut" disabled>模拟断网</button>
+      </div>
+    </div>
+  </div>
+  <aside class="queue" aria-label="放映队列">
+    <div class="qhead"><h3>放映队列</h3><span class="en">PLAYLIST</span></div>
+    <div class="qlist" id="elQList"></div>
+    <div class="qfoot" id="elQFoot">队列 0 部 · 共 00:00</div>
+  </aside>
+</section>
+
+<div class="statusbar" aria-live="polite">
+  <span class="led" id="elLed"></span>
+  <span class="txt" id="elStatusTxt">等待开演：从上方场刊选择影片，或加入放映队列。</span>
+  <span class="tc" id="elStatusTc">--:-- / --:--</span>
+</div>
+<div class="toast" id="elToast"></div>
+<div class="footnote">DAEDALUS 045 · MEDIA PROTOTYPE · ALL ASSETS EMBEDDED</div>
+<script>
+(function(){
+"use strict";
+/* 片单：t=片名，d=时长（秒） */
+var FILMS=[{t:"霓虹巷",d:1440},{t:"潮汐记录",d:1110},{t:"无声广播",d:1875},{t:"盐与尘",d:728},{t:"夜航台",d:1664},{t:"玻璃苔",d:1012}];
+var ICON_PLAY='<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>';
+var ICON_PAUSE='<svg viewBox="0 0 24 24"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>';
+function $(id){return document.getElementById(id)}
+function fmt(s){s=Math.max(0,Math.round(s));var m=Math.floor(s/60),r=s%60;return(m<10?"0":"")+m+":"+(r<10?"0":"")+r}
+/* 状态：cur=当前片索引(-1 未选)，pos=秒，qi=队列播放位(-1 不在队列)，cut=断网中 */
+var cur=-1,pos=0,playing=false,cut=false,cutPos=0,qi=-1,timer=null;
+var queue=[];
+var elScreen=$("elScreen"),elOverlay=$("elOverlay"),elBigIcon=$("elBigIcon"),elHint=$("elHint"),elBadge=$("elBadge");
+var elBanner=$("elBanner"),elBannerMsg=$("elBannerMsg"),btnReconnect=$("btnReconnect");
+var elNowSt=$("elNowSt"),elTcCur=$("elTcCur"),elTcTot=$("elTcTot");
+var elTtCur=$("elTtCur"),elTrack=$("elTrack"),elFill=$("elFill"),elKnob=$("elKnob"),elTtTot=$("elTtTot");
+var btnPlay=$("btnPlay"),btnPrev=$("btnPrev"),btnNext=$("btnNext"),btnCut=$("btnCut"),elSaveNote=$("elSaveNote");
+var elQList=$("elQList"),elQFoot=$("elQFoot");
+var elLed=$("elLed"),elStatusTxt=$("elStatusTxt"),elStatusTc=$("elStatusTc"),elToast=$("elToast");
+var posters=[].slice.call(document.querySelectorAll(".film .poster"));
+var toastTimer=null;
+function toast(html){elToast.innerHTML=html;elToast.classList.add("show");clearTimeout(toastTimer);toastTimer=setTimeout(function(){elToast.classList.remove("show")},2600)}
+function showPoster(i){
+  var old=elScreen.querySelector("svg.poster-big");if(old){old.parentNode.removeChild(old)}
+  if(i<0)return;
+  var svg=posters[i].cloneNode(true);svg.setAttribute("class","poster-big");elScreen.insertBefore(svg,elBadge);
+}
+function persist(){if(cur<0)return;try{localStorage.setItem("midnight-resume",JSON.stringify({fi:cur,pos:Math.round(pos)}))}catch(e){}}
+function render(){
+  var tot=cur<0?0:FILMS[cur].d,ratio=tot?Math.min(1,pos/tot):0,pct=(ratio*100).toFixed(2)+"%";
+  elFill.style.width=pct;elKnob.style.left=pct;
+  elTcCur.textContent=fmt(pos);elTcTot.textContent=fmt(tot);
+  elTtCur.textContent=fmt(pos);elTtTot.textContent=fmt(tot);
+  elStatusTc.textContent=(cur<0?"--:--":fmt(pos))+" / "+(cur<0?"--:--":fmt(tot));
+  elLed.className="led"+(cut?" cut":(playing?" play":""));
+  btnPlay.innerHTML=playing?ICON_PAUSE:ICON_PLAY;
+  btnCut.disabled=!playing;
+  elBadge.classList.toggle("on",playing);
+  elOverlay.classList.toggle("hidden",playing);
+  if(cur<0){elNowSt.textContent="待机 · 未选择影片";elStatusTxt.textContent="等待开演：从上方场刊选择影片，或加入放映队列。"}
+  else if(cut){elNowSt.innerHTML="信号中断 · 暂停于 <b>"+fmt(cutPos)+"</b>";elStatusTxt.innerHTML="信号中断：放映暂停在 <b class=\"gold\">"+fmt(cutPos)+"</b>，进度已保留。点「重新连接」续播。"}
+  else if(playing){elNowSt.innerHTML="正在放映 <b>"+FILMS[cur].t+"</b>";elStatusTxt.innerHTML="正在放映 <b class=\"gold\">"+FILMS[cur].t+"</b> · 播放进度每秒自动保存。"}
+  else{elNowSt.innerHTML="已就位：<b>"+FILMS[cur].t+"</b> · 暂停于 "+fmt(pos);elStatusTxt.innerHTML="已就位 <b>"+FILMS[cur].t+"</b> · 暂停于 "+fmt(pos)+"，点播放继续。"}
+  renderQueue();
+}
+function renderQueue(){
+  elQList.innerHTML="";
+  if(!queue.length){var p=document.createElement("div");p.className="qempty";p.textContent="队列为空 · 点场刊「加入队列」";elQList.appendChild(p)}
+  queue.forEach(function(fi,i){
+    var row=document.createElement("div");row.className="qitem"+(i===qi?" playing":"");
+    var idx=document.createElement("span");idx.className="idx";idx.textContent=(i+1<10?"0":"")+(i+1);
+    var t=document.createElement("span");t.className="qt";t.textContent=FILMS[fi].t;
+    var d=document.createElement("span");d.className="qd";d.textContent=fmt(FILMS[fi].d);
+    var rm=document.createElement("button");rm.className="rm";rm.title="移出队列";rm.textContent="✕";
+    rm.addEventListener("click",function(ev){ev.stopPropagation();queue.splice(i,1);if(i===qi){qi=-1}else if(i<qi){qi--}render()});
+    row.addEventListener("click",function(){playEntry(i)});
+    row.appendChild(idx);row.appendChild(t);row.appendChild(d);row.appendChild(rm);
+    elQList.appendChild(row);
+  });
+  var sum=queue.reduce(function(a,fi){return a+FILMS[fi].d},0);
+  elQFoot.textContent="队列 "+queue.length+" 部 · 共 "+fmt(sum);
+}
+function stopTimer(){if(timer){clearInterval(timer);timer=null}}
+function startTimer(){stopTimer();timer=setInterval(tick,1000)}
+function tick(){
+  if(!playing||cur<0)return;
+  pos+=1;
+  elSaveNote.innerHTML="已保存 · <b>"+FILMS[cur].t+" "+fmt(pos)+"</b>";
+  persist();
+  if(pos>=FILMS[cur].d){advance(true);return}
+  render();
+}
+function advance(auto){
+  var prev=cur<0?"":FILMS[cur].t;
+  if(queue.length){
+    var ni=qi<0?0:qi+1;
+    if(ni<queue.length){playEntry(ni);if(auto){toast("《"+prev+"》放映完毕，接映队列中的《"+FILMS[cur].t+"》")}return}
+  }
+  if(cur>=0){loadFilm((cur+1)%FILMS.length,true);if(auto){toast("《"+prev+"》放映完毕，按片单循环接映《"+FILMS[cur].t+"》")}}
+}
+function loadFilm(i,autoplay){
+  cut=false;elBanner.classList.remove("on");
+  cur=i;pos=0;showPoster(i);
+  if(autoplay){playing=true;startTimer();elHint.textContent=""}
+  else{playing=false;stopTimer();elHint.textContent="已就位 · 点播放开演"}
+  render();
+}
+function playEntry(i){loadFilm(queue[i],true);qi=i;render()}
+function pause(){playing=false;stopTimer();elHint.textContent="已暂停 · 点播放继续";persist();render()}
+function reconnect(){
+  if(!cut)return;
+  cut=false;pos=cutPos;elBanner.classList.remove("on");
+  playing=true;startTimer();elHint.textContent="";
+  toast("信号恢复 · 从 <span class=\"g\">"+fmt(cutPos)+"</span> 继续放映");
+  persist();render();
+}
+btnPlay.addEventListener("click",function(){
+  if(cut){reconnect();return}
+  if(cur<0){toast("先从场刊选一部影片：「立即放映」或「加入队列」");return}
+  if(playing){pause()}else{playing=true;startTimer();elHint.textContent="";render()}
+});
+btnCut.addEventListener("click",function(){
+  if(!playing||cur<0)return;
+  playing=false;stopTimer();cut=true;cutPos=pos;
+  elBannerMsg.innerHTML="信号中断：《"+FILMS[cur].t+"》暂停在 <b>"+fmt(pos)+"</b>，进度已保留，未丢失。";
+  elBanner.classList.add("on");
+  elSaveNote.textContent="进度保留于 "+fmt(pos);
+  render();
+});
+btnReconnect.addEventListener("click",reconnect);
+btnPrev.addEventListener("click",function(){
+  if(queue.length&&qi>0){playEntry(qi-1);return}
+  if(queue.length&&qi===0){playEntry(0);return}
+  if(cur<0){toast("还没选片");return}
+  qi=-1;loadFilm((cur-1+FILMS.length)%FILMS.length,true);
+});
+btnNext.addEventListener("click",function(){
+  if(queue.length){
+    var ni=qi<0?0:qi+1;
+    if(ni<queue.length){playEntry(ni)}else{toast("队列已到最后一部")}
+    return;
+  }
+  if(cur<0){toast("还没选片");return}
+  loadFilm((cur+1)%FILMS.length,true);
+});
+[].forEach.call(document.querySelectorAll("[data-play]"),function(b){
+  b.addEventListener("click",function(){var i=+b.getAttribute("data-play");qi=-1;loadFilm(i,true);toast("开演：《"+FILMS[i].t+"》")});
+});
+[].forEach.call(document.querySelectorAll("[data-queue]"),function(b){
+  b.addEventListener("click",function(){var i=+b.getAttribute("data-queue");queue.push(i);render();toast("《"+FILMS[i].t+"》已加入放映队列")});
+});
+/* 进度条：点击或拖动按横向位置定位 */
+function seekFromEvent(e){
+  if(cur<0)return;
+  var r=elTrack.getBoundingClientRect();
+  var ratio=Math.min(1,Math.max(0,(e.clientX-r.left)/r.width));
+  pos=Math.round(ratio*FILMS[cur].d);
+  if(cut){cutPos=pos;elBannerMsg.innerHTML="信号中断：《"+FILMS[cur].t+"》暂停在 <b>"+fmt(pos)+"</b>，进度已保留，未丢失。"}
+  elSaveNote.textContent="手动调整进度 · "+fmt(pos);
+  persist();render();
+}
+elTrack.addEventListener("pointerdown",function(e){
+  if(cur<0){toast("先选一部影片再调整进度");return}
+  seekFromEvent(e);
+  function move(ev){seekFromEvent(ev)}
+  function up(){window.removeEventListener("pointermove",move);window.removeEventListener("pointerup",up)}
+  window.addEventListener("pointermove",move);window.addEventListener("pointerup",up);
+});
+/* 进度保存与恢复（must_have：播放状态保存） */
+try{
+  var raw=localStorage.getItem("midnight-resume");
+  if(raw){
+    var sv=JSON.parse(raw);
+    if(sv&&sv.fi>=0&&sv.fi<FILMS.length){
+      cur=sv.fi;pos=Math.min(sv.pos||0,FILMS[cur].d);
+      showPoster(cur);
+      elHint.textContent="上次放映到 "+fmt(pos)+" · 点播放续播";
+      elSaveNote.innerHTML="已恢复 · <b>"+FILMS[cur].t+" "+fmt(pos)+"</b>";
+    }
+  }
+}catch(e){}
+render();
+})();
+</script>
+</body>
+</html>

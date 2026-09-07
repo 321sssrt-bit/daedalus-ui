@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>050 黑板学堂 · 充要条件练习（chalkboard）</title>
+<style>
+:root{
+  --wall:#232a22;
+  --board:#2e4a3e;
+  --board-deep:#26402f;
+  --frame:#8a6a42;
+  --frame-deep:#6e5233;
+  --chalk:#f2efe2;
+  --dim:#b9c4b2;
+  --yellow:#f2d97a;
+  --pink:#f0a3b8;
+  --pink-deep:#d9748f;
+  --blue:#a9c9e8;
+  --green:#b6dc9c;
+  --ui:-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  min-height:100vh;
+  background:
+    repeating-linear-gradient(68deg,rgba(255,255,255,.016) 0 4px,transparent 4px 14px),
+    var(--wall);
+  color:var(--chalk);
+  font:15px/1.7 var(--ui);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:44px 24px 72px;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3,h4,p{margin:0;}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer;}
+ol,ul{margin:0;padding:0;list-style:none;}
+.chalk{letter-spacing:.04em;text-shadow:0 0 2px rgba(242,239,226,.24),0 1px 0 rgba(0,0,0,.22);}
+
+/* ── 黑板本体 ── */
+.board-wrap{width:min(1216px,100%);position:relative;margin-bottom:26px;}
+.board{
+  position:relative;
+  border:13px solid var(--frame);
+  border-radius:6px;
+  background:
+    repeating-linear-gradient(115deg,rgba(255,255,255,.028) 0 3px,transparent 3px 10px),
+    repeating-linear-gradient(63deg,rgba(0,0,0,.055) 0 5px,transparent 5px 14px),
+    var(--board);
+  box-shadow:
+    inset 0 0 0 2px var(--frame-deep),
+    inset 0 0 90px rgba(0,0,0,.32),
+    0 26px 60px -30px rgba(0,0,0,.75);
+}
+.board-in{padding:30px 38px 40px;min-height:700px;position:relative;}
+.tray{
+  position:absolute;left:14px;right:14px;bottom:-31px;height:20px;
+  background:linear-gradient(180deg,var(--frame),var(--frame-deep));
+  border-radius:0 0 6px 6px;
+  box-shadow:0 6px 14px -6px rgba(0,0,0,.6);
+  display:flex;align-items:center;gap:14px;padding:0 18px;
+}
+.chalk-stick{width:34px;height:8px;border-radius:3px;box-shadow:0 1px 0 rgba(0,0,0,.35);}
+.cs-y{background:var(--yellow);}
+.cs-p{background:var(--pink);}
+.cs-b{background:var(--blue);}
+.duster-prop{
+  margin-left:auto;width:56px;height:15px;border-radius:3px;
+  background:linear-gradient(180deg,#8f7048 0 5px,#3d4a3c 5px);
+  box-shadow:0 1px 0 rgba(0,0,0,.4);
+}
+
+/* ── 顶部 ── */
+.head-row{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap;}
+.brand h1{font-size:27px;font-weight:800;color:var(--chalk);}
+.brand .latin{font-size:12px;letter-spacing:.34em;color:var(--dim);text-transform:uppercase;margin-top:2px;}
+.steps{display:flex;gap:22px;padding-bottom:4px;}
+.st{position:relative;padding-left:18px;font-size:13px;color:var(--dim);}
+.st::before{
+  content:"";position:absolute;left:0;top:8px;width:9px;height:9px;border-radius:50%;
+  border:1.5px dashed var(--dim);
+}
+.st.done::before{background:var(--chalk);border-style:solid;border-color:var(--chalk);}
+.st.now{color:var(--yellow);}
+.st.now::before{background:var(--yellow);border-style:solid;border-color:var(--yellow);box-shadow:0 0 8px rgba(242,217,122,.5);}
+.rule{border:0;height:0;border-top:2px dashed rgba(242,239,226,.34);margin:18px 0 22px;}
+
+/* ── 视图互斥 ── */
+.scr{display:none;}
+.scr.on{display:block;}
+
+/* ── 课程入口 ── */
+.course-card{
+  border:2px solid rgba(242,239,226,.5);border-radius:4px;
+  padding:26px 30px 24px;position:relative;background:rgba(0,0,0,.08);
+}
+.course-tag{
+  display:inline-block;font-size:12px;letter-spacing:.2em;color:var(--blue);
+  border:1.5px dashed var(--blue);border-radius:999px;padding:2px 12px;
+}
+.course-card h2{font-size:23px;font-weight:800;margin-top:12px;}
+.course-meta{font-size:13px;color:var(--dim);margin-top:6px;}
+.kp-list{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:22px;}
+.kp{
+  border:1.5px dashed rgba(242,239,226,.4);border-radius:4px;padding:16px 18px;
+  background:rgba(255,255,255,.03);
+}
+.kp .no{font-size:22px;font-weight:800;color:var(--yellow);}
+.kp h3{font-size:15px;color:var(--chalk);margin-top:4px;}
+.kp p{font-size:13.5px;color:var(--dim);margin-top:6px;}
+.course-cta{display:flex;align-items:center;gap:18px;margin-top:26px;flex-wrap:wrap;}
+.honest{
+  font-size:12px;color:var(--dim);border:1px dashed rgba(185,196,178,.5);
+  border-radius:999px;padding:4px 14px;
+}
+
+/* ──  chalk 按钮 ── */
+.btn{
+  border:2px dashed var(--chalk);border-radius:4px;padding:11px 26px;
+  font-size:16px;font-weight:700;color:var(--chalk);letter-spacing:.06em;
+  transition:background .18s,transform .12s,border-color .18s;
+}
+.btn:hover:not(:disabled){background:rgba(255,255,255,.07);border-style:solid;}
+.btn:active:not(:disabled){transform:translateY(2px);}
+.btn:disabled{opacity:.38;cursor:not-allowed;}
+.btn.ylw{border-color:var(--yellow);color:var(--yellow);text-shadow:0 0 2px rgba(242,217,122,.4);}
+.btn.ylw:hover:not(:disabled){background:rgba(242,217,122,.12);}
+.btn.pk{border-color:var(--pink);color:var(--pink);}
+.btn.pk:hover{background:rgba(240,163,184,.12);}
+.btn.sm{padding:8px 18px;font-size:14px;}
+
+/* ── 练习 ── */
+.demo-note{
+  border:1.5px dashed var(--blue);border-radius:4px;color:var(--blue);
+  font-size:13px;padding:10px 16px;margin-bottom:20px;background:rgba(169,201,232,.06);
+}
+.q{border:1.5px solid rgba(242,239,226,.36);border-radius:4px;padding:18px 22px 16px;margin-bottom:18px;position:relative;background:rgba(0,0,0,.06);}
+.q-no{font-size:14px;font-weight:800;color:var(--yellow);letter-spacing:.12em;}
+.q-text{font-size:16.5px;font-weight:700;margin-top:2px;}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px;}
+.opt{
+  text-align:left;border:1.5px dashed rgba(242,239,226,.45);border-radius:4px;
+  padding:9px 14px;font-size:14.5px;color:var(--chalk);transition:background .15s,border-color .15s;
+}
+.opt:hover{background:rgba(255,255,255,.06);}
+.opt.sel{border:2px solid var(--blue);background:rgba(169,201,232,.12);font-weight:700;}
+.opt.sel::before{content:"● ";color:var(--blue);}
+.opt .demo-tag{
+  float:right;font-size:11px;color:var(--pink);border:1px solid var(--pink);
+  border-radius:999px;padding:0 8px;margin-left:8px;
+}
+.q.wrong{border-color:var(--pink-deep);}
+.q.wrong .q-mark{
+  position:absolute;top:10px;right:16px;font-size:30px;font-weight:900;color:var(--pink);
+  text-shadow:0 0 6px rgba(240,163,184,.5);transform:rotate(8deg);
+}
+.q.fixed-ok .q-mark{
+  position:absolute;top:10px;right:16px;font-size:28px;font-weight:900;color:var(--green);
+  text-shadow:0 0 6px rgba(182,220,156,.5);
+}
+.q .before{display:inline-block;font-size:11px;color:var(--pink);border:1px solid rgba(217,116,143,.8);border-radius:999px;padding:0 8px;margin-left:8px;}
+.why{
+  margin-top:12px;border:1.5px dashed var(--pink-deep);border-radius:4px;
+  background:rgba(217,116,143,.08);padding:12px 16px;font-size:13.5px;color:var(--chalk);
+}
+.why b{color:var(--pink);}
+.quiz-bar{display:flex;align-items:center;gap:20px;margin-top:22px;flex-wrap:wrap;}
+.quiz-hint{font-size:13px;color:var(--dim);}
+.quiz-hint.bad{color:var(--pink);}
+
+/* ── 结果 ── */
+.res-head{display:flex;align-items:baseline;gap:26px;flex-wrap:wrap;}
+.res-head h2{font-size:26px;font-weight:800;}
+.score{font-size:52px;font-weight:900;color:var(--yellow);line-height:1;text-shadow:0 0 10px rgba(242,217,122,.35);}
+.score small{font-size:18px;color:var(--dim);font-weight:600;}
+.fixbox{
+  margin-top:16px;border:2px solid var(--green);border-radius:4px;
+  background:rgba(182,220,156,.08);padding:14px 18px;position:relative;overflow:hidden;
+}
+.fixline{display:flex;align-items:center;gap:10px;font-size:16px;font-weight:800;color:var(--green);position:relative;}
+.marks{position:relative;width:44px;text-align:center;display:inline-block;}
+.xmark{color:var(--pink);font-weight:900;transition:opacity .35s;}
+.tickmark{color:var(--green);font-weight:900;position:absolute;left:0;right:0;opacity:0;transition:opacity .3s;}
+.fixbox.done .xmark{opacity:0;}
+.fixbox.done .tickmark{opacity:1;}
+.duster{
+  position:absolute;top:50%;left:-46px;margin-top:-9px;width:40px;height:17px;border-radius:3px;
+  background:linear-gradient(180deg,#8f7048 0 6px,#e8e4d6 6px);
+  opacity:0;pointer-events:none;
+}
+.fixbox.erasing .duster{animation:swipe 1s ease-in-out .15s forwards;}
+@keyframes swipe{
+  0%{left:-46px;opacity:0;}
+  12%{opacity:1;}
+  88%{opacity:1;}
+  100%{left:calc(100% + 6px);opacity:0;}
+}
+.fix-sub{font-size:13px;color:var(--dim);font-weight:400;margin-top:4px;}
+.res-list{margin-top:24px;display:grid;gap:14px;}
+.res-item{border:1.5px solid rgba(242,239,226,.36);border-radius:4px;padding:14px 18px;background:rgba(0,0,0,.05);}
+.res-item .rq{font-size:15px;font-weight:700;}
+.res-item .ra{font-size:13.5px;color:var(--green);margin-top:4px;}
+.res-item .ra .chip-fix{
+  display:inline-block;font-size:11px;color:var(--yellow);border:1px solid var(--yellow);
+  border-radius:999px;padding:0 8px;margin-left:10px;
+}
+.res-item .re{font-size:13px;color:var(--blue);margin-top:6px;}
+.res-cta{display:flex;gap:16px;align-items:center;margin-top:26px;flex-wrap:wrap;}
+
+/* ── 角注 & toast ── */
+.corner-note{
+  position:absolute;right:22px;bottom:14px;font-size:11.5px;color:rgba(185,196,178,.75);
+  transform:rotate(-1.2deg);
+}
+#toast{
+  position:absolute;left:50%;bottom:34px;transform:translate(-50%,14px);
+  background:rgba(18,28,22,.94);border:1px dashed rgba(242,239,226,.5);border-radius:999px;
+  color:var(--chalk);font-size:13.5px;padding:9px 22px;opacity:0;pointer-events:none;
+  transition:opacity .25s,transform .25s;z-index:9;white-space:nowrap;
+}
+#toast.on{opacity:1;transform:translate(-50%,0);}
+#toast.bad{border-color:var(--pink);color:var(--pink);}
+
+@media (max-width:900px){
+  .kp-list{grid-template-columns:1fr;}
+  .opts{grid-template-columns:1fr;}
+  .board-in{padding:22px 20px 32px;}
+}
+@media (prefers-reduced-motion:reduce){
+  *{transition:none!important;animation:none!important}
+}
+</style>
+</head>
+<body>
+<div class="board-wrap">
+  <div class="board">
+    <div class="board-in">
+
+      <div class="head-row">
+        <div class="brand">
+          <h1 class="chalk">黑板学堂</h1>
+          <div class="latin">Chalkboard Academy · 逻辑入门</div>
+        </div>
+        <ol class="steps" id="steps">
+          <li class="st" data-step="0">进入课程</li>
+          <li class="st" data-step="1">完成练习</li>
+          <li class="st" data-step="2">查看结果</li>
+        </ol>
+      </div>
+      <hr class="rule">
+
+      <!-- 视图一：课程入口 -->
+      <section class="scr on" id="scr-course">
+        <div class="course-card">
+          <span class="course-tag">第 3 讲</span>
+          <h2 class="chalk">充分条件与必要条件</h2>
+          <div class="course-meta">授课：归老师 · 板书 12 分钟 · 课后练习 3 题 · 允许做错后订正重交</div>
+          <div class="kp-list">
+            <div class="kp">
+              <div class="no">①</div>
+              <h3>正推为充分</h3>
+              <p>若「p ⇒ q」成立，则 p 是 q 的充分条件，q 是 p 的必要条件。</p>
+            </div>
+            <div class="kp">
+              <div class="no">②</div>
+              <h3>逆推未必成立</h3>
+              <p>「若 p 则 q」为真，不代表「若 q 则 p」为真。方向即条件关系。</p>
+            </div>
+            <div class="kp">
+              <div class="no">③</div>
+              <h3>判断两问法</h3>
+              <p>先问「够不够」（p⇒q？），再问「要不要」（q⇒p？），两问定四类。</p>
+            </div>
+          </div>
+          <div class="course-cta">
+            <button type="button" class="btn ylw" id="btnStart">开始练习 →</button>
+            <span class="honest">演示说明：本黑板课程与题目均为虚构示例</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- 视图二：练习 -->
+      <section class="scr" id="scr-quiz">
+        <div class="demo-note">演示入口：每题都标有一个粉色「✗ 演示错项」——选择它并提交，即可触发「答错 → 订正解释 → 再次作答」的完整流程；当然你也可以自由选择任何选项。</div>
+        <div id="qList"></div>
+        <div class="quiz-bar">
+          <button type="button" class="btn ylw" id="btnCheck" disabled>核对答案</button>
+          <span class="quiz-hint" id="quizHint">还差 3 题未作答</span>
+        </div>
+      </section>
+
+      <!-- 视图三：结果 -->
+      <section class="scr" id="scr-result"></section>
+
+      <div class="corner-note">粉笔示例：本黑板全部内容为答题演示，非真实课程数据</div>
+      <div id="toast" role="status"></div>
+    </div>
+    <div class="tray" aria-hidden="true">
+      <span class="chalk-stick cs-y"></span>
+      <span class="chalk-stick cs-p"></span>
+      <span class="chalk-stick cs-b"></span>
+      <span class="duster-prop"></span>
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+var QUIZ=[
+  {
+    id:"q1",
+    text:"「如果下雨，那么地面会湿」——“下雨”是“地面湿”的什么条件？",
+    opts:[
+      {t:"充分条件",ok:true},
+      {t:"必要条件",demo:true},
+      {t:"充要条件"},
+      {t:"既不充分也不必要条件"}
+    ],
+    why:"按知识点①：下雨 ⇒ 地面湿 成立，所以下雨“够了”（充分）；但不下雨时地面也能被洒水车浇湿，下雨并非“少不了”（不必要）。应选「充分条件」。"
+  },
+  {
+    id:"q2",
+    text:"对实数 x：「x > 5」是「x > 2」的什么条件？",
+    opts:[
+      {t:"必要不充分条件",demo:true},
+      {t:"充分不必要条件",ok:true},
+      {t:"充要条件"},
+      {t:"既不充分也不必要条件"}
+    ],
+    why:"按知识点③两问法：x>5 ⇒ x>2 成立，充分；反过来 x>2（如 x=3）推不出 x>5，不必要。应选「充分不必要条件」。"
+  },
+  {
+    id:"q3",
+    text:"「整数 n 能被 6 整除」是「n 能被 3 整除」的什么条件？",
+    opts:[
+      {t:"充分不必要条件",ok:true},
+      {t:"必要不充分条件",demo:true},
+      {t:"充要条件"},
+      {t:"既不充分也不必要条件"}
+    ],
+    why:"按知识点②：能被 6 整除 ⇒ 能被 3 整除（6=2×3），充分；但能被 3 整除（如 9）推不出能被 6 整除，不必要。应选「充分不必要条件」。"
+  }
+];
+var S={view:"course",phase:"answer",ans:{},wrongs:[],wasWrong:[],fixed:[],everWrong:false};
+function $(id){return document.getElementById(id);}
+function toast(msg,bad){
+  var t=$("toast");
+  t.textContent=msg;
+  t.classList.toggle("bad",!!bad);
+  t.classList.add("on");
+  clearTimeout(t._tm);
+  t._tm=setTimeout(function(){t.classList.remove("on");},2400);
+}
+function setView(v){
+  S.view=v;
+  ["course","quiz","result"].forEach(function(k){
+    $("scr-"+k).classList.toggle("on",k===v);
+  });
+  var idx=v==="course"?0:v==="quiz"?1:2;
+  var sts=document.querySelectorAll("#steps .st");
+  sts.forEach(function(el,i){
+    el.classList.toggle("done",i<idx);
+    el.classList.toggle("now",i===idx);
+  });
+}
+function renderQuiz(){
+  var html="";
+  QUIZ.forEach(function(q,qi){
+    var isWrongNow=(S.phase==="checked"&&S.wrongs.indexOf(q.id)>=0);
+    var wasWrong=S.wasWrong.indexOf(q.id)>=0;
+    var fixedNow=(S.phase==="answer"&&wasWrong);
+    html+='<div class="q'+(isWrongNow?" wrong":"")+(fixedNow?" fixed-ok":"")+'" id="box-'+q.id+'">';
+    html+='<div class="q-no">Q'+(qi+1)+'</div>';
+    html+='<div class="q-text chalk">'+q.text+(wasWrong&&S.phase==="answer"?'<span class="before">曾答错 ✗</span>':"")+'</div>';
+    if(isWrongNow)html+='<span class="q-mark" aria-label="本题答错">✗</span>';
+    if(fixedNow)html+='<span class="q-mark" aria-label="已订正">✓</span>';
+    html+='<div class="opts">';
+    q.opts.forEach(function(o,oi){
+      var sel=S.ans[q.id]===oi;
+      html+='<button type="button" class="opt'+(sel?" sel":"")+'" data-q="'+q.id+'" data-i="'+oi+'">';
+      if(o.demo)html+='<span class="demo-tag">✗ 演示错项</span>';
+      html+='ABC'.charAt(oi)+". "+o.t+'</button>';
+    });
+    html+='</div>';
+    if(isWrongNow||wasWrong){
+      html+='<div class="why"><b>✗ 答错了。订正解释：</b>'+q.why+'</div>';
+    }
+    html+='</div>';
+  });
+  $("qList").innerHTML=html;
+  var left=QUIZ.filter(function(q){return S.ans[q.id]===undefined;}).length;
+  var btn=$("btnCheck"),hint=$("quizHint");
+  if(S.phase==="checked"){
+    btn.textContent="返回题目，再次作答";
+    btn.classList.remove("ylw");btn.classList.add("pk");
+    btn.disabled=false;
+    hint.textContent="错了 "+S.wrongs.length+" 题——黑板上已写出订正解释，返回改选后可重新提交";
+    hint.classList.add("bad");
+  }else{
+    btn.textContent="核对答案";
+    btn.classList.remove("pk");btn.classList.add("ylw");
+    btn.disabled=left>0;
+    hint.textContent=left>0?("还差 "+left+" 题未作答"):"3 题已答完，可以核对答案";
+    hint.classList.remove("bad");
+  }
+}
+function doCheck(){
+  S.wrongs=QUIZ.filter(function(q){return !q.opts[S.ans[q.id]].ok;}).map(function(q){return q.id;});
+  if(S.wrongs.length>0){
+    S.phase="checked";
+    S.everWrong=true;
+    S.wrongs.forEach(function(id){if(S.wasWrong.indexOf(id)<0)S.wasWrong.push(id);});
+    renderQuiz();
+    var names=S.wrongs.map(function(id){return id==="q1"?"第 1 题":id==="q2"?"第 2 题":"第 3 题";});
+    toast(names.join("、")+" 答错，请看黑板上的订正解释",true);
+  }else{
+    S.fixed=S.wasWrong.slice();
+    renderResult();
+    setView("result");
+    runEraser();
+    toast(S.everWrong?"全部答对，订正成功":"3 题全对，课堂过关");
+  }
+}
+function backToQuiz(){
+  S.phase="answer";
+  S.wrongs.forEach(function(id){delete S.ans[id];});
+  S.wrongs=[];
+  renderQuiz();
+  toast("已清空答错题目，参考订正解释重新作答");
+}
+function renderResult(){
+  var html='<div class="res-head"><h2 class="chalk">课堂核对</h2>'+
+    '<div class="score">3<small> / 3 全对</small></div></div>';
+  if(S.everWrong){
+    html+='<div class="fixbox" id="fixbox"><div class="fixline">'+
+      '<span class="marks"><span class="xmark">✗</span><span class="tickmark">✓</span></span>'+
+      '<span class="duster" aria-hidden="true"></span>'+
+      '订正成功：'+S.fixed.map(function(id){return id==="q1"?"第 1 题":id==="q2"?"第 2 题":"第 3 题";}).join("、")+' 已由错改对'+
+      '</div><div class="fix-sub">粉笔擦已擦掉红叉，改判绿勾。下方结果保留首次作答与订正记录。</div></div>';
+  }else{
+    html+='<div class="fixbox" style="border-color:var(--yellow);background:rgba(242,217,122,.07)">'+
+      '<div class="fixline" style="color:var(--yellow)">一次全对：未动用订正机会</div>'+
+      '<div class="fix-sub">想观看“答错 → 订正”演示，可点下方再来一次并选择「✗ 演示错项」。</div></div>';
+  }
+  html+='<div class="res-list">';
+  QUIZ.forEach(function(q,qi){
+    var sel=S.ans[q.id];
+    html+='<div class="res-item"><div class="rq">Q'+(qi+1)+' '+q.text+'</div>'+
+      '<div class="ra">你的作答：'+'ABC'.charAt(sel)+". "+q.opts[sel].t+
+      (S.fixed.indexOf(q.id)>=0?'<span class="chip-fix">首答 ✗ → 订正 ✓</span>':"")+'</div>'+
+      '<div class="re">解释：'+q.why+'</div></div>';
+  });
+  html+='</div>';
+  html+='<div class="res-cta"><button type="button" class="btn sm" id="btnAgain">↺ 从头再来一次</button>'+
+    '<span class="honest">成绩为演示数据，页面内即时计算</span></div>';
+  $("scr-result").innerHTML=html;
+  var again=$("btnAgain");
+  if(again)again.addEventListener("click",function(){
+    S.view="course";S.phase="answer";S.ans={};S.wrongs=[];S.wasWrong=[];S.fixed=[];S.everWrong=false;
+    renderQuiz();
+    setView("course");
+    toast("已恢复初始板书，可重做本课");
+  });
+}
+function runEraser(){
+  var box=$("fixbox");
+  if(!box||!box.classList.contains("fixbox")||!box.querySelector(".duster"))return;
+  box.classList.add("erasing");
+  var done=function(){box.classList.add("done");};
+  var mq=window.matchMedia("(prefers-reduced-motion: reduce)");
+  if(mq.matches){done();return;}
+  setTimeout(done,1000);
+}
+document.addEventListener("click",function(e){
+  var b=e.target.closest("button.opt");
+  if(!b)return;
+  if(S.phase==="checked")return;
+  S.ans[b.getAttribute("data-q")]=parseInt(b.getAttribute("data-i"),10);
+  renderQuiz();
+});
+$("btnStart").addEventListener("click",function(){
+  setView("quiz");
+  renderQuiz();
+  toast("练习开始：答完 3 题后点「核对答案」");
+});
+$("btnCheck").addEventListener("click",function(){
+  if(S.phase==="checked")backToQuiz();
+  else doCheck();
+});
+renderQuiz();
+setView("course");
+</script>
+</body>
+</html>

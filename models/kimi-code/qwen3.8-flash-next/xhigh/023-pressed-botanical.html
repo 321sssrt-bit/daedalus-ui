@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>私人标本馆 · 我的收藏</title>
+<style>
+:root{
+  --paper:#f2ecd9;
+  --sheet:#faf6e8;
+  --label:#fdfbf2;
+  --ink:#4a6b46;
+  --moss:#7d8f6a;
+  --sepia:#8a6f4d;
+  --grid:#d3c6a3;
+  --rust:#9c5b45;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:"Songti SC","STSong","SimSun","Noto Serif SC",serif;
+  background-color:var(--paper);
+  background-image:radial-gradient(rgba(74,107,70,.05) 1px,transparent 1px);
+  background-size:26px 26px;
+  color:var(--ink);
+  line-height:1.6;
+  padding:28px 20px 56px;
+}
+.hand{font-family:"Kaiti SC","STKaiti","KaiTi","Songti SC",serif}
+.mono{font-family:ui-monospace,"Courier New",monospace}
+.album{
+  max-width:1160px;
+  margin:0 auto;
+  background:rgba(250,246,232,.4);
+  border:1px solid var(--ink);
+  padding:34px 38px 26px;
+  position:relative;
+}
+.album::before{
+  content:"";
+  position:absolute;inset:6px;
+  border:1px solid rgba(74,107,70,.4);
+  pointer-events:none;
+}
+.head{
+  display:flex;align-items:flex-end;justify-content:space-between;
+  gap:20px;flex-wrap:wrap;
+  border-bottom:3px double var(--ink);
+  padding-bottom:16px;
+}
+.head h1{font-size:34px;font-weight:700;letter-spacing:.3em}
+.head .latin{
+  display:block;margin-top:4px;
+  font-family:Georgia,"Times New Roman",serif;
+  font-style:italic;font-weight:400;
+  font-size:14px;color:var(--moss);letter-spacing:.14em;
+}
+.head .reg{
+  text-align:right;
+  font-family:ui-monospace,"Courier New",monospace;
+  font-size:12px;color:var(--moss);letter-spacing:.1em;line-height:2;
+  white-space:nowrap;
+}
+.tabs{
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  padding:18px 0 6px;
+}
+.tabs .lead{font-size:13px;color:var(--moss);letter-spacing:.26em;margin-right:4px}
+.tab{
+  font:inherit;font-size:14px;letter-spacing:.16em;
+  color:var(--ink);background:transparent;
+  border:1px solid var(--ink);
+  padding:4px 14px;cursor:pointer;
+  transition:background-color .2s,color .2s;
+}
+.tab .cnt{font-family:ui-monospace,"Courier New",monospace;font-size:11px;vertical-align:2px;margin-left:5px;color:var(--moss)}
+.tab:hover{background:#eae4cb}
+.tab:focus-visible{outline:2px solid var(--rust);outline-offset:2px}
+.tab[aria-pressed="true"]{background:var(--ink);color:var(--sheet);border-color:var(--ink)}
+.tab[aria-pressed="true"] .cnt{color:var(--sheet)}
+.sheets{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:24px;
+  padding:20px 0 6px;
+}
+.specimen{
+  background:var(--sheet);
+  border:1px solid var(--grid);
+  position:relative;
+  display:flex;flex-direction:column;
+  transition:opacity .32s ease,transform .32s ease;
+}
+.specimen.pulling{opacity:0;transform:scale(.96) rotate(.5deg)}
+.specimen[hidden]{display:none}
+.mount{
+  position:relative;
+  padding:26px 18px 8px;
+  min-height:196px;
+  display:grid;place-items:center;
+}
+.mount::before{
+  content:"";
+  position:absolute;top:-7px;left:50%;
+  width:66px;height:16px;
+  transform:translateX(-50%) rotate(-1.5deg);
+  background:rgba(138,111,77,.24);
+  border:1px solid rgba(138,111,77,.35);
+}
+.pin{
+  position:absolute;top:12px;left:50%;
+  width:9px;height:9px;border-radius:50%;
+  background:var(--rust);
+  box-shadow:0 1px 2px rgba(74,107,70,.5);
+}
+.sprig{width:118px;height:140px}
+.sprig g{fill:none;stroke:var(--ink);stroke-width:1.4;stroke-linecap:round}
+.flip{transform:scaleX(-1)}
+.note{
+  position:absolute;right:12px;bottom:6px;
+  max-width:64%;text-align:right;
+  font-family:"Kaiti SC","STKaiti","KaiTi","Songti SC",serif;
+  color:var(--sepia);font-size:15px;line-height:1.45;
+  transform:rotate(-2deg);
+}
+.label{
+  margin:8px 12px 12px;
+  background:var(--label);
+  border:1px solid var(--ink);
+  padding:11px 13px 10px;
+}
+.label dl{display:grid;grid-template-columns:auto 1fr;gap:3px 12px;font-size:13.5px}
+.label dt{color:var(--moss);font-size:11.5px;letter-spacing:.24em;padding-top:2px;white-space:nowrap}
+.label dd{min-width:0}
+.label dd.name{font-weight:700;font-size:15px}
+.label .machine{
+  margin-top:8px;padding-top:7px;
+  border-top:1px dashed var(--grid);
+  display:flex;justify-content:space-between;align-items:center;gap:8px;
+}
+.label .no{font-family:ui-monospace,"Courier New",monospace;font-size:11px;color:var(--moss);letter-spacing:.08em}
+.pull-btn{
+  font:inherit;font-size:12px;letter-spacing:.14em;
+  color:var(--rust);background:transparent;
+  border:1px solid var(--rust);
+  padding:2px 10px;cursor:pointer;
+  transition:background-color .2s,color .2s;
+}
+.pull-btn:hover{background:var(--rust);color:var(--label)}
+.pull-btn:focus-visible{outline:2px solid var(--rust);outline-offset:2px}
+.empty{
+  padding:44px 0 30px;text-align:center;
+  font-family:"Kaiti SC","STKaiti","KaiTi","Songti SC",serif;
+  color:var(--moss);font-size:16px;letter-spacing:.2em;
+}
+.empty[hidden]{display:none}
+.foot{
+  margin-top:18px;padding-top:14px;
+  border-top:1px solid var(--grid);
+  display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;
+  font-size:12px;color:var(--moss);letter-spacing:.18em;
+}
+.foot .no{font-family:ui-monospace,"Courier New",monospace;letter-spacing:.08em}
+.toast{
+  position:fixed;left:50%;bottom:30px;transform:translateX(-50%);
+  z-index:9;
+  display:flex;align-items:center;gap:16px;
+  background:var(--label);
+  border:1px solid var(--ink);
+  box-shadow:0 6px 18px rgba(74,107,70,.28);
+  padding:11px 18px;
+  font-size:14px;
+  max-width:92vw;
+}
+.toast[hidden]{display:none}
+#toast-undo{
+  font:inherit;font-size:13px;letter-spacing:.14em;
+  color:var(--rust);background:transparent;
+  border:1px solid var(--rust);
+  padding:2px 12px;cursor:pointer;white-space:nowrap;
+}
+#toast-undo:hover{background:var(--rust);color:var(--label)}
+@media (max-width:960px){
+  .sheets{grid-template-columns:repeat(2,1fr)}
+}
+@media (max-width:768px){
+  body{padding:14px 10px 40px}
+  .album{padding:22px 16px 18px}
+  .head{align-items:flex-start}
+  .head .reg{text-align:left}
+  .sheets{grid-template-columns:1fr;gap:18px}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{transition:none !important;animation:none !important}
+}
+</style>
+</head>
+<body>
+<div class="album">
+  <header class="head">
+    <div>
+      <h1>私人标本馆<span class="latin">Herbarium Privatum — 我的收藏夹</span></h1>
+    </div>
+    <p class="reg">馆藏号 PRV-0042<br>在册 7 品 · 最近更新 2026-09-05<br>压花人：沈青梧</p>
+  </header>
+
+  <nav class="tabs" aria-label="按分区筛选标本">
+    <span class="lead">馆藏分区</span>
+    <button class="tab" type="button" data-cat="全部" aria-pressed="true">全馆<span class="cnt">7</span></button>
+    <button class="tab" type="button" data-cat="阅读" aria-pressed="false">阅读<span class="cnt">3</span></button>
+    <button class="tab" type="button" data-cat="影像" aria-pressed="false">影像<span class="cnt">2</span></button>
+    <button class="tab" type="button" data-cat="食谱" aria-pressed="false">食谱<span class="cnt">1</span></button>
+    <button class="tab" type="button" data-cat="手作" aria-pressed="false">手作<span class="cnt">1</span></button>
+  </nav>
+
+  <section class="sheets" id="sheets" aria-label="标本格">
+
+    <article class="specimen" data-cat="阅读">
+      <div class="mount">
+        <span class="pin" aria-hidden="true"></span>
+        <svg class="sprig" viewBox="0 0 120 140" aria-hidden="true"><g>
+          <path d="M60 132 C58 100 62 60 60 20"/>
+          <path d="M60 106 C44 102 34 90 33 76 C47 78 58 90 60 106 Z"/>
+          <path d="M60 106 C76 102 86 90 87 76 C73 78 62 90 60 106 Z"/>
+          <path d="M60 78 C46 74 38 64 37 52 C49 54 58 64 60 78 Z"/>
+          <path d="M60 78 C74 74 82 64 83 52 C71 54 62 64 60 78 Z"/>
+          <path d="M60 50 C50 47 44 40 43 31 C52 33 58 41 60 50 Z"/>
+          <path d="M60 50 C70 47 76 40 77 31 C68 33 62 41 60 50 Z"/>
+        </g></svg>
+        <p class="note">纸感极好的长文，值得重印一张夹进册子。</p>
+      </div>
+      <div class="label">
+        <dl>
+          <dt>名称</dt><dd class="name">《一只椅子的百年旅行》</dd>
+          <dt>分区</dt><dd>阅读 · 长文</dd>
+          <dt>来源</dt><dd>「读书俱乐部」第 42 期</dd>
+          <dt>收存</dt><dd>2026 年 7 月 2 日</dd>
+        </dl>
+        <div class="machine">
+          <span class="no">SP-0107</span>
+          <button class="pull-btn" type="button">移出馆藏</button>
+        </div>
+      </div>
+    </article>
+
+    <article class="specimen" data-cat="阅读">
+      <div class="mount">
+        <span class="pin" aria-hidden="true"></span>
+        <svg class="sprig" viewBox="0 0 120 140" aria-hidden="true"><g>
+          <path d="M58 132 C56 96 64 64 74 26"/>
+          <path d="M60 100 C50 96 44 88 43 79"/>
+          <circle cx="40" cy="75" r="4"/><circle cx="40" cy="75" r="1.3"/>
+          <path d="M66 70 C76 66 82 58 83 50"/>
+          <circle cx="86" cy="46" r="4"/><circle cx="86" cy="46" r="1.3"/>
+          <path d="M69 48 C60 44 55 37 54 30"/>
+          <circle cx="52" cy="26" r="4"/><circle cx="52" cy="26" r="1.3"/>
+          <path d="M74 26 C78 22 81 18 82 13"/>
+          <circle cx="84" cy="10" r="3.2"/><circle cx="84" cy="10" r="1.1"/>
+        </g></svg>
+        <p class="note">下周末对照原作再读一遍。</p>
+      </div>
+      <div class="label">
+        <dl>
+          <dt>名称</dt><dd class="name">《如何读一幅宋画》</dd>
+          <dt>分区</dt><dd>阅读 · 艺术</dd>
+          <dt>来源</dt><dd>「艺术笔记」专栏</dd>
+          <dt>收存</dt><dd>2026 年 7 月 19 日</dd>
+        </dl>
+        <div class="machine">
+          <span class="no">SP-0118</span>
+          <button class="pull-btn" type="button">移出馆藏</button>
+        </div>
+      </div>
+    </article>
+
+    <article class="specimen" data-cat="阅读">
+      <div class="mount">
+        <span class="pin" aria-hidden="true"></span>
+        <svg class="sprig" viewBox="0 0 120 140" aria-hidden="true"><g>
+          <path d="M60 132 C60 100 58 70 50 40"/>
+          <path d="M60 132 C62 102 68 74 80 48"/>
+          <path d="M60 132 C56 104 52 84 40 64"/>
+          <ellipse cx="50" cy="33" rx="4" ry="10" transform="rotate(-12 50 33)"/>
+          <ellipse cx="81" cy="41" rx="4" ry="9" transform="rotate(16 81 41)"/>
+          <ellipse cx="39" cy="57" rx="3.6" ry="8" transform="rotate(-28 39 57)"/>
+        </g></svg>
+        <p class="note">读到了外婆那些词，贴了三张签。</p>
+      </div>
+      <div class="label">
+        <dl>
+          <dt>名称</dt><dd class="name">《方言里的冬天》</dd>
+          <dt>分区</dt><dd>阅读 · 随笔</dd>
+          <dt>来源</dt><dd>「方言地图集」周刊</dd>
+          <dt>收存</dt><dd>2026 年 8 月 14 日</dd>
+        </dl>
+        <div class="machine">
+          <span class="no">SP-0131</span>
+          <button class="pull-btn" type="button">移出馆藏</button>
+        </div>
+      </div>
+    </article>
+
+    <article class="specimen" data-cat="影像">
+      <div class="mount">
+        <span class="pin" aria-hidden="true"></span>
+        <svg class="sprig" viewBox="0 0 120 140" aria-hidden="true"><g>
+          <path d="M60 132 C57 100 62 66 58 22"/>
+          <path d="M59 112 C48 108 40 100 36 90"/><path d="M59 112 C70 108 78 100 82 90"/>
+          <path d="M60 94 C50 90 43 82 40 73"/><path d="M60 94 C70 90 77 82 80 73"/>
+          <path d="M59 76 C51 72 45 65 43 57"/><path d="M59 76 C67 72 73 65 75 57"/>
+          <path d="M58 58 C52 54 48 49 46 42"/><path d="M58 58 C64 54 68 49 70 42"/>
+          <path d="M58 40 C54 36 52 31 51 26"/><path d="M58 40 C62 36 64 31 65 26"/>
+        </g></svg>
+        <p class="note">构图干净，转存备剪报。</p>
+      </div>
+      <div class="label">
+        <dl>
+          <dt>名称</dt><dd class="name">《东京面包房物语》</dd>
+          <dt>分区</dt><dd>影像 · 短片</dd>
+          <dt>来源</dt><dd>「食堂影像志」</dd>
+          <dt>收存</dt><dd>2026 年 6 月 28 日</dd>
+        </dl>
+        <div class="machine">
+          <span class="no">SP-0096</span>
+          <button class="pull-btn" type="button">移出馆藏</button>
+        </div>
+      </div>
+    </article>
+
+    <article class="specimen" data-cat="影像">
+      <div class="mount">
+        <span class="pin" aria-hidden="true"></span>
+        <svg class="sprig" viewBox="0 0 120 140" aria-hidden="true"><g>
+          <path d="M40 132 C58 112 40 92 58 72 C76 52 58 36 72 18"/>
+          <path d="M58 72 C68 68 76 74 72 81 C69 86 62 84 63 78"/>
+          <path d="M44 106 C36 104 30 98 29 91 C37 92 43 98 44 106 Z"/>
+          <path d="M52 86 C60 82 66 84 70 90 C62 93 55 92 52 86 Z"/>
+          <path d="M64 42 C56 40 50 34 49 27 C57 28 63 34 64 42 Z"/>
+          <circle cx="73" cy="15" r="3.4"/>
+        </g></svg>
+        <p class="note">给面料选题当参考，暂停在第七分钟。</p>
+      </div>
+      <div class="label">
+        <dl>
+          <dt>名称</dt><dd class="name">《棉田到成衣》</dd>
+          <dt>分区</dt><dd>影像 · 纪录</dd>
+          <dt>来源</dt><dd>「造物纪录」</dd>
+          <dt>收存</dt><dd>2026 年 8 月 3 日</dd>
+        </dl>
+        <div class="machine">
+          <span class="no">SP-0124</span>
+          <button class="pull-btn" type="button">移出馆藏</button>
+        </div>
+      </div>
+    </article>
+
+    <article class="specimen" data-cat="食谱">
+      <div class="mount">
+        <span class="pin" aria-hidden="true"></span>
+        <svg class="sprig flip" viewBox="0 0 120 140" aria-hidden="true"><g>
+          <path d="M58 132 C56 96 64 64 74 26"/>
+          <path d="M60 100 C50 96 44 88 43 79"/>
+          <circle cx="40" cy="75" r="4"/><circle cx="40" cy="75" r="1.3"/>
+          <path d="M66 70 C76 66 82 58 83 50"/>
+          <circle cx="86" cy="46" r="4"/><circle cx="86" cy="46" r="1.3"/>
+          <path d="M69 48 C60 44 55 37 54 30"/>
+          <circle cx="52" cy="26" r="4"/><circle cx="52" cy="26" r="1.3"/>
+          <path d="M74 26 C78 22 81 18 82 13"/>
+          <circle cx="84" cy="10" r="3.2"/><circle cx="84" cy="10" r="1.1"/>
+        </g></svg>
+        <p class="note">秋天的第一碗；桂花等香浓的金桂。</p>
+      </div>
+      <div class="label">
+        <dl>
+          <dt>名称</dt><dd class="name">《桂花酒酿小圆子》</dd>
+          <dt>分区</dt><dd>食谱 · 甜汤</dd>
+          <dt>来源</dt><dd>「四时厨房」</dd>
+          <dt>收存</dt><dd>2026 年 8 月 29 日</dd>
+        </dl>
+        <div class="machine">
+          <span class="no">SP-0142</span>
+          <button class="pull-btn" type="button">移出馆藏</button>
+        </div>
+      </div>
+    </article>
+
+    <article class="specimen" data-cat="手作">
+      <div class="mount">
+        <span class="pin" aria-hidden="true"></span>
+        <svg class="sprig flip" viewBox="0 0 120 140" aria-hidden="true"><g>
+          <path d="M60 132 C58 100 62 60 60 20"/>
+          <path d="M60 106 C44 102 34 90 33 76 C47 78 58 90 60 106 Z"/>
+          <path d="M60 106 C76 102 86 90 87 76 C73 78 62 90 60 106 Z"/>
+          <path d="M60 78 C46 74 38 64 37 52 C49 54 58 64 60 78 Z"/>
+          <path d="M60 78 C74 74 82 64 83 52 C71 54 62 64 60 78 Z"/>
+          <path d="M60 50 C50 47 44 40 43 31 C52 33 58 41 60 50 Z"/>
+          <path d="M60 50 C70 47 76 40 77 31 C68 33 62 41 60 50 Z"/>
+        </g></svg>
+        <p class="note">先从疏星结练起，布已经裁好了。</p>
+      </div>
+      <div class="label">
+        <dl>
+          <dt>名称</dt><dd class="name">《蓝染扎结十二法》</dd>
+          <dt>分区</dt><dd>手作 · 染色</dd>
+          <dt>来源</dt><dd>「染色工坊」讲义</dd>
+          <dt>收存</dt><dd>2026 年 9 月 5 日</dd>
+        </dl>
+        <div class="machine">
+          <span class="no">SP-0151</span>
+          <button class="pull-btn" type="button">移出馆藏</button>
+        </div>
+      </div>
+    </article>
+
+  </section>
+
+  <p class="empty" id="empty" hidden>此分区暂无在册标本</p>
+
+  <footer class="foot">
+    <span>移出后五秒内可撤销 · 标签卡随标本一同存档</span>
+    <span class="no">HERBARIUM PRIVATUM · PRV-0042</span>
+  </footer>
+</div>
+
+<div class="toast" id="toast" hidden role="status">
+  <span id="toast-msg">已移出</span>
+  <button id="toast-undo" type="button">撤 销</button>
+</div>
+
+<script>
+(function(){
+  var cards = Array.prototype.slice.call(document.querySelectorAll('.specimen'));
+  var tabs = Array.prototype.slice.call(document.querySelectorAll('.tab'));
+  var emptyNote = document.getElementById('empty');
+  var toast = document.getElementById('toast');
+  var toastMsg = document.getElementById('toast-msg');
+  var toastUndo = document.getElementById('toast-undo');
+  var current = '全部';
+  var hideTimer = null;
+  var pending = null;
+
+  function alive(cat){
+    return cards.filter(function(c){
+      return !c.dataset.gone && (cat === '全部' || c.dataset.cat === cat);
+    }).length;
+  }
+  function refresh(){
+    tabs.forEach(function(t){
+      t.querySelector('.cnt').textContent = alive(t.dataset.cat);
+    });
+    var shown = 0;
+    cards.forEach(function(c){
+      if(c.dataset.gone){ return; }
+      var hit = current === '全部' || c.dataset.cat === current;
+      c.hidden = !hit;
+      if(hit){ shown += 1; }
+    });
+    emptyNote.hidden = shown !== 0;
+  }
+  tabs.forEach(function(t){
+    t.addEventListener('click', function(){
+      current = t.dataset.cat;
+      tabs.forEach(function(x){ x.setAttribute('aria-pressed', x === t ? 'true' : 'false'); });
+      refresh();
+    });
+  });
+
+  function showToast(card){
+    if(hideTimer){ clearTimeout(hideTimer); }
+    pending = card;
+    toastMsg.textContent = '已移出 ' + card.querySelector('.name').textContent;
+    toast.hidden = false;
+    hideTimer = setTimeout(function(){
+      toast.hidden = true;
+      pending = null;
+    }, 5000);
+  }
+  cards.forEach(function(card){
+    card.querySelector('.pull-btn').addEventListener('click', function(){
+      card.classList.add('pulling');
+      setTimeout(function(){
+        card.dataset.gone = '1';
+        card.classList.remove('pulling');
+        refresh();
+        showToast(card);
+      }, 320);
+    });
+  });
+  toastUndo.addEventListener('click', function(){
+    if(!pending){ return; }
+    delete pending.dataset.gone;
+    toast.hidden = true;
+    if(hideTimer){ clearTimeout(hideTimer); }
+    pending = null;
+    refresh();
+  });
+
+  refresh();
+})();
+</script>
+</body>
+</html>

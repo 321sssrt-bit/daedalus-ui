@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>钢运货运台 · 集货入库</title>
+<style>
+:root{
+  --bg:#c9ccce;
+  --panel:#dcddde;
+  --frame:#33383d;
+  --cement:#8d8f92;
+  --orange:#ee7202;
+  --amber:#f79329;
+  --ink:#17191b;
+  --label:#f1f2f2;
+  --line:#a7aaad;
+  --belt:#24282c;
+  --ok:#3d7a3f;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font-family:system-ui,-apple-system,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  font-size:14px;
+  line-height:1.5;
+}
+/* ── 顶部钢梁 ── */
+.beam{
+  background:var(--frame);
+  color:var(--label);
+  display:flex;
+  align-items:center;
+  gap:28px;
+  padding:14px 28px;
+}
+.brand{
+  background:var(--ink);
+  color:var(--orange);
+  font-weight:900;
+  font-size:17px;
+  letter-spacing:2px;
+  padding:8px 16px;
+  border-radius:2px;
+}
+.beam .dockno{font-size:13px;color:#c4c7c9;letter-spacing:1px}
+.beam .dockno b{color:var(--label);font-weight:700}
+.beam .scale{
+  margin-left:auto;
+  display:flex;
+  gap:26px;
+  font-variant-numeric:tabular-nums;
+}
+.scale .cell{border-left:3px solid var(--orange);padding-left:12px}
+.scale .cell span{display:block;font-size:11px;letter-spacing:2px;color:#9fa3a6}
+.scale .cell b{font-size:18px;font-weight:900;color:var(--label)}
+.hazard{
+  height:14px;
+  background:repeating-linear-gradient(135deg,var(--orange) 0 18px,var(--ink) 18px 36px);
+}
+/* ── 主工作区 ── */
+.stage{
+  max-width:1280px;
+  margin:0 auto;
+  padding:24px 28px 40px;
+  display:grid;
+  grid-template-columns:400px 1fr;
+  gap:24px;
+  align-items:start;
+}
+.panel{
+  background:var(--panel);
+  border:2px solid var(--frame);
+  border-radius:2px;
+  box-shadow:0 2px 0 var(--cement);
+}
+.panel-h{
+  background:var(--frame);
+  color:var(--label);
+  font-weight:900;
+  font-size:15px;
+  letter-spacing:2px;
+  padding:10px 16px;
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.panel-h .tag{
+  margin-left:auto;
+  font-size:12px;
+  font-weight:400;
+  letter-spacing:1px;
+  color:#b7babd;
+}
+/* ── 月台卸货口 ── */
+.dock-body{padding:18px}
+.dropzone{
+  border:3px dashed var(--orange);
+  background:var(--bg);
+  min-height:250px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  text-align:center;
+  padding:24px;
+  cursor:pointer;
+  transition:background 0.15s,border-color 0.15s;
+}
+.dropzone:hover{background:#c1c4c6}
+.dropzone.hot{background:#e2a267;border-color:var(--ink)}
+.dropzone svg{display:block}
+.dropzone .dz-t{font-weight:900;font-size:16px;letter-spacing:1px}
+.dropzone .dz-s{font-size:12px;color:#5b5e61}
+.pickbtn{
+  background:var(--ink);
+  color:var(--orange);
+  border:none;
+  font-weight:900;
+  font-size:14px;
+  letter-spacing:2px;
+  padding:11px 26px;
+  border-radius:2px;
+  cursor:pointer;
+}
+.pickbtn:hover{background:var(--orange);color:var(--ink)}
+.dock-note{
+  margin-top:14px;
+  font-size:12px;
+  color:#54575a;
+  border-top:1px solid var(--line);
+  padding-top:10px;
+  display:flex;
+  gap:8px;
+  align-items:baseline;
+}
+.dock-note::before{content:"◆";color:var(--orange);font-size:10px}
+/* ── 队列 ── */
+.colhead{
+  display:grid;
+  grid-template-columns:78px 1fr 96px 96px 72px;
+  gap:12px;
+  padding:8px 16px;
+  font-size:11px;
+  letter-spacing:2px;
+  color:#5c5f62;
+  border-bottom:2px solid var(--frame);
+  background:#d2d4d5;
+}
+.row{
+  display:grid;
+  grid-template-columns:78px 1fr 96px 96px 72px;
+  gap:12px;
+  align-items:center;
+  padding:12px 16px;
+  border-bottom:1px solid var(--line);
+  background:var(--label);
+}
+.row:nth-child(even){background:#e8e9e9}
+.row .barcode{
+  height:34px;
+  width:62px;
+  background:repeating-linear-gradient(90deg,var(--ink) 0 2px,transparent 2px 4px,var(--ink) 4px 5px,transparent 5px 9px);
+  border-bottom:2px solid var(--ink);
+  position:relative;
+}
+.row .code{
+  position:absolute;
+  left:0;bottom:-14px;
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:1px;
+}
+.cname{font-weight:700;font-size:14px;word-break:break-all;padding-left:8px}
+.csize{font-variant-numeric:tabular-nums;font-weight:700;text-align:right}
+.chip{
+  display:inline-block;
+  font-size:12px;
+  font-weight:900;
+  letter-spacing:1px;
+  padding:3px 10px;
+  border-radius:2px;
+  border:2px solid var(--cement);
+  color:#4c4f52;
+  background:#dcdedf;
+  text-align:center;
+}
+.chip.moving{border-color:var(--orange);color:var(--ink);background:#f9c99b}
+.chip.done{border-color:var(--ok);color:#fff;background:var(--ok)}
+.delbtn{
+  background:none;
+  border:2px solid var(--cement);
+  color:#3f4245;
+  font-weight:900;
+  font-size:12px;
+  letter-spacing:1px;
+  padding:5px 8px;
+  border-radius:2px;
+  cursor:pointer;
+}
+.delbtn:hover{border-color:var(--orange);color:var(--ink);background:#f6d8bb}
+.delbtn:disabled{opacity:.35;cursor:not-allowed}
+.beltline{grid-column:1 / -1;margin-top:8px}
+.belt{
+  height:8px;
+  background:var(--belt);
+  border:1px solid #4a5056;
+  overflow:hidden;
+}
+.belt i{
+  display:block;
+  height:100%;
+  width:0;
+  background:repeating-linear-gradient(135deg,var(--orange) 0 10px,var(--amber) 10px 20px);
+  animation:beltroll 0.8s linear infinite;
+}
+@keyframes beltroll{from{background-position:0 0}to{background-position:28px 0}}
+.empty{
+  padding:34px 16px;
+  text-align:center;
+  color:#6a6d70;
+  font-size:13px;
+  letter-spacing:1px;
+  background:var(--label);
+}
+/* ── 操作条 ── */
+.actionbar{
+  display:flex;
+  align-items:center;
+  gap:20px;
+  padding:14px 16px;
+  background:#d2d4d5;
+  border-top:2px solid var(--frame);
+}
+.actionbar .sum{font-size:12px;letter-spacing:1px;color:#4c4f52}
+.actionbar .sum b{font-size:16px;font-weight:900;color:var(--ink);font-variant-numeric:tabular-nums}
+.startbtn{
+  margin-left:auto;
+  background:var(--ink);
+  color:var(--orange);
+  border:none;
+  font-weight:900;
+  font-size:16px;
+  letter-spacing:4px;
+  padding:13px 40px;
+  border-radius:2px;
+  cursor:pointer;
+  transition:background 0.15s,color 0.15s;
+}
+.startbtn:hover:not(:disabled){background:var(--orange);color:var(--ink)}
+.startbtn:disabled{background:var(--cement);color:#515457;cursor:not-allowed;letter-spacing:2px}
+#beltNote{color:var(--orange);font-weight:900;letter-spacing:1px}
+@media (max-width:768px){
+  .stage{grid-template-columns:1fr;padding:16px}
+  .beam{flex-wrap:wrap;gap:12px}
+  .beam .scale{margin-left:0}
+  .colhead,.row{grid-template-columns:58px 1fr 80px;}
+  .colhead span:nth-child(4),.colhead span:nth-child(5),.row .chip,.row .delbtn{display:none}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none !important;transition:none !important}
+}
+</style>
+</head>
+<body>
+<header class="beam">
+  <div class="brand">钢运 GANGYUN</div>
+  <div class="dockno">月台 <b>B-07</b> · 班次 <b>早班 06:00–14:00</b> · 值守 <b>周建军</b></div>
+  <div class="scale">
+    <div class="cell"><span>队列件数</span><b id="qCount">3</b></div>
+    <div class="cell"><span>总重</span><b id="qMass">1.33 GB</b></div>
+  </div>
+</header>
+<div class="hazard"></div>
+
+<main class="stage">
+  <section class="panel">
+    <div class="panel-h">月台卸货口<span class="tag">限重 单件 2.0 GB</span></div>
+    <div class="dock-body">
+      <div class="dropzone" id="dockZone">
+        <svg width="86" height="58" viewBox="0 0 86 58" aria-hidden="true">
+          <polygon points="43,4 61,26 50,26 50,44 36,44 36,26 25,26" fill="#ee7202" stroke="#17191b" stroke-width="2"/>
+          <rect x="6" y="50" width="74" height="6" fill="#17191b"/>
+          <rect x="6" y="50" width="18" height="6" fill="#ee7202"/>
+          <rect x="46" y="50" width="18" height="6" fill="#ee7202"/>
+        </svg>
+        <div class="dz-t">将货件拖入月台</div>
+        <div class="dz-s">或点击下方开单按钮，直接挑选货件入场<br>支持多件同时入列，单件上限 2.0 GB</div>
+        <button class="pickbtn" id="pickBtn" type="button">开 单 选 货</button>
+      </div>
+      <input type="file" id="filePick" multiple hidden>
+      <div class="dock-note" id="dockHint">拖入即视为到场，先过磅排队，点「开始处理」才上带。</div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-h">入库队列<span class="tag">传送带 1 号 · 速度 常规</span></div>
+    <div class="colhead"><span>面单</span><span>品名</span><span>重量</span><span>状态</span><span>操作</span></div>
+    <div id="queueBody"></div>
+    <div class="actionbar">
+      <div class="sum">待处理 <b id="sWait">0</b> 件 · 传送中 <b id="sRun">0</b> 件 · 已入库 <b id="sDone">0</b> 件</div>
+      <div class="sum" id="beltNote"></div>
+      <button class="startbtn" id="startBtn" type="button">开 始 处 理</button>
+    </div>
+  </section>
+</main>
+
+<script>
+/* ── 货件数据：两件已到场的存量货 + 一件在途 ── */
+var seq = 420;
+var cargo = [
+  {code:"GY-0417", name:"高炉温度监测点位表.csv", size:90699776, status:"done", pct:100},
+  {code:"GY-0418", name:"质检照片_3号平台.zip", size:1331439872, status:"queued", pct:0},
+  {code:"GY-0419", name:"排产计划_9月第2周.xlsx", size:4928307, status:"queued", pct:0}
+];
+var timer = null;
+
+function fmtSize(b){
+  if(b >= 1073741824) return (b/1073741824).toFixed(2) + " GB";
+  if(b >= 1048576) return (b/1048576).toFixed(1) + " MB";
+  return Math.max(1, Math.round(b/1024)) + " KB";
+}
+function esc(s){
+  return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+}
+function statusChip(it){
+  if(it.status === "done") return '<span class="chip done">已入库</span>';
+  if(it.status === "moving") return '<span class="chip moving">传送中</span>';
+  return '<span class="chip">待装运</span>';
+}
+function render(){
+  var box = document.getElementById("queueBody");
+  if(cargo.length === 0){
+    box.innerHTML = '<div class="empty">月台空闲。当前没有排队货件，拖入或开单后在此过磅。</div>';
+  }else{
+    box.innerHTML = cargo.map(function(it,i){
+      var belt = '<div class="beltline"><div class="belt"><i style="width:' + it.pct + '%"></i></div></div>';
+      var del = '<button class="delbtn" type="button" data-i="' + i + '"' + (it.status === "moving" ? " disabled" : "") + '>卸 载</button>';
+      return '<div class="row">' +
+        '<div class="barcode"><span class="code">' + it.code + '</span></div>' +
+        '<div class="cname">' + esc(it.name) + '</div>' +
+        '<div class="csize">' + fmtSize(it.size) + '</div>' +
+        '<div>' + statusChip(it) + '</div>' +
+        '<div>' + del + '</div>' + belt +
+        '</div>';
+    }).join("");
+  }
+  var wait = 0, run = 0, done = 0, mass = 0;
+  cargo.forEach(function(it){
+    mass += it.size;
+    if(it.status === "queued") wait++;
+    else if(it.status === "moving") run++;
+    else done++;
+  });
+  document.getElementById("qCount").textContent = cargo.length;
+  document.getElementById("qMass").textContent = fmtSize(mass);
+  document.getElementById("sWait").textContent = wait;
+  document.getElementById("sRun").textContent = run;
+  document.getElementById("sDone").textContent = done;
+  var btn = document.getElementById("startBtn");
+  if(timer){
+    btn.disabled = true;
+    btn.textContent = "传 送 中";
+  }else if(cargo.some(function(it){return it.status === "queued";})){
+    btn.disabled = false;
+    btn.textContent = "开 始 处 理";
+  }else{
+    btn.disabled = true;
+    btn.textContent = cargo.length > 0 ? "全 部 入 库" : "等 待 到 场";
+  }
+}
+function addFiles(list){
+  var added = 0;
+  for(var i = 0; i < list.length; i++){
+    var f = list[i];
+    seq++;
+    cargo.push({code:"GY-" + seq, name:f.name, size:f.size, status:"queued", pct:0});
+    added++;
+  }
+  if(added > 0){
+    document.getElementById("dockHint").textContent = "新到 " + added + " 件已过磅入列，等传送带空位即上带。";
+    document.getElementById("beltNote").textContent = "";
+    render();
+  }
+}
+document.getElementById("pickBtn").addEventListener("click", function(e){
+  e.stopPropagation();
+  document.getElementById("filePick").click();
+});
+document.getElementById("dockZone").addEventListener("click", function(){
+  document.getElementById("filePick").click();
+});
+document.getElementById("filePick").addEventListener("change", function(){
+  addFiles(this.files);
+  this.value = "";
+});
+var dz = document.getElementById("dockZone");
+dz.addEventListener("dragover", function(e){ e.preventDefault(); dz.classList.add("hot"); });
+dz.addEventListener("dragleave", function(){ dz.classList.remove("hot"); });
+dz.addEventListener("drop", function(e){
+  e.preventDefault();
+  dz.classList.remove("hot");
+  if(e.dataTransfer && e.dataTransfer.files.length) addFiles(e.dataTransfer.files);
+});
+document.getElementById("queueBody").addEventListener("click", function(e){
+  var b = e.target.closest(".delbtn");
+  if(!b || b.disabled) return;
+  var i = +b.dataset.i;
+  if(cargo[i].status === "moving") return;
+  cargo.splice(i,1);
+  document.getElementById("dockHint").textContent = "已卸载一件，队列与总重已重新过磅。";
+  render();
+});
+function nextMoving(){
+  for(var i = 0; i < cargo.length; i++){
+    if(cargo[i].status === "queued"){ cargo[i].status = "moving"; render(); return; }
+  }
+}
+document.getElementById("startBtn").addEventListener("click", function(){
+  if(timer) return;
+  document.getElementById("beltNote").textContent = "1 号带已启动。";
+  nextMoving();
+  timer = setInterval(function(){
+    var active = null;
+    for(var i = 0; i < cargo.length; i++){
+      if(cargo[i].status === "moving"){ active = cargo[i]; break; }
+    }
+    if(!active){
+      clearInterval(timer);
+      timer = null;
+      var n = cargo.filter(function(it){return it.status === "done";}).length;
+      document.getElementById("beltNote").textContent = "本班次 " + n + " 件已全部入库。";
+      render();
+      return;
+    }
+    active.pct = Math.min(100, active.pct + 3 + Math.random()*7);
+    if(active.pct >= 100){
+      active.pct = 100;
+      active.status = "done";
+      nextMoving();
+    }
+    render();
+  }, 160);
+});
+render();
+</script>
+</body>
+</html>

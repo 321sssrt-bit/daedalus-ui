@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>人事档案柜 · 成员目录</title>
+<style>
+  :root{
+    --cabinet:#d9c9a3;
+    --cabinet-deep:#c7b389;
+    --card:#faf6ec;
+    --maroon:#6e3b2f;
+    --ink:#33302a;
+    --muted:#8b8272;
+    --stamp:#9c3526;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  [hidden]{display:none!important}
+  body{
+    background:var(--cabinet);
+    background-image:
+      repeating-linear-gradient(90deg, rgba(110,59,47,.05) 0 1px, rgba(0,0,0,0) 1px 96px),
+      linear-gradient(180deg, var(--cabinet) 0%, var(--cabinet-deep) 100%);
+    color:var(--ink);
+    font-family:"Courier New", Courier, "Songti SC", "SimSun", monospace;
+    min-height:100vh;padding:26px 30px 70px;
+  }
+  .wrap{max-width:1216px;margin:0 auto}
+
+  /* ── 柜头铭牌 ── */
+  .head{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;
+    border:2px solid var(--maroon);background:var(--card);padding:16px 22px 14px;
+    box-shadow:4px 4px 0 rgba(110,59,47,.28)}
+  .head-name{font-size:22px;font-weight:700;letter-spacing:9px;color:var(--maroon)}
+  .head-sub{font-size:12px;letter-spacing:3px;color:var(--muted);margin-top:6px}
+  .head-count{font-size:13px;letter-spacing:2px;color:var(--ink);text-align:right;white-space:nowrap}
+  .head-count b{color:var(--stamp)}
+  .rail-line{height:6px;background:repeating-linear-gradient(90deg,var(--maroon) 0 22px,rgba(0,0,0,0) 22px 34px);margin:14px 0 18px}
+
+  /* ── 抽屉式过滤条 ── */
+  .drawer-bar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+    background:var(--card);border:1px solid var(--maroon);padding:12px 16px;margin-bottom:20px;
+    box-shadow:3px 3px 0 rgba(110,59,47,.2)}
+  .handle{width:44px;height:8px;background:var(--maroon);border-radius:4px;flex:none}
+  .db-label{font-size:12px;letter-spacing:3px;color:var(--muted)}
+  .dept{font:inherit;font-size:13px;letter-spacing:2px;color:var(--maroon);background:transparent;
+    border:1px solid var(--maroon);padding:5px 14px;cursor:pointer;transition:background .15s ease,color .15s ease}
+  .dept:hover{background:rgba(110,59,47,.1)}
+  .dept.is-on{background:var(--maroon);color:var(--card)}
+  .sbox{display:flex;align-items:baseline;gap:8px;margin-left:auto}
+  .sbox input{font:inherit;font-size:13px;letter-spacing:2px;color:var(--ink);width:180px;
+    background:transparent;border:0;border-bottom:1px solid var(--muted);padding:4px 2px;outline:none}
+  .sbox input::placeholder{color:var(--muted)}
+  .sbox input:focus{border-bottom-color:var(--stamp)}
+  .dept:focus-visible,.card:focus-visible,.head-close:focus-visible,.card-top .sealchar:focus-visible{outline:2px dashed var(--stamp);outline-offset:2px}
+
+  /* ── 卡片阵列 ── */
+  .grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px}
+  .empty{grid-column:1/-1;border:1px dashed var(--maroon);color:var(--maroon);
+    padding:40px 18px;text-align:center;letter-spacing:4px;font-size:13px;background:rgba(250,246,236,.5)}
+  .card{
+    position:relative;text-align:left;font:inherit;color:inherit;cursor:pointer;
+    background:var(--card);border:1px solid rgba(110,59,47,.45);padding:22px 18px 16px;
+    box-shadow:3px 3px 0 rgba(110,59,47,.18);transition:transform .16s ease,box-shadow .16s ease;
+  }
+  .card:hover{transform:translate(-1px,-2px);box-shadow:6px 7px 0 rgba(110,59,47,.28)}
+  .hole{position:absolute;top:8px;left:50%;transform:translateX(-50%);width:13px;height:13px;
+    border-radius:50%;background:var(--cabinet-deep);box-shadow:inset 0 1px 2px rgba(51,48,42,.5)}
+  .card-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+  .fileno{font-size:11px;letter-spacing:2px;color:var(--muted)}
+  .sealchar{width:34px;height:34px;border:2px solid var(--maroon);border-radius:50%;
+    display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;
+    color:var(--maroon);transform:rotate(-9deg);opacity:.85}
+  .card h2{font-size:18px;letter-spacing:4px;margin-bottom:6px}
+  .role{font-size:12.5px;letter-spacing:1px;color:var(--ink);line-height:1.7}
+  .deskline{font-size:12px;color:var(--muted);letter-spacing:1px;margin-top:6px}
+  .card-foot{margin-top:12px;padding-top:10px;border-top:1px dashed var(--muted);
+    display:flex;align-items:center;justify-content:space-between}
+  .st{font-size:11px;letter-spacing:3px;padding:2px 8px;transform:rotate(-2deg);display:inline-block}
+  .st-in{color:var(--maroon);border:1.5px solid var(--maroon);border-radius:50%/90%}
+  .st-out{color:var(--stamp);border:1.5px solid var(--stamp)}
+  .st-vac{color:var(--muted);border:1.5px dashed var(--muted)}
+  .peek{font-size:11px;letter-spacing:2px;color:var(--muted)}
+  .card:hover .peek{color:var(--stamp)}
+
+  /* ── 抽屉详情 ── */
+  .backdrop{position:fixed;inset:0;background:rgba(51,48,42,.45);z-index:40}
+  .head-drawer{position:fixed;top:0;right:0;bottom:0;width:430px;max-width:92vw;z-index:50;
+    background:var(--card);border-left:3px solid var(--maroon);padding:26px 30px 34px;
+    overflow:auto;box-shadow:-10px 0 30px rgba(51,48,42,.35);
+    animation:slide .24s ease}
+  @keyframes slide{from{transform:translateX(36px);opacity:.4}to{transform:translateX(0);opacity:1}}
+  .hd-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px}
+  .hd-no{font-size:12px;letter-spacing:3px;color:var(--muted)}
+  .head-close{font:inherit;font-size:12px;letter-spacing:2px;color:var(--maroon);
+    background:transparent;border:1px solid var(--maroon);padding:5px 14px;cursor:pointer}
+  .head-close:hover{background:var(--maroon);color:var(--card)}
+  .hd-seal{width:52px;height:52px;border:2.5px solid var(--maroon);border-radius:50%;
+    display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;
+    color:var(--maroon);transform:rotate(-9deg);margin:6px 0 10px}
+  .hd-name{font-size:24px;letter-spacing:6px;margin-bottom:4px}
+  .hd-role{font-size:13px;color:var(--muted);letter-spacing:2px;margin-bottom:18px}
+  .hd-rows{border-top:1px solid var(--maroon);margin-bottom:16px}
+  .hd-rows div{display:flex;justify-content:space-between;gap:16px;padding:8px 2px;
+    border-bottom:1px dashed var(--muted);font-size:12.5px;letter-spacing:1px}
+  .hd-rows dt{color:var(--muted)}
+  .hd-rows dd{color:var(--ink)}
+  .hd-bio{font-size:13px;line-height:2;letter-spacing:.5px;text-align:justify;margin-bottom:16px}
+  .hd-sub{font-size:12px;letter-spacing:3px;color:var(--maroon);margin-bottom:8px}
+  .hd-list{margin-left:20px;font-size:12.5px;line-height:2}
+  .hd-stamp{position:absolute;top:86px;right:34px;font-size:13px;letter-spacing:4px;
+    color:var(--stamp);border:2px solid var(--stamp);padding:6px 8px;transform:rotate(9deg);opacity:.85}
+
+  @media (max-width:1100px){ .grid{grid-template-columns:repeat(3,minmax(0,1fr))} }
+  @media (max-width:860px){ .grid{grid-template-columns:repeat(2,minmax(0,1fr))} }
+  @media (max-width:768px){
+    body{padding:20px 16px 60px}
+    .grid{grid-template-columns:minmax(0,1fr)}
+    .head{flex-direction:column;align-items:flex-start}
+    .sbox{margin-left:0;width:100%}
+    .head-drawer{width:100%;max-width:100%}
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{animation:none!important;transition:none!important}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="head">
+    <div>
+      <div class="head-name">人事档案柜</div>
+      <div class="head-sub">第 3 柜 · 在世成员目录 · 调阅请登记</div>
+    </div>
+    <div class="head-count">在册 <b>8</b> 人 · 当前显示 <b id="cc-shown">8</b> 人</div>
+  </header>
+  <div class="rail-line" aria-hidden="true"></div>
+
+  <section class="drawer-bar" aria-label="筛选">
+    <span class="handle" aria-hidden="true"></span>
+    <span class="db-label">按部门拉抽屉</span>
+    <nav id="cc-depts">
+      <button class="dept is-on" data-d="all" type="button">全部</button>
+      <button class="dept" data-d="dangan" type="button">档案部</button>
+      <button class="dept" data-d="xiufu" type="button">修复部</button>
+      <button class="dept" data-d="sheying" type="button">摄影组</button>
+      <button class="dept" data-d="wailian" type="button">外联组</button>
+    </nav>
+    <label class="sbox">
+      <span class="db-label">查姓名/工位</span>
+      <input id="cc-search" type="text" placeholder="如：修复 / A-204" autocomplete="off">
+    </label>
+  </section>
+
+  <main class="grid" id="cc-grid"></main>
+</div>
+
+<div class="backdrop" id="cc-backdrop" hidden></div>
+<aside class="head-drawer" id="cc-drawer" role="dialog" aria-label="成员简介" hidden></aside>
+
+<script>
+/* 成员目录：部门筛选 + 姓名/工位查档 + 抽屉看简介 */
+var CC_PEOPLE = [
+  {no:"NO.001", name:"陆某某", dkey:"dangan", dept:"档案部", role:"首席建档师", desk:"A-101", ext:"8101",
+   joined:"2012-03-05", hand:"2,140 卷", stat:"在职", bio:"建档十三年，坚持全馆目录先用毛笔抄一遍再录入：手抄时才会发现页码接不上。主张一份档案至少要被两个人读过，否则等于没入藏。",
+   proj:["南关河道测绘图整理", "第 3 柜目录重编", "口述史编号规范起草"]},
+  {no:"NO.002", name:"齐某某", dkey:"xiufu", dept:"修复部", role:"纸张修复师", desk:"A-204", ext:"8204",
+   joined:"2016-09-12", hand:"308 件", stat:"在职", bio:"专攻虫蛀与水渍，配浆全凭手感，从不用量杯。修过的最老一页来自清乾隆地契，她说纸会记得上一次被展开是什么时候。",
+   proj:["民国十九年船政笔记抢救", "族谱脱裱修复批次 D-7"]},
+  {no:"NO.003", name:"孟某某", dkey:"sheying", dept:"摄影组", role:"外拍摄影员", desk:"B-117", ext:"8117",
+   joined:"2018-04-23", hand:"4,700 帧", stat:"出差", bio:"常驻西南线路，负责把散在乡间的契约、碑刻拍成可归档的底片。出发前会把备用电池在抽屉里排成一排，数不齐不上路。",
+   proj:["黔东南契约影像第二辑", "古道碑刻拓片补拍"]},
+  {no:"NO.004", name:"夏某某", dkey:"wailian", dept:"外联组", role:"档案联络员", desk:"C-308", ext:"8308",
+   joined:"2015-11-02", hand:"接待 690 批", stat:"在职", bio:"调阅大厅的常客都认得她的印章。规定自己每笔调阅必须当场复述一遍档号，说错一个数字都要重新登记，为此被埋怨过，也从没出过错。",
+   proj:["季度调阅开放日", "高校联合查档通道"]},
+  {no:"NO.005", name:"秦某", dkey:"dangan", dept:"档案部", role:"建档师", desk:"A-106", ext:"8106",
+   joined:"2020-07-01", hand:"412 卷", stat:"在职", bio:"接手老目录电子化，习惯给每卷旧档写一句「它为什么留到现在」。这句备注后来成了全馆检索最好用的一栏。",
+   proj:["第 3 柜目录重编", "旧档事由摘要工程"]},
+  {no:"NO.006", name:"骆某某", dkey:"xiufu", dept:"修复部", role:"装帧师", desk:"A-210", ext:"8210",
+   joined:"2014-02-17", hand:"255 册", stat:"休假", bio:"锁线与包角都是一次成活，不拆重来。休年假前会把手作胶水全部清空，说是「留胶如留话，说了就要做完」。",
+   proj:["两册年鉴锁线重装（已完工）", "舆图函套改制"]},
+  {no:"NO.007", name:"白某某", dkey:"sheying", dept:"摄影组", role:"暗房技师", desk:"B-121", ext:"8121",
+   joined:"2019-06-30", hand:"1,900 张", stat:"出差", bio:"随外拍组巡回各省，回馆前照例留三天把底片冲洗完。配药单贴在墙上二十六年没换位置，闭着眼也摸得见哪瓶是哪瓶。",
+   proj:["外拍底片冲洗轮值", "老照片翻存批次 P-19"]},
+  {no:"NO.008", name:"沈某某", dkey:"wailian", dept:"外联组", role:"口述史采编", desk:"C-312", ext:"8312",
+   joined:"2021-03-15", hand:"47 人次", stat:"在职", bio:"采访前只听一遍录音，第二遍留到写作时再听，怕先听熟了会漏掉新东西。整理出的「摆渡人专号」是馆藏请求量第三的专辑。",
+   proj:["渡口老艄人口述", "摆渡人专号增订"]}
+];
+
+var ccDept = "all", ccWord = "";
+function ccEsc(s){ return String(s); }
+function ccFiltered(){
+  var w = ccWord.trim().toLowerCase();
+  return CC_PEOPLE.filter(function(p){
+    if(ccDept !== "all" && p.dkey !== ccDept){ return false; }
+    if(!w){ return true; }
+    var hay = (p.name + p.dept + p.role + p.desk).toLowerCase();
+    return hay.indexOf(w) !== -1;
+  });
+}
+function ccStatClass(stat){
+  if(stat === "在职") return "st-in";
+  if(stat === "出差") return "st-out";
+  return "st-vac";
+}
+function ccRender(){
+  var rows = ccFiltered();
+  var html = rows.map(function(p){
+    var idx = CC_PEOPLE.indexOf(p);
+    return '<button class="card" type="button" data-i="'+idx+'">'
+      +'<span class="hole" aria-hidden="true"></span>'
+      +'<div class="card-top"><span class="fileno">'+ccEsc(p.no)+'</span>'
+      +'<span class="sealchar" aria-hidden="true">'+ccEsc(p.name.charAt(0))+'</span></div>'
+      +'<h2>'+ccEsc(p.name)+'</h2>'
+      +'<p class="role">'+ccEsc(p.dept+' · '+p.role)+'</p>'
+      +'<p class="deskline">工位 '+ccEsc(p.desk)+' · 内线 '+ccEsc(p.ext)+'</p>'
+      +'<div class="card-foot"><span class="st '+ccStatClass(p.stat)+'">'+ccEsc(p.stat)+'</span>'
+      +'<span class="peek">抽屉细看 →</span></div>'
+      +'</button>';
+  }).join("");
+  var grid = document.getElementById("cc-grid");
+  grid.innerHTML = html + (rows.length ? "" :
+    '<p class="empty">柜中没有相符的卡片 · 换个抽屉或少打两个字</p>');
+  document.getElementById("cc-shown").textContent = rows.length;
+}
+
+function ccOpen(idx){
+  var p = CC_PEOPLE[idx];
+  if(!p){ return; }
+  var rowsHtml = [
+    ["部门", p.dept], ["职掌", p.role], ["工位", p.desk],
+    ["内线电话", p.ext], ["入馆日期", p.joined], ["经手档案", p.hand]
+  ].map(function(r){
+    return "<div><dt>"+ccEsc(r[0])+"</dt><dd>"+ccEsc(r[1])+"</dd></div>";
+  }).join("");
+  document.getElementById("cc-drawer").innerHTML =
+    '<div class="hd-top"><span class="hd-no">人事档 · '+ccEsc(p.no)+'</span>'
+    +'<button class="head-close" id="cc-close" type="button">推回抽屉</button></div>'
+    +'<span class="hd-stamp">'+ccEsc(p.stat)+'</span>'
+    +'<div class="hd-seal">'+ccEsc(p.name.charAt(0))+'</div>'
+    +'<h2 class="hd-name">'+ccEsc(p.name)+'</h2>'
+    +'<p class="hd-role">'+ccEsc(p.dept+' · '+p.role)+'</p>'
+    +'<div class="hd-rows">'+rowsHtml+'</div>'
+    +'<p class="hd-bio">'+ccEsc(p.bio)+'</p>'
+    +'<p class="hd-sub">在 办 事 项</p>'
+    +'<ol class="hd-list">'+p.proj.map(function(t){return "<li>"+ccEsc(t)+"</li>";}).join("")+'</ol>';
+  document.getElementById("cc-drawer").hidden = false;
+  document.getElementById("cc-backdrop").hidden = false;
+  document.getElementById("cc-close").focus();
+}
+function ccClose(){
+  document.getElementById("cc-drawer").hidden = true;
+  document.getElementById("cc-backdrop").hidden = true;
+}
+
+document.getElementById("cc-depts").addEventListener("click", function(e){
+  var b = e.target.closest(".dept");
+  if(!b){ return; }
+  var btns = this.querySelectorAll(".dept");
+  for(var i=0;i<btns.length;i++){ btns[i].classList.toggle("is-on", btns[i] === b); }
+  ccDept = b.dataset.d;
+  ccRender();
+});
+
+document.getElementById("cc-search").addEventListener("input", function(){
+  ccWord = this.value;
+  ccRender();
+});
+
+document.getElementById("cc-grid").addEventListener("click", function(e){
+  var c = e.target.closest(".card");
+  if(c){ ccOpen(Number(c.dataset.i)); }
+});
+
+document.getElementById("cc-backdrop").addEventListener("click", ccClose);
+document.getElementById("cc-drawer").addEventListener("click", function(e){
+  if(e.target.closest("#cc-close") || e.target.closest(".head-close")){ ccClose(); }
+});
+document.addEventListener("keydown", function(e){
+  if(e.key === "Escape" && !document.getElementById("cc-drawer").hidden){ ccClose(); }
+});
+
+ccRender();
+</script>
+</body>
+</html>

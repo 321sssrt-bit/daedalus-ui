@@ -1,0 +1,427 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>候雪 · 我的城市</title>
+<style>
+:root{
+  --snow:#fbfcfd;
+  --ice:#dfe7ec;
+  --frost:#eff4f8;
+  --lone:#3f6d9e;
+  --lone-deep:#2f5578;
+  --ink:#24333f;
+  --haze:#7d8f9c;
+  --card:#ffffff;
+  --phone:#242b31;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+[hidden]{display:none !important}
+html,body{min-height:100%}
+body{
+  font-family:-apple-system,"PingFang SC","Segoe UI","Microsoft YaHei",sans-serif;
+  background:linear-gradient(180deg,#eef3f7 0%,#dfe7ec 100%);
+  display:flex;
+  padding:28px 16px;
+  color:var(--ink);
+  -webkit-font-smoothing:antialiased;
+}
+.phone{
+  position:relative;
+  margin:auto;
+  padding:12px;
+  border-radius:54px;
+  background:linear-gradient(160deg,#39434b,#20262b 55%,#3a444c);
+  box-shadow:0 44px 90px -34px rgba(36,51,63,.55), inset 0 0 0 1px rgba(255,255,255,.07);
+}
+.phone::before{content:"";position:absolute;left:-2px;top:158px;width:3px;height:66px;border-radius:3px 0 0 3px;background:#4a545c}
+.phone::after{content:"";position:absolute;right:-2px;top:212px;width:3px;height:92px;border-radius:0 3px 3px 0;background:#4a545c}
+.screen{
+  position:relative;
+  width:390px;
+  height:844px;
+  border-radius:42px;
+  overflow:hidden;
+  background:var(--snow);
+  display:flex;
+  flex-direction:column;
+}
+.statusbar{
+  height:44px;
+  flex:none;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0 30px 0 32px;
+  font-size:14px;
+  font-weight:600;
+  letter-spacing:.04em;
+  color:var(--ink);
+}
+.sig{display:flex;align-items:flex-end;gap:2px;margin-right:8px}
+.sig i{display:block;width:3px;border-radius:1px;background:var(--ink)}
+.sig i:nth-child(1){height:4px}
+.sig i:nth-child(2){height:6px}
+.sig i:nth-child(3){height:8px}
+.sig i:nth-child(4){height:10px;opacity:.3}
+.sb-right{display:flex;align-items:center;color:var(--ink)}
+.content{
+  flex:1;
+  overflow-y:auto;
+  padding:4px 26px 20px;
+  display:flex;
+  flex-direction:column;
+}
+.topbar{padding:20px 0 6px}
+.topbar__title{font-size:21px;font-weight:650;letter-spacing:.16em}
+.topbar__sub{margin-top:7px;font-size:11.5px;color:var(--haze);letter-spacing:.18em}
+.rule{height:1px;background:var(--ice);margin-top:18px}
+.empty{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  padding:10px 8px 110px;
+}
+.empty__art{display:block;animation:riseIn .9s .05s cubic-bezier(.2,.8,.3,1) both}
+.empty__title{
+  margin-top:42px;
+  font-size:19px;
+  font-weight:600;
+  letter-spacing:.24em;
+  text-indent:.24em;
+  animation:riseIn .9s .16s cubic-bezier(.2,.8,.3,1) both;
+}
+.empty__desc{
+  margin-top:16px;
+  max-width:248px;
+  font-size:13px;
+  line-height:2.1;
+  letter-spacing:.09em;
+  color:var(--haze);
+  animation:riseIn .9s .26s cubic-bezier(.2,.8,.3,1) both;
+}
+.btn-primary{
+  margin-top:40px;
+  min-height:50px;
+  padding:0 40px;
+  border:none;
+  border-radius:2px;
+  background:var(--lone);
+  color:var(--snow);
+  font-size:15px;
+  font-family:inherit;
+  letter-spacing:.3em;
+  text-indent:.15em;
+  cursor:pointer;
+  transition:background .18s ease, transform .12s ease;
+  animation:riseIn .9s .36s cubic-bezier(.2,.8,.3,1) both;
+}
+.btn-primary:hover{background:var(--lone-deep)}
+.btn-primary:active{transform:translateY(1px)}
+.btn-primary:focus-visible{outline:2px solid var(--lone);outline-offset:3px}
+.btn-primary[disabled]{background:var(--haze);cursor:default}
+.empty__hint{margin-top:20px;font-size:11px;letter-spacing:.16em;color:var(--haze);opacity:.75}
+.cities{padding-top:24px;display:flex;flex-direction:column;gap:14px}
+.city{
+  position:relative;
+  border:1px solid var(--ice);
+  border-radius:3px;
+  background:var(--card);
+  padding:18px 96px 18px 18px;
+  animation:riseIn .5s cubic-bezier(.2,.8,.3,1) both;
+}
+.city__name{font-size:16px;font-weight:600;letter-spacing:.2em}
+.city__sub{margin-top:8px;font-size:12px;color:var(--haze);letter-spacing:.1em}
+.city__remove{
+  position:absolute;
+  right:0;top:0;bottom:0;
+  min-width:78px;min-height:44px;
+  border:none;
+  border-left:1px solid var(--ice);
+  background:transparent;
+  color:var(--lone);
+  font-size:13px;
+  font-family:inherit;
+  letter-spacing:.2em;
+  cursor:pointer;
+}
+.city__remove:hover{background:var(--frost)}
+.city__remove:focus-visible{outline:2px solid var(--lone);outline-offset:-2px}
+.scrim{
+  position:absolute;inset:0;
+  background:rgba(36,51,63,.28);
+  opacity:0;pointer-events:none;
+  transition:opacity .28s ease;
+  z-index:4;
+}
+.scrim--on{opacity:1;pointer-events:auto}
+.sheet{
+  position:absolute;left:0;right:0;bottom:0;
+  background:var(--snow);
+  border-top:1px solid var(--ice);
+  border-radius:16px 16px 0 0;
+  padding:10px 22px 34px;
+  transform:translateY(102%);
+  transition:transform .34s cubic-bezier(.22,.9,.3,1);
+  z-index:6;
+}
+.sheet--open{transform:translateY(0)}
+.sheet__grip{width:40px;height:4px;border-radius:2px;background:var(--ice);margin:4px auto 12px}
+.sheet__title{font-size:12px;color:var(--haze);letter-spacing:.3em;text-indent:.3em;text-align:center;margin-bottom:6px}
+.sheet__opt{
+  display:flex;align-items:baseline;justify-content:space-between;
+  width:100%;min-height:54px;
+  border:none;background:transparent;
+  border-bottom:1px solid var(--ice);
+  font-family:inherit;
+  text-align:left;
+  cursor:pointer;
+  padding:0 4px;
+}
+.sheet__opt b{font-size:15.5px;font-weight:600;letter-spacing:.18em;color:var(--ink)}
+.sheet__opt span{font-size:11.5px;color:var(--haze);letter-spacing:.08em}
+.sheet__opt:hover b{color:var(--lone)}
+.sheet__opt:focus-visible{outline:2px solid var(--lone);outline-offset:-2px}
+.sheet__close{
+  margin-top:14px;width:100%;min-height:48px;
+  border:1px solid var(--ice);border-radius:2px;
+  background:transparent;color:var(--haze);
+  font-size:13px;font-family:inherit;letter-spacing:.26em;text-indent:.13em;
+  cursor:pointer;
+}
+.sheet__close:hover{background:var(--frost)}
+.sheet__close:focus-visible{outline:2px solid var(--lone);outline-offset:2px}
+.tabbar{
+  flex:none;
+  height:82px;
+  padding-bottom:18px;
+  display:flex;
+  background:var(--frost);
+  border-top:1px solid var(--ice);
+}
+.tab{
+  flex:1;min-height:52px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;
+  border:none;background:transparent;
+  color:var(--haze);
+  font-family:inherit;font-size:10px;letter-spacing:.24em;text-indent:.24em;
+  cursor:pointer;
+}
+.tab svg{display:block}
+.tab--on{color:var(--lone)}
+.tab:focus-visible{outline:2px solid var(--lone);outline-offset:-2px}
+.homebar{
+  position:absolute;left:50%;bottom:8px;
+  transform:translateX(-50%);
+  width:134px;height:5px;border-radius:3px;
+  background:rgba(36,51,63,.25);
+  z-index:7;
+}
+.toast{
+  position:absolute;left:50%;bottom:126px;
+  transform:translateX(-50%) translateY(8px);
+  background:var(--ink);color:var(--snow);
+  font-size:12.5px;letter-spacing:.12em;
+  padding:11px 20px;border-radius:2px;
+  opacity:0;pointer-events:none;
+  transition:opacity .28s ease, transform .28s ease;
+  z-index:9;
+  white-space:nowrap;
+}
+.toast--show{opacity:1;transform:translateX(-50%) translateY(0)}
+@keyframes riseIn{
+  from{opacity:0;transform:translateY(12px)}
+  to{opacity:1;transform:translateY(0)}
+}
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation:none !important;transition:none !important}
+  .empty__art,.empty__title,.empty__desc,.btn-primary,.city{animation:none !important;opacity:1;transform:none}
+}
+@media (max-width:460px){
+  body{padding:0;background:var(--frost)}
+  .phone{padding:0;border-radius:0;background:none;box-shadow:none}
+  .phone::before,.phone::after{display:none}
+  .screen{width:100%;max-width:100%;height:100vh;height:100dvh;border-radius:0}
+}
+</style>
+</head>
+<body>
+<div class="phone" role="img" aria-label="手机演示框">
+  <div class="screen">
+
+    <header class="statusbar">
+      <span>9:41</span>
+      <span class="sb-right">
+        <span class="sig" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+        <svg width="25" height="12" viewBox="0 0 25 12" aria-hidden="true">
+          <rect x="0.5" y="0.5" width="20" height="11" rx="3" fill="none" stroke="currentColor"/>
+          <rect x="2.5" y="2.5" width="13" height="7" rx="1.5" fill="currentColor"/>
+          <rect x="22" y="4" width="2" height="4" rx="1" fill="currentColor"/>
+        </svg>
+      </span>
+    </header>
+
+    <div class="content">
+      <header class="topbar">
+        <h1 class="topbar__title">我的城市</h1>
+        <p class="topbar__sub" id="subCount">已订阅 0 座城市</p>
+        <div class="rule"></div>
+      </header>
+
+      <section class="empty" id="emptyBlock">
+        <svg class="empty__art" width="224" height="112" viewBox="0 0 224 112" aria-hidden="true">
+          <line x1="14" y1="88" x2="210" y2="88" stroke="#dfe7ec" stroke-width="1"/>
+          <line x1="112" y1="34" x2="112" y2="88" stroke="#3f6d9e" stroke-width="1.5"/>
+          <line x1="101" y1="47" x2="123" y2="47" stroke="#3f6d9e" stroke-width="1.5"/>
+          <line x1="105" y1="60" x2="119" y2="60" stroke="#dfe7ec" stroke-width="1.5"/>
+          <circle cx="112" cy="26" r="3" fill="#3f6d9e"/>
+          <circle cx="46" cy="52" r="1.4" fill="#dfe7ec"/>
+          <circle cx="70" cy="34" r="1.2" fill="#dfe7ec"/>
+          <circle cx="158" cy="44" r="1.4" fill="#dfe7ec"/>
+          <circle cx="184" cy="62" r="1.2" fill="#dfe7ec"/>
+        </svg>
+        <h2 class="empty__title">还没有你的城市</h2>
+        <p class="empty__desc">订阅一座城，落雪、初霜与日照时长，都会替你记着。</p>
+        <button class="btn-primary" id="btnSubscribe" type="button">订阅一座城市</button>
+        <p class="empty__hint">首次订阅免费，随时可以退订</p>
+      </section>
+
+      <section class="cities" id="cityList" hidden></section>
+    </div>
+
+    <div class="scrim" id="scrim037"></div>
+
+    <div class="sheet" id="citySheet">
+      <div class="sheet__grip" aria-hidden="true"></div>
+      <p class="sheet__title">选择一座城</p>
+      <button class="sheet__opt" type="button" data-city="长春" data-meta="吉林 · 年均落雪 37 天"><b>长春</b><span>年均落雪 37 天</span></button>
+      <button class="sheet__opt" type="button" data-city="乌鲁木齐" data-meta="新疆 · 年均落雪 42 天"><b>乌鲁木齐</b><span>年均落雪 42 天</span></button>
+      <button class="sheet__opt" type="button" data-city="黄山" data-meta="安徽 · 雪后常有云海"><b>黄山</b><span>雪后常有云海</span></button>
+      <button class="sheet__close" id="sheetClose" type="button">先不订阅</button>
+    </div>
+
+    <nav class="tabbar">
+      <button class="tab" type="button" data-tab="今日">
+        <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="4.5" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M10 1.5v2.4M10 16.1v2.4M1.5 10h2.4M16.1 10h2.4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+        今日
+      </button>
+      <button class="tab tab--on" type="button" data-tab="我的城市">
+        <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 18c3.6-4.4 6-7.4 6-10A6 6 0 0 0 4 8c0 2.6 2.4 5.6 6 10Z" fill="none" stroke="currentColor" stroke-width="1.3"/><circle cx="10" cy="8" r="1.8" fill="none" stroke="currentColor" stroke-width="1.3"/></svg>
+        我的城市
+      </button>
+      <button class="tab" type="button" data-tab="我的">
+        <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="6.5" r="3.2" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M3.5 17c1.4-3 3.7-4.5 6.5-4.5S15.1 14 16.5 17" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+        我的
+      </button>
+    </nav>
+
+    <div class="homebar" aria-hidden="true"></div>
+    <div class="toast" id="toast037" role="status"></div>
+
+  </div>
+</div>
+
+<script>
+(function(){
+  /* 候雪 · 空态到订阅的交互 */
+  var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var list = document.getElementById("cityList");
+  var emptyBlock = document.getElementById("emptyBlock");
+  var subCount = document.getElementById("subCount");
+  var sheet = document.getElementById("citySheet");
+  var scrim = document.getElementById("scrim037");
+  var toast = document.getElementById("toast037");
+  var toastTimer = null;
+
+  function showToast(msg){
+    toast.textContent = msg;
+    toast.classList.add("toast--show");
+    if(toastTimer){ clearTimeout(toastTimer); }
+    toastTimer = setTimeout(function(){ toast.classList.remove("toast--show"); }, 1900);
+  }
+
+  function afterChange(){
+    var n = list.children.length;
+    subCount.textContent = "已订阅 " + n + " 座城市";
+    emptyBlock.hidden = n > 0;
+    list.hidden = n === 0;
+  }
+
+  function openSheet(){
+    sheet.classList.add("sheet--open");
+    scrim.classList.add("scrim--on");
+  }
+  function closeSheet(){
+    sheet.classList.remove("sheet--open");
+    scrim.classList.remove("scrim--on");
+  }
+
+  function addCity(name, meta){
+    var el = document.createElement("div");
+    el.className = "city";
+    var nm = document.createElement("p");
+    nm.className = "city__name";
+    nm.textContent = name;
+    var sub = document.createElement("p");
+    sub.className = "city__sub";
+    sub.textContent = "订阅成功 · " + meta;
+    var rm = document.createElement("button");
+    rm.type = "button";
+    rm.className = "city__remove";
+    rm.textContent = "移除";
+    rm.addEventListener("click", function(){
+      list.removeChild(el);
+      afterChange();
+      showToast("已退订 " + name);
+    });
+    el.appendChild(nm);
+    el.appendChild(sub);
+    el.appendChild(rm);
+    list.appendChild(el);
+  }
+
+  document.getElementById("btnSubscribe").addEventListener("click", openSheet);
+  document.getElementById("sheetClose").addEventListener("click", closeSheet);
+  scrim.addEventListener("click", closeSheet);
+
+  var opts = sheet.querySelectorAll(".sheet__opt");
+  for(var i = 0; i < opts.length; i++){
+    opts[i].addEventListener("click", function(){
+      var name = this.getAttribute("data-city");
+      var meta = this.getAttribute("data-meta");
+      for(var j = 0; j < list.children.length; j++){
+        if(list.children[j].getAttribute("data-name") === name){
+          showToast(name + " 已在列表里");
+          closeSheet();
+          return;
+        }
+      }
+      var el = null;
+      addCity(name, meta);
+      el = list.lastChild;
+      el.setAttribute("data-name", name);
+      afterChange();
+      closeSheet();
+      showToast("已为你订阅 " + name);
+    });
+  }
+
+  var tabs = document.querySelectorAll(".tab");
+  for(var t = 0; t < tabs.length; t++){
+    tabs[t].addEventListener("click", function(){
+      var name = this.getAttribute("data-tab");
+      if(name !== "我的城市"){
+        showToast("演示版本仅开放「我的城市」");
+      }
+    });
+  }
+
+  afterChange();
+})();
+</script>
+</body>
+</html>

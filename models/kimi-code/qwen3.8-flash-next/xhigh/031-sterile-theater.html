@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>发布确认 · 临床操作手册 v3.2</title>
+<style>
+:root{
+  --ice:#dcecef;
+  --white:#ffffff;
+  --green:#4a917c;
+  --green-deep:#357563;
+  --alert:#bc3a2b;
+  --alert-tint:#f7e6e3;
+  --ink:#1f3f39;
+  --muted:#7d9b94;
+  --hair:#c0d7da;
+  --tape:#eaf4f1;
+  --off:#d5e6e1;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  background:var(--ice);
+  color:var(--ink);
+  font-family:system-ui,-apple-system,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  font-size:14px;
+  line-height:1.7;
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+}
+/* ── 顶部状态条 ── */
+.strip{
+  display:flex;align-items:center;gap:18px;
+  padding:10px 28px;
+  font-size:12px;letter-spacing:1px;color:var(--muted);
+  border-bottom:1px solid var(--hair);
+  background:rgba(255,255,255,.55);
+}
+.strip .who{margin-left:auto}
+.pill{
+  border:1px solid var(--green);color:var(--green-deep);background:var(--tape);
+  padding:2px 12px;border-radius:2px;font-weight:600;letter-spacing:2px;
+}
+.pill.back{border-color:var(--muted);color:var(--muted);background:var(--white)}
+.pill.out{border-color:var(--alert);color:var(--alert);background:var(--alert-tint)}
+/* ── 无菌单舞台 ── */
+.field{flex:1;display:flex;justify-content:center;align-items:flex-start;padding:72px 24px 96px}
+.card{
+  width:620px;max-width:100%;
+  background:var(--white);
+  border:1px solid var(--hair);
+  box-shadow:0 1px 0 var(--hair);
+}
+.tape{
+  background:var(--tape);
+  background-image:repeating-linear-gradient(115deg,transparent 0 12px,rgba(74,145,124,.28) 12px 13px);
+  border-bottom:1px solid var(--hair);
+  padding:8px 40px;
+  font-size:11px;letter-spacing:2px;color:var(--green-deep);
+  display:flex;gap:14px;
+}
+.tape .rt{margin-left:auto}
+.body{padding:48px 40px 40px}
+.ovl{font-size:11px;letter-spacing:4px;color:var(--muted);margin-bottom:12px}
+h1{font-size:24px;font-weight:700;line-height:1.4;letter-spacing:1px;margin-bottom:26px}
+.conseq{
+  border-left:3px solid var(--alert);
+  background:var(--alert-tint);
+  padding:14px 18px;
+  font-size:15px;
+  margin-bottom:14px;
+}
+.conseq b{color:var(--alert)}
+.warnrow{
+  display:flex;gap:8px;align-items:flex-start;
+  color:var(--alert);font-size:12.5px;letter-spacing:.5px;
+  margin-bottom:30px;padding-left:2px;
+}
+.facts{border-top:1px solid var(--hair);margin-bottom:28px}
+.facts .fr{display:flex;padding:9px 2px;border-bottom:1px solid var(--hair);font-size:13px}
+.facts .fr span{color:var(--muted);width:88px;flex:none;letter-spacing:2px}
+/* ── 复核表单 ── */
+.ck{display:flex;gap:10px;align-items:flex-start;cursor:pointer;margin-bottom:20px;user-select:none}
+.ck input{position:absolute;opacity:0;pointer-events:none}
+.ck .box{
+  width:18px;height:18px;flex:none;margin-top:3px;
+  border:1.5px solid var(--muted);border-radius:2px;background:var(--white);
+  position:relative;transition:border-color .15s,background .15s;
+}
+.ck:hover .box{border-color:var(--green)}
+.ck input:checked + .box{background:var(--green);border-color:var(--green)}
+.ck input:checked + .box::after{
+  content:"";position:absolute;left:5px;top:1px;width:5px;height:10px;
+  border:solid var(--white);border-width:0 2px 2px 0;transform:rotate(42deg);
+}
+.ck .tx{font-size:13.5px}
+.fld label{display:block;font-size:12px;letter-spacing:2px;color:var(--muted);margin-bottom:7px}
+.fld input{
+  width:220px;max-width:100%;
+  border:1px solid var(--hair);border-radius:2px;background:var(--white);
+  padding:9px 12px;font-size:15px;letter-spacing:6px;color:var(--ink);
+  font-variant-numeric:tabular-nums;
+  transition:border-color .15s, box-shadow .15s;
+}
+.fld input:focus{outline:none;border-color:var(--green);box-shadow:0 0 0 3px var(--tape)}
+.fld input.bad{border-color:var(--alert);box-shadow:0 0 0 3px var(--alert-tint)}
+.fld input.good{border-color:var(--green)}
+.hint{font-size:12px;margin-top:6px;min-height:18px;color:var(--muted)}
+.hint.bad{color:var(--alert)}
+.hint.good{color:var(--green-deep)}
+/* ── 动作区 ── */
+.acts{display:flex;gap:14px;margin-top:34px;padding-top:26px;border-top:1px solid var(--hair)}
+.btn{
+  font-size:14px;letter-spacing:3px;padding:12px 30px;border-radius:2px;cursor:pointer;
+  transition:background .15s,color .15s,border-color .15s;
+}
+.backbtn{background:var(--white);border:1.5px solid var(--ink);color:var(--ink);font-weight:600}
+.backbtn:hover{background:var(--ink);color:var(--white)}
+.goBtn{background:var(--green);border:1.5px solid var(--green);color:var(--white);font-weight:600;margin-left:auto}
+.goBtn:hover:not(:disabled){background:var(--green-deep);border-color:var(--green-deep)}
+.goBtn:disabled{background:var(--off);border-color:var(--off);color:#8fb5ab;cursor:not-allowed}
+.locknote{font-size:11.5px;color:var(--muted);letter-spacing:1px;margin-top:12px;text-align:right}
+/* ── 已发布态 ── */
+.sealed{padding:64px 40px 56px;text-align:center}
+.sealed svg{display:block;margin:0 auto 22px}
+.sealed h2{font-size:22px;letter-spacing:2px;margin-bottom:10px}
+.sealed p{color:var(--muted);font-size:13.5px}
+.sealed .rc{
+  display:inline-block;margin-top:26px;padding:8px 20px;
+  border:1px dashed var(--green);color:var(--green-deep);
+  font-size:12px;letter-spacing:2px;border-radius:2px;
+  font-variant-numeric:tabular-nums;
+}
+@media (max-width:768px){
+  .field{padding:32px 16px 48px}
+  .body{padding:32px 22px 28px}
+  .tape{padding:8px 22px}
+  .sealed{padding:44px 22px 40px}
+  .acts{flex-wrap:wrap}
+  .goBtn{margin-left:0;flex:1}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none !important;transition:none !important}
+}
+</style>
+</head>
+<body>
+<div class="strip">
+  <span>发布台 · 临床操作手册</span>
+  <span class="pill" id="stPill">待无菌确认</span>
+  <span class="who">操作人 李某 · 2026-09-07 09:41</span>
+</div>
+
+<main class="field">
+  <section class="card">
+    <div class="tape">
+      <span>无菌封条 STERILE SEAL</span>
+      <span>批次 V3.2-0907</span>
+      <span class="rt">复核码 <b>4821</b></span>
+    </div>
+
+    <div class="body" id="stage">
+      <div class="ovl">发布确认 · 不可回退</div>
+      <h1>将《临床操作手册》v3.2 发布至全院</h1>
+
+      <div class="conseq">发布后，v3.2 将立即推送给全院 <b>1,240</b> 名医护人员，现行 v3.1 同时下线且<b>无法回退</b>。</div>
+      <div class="warnrow">
+        <svg width="15" height="15" viewBox="0 0 15 15" aria-hidden="true">
+          <circle cx="7.5" cy="7.5" r="6.5" fill="none" stroke="#bc3a2b" stroke-width="1.6"/>
+          <line x1="3.5" y1="11.5" x2="11.5" y2="3.5" stroke="#bc3a2b" stroke-width="1.6"/>
+        </svg>
+        <span>此操作完成后不可撤回，旧版本立即停止分发，已离线缓存 v3.1 的终端将在下次联网时被覆盖。</span>
+      </div>
+
+      <div class="facts">
+        <div class="fr"><span>更新摘要</span>新增附录 B 溶栓剂量对照表；修订第 7 章 14 处操作步骤</div>
+        <div class="fr"><span>生效范围</span>全院 23 个病区 · 门诊 · 急诊</div>
+        <div class="fr"><span>预计推送</span>确认后 1 分钟内开始，约 20 分钟送达全部终端</div>
+      </div>
+
+      <label class="ck">
+        <input type="checkbox" id="ckBox">
+        <span class="box"></span>
+        <span class="tx">我已逐项复核目录、剂量表与附录 B 的修订差异，确认可以对外生效。</span>
+      </label>
+
+      <div class="fld">
+        <label for="relCode">封条复核码</label>
+        <input type="text" id="relCode" maxlength="4" placeholder="4821" autocomplete="off" inputmode="numeric">
+        <div class="hint" id="codeHint">输入无菌封条右上角的 4 位复核码，与封条核对后方可解锁。</div>
+      </div>
+
+      <div class="acts">
+        <button class="btn backbtn" id="backBtn" type="button">返 回 修 改</button>
+        <button class="btn goBtn" id="goBtn" type="button" disabled>确 认 发 布</button>
+      </div>
+      <div class="locknote" id="lockNote">两项复核全部通过后，「确认发布」才会解锁。</div>
+    </div>
+  </section>
+</main>
+
+<script>
+var CODE = "4821";
+var ck = document.getElementById("ckBox");
+var code = document.getElementById("relCode");
+var hint = document.getElementById("codeHint");
+var go = document.getElementById("goBtn");
+var note = document.getElementById("lockNote");
+var pill = document.getElementById("stPill");
+
+function refresh(){
+  var v = code.value.trim();
+  var codeOK = v === CODE;
+  code.classList.toggle("bad", v.length > 0 && !codeOK);
+  code.classList.toggle("good", codeOK);
+  if(v.length > 0 && !codeOK){
+    hint.className = "hint bad";
+    hint.textContent = "复核码与封条不符，请核对封条右上角的 4 位数字。";
+  }else if(codeOK){
+    hint.className = "hint good";
+    hint.textContent = "复核码核对无误。";
+  }else{
+    hint.className = "hint";
+    hint.textContent = "输入无菌封条右上角的 4 位复核码，与封条核对后方可解锁。";
+  }
+  var ready = ck.checked && codeOK;
+  go.disabled = !ready;
+  if(ready){
+    note.textContent = "已解锁。发布后本页将出具回执。";
+  }else if(!ck.checked){
+    note.textContent = "还差 2 项：勾选复核声明、输入封条复核码。";
+  }else{
+    note.textContent = "还差 1 项：输入封条复核码。";
+  }
+}
+ck.addEventListener("change", refresh);
+code.addEventListener("input", refresh);
+
+document.getElementById("backBtn").addEventListener("click", function(){
+  ck.checked = false;
+  code.value = "";
+  refresh();
+  pill.className = "pill back";
+  pill.textContent = "已退回草稿";
+  note.textContent = "发布单已退回草稿，封条保持未拆状态。";
+});
+
+go.addEventListener("click", function(){
+  if(go.disabled) return;
+  pill.className = "pill";
+  pill.textContent = "已发布";
+  document.getElementById("stage").outerHTML =
+    '<div class="sealed">' +
+    '<svg width="64" height="64" viewBox="0 0 64 64" aria-hidden="true">' +
+    '<circle cx="32" cy="32" r="29" fill="none" stroke="#4a917c" stroke-width="2.5"/>' +
+    '<circle cx="32" cy="32" r="23" fill="none" stroke="#4a917c" stroke-width="1" stroke-dasharray="3 4"/>' +
+    '<polyline points="21,33 29,41 44,25" fill="none" stroke="#4a917c" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>' +
+    '</svg>' +
+    '<h2>v3.2 已发布，封条已启封</h2>' +
+    '<p>推送将于 1 分钟内开始，v3.1 已同步停止分发。</p>' +
+    '<div class="rc">回执号 REL-20260907-0114 · 操作人 李某 · 2026-09-07 09:44</div>' +
+    '</div>';
+});
+refresh();
+</script>
+</body>
+</html>

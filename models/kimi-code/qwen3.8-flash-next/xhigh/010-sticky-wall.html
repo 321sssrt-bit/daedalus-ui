@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>灵感墙 · 听雨会议室</title>
+<style>
+:root{
+  --cork:#b07b4f;
+  --cork-deep:#8a5a38;
+  --wood:#5f3c21;
+  --ink:#3b2a1e;
+  --paper:#f7f2e4;
+  --note-y:#fde047;
+  --note-g:#a7e3a1;
+  --note-b:#93c5fd;
+  --note-p:#f9a8b8;
+  --tape:#e9dfc6;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  min-height:100vh;color:var(--ink);
+  font:14px/1.5 -apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+  background:
+    radial-gradient(rgba(90,52,22,.18) 1.5px,transparent 1.6px),
+    radial-gradient(rgba(255,235,200,.10) 2px,transparent 2.1px),
+    radial-gradient(ellipse at 18% 12%,rgba(255,220,170,.22),transparent 55%),
+    radial-gradient(ellipse at 85% 90%,rgba(60,30,10,.25),transparent 60%),
+    var(--cork);
+  background-size:7px 7px,11px 11px,auto,auto,auto;
+}
+.hand{font-family:"Segoe Print","Bradley Hand","Comic Sans MS","KaiTi","STKaiti","Microsoft YaHei",cursive}
+button{font:inherit;cursor:pointer;color:inherit}
+button:focus-visible,input:focus-visible{outline:2px dashed var(--wood);outline-offset:2px}
+input{font:inherit;color:var(--ink)}
+
+.wrap{max-width:1240px;margin:0 auto;padding:18px 20px 28px}
+
+/* ── 墙头横幅：一张钉上去的白纸 ── */
+.banner{
+  position:relative;background:var(--paper);padding:14px 26px;margin:0 46px 16px;
+  transform:rotate(-.4deg);box-shadow:0 3px 6px rgba(50,25,8,.35);
+  display:flex;align-items:center;gap:16px;flex-wrap:wrap;
+}
+.banner::before,.banner::after{
+  content:"";position:absolute;top:-9px;width:16px;height:16px;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%,#d9534a,#7c1f1a 70%);
+  box-shadow:0 2px 3px rgba(0,0,0,.4);
+}
+.banner::before{left:34px}.banner::after{right:34px}
+.banner h1{font-size:21px;letter-spacing:.06em}
+.banner .sub{color:#7a6a55;font-size:12px}
+.banner .right{margin-left:auto;display:flex;align-items:center;gap:12px}
+.total{font-size:12px;color:#7a6a55}
+.addbtn{
+  background:var(--note-y);border:2px solid var(--ink);padding:6px 16px;
+  font-weight:700;transform:rotate(1.2deg);box-shadow:2px 3px 0 rgba(59,42,30,.5);
+  transition:transform .12s;
+}
+.addbtn:hover{transform:rotate(1.2deg) translateY(-2px)}
+
+/* ── 新便签条 ── */
+.addbar{display:none;align-items:center;gap:10px;background:var(--paper);border:2px dashed var(--cork-deep);padding:10px 14px;margin:0 46px 14px;flex-wrap:wrap}
+.addbar.on{display:flex}
+.addbar input{flex:1;min-width:220px;border:0;border-bottom:2px solid var(--cork-deep);background:transparent;padding:5px 4px}
+.addbar input::placeholder{color:#9b8a72}
+.sw{display:flex;gap:6px}
+.sw button{width:24px;height:24px;border:2px solid var(--ink);transform:rotate(-4deg)}
+.sw button[aria-pressed="true"]{outline:2px solid var(--wood);outline-offset:2px}
+.sw .y{background:var(--note-y)}.sw .g{background:var(--note-g)}.sw .b{background:var(--note-b)}.sw .p{background:var(--note-p)}
+.go{background:var(--note-g);border:2px solid var(--ink);padding:5px 14px;font-weight:700;box-shadow:2px 2px 0 rgba(59,42,30,.5)}
+.cancel{background:none;border:0;color:#7a6a55;text-decoration:underline}
+
+/* ── 软木框与列 ── */
+.frame{border:14px solid;border-image:linear-gradient(180deg,#7c5230,var(--wood) 45%,#432a12) 1;box-shadow:inset 0 0 26px rgba(50,25,8,.5),0 6px 18px rgba(40,20,5,.45)}
+.board{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding:16px;min-height:560px}
+.col{display:flex;flex-direction:column;min-width:0}
+.colhead{position:relative;align-self:center;background:var(--tape);padding:5px 22px;margin:6px 0 14px;transform:rotate(-1.8deg);box-shadow:0 2px 4px rgba(50,25,8,.35);border-left:3px solid rgba(255,255,255,.5);border-right:3px solid rgba(120,90,50,.35)}
+.colhead h2{font-size:14px;letter-spacing:.2em}
+.colhead .n{font-size:11px;color:#7a6a55}
+.colhead::before,.colhead::after{content:"";position:absolute;top:2px;width:18px;height:100%;background:rgba(233,223,198,.55);z-index:-1}
+.colhead::before{left:-8px;transform:rotate(24deg)}
+.colhead::after{right:-8px;transform:rotate(24deg)}
+.stack{display:flex;flex-direction:column;gap:16px;flex:1}
+.ghost{border:2px dashed rgba(255,236,200,.65);color:rgba(255,240,214,.9);text-align:center;font-size:12px;padding:26px 8px}
+
+/* ── 便签卡 ── */
+.sticky{
+  position:relative;padding:14px 12px 10px;min-height:128px;cursor:pointer;
+  border:0;box-shadow:3px 4px 7px rgba(50,25,8,.4);
+  transition:transform .14s,box-shadow .14s;
+}
+.sticky::before{
+  content:"";position:absolute;top:-6px;left:50%;margin-left:-6px;width:12px;height:12px;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%,#8fd3ff,#2563a8 72%);
+  box-shadow:0 2px 3px rgba(0,0,0,.45);
+}
+.sticky.y{background:var(--note-y)}
+.sticky.g{background:var(--note-g)}
+.sticky.b{background:var(--note-b)}
+.sticky.p{background:var(--note-p)}
+.sticky:nth-child(4n+1){transform:rotate(-1.8deg)}
+.sticky:nth-child(4n+2){transform:rotate(1.4deg) translateX(5px)}
+.sticky:nth-child(4n+3){transform:rotate(-.7deg) translateX(-4px)}
+.sticky:nth-child(4n){transform:rotate(2.2deg)}
+.sticky:hover{transform:rotate(0deg) translateY(-3px) scale(1.02);box-shadow:5px 8px 14px rgba(50,25,8,.5);z-index:2}
+.sticky.picked{transform:rotate(0deg);box-shadow:0 0 0 3px var(--wood),4px 7px 12px rgba(50,25,8,.5);z-index:3}
+.sticky h3{font-size:15px;line-height:1.35;margin-bottom:4px}
+.sticky .doodle{font-size:12px;color:rgba(59,42,30,.72);line-height:1.45}
+.sticky .foot{display:flex;align-items:center;gap:8px;margin-top:9px;font-size:11px;color:rgba(59,42,30,.75)}
+.sticky .who{background:rgba(255,255,255,.5);padding:1px 7px;border-radius:9px}
+.sticky .move{
+  margin-left:auto;width:30px;height:30px;border-radius:50%;
+  border:2px solid var(--ink);background:rgba(255,255,255,.75);
+  font-weight:700;line-height:1;box-shadow:1px 2px 0 rgba(59,42,30,.4);
+  transition:transform .12s,background .12s;
+}
+.sticky .move:hover{background:#fff;transform:translateX(3px)}
+.sticky.new{animation:plop .3s}
+@keyframes plop{0%{transform:scale(.5) rotate(-8deg);opacity:0}70%{transform:scale(1.06) rotate(1deg)}100%{transform:scale(1)}}
+.arrived{animation:slide .3s}
+@keyframes slide{0%{opacity:0;transform:translateY(-14px) rotate(4deg)}100%{opacity:1}}
+
+.toast{
+  position:fixed;left:50%;bottom:26px;transform:translateX(-50%) rotate(-1deg);
+  background:var(--paper);border:2px solid var(--ink);padding:8px 18px;
+  box-shadow:3px 4px 0 rgba(59,42,30,.5);font-size:13px;opacity:0;pointer-events:none;
+  transition:opacity .2s;
+}
+.toast.on{opacity:1}
+
+@media (max-width:1024px){.board{grid-template-columns:repeat(2,1fr)}.banner{margin-inline:12px}.addbar{margin-inline:12px}}
+@media (max-width:768px){.board{grid-template-columns:1fr}.frame{border-width:8px}.banner h1{font-size:18px}}
+@media (prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="banner">
+    <div>
+      <h1 class="hand">听雨会议室 · 灵感墙</h1>
+      <div class="sub">周四 14:00 周评审前，把想法贴上来 · 上次整理：丁岚</div>
+    </div>
+    <div class="right">
+      <span class="total">墙上共 <b id="total">12</b> 张</span>
+      <button class="addbtn hand" id="add-toggle">＋ 贴新便签</button>
+    </div>
+  </header>
+
+  <div class="addbar" id="addbar">
+    <input id="draft" maxlength="40" placeholder="写下想法，回车贴上墙（40 字内）">
+    <div class="sw" role="group" aria-label="便签颜色">
+      <button class="y" data-c="y" aria-pressed="true" title="黄"></button>
+      <button class="g" data-c="g" aria-pressed="false" title="绿"></button>
+      <button class="b" data-c="b" aria-pressed="false" title="蓝"></button>
+      <button class="p" data-c="p" aria-pressed="false" title="粉"></button>
+    </div>
+    <button class="go hand" id="go">贴上墙</button>
+    <button class="cancel" id="cancel">收起</button>
+  </div>
+
+  <div class="frame">
+    <div class="board" id="board">
+
+      <section class="col" data-col="pool">
+        <div class="colhead"><h2>灵感池</h2><span class="n"><b class="n">6</b> 张</span></div>
+        <div class="stack">
+          <article class="sticky y">
+            <h3 class="hand">周报自动摘生成摘要</h3>
+            <p class="doodle hand">周一早上别再手搓了，抓三个要点就够</p>
+            <div class="foot"><span class="who">阿澈</span><span>9-05</span><button class="move" title="递到下一列">→</button></div>
+          </article>
+          <article class="sticky b">
+            <h3 class="hand">导出改成订阅推送</h3>
+            <p class="doodle hand">老客户都喊导出太麻烦</p>
+            <div class="foot"><span class="who">林可</span><span>9-04</span><button class="move" title="递到下一列">→</button></div>
+          </article>
+          <article class="sticky g">
+            <h3 class="hand">客户标签云端同步</h3>
+            <p class="doodle hand">销售那边改完，这边要等半天才刷出来</p>
+            <div class="foot"><span class="who">老周</span><span>9-06</span><button class="move" title="递到下一列">→</button></div>
+          </article>
+          <article class="sticky p">
+            <h3 class="hand">补一个移动端暗色</h3>
+            <p class="doodle hand">仓库夜班同事强烈要求</p>
+            <div class="foot"><span class="who">小满</span><span>9-06</span><button class="move" title="递到下一列">→</button></div>
+          </article>
+          <article class="sticky y">
+            <h3 class="hand">评论支持 @ 同事</h3>
+            <p class="doodle hand">@ 完要能直接弹到对方收件箱</p>
+            <div class="foot"><span class="who">阿澈</span><span>9-03</span><button class="move" title="递到下一列">→</button></div>
+          </article>
+          <article class="sticky b">
+            <h3 class="hand">发票拍照识别升级</h3>
+            <p class="doodle hand">歪一点就识别失败，退回率 18%</p>
+            <div class="foot"><span class="who">何书明</span><span>9-02</span><button class="move" title="递到下一列">→</button></div>
+          </article>
+        </div>
+      </section>
+
+      <section class="col" data-col="doing">
+        <div class="colhead"><h2>动手中</h2><span class="n"><b class="n">2</b> 张</span></div>
+        <div class="stack">
+          <article class="sticky y">
+            <h3 class="hand">看板卡片拖拽排序</h3>
+            <p class="doodle hand">松手要有“啪”的一下吸附感</p>
+            <div class="foot"><span class="who">小满</span><span>8-29</span><button class="move" title="递到下一列">→</button></div>
+          </article>
+          <article class="sticky g">
+            <h3 class="hand">消息免打扰时段</h3>
+            <p class="doodle hand">默认 22:00–08:00，可在设置里改</p>
+            <div class="foot"><span class="who">林可</span><span>9-01</span><button class="move" title="递到下一列">→</button></div>
+          </article>
+        </div>
+      </section>
+
+      <section class="col" data-col="review">
+        <div class="colhead"><h2>评审角</h2><span class="n"><b class="n">2</b> 张</span></div>
+        <div class="stack">
+          <article class="sticky b">
+            <h3 class="hand">手机号一键登录</h3>
+            <p class="doodle hand">法务说协议文案要再改一版</p>
+            <div class="foot"><span class="who">老周</span><span>8-26</span><button class="move" title="递到下一列">→</button></div>
+          </article>
+          <article class="sticky p">
+            <h3 class="hand">搜索支持拼音首字母</h3>
+            <p class="doodle hand">ck 应该能搜到「库存」</p>
+            <div class="foot"><span class="who">阿澈</span><span>8-28</span><button class="move" title="递到下一列">→</button></div>
+          </article>
+        </div>
+      </section>
+
+      <section class="col" data-col="done">
+        <div class="colhead"><h2>上线了</h2><span class="n"><b class="n">2</b> 张</span></div>
+        <div class="stack">
+          <article class="sticky g">
+            <h3 class="hand">批量导入客户名单</h3>
+            <p class="doodle hand">上线 3 天，销售导入 4,200 条</p>
+            <div class="foot"><span class="who">林可</span><span>8-20</span><button class="move" title="贴回灵感池">↺</button></div>
+          </article>
+          <article class="sticky y">
+            <h3 class="hand">收件箱折叠长讨论串</h3>
+            <p class="doodle hand">超过 15 条自动折，好评居多</p>
+            <div class="foot"><span class="who">小满</span><span>8-18</span><button class="move" title="贴回灵感池">↺</button></div>
+          </article>
+          <div class="ghost hand" hidden>这列空了，递一张过来</div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+var order=["pool","doing","review","done"];
+var names={pool:"灵感池",doing:"动手中",review:"评审角",done:"上线了"};
+var colorName={y:"黄",g:"绿",b:"蓝",p:"粉"};
+var board=document.getElementById("board");
+var pickColor="y";
+var toastEl=document.getElementById("toast"),toastTimer=null;
+
+function toast(msg){
+  toastEl.textContent=msg;
+  toastEl.classList.add("on");
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(function(){toastEl.classList.remove("on")},1800);
+}
+
+function refresh(){
+  var total=0;
+  document.querySelectorAll(".col").forEach(function(col){
+    var cards=col.querySelectorAll(".sticky");
+    total+=cards.length;
+    col.querySelector(".colhead b").textContent=cards.length;
+    var ghost=col.querySelector(".ghost");
+    if(ghost)ghost.hidden=cards.length>0;
+    cards.forEach(function(card,i){
+      var mv=card.querySelector(".move");
+      var last=i>=0&&card.closest(".col").dataset.col==="done";
+      mv.textContent=last?"↺":"→";
+      mv.title=last?"贴回灵感池":"递到下一列";
+    });
+  });
+  document.getElementById("total").textContent=total;
+}
+
+/* 递卡片：向右一列；已在「上线了」则回灵感池 */
+board.addEventListener("click",function(e){
+  var mv=e.target.closest(".move");
+  if(mv){
+    e.stopPropagation();
+    var card=mv.closest(".sticky");
+    var from=card.closest(".col").dataset.col;
+    var toIdx=(order.indexOf(from)+1)%order.length;
+    var toCol=board.querySelector('[data-col="'+order[toIdx]+'"] .stack');
+    var ghost=toCol.querySelector(".ghost");
+    if(ghost)toCol.insertBefore(card,ghost);else toCol.appendChild(card);
+    card.classList.remove("picked");
+    card.classList.remove("arrived");void card.offsetWidth;
+    card.classList.add("arrived");
+    refresh();
+    toast("已递到「"+names[order[toIdx]]+"」");
+    return;
+  }
+  var card=e.target.closest(".sticky");
+  if(card){
+    var was=card.classList.contains("picked");
+    document.querySelectorAll(".sticky.picked").forEach(function(c){c.classList.remove("picked")});
+    if(!was)card.classList.add("picked");
+  }
+});
+
+/* 新便签 */
+var addbar=document.getElementById("addbar");
+var draft=document.getElementById("draft");
+function openBar(){addbar.classList.add("on");draft.focus()}
+function closeBar(){addbar.classList.remove("on");draft.value=""}
+document.getElementById("add-toggle").addEventListener("click",function(){
+  addbar.classList.contains("on")?closeBar():openBar();
+});
+document.getElementById("cancel").addEventListener("click",closeBar);
+document.querySelectorAll(".sw button").forEach(function(b){
+  b.addEventListener("click",function(){
+    pickColor=b.dataset.c;
+    document.querySelectorAll(".sw button").forEach(function(x){x.setAttribute("aria-pressed",String(x===b))});
+  });
+});
+function stick(){
+  var text=draft.value.trim();
+  if(!text){draft.focus();toast("先写一句想法再贴");return}
+  var el=document.createElement("article");
+  el.className="sticky "+pickColor+" new";
+  var d=new Date();
+  var mm=String(d.getMonth()+1)+"-"+String(d.getDate()).padStart(2,"0");
+  el.innerHTML='<h3 class="hand"></h3><p class="doodle hand">新贴的，等周四聊聊</p>'+
+    '<div class="foot"><span class="who">我</span><span class="num">'+mm+'</span><button class="move" title="递到下一列">→</button></div>';
+  el.querySelector("h3").textContent=text;
+  var stack=board.querySelector('[data-col="pool"] .stack');
+  stack.insertBefore(el,stack.firstChild);
+  closeBar();refresh();
+  toast("黄色便签已贴进灵感池".replace("黄色",colorName[pickColor]+"色"));
+}
+document.getElementById("go").addEventListener("click",stick);
+draft.addEventListener("keydown",function(e){if(e.key==="Enter")stick()});
+
+refresh();
+</script>
+</body>
+</html>

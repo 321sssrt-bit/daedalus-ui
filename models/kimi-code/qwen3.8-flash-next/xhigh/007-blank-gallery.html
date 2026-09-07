@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>白盒 · 你的第一块画布</title>
+<style>
+:root{
+  --white:#ffffff;
+  --black:#0a0a0a;
+  --red:#e23e2c;
+  --card:#f4f2ee;
+  --muted:#b9b4ac;
+  --line:#dcd8d2;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{min-height:100%;}
+body{
+  background:var(--white);
+  color:var(--black);
+  font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans CJK SC",sans-serif;
+  -webkit-font-smoothing:antialiased;
+}
+.frame{
+  max-width:1160px;
+  margin:0 auto;
+  padding:0 48px;
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+}
+.topline{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:34px 0 0;
+}
+.mark{
+  font-size:13px;
+  letter-spacing:0.5em;
+  font-weight:600;
+}
+.mark i{
+  display:inline-block;
+  width:9px;height:9px;
+  background:var(--red);
+  margin-right:12px;
+  vertical-align:1px;
+}
+.session{
+  font-size:12px;
+  letter-spacing:0.22em;
+  color:var(--muted);
+}
+.stage{
+  flex:1;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 380px;
+  column-gap:80px;
+  align-items:start;
+  padding:96px 0 64px;
+}
+.hero{max-width:640px;}
+.hero .kicker{
+  font-size:12px;
+  letter-spacing:0.44em;
+  color:var(--red);
+  margin-bottom:34px;
+}
+.hero h1{
+  font-size:96px;
+  line-height:1.06;
+  font-weight:700;
+  letter-spacing:0.02em;
+  margin-bottom:10px;
+}
+.hero h1 .soft{
+  display:block;
+  color:var(--line);
+}
+.hero .note{
+  margin-top:30px;
+  max-width:430px;
+  font-size:15px;
+  line-height:2.05;
+  color:#5c5852;
+  font-weight:300;
+}
+.actions{
+  margin-top:64px;
+  display:flex;
+  align-items:center;
+  gap:44px;
+}
+.btn-new{
+  appearance:none;
+  border:none;
+  background:var(--black);
+  color:var(--white);
+  font:inherit;
+  font-size:15px;
+  letter-spacing:0.3em;
+  text-indent:0.3em;
+  padding:20px 52px;
+  cursor:pointer;
+  transition:background-color 200ms ease,transform 140ms ease;
+}
+.btn-new:hover{background:#2b2823;}
+.btn-new:active{transform:translateY(2px);}
+.btn-new:disabled{background:var(--line);color:var(--muted);cursor:default;}
+.btn-templates{
+  appearance:none;
+  background:none;
+  border:none;
+  font:inherit;
+  font-size:14px;
+  letter-spacing:0.14em;
+  color:var(--black);
+  cursor:pointer;
+  padding:6px 0;
+  border-bottom:2px solid var(--red);
+  transition:color 200ms ease;
+}
+.btn-templates:hover{color:var(--red);}
+.wall{
+  padding-top:26px;
+  border-top:1px solid var(--black);
+}
+.wall-title{
+  font-size:11px;
+  letter-spacing:0.36em;
+  color:var(--muted);
+  margin-bottom:24px;
+}
+.slots{
+  display:flex;
+  flex-direction:column;
+  gap:18px;
+}
+.slot-empty{
+  border:1px dashed var(--line);
+  color:var(--muted);
+  font-size:12.5px;
+  letter-spacing:0.18em;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  height:128px;
+}
+.work{
+  background:var(--card);
+  border:1px solid var(--line);
+  padding:18px 20px;
+  display:flex;
+  align-items:center;
+  gap:16px;
+  animation:hang 360ms ease-out;
+}
+@keyframes hang{
+  from{opacity:0;transform:translateY(14px);}
+  to{opacity:1;transform:translateY(0);}
+}
+.work .chip{
+  width:34px;height:34px;
+  flex:none;
+  background:var(--red);
+}
+.work .chip.t2{background:var(--black);}
+.work .chip.t3{background:var(--muted);}
+.work .meta{flex:1;min-width:0;}
+.work .name{font-size:14px;font-weight:600;letter-spacing:0.06em;}
+.work .size{font-size:11.5px;color:var(--muted);letter-spacing:0.1em;margin-top:4px;}
+.work .tag{
+  font-size:10.5px;
+  letter-spacing:0.2em;
+  color:var(--muted);
+  border:1px solid var(--line);
+  padding:4px 8px;
+  white-space:nowrap;
+}
+/* 模板抽屉：默认收起，点次要行动展开 */
+.tray{
+  display:none;
+  margin-top:26px;
+  border-top:1px dashed var(--line);
+  padding-top:20px;
+}
+.tray.open{display:block;}
+.tray .t-line{
+  font-size:12px;
+  letter-spacing:0.24em;
+  color:var(--muted);
+  margin-bottom:16px;
+}
+.t-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:12px;
+}
+.t-card{
+  appearance:none;
+  background:var(--white);
+  border:1px solid var(--line);
+  font:inherit;
+  color:var(--black);
+  text-align:left;
+  padding:14px;
+  cursor:pointer;
+  transition:border-color 160ms ease,box-shadow 160ms ease;
+}
+.t-card:hover{border-color:var(--black);}
+.t-card.sel{border-color:var(--red);box-shadow:inset 0 0 0 1px var(--red);}
+.t-card .bars{display:flex;gap:4px;height:34px;align-items:flex-end;margin-bottom:10px;}
+.t-card .bars i{width:6px;background:var(--line);}
+.t-card.sel .bars i{background:var(--red);}
+.t-card .tn{font-size:13px;letter-spacing:0.1em;}
+.t-card .td{font-size:11px;color:var(--muted);margin-top:4px;letter-spacing:0.06em;}
+.baseline{
+  display:flex;
+  justify-content:space-between;
+  padding:0 0 30px;
+  font-size:11px;
+  letter-spacing:0.24em;
+  color:var(--muted);
+}
+@media (max-width:768px){
+  .frame{padding:0 22px;}
+  .stage{grid-template-columns:1fr;row-gap:56px;padding:64px 0 48px;}
+  .hero h1{font-size:54px;}
+  .actions{flex-direction:column;align-items:flex-start;gap:26px;}
+  .btn-new{width:100%;text-align:center;}
+  .t-grid{grid-template-columns:1fr;}
+}
+@media (prefers-reduced-motion:reduce){
+  .work{animation:none;}
+  .btn-new,.btn-templates,.t-card{transition:none;}
+}
+</style>
+</head>
+<body>
+<div class="frame">
+  <header class="topline">
+    <span class="mark"><i></i>白盒 GALLERY</span>
+    <span class="session">馆长：叶子 · 今日已开馆</span>
+  </header>
+
+  <section class="stage">
+    <div class="hero">
+      <p class="kicker">初次见面 · 馆藏为零</p>
+      <h1>这里<span class="soft">空无一物。</span></h1>
+      <p class="note">白盒是一座只属于你的线上美术馆，此刻它的藏品数是 0。
+        挂上第一块画布吧——一幅随笔、一张照片、一段草稿，都算展品。</p>
+      <div class="actions">
+        <button class="btn-new" id="007-new" type="button">挂上第一块画布</button>
+        <button class="btn-templates" id="007-tray-btn" type="button" aria-expanded="false">先看一眼模板墙</button>
+      </div>
+    </div>
+
+    <aside class="wall">
+      <p class="wall-title">东墙 · 预留三个展位</p>
+      <div class="slots" id="007-slots">
+        <div class="slot-empty" id="007-slot-empty">此 处 留 白</div>
+      </div>
+
+      <div class="tray" id="007-tray">
+        <p class="t-line">模板墙 · 选一张再开始，也可以什么都不选</p>
+        <div class="t-grid" id="007-tgrid">
+          <button class="t-card" type="button" data-tpl="色块练习" data-desc="1200 × 900 · 纯色构成">
+            <span class="bars"><i style="height:60%"></i><i style="height:100%"></i><i style="height:35%"></i></span>
+            <span class="tn">色块练习</span>
+            <span class="td">1200 × 900 · 纯色构成</span>
+          </button>
+          <button class="t-card" type="button" data-tpl="胶片扫描" data-desc="A4 · 扫描件装裱">
+            <span class="bars"><i style="height:90%"></i><i style="height:45%"></i><i style="height:70%"></i></span>
+            <span class="tn">胶片扫描</span>
+            <span class="td">A4 · 扫描件装裱</span>
+          </button>
+          <button class="t-card" type="button" data-tpl="草稿纸" data-desc="1080 × 1080 · 方格底纹">
+            <span class="bars"><i style="height:30%"></i><i style="height:80%"></i><i style="height:55%"></i></span>
+            <span class="tn">草稿纸</span>
+            <span class="td">1080 × 1080 · 方格底纹</span>
+          </button>
+        </div>
+      </div>
+    </aside>
+  </section>
+
+  <footer class="baseline">
+    <span>白盒 GALLERY · 私人线上美术馆</span>
+    <span id="007-count">藏品 0 件</span>
+  </footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var newBtn=document.getElementById("007-new");
+  var trayBtn=document.getElementById("007-tray-btn");
+  var tray=document.getElementById("007-tray");
+  var slots=document.getElementById("007-slots");
+  var slotEmpty=document.getElementById("007-slot-empty");
+  var countEl=document.getElementById("007-count");
+  var tgrid=document.getElementById("007-tgrid");
+  var picked=null;
+  var count=0;
+  var names=["无题习作","晨间速写","窗边光影","一次尝试"];
+
+  trayBtn.addEventListener("click",function(){
+    var open=tray.classList.toggle("open");
+    trayBtn.setAttribute("aria-expanded",open?"true":"false");
+    trayBtn.textContent=open?"收起模板墙":"先看一眼模板墙";
+  });
+
+  tgrid.addEventListener("click",function(ev){
+    var card=ev.target.closest(".t-card");
+    if(!card){return;}
+    var wasSel=card.classList.contains("sel");
+    [].forEach.call(tgrid.querySelectorAll(".t-card"),function(c){c.classList.remove("sel");});
+    if(!wasSel){
+      card.classList.add("sel");
+      picked=card.getAttribute("data-tpl");
+      newBtn.textContent="用「"+picked+"」开馆";
+    }else{
+      picked=null;
+      newBtn.textContent=count===0?"挂上第一块画布":"再挂一块画布";
+    }
+  });
+
+  newBtn.addEventListener("click",function(){
+    if(count>=3){return;}
+    count+=1;
+    if(slotEmpty&&slotEmpty.parentNode){slotEmpty.parentNode.removeChild(slotEmpty);}
+    var work=document.createElement("div");
+    work.className="work";
+    var chipCls=count===1?"chip":(count===2?"chip t2":"chip t3");
+    var name=picked||names[(count-1)%names.length];
+    work.innerHTML=
+      '<span class="'+chipCls+'"></span>'+
+      '<span class="meta"><span class="name">'+name+'</span>'+
+      '<span class="size">'+(picked?"模板 · 色块构成":"空白画布")+' · 刚刚挂上</span></span>'+
+      '<span class="tag">展位 '+count+'/3</span>';
+    slots.appendChild(work);
+    countEl.textContent="藏品 "+count+" 件";
+    if(count>=3){
+      newBtn.disabled=true;
+      newBtn.textContent="东墙已满";
+      trayBtn.style.display="none";
+    }else{
+      newBtn.textContent=picked?"再挂一块（用模板）":"再挂一块画布";
+    }
+  });
+})();
+</script>
+</body>
+</html>

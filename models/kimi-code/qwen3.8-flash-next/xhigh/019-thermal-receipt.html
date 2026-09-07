@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>在线购物车 — 邻家便利 中山北路店</title>
+<style>
+:root{
+  --paper:#f4f2ee;
+  --black:#17181a;
+  --red:#c62828;
+  --shelf:#c9c5bc;
+  --shelf-hi:#d7d4cc;
+  --shelf-lo:#b2aea4;
+  --gray:#6b6862;
+  --soft:#9b978e;
+  --band:#edeae2;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  font-family:ui-monospace,"Cascadia Mono",Consolas,Menlo,"Noto Sans Mono CJK SC","PingFang SC",monospace;
+  color:var(--black);
+  background:linear-gradient(180deg,var(--shelf-hi) 0,var(--shelf) 120px,var(--shelf-lo) 100%);
+  min-height:100vh;
+}
+button{font-family:inherit}
+button:focus-visible{outline:1px dashed var(--red);outline-offset:2px}
+.util{background:var(--black);color:var(--paper);font-size:12px;letter-spacing:1px;padding:9px 22px;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.util b{color:var(--paper);letter-spacing:2px}
+.util span{color:#bdbab2}
+.slot{width:min(520px,calc(100vw - 40px));margin:0 auto;height:14px;background:var(--black);border-radius:0 0 4px 4px;transform:translateY(0)}
+.receipt{width:min(520px,calc(100vw - 40px));margin:0 auto;background:var(--paper);padding:26px 30px 20px;box-shadow:0 8px 18px rgba(23,24,26,.35)}
+.receipt .dim{color:var(--gray)}
+.sc{margin:0 0 6px;font-weight:700;letter-spacing:3px}
+.sc span{display:block;font-weight:400;font-size:11px;letter-spacing:1px;color:var(--gray);margin-top:4px}
+.dash{border:none;border-top:1px dashed var(--soft);margin:14px 0}
+.meta{font-size:12px;color:var(--gray);line-height:1.9}
+.colhead{display:flex;justify-content:space-between;font-size:11px;letter-spacing:2px;color:var(--soft);border-bottom:1px solid var(--black);padding-bottom:5px}
+.item{padding:11px 0;border-bottom:1px dotted var(--soft)}
+.nm{display:flex;justify-content:space-between;gap:14px;font-size:13.5px;letter-spacing:1px}
+.nm .up{color:var(--gray);white-space:nowrap}
+.ops{display:flex;justify-content:space-between;align-items:center;margin-top:7px}
+.step{display:inline-flex;align-items:center;border:1px solid var(--black);height:26px}
+.step button{width:26px;height:24px;background:var(--band);border:none;font-size:14px;line-height:1;cursor:pointer;color:var(--black)}
+.step button:hover{background:var(--black);color:var(--paper)}
+.step button:disabled{opacity:.3;cursor:default;background:var(--band);color:var(--black)}
+.qty{min-width:34px;text-align:center;font-size:13px;font-weight:700;background:var(--paper)}
+.amt{display:flex;align-items:center;gap:12px;font-size:13px}
+.amt .line{font-weight:700}
+.del{background:none;border:none;font-size:15px;color:var(--gray);cursor:pointer;padding:2px 4px}
+.del:hover{color:var(--red)}
+.sum{font-size:13px;line-height:2.1;display:flex;justify-content:space-between}
+.total{display:flex;justify-content:space-between;align-items:baseline;border-top:3px double var(--black);margin-top:10px;padding-top:10px;font-weight:700;letter-spacing:2px}
+.total .big{color:var(--red);font-size:30px}
+.checkout{display:block;width:100%;margin:18px 0 6px;padding:14px 0;background:transparent;border:2px solid var(--red);color:var(--red);font-size:16px;font-weight:700;letter-spacing:6px;cursor:pointer;transition:background .15s ease,color .15s ease}
+.checkout:hover{background:var(--red);color:var(--paper)}
+.checkout[disabled]{border-color:var(--soft);color:var(--soft);cursor:default;background:transparent}
+.tiny{font-size:11px;color:var(--soft);text-align:center;letter-spacing:1px}
+.empty{display:none;padding:34px 0 20px;text-align:center;font-size:13px;letter-spacing:2px;color:var(--gray)}
+.empty .back{display:inline-block;margin-top:14px;background:none;border:1px dashed var(--black);color:var(--black);font-size:12px;letter-spacing:2px;padding:7px 16px;cursor:pointer}
+.empty .back:hover{background:var(--black);color:var(--paper)}
+.barcode{display:flex;align-items:flex-end;justify-content:center;height:46px;margin:16px 0 6px}
+.barcode i{display:block;height:100%;background:var(--black);margin-right:2px}
+.barcode i.g{background:transparent}
+.barno{text-align:center;font-size:11px;letter-spacing:4px;color:var(--gray)}
+.thanks{text-align:center;font-size:14px;font-weight:700;letter-spacing:8px;margin:16px 0 4px}
+.policy{text-align:center;font-size:11px;color:var(--soft);line-height:1.9;letter-spacing:1px}
+.torn{width:min(520px,calc(100vw - 40px));margin:0 auto;height:9px;background:conic-gradient(from -45deg at 50% 100%,var(--paper) 0 90deg,transparent 0) 0 0/18px 9px repeat-x}
+@media (max-width:768px){
+  .receipt{padding:20px 16px 16px}
+  .nm{flex-wrap:wrap}
+  .total .big{font-size:26px}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{transition:none;animation:none}
+}
+</style>
+</head>
+<body>
+<div class="util"><b>在线购物车 · 邻家便利 中山北路店</b><span>满 ¥39 免配送费 · 30 分钟送达</span></div>
+<div class="slot" aria-hidden="true"></div>
+<main class="receipt">
+  <h1 class="sc" style="text-align:center;font-size:19px">邻 家 便 利<span>NEIGHBOR MART · STORE #0117 · 示例市示例区演示路 ** 号 · 021-****-****</span></h1>
+  <hr class="dash">
+  <p class="meta">收银终端 03 · 店员 0826 · 会员 ****6521<br>开单 2026-09-06 19:42 · 在线小票 0117-260906-0431</p>
+  <hr class="dash">
+  <div class="colhead"><span>商品</span><span>单价 × 数量</span></div>
+  <div id="p19-items">
+    <div class="item" data-price="3.50" data-init="2">
+      <div class="nm"><span>芝士饭团 金枪鱼蛋黄酱 110g</span><span class="up">¥3.50</span></div>
+      <div class="ops">
+        <span class="step"><button class="dec" aria-label="减少数量">−</button><span class="qty">2</span><button class="inc" aria-label="增加数量">＋</button></span>
+        <span class="amt">小计 <b class="line">7.00</b><button class="del" aria-label="删除 芝士饭团">✕ 删除</button></span>
+      </div>
+    </div>
+    <div class="item" data-price="5.50" data-init="1">
+      <div class="nm"><span>白桃气泡水 480ml</span><span class="up">¥5.50</span></div>
+      <div class="ops">
+        <span class="step"><button class="dec" aria-label="减少数量">−</button><span class="qty">1</span><button class="inc" aria-label="增加数量">＋</button></span>
+        <span class="amt">小计 <b class="line">5.50</b><button class="del" aria-label="删除 白桃气泡水">✕ 删除</button></span>
+      </div>
+    </div>
+    <div class="item" data-price="12.90" data-init="1">
+      <div class="nm"><span>原味酸奶 205g×3 连杯</span><span class="up">¥12.90</span></div>
+      <div class="ops">
+        <span class="step"><button class="dec" aria-label="减少数量">−</button><span class="qty">1</span><button class="inc" aria-label="增加数量">＋</button></span>
+        <span class="amt">小计 <b class="line">12.90</b><button class="del" aria-label="删除 原味酸奶">✕ 删除</button></span>
+      </div>
+    </div>
+    <div class="item" data-price="2.80" data-init="3">
+      <div class="nm"><span>佳农香蕉（按把）</span><span class="up">¥2.80</span></div>
+      <div class="ops">
+        <span class="step"><button class="dec" aria-label="减少数量">−</button><span class="qty">3</span><button class="inc" aria-label="增加数量">＋</button></span>
+        <span class="amt">小计 <b class="line">8.40</b><button class="del" aria-label="删除 香蕉">✕ 删除</button></span>
+      </div>
+    </div>
+    <div class="item" data-price="18.50" data-init="1">
+      <div class="nm"><span>巴氏鲜牛乳 900ml</span><span class="up">¥18.50</span></div>
+      <div class="ops">
+        <span class="step"><button class="dec" aria-label="减少数量">−</button><span class="qty">1</span><button class="inc" aria-label="增加数量">＋</button></span>
+        <span class="amt">小计 <b class="line">18.50</b><button class="del" aria-label="删除 鲜牛乳">✕ 删除</button></span>
+      </div>
+    </div>
+  </div>
+  <div class="empty" id="p19-empty">小票已撕空 · 车上没有一件货<button class="back" id="p19-restore" type="button">补回示例清单</button></div>
+  <hr class="dash">
+  <div class="sum"><span class="dim">件数</span><span id="p19-count">8 件</span></div>
+  <div class="sum"><span class="dim">小计</span><span>¥<span id="p19-sub">52.30</span></span></div>
+  <div class="sum"><span class="dim">会员 95 折</span><span>−¥<span id="p19-disc">2.62</span></span></div>
+  <div class="total"><span>应付合计</span><span class="big">¥<span id="p19-total">49.68</span></span></div>
+  <button class="checkout" id="p19-checkout">去结算 ▸</button>
+  <p class="tiny">配送时段今日 21:30 前可选 · 超时自动顺延</p>
+  <hr class="dash">
+  <div class="barcode" id="p19-barcode" aria-hidden="true"></div>
+  <p class="barno">0117 2609 0604 31</p>
+  <p class="thanks">谢谢惠顾</p>
+  <p class="policy">凭本小票 15 分钟内可到店退换 · 生鲜冷链商品离柜不退<br>发票请在 App「订单」页按月合并开具</p>
+</main>
+<div class="teeth" id="p19-teeth" aria-hidden="true"></div>
+<script>
+(function(){
+  var items=[].slice.call(document.querySelectorAll('.item'));
+  var count=document.getElementById('p19-count');
+  var sub=document.getElementById('p19-sub');
+  var disc=document.getElementById('p19-disc');
+  var total=document.getElementById('p19-total');
+  var empty=document.getElementById('p19-empty');
+  var checkout=document.getElementById('p19-checkout');
+  var locked=false;
+  function money(x){return (Math.round(x*100)/100).toFixed(2);}
+  function refresh(){
+    var subV=0,n=0,alive=0;
+    items.forEach(function(it){
+      if(it.classList.contains('gone')){return;}
+      alive+=1;
+      var q=+it.querySelector('.qty').textContent;
+      var line=(+it.getAttribute('data-price'))*q;
+      n+=q;subV+=line;
+      it.querySelector('.line').textContent=money(line);
+      it.querySelector('.dec').disabled=(q<=1);
+    });
+    var totalV=Math.round(subV*0.95*100)/100;
+    count.textContent=n+' 件';
+    sub.textContent=money(subV);
+    disc.textContent=money(subV-totalV);
+    total.textContent=money(totalV);
+    empty.style.display=alive===0?'block':'none';
+    checkout.disabled=(alive===0);
+    if(alive===0&&!locked){checkout.textContent='去结算 ▸';}
+  }
+  items.forEach(function(it){
+    it.querySelector('.dec').addEventListener('click',function(){
+      var q=it.querySelector('.qty');
+      var v=+q.textContent;
+      if(v>1){q.textContent=v-1;refresh();}
+    });
+    it.querySelector('.inc').addEventListener('click',function(){
+      var q=it.querySelector('.qty');
+      q.textContent=+q.textContent+1;refresh();
+    });
+    it.querySelector('.del').addEventListener('click',function(){
+      it.classList.add('gone');refresh();
+    });
+  });
+  document.getElementById('p19-restore').addEventListener('click',function(){
+    items.forEach(function(it){
+      it.classList.remove('gone');
+      it.querySelector('.qty').textContent=it.getAttribute('data-init');
+    });
+    refresh();
+  });
+  checkout.addEventListener('click',function(){
+    if(locked||checkout.disabled){return;}
+    locked=true;
+    checkout.textContent='已锁单 · 请到 3 号窗口报取票号';
+    checkout.disabled=true;
+  });
+  /* 条码与齿边：按固定花纹生成 */
+  var bc=document.getElementById('p19-barcode');
+  var seed='3122331213223132213123211332231223132133122312132311232231312231';
+  for(var i=0;i<seed.length;i++){
+    var bar=document.createElement('i');
+    bar.style.width=seed.charAt(i)+'px';
+    var gap=document.createElement('i');
+    gap.className='g';
+    gap.style.width='2px';
+    bc.appendChild(bar);bc.appendChild(gap);
+  }
+  var teeth=document.getElementById('p19-teeth');
+  for(var t=0;t<80;t++){teeth.appendChild(document.createElement('i'));}
+  refresh();
+})();
+</script>
+</body>
+</html>

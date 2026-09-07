@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>夜航唱片行 · 正在播放</title>
+<style>
+:root{
+  --night:#121019;
+  --plum:#251e35;
+  --plum-deep:#1b1526;
+  --purple:#6b4f9e;
+  --orange:#e08e45;
+  --cream:#f0e7d8;
+  --muted:#9a8fb0;
+  --rose:#c65b4e;
+  --track:#332b47;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  background:#0b0910 radial-gradient(circle at 22% 18%,rgba(107,79,158,.28) 0%,rgba(11,9,16,0) 46%),
+    radial-gradient(circle at 82% 84%,rgba(224,142,69,.16) 0%,rgba(11,9,16,0) 42%),#0b0910;
+  display:grid;place-items:center;padding:28px 0;
+  font-family:-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+  color:var(--cream);
+  -webkit-font-smoothing:antialiased;
+}
+.phone{
+  position:relative;padding:13px;border-radius:56px;
+  background:linear-gradient(160deg,#2c2537,#100d16 70%);
+  box-shadow:0 34px 90px rgba(0,0,0,.7),inset 0 1px 0 rgba(240,231,216,.1);
+}
+.phone::before{content:"";position:absolute;left:-3px;top:170px;width:4px;height:34px;border-radius:2px;background:#3d3450}
+.phone::after{content:"";position:absolute;right:-3px;top:196px;width:4px;height:64px;border-radius:2px;background:#3d3450}
+.screen{
+  position:relative;width:390px;height:844px;overflow:hidden;border-radius:43px;
+  background:linear-gradient(180deg,var(--plum) 0%,var(--plum-deep) 52%,var(--night) 100%);
+  display:flex;flex-direction:column;
+  box-shadow:inset 0 0 0 2px #07060b;
+}
+.statusbar{
+  flex:none;height:44px;display:flex;align-items:center;justify-content:space-between;
+  padding:0 22px;font-size:13px;font-weight:600;letter-spacing:.5px;
+}
+.sicons{display:flex;align-items:center;gap:6px}
+.sicons .net{font-size:10px;font-weight:700}
+.scroller{flex:1 1 auto;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none}
+.scroller::-webkit-scrollbar{display:none}
+.homebar{flex:none;height:22px;display:flex;align-items:center;justify-content:center}
+.homebar i{display:block;width:128px;height:5px;border-radius:3px;background:rgba(240,231,216,.26)}
+
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:2px 16px 4px}
+.topbar .brand{display:flex;flex-direction:column}
+.topbar .brand b{font-size:16px;letter-spacing:3px}
+.topbar .brand span{font-size:9px;letter-spacing:4px;color:var(--muted);margin-top:2px}
+.iconbtn{width:44px;height:44px;border:none;border-radius:14px;background:transparent;color:var(--cream);display:grid;place-items:center;cursor:pointer}
+.iconbtn:hover{background:rgba(240,231,216,.08)}
+
+/* 唱片区 */
+.deck{position:relative;width:304px;height:304px;margin:8px auto 0}
+.discwrap{
+  position:absolute;inset:0;border-radius:50%;
+  transform:rotate(-24deg);transition:transform .8s cubic-bezier(.33,.8,.38,1);
+}
+.playing .discwrap{transform:rotate(0);animation:spin 8s linear infinite}
+@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+.disc{
+  position:absolute;inset:0;border-radius:50%;border:1px solid #322a44;
+  background:
+    radial-gradient(circle at 36% 28%,rgba(240,231,216,.14),rgba(240,231,216,0) 44%),
+    repeating-radial-gradient(circle at 50% 50%,#241e30 0 3px,#151120 3px 6px),
+    var(--night);
+  box-shadow:0 16px 40px rgba(0,0,0,.55);
+}
+.label{
+  position:absolute;left:50%;top:50%;width:108px;height:108px;transform:translate(-50%,-50%);
+  border-radius:50%;background:var(--lbl,var(--orange));border:4px solid var(--night);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+  color:var(--lbl-ink,#2a1c0e);transition:background .4s ease;
+}
+.label .no{font-size:9px;letter-spacing:2px;font-weight:700;opacity:.8}
+.label .lt{font-size:13px;font-weight:800;letter-spacing:1px;max-width:86px;text-align:center;line-height:1.3}
+.label .rpm{font-size:8px;letter-spacing:2px;opacity:.75}
+.spindle{
+  position:absolute;left:50%;top:50%;width:9px;height:9px;transform:translate(-50%,-50%);
+  border-radius:50%;background:var(--night);box-shadow:0 0 0 2px rgba(240,231,216,.4);z-index:3;
+}
+.arm{position:absolute;right:-8px;top:-4px;z-index:4;transition:transform .7s cubic-bezier(.33,.8,.38,1);transform:rotate(-30deg)}
+.playing .arm{transform:rotate(16deg)}
+
+/* 曲目信息 */
+.metainfo{padding:16px 24px 0;text-align:center}
+.metainfo .tag{font-size:10px;letter-spacing:3px;color:var(--orange)}
+.metainfo h1{font-size:23px;letter-spacing:2px;margin-top:6px;font-weight:800}
+.metainfo .who{font-size:12px;color:var(--muted);margin-top:6px;letter-spacing:1px}
+
+/* 进度条 */
+.progress{padding:16px 26px 0}
+.bar{position:relative;height:30px;cursor:pointer;display:flex;align-items:center}
+.bar .rail{position:absolute;left:0;right:0;height:6px;border-radius:3px;background:var(--track)}
+.bar .fill{position:absolute;left:0;height:6px;border-radius:3px;width:0;background:linear-gradient(90deg,var(--purple),var(--orange))}
+.bar .knob{
+  position:absolute;width:15px;height:15px;border-radius:50%;background:var(--cream);
+  border:3px solid var(--orange);left:0;transform:translate(-50%,0);box-shadow:0 2px 8px rgba(0,0,0,.5);
+}
+.times{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);letter-spacing:1px;font-family:Georgia,serif}
+
+/* 控制键 */
+.controls{display:flex;align-items:center;justify-content:center;gap:30px;padding:14px 0 2px}
+.ctl{
+  width:48px;height:48px;border-radius:50%;border:1px solid rgba(240,231,216,.3);
+  background:transparent;color:var(--cream);display:grid;place-items:center;cursor:pointer;
+}
+.ctl:hover{border-color:var(--orange);color:var(--orange)}
+.ctl:active{transform:scale(.94)}
+.playbtn{
+  width:66px;height:66px;border-radius:50%;border:none;cursor:pointer;
+  background:var(--orange);color:#241505;display:grid;place-items:center;
+  box-shadow:0 8px 26px rgba(224,142,69,.45),inset 0 -3px 0 rgba(0,0,0,.18);
+}
+.playbtn:hover{background:#ec9d55}
+.playbtn:active{transform:scale(.95)}
+.playbtn .ico-pause,.playbtn.on .ico-play{display:none}
+.playbtn.on .ico-pause{display:block}
+
+/* 歌单 */
+.queuehead{display:flex;align-items:baseline;justify-content:space-between;padding:20px 22px 4px}
+.queuehead b{font-size:13px;letter-spacing:3px;color:var(--cream)}
+.queuehead span{font-size:10px;letter-spacing:2px;color:var(--muted)}
+.queue{padding:0 16px 30px}
+.tr{
+  display:flex;align-items:center;gap:12px;min-height:56px;width:100%;
+  border:none;background:none;color:var(--cream);cursor:pointer;
+  border-bottom:1px solid rgba(107,79,158,.28);padding:0 8px;text-align:left;
+}
+.tr:hover{background:rgba(240,231,216,.06)}
+.tr .no{flex:none;width:22px;font-family:Georgia,serif;font-size:12px;color:var(--muted)}
+.tr .mid{flex:1 1 auto;min-width:0}
+.tr .mid b{display:block;font-size:14px;font-weight:600}
+.tr .mid span{display:block;font-size:10px;color:var(--muted);margin-top:2px}
+.tr .dur{flex:none;font-family:Georgia,serif;font-size:12px;color:var(--muted)}
+.tr.playing{background:rgba(224,142,69,.08)}
+.tr.playing .no{color:var(--orange)}
+.tr.playing .dur{color:var(--orange)}
+.eq{display:none;flex:none;gap:2px;align-items:flex-end;height:14px}
+.tr.playing .eq{display:flex}
+.eq i{width:3px;background:var(--orange);animation:eq 1s ease-in-out infinite}
+.eq i:nth-child(2){animation-delay:.2s}
+.eq i:nth-child(3){animation-delay:.45s}
+@keyframes eq{0%,100%{height:4px}50%{height:14px}}
+
+.toast{
+  position:absolute;left:50%;bottom:110px;transform:translate(-50%,8px);
+  background:rgba(37,30,53,.96);border:1px solid rgba(224,142,69,.6);color:var(--cream);
+  font-size:12px;letter-spacing:1px;padding:10px 18px;border-radius:20px;opacity:0;
+  pointer-events:none;transition:opacity .25s ease,transform .25s ease;max-width:320px;text-align:center;
+}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+
+@media (max-width:430px){
+  body{padding:0;background:var(--night)}
+  .phone{padding:0;border-radius:0;background:transparent;box-shadow:none}
+  .phone::before,.phone::after{display:none}
+  .screen{width:100vw;height:100dvh;border-radius:0;box-shadow:none}
+}
+@media (prefers-reduced-motion: reduce){
+  .playing .discwrap{animation:none}
+  .eq i{animation:none;height:10px}
+  .discwrap,.arm,.toast{transition:none}
+  *{animation-duration:.001s !important}
+}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="screen" id="screen034">
+
+    <div class="statusbar">
+      <span>23:41</span>
+      <span class="sicons">
+        <span class="net">5G</span>
+        <svg width="17" height="11" viewBox="0 0 17 11" fill="currentColor"><rect x="0" y="7" width="3" height="4" rx="1"/><rect x="4.5" y="5" width="3" height="6" rx="1"/><rect x="9" y="2.5" width="3" height="8.5" rx="1"/><rect x="13.5" y="0" width="3" height="11" rx="1"/></svg>
+        <svg width="23" height="11" viewBox="0 0 23 11" fill="none" stroke="currentColor" stroke-width="1"><rect x="0.5" y="0.5" width="19" height="10" rx="2.5"/><rect x="2" y="2" width="9" height="7" rx="1.5" fill="currentColor" stroke="none"/><path d="M21.5 3.5v4" stroke-linecap="round"/></svg>
+      </span>
+    </div>
+
+    <div class="topbar">
+      <button class="iconbtn" id="backBtn" aria-label="返回唱片架">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 5.5 8 12l6.5 6.5"/></svg>
+      </button>
+      <span class="brand" style="text-align:center"><b>夜航唱片行</b><span>NIGHT FERRY RECORDS</span></span>
+      <button class="iconbtn" id="toneBtn" aria-label="音效">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 8v8M9.5 5.5v13M14 8.5v7M18.5 6.5v11"/></svg>
+      </button>
+    </div>
+
+    <div class="scroller" id="scroller034">
+
+      <div class="deck" id="deck034">
+        <div class="discwrap">
+          <div class="disc"></div>
+          <div class="label" id="label034">
+            <span class="no" id="lblNo">A面 01</span>
+            <span class="lt" id="lblTitle">夜航广播</span>
+            <span class="rpm">33⅓ RPM</span>
+          </div>
+          <div class="spindle"></div>
+        </div>
+        <svg class="arm" width="150" height="150" viewBox="0 0 150 150" fill="none">
+          <circle cx="118" cy="30" r="16" fill="#241d33" stroke="#4c4162" stroke-width="2"/>
+          <circle cx="118" cy="30" r="7" fill="#d8cfc0"/>
+          <path d="M113 37 52 103" stroke="#cfc6b8" stroke-width="5" stroke-linecap="round"/>
+          <path d="M58 96 40 108 47 118 65 106z" fill="#e08e45" stroke="#241505" stroke-width="1.5"/>
+          <path d="M41 109 34 114" stroke="#f0e7d8" stroke-width="2.5" stroke-linecap="round"/>
+        </svg>
+      </div>
+
+      <div class="metainfo">
+        <div class="tag">黑胶转录 · 立体声 · 正在播放</div>
+        <h1 id="songTitle">夜航广播</h1>
+        <div class="who" id="songWho">廖一鸥 · 《南屏晚钟》 · 1978 首版</div>
+      </div>
+
+      <div class="progress">
+        <div class="bar" id="bar034" role="slider" aria-label="播放进度" tabindex="0">
+          <span class="rail"></span>
+          <span class="fill" id="fill034"></span>
+          <span class="knob" id="knob034"></span>
+        </div>
+        <div class="times"><span id="curTime">0:00</span><span id="totalTime">4:12</span></div>
+      </div>
+
+      <div class="controls">
+        <button class="ctl" id="prevBtn" aria-label="上一首">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M7 5.5v13M20 5.5 9.5 12 20 18.5z"/></svg>
+        </button>
+        <button class="playbtn" id="playBtn" aria-label="播放或暂停" aria-pressed="false">
+          <svg class="ico-play" width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5 20 12 8 19z"/></svg>
+          <svg class="ico-pause" width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><rect x="6.5" y="5" width="4" height="14" rx="1"/><rect x="13.5" y="5" width="4" height="14" rx="1"/></svg>
+        </button>
+        <button class="ctl" id="nextBtn" aria-label="下一首">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M17 5.5v13M4 5.5 14.5 12 4 18.5z"/></svg>
+        </button>
+      </div>
+
+      <div class="queuehead"><b>今夜唱片架</b><span>来自「我的收藏」</span></div>
+      <div class="queue" id="queue034"></div>
+
+    </div>
+
+    <div class="homebar"><i></i></div>
+    <div class="toast" id="toast034" role="status"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var TRACKS = [
+    { no:'A面 01', title:'夜航广播', artist:'廖一鸥', album:'南屏晚钟', year:'1978 首版', dur:252, lbl:'#e08e45', ink:'#2a1c0e' },
+    { no:'A面 02', title:'暖紫频段', artist:'老式电流', album:'电子管之夜', year:'1981 再版', dur:227, lbl:'#6b4f9e', ink:'#efe6f7' },
+    { no:'B面 01', title:'B 面最后一首', artist:'林间电台', album:'回到旧唱片', year:'1976 单声道', dur:303, lbl:'#c65b4e', ink:'#2b1210' }
+  ];
+  var idx = 0, playing = false, pos = 0;
+
+  var screenEl = document.getElementById('screen034');
+  var playBtn = document.getElementById('playBtn');
+  var fill = document.getElementById('fill034');
+  var knob = document.getElementById('knob034');
+  var curEl = document.getElementById('curTime');
+  var totalEl = document.getElementById('totalTime');
+  var bar = document.getElementById('bar034');
+  var queueEl = document.getElementById('queue034');
+  var toastEl = document.getElementById('toast034');
+  var toastTimer = null;
+
+  function toast(msg){
+    toastEl.textContent = msg;
+    toastEl.classList.add('on');
+    if(toastTimer){ clearTimeout(toastTimer); }
+    toastTimer = setTimeout(function(){ toastEl.classList.remove('on'); }, 1800);
+  }
+  function fmt(s){
+    s = Math.max(0, Math.floor(s));
+    return Math.floor(s / 60) + ':' + (s % 60 < 10 ? '0' : '') + (s % 60);
+  }
+  function renderInfo(){
+    var t = TRACKS[idx];
+    document.getElementById('songTitle').textContent = t.title;
+    document.getElementById('songWho').textContent = t.artist + ' · 《' + t.album + '》 · ' + t.year;
+    document.getElementById('lblNo').textContent = t.no;
+    document.getElementById('lblTitle').textContent = t.title;
+    var label = document.getElementById('label034');
+    label.style.setProperty('--lbl', t.lbl);
+    label.style.setProperty('--lbl-ink', t.ink);
+    totalEl.textContent = fmt(t.dur);
+  }
+  function renderProgress(){
+    var t = TRACKS[idx];
+    var p = Math.min(1, pos / t.dur);
+    fill.style.width = (p * 100) + '%';
+    knob.style.left = (p * 100) + '%';
+    curEl.textContent = fmt(pos);
+  }
+  function renderQueue(){
+    queueEl.innerHTML = '';
+    TRACKS.forEach(function(t, i){
+      var b = document.createElement('button');
+      b.className = 'tr' + (i === idx ? ' playing' : '');
+      b.innerHTML = '<span class="no">' + (i + 1) + '</span>' +
+        '<span class="eq"><i></i><i></i><i></i></span>' +
+        '<span class="mid"><b>' + t.title + '</b><span>' + t.artist + ' · ' + t.album + '</span></span>' +
+        '<span class="dur">' + fmt(t.dur) + '</span>';
+      b.addEventListener('click', function(){ select(i, true); });
+      queueEl.appendChild(b);
+    });
+  }
+  function renderPlay(){
+    screenEl.classList.toggle('playing', playing);
+    playBtn.classList.toggle('on', playing);
+    playBtn.setAttribute('aria-pressed', playing ? 'true' : 'false');
+  }
+  function select(i, auto){
+    idx = (i + TRACKS.length) % TRACKS.length;
+    pos = 0;
+    if(auto){ playing = true; }
+    renderInfo(); renderProgress(); renderQueue(); renderPlay();
+  }
+
+  playBtn.addEventListener('click', function(){
+    playing = !playing;
+    renderPlay();
+  });
+  document.getElementById('nextBtn').addEventListener('click', function(){
+    select(idx + 1, playing);
+    toast('切到 ' + TRACKS[idx].title);
+  });
+  document.getElementById('prevBtn').addEventListener('click', function(){
+    if(pos > 3){ pos = 0; renderProgress(); return; }
+    select(idx - 1, playing);
+    toast('回到 ' + TRACKS[idx].title);
+  });
+
+  /* 点击进度条跳转 */
+  bar.addEventListener('click', function(e){
+    var r = bar.getBoundingClientRect();
+    var ratio = (e.clientX - r.left) / r.width;
+    pos = Math.round(Math.min(1, Math.max(0, ratio)) * TRACKS[idx].dur);
+    renderProgress();
+  });
+
+  document.getElementById('backBtn').addEventListener('click', function(){
+    toast('演示版：返回唱片架');
+  });
+  document.getElementById('toneBtn').addEventListener('click', function(){
+    toast('电子管暖声模式 · 已开启');
+  });
+
+  /* 播放计时：每秒推进，播完自动下一张 */
+  setInterval(function(){
+    if(!playing){ return; }
+    pos += 1;
+    if(pos >= TRACKS[idx].dur){
+      select(idx + 1, true);
+      toast('自动换碟：' + TRACKS[idx].title);
+      return;
+    }
+    renderProgress();
+  }, 1000);
+
+  renderInfo(); renderProgress(); renderQueue(); renderPlay();
+})();
+</script>
+</body>
+</html>

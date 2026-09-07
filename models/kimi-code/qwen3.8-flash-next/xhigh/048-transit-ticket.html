@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>橙轨出行 · 行程购买</title>
+<style>
+:root{
+  --bg:#f4f1ea;--ink:#26241f;--ink2:#7d766a;--paper:#fffdf9;
+  --or:#ef6c1a;--ordeep:#c8500e;--orlite:#fbe3cf;
+  --line:#d9cfbc;--seat:#e7e0d2;--red:#bf3a2b;--redlite:#f7e0da;--gold:#b98a2f;
+  --r:14px;--r2:10px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{min-height:100vh;display:grid;place-items:center;background:#e6e0d4;
+  font-family:-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;color:var(--ink)}
+.phone{width:390px;height:844px;background:var(--bg);position:relative;overflow:hidden;
+  display:flex;flex-direction:column;border-radius:26px;box-shadow:0 18px 50px rgba(38,36,31,.28)}
+/* 顶栏 */
+.top{background:var(--or);color:#fff;padding:14px 16px 12px;flex:none}
+.top .brand{display:flex;justify-content:space-between;align-items:baseline}
+.top b{font-size:17px;letter-spacing:1px}
+.top .cond{font-size:11px;opacity:.92;margin-top:3px;font-variant-numeric:tabular-nums}
+/* 步骤条 */
+.steps{display:flex;gap:6px;margin-top:10px}
+.steps .st{flex:1;text-align:center;font-size:10px;color:#ffe3cf;position:relative;padding-top:16px}
+.steps .st::before{content:"";position:absolute;top:2px;left:50%;transform:translateX(-50%);
+  width:9px;height:9px;border-radius:50%;background:#f9b98d;border:2px solid #fff}
+.steps .st.on,.steps .st.done{color:#fff;font-weight:700}
+.steps .st.on::before,.steps .st.done::before{background:#fff;box-shadow:0 0 0 3px rgba(255,255,255,.35)}
+/* 滚动主体 */
+.body{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px}
+.scr{display:none;flex-direction:column;gap:12px}
+.scr.on{display:flex}
+h1{font-size:22px}
+h2{font-size:15px}
+.hint{font-size:12px;color:var(--ink2);line-height:1.6}
+.card{background:var(--paper);border:1.5px solid var(--ink);border-radius:var(--r);padding:14px}
+.lab{font-size:11px;color:var(--ink2);letter-spacing:1px}
+select{width:100%;margin-top:4px;padding:10px;border:2px solid var(--ink);border-radius:var(--r2);
+  background:#fff;font:inherit;font-size:14px;color:var(--ink)}
+.swap{align-self:center;background:none;border:2px dashed var(--or);color:var(--ordeep);
+  border-radius:99px;padding:4px 14px;font:inherit;font-size:12px;cursor:pointer}
+.hot{display:flex;gap:8px;flex-wrap:wrap}
+.hot button{border:1.5px solid var(--ink);background:var(--orlite);border-radius:99px;padding:6px 12px;
+  font:inherit;font-size:12px;cursor:pointer}
+.btn{border:2px solid var(--ink);border-radius:var(--r2);padding:13px;font:inherit;font-size:15px;
+  font-weight:700;cursor:pointer;background:var(--paper);color:var(--ink)}
+.btn.pri{background:var(--or);color:#fff;box-shadow:0 3px 0 var(--ordeep)}
+.btn.ghost{background:none;border-style:dashed;border-color:var(--ink2);color:var(--ink2);font-weight:400}
+.btn:active{transform:translateY(2px);box-shadow:none}
+.btn:disabled{background:var(--seat);color:#a39b8a;border-color:#b8b0a0;box-shadow:none;cursor:not-allowed}
+/* 班次卡 */
+.train{position:relative;background:var(--paper);border:1.5px solid var(--ink);border-radius:var(--r);
+  padding:12px 14px 12px 18px;cursor:pointer;overflow:hidden}
+.train::before{content:"";position:absolute;left:0;top:0;bottom:0;width:6px;background:var(--or)}
+.train.sold{opacity:.55;filter:grayscale(.7);cursor:not-allowed}
+.train.sold::before{background:var(--red)}
+.trow{display:flex;justify-content:space-between;align-items:center}
+.time{font-size:20px;font-weight:800;font-variant-numeric:tabular-nums}
+.time small{font-size:11px;color:var(--ink2);font-weight:400;margin:0 6px}
+.fee{font-size:18px;font-weight:800;color:var(--ordeep)}
+.fee small{font-size:11px;color:var(--ink2);font-weight:400}
+.meta{display:flex;gap:8px;font-size:11px;color:var(--ink2);border-top:1.5px dashed var(--line);margin-top:8px;padding-top:8px}
+.badge{font-size:10px;padding:2px 8px;border-radius:99px;font-weight:700}
+.badge.sc{background:var(--redlite);color:var(--red);border:1px solid var(--red)}
+.badge.ok{background:#e7efdd;color:#4c6b2f;border:1px solid #9bb57c}
+.badge.gone{background:var(--red);color:#fff}
+.stamp{position:absolute;right:10px;top:38px;transform:rotate(-14deg);border:3px double var(--red);
+  color:var(--red);font-weight:900;font-size:18px;padding:2px 8px;letter-spacing:4px;border-radius:6px}
+/* 座位图 */
+.car{background:var(--paper);border:1.5px solid var(--ink);border-radius:var(--r);padding:14px}
+.cardir{display:flex;justify-content:space-between;font-size:10px;color:var(--ink2);margin-bottom:8px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr) 26px repeat(2,1fr);gap:8px}
+.seat{position:relative;height:46px;border:1.5px solid var(--ink);border-radius:8px 8px 12px 12px;
+  background:var(--paper);font:inherit;font-size:11px;cursor:pointer;color:var(--ink)}
+.seat.busy{background:var(--seat);color:#b3aa97;border-style:dashed;cursor:not-allowed}
+.seat.trig{border:2px solid var(--or);box-shadow:0 0 0 3px var(--orlite)}
+.seat.sel{background:var(--or);color:#fff;border-color:var(--ink)}
+.seat .tag{position:absolute;top:-9px;right:-6px;font-size:9px;background:var(--or);color:#fff;
+  border-radius:99px;padding:1px 5px;white-space:nowrap}
+.legend{display:flex;gap:12px;font-size:10px;color:var(--ink2);margin-top:10px;flex-wrap:wrap}
+.legend i{display:inline-block;width:12px;height:12px;border:1.5px solid var(--ink);border-radius:3px;vertical-align:-2px;margin-right:4px}
+/* 确认单 */
+.receipt{background:var(--paper);border:1.5px solid var(--ink);border-radius:var(--r);
+  padding:16px;background-image:repeating-linear-gradient(0deg,transparent 0 27px,rgba(122,108,86,.12) 27px 28px)}
+.rrow{display:flex;justify-content:space-between;font-size:13px;padding:5px 0}
+.rrow .k{color:var(--ink2)}
+.rrow.big .v{font-weight:800;font-size:15px}
+/* 车票 */
+.tkt{border:1.5px solid var(--ink);border-radius:var(--r);overflow:hidden;background:var(--paper)}
+.tkthead{background:linear-gradient(135deg,var(--or),var(--ordeep));color:#fff;padding:14px 16px}
+.tktline{display:flex;justify-content:space-between;align-items:center;font-size:22px;font-weight:900}
+.tktline span{font-size:11px;font-weight:400;opacity:.9;margin:0 8px}
+.tktsub{display:flex;justify-content:space-between;font-size:11px;margin-top:8px;opacity:.95;font-variant-numeric:tabular-nums}
+.tear{position:relative;border-top:2px dashed var(--line);height:0}
+.tear::before,.tear::after{content:"";position:absolute;top:-10px;width:20px;height:20px;border-radius:50%;
+  background:var(--bg);border:1.5px solid var(--ink)}
+.tear::before{left:-11px}.tear::after{right:-11px}
+.tktbody{padding:14px 16px;display:flex;gap:12px;align-items:center}
+.tktinfo{flex:1;font-size:12px;line-height:1.9;color:var(--ink)}
+.tktinfo b{font-size:20px;font-variant-numeric:tabular-nums}
+.tktno{font-size:10px;color:var(--ink2);letter-spacing:1px}
+.okchip{display:inline-block;background:#e7efdd;color:#4c6b2f;border:1.5px solid #4c6b2f;
+  border-radius:99px;padding:4px 12px;font-size:12px;font-weight:700;align-self:flex-start}
+/* 售罄弹层 */
+.mask{position:absolute;inset:0;background:rgba(38,36,31,.55);display:none;place-items:center;padding:22px;z-index:9}
+.mask.on{display:grid}
+.alert{background:var(--paper);border:2px solid var(--red);border-radius:var(--r);padding:18px;width:100%}
+.alert h3{color:var(--red);font-size:17px;margin-bottom:8px}
+.alert p{font-size:12.5px;color:var(--ink);line-height:1.7}
+.keep{margin:10px 0;border:1.5px dashed var(--gold);border-radius:var(--r2);background:#fbf3df;
+  padding:10px;font-size:11.5px;color:#7a5c17;line-height:1.7}
+.alert .btn{width:100%;margin-top:8px}
+/* toast */
+.toast{position:absolute;left:50%;bottom:26px;transform:translateX(-50%) translateY(20px);
+  background:var(--ink);color:#fff;font-size:12.5px;padding:9px 16px;border-radius:99px;
+  opacity:0;transition:.25s;z-index:10;pointer-events:none;white-space:nowrap}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.err{background:var(--red)}
+.back{background:none;border:none;font:inherit;font-size:12px;color:var(--ordeep);cursor:pointer;align-self:flex-start;padding:0}
+@media (prefers-reduced-motion:reduce){
+  *{transition:none!important;animation:none!important}
+}
+</style>
+</head>
+<body>
+<div class="phone">
+  <header class="top">
+    <div class="brand"><b>橙轨出行</b><span style="font-size:11px">OrangeRail</span></div>
+    <div class="cond" id="condLine">未选择路线</div>
+    <nav class="steps" id="steps">
+      <div class="st" data-i="0">搜索</div><div class="st" data-i="1">班次</div>
+      <div class="st" data-i="2">选座</div><div class="st" data-i="3">出票</div>
+    </nav>
+  </header>
+
+  <main class="body">
+    <!-- 搜索 -->
+    <section class="scr" id="scr-search">
+      <h1>去哪儿？</h1>
+      <p class="hint">搜索路线 → 选班次 → 选座 → 出票。红色「紧俏」班次与橙色描边座位会在确认时做实时售罄核验。</p>
+      <div class="card" style="display:flex;flex-direction:column;gap:10px">
+        <div><span class="lab">出发站</span><select id="from">
+          <option selected>上海虹桥</option><option>杭州东</option><option>南京南</option>
+          <option>北京南</option><option>广州南</option><option>成都东</option></select></div>
+        <button class="swap" id="swapBtn">⇅ 交换出发 / 到达</button>
+        <div><span class="lab">到达站</span><select id="to">
+          <option>上海虹桥</option><option>杭州东</option><option>南京南</option>
+          <option selected>北京南</option><option>广州南</option><option>成都东</option></select></div>
+        <div><span class="lab">乘车日期</span><select id="date">
+          <option>2026-03-15</option><option>2026-03-16</option><option>2026-03-17</option></select></div>
+      </div>
+      <div class="hot"><button class="pick" data-f="上海虹桥" data-t="北京南">上海虹桥 → 北京南</button>
+        <button class="pick" data-f="杭州东" data-t="广州南">杭州东 → 广州南</button></div>
+      <button class="btn pri" id="doSearch">搜索班次</button>
+    </section>
+
+    <!-- 班次列表 -->
+    <section class="scr" id="scr-trains">
+      <button class="back" data-go="scr-search">← 修改搜索条件</button>
+      <h2 id="trainsTitle">可选班次</h2>
+      <div id="trainList" style="display:flex;flex-direction:column;gap:10px"></div>
+    </section>
+
+    <!-- 选座 -->
+    <section class="scr" id="scr-seats">
+      <button class="back" data-go="scr-trains">← 返回班次列表</button>
+      <h2 id="seatTitle">选择座位</h2>
+      <div class="car">
+        <div class="cardir"><span>◀ 车头方向</span><span id="carNo">05 车厢 · 二等座</span><span>餐车 ▶</span></div>
+        <div class="grid" id="seatGrid"></div>
+        <div class="legend">
+          <span><i style="background:var(--paper)"></i>可选</span>
+          <span><i style="background:var(--seat);border-style:dashed"></i>已售</span>
+          <span><i style="border:2px solid var(--or);box-shadow:0 0 0 2px var(--orlite)"></i>末席（确认时核验）</span>
+          <span><i style="background:var(--or)"></i>已选</span>
+        </div>
+      </div>
+      <button class="btn pri" id="seatNext" disabled>去确认订单</button>
+    </section>
+
+    <!-- 确认 -->
+    <section class="scr" id="scr-confirm">
+      <button class="back" data-go="scr-seats">← 返回选座</button>
+      <h2>确认订单</h2>
+      <div class="receipt">
+        <div class="rrow big"><span class="k">路线</span><span class="v" id="cRoute">—</span></div>
+        <div class="rrow"><span class="k">日期</span><span id="cDate">—</span></div>
+        <div class="rrow"><span class="k">车次</span><span id="cTrain">—</span></div>
+        <div class="rrow"><span class="k">座位</span><span id="cSeat">—</span></div>
+        <div class="rrow"><span class="k">票价</span><span id="cFee">—</span></div>
+        <div class="rrow"><span class="k">保险</span><span>¥0.00（未添加）</span></div>
+      </div>
+      <p class="hint">确认时将与票池做一次实时核验，紧俏项目可能售罄。</p>
+      <button class="btn pri" id="doConfirm">确认出票</button>
+      <button class="btn ghost" data-go="scr-trains">返回改选班次</button>
+    </section>
+
+    <!-- 凭证 -->
+    <section class="scr" id="scr-ticket">
+      <span class="okchip">✓ 出票成功</span>
+      <h2>行程凭证</h2>
+      <div class="tkt">
+        <div class="tkthead">
+          <div class="tktline"><span id="tkFrom" style="margin:0"></span><span>→</span><span id="tkTo"></span></div>
+          <div class="tktsub"><span id="tkTrain"></span><span id="tkDate"></span></div>
+        </div>
+        <div class="tear"></div>
+        <div class="tktbody">
+          <div class="tktinfo">
+            乘车人 <b style="font-size:15px">王露旅</b><br>
+            席位 <b id="tkSeat">—</b><br>
+            实付 <b id="tkFee">—</b><br>
+            <span class="tktno" id="tkNo"></span>
+          </div>
+          <svg width="84" height="84" viewBox="0 0 21 21" aria-label="乘车二维码">
+            <rect width="21" height="21" fill="#fffdf9"/>
+            <g fill="#26241f" id="qr"></g>
+          </svg>
+        </div>
+      </div>
+      <p class="hint">凭二维码与席位号进站，检口开放后刷码即可。祝旅途顺利。</p>
+      <button class="btn ghost" id="againBtn">返回首页，再买一张</button>
+    </section>
+  </main>
+
+  <!-- 售罄弹层 -->
+  <div class="mask" id="soldMask">
+    <div class="alert">
+      <h3>⠿ 该席位已售罄</h3>
+      <p id="soldDetail">—</p>
+      <div class="keep" id="keepCond">—<br>已为你保留以上路线条件，无需重新搜索。</div>
+      <button class="btn pri" id="backPick">返回结果，改选可用班次</button>
+    </div>
+  </div>
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>
+const TRAINS=[
+ {no:"G102",from:"07:00",to:"11:47",dur:"4时47分",fee:553,left:128,sc:false,sold:false,busy:["5A","6C","6D","7B"]},
+ {no:"G208",from:"09:15",to:"14:02",dur:"4时47分",fee:553,left:1,sc:true,sold:false,busy:["5A","5B","5C","5D","6A","6B","6C","6D","6F","7A","7B","7C","7D","7F"],trig:"5F"},
+ {no:"G316",from:"13:40",to:"18:31",dur:"4时51分",fee:553,left:47,sc:false,sold:false,busy:["6A","6B","7F"]},
+ {no:"D254",from:"16:05",to:"22:10",dur:"6时05分",fee:458,left:203,sc:false,sold:false,busy:["5F","7A"]}
+];
+const ROWS=[5,6,7],COLS=["A","B","C","","D","F"];
+const $=id=>document.getElementById(id);
+const state={from:"",to:"",date:"",train:null,seat:null};
+function go(id){document.querySelectorAll(".scr").forEach(s=>s.classList.toggle("on",s.id===id));
+  const order=["scr-search","scr-trains","scr-seats","scr-confirm","scr-ticket"];
+  const step={ "scr-search":0,"scr-trains":1,"scr-seats":2,"scr-confirm":2,"scr-ticket":3}[id];
+  document.querySelectorAll(".st").forEach(st=>{const i=+st.dataset.i;
+    st.classList.toggle("done",i<step);st.classList.toggle("on",i===step)});}
+function toast(msg,err){const t=$("toast");t.textContent=msg;t.className="toast on"+(err?" err":"");
+  clearTimeout(t._h);t._h=setTimeout(()=>t.className="toast",2200);}
+function cond(){$("condLine").textContent=state.from?`${state.from} → ${state.to} · ${state.date}`:"未选择路线";}
+/* 搜索 */
+$("swapBtn").onclick=()=>{const f=$("from"),t=$("to"),a=f.value;f.value=t.value;t.value=a;};
+document.querySelectorAll(".pick").forEach(b=>b.onclick=()=>{$("from").value=b.dataset.f;$("to").value=b.dataset.t;});
+$("doSearch").onclick=()=>{state.from=$("from").value;state.to=$("to").value;state.date=$("date").value;
+  state.train=null;state.seat=null;cond();renderTrains();go("scr-trains");toast(`已按当前条件找到 ${TRAINS.filter(t=>!t.sold).length} 个班次`);};
+/* 班次 */
+function renderTrains(){ $("trainsTitle").textContent=`${state.from} → ${state.to} · ${state.date}`;
+ const L=$("trainList");L.innerHTML="";
+ TRAINS.forEach(t=>{const d=document.createElement("div");
+  d.className="train"+(t.sold?" sold":"");
+  d.innerHTML=`<div class="trow"><span class="time">${t.from}<small>→</small>${t.to}</span>
+    <span class="fee">¥${t.fee}<small> 起</small></span></div>
+   <div class="meta"><span><b>${t.no}</b></span><span>历时${t.dur}</span>
+    <span>${t.sold?"余0张":"余"+t.left+"张"}</span><span style="margin-left:auto">${
+     t.sold?'<span class="badge gone">已售罄</span>':t.sc?'<span class="badge sc">紧俏 · 确认时核验</span>':'<span class="badge ok">票量充足</span>'}</span></div>
+   ${t.sold?'<span class="stamp">售罄</span>':""}`;
+  if(!t.sold)d.onclick=()=>{state.train=t;state.seat=null;renderSeats();go("scr-seats");};
+  else d.onclick=()=>toast(`${t.no} 已售罄，请改选其他班次`,true);
+  L.appendChild(d);});}
+/* 选座 */
+function renderSeats(){const t=state.train;$("seatTitle").textContent=`${t.no} · 选择座位（¥${t.fee} 起）`;
+ const G=$("seatGrid");G.innerHTML="";$("seatNext").disabled=true;
+ ROWS.forEach(r=>COLS.forEach(c=>{
+   if(c===""){G.appendChild(Object.assign(document.createElement("div"),{className:"",textContent:"过道",
+     style:"font-size:9px;color:var(--ink2);display:grid;place-items:center"}));return;}
+   const id=r+c,b=document.createElement("button");b.className="seat";b.textContent=id;
+   if(t.busy.includes(id)){b.classList.add("busy");b.textContent="";}
+   else if(t.trig===id){b.classList.add("trig");b.innerHTML=id+'<span class="tag">末席</span>';}
+   b.onclick=()=>{if(b.classList.contains("busy"))return toast("该座位已售出",true);
+     G.querySelectorAll(".seat").forEach(s=>s.classList.remove("sel"));
+     b.classList.add("sel");state.seat=id;$("seatNext").disabled=false;};
+   G.appendChild(b);}));}
+$("seatNext").onclick=()=>{const t=state.train;
+ $("cRoute").textContent=`${state.from} → ${state.to}`;$("cDate").textContent=state.date;
+ $("cTrain").textContent=`${t.no} ${t.from}发车`;
+ $("cSeat").textContent=`05车厢 ${state.seat}（${["F"].includes(state.seat[1])?"靠窗":"靠过道"}）`;
+ $("cFee").textContent=`¥${t.fee.toFixed(2)}`;go("scr-confirm");};
+/* 确认出票 */
+$("doConfirm").onclick=()=>{const t=state.train;
+ if(t.trig&&state.seat===t.trig){t.sold=true;t.left=0;
+   $("soldDetail").innerHTML=`<b>${t.no} · 05车厢 ${state.seat}（靠窗）</b> 在你确认的瞬间被售出。`;
+   $("keepCond").innerHTML=`保留条件：${state.from} → ${state.to} · ${state.date} · 二等座<br>已为你保留以上路线条件，无需重新搜索。`;
+   $("soldMask").classList.add("on");return;}
+ const no="OR-"+state.date.replace(/-/g,"")+"-"+String(Math.floor(100000+Math.random()*900000));
+ $("tkFrom").textContent=state.from;$("tkTo").textContent=state.to;
+ $("tkTrain").textContent=`${t.no} · ${t.from}开`;  $("tkDate").textContent=state.date;
+ $("tkSeat").textContent=`05车 ${state.seat}`;$("tkFee").textContent=`¥${t.fee.toFixed(2)}`;
+ $("tkNo").textContent="票号 "+no;drawQR(no);go("scr-ticket");toast("出票成功，凭证已生成");};
+$("backPick").onclick=()=>{$("soldMask").classList.remove("on");renderTrains();go("scr-trains");
+ toast("路线条件已保留，请改选可用班次",true);};
+/* 凭证二维码（由票号散列出的确定图案） */
+function drawQR(seed){let h=2166136261;for(const ch of seed){h^=ch.charCodeAt(0);h=Math.imul(h,16777619);}
+ const g=$("qr");g.innerHTML="";let s=h>>>0;
+ for(let y=0;y<21;y++)for(let x=0;x<21;x++){s=(Math.imul(s,1103515245)+12345)>>>0;
+   const corner=(x<7&&y<7)||(x>13&&y<7)||(x<7&&y>13);
+   if(corner){const lx=x>13?x-14:x,ly=y>13?y-14:y;
+     const on=(lx===0||lx===6||ly===0||ly===6)||(lx>=2&&lx<=4&&ly>=2&&ly<=4);
+     if(on)g.innerHTML+=`<rect x="${x}" y="${y}" width="1" height="1"/>`;continue;}
+   if((s&1023)%10<4)g.innerHTML+=`<rect x="${x}" y="${y}" width="1" height="1"/>`;}}
+/* 导航与重置 */
+document.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>go(b.dataset.go));
+$("againBtn").onclick=()=>{state.train=null;state.seat=null;go("scr-search");toast("已回到首页，条件仍保留");};
+go("scr-search");cond();
+</script>
+</body>
+</html>

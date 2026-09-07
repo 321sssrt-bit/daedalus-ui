@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>经营场所入驻信息登记表</title>
+<style>
+:root{
+  --desk:#43382e;
+  --paper:#f5f1e3;
+  --paper-hi:#faf7ec;
+  --edge:#e4dcc4;
+  --ink:#2b2723;
+  --ink-soft:#6b6257;
+  --seal:#b02f2f;
+  --line:#c9c0a8;
+  --clip:#9aa0a6;
+  --pencil:#3c5a45;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:ui-monospace,Consolas,Menlo,"Courier New","SimSun",monospace;
+  background:
+    repeating-linear-gradient(0deg, rgba(0,0,0,.06) 0 2px, transparent 2px 5px),
+    var(--desk);
+  padding:40px 20px 80px;
+  color:var(--ink);
+  line-height:1.7;
+}
+.sheet{
+  max-width:860px;margin:0 auto;position:relative;
+  background:
+    repeating-linear-gradient(0deg, rgba(43,39,35,.025) 0 1px, transparent 1px 28px),
+    linear-gradient(180deg,var(--paper-hi),var(--paper) 30%);
+  border:1px solid var(--edge);
+  box-shadow:0 18px 50px rgba(0,0,0,.5);
+  padding:46px 64px 56px;
+}
+.clip{position:absolute;top:-14px;right:72px;width:34px;height:78px}
+/* 红头 */
+.head{text-align:center;padding-bottom:14px}
+.head .org{
+  font-family:SimSun,"Songti SC","STSong",Georgia,serif;
+  color:var(--seal);font-size:34px;letter-spacing:.28em;text-indent:.28em;font-weight:700;
+}
+.head .docno{margin-top:10px;font-size:13px;letter-spacing:.14em;color:var(--ink)}
+.headline{border:none;border-top:3px solid var(--seal);margin:8px 0 4px}
+.headline.thin{border-top-width:1px;margin-top:2px;margin-bottom:22px}
+.doctitle{
+  text-align:center;font-size:21px;letter-spacing:.34em;text-indent:.34em;
+  font-weight:700;margin-bottom:6px;
+}
+.docsub{text-align:center;font-size:12px;color:var(--ink-soft);letter-spacing:.2em;margin-bottom:24px}
+/* 目录 */
+.toc{
+  position:sticky;top:8px;z-index:5;
+  background:var(--paper-hi);border:1px solid var(--line);
+  padding:10px 16px;margin-bottom:26px;
+  display:flex;gap:8px 22px;flex-wrap:wrap;align-items:center;
+  box-shadow:0 4px 10px rgba(43,39,35,.12);
+}
+.toc .cap{font-size:12px;color:var(--ink-soft);letter-spacing:.2em}
+.toc a{
+  font-size:13px;color:var(--ink);text-decoration:none;letter-spacing:.08em;
+  border-bottom:1px dashed var(--line);padding:2px 1px;
+  transition:border-color .15s ease,color .15s ease;
+}
+.toc a:hover{color:var(--seal)}
+.toc a[aria-current="true"]{color:var(--seal);border-bottom:2px solid var(--seal)}
+.toc a:focus-visible{outline:2px solid var(--seal);outline-offset:2px}
+.toc .draftbtns{margin-left:auto;display:flex;gap:10px}
+/* 节 */
+section.block{margin-bottom:34px;scroll-margin-top:72px}
+section.block>h2{
+  font-size:16px;letter-spacing:.2em;font-weight:700;
+  border-bottom:2px solid var(--ink);padding-bottom:6px;margin-bottom:18px;
+}
+section.block>h2 small{font-weight:400;font-size:11px;color:var(--ink-soft);letter-spacing:.1em;margin-left:12px}
+/* 字段 */
+.field{margin-bottom:18px}
+.field .lab{display:block;font-size:13px;letter-spacing:.1em;margin-bottom:4px}
+.field .req{color:var(--seal);font-weight:700;margin-right:4px}
+.field .opt{color:var(--ink-soft);font-size:11px;margin-left:6px}
+.field input,.field select{
+  width:100%;max-width:520px;font:inherit;font-size:15px;color:var(--ink);
+  background:transparent;border:none;border-bottom:1px solid var(--line);
+  padding:5px 2px;letter-spacing:.06em;
+  transition:border-color .15s ease,background-color .15s ease;
+  border-radius:0;
+}
+.field input:focus,.field select:focus{outline:none;border-bottom:2px solid var(--ink);background:rgba(43,39,35,.04)}
+.field.bad input,.field.bad select{border-bottom:2px solid var(--seal);background:rgba(176,47,47,.05)}
+.field .err{display:none;font-size:12px;color:var(--seal);letter-spacing:.08em;margin-top:3px}
+.field.bad .err{display:block}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:0 34px}
+.check{display:grid;grid-template-columns:20px 1fr;gap:10px;align-items:start;font-size:13px;letter-spacing:.04em}
+.check input{width:16px;height:16px;margin-top:4px;accent-color:var(--seal)}
+.check .err{display:none;font-size:12px;color:var(--seal)}
+.check.bad .err{display:block}
+/* 错误汇总与草稿条 */
+.summary{
+  display:none;border:2px dashed var(--seal);padding:12px 16px;margin:0 0 20px;
+  font-size:13px;color:var(--seal);letter-spacing:.06em;
+}
+.summary.show{display:block}
+.summary b{display:block;margin-bottom:4px;letter-spacing:.14em}
+.draftnote{
+  display:none;border:1px solid var(--line);background:rgba(60,90,69,.06);
+  color:var(--pencil);font-size:12px;letter-spacing:.12em;padding:8px 14px;margin-bottom:18px;
+}
+.draftnote.show{display:block}
+/* 底部操作 */
+.actions{display:flex;gap:16px;align-items:center;border-top:2px solid var(--ink);padding-top:22px;flex-wrap:wrap}
+.btn{
+  font:inherit;font-size:14px;letter-spacing:.24em;text-indent:.24em;cursor:pointer;
+  padding:11px 30px;border:2px solid var(--ink);background:var(--paper-hi);color:var(--ink);
+  transition:background-color .15s ease,color .15s ease,transform .12s ease;
+}
+.btn:hover{background:var(--ink);color:var(--paper-hi)}
+.btn:active{transform:translateY(1px)}
+.btn:focus-visible{outline:2px solid var(--seal);outline-offset:3px}
+.btn.primary{border-color:var(--seal);color:var(--seal)}
+.btn.primary:hover{background:var(--seal);color:var(--paper-hi)}
+.btn.ghost{border-color:var(--line);color:var(--ink-soft);letter-spacing:.14em;padding:11px 18px}
+.btn.ghost:disabled{opacity:.45;cursor:not-allowed}
+.actions .hint{font-size:11px;color:var(--ink-soft);letter-spacing:.1em;margin-left:auto}
+/* 受理回执 */
+.receipt{display:none;text-align:center;padding:30px 0 10px}
+.receipt.show{display:block}
+.receipt .ok{font-size:19px;letter-spacing:.3em;text-indent:.3em;font-weight:700;margin-bottom:10px}
+.receipt .no{font-size:14px;letter-spacing:.1em;margin-bottom:4px}
+.receipt .fine{font-size:12px;color:var(--ink-soft);letter-spacing:.1em;max-width:520px;margin:14px auto 0;line-height:2}
+.seal{width:150px;height:150px;margin:22px auto 8px;transform:rotate(-12deg)}
+.hidden{display:none}
+@media (max-width:768px){
+  .sheet{padding:30px 22px 40px}
+  .head .org{font-size:24px}
+  .pair{grid-template-columns:1fr}
+  .toc{position:static}
+  .toc .draftbtns{margin-left:0;width:100%}
+  .actions .hint{margin-left:0;width:100%}
+}
+@media (prefers-reduced-motion:reduce){
+  *{transition:none !important;animation:none !important;scroll-behavior:auto !important}
+}
+</style>
+</head>
+<body>
+<main class="sheet" id="sheet">
+  <svg class="clip" viewBox="0 0 34 78" aria-hidden="true">
+    <path d="M17 6 C6 6 5 16 5 26 L5 58 C5 70 12 74 17 74" fill="none" stroke="#9aa0a6" stroke-width="5" stroke-linecap="round"/>
+    <path d="M17 6 C28 6 29 16 29 26 L29 58 C29 70 22 74 17 74" fill="none" stroke="#7e848a" stroke-width="5" stroke-linecap="round"/>
+  </svg>
+
+  <div id="formArea">
+    <header class="head">
+      <div class="org">滨江新区行政审批局</div>
+      <div class="docno">滨新审〔2026〕第 0417 号 · 受理编号 BX-SOR-0417</div>
+      <hr class="headline">
+      <hr class="headline thin">
+    </header>
+    <h1 class="doctitle">经营场所入驻信息登记表</h1>
+    <p class="docsub">填表前请备妥营业执照与消防查验文书 · 标 ※ 者不得留空 · 草稿可分次补录</p>
+
+    <nav class="toc" aria-label="目录">
+      <span class="cap">目录</span>
+      <a href="#sec1" id="nav1">一、主体信息</a>
+      <a href="#sec2" id="nav2">二、经营与场地</a>
+      <a href="#sec3" id="nav3">三、联系与承诺</a>
+      <span class="draftbtns">
+        <button class="btn ghost" id="btnRecall" disabled>载入草稿</button>
+      </span>
+    </nav>
+
+    <div class="summary" id="errBox" role="alert"></div>
+    <div class="draftnote" id="draftNote"></div>
+
+    <section class="block" id="sec1" aria-labelledby="h1sec1">
+      <h2 id="h1sec1">一、主体信息<small>SECTION 1 · 与营业执照逐字一致</small></h2>
+      <div class="field" data-req="1">
+        <label class="lab" for="fName"><span class="req">※</span>经营项目名<span class="opt">（与执照字号一致）</span></label>
+        <input id="fName" type="text" placeholder="例：江畔旧书店" autocomplete="off">
+        <span class="err">※ 此项为必填，请补齐后再次提交</span>
+      </div>
+      <div class="field" data-req="1">
+        <label class="lab" for="fCode"><span class="req">※</span>统一社会信用代码<span class="opt">（18 位）</span></label>
+        <input id="fCode" type="text" placeholder="91330100MA27××××0K" maxlength="18" autocomplete="off">
+        <span class="err">※ 此项为必填，请补齐后再次提交</span>
+      </div>
+      <div class="field" data-req="1">
+        <label class="lab" for="fCate"><span class="req">※</span>经营类别</label>
+        <select id="fCate">
+          <option value="">—— 请选择 ——</option>
+          <option value="零售">零售（图书 / 百货 / 食品）</option>
+          <option value="餐饮">餐饮服务</option>
+          <option value="服务">生活服务（修缮 / 洗护 / 咨询）</option>
+          <option value="办公">办公与展览</option>
+        </select>
+        <span class="err">※ 尚未选择，请补齐后再次提交</span>
+      </div>
+      <div class="field" data-req="1">
+        <label class="lab" for="fAddr"><span class="req">※</span>经营地址</label>
+        <input id="fAddr" type="text" placeholder="示例区演示路 ** 号 ** 室" autocomplete="off">
+        <span class="err">※ 此项为必填，请补齐后再次提交</span>
+      </div>
+    </section>
+
+    <section class="block" id="sec2" aria-labelledby="h2sec2">
+      <h2 id="h2sec2">二、经营与场地<small>SECTION 2 · 影响现场勘验安排</small></h2>
+      <div class="pair">
+        <div class="field">
+          <label class="lab" for="fArea">营业面积<span class="opt">（㎡，选填）</span></label>
+          <input id="fArea" type="text" placeholder="例：86" autocomplete="off">
+        </div>
+        <div class="field">
+          <label class="lab" for="fStaff">从业人员<span class="opt">（人，选填）</span></label>
+          <input id="fStaff" type="text" placeholder="例：4" autocomplete="off">
+        </div>
+      </div>
+      <div class="pair">
+        <div class="field">
+          <label class="lab" for="fOpen">拟开业日期<span class="opt">（选填）</span></label>
+          <input id="fOpen" type="text" placeholder="2026-11-18" autocomplete="off">
+        </div>
+        <div class="field">
+          <label class="lab" for="fFire">消防查验合格编号<span class="opt">（选填）</span></label>
+          <input id="fFire" type="text" placeholder="滨消查〔2026〕0312 号" autocomplete="off">
+        </div>
+      </div>
+    </section>
+
+    <section class="block" id="sec3" aria-labelledby="h3sec3">
+      <h2 id="h3sec3">三、联系与承诺<small>SECTION 3 · 窗口核查以此为准</small></h2>
+      <div class="pair">
+        <div class="field" data-req="1">
+          <label class="lab" for="fCName"><span class="req">※</span>经办人姓名</label>
+          <input id="fCName" type="text" placeholder="与授权委托书一致" autocomplete="off">
+          <span class="err">※ 此项为必填，请补齐后再次提交</span>
+        </div>
+        <div class="field" data-req="1">
+          <label class="lab" for="fTel"><span class="req">※</span>经办人手机<span class="opt">（11 位）</span></label>
+          <input id="fTel" type="text" maxlength="11" placeholder="10000000000" autocomplete="off">
+          <span class="err">※ 需填写 11 位手机号码</span>
+        </div>
+      </div>
+      <div class="pair">
+        <div class="field">
+          <label class="lab" for="fMail">电子邮箱<span class="opt">（选填，用于送达电子文书）</span></label>
+          <input id="fMail" type="text" placeholder="shop@store.example" autocomplete="off">
+        </div>
+        <div class="field">
+          <label class="lab" for="fHour">现场联络时段<span class="opt">（选填）</span></label>
+          <select id="fHour">
+            <option value="09:00–12:00">09:00 – 12:00</option>
+            <option value="13:00–17:00">13:00 – 17:00</option>
+            <option value="17:00–20:00">17:00 – 20:00</option>
+          </select>
+        </div>
+      </div>
+      <div class="check" id="fPledgeWrap" data-req="1">
+        <input type="checkbox" id="fPledge">
+        <label for="fPledge"><span class="req">※</span>本表所填内容真实、完整、有效，如有虚假，愿承担相应法律责任；同意审批局为勘验需要联系上述电话。</label>
+        <span class="err" style="grid-column:2">※ 须勾选承诺后方可提交</span>
+      </div>
+    </section>
+
+    <div class="actions">
+      <button class="btn primary" id="btnSubmit">提交登记</button>
+      <button class="btn" id="btnDraft">保存草稿</button>
+      <span class="hint">草稿仅暂存于本页，刷新前有效；提交即视为正式送达</span>
+    </div>
+  </div>
+
+  <div class="receipt" id="receipt" aria-live="polite">
+    <svg class="seal" viewBox="0 0 150 150" aria-hidden="true">
+      <circle cx="75" cy="75" r="70" fill="none" stroke="#b02f2f" stroke-width="3"/>
+      <circle cx="75" cy="75" r="62" fill="none" stroke="#b02f2f" stroke-width="1"/>
+      <polygon points="75,42 80,57 96,57 83,66 88,81 75,72 62,81 67,66 54,57 70,57" fill="#b02f2f"/>
+      <text x="75" y="102" text-anchor="middle" font-size="15" fill="#b02f2f" letter-spacing="3" font-family="SimSun,serif">受理专用章</text>
+      <text x="75" y="120" text-anchor="middle" font-size="9" fill="#b02f2f" letter-spacing="1" font-family="SimSun,serif">滨江新区行政审批局</text>
+    </svg>
+    <p class="ok">登记已受理 · 材料已入卷</p>
+    <p class="no" id="rcNo">受理编号 BX-2026-0417-0001</p>
+    <p class="no" id="rcTime">归档时刻 ——</p>
+    <p class="fine">请打印本页回执，连同营业执照复印件、授权委托书以回形针装订，于工作日 09:00–17:00 送政务大厅 3 号窗口换领《入驻核准单》。勘验人员将于三个工作日内按上表电话联络，请保持畅通。</p>
+  </div>
+</main>
+
+<script>
+(function(){
+  "use strict";
+  var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var FIELDS = [
+    {id:"fName",  label:"经营项目名", type:"text"},
+    {id:"fCode",  label:"统一社会信用代码", type:"text"},
+    {id:"fCate",  label:"经营类别", type:"select"},
+    {id:"fAddr",  label:"经营地址", type:"text"},
+    {id:"fCName", label:"经办人姓名", type:"text"},
+    {id:"fTel",   label:"经办人手机", type:"tel"},
+    {id:"fPledge",label:"真实性承诺", type:"check"}
+  ];
+  var DRAFT_KEYS = ["fName","fCode","fCate","fAddr","fArea","fStaff","fOpen","fFire","fCName","fTel","fMail","fHour","fPledge"];
+  var draft = null;
+  var btnRecall = document.getElementById("btnRecall");
+  var draftNote = document.getElementById("draftNote");
+  var errBox = document.getElementById("errBox");
+
+  /* 目录：点击跳转 + 滚动定位当前节 */
+  var navs = [
+    {a:document.getElementById("nav1"), s:document.getElementById("sec1")},
+    {a:document.getElementById("nav2"), s:document.getElementById("sec2")},
+    {a:document.getElementById("nav3"), s:document.getElementById("sec3")}
+  ];
+  navs.forEach(function(n){
+    n.a.addEventListener("click", function(e){
+      e.preventDefault();
+      n.s.scrollIntoView({behavior: reduce ? "auto" : "smooth", block:"start"});
+      mark(n.a);
+    });
+  });
+  function mark(cur){
+    navs.forEach(function(n){ n.a.setAttribute("aria-current", n.a === cur ? "true" : "false"); });
+  }
+  window.addEventListener("scroll", function(){
+    if(document.getElementById("receipt").classList.contains("show")){ return; }
+    var y = window.scrollY + 120;
+    var cur = navs[0];
+    navs.forEach(function(n){ if(n.s.offsetTop <= y) cur = n; });
+    mark(cur.a);
+  }, {passive:true});
+  mark(navs[0].a);
+
+  /* 错误标记 */
+  function wrapOf(el){ return el.closest(".field") || el.closest(".check"); }
+  function badOf(f){
+    var el = document.getElementById(f.id);
+    if(f.type === "check") return !el.checked;
+    if(f.type === "tel") return !/^1\d{10}$/.test(el.value.trim());
+    return el.value.trim() === "";
+  }
+  function clearErrors(){
+    errBox.classList.remove("show");
+    FIELDS.forEach(function(f){
+      var w = wrapOf(document.getElementById(f.id));
+      if(w) w.classList.remove("bad");
+    });
+  }
+
+  function clock(){
+    var d = new Date();
+    var p = function(n){ return (n < 10 ? "0" : "") + n; };
+    return d.getFullYear() + "-" + p(d.getMonth()+1) + "-" + p(d.getDate()) + " " + p(d.getHours()) + ":" + p(d.getMinutes());
+  }
+
+  /* 草稿 */
+  document.getElementById("btnDraft").addEventListener("click", function(){
+    draft = {};
+    DRAFT_KEYS.forEach(function(k){
+      var el = document.getElementById(k);
+      draft[k] = el.type === "checkbox" ? el.checked : el.value;
+    });
+    btnRecall.disabled = false;
+    draftNote.textContent = "草稿已于 " + clock() + " 暂存于本页，可随时「载入草稿」继续补录。";
+    draftNote.classList.add("show");
+  });
+  btnRecall.addEventListener("click", function(){
+    if(!draft){ return; }
+    DRAFT_KEYS.forEach(function(k){
+      var el = document.getElementById(k);
+      if(el.type === "checkbox"){ el.checked = !!draft[k]; } else { el.value = draft[k]; }
+    });
+    clearErrors();
+    draftNote.textContent = "草稿已于 " + clock() + " 暂存于本页，已按暂存内容回填。";
+    draftNote.classList.add("show");
+  });
+
+  /* 提交 */
+  document.getElementById("btnSubmit").addEventListener("click", function(){
+    clearErrors();
+    var missing = [];
+    FIELDS.forEach(function(f){
+      var el = document.getElementById(f.id);
+      if(badOf(f)){
+        missing.push(f);
+        var w = wrapOf(el);
+        if(w) w.classList.add("bad");
+      }
+    });
+    if(missing.length){
+      errBox.innerHTML = "";
+      var b = document.createElement("b");
+      b.textContent = "不予受理：共 " + missing.length + " 项未通过核对";
+      errBox.appendChild(b);
+      missing.forEach(function(f,i){
+        var li = document.createElement("span");
+        li.textContent = (i+1) + "）" + f.label;
+        li.style.display = "block";
+        errBox.appendChild(li);
+      });
+      errBox.classList.add("show");
+      var first = wrapOf(document.getElementById(missing[0].id));
+      first.scrollIntoView({behavior: reduce ? "auto" : "smooth", block:"center"});
+      return;
+    }
+    var seq = "BX-2026-0417-" + String(Math.floor(1000 + Math.random() * 8999));
+    document.getElementById("rcNo").textContent = "受理编号 " + seq;
+    document.getElementById("rcTime").textContent = "归档时刻 " + clock();
+    document.getElementById("formArea").classList.add("hidden");
+    var rc = document.getElementById("receipt");
+    rc.classList.add("show");
+    window.scrollTo({top:0, behavior:"auto"});
+  });
+})();
+</script>
+</body>
+</html>

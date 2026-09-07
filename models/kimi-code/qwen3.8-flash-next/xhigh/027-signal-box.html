@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>信号房 · 调度权限台</title>
+<style>
+:root{
+  --wall:#cfd2ca;
+  --panel:#f5f5f2;
+  --frame:#17181a;
+  --ink:#22242a;
+  --muted:#6d7075;
+  --steel:#d9dad4;
+  --sig-red:#c8342a;
+  --sig-amber:#e0a526;
+  --sig-green:#2e7d4f;
+  --lamp-off:#43464a;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:"Microsoft YaHei","PingFang SC","Helvetica Neue",Arial,sans-serif;
+  background:
+    repeating-linear-gradient(90deg, rgba(23,24,26,.05) 0 1px, transparent 1px 96px),
+    var(--wall);
+  color:var(--ink);
+  padding:28px 24px 60px;
+}
+.box{max-width:1160px;margin:0 auto;border:3px solid var(--frame);background:var(--panel)}
+/* 顶部横梁 */
+.beam{
+  display:grid;grid-template-columns:auto 1fr auto;gap:20px;align-items:center;
+  background:var(--frame);color:var(--panel);padding:14px 22px;
+}
+.beam h1{font-size:17px;letter-spacing:.3em;font-weight:600}
+.beam .station{font-size:12px;letter-spacing:.22em;color:#b9bcb6}
+.lamps{display:flex;gap:10px;align-items:center}
+.lamp{width:14px;height:14px;border-radius:50%;border:2px solid #565a5e;background:var(--lamp-off)}
+.lamp.g.on{background:var(--sig-green);border-color:var(--sig-green);box-shadow:0 0 8px rgba(46,125,79,.8)}
+.lamp.a.on{background:var(--sig-amber);border-color:var(--sig-amber);box-shadow:0 0 8px rgba(224,165,38,.8)}
+.lamps .cap{font-size:11px;letter-spacing:.18em;color:#b9bcb6;margin-left:4px}
+/* 主区 */
+.yard{display:grid;grid-template-columns:276px 1fr}
+.rail{border-right:3px solid var(--frame);padding:18px 16px;background:var(--steel)}
+.rail h2,.board h2{
+  font-size:11px;letter-spacing:.3em;color:var(--muted);font-weight:700;
+  margin-bottom:12px;font-family:ui-monospace,Consolas,Menlo,monospace;
+}
+.role{
+  display:grid;grid-template-columns:16px 1fr;gap:10px;align-items:center;width:100%;
+  text-align:left;font:inherit;cursor:pointer;background:var(--panel);
+  border:2px solid var(--frame);padding:11px 12px;margin-bottom:8px;
+  transition:background-color .15s ease,transform .15s ease;
+}
+.role:hover{transform:translateX(3px)}
+.role:focus-visible{outline:3px solid var(--sig-amber);outline-offset:2px}
+.role[aria-selected="true"]{background:var(--frame);color:var(--panel)}
+.role[aria-selected="true"]:hover{transform:none}
+.role .lever{width:6px;height:26px;background:var(--frame);position:relative;justify-self:center;border-radius:2px}
+.role[aria-selected="true"] .lever{background:var(--sig-amber)}
+.role .lever::after{content:"";position:absolute;left:-4px;width:14px;height:8px;background:inherit;border-radius:2px;top:3px}
+.role b{display:block;font-size:15px;letter-spacing:.1em}
+.role small{display:block;margin-top:3px;font-size:11px;letter-spacing:.14em;color:var(--muted)}
+.role[aria-selected="true"] small{color:#a9aca6}
+.role .dirty{width:9px;height:9px;border-radius:50%;background:var(--sig-amber);display:none}
+.role.hasdirty .dirty{display:block}
+/* 权限板 */
+.board{padding:18px 22px 22px}
+.board>.who{
+  display:flex;gap:26px;align-items:baseline;border:2px solid var(--frame);
+  padding:12px 16px;margin-bottom:16px;background:var(--panel);flex-wrap:wrap;
+}
+.who b{font-size:19px;letter-spacing:.14em}
+.who .code{font-family:ui-monospace,Consolas,Menlo,monospace;font-size:12px;letter-spacing:.12em;color:var(--muted)}
+.who .cnt{font-size:12px;letter-spacing:.1em;color:var(--muted)}
+.who .cnt i{font-style:normal;color:var(--sig-green);font-weight:700}
+.who .cnt em{font-style:normal;color:var(--sig-red);font-weight:700}
+.cat{margin-bottom:16px}
+.cat>h3{
+  font-size:12px;letter-spacing:.24em;font-weight:700;background:var(--frame);color:var(--panel);
+  display:inline-block;padding:4px 14px;margin-bottom:2px;
+}
+.perm{
+  display:grid;grid-template-columns:64px 1fr 72px;gap:14px;align-items:center;
+  border-bottom:1px solid var(--steel);padding:9px 6px;
+  border-left:5px solid transparent;
+  transition:border-left-color .15s ease,background-color .15s ease;
+}
+.perm.changed{border-left-color:var(--sig-amber);background:rgba(224,165,38,.08)}
+.perm .pc{font-family:ui-monospace,Consolas,Menlo,monospace;font-size:11px;color:var(--muted);letter-spacing:.06em}
+.perm .pl{font-size:14px;letter-spacing:.08em}
+.perm .pl small{display:block;font-size:11px;color:var(--muted);letter-spacing:.06em;margin-top:2px}
+.sw{
+  justify-self:end;display:flex;align-items:center;gap:8px;cursor:pointer;font:inherit;
+  background:none;border:none;padding:4px;
+}
+.sw .rail2{
+  width:52px;height:26px;border:2px solid var(--frame);background:var(--panel);position:relative;flex:none;
+  transition:background-color .18s ease;
+}
+.sw .knob{
+  position:absolute;top:2px;left:2px;width:18px;height:18px;background:var(--lamp-off);
+  transition:transform .18s cubic-bezier(.3,.8,.3,1),background-color .18s ease;
+}
+.sw[aria-pressed="true"] .rail2{background:var(--frame)}
+.sw[aria-pressed="true"] .knob{transform:translateX(26px);background:var(--sig-green);box-shadow:0 0 8px rgba(46,125,79,.9)}
+.sw .txt{font-size:11px;letter-spacing:.14em;width:28px;color:var(--muted)}
+.sw[aria-pressed="true"] .txt{color:var(--sig-green)}
+.sw:focus-visible{outline:3px solid var(--sig-amber);outline-offset:1px}
+/* 控制台底栏 */
+.console{
+  display:grid;grid-template-columns:1fr auto;gap:18px;align-items:center;
+  border-top:3px solid var(--frame);background:var(--frame);padding:13px 22px;
+}
+.console .msg{font-size:12px;letter-spacing:.16em;color:#b9bcb6;min-height:18px}
+.acts{display:flex;gap:12px}
+.ctl{
+  font:inherit;cursor:pointer;padding:9px 26px;letter-spacing:.24em;text-indent:.24em;
+  border:2px solid var(--panel);background:none;color:var(--panel);
+  transition:background-color .15s ease,color .15s ease;
+}
+.ctl:hover{background:#33363a}
+.ctl:focus-visible{outline:3px solid var(--sig-amber);outline-offset:2px}
+.ctl.save{background:var(--sig-green);border-color:var(--sig-green);color:#fff}
+.ctl.save:hover{background:#276843}
+.ctl:disabled{opacity:.35;cursor:not-allowed;background:none;border-color:#565a5e;color:#8d9095}
+@media (max-width:768px){
+  .yard{grid-template-columns:1fr}
+  .rail{border-right:none;border-bottom:3px solid var(--frame);display:grid;grid-template-columns:1fr 1fr;gap:0 10px;padding:14px}
+  .rail h2{grid-column:1/-1}
+  .perm{grid-template-columns:1fr auto}
+  .perm .pc{display:none}
+  .console{grid-template-columns:1fr}
+  .acts{justify-content:stretch;width:100%}
+  .ctl{flex:1}
+}
+@media (prefers-reduced-motion:reduce){
+  *{transition:none !important;animation:none !important}
+}
+</style>
+</head>
+<body>
+<div class="box">
+  <header class="beam">
+    <h1>信号房</h1>
+    <span class="station">滨江车辆段 · 调度权限台 · 联锁模式 C</span>
+    <div class="lamps">
+      <span class="lamp g on" id="lampSaved" aria-hidden="true"></span>
+      <span class="lamp a" id="lampDirty" aria-hidden="true"></span>
+      <span class="cap">电源 · 待保存</span>
+    </div>
+  </header>
+
+  <div class="yard">
+    <nav class="rail" aria-label="角色列表">
+      <h2>ROLE LEVERS · 角色手柄</h2>
+      <button class="role" data-role="chief" aria-selected="true">
+        <span class="lever" aria-hidden="true"></span>
+        <span><b>值班站长</b><small>R-01 · 在编 6 人</small></span>
+        <span class="dirty" aria-hidden="true"></span>
+      </button>
+      <button class="role" data-role="dispatcher" aria-selected="false">
+        <span class="lever" aria-hidden="true"></span>
+        <span><b>行车调度员</b><small>R-02 · 在编 9 人</small></span>
+        <span class="dirty" aria-hidden="true"></span>
+      </button>
+      <button class="role" data-role="maint" aria-selected="false">
+        <span class="lever" aria-hidden="true"></span>
+        <span><b>维修工程师</b><small>R-03 · 在编 14 人</small></span>
+        <span class="dirty" aria-hidden="true"></span>
+      </button>
+      <button class="role" data-role="ticket" aria-selected="false">
+        <span class="lever" aria-hidden="true"></span>
+        <span><b>票务员</b><small>R-04 · 在编 22 人</small></span>
+        <span class="dirty" aria-hidden="true"></span>
+      </button>
+      <button class="role" data-role="trainee" aria-selected="false">
+        <span class="lever" aria-hidden="true"></span>
+        <span><b>见习观察员</b><small>R-05 · 在编 5 人</small></span>
+        <span class="dirty" aria-hidden="true"></span>
+      </button>
+    </nav>
+
+    <main class="board">
+      <div class="who">
+        <b id="roleName">值班站长</b>
+        <span class="code" id="roleCode">R-01 · BASELINE</span>
+        <span class="cnt">放行 <i id="cntOn">0</i> 项 · 禁用 <em id="cntOff">0</em> 项</span>
+      </div>
+
+      <section class="cat">
+        <h3>行车 SIGNALING</h3>
+        <div class="perm" data-perm="route">
+          <span class="pc">SIG-01</span>
+          <span class="pl">进路排列 <small>向轨旁发出排路命令</small></span>
+          <button class="sw" aria-pressed="true"><span class="rail2"><span class="knob"></span></span><span class="txt">放行</span></button>
+        </div>
+        <div class="perm" data-perm="lock">
+          <span class="pc">SIG-02</span>
+          <span class="pl">道岔加锁 <small>锁定道岔阻止电动转换</small></span>
+          <button class="sw" aria-pressed="true"><span class="rail2"><span class="knob"></span></span><span class="txt">放行</span></button>
+        </div>
+        <div class="perm" data-perm="shunt">
+          <span class="pc">SIG-03</span>
+          <span class="pl">调车作业计划 <small>编制并下发调车单</small></span>
+          <button class="sw" aria-pressed="false"><span class="rail2"><span class="knob"></span></span><span class="txt">禁止</span></button>
+        </div>
+      </section>
+
+      <section class="cat">
+        <h3>客运 PASSENGER</h3>
+        <div class="perm" data-perm="pa">
+          <span class="pc">PSG-01</span>
+          <span class="pl">站内广播 <small>站厅与站台寻人/引导广播</small></span>
+          <button class="sw" aria-pressed="true"><span class="rail2"><span class="knob"></span></span><span class="txt">放行</span></button>
+        </div>
+        <div class="perm" data-perm="gate">
+          <span class="pc">PSG-02</span>
+          <span class="pl">闸机应急释放 <small>群体事件时全部放开闸机</small></span>
+          <button class="sw" aria-pressed="false"><span class="rail2"><span class="knob"></span></span><span class="txt">禁止</span></button>
+        </div>
+        <div class="perm" data-perm="notice">
+          <span class="pc">PSG-03</span>
+          <span class="pl">停运公告发布 <small>对乘客端推送线路状态</small></span>
+          <button class="sw" aria-pressed="false"><span class="rail2"><span class="knob"></span></span><span class="txt">禁止</span></button>
+        </div>
+      </section>
+
+      <section class="cat">
+        <h3>设备 DEPOT</h3>
+        <div class="perm" data-perm="psd">
+          <span class="pc">DEP-01</span>
+          <span class="pl">屏蔽门就地锁 <small>单档滑动门就地级操作</small></span>
+          <button class="sw" aria-pressed="false"><span class="rail2"><span class="knob"></span></span><span class="txt">禁止</span></button>
+        </div>
+        <div class="perm" data-perm="lift">
+          <span class="pc">DEP-02</span>
+          <span class="pl">电梯检修模式 <small>切断轿厢自动运行</small></span>
+          <button class="sw" aria-pressed="false"><span class="rail2"><span class="knob"></span></span><span class="txt">禁止</span></button>
+        </div>
+      </section>
+
+      <section class="cat">
+        <h3>台账 RECORDS</h3>
+        <div class="perm" data-perm="report">
+          <span class="pc">REC-01</span>
+          <span class="pl">日报导出 <small>交接班报表生成与下载</small></span>
+          <button class="sw" aria-pressed="true"><span class="rail2"><span class="knob"></span></span><span class="txt">放行</span></button>
+        </div>
+        <div class="perm" data-perm="video">
+          <span class="pc">REC-02</span>
+          <span class="pl">录像回放 <small>调阅近 72 小时站台录像</small></span>
+          <button class="sw" aria-pressed="true"><span class="rail2"><span class="knob"></span></span><span class="txt">放行</span></button>
+        </div>
+        <div class="perm" data-perm="audit">
+          <span class="pc">REC-03</span>
+          <span class="pl">事故报告签发 <small>对外报送运营事件报告</small></span>
+          <button class="sw" aria-pressed="false"><span class="rail2"><span class="knob"></span></span><span class="txt">禁止</span></button>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <footer class="console">
+    <span class="msg" id="msg">基线已同步 · 上次保存 09:26 · 值班站长</span>
+    <div class="acts">
+      <button class="ctl" id="btnRevert" disabled>放弃改动</button>
+      <button class="ctl save" id="btnSave" disabled>保存权限</button>
+    </div>
+  </footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  /* 各角色基线：true=放行 */
+  var BASE = {
+    chief:      {name:"值班站长",   code:"R-01", on:{route:1,lock:1,shunt:0,pa:1,gate:0,notice:0,psd:0,lift:0,report:1,video:1,audit:1}},
+    dispatcher: {name:"行车调度员", code:"R-02", on:{route:1,lock:1,shunt:1,pa:0,gate:0,notice:1,psd:0,lift:0,report:1,video:1,audit:0}},
+    maint:      {name:"维修工程师", code:"R-03", on:{route:0,lock:1,shunt:0,pa:0,gate:0,notice:0,psd:1,lift:1,report:0,video:1,audit:0}},
+    ticket:     {name:"票务员",     code:"R-04", on:{route:0,lock:0,shunt:0,pa:1,gate:1,notice:0,psd:0,lift:0,report:1,video:0,audit:0}},
+    trainee:    {name:"见习观察员", code:"R-05", on:{route:0,lock:0,shunt:0,pa:0,gate:0,notice:0,psd:0,lift:0,report:0,video:0,audit:0}}
+  };
+  var KEY_ORDER = ["route","lock","shunt","pa","gate","notice","psd","lift","report","video","audit"];
+  var work = {}; /* 每个角色当前未保存的工作副本 */
+  var saved = {}; /* 已保存快照 */
+  Object.keys(BASE).forEach(function(k){
+    work[k] = {}; saved[k] = {};
+    KEY_ORDER.forEach(function(p){ work[k][p] = BASE[k].on[p]; saved[k][p] = BASE[k].on[p]; });
+  });
+  var active = "chief";
+
+  var permRows = Array.prototype.slice.call(document.querySelectorAll(".perm"));
+  var roleBtns = Array.prototype.slice.call(document.querySelectorAll(".role"));
+  var msg = document.getElementById("msg");
+  var btnSave = document.getElementById("btnSave");
+  var btnRevert = document.getElementById("btnRevert");
+  var lampSaved = document.getElementById("lampSaved");
+  var lampDirty = document.getElementById("lampDirty");
+
+  function isDirty(role){
+    for(var i=0;i<KEY_ORDER.length;i++){
+      if(work[role][KEY_ORDER[i]] !== saved[role][KEY_ORDER[i]]) return true;
+    }
+    return false;
+  }
+  function renderMatrix(){
+    var on = 0;
+    permRows.forEach(function(row){
+      var key = row.getAttribute("data-perm");
+      var val = !!work[active][key];
+      var sw = row.querySelector(".sw");
+      sw.setAttribute("aria-pressed", val ? "true" : "false");
+      sw.querySelector(".txt").textContent = val ? "放行" : "禁止";
+      row.classList.toggle("changed", val !== saved[active][key]);
+      if(val) on++;
+    });
+    document.getElementById("cntOn").textContent = on;
+    document.getElementById("cntOff").textContent = permRows.length - on;
+  }
+  function renderChrome(){
+    var dirty = isDirty(active);
+    roleBtns.forEach(function(b){
+      b.classList.toggle("hasdirty", isDirty(b.getAttribute("data-role")));
+      b.setAttribute("aria-selected", b.getAttribute("data-role") === active ? "true" : "false");
+    });
+    document.getElementById("roleName").textContent = BASE[active].name;
+    document.getElementById("roleCode").textContent = BASE[active].code + (dirty ? " · 修改中" : " · BASELINE");
+    lampDirty.classList.toggle("on", dirty);
+    lampSaved.classList.toggle("on", !dirty);
+    btnSave.disabled = !dirty;
+    btnRevert.disabled = !dirty;
+  }
+  function selectRole(role){
+    active = role;
+    renderMatrix();
+    renderChrome();
+  }
+  roleBtns.forEach(function(b){
+    b.addEventListener("click", function(){
+      var role = b.getAttribute("data-role");
+      if(role !== active){ selectRole(role); msg.textContent = "已切到「" + BASE[role].name + "」的权限牌，可继续修改"; }
+    });
+  });
+  permRows.forEach(function(row){
+    var key = row.getAttribute("data-perm");
+    row.querySelector(".sw").addEventListener("click", function(){
+      work[active][key] = work[active][key] ? 0 : 1;
+      renderMatrix();
+      renderChrome();
+    });
+  });
+  function clock(){
+    var d = new Date();
+    var p = function(n){ return (n < 10 ? "0" : "") + n; };
+    return p(d.getHours()) + ":" + p(d.getMinutes());
+  }
+  btnSave.addEventListener("click", function(){
+    KEY_ORDER.forEach(function(p){ saved[active][p] = work[active][p]; });
+    msg.textContent = "已保存 " + clock() + " · " + BASE[active].name + " · 变更已下发联锁台";
+    renderMatrix();
+    renderChrome();
+  });
+  btnRevert.addEventListener("click", function(){
+    KEY_ORDER.forEach(function(p){ work[active][p] = saved[active][p]; });
+    msg.textContent = "已放弃本次对「" + BASE[active].name + "」的全部改动";
+    renderMatrix();
+    renderChrome();
+  });
+
+  selectRole(active);
+})();
+</script>
+</body>
+</html>

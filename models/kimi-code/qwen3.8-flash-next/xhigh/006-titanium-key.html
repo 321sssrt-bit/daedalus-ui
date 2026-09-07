@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>二次验证 · 钛匙设备护卫</title>
+<style>
+:root{
+  --bg:#14171b;
+  --panel:#2b2f36;
+  --well:#1d2126;
+  --line:#3b424b;
+  --steel:#9aa4ae;
+  --text:#e8edf1;
+  --cyan:#3fd8cf;
+  --alert:#e2685f;
+  --ok:#5fd08a;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{min-height:100%;}
+body{
+  background:var(--bg);
+  background-image:
+    linear-gradient(var(--well) 1px,transparent 1px),
+    linear-gradient(90deg,var(--well) 1px,transparent 1px);
+  background-size:48px 48px;
+  color:var(--text);
+  font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans CJK SC",sans-serif;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:48px 24px;
+}
+.mono{font-family:ui-monospace,SFMono-Regular,Consolas,"Liberation Mono",monospace;}
+.console{
+  width:100%;
+  max-width:520px;
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:6px;
+  box-shadow:0 24px 60px rgba(0,0,0,0.5);
+  overflow:hidden;
+}
+.chassis-top{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:14px 20px;
+  border-bottom:1px solid var(--line);
+  background:var(--well);
+}
+.unit-id{
+  font-size:11px;
+  letter-spacing:0.24em;
+  color:var(--steel);
+}
+.led{
+  display:inline-block;
+  width:8px;height:8px;
+  border-radius:50%;
+  background:var(--cyan);
+  box-shadow:0 0 8px var(--cyan);
+  margin-right:8px;
+  vertical-align:1px;
+  animation:blink 1.6s steps(1) infinite;
+}
+.led.warn{background:var(--alert);box-shadow:0 0 8px var(--alert);}
+.led.locked{background:var(--alert);box-shadow:none;animation:none;}
+@keyframes blink{0%,60%{opacity:1;}61%,100%{opacity:0.25;}}
+.body{padding:28px 32px 26px;}
+h1{
+  font-size:19px;
+  font-weight:600;
+  letter-spacing:0.12em;
+  margin-bottom:6px;
+}
+.sub{
+  font-size:12.5px;
+  color:var(--steel);
+  letter-spacing:0.04em;
+  margin-bottom:20px;
+}
+.spec-strip{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:1px;
+  background:var(--line);
+  border:1px solid var(--line);
+  margin-bottom:26px;
+}
+.spec-strip div{
+  background:var(--well);
+  padding:9px 12px;
+  font-size:11.5px;
+  color:var(--steel);
+  letter-spacing:0.06em;
+}
+.spec-strip b{
+  display:block;
+  color:var(--text);
+  font-weight:500;
+  font-size:12.5px;
+  margin-top:2px;
+  letter-spacing:0.02em;
+}
+.otp-label{
+  font-size:11px;
+  letter-spacing:0.3em;
+  color:var(--cyan);
+  margin-bottom:12px;
+}
+.otp-grid{
+  display:grid;
+  grid-template-columns:repeat(6,1fr);
+  gap:8px;
+  margin-bottom:14px;
+}
+.otp-cell{
+  height:64px;
+  background:var(--well);
+  border:1px solid var(--line);
+  border-radius:3px;
+  color:var(--text);
+  text-align:center;
+  font-family:ui-monospace,SFMono-Regular,Consolas,"Liberation Mono",monospace;
+  font-size:28px;
+  caret-color:var(--cyan);
+  outline:none;
+  transition:border-color 120ms ease,box-shadow 120ms ease;
+}
+.otp-cell:focus{
+  border-color:var(--cyan);
+  box-shadow:0 0 0 1px var(--cyan),0 0 14px rgba(63,216,207,0.22);
+}
+.otp-grid.bad .otp-cell{border-color:var(--alert);box-shadow:0 0 0 1px var(--alert);}
+.otp-grid.shake{animation:shake 320ms ease;}
+@keyframes shake{
+  0%,100%{transform:translateX(0);}
+  20%{transform:translateX(-6px);}
+  40%{transform:translateX(6px);}
+  60%{transform:translateX(-4px);}
+  80%{transform:translateX(4px);}
+}
+.status-line{
+  min-height:20px;
+  font-size:12.5px;
+  letter-spacing:0.05em;
+  color:var(--steel);
+  margin-bottom:18px;
+  font-variant-numeric:tabular-nums;
+}
+.status-line.err{color:var(--alert);}
+.status-line.ok{color:var(--ok);}
+.row{
+  display:flex;
+  gap:10px;
+  align-items:center;
+}
+.btn-key{
+  flex:1;
+  padding:13px 0;
+  background:var(--cyan);
+  color:#0f1315;
+  border:none;
+  border-radius:3px;
+  font:inherit;
+  font-weight:600;
+  font-size:14px;
+  letter-spacing:0.28em;
+  text-indent:0.28em;
+  cursor:pointer;
+  transition:filter 120ms ease,transform 100ms ease;
+}
+.btn-key:hover:not(:disabled){filter:brightness(1.12);}
+.btn-key:active:not(:disabled){transform:translateY(1px);}
+.btn-ghost{
+  padding:13px 18px;
+  background:transparent;
+  color:var(--steel);
+  border:1px solid var(--line);
+  border-radius:3px;
+  font:inherit;
+  font-size:13px;
+  letter-spacing:0.14em;
+  cursor:pointer;
+  transition:color 120ms ease,border-color 120ms ease;
+  white-space:nowrap;
+}
+.btn-ghost:hover:not(:disabled){color:var(--text);border-color:var(--steel);}
+.btn-key:disabled,.btn-ghost:disabled{opacity:0.35;cursor:not-allowed;}
+.demo-note{
+  margin-top:16px;
+  font-size:11px;
+  color:#6b747e;
+  letter-spacing:0.05em;
+  border-top:1px dashed var(--line);
+  padding-top:12px;
+}
+.lockplate{
+  display:none;
+  border:1px solid var(--alert);
+  border-left:4px solid var(--alert);
+  background:var(--well);
+  padding:16px 18px;
+  margin-bottom:18px;
+  border-radius:3px;
+}
+.lockplate.show{display:block;}
+.lockplate .t{
+  font-size:14px;
+  font-weight:600;
+  letter-spacing:0.18em;
+  color:var(--alert);
+  margin-bottom:6px;
+}
+.lockplate .d{
+  font-size:12.5px;
+  color:var(--steel);
+  line-height:1.8;
+  font-variant-numeric:tabular-nums;
+}
+.passplate{
+  display:none;
+  border:1px solid var(--ok);
+  border-left:4px solid var(--ok);
+  background:var(--well);
+  padding:16px 18px;
+  margin-bottom:18px;
+  border-radius:3px;
+}
+.passplate.show{display:block;}
+.passplate .t{font-size:14px;font-weight:600;letter-spacing:0.18em;color:var(--ok);margin-bottom:6px;}
+.passplate .d{font-size:12.5px;color:var(--steel);line-height:1.8;}
+@media (max-width:768px){
+  body{padding:24px 14px;}
+  .body{padding:22px 18px 20px;}
+  .otp-cell{height:54px;font-size:22px;}
+  .otp-grid{gap:6px;}
+  .spec-strip{grid-template-columns:1fr;}
+  .row{flex-direction:column;}
+  .btn-key,.btn-ghost{width:100%;}
+}
+@media (prefers-reduced-motion:reduce){
+  .led{animation:none;}
+  .otp-grid.shake{animation:none;}
+  .otp-cell,.btn-key,.btn-ghost{transition:none;}
+}
+</style>
+</head>
+<body>
+<main class="console">
+  <div class="chassis-top">
+    <span class="unit-id">TITANKEY · 护卫单元 TK-07</span>
+    <span class="mono" style="font-size:11px;color:var(--steel);"><i class="led" id="006-led"></i><span id="006-led-text">武装中</span></span>
+  </div>
+
+  <div class="body">
+    <h1>新设备登录请求</h1>
+    <p class="sub">护卫单元不认识这台设备。向你的可信手机核对一枚六位数密钥码。</p>
+
+    <div class="spec-strip">
+      <div>请求设备<b>ThinkPad X1 · 窗口 11</b></div>
+      <div>来源地点<b>上海 · 徐汇（新 IP 段）</b></div>
+      <div>请求时间<b class="mono">2026-09-07 09:41:16</b></div>
+      <div>核对通道<b>手机 App「钛匙」推送</b></div>
+    </div>
+
+    <div class="lockplate" id="006-lockplate" role="alert">
+      <div class="t">单元已冻结</div>
+      <div class="d">连续 3 次密钥码不匹配，本机进入冻结。<b class="mono" id="006-lock-count">180</b> 秒后自动解冻；或立即改用恢复密钥。</div>
+    </div>
+
+    <div class="passplate" id="006-passplate" role="status">
+      <div class="t">核对通过 · 已放行</div>
+      <div class="d">这台设备已登记为「已知设备」，下次登录不再要求密钥码。</div>
+    </div>
+
+    <div class="otp-label">密钥码 KEY CODE</div>
+    <div class="otp-grid" id="006-grid">
+      <input class="otp-cell" id="006-c1" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="1" aria-label="密钥码第 1 位">
+      <input class="otp-cell" id="006-c2" type="text" inputmode="numeric" maxlength="1" aria-label="密钥码第 2 位">
+      <input class="otp-cell" id="006-c3" type="text" inputmode="numeric" maxlength="1" aria-label="密钥码第 3 位">
+      <input class="otp-cell" id="006-c4" type="text" inputmode="numeric" maxlength="1" aria-label="密钥码第 4 位">
+      <input class="otp-cell" id="006-c5" type="text" inputmode="numeric" maxlength="1" aria-label="密钥码第 5 位">
+      <input class="otp-cell" id="006-c6" type="text" inputmode="numeric" maxlength="1" aria-label="密钥码第 6 位">
+    </div>
+
+    <p class="status-line" id="006-status">等待输入 6 位密钥码</p>
+
+    <div class="row">
+      <button class="btn-key" id="006-verify" type="button">核 对</button>
+      <button class="btn-ghost" id="006-resend" type="button" disabled>重发（30s）</button>
+      <button class="btn-ghost" id="006-recovery" type="button">恢复密钥</button>
+    </div>
+
+    <p class="demo-note">演示环境说明：正确密钥码为 <b class="mono">4 8 2 9 1 3</b>；任意 6 位数字皆可提交，错误码将扣减尝试次数。</p>
+  </div>
+</main>
+
+<script>
+(function(){
+  "use strict";
+  var CORRECT="482913";
+  var cells=[].map.call([1,2,3,4,5,6],function(i){return document.getElementById("006-c"+i);});
+  var grid=document.getElementById("006-grid");
+  var status=document.getElementById("006-status");
+  var verify=document.getElementById("006-verify");
+  var resend=document.getElementById("006-resend");
+  var recovery=document.getElementById("006-recovery");
+  var lockplate=document.getElementById("006-lockplate");
+  var lockCount=document.getElementById("006-lock-count");
+  var passplate=document.getElementById("006-passplate");
+  var led=document.getElementById("006-led");
+  var ledText=document.getElementById("006-led-text");
+  var attempts=3;
+  var locked=false;
+  var passed=false;
+  var resendTimer=null;
+  var lockTimer=null;
+
+  function codeValue(){return cells.map(function(c){return c.value;}).join("");}
+  function setStatus(msg,cls){
+    status.textContent=msg;
+    status.className="status-line"+(cls?" "+cls:"");
+  }
+  function setLed(mode){
+    if(mode==="locked"){led.className="led locked";ledText.textContent="已冻结";}
+    else if(mode==="warn"){led.className="led warn";ledText.textContent="告警";}
+    else if(mode==="ok"){led.className="led";ledText.textContent="已放行";}
+    else{led.className="led";ledText.textContent="武装中";}
+  }
+  function clearCells(){
+    cells.forEach(function(c){c.value="";});
+    grid.classList.remove("bad");
+  }
+  function startResendCountdown(){
+    var left=30;
+    resend.disabled=true;
+    resend.textContent="重发（"+left+"s）";
+    if(resendTimer){clearInterval(resendTimer);}
+    resendTimer=setInterval(function(){
+      left-=1;
+      resend.textContent="重发（"+left+"s）";
+      if(left<=0){
+        clearInterval(resendTimer);
+        resendTimer=null;
+        resend.disabled=locked||passed;
+        resend.textContent="重发密钥码";
+      }
+    },1000);
+  }
+  function lockDown(){
+    locked=true;
+    lockplate.classList.add("show");
+    setLed("locked");
+    cells.forEach(function(c){c.disabled=true;});
+    verify.disabled=true;
+    resend.disabled=true;
+    setStatus("连续失败 3 次，单元冻结。","err");
+    var left=180;
+    lockCount.textContent=left;
+    lockTimer=setInterval(function(){
+      left-=1;
+      lockCount.textContent=left;
+      if(left<=0){
+        clearInterval(lockTimer);
+        lockTimer=null;
+        locked=false;
+        attempts=3;
+        lockplate.classList.remove("show");
+        cells.forEach(function(c){c.disabled=false;});
+        verify.disabled=false;
+        resend.disabled=false;
+        resend.textContent="重发密钥码";
+        setLed("armed");
+        setStatus("已解冻。剩余 3 次尝试机会。");
+        clearCells();
+        cells[0].focus();
+      }
+    },1000);
+  }
+  function doVerify(){
+    if(locked||passed){return;}
+    var v=codeValue();
+    if(v.length<6){
+      setStatus("密钥码还差 "+(6-v.length)+" 位。","err");
+      return;
+    }
+    if(v===CORRECT){
+      passed=true;
+      grid.classList.remove("bad");
+      passplate.classList.add("show");
+      setLed("ok");
+      setStatus("核对通过，通道已开启。","ok");
+      verify.disabled=true;
+      resend.disabled=true;
+      recovery.disabled=true;
+      cells.forEach(function(c){c.disabled=true;});
+      return;
+    }
+    attempts-=1;
+    grid.classList.add("bad");
+    grid.classList.remove("shake");
+    void grid.offsetWidth;
+    grid.classList.add("shake");
+    setLed("warn");
+    if(attempts<=0){
+      lockDown();
+      return;
+    }
+    setStatus("密钥码不匹配 · 剩余 "+attempts+" 次尝试。","err");
+  }
+
+  cells.forEach(function(cell,idx){
+    cell.addEventListener("input",function(){
+      cell.value=cell.value.replace(/\D/g,"").slice(0,1);
+      grid.classList.remove("bad");
+      if(cell.value&&idx<5){cells[idx+1].focus();}
+      if(codeValue().length===6){doVerify();}
+    });
+    cell.addEventListener("keydown",function(ev){
+      if(ev.key==="Backspace"&&!cell.value&&idx>0){
+        cells[idx-1].focus();
+        cells[idx-1].value="";
+        ev.preventDefault();
+      }
+      if(ev.key==="Enter"){doVerify();}
+    });
+    cell.addEventListener("paste",function(ev){
+      ev.preventDefault();
+      var txt=((ev.clipboardData||window.clipboardData).getData("text")||"").replace(/\D/g,"").slice(0,6);
+      if(!txt){return;}
+      clearCells();
+      for(var i=0;i<txt.length;i++){cells[i].value=txt[i];}
+      (cells[Math.min(txt.length,5)]||cells[5]).focus();
+      if(txt.length===6){doVerify();}
+    });
+  });
+
+  verify.addEventListener("click",doVerify);
+  resend.addEventListener("click",function(){
+    if(resend.disabled||locked||passed){return;}
+    startResendCountdown();
+    setStatus("密钥码已重新推送至手机 App「钛匙」。30 秒内有效窗口。");
+  });
+  recovery.addEventListener("click",function(){
+    if(passed){return;}
+    setStatus("恢复密钥通道已打开：请在手机 App「钛匙」→ 钱包 → 恢复密钥中获取一次性口令。");
+  });
+
+  setLed("armed");
+  startResendCountdown();
+  cells[0].focus();
+})();
+</script>
+</body>
+</html>
