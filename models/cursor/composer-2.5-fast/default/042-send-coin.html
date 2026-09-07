@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>闪付 · 钱包转账</title>
+<style>
+:root{--page:#0a1628;--surface:#122240;--text:#e8f4fc;--muted:#7a9ab8;--accent:#2dd4bf;--accent2:#fbbf24;--border:#1e3a5f;--error:#f87171;--success:#34d399}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;background:var(--page);color:var(--text);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+.phone{width:390px;height:844px;background:var(--surface);border-radius:40px;border:3px solid #1e3a5f;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 48px rgba(0,0,0,.4)}
+.status{padding:12px 20px 0;font-size:12px;color:var(--muted);text-align:center}
+.header{padding:16px 20px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--border)}
+.header h1{font-size:18px;flex:1;text-align:center;margin-right:28px}
+.back{background:none;border:none;color:var(--accent);font-size:14px;cursor:pointer;padding:4px}
+.content{flex:1;overflow-y:auto;padding:20px}
+.balance-card{background:linear-gradient(135deg,#134e4a,#0f766e);border-radius:16px;padding:20px;margin-bottom:20px}
+.balance-card .label{font-size:13px;opacity:.8}
+.balance-card .amount{font-size:32px;font-weight:700;margin-top:4px}
+.source-tabs{display:flex;gap:8px;margin-bottom:16px}
+.source-tab{flex:1;padding:10px;border:1px solid var(--border);background:transparent;color:var(--muted);border-radius:10px;cursor:pointer;font-size:13px;text-align:center}
+.source-tab.active{background:var(--accent);color:#0a1628;border-color:var(--accent);font-weight:600}
+.payee-list{display:flex;flex-direction:column;gap:8px}
+.payee{display:flex;align-items:center;gap:12px;padding:14px;border:1px solid var(--border);border-radius:12px;cursor:pointer}
+.payee:hover,.payee.selected{border-color:var(--accent);background:rgba(45,212,191,.08)}
+.payee-avatar{width:40px;height:40px;border-radius:50%;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:18px}
+.amount-input{width:100%;font-size:36px;font-weight:700;background:transparent;border:none;border-bottom:2px solid var(--border);color:var(--text);padding:12px 0;text-align:center;outline:none}
+.amount-input:focus{border-color:var(--accent)}
+.quick-amts{display:flex;gap:8px;margin:16px 0;flex-wrap:wrap}
+.quick-amt{padding:8px 16px;border:1px solid var(--border);border-radius:20px;background:transparent;color:var(--text);cursor:pointer;font-size:14px}
+.quick-amt:hover{border-color:var(--accent)}
+.btn-primary{width:100%;background:var(--accent);color:#0a1628;border:none;padding:16px;border-radius:14px;font-size:16px;font-weight:700;cursor:pointer;margin-top:16px}
+.btn-primary:disabled{background:#334155;color:#64748b;cursor:not-allowed}
+.btn-primary:hover:not(:disabled){filter:brightness(1.1)}
+.alert{padding:12px 14px;border-radius:10px;font-size:13px;margin:12px 0}
+.alert-error{background:rgba(248,113,113,.15);color:var(--error);border:1px solid rgba(248,113,113,.3)}
+.confirm-row{display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border);font-size:14px}
+.receipt{text-align:center;padding:40px 20px}
+.receipt-icon{font-size:64px;margin-bottom:16px}
+.receipt h2{color:var(--success);margin-bottom:8px}
+.screen{display:none}.screen.active{display:block}
+.hint{font-size:12px;color:var(--muted);margin-top:8px;text-align:center}
+</style>
+</head>
+<body>
+<div class="phone">
+<div class="status">闪付 Wallet · 390×844</div>
+<div id="s1" class="screen active">
+<div class="header"><span></span><h1>转账</h1></div>
+<div class="content">
+<div class="balance-card"><div class="label">零钱余额</div><div class="amount" id="balDisplay">¥ 1,280.00</div></div>
+<div class="source-tabs"><button class="source-tab active" data-src="wallet">零钱</button><button class="source-tab" data-src="card">储蓄卡 ···8826</button></div>
+<h3 style="font-size:14px;color:var(--muted);margin-bottom:12px">选择收款人</h3>
+<div class="payee-list" id="payeeList"></div>
+<button class="btn-primary" id="toAmount" disabled>下一步</button>
+</div>
+</div>
+<div id="s2" class="screen">
+<div class="header"><button class="back" data-back="s1">←</button><h1>输入金额</h1></div>
+<div class="content">
+<p style="text-align:center;color:var(--muted);font-size:14px">向 <strong id="payeeName">—</strong> 转账</p>
+<input class="amount-input" id="amountIn" type="number" placeholder="0.00" min="0" step="0.01">
+<div class="quick-amts"><button class="quick-amt" data-a="100">100</button><button class="quick-amt" data-a="500">500</button><button class="quick-amt" data-a="1500">1500</button></div>
+<div id="amountAlert"></div>
+<p class="hint">输入超过可用余额将触发「余额不足」</p>
+<button class="btn-primary" id="toConfirm">确认转账</button>
+</div>
+</div>
+<div id="s3" class="screen">
+<div class="header"><button class="back" data-back="s2">←</button><h1>确认转账</h1></div>
+<div class="content">
+<div class="confirm-row"><span>收款人</span><span id="cfPayee">—</span></div>
+<div class="confirm-row"><span>金额</span><span id="cfAmt">—</span></div>
+<div class="confirm-row"><span>资金来源</span><span id="cfSrc">—</span></div>
+<div id="confirmAlert"></div>
+<button class="btn-primary" id="doPay">确认支付</button>
+</div>
+</div>
+<div id="s4" class="screen">
+<div class="content receipt">
+<div class="receipt-icon">✓</div>
+<h2>转账成功</h2>
+<p id="rcAmt" style="font-size:28px;font-weight:700;margin:12px 0">¥0</p>
+<p id="rcDetail" style="color:var(--muted);font-size:14px"></p>
+<button class="btn-primary" style="margin-top:24px" id="restart">完成</button>
+</div>
+</div>
+</div>
+<script>
+const payees=[{id:1,name:'张明',avatar:'张'},{id:2,name:'李婷',avatar:'李'},{id:3,name:'王磊',avatar:'王'}];
+let selPayee=null,amount=0,source='wallet',balance=1280,cardBalance=5000;
+const $=id=>document.getElementById(id);
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));$(id).classList.add('active');}
+function avail(){return source==='wallet'?balance:cardBalance;}
+function updateBal(){$('balDisplay').textContent='¥ '+balance.toLocaleString('zh-CN',{minimumFractionDigits:2});}
+$('payeeList').innerHTML=payees.map(p=>`<div class="payee" data-id="${p.id}"><div class="payee-avatar">${p.avatar}</div><div>${p.name}</div></div>`).join('');
+document.querySelectorAll('.payee').forEach(el=>el.onclick=()=>{document.querySelectorAll('.payee').forEach(p=>p.classList.remove('selected'));el.classList.add('selected');selPayee=payees.find(p=>p.id==+el.dataset.id);$('toAmount').disabled=false;});
+document.querySelectorAll('.source-tab').forEach(t=>t.onclick=()=>{document.querySelectorAll('.source-tab').forEach(x=>x.classList.remove('active'));t.classList.add('active');source=t.dataset.src;});
+$('toAmount').onclick=()=>{if(!selPayee)return;$('payeeName').textContent=selPayee.name;$('amountIn').value='';$('amountAlert').innerHTML='';show('s2');};
+document.querySelectorAll('.quick-amt').forEach(b=>b.onclick=()=>{$('amountIn').value=b.dataset.a;});
+document.querySelectorAll('[data-back]').forEach(b=>b.onclick=()=>show(b.dataset.back));
+$('toConfirm').onclick=()=>{amount=parseFloat($('amountIn').value)||0;if(amount<=0){$('amountAlert').innerHTML='<div class="alert alert-error">请输入有效金额</div>';return;}
+if(amount>avail()){$('amountAlert').innerHTML=`<div class="alert alert-error"><strong>余额不足</strong>：可用 ¥${avail().toFixed(2)}，请降低金额或切换资金来源。</div>`;return;}
+$('amountAlert').innerHTML='';$('cfPayee').textContent=selPayee.name;$('cfAmt').textContent='¥'+amount.toFixed(2);$('cfSrc').textContent=source==='wallet'?'零钱':'储蓄卡 ···8826';$('confirmAlert').innerHTML='';show('s3');};
+$('doPay').onclick=()=>{if(amount>avail()){$('confirmAlert').innerHTML=`<div class="alert alert-error"><strong>余额不足</strong>：可用 ¥${avail().toFixed(2)}</div>`;return;}
+if(source==='wallet')balance-=amount;else cardBalance-=amount;updateBal();$('rcAmt').textContent='¥'+amount.toFixed(2);$('rcDetail').textContent='已向 '+selPayee.name+' 转账 · '+new Date().toLocaleString('zh-CN');show('s4');};
+$('restart').onclick=()=>{selPayee=null;amount=0;document.querySelectorAll('.payee').forEach(p=>p.classList.remove('selected'));$('toAmount').disabled=true;show('s1');};
+updateBal();
+</script>
+</body>
+</html>

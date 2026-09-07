@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>市集小铺 · 商店首页</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--page:#fff8f0;--surface:#fff;--text:#3d2914;--muted:#8b6914;--accent:#c2410c;--accent2:#ea580c;--border:#e8d5b7;--price:#b45309}
+html,body{height:100%;font-family:"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;background:var(--page);color:var(--text)}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+body{min-width:768px}
+.shell{max-width:1280px;min-height:800px;margin:0 auto;padding:24px 36px}
+.banner{background:linear-gradient(135deg,#7c2d12,#c2410c);color:#fff;border-radius:16px;padding:28px 36px;margin-bottom:28px;display:flex;justify-content:space-between;align-items:center}
+.banner h1{font-size:28px;font-weight:800;letter-spacing:.04em}
+.banner p{opacity:.9;font-size:14px;margin-top:6px}
+.banner .tag{background:rgba(255,255,255,.2);padding:6px 14px;border-radius:20px;font-size:12px}
+.section-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+.section-head h2{font-size:18px;font-weight:700}
+.section-head span{font-size:13px;color:var(--muted)}
+.products{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.product{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;display:flex;flex-direction:column}
+.thumb{height:140px;display:flex;align-items:center;justify-content:center;font-size:48px;background:linear-gradient(180deg,#fef3c7,#fde68a)}
+.product-body{padding:16px 18px;flex:1;display:flex;flex-direction:column}
+.product h3{font-size:15px;font-weight:600;margin-bottom:6px}
+.product .desc{font-size:12px;color:var(--muted);margin-bottom:10px;line-height:1.4;flex:1}
+.product .price{font-size:20px;font-weight:800;color:var(--price);margin-bottom:12px}
+.product .price small{font-size:12px;font-weight:400;color:var(--muted);text-decoration:line-through;margin-left:6px}
+.add{border:none;background:var(--accent);color:#fff;padding:10px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;width:100%}
+.add:hover{background:var(--accent2)}
+.add.added{background:#16a34a}
+.toast{position:fixed;bottom:24px;right:24px;background:#1a1a1a;color:#fff;padding:12px 20px;border-radius:8px;font-size:13px;opacity:0;pointer-events:none;transition:opacity .25s}
+.toast.show{opacity:1}
+@media (prefers-reduced-motion:reduce){.toast{transition:none}}
+</style>
+</head>
+<body>
+<div class="shell">
+  <header class="banner">
+    <div><h1>市集小铺 Market Row</h1><p>手作与在地好物 · 本周上新 6 件</p></div>
+    <span class="tag">栏目：秋日精选</span>
+  </header>
+  <div class="section-head"><h2>今日推荐</h2><span>满 ¥99 包邮</span></div>
+  <div class="products" id="products"></div>
+</div>
+<div class="toast" id="toast" role="status"></div>
+<script>
+const PRODUCTS=[
+  {id:1,name:"桂花冷萃茶",desc:"杭州满觉陇金桂，低温慢萃 12 小时",price:38,old:45,emoji:"🍵"},
+  {id:2,name:"手工陶瓷杯",desc:"景德镇釉下彩，容量 280ml",price:89,old:null,emoji:"☕"},
+  {id:3,name:"蜂巢蜜礼盒",desc:"秦岭深处原生蜜，250g×2",price:128,old:158,emoji:"🍯"},
+  {id:4,name:"亚麻托特包",desc:"天然染色，可水洗",price:76,old:null,emoji:"👜"},
+  {id:5,name:"松烟墨书签",desc:"徽墨非遗工艺，附木盒",price:42,old:52,emoji:"📖"},
+  {id:6,name:"野山核桃仁",desc:"云南薄皮核桃，轻烘焙",price:56,old:null,emoji:"🥜"},
+  {id:7,name:"竹编收纳篮",desc:"安吉毛竹，手工编织",price:68,old:78,emoji:"🧺"},
+  {id:8,name:"玫瑰纯露",desc:"大马士革玫瑰蒸馏",price:95,old:null,emoji:"🌹"}
+];
+const cart=new Set();
+document.getElementById("products").innerHTML=PRODUCTS.slice(0,6).map(p=>`
+  <article class="product">
+    <div class="thumb">${p.emoji}</div>
+    <div class="product-body">
+      <h3>${p.name}</h3>
+      <p class="desc">${p.desc}</p>
+      <div class="price">¥${p.price}${p.old?`<small>¥${p.old}</small>`:''}</div>
+      <button class="add" type="button" data-id="${p.id}">加入购物车</button>
+    </div>
+  </article>`).join("");
+const toast=document.getElementById("toast");
+document.getElementById("products").onclick=e=>{
+  const btn=e.target.closest(".add");if(!btn)return;
+  const p=PRODUCTS.find(x=>x.id===+btn.dataset.id);
+  cart.add(p.id);btn.textContent="已加入";btn.classList.add("added");
+  toast.textContent=`「${p.name}」已加入购物车`;toast.classList.add("show");
+  setTimeout(()=>toast.classList.remove("show"),2000);
+};
+</script>
+</body>
+</html>

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>成功回执 · 完成票</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --page:#ecfdf5;--surface:#fff;--text:#064e3b;--muted:#6b9080;
+  --accent:#059669;--accent-light:#d1fae5;--border:#a7f3d0;
+  --perforate:#cbd5e1;--font:system-ui,-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+html{font-family:var(--font);background:#86efac;min-height:100vh}
+body{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.phone{width:390px;height:844px;background:var(--page);border-radius:44px;border:8px solid #1a1a1a;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 32px 64px rgba(0,0,0,.2);position:relative}
+.notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:120px;height:28px;background:#1a1a1a;border-radius:0 0 18px 18px;z-index:10}
+.scroll{flex:1;overflow-y:auto;padding:56px 24px 24px}
+.check-circle{width:64px;height:64px;background:var(--accent);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;box-shadow:0 8px 24px rgba(5,150,105,.3)}
+.check-circle svg{width:32px;height:32px;color:#fff}
+h1{font-size:24px;font-weight:700;text-align:center;color:var(--text);margin-bottom:8px}
+.subtitle{text-align:center;font-size:14px;color:var(--muted);margin-bottom:28px}
+.ticket{background:var(--surface);border-radius:16px;border:2px dashed var(--border);padding:24px;position:relative;margin-bottom:20px}
+.ticket::before,.ticket::after{content:"";position:absolute;top:50%;width:16px;height:16px;background:var(--page);border-radius:50%;transform:translateY(-50%)}
+.ticket::before{left:-10px;box-shadow:inset -2px 0 0 var(--border)}
+.ticket::after{right:-10px;box-shadow:inset 2px 0 0 var(--border)}
+.ticket-row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--accent-light)}
+.ticket-row:last-of-type{border-bottom:none}
+.ticket-row .label{font-size:12px;color:var(--muted)}
+.ticket-row .value{font-size:16px;font-weight:600;color:var(--text);text-align:right}
+.ticket-row .value.mono{font-family:Consolas,monospace;font-size:15px;color:var(--accent)}
+.details{margin-bottom:24px}
+.details-toggle{width:100%;padding:14px 16px;background:var(--surface);border:1px solid var(--border);border-radius:12px;font-size:14px;color:var(--text);cursor:pointer;display:flex;justify-content:space-between;align-items:center;text-align:left}
+.details-toggle svg{width:20px;height:20px;color:var(--muted);transition:transform .25s}
+.details-toggle.open svg{transform:rotate(180deg)}
+.details-body{max-height:0;overflow:hidden;transition:max-height .3s ease;padding:0 16px;background:var(--surface);border-radius:0 0 12px 12px;margin-top:-8px;border:1px solid var(--border);border-top:none}
+.details-body.open{max-height:200px;padding:16px}
+.details-body p{font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:8px}
+.done-btn{width:100%;padding:16px;background:var(--accent);color:#fff;border:none;border-radius:14px;font-size:16px;font-weight:600;cursor:pointer;margin-top:8px}
+.done-btn:hover{filter:brightness(1.05)}
+.done-btn:focus-visible{outline:2px solid var(--accent);outline-offset:4px}
+@media(prefers-reduced-motion:reduce){.details-toggle svg,.details-body{transition:none}}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="notch"></div>
+  <div class="scroll">
+    <div class="check-circle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+    <h1>挂号成功</h1>
+    <p class="subtitle">请按时到院，凭下方编号取号</p>
+    <div class="ticket">
+      <div class="ticket-row"><span class="label">预约编号</span><span class="value mono">GH-260307-0186</span></div>
+      <div class="ticket-row"><span class="label">就诊时间</span><span class="value">3月8日 09:30</span></div>
+      <div class="ticket-row"><span class="label">科室 / 席位</span><span class="value">内科 · 3 号诊台</span></div>
+      <div class="ticket-row"><span class="label">排队序号</span><span class="value">A-042</span></div>
+    </div>
+    <div class="details">
+      <button class="details-toggle" id="toggleBtn" aria-expanded="false">
+        查看完整明细
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+      </button>
+      <div class="details-body" id="detailsBody">
+        <p>患者：张** · 身份证尾号 3821</p>
+        <p>医生：李晓明 主任医师 · 挂号费 ¥50（已支付）</p>
+        <p>地址：市一医院门诊楼 2 层 · 请提前 15 分钟到达</p>
+        <p>如需改期，请至少在就诊前 2 小时在 App 内操作。</p>
+      </div>
+    </div>
+    <button class="done-btn" id="doneBtn">完成</button>
+  </div>
+</div>
+<script>
+const toggleBtn=document.getElementById('toggleBtn'),detailsBody=document.getElementById('detailsBody');
+toggleBtn.addEventListener('click',()=>{
+  const open=detailsBody.classList.toggle('open');
+  toggleBtn.classList.toggle('open',open);
+  toggleBtn.setAttribute('aria-expanded',open);
+});
+document.getElementById('doneBtn').addEventListener('click',()=>{document.getElementById('doneBtn').textContent='已添加到「我的预约」';document.getElementById('doneBtn').disabled=true;});
+</script>
+</body>
+</html>

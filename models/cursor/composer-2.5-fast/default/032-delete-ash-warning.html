@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>危险删除 · 灰域档案</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --page:#1c1c1e;--surface:#2c2c2e;--surface2:#3a3a3c;
+  --text:#f2f2f7;--muted:#98989d;--cancel:#5ac8fa;--cancel-hover:#7dd3fc;
+  --danger:#ff453a;--danger-dim:#8b3a34;--border:#48484a;
+  --radius:12px;--font:system-ui,-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+html{font-family:var(--font);background:var(--page);color:var(--text);min-height:100vh}
+body{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+.panel{max-width:560px;width:100%;background:var(--surface);border-radius:20px;border:1px solid var(--border);overflow:hidden}
+.header{padding:28px 32px 0;display:flex;align-items:center;gap:14px}
+.icon-wrap{width:44px;height:44px;border-radius:50%;background:#3a2020;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.icon-wrap svg{width:22px;height:22px;color:var(--danger)}
+.body{padding:20px 32px 28px}
+h1{font-size:20px;font-weight:600;margin-bottom:6px}
+.lead{color:var(--muted);font-size:14px;line-height:1.6;margin-bottom:22px}
+.loss{background:var(--page);border-radius:var(--radius);padding:16px 18px;margin-bottom:22px}
+.loss h2{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px}
+.loss ul{list-style:none;font-size:14px;line-height:1.8}
+.loss li{padding-left:18px;position:relative;color:#d1d1d6}
+.loss li::before{content:"";position:absolute;left:0;top:.65em;width:6px;height:6px;border-radius:50%;background:var(--danger-dim)}
+.field{margin-bottom:24px}
+.field label{display:block;font-size:13px;color:var(--muted);margin-bottom:8px}
+.field label strong{color:var(--text);font-family:monospace;background:var(--surface2);padding:2px 6px;border-radius:4px}
+.field input{width:100%;padding:12px 14px;border-radius:var(--radius);border:1px solid var(--border);background:var(--page);color:var(--text);font-size:15px;font-family:inherit}
+.field input:focus{outline:2px solid var(--cancel);outline-offset:0;border-color:var(--cancel)}
+.field input::placeholder{color:#636366}
+.hint{font-size:12px;color:var(--muted);margin-top:6px}
+.actions{display:flex;flex-direction:column;gap:10px;padding:0 32px 28px}
+.btn-cancel{width:100%;padding:14px;border-radius:var(--radius);font-size:15px;font-weight:600;border:none;cursor:pointer;background:var(--cancel);color:#0a2535;transition:background .2s}
+.btn-cancel:hover{background:var(--cancel-hover)}
+.btn-cancel:focus-visible{outline:2px solid var(--text);outline-offset:2px}
+.btn-delete{width:100%;padding:11px;border-radius:var(--radius);font-size:13px;font-weight:500;border:1px solid transparent;cursor:pointer;background:transparent;color:var(--muted);transition:color .2s,background .2s,border-color .2s}
+.btn-delete:disabled{opacity:.4;cursor:not-allowed}
+.btn-delete:not(:disabled){color:var(--danger);border-color:var(--danger-dim);background:#2a1818}
+.btn-delete:not(:disabled):hover{background:#3a2020}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s}
+.overlay.show{opacity:1;pointer-events:auto}
+.overlay-box{background:var(--surface);padding:24px 32px;border-radius:var(--radius);text-align:center;font-size:14px;color:var(--muted)}
+@media(max-width:768px){.header,.body,.actions{padding-left:20px;padding-right:20px}}
+@media(prefers-reduced-motion:reduce){.btn-cancel,.btn-delete,.overlay{transition:none}}
+</style>
+</head>
+<body>
+<div class="panel">
+  <div class="header">
+    <div class="icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></div>
+    <div><h1>删除整个工作区</h1></div>
+  </div>
+  <div class="body">
+    <p class="lead">「灰域设计组」及其全部数据将被永久移除，此操作无法撤销。</p>
+    <div class="loss">
+      <h2>你将失去</h2>
+      <ul>
+        <li>128 份设计稿与 14 个共享组件库</li>
+        <li>6 位成员的协作权限与评论历史</li>
+        <li>已绑定的 Pro 订阅剩余 214 天（不退款）</li>
+      </ul>
+    </div>
+    <div class="field">
+      <label>输入 <strong>删除灰域设计组</strong> 以确认</label>
+      <input type="text" id="confirmInput" placeholder="请输入确认词" autocomplete="off" spellcheck="false">
+      <p class="hint">区分大小写，须完全匹配</p>
+    </div>
+  </div>
+  <div class="actions">
+    <button type="button" class="btn-cancel" id="cancelBtn">保留工作区，返回设置</button>
+    <button type="button" class="btn-delete" id="deleteBtn" disabled>永久删除</button>
+  </div>
+</div>
+<div class="overlay" id="overlay"><div class="overlay-box">已取消 · 工作区安全保留</div></div>
+<script>
+const input=document.getElementById('confirmInput'),deleteBtn=document.getElementById('deleteBtn'),cancelBtn=document.getElementById('cancelBtn'),overlay=document.getElementById('overlay');
+const WORD='删除灰域设计组';
+input.addEventListener('input',()=>{deleteBtn.disabled=input.value.trim()!==WORD});
+cancelBtn.addEventListener('click',()=>{overlay.classList.add('show');setTimeout(()=>overlay.classList.remove('show'),1800);});
+deleteBtn.addEventListener('click',()=>{if(deleteBtn.disabled)return;deleteBtn.textContent='删除中…';deleteBtn.disabled=true;setTimeout(()=>{deleteBtn.textContent='已提交删除请求';},800);});
+</script>
+</body>
+</html>

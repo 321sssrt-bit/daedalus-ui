@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>习环 · 健康习惯</title>
+<style>
+:root{--page:#fff7ed;--surface:#ffffff;--text:#431407;--muted:#9a3412;--accent:#ea580c;--accent2:#fb923c;--border:#fed7aa;--error:#dc2626;--success:#16a34a;--ring-bg:#ffedd5}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;background:var(--page);color:var(--text);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+.phone{width:390px;height:844px;background:var(--surface);border-radius:40px;border:3px solid var(--border);overflow:hidden;display:flex;flex-direction:column}
+.header{padding:20px;text-align:center;border-bottom:1px solid var(--border)}
+.header h1{font-size:22px;color:var(--accent)}
+.rings{display:flex;justify-content:center;gap:20px;padding:24px 16px}
+.ring-wrap{text-align:center}
+.ring{width:90px;height:90px;border-radius:50%;background:conic-gradient(var(--accent) var(--pct,0%),var(--ring-bg) 0);display:flex;align-items:center;justify-content:center;position:relative}
+.ring-inner{width:70px;height:70px;border-radius:50%;background:var(--surface);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-direction:column}
+.ring-inner small{font-size:10px;color:var(--muted);font-weight:400}
+.content{flex:1;overflow-y:auto;padding:16px 20px}
+.form-group{margin-bottom:16px}
+.form-group label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
+.form-group input{width:100%;padding:12px;border:1px solid var(--border);border-radius:10px;font-size:16px}
+.form-group input:focus{outline:2px solid var(--accent);border-color:var(--accent)}
+.hint{font-size:11px;color:var(--muted);margin-top:4px}
+.btn{width:100%;padding:14px;background:var(--accent);color:#fff;border:none;border-radius:12px;font-size:16px;font-weight:600;cursor:pointer}
+.btn:disabled{background:#fdba74}
+.alert{padding:12px;border-radius:10px;font-size:13px;margin:12px 0}
+.alert-error{background:#fef2f2;color:var(--error);border:1px solid #fecaca}
+.trend{margin-top:20px}
+.trend h3{font-size:14px;margin-bottom:12px;color:var(--muted)}
+.bars{display:flex;align-items:flex-end;gap:8px;height:80px}
+.bar{flex:1;background:var(--accent2);border-radius:4px 4px 0 0;min-height:4px;transition:height .3s}
+.bar-label{font-size:10px;text-align:center;color:var(--muted);margin-top:4px}
+</style>
+</head>
+<body>
+<div class="phone">
+<div class="header"><h1>习环 HabitRing</h1><p style="font-size:13px;color:var(--muted);margin-top:4px">今日目标进度</p></div>
+<div class="rings">
+<div class="ring-wrap"><div class="ring" id="ringSteps" style="--pct:0%"><div class="ring-inner"><span id="stepsPct">0%</span><small>步数</small></div></div></div>
+<div class="ring-wrap"><div class="ring" id="ringCal" style="--pct:0%"><div class="ring-inner"><span id="calPct">0%</span><small>卡路里</small></div></div></div>
+</div>
+<div class="content">
+<h3 style="font-size:16px;margin-bottom:12px">记录活动</h3>
+<div id="dataAlert"></div>
+<div class="form-group"><label>步数</label><input type="number" id="stepsIn" placeholder="例：8000"><p class="hint">合理范围：0 – 50,000 步</p></div>
+<div class="form-group"><label>消耗卡路里</label><input type="number" id="calIn" placeholder="例：320"><p class="hint">合理范围：0 – 5,000 千卡</p></div>
+<button class="btn" id="saveBtn">保存记录</button>
+<div class="trend"><h3>近 7 日趋势</h3><div class="bars" id="trendBars"></div></div>
+</div>
+</div>
+<script>
+const goals={steps:10000,cal:500};
+let data={steps:6200,cal:280},trend=[5200,6800,7100,6200,8000,7500,6200];
+const $=id=>document.getElementById(id);
+function updateUI(){const sp=Math.min(100,Math.round(data.steps/goals.steps*100));const cp=Math.min(100,Math.round(data.cal/goals.cal*100));
+$('stepsPct').textContent=sp+'%';$('calPct').textContent=cp+'%';$('ringSteps').style.setProperty('--pct',sp+'%');$('ringCal').style.setProperty('--pct',cp+'%');
+const max=Math.max(...trend,1);$('trendBars').innerHTML=trend.map((v,i)=>`<div style="flex:1"><div class="bar" style="height:${v/max*70}px"></div><div class="bar-label">${['一','二','三','四','五','六','日'][i]}</div></div>`).join('');}
+$('saveBtn').onclick=()=>{const s=+($('stepsIn').value)||0,c=+($('calIn').value)||0;$('dataAlert').innerHTML='';
+if(s<0||s>50000||c<0||c>5000){$('dataAlert').innerHTML='<div class="alert alert-error"><strong>数据无效</strong>：步数须在 0–50,000，卡路里须在 0–5,000。原有进度未变。</div>';return;}
+data.steps=s;data.cal=c;trend[trend.length-1]=s;updateUI();$('dataAlert').innerHTML='<div class="alert" style="background:#ecfdf5;color:#16a34a;border:1px solid #a7f3d0">记录已保存，进度与趋势已更新</div>';$('stepsIn').value='';$('calIn').value='';};
+updateUI();
+</script>
+</body>
+</html>

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>环圈 · 社交动态</title>
+<style>
+:root{--page:#fff5f0;--surface:#ffffff;--text:#1c1917;--muted:#78716c;--accent:#ea580c;--accent-light:#ffedd5;--border:#e7e5e4;--error:#dc2626;--success:#16a34a}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;background:var(--page);color:var(--text);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+.phone{width:390px;height:844px;background:var(--surface);border-radius:40px;border:3px solid var(--border);overflow:hidden;display:flex;flex-direction:column;box-shadow:0 16px 40px rgba(234,88,12,.12)}
+.header{padding:16px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border)}
+.header h1{font-size:20px;color:var(--accent)}
+.compose-fab{background:var(--accent);color:#fff;border:none;width:44px;height:44px;border-radius:50%;font-size:24px;cursor:pointer;line-height:1}
+.compose-fab:hover{filter:brightness(1.05)}
+.feed{flex:1;overflow-y:auto;padding:12px 16px}
+.post{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:12px}
+.post-head{display:flex;gap:10px;align-items:center;margin-bottom:10px}
+.avatar{width:36px;height:36px;border-radius:50%;background:var(--accent-light);display:flex;align-items:center;justify-content:center;font-weight:600;color:var(--accent)}
+.post-meta{font-size:12px;color:var(--muted)}
+.post-body{font-size:15px;line-height:1.6}
+.vis-tag{display:inline-block;font-size:11px;background:var(--accent-light);color:var(--accent);padding:2px 8px;border-radius:10px;margin-top:8px}
+.screen{display:none;flex:1;flex-direction:column;overflow:hidden}.screen.active{display:flex}
+.compose-area{flex:1;padding:16px;display:flex;flex-direction:column}
+.compose-area textarea{flex:1;border:1px solid var(--border);border-radius:12px;padding:14px;font-size:15px;resize:none;font-family:inherit;outline:none}
+.compose-area textarea:focus{border-color:var(--accent)}
+.vis-select{margin:12px 0;display:flex;gap:8px;flex-wrap:wrap}
+.vis-opt{padding:8px 14px;border:1px solid var(--border);border-radius:20px;background:#fff;cursor:pointer;font-size:13px}
+.vis-opt.selected{background:var(--accent);color:#fff;border-color:var(--accent)}
+.actions{display:flex;gap:10px;padding:16px;border-top:1px solid var(--border)}
+.btn{flex:1;padding:14px;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;border:none}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-secondary{background:#fff;border:1px solid var(--border);color:var(--text)}
+.fail-toggle{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:6px;padding:0 16px 8px}
+.fail-toggle input{width:16px;height:16px}
+.alert{padding:10px 12px;border-radius:10px;font-size:13px;margin:8px 16px}
+.alert-error{background:#fef2f2;color:var(--error);border:1px solid #fecaca}
+.back{padding:12px 16px;color:var(--accent);cursor:pointer;font-size:14px;border:none;background:none}
+</style>
+</head>
+<body>
+<div class="phone">
+<div id="feedScreen" class="screen active">
+<div class="header"><h1>环圈</h1><button class="compose-fab" id="openCompose">+</button></div>
+<div class="feed" id="feedArea"></div>
+</div>
+<div id="composeScreen" class="screen">
+<button class="back" id="backFeed">← 返回动态</button>
+<label class="fail-toggle"><input type="checkbox" id="failMode">模拟发布失败</label>
+<div id="composeAlert"></div>
+<div class="compose-area">
+<textarea id="draftText" placeholder="分享此刻的想法…"></textarea>
+<div style="font-size:13px;color:var(--muted);margin-top:8px">可见范围</div>
+<div class="vis-select" id="visOpts"></div>
+</div>
+<div class="actions"><button class="btn btn-secondary" id="cancelCompose">取消</button><button class="btn btn-primary" id="publishBtn">发布</button></div>
+</div>
+</div>
+<script>
+const visOptions=['公开','仅好友','仅自己'];
+let feed=[{user:'林小北',text:'今天完成了第一个原型，成就感满满！',vis:'公开',time:'2小时前'},{user:'赵航',text:'有人一起参加下周的设计沙龙吗？',vis:'仅好友',time:'5小时前'}];
+let selVis='公开';
+const $=id=>document.getElementById(id);
+function renderFeed(){$('feedArea').innerHTML=feed.map(p=>`<article class="post"><div class="post-head"><div class="avatar">${p.user[0]}</div><div><strong>${p.user}</strong><div class="post-meta">${p.time}</div></div></div><div class="post-body">${p.text}</div><span class="vis-tag">${p.vis}</span></article>`).join('');}
+function renderVis(){$('visOpts').innerHTML=visOptions.map(v=>`<button class="vis-opt${v===selVis?' selected':''}" data-v="${v}">${v}</button>`).join('');
+document.querySelectorAll('.vis-opt').forEach(b=>b.onclick=()=>{selVis=b.dataset.v;renderVis();});}
+$('openCompose').onclick=()=>{$('draftText').value='';$('composeAlert').innerHTML='';renderVis();$('feedScreen').classList.remove('active');$('composeScreen').classList.add('active');};
+$('backFeed').onclick=$('cancelCompose').onclick=()=>{$('composeScreen').classList.remove('active');$('feedScreen').classList.add('active');};
+$('publishBtn').onclick=()=>{const text=$('draftText').value.trim();if(!text)return;
+if($('failMode').checked){$('composeAlert').innerHTML='<div class="alert alert-error"><strong>发布失败</strong>：网络异常，草稿与可见范围已保留，请重试。</div>';$('failMode').checked=false;return;}
+feed.unshift({user:'我',text,vis:selVis,time:'刚刚'});renderFeed();$('composeScreen').classList.remove('active');$('feedScreen').classList.add('active');};
+renderFeed();
+</script>
+</body>
+</html>

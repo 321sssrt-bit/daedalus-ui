@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>暖铺 · 购物零售</title>
+<style>
+:root{--page:#f5efe6;--surface:#fffdf9;--text:#2c1810;--muted:#8a7368;--accent:#c45c26;--accent-hover:#a34a1c;--border:#e8ddd4;--success:#2d6a4f;--error:#b91c1c;--shadow:0 2px 12px rgba(44,24,16,.08)}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;background:var(--page);color:var(--text);min-height:100vh}
+.app{max-width:1280px;margin:0 auto;padding:24px 32px}
+header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid var(--border)}
+.logo{font-size:22px;font-weight:700;color:var(--accent)}
+nav{display:flex;gap:16px;align-items:center}
+.nav-btn{background:none;border:none;font-size:14px;color:var(--muted);cursor:pointer;padding:8px 12px;border-radius:8px}
+.nav-btn:hover,.nav-btn:focus{background:var(--border);outline:2px solid var(--accent);outline-offset:2px}
+.nav-btn.active{color:var(--accent);font-weight:600;background:#fff}
+.cart-badge{background:var(--accent);color:#fff;border-radius:10px;padding:2px 8px;font-size:12px;margin-left:4px}
+.screen{display:none}
+.screen.active{display:block}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;cursor:pointer;transition:box-shadow .2s,transform .2s}
+.card:hover,.card:focus{box-shadow:var(--shadow);transform:translateY(-2px);outline:none}
+.card-img{height:120px;background:linear-gradient(135deg,#e8ddd4,#d4c4b8);border-radius:8px;margin-bottom:12px;display:flex;align-items:center;justify-content:center;font-size:48px}
+.card h3{font-size:16px;margin-bottom:4px}
+.card .price{color:var(--accent);font-weight:600;font-size:18px}
+.detail{display:grid;grid-template-columns:1fr 1fr;gap:32px}
+.detail-img{height:320px;background:linear-gradient(135deg,#e8ddd4,#c4a88a);border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:80px}
+.spec-group{margin:16px 0}
+.spec-group label{display:block;font-size:13px;color:var(--muted);margin-bottom:8px}
+.specs{display:flex;gap:8px;flex-wrap:wrap}
+.spec-btn{padding:8px 16px;border:1px solid var(--border);background:#fff;border-radius:8px;cursor:pointer;font-size:14px}
+.spec-btn:hover,.spec-btn:focus{border-color:var(--accent);outline:none}
+.spec-btn.selected{background:var(--accent);color:#fff;border-color:var(--accent)}
+.qty-row{display:flex;align-items:center;gap:12px;margin:20px 0}
+.qty-btn{width:36px;height:36px;border:1px solid var(--border);background:#fff;border-radius:8px;font-size:18px;cursor:pointer}
+.qty-btn:hover,.qty-btn:focus{border-color:var(--accent);outline:2px solid var(--accent)}
+.qty-val{font-size:18px;min-width:32px;text-align:center}
+.btn-primary{background:var(--accent);color:#fff;border:none;padding:12px 28px;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer}
+.btn-primary:hover{background:var(--accent-hover)}
+.btn-primary:focus{outline:2px solid var(--text);outline-offset:2px}
+.btn-primary:disabled{background:#ccc;cursor:not-allowed}
+.btn-secondary{background:#fff;color:var(--text);border:1px solid var(--border);padding:10px 20px;border-radius:10px;cursor:pointer;font-size:14px}
+.btn-secondary:hover{border-color:var(--accent)}
+.cart-list{max-width:640px}
+.cart-item{display:flex;justify-content:space-between;align-items:center;padding:16px;background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:12px}
+.cart-total{font-size:20px;font-weight:700;text-align:right;margin:20px 0;padding-top:16px;border-top:2px solid var(--border)}
+.alert{padding:14px 18px;border-radius:10px;margin:16px 0;font-size:14px}
+.alert-error{background:#fef2f2;color:var(--error);border:1px solid #fecaca}
+.alert-success{background:#ecfdf5;color:var(--success);border:1px solid #a7f3d0}
+.alert-info{background:#fff7ed;color:#9a3412;border:1px solid #fed7aa}
+.receipt{max-width:480px;margin:40px auto;text-align:center;padding:40px;background:var(--surface);border-radius:16px;border:2px dashed var(--accent)}
+.receipt h2{color:var(--success);margin-bottom:16px}
+.trigger-bar{background:#fff7ed;border:1px dashed var(--accent);padding:10px 14px;border-radius:8px;margin-bottom:16px;font-size:13px;display:flex;align-items:center;gap:10px}
+.trigger-bar input{width:18px;height:18px;cursor:pointer}
+.back-link{color:var(--accent);cursor:pointer;font-size:14px;margin-bottom:16px;display:inline-block}
+.back-link:hover{text-decoration:underline}
+@media(max-width:768px){.grid{grid-template-columns:1fr}.detail{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+<div class="logo">暖铺 NuanShop</div>
+<nav>
+<button class="nav-btn active" data-go="browse">商品浏览</button>
+<button class="nav-btn" data-go="cart">购物车 <span class="cart-badge" id="cartCount">0</span></button>
+</nav>
+</header>
+
+<div id="browse" class="screen active">
+<div class="trigger-bar"><input type="checkbox" id="stockMode"><label for="stockMode">模拟缺货：选中「燕麦色 / L」规格时将触发库存不足</label></div>
+<div class="grid" id="productGrid"></div>
+</div>
+
+<div id="detail" class="screen">
+<span class="back-link" data-go="browse">← 返回浏览</span>
+<div class="detail">
+<div class="detail-img" id="detailEmoji">🧥</div>
+<div>
+<h1 id="detailName">商品名</h1>
+<p class="price" id="detailPrice">¥0</p>
+<div class="spec-group"><label>颜色</label><div class="specs" id="colorSpecs"></div></div>
+<div class="spec-group"><label>尺码</label><div class="specs" id="sizeSpecs"></div></div>
+<div class="qty-row"><span>数量</span><button class="qty-btn" id="qtyMinus">−</button><span class="qty-val" id="qtyVal">1</span><button class="qty-btn" id="qtyPlus">+</button></div>
+<button class="btn-primary" id="addCart">加入购物车</button>
+</div>
+</div>
+</div>
+
+<div id="cart" class="screen">
+<span class="back-link" data-go="browse">← 继续购物</span>
+<h2 style="margin-bottom:16px">购物车</h2>
+<div id="cartAlert"></div>
+<div class="cart-list" id="cartList"></div>
+<div class="cart-total">合计：<span id="cartTotal">¥0</span></div>
+<button class="btn-primary" id="submitOrder">提交订单</button>
+</div>
+
+<div id="receipt" class="screen">
+<div class="receipt">
+<h2>✓ 订单提交成功</h2>
+<p id="receiptId">订单号：NS-000000</p>
+<p id="receiptSum">合计：¥0</p>
+<p style="color:var(--muted);margin-top:12px;font-size:14px">预计 3 日内送达，可在「我的订单」查看物流</p>
+<button class="btn-secondary" data-go="browse" style="margin-top:20px">继续购物</button>
+</div>
+</div>
+</div>
+<script>
+const products=[
+{id:1,name:'羊毛混纺大衣',price:899,emoji:'🧥',colors:['燕麦色','炭黑'],sizes:['S','M','L']},
+{id:2,name:'棉质休闲衬衫',price:259,emoji:'👔',colors:['浅蓝','白色'],sizes:['M','L','XL']},
+{id:3,name:'高腰直筒牛仔裤',price:329,emoji:'👖',colors:['靛蓝','浅洗'],sizes:['27','28','29']},
+{id:4,name:'针织围巾',price:129,emoji:'🧣',colors:['酒红','灰褐'],sizes:['均码']},
+{id:5,name:'皮革托特包',price:599,emoji:'👜',colors:['焦糖','黑色'],sizes:['中号']},
+{id:6,name:'缓震跑鞋',price:459,emoji:'👟',colors:['白橙','全黑'],sizes:['40','41','42']}
+];
+let cart=[],current=null,qty=1,selColor='',selSize='';
+const $=id=>document.getElementById(id);
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));$(id).classList.add('active');document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.go===id||id==='detail'&&b.dataset.go==='browse'||id==='receipt'&&b.dataset.go==='cart'));}
+function renderGrid(){const g=$('productGrid');g.innerHTML=products.map(p=>`<article class="card" tabindex="0" data-id="${p.id}"><div class="card-img">${p.emoji}</div><h3>${p.name}</h3><p class="price">¥${p.price}</p></article>`).join('');g.querySelectorAll('.card').forEach(c=>c.onclick=()=>openDetail(+c.dataset.id));}
+function openDetail(id){current=products.find(p=>p.id===id);qty=1;selColor=current.colors[0];selSize=current.sizes[0];$('detailEmoji').textContent=current.emoji;$('detailName').textContent=current.name;$('detailPrice').textContent='¥'+current.price;$('qtyVal').textContent=qty;renderSpecs();show('detail');}
+function renderSpecs(){const mk=(arr,sel,el)=>{$(el).innerHTML=arr.map(v=>`<button class="spec-btn${v===sel?' selected':''}" data-v="${v}">${v}</button>`).join('');$(el).querySelectorAll('.spec-btn').forEach(b=>b.onclick=()=>{if(el==='colorSpecs')selColor=b.dataset.v;else selSize=b.dataset.v;renderSpecs();});};mk(current.colors,selColor,'colorSpecs');mk(current.sizes,selSize,'sizeSpecs');}
+function isOutOfStock(){return $('stockMode').checked&&selColor==='燕麦色'&&selSize==='L';}
+function updateCartUI(){const n=cart.reduce((a,i)=>a+i.qty,0);$('cartCount').textContent=n;const list=$('cartList');if(!cart.length){list.innerHTML='<p style="color:var(--muted)">购物车为空</p>';$('cartTotal').textContent='¥0';return;}
+list.innerHTML=cart.map((i,idx)=>`<div class="cart-item"><div><strong>${i.name}</strong><br><span style="font-size:13px;color:var(--muted)">${i.color} / ${i.size} × ${i.qty}</span></div><div><span style="font-weight:600">¥${i.price*i.qty}</span> <button class="btn-secondary" style="margin-left:8px;padding:4px 10px" data-rm="${idx}">删除</button></div></div>`).join('');
+list.querySelectorAll('[data-rm]').forEach(b=>b.onclick=()=>{cart.splice(+b.dataset.rm,1);updateCartUI();});
+const total=cart.reduce((a,i)=>a+i.price*i.qty,0);$('cartTotal').textContent='¥'+total;}
+document.querySelectorAll('[data-go]').forEach(el=>el.onclick=()=>show(el.dataset.go));
+$('qtyMinus').onclick=()=>{if(qty>1){qty--;$('qtyVal').textContent=qty;}};
+$('qtyPlus').onclick=()=>{qty++;$('qtyVal').textContent=qty;};
+$('addCart').onclick=()=>{if(isOutOfStock()){alert('该规格暂时缺货，请选择其他颜色或尺码');return;}
+cart.push({...current,color:selColor,size:selSize,qty});updateCartUI();show('cart');};
+$('submitOrder').onclick=()=>{const alert=$('cartAlert');alert.innerHTML='';
+const bad=cart.find(i=>$('stockMode').checked&&i.color==='燕麦色'&&i.size==='L');
+if(bad){alert.innerHTML=`<div class="alert alert-error"><strong>库存不足</strong>：${bad.name}（${bad.color} / ${bad.size}）当前无货，请改选规格或减少数量后重新提交。</div>`;return;}
+const total=cart.reduce((a,i)=>a+i.price*i.qty,0);$('receiptId').textContent='订单号：NS-'+Date.now().toString().slice(-8);$('receiptSum').textContent='合计：¥'+total;cart=[];updateCartUI();show('receipt');};
+renderGrid();updateCartUI();
+</script>
+</body>
+</html>

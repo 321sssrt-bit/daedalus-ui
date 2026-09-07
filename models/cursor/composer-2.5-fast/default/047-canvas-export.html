@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>绘出 · 创作导出</title>
+<style>
+:root{--page:#fafafa;--surface:#ffffff;--text:#171717;--muted:#737373;--accent:#84cc16;--accent-dark:#65a30d;--border:#e5e5e5;--error:#ef4444;--preview-bg:#f5f5f4}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;background:var(--page);color:var(--text);min-height:100vh}
+.app{max-width:1280px;margin:0 auto;padding:24px 32px;display:grid;grid-template-columns:320px 1fr 280px;gap:24px;min-height:calc(100vh - 48px)}
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px}
+.panel h2{font-size:14px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:16px}
+.layer{display:flex;align-items:center;gap:10px;padding:10px;border:1px solid var(--border);border-radius:8px;margin-bottom:8px;cursor:pointer}
+.layer.active{border-color:var(--accent);background:#f7fee7}
+.layer-eye{width:20px;text-align:center;cursor:pointer}
+.preview-area{background:var(--preview-bg);border:1px solid var(--border);border-radius:12px;min-height:400px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.preview-canvas{width:280px;height:280px;border-radius:50%;transition:background .3s,transform .3s}
+.slider-row{margin:14px 0}
+.slider-row label{display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px}
+.slider-row input[type=range]{width:100%;accent-color:var(--accent)}
+.export-opt{padding:10px 14px;border:1px solid var(--border);border-radius:8px;margin-bottom:8px;cursor:pointer;font-size:14px}
+.export-opt.selected{border-color:var(--accent);background:#f7fee7}
+.checkbox-row{display:flex;align-items:center;gap:8px;margin:10px 0;font-size:13px}
+.btn{width:100%;padding:12px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;margin-top:12px}
+.btn:disabled{background:#d4d4d4;cursor:not-allowed}
+.btn:hover:not(:disabled){background:var(--accent-dark)}
+.alert{padding:12px;border-radius:8px;font-size:13px;margin:10px 0}
+.alert-error{background:#fef2f2;color:var(--error);border:1px solid #fecaca}
+.result{text-align:center;padding:20px}
+.result-icon{font-size:48px;color:var(--accent);margin-bottom:12px}
+@media(max-width:768px){.app{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="app">
+<div class="panel">
+<h2>图层</h2>
+<div id="layerList"></div>
+<h2 style="margin-top:20px">参数</h2>
+<div class="slider-row"><label><span>色相</span><span id="hueVal">200</span></label><input type="range" id="hue" min="0" max="360" value="200"></div>
+<div class="slider-row"><label><span>饱和度</span><span id="satVal">70</span></label><input type="range" id="sat" min="0" max="100" value="70"></div>
+<div class="slider-row"><label><span>缩放</span><span id="scaleVal">100</span></label><input type="range" id="scale" min="50" max="150" value="100"></div>
+</div>
+<div class="panel">
+<h2>实时预览</h2>
+<div class="preview-area"><div class="preview-canvas" id="preview"></div></div>
+</div>
+<div class="panel">
+<h2>导出</h2>
+<div id="formatOpts"></div>
+<label class="checkbox-row"><input type="checkbox" id="transparent"> 透明背景</label>
+<label class="checkbox-row"><input type="checkbox" id="cmyk"> CMYK 色彩模式</label>
+<div id="exportAlert"></div>
+<button class="btn" id="exportBtn">导出作品</button>
+<div id="exportResult" style="display:none" class="result">
+<div class="result-icon">✓</div>
+<p><strong id="resultName">poster.png</strong></p>
+<p style="font-size:13px;color:var(--muted);margin-top:6px" id="resultMeta">—</p>
+</div>
+</div>
+</div>
+<script>
+const formats=['PNG','JPEG','SVG','PDF'];
+let selFmt='PNG',layers=[{id:1,name:'背景圆',visible:true},{id:2,name:'装饰环',visible:true},{id:3,name:'标题文字',visible:true}];
+const $=id=>document.getElementById(id);
+function updatePreview(){const h=$('hue').value,s=$('sat').value,sc=$('scale').value;$('hueVal').textContent=h;$('satVal').textContent=s;$('scaleVal').textContent=sc;
+$('preview').style.background=`hsl(${h},${s}%,55%)`;$('preview').style.transform=`scale(${sc/100})`;}
+function renderLayers(){$('layerList').innerHTML=layers.map(l=>`<div class="layer active"><span class="layer-eye">${l.visible?'👁':'—'}</span><span>${l.name}</span></div>`).join('');}
+function renderFormats(){$('formatOpts').innerHTML=formats.map(f=>`<div class="export-opt${f===selFmt?' selected':''}" data-f="${f}">${f}</div>`).join('');
+document.querySelectorAll('.export-opt').forEach(el=>el.onclick=()=>{selFmt=el.dataset.f;renderFormats();});}
+function isConflict(){return selFmt==='JPEG'&&$('transparent').checked||selFmt==='SVG'&&$('cmyk').checked;}
+$('exportBtn').onclick=()=>{$('exportAlert').innerHTML='';$('exportResult').style.display='none';
+if(isConflict()){$('exportAlert').innerHTML='<div class="alert alert-error"><strong>导出条件不支持</strong>：JPEG 不支持透明背景；SVG 不支持 CMYK 模式。请修正设置后重试。</div>';return;}
+const name='作品_'+Date.now()+'.'+selFmt.toLowerCase();$('resultName').textContent=name;$('resultMeta').textContent=`${selFmt} · ${$('transparent').checked?'透明':'不透明'} · ${$('cmyk').checked?'CMYK':'RGB'}`;$('exportResult').style.display='block';};
+['hue','sat','scale'].forEach(id=>$(id).oninput=updatePreview);
+renderLayers();renderFormats();updatePreview();
+</script>
+</body>
+</html>

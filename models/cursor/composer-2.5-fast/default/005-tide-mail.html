@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>潮汐邮 · 找回密码</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --page:#e8f4f8;--surface:#ffffff;--text:#0d3d4a;--muted:#5a8a96;
+  --accent:#0891b2;--wave:#67e8f9;--sent:#059669;--border:#b8dce6;
+}
+html{font-family:"Segoe UI","PingFang SC",sans-serif;background:var(--page);color:var(--text);min-height:100vh}
+body{min-height:100vh;display:flex}
+.side{flex:1;background:linear-gradient(160deg,#0891b2 0%,#0e7490 100%);display:flex;align-items:flex-end;padding:48px;position:relative;overflow:hidden}
+.side svg{position:absolute;bottom:0;left:0;width:100%;height:120px;opacity:.4}
+.side-text{color:#fff;position:relative;z-index:1;max-width:320px}
+.side-text h2{font-size:28px;margin-bottom:12px;font-weight:300}
+.side-text p{font-size:14px;opacity:.85;line-height:1.6}
+.form-side{width:480px;min-width:320px;background:var(--surface);display:flex;flex-direction:column;justify-content:center;padding:56px 48px}
+.back-link{font-size:13px;color:var(--muted);text-decoration:none;margin-bottom:32px;display:inline-flex;align-items:center;gap:6px}
+.back-link:hover{color:var(--accent)}
+h1{font-size:22px;margin-bottom:8px}
+.sub{font-size:14px;color:var(--muted);margin-bottom:28px;line-height:1.6}
+.field{margin-bottom:20px}
+.field label{display:block;font-size:13px;margin-bottom:6px;font-weight:500}
+.field input{width:100%;height:46px;padding:0 14px;border:1px solid var(--border);border-radius:8px;font-size:15px;font-family:inherit}
+.field input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(8,145,178,.15)}
+.btn-send{width:100%;height:48px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit}
+.btn-send:hover{background:#0e7490}
+.btn-send:disabled{background:#94cbd6;cursor:not-allowed}
+.waiting{display:none;text-align:center;padding:24px 0}
+.waiting.show{display:block}
+.waiting svg{width:64px;height:64px;margin-bottom:16px}
+.waiting h2{font-size:18px;margin-bottom:8px;color:var(--sent)}
+.waiting p{font-size:14px;color:var(--muted);line-height:1.6;margin-bottom:20px}
+.resend{font-size:13px;color:var(--accent);background:none;border:none;cursor:pointer;font-family:inherit;text-decoration:underline}
+.resend:disabled{color:var(--muted);cursor:not-allowed;text-decoration:none}
+.form-content.hidden{display:none}
+@media(max-width:768px){body{flex-direction:column}.side{min-height:180px;padding:32px 24px}.form-side{width:100%;padding:32px 24px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<aside class="side">
+  <svg viewBox="0 0 400 120" preserveAspectRatio="none"><path d="M0,80 Q100,40 200,70 T400,60 L400,120 L0,120Z" fill="#67e8f9"/></svg>
+  <div class="side-text"><h2>潮汐邮</h2><p>我们会向您的邮箱发送一封含重置链接的信，链接 30 分钟内有效。</p></div>
+</aside>
+<main class="form-side">
+  <a href="#" class="back-link" id="backLogin">← 返回登录</a>
+  <div class="form-content" id="formContent">
+    <h1>找回密码</h1>
+    <p class="sub">输入注册时使用的邮箱或手机号，我们将发送重置指引。</p>
+    <div class="field"><label for="contact">邮箱或手机号</label><input id="contact" type="text" placeholder="you@example.com"></div>
+    <button type="button" class="btn-send" id="sendBtn">发送重置邮件</button>
+  </div>
+  <div class="waiting" id="waiting">
+    <svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="28" stroke="#b8dce6" stroke-width="4" fill="none"/><path d="M32 4a28 28 0 0 1 28 28" stroke="#059669" stroke-width="4" fill="none" stroke-linecap="round"><animateTransform attributeName="transform" type="rotate" from="0 32 32" to="360 32 32" dur="1.2s" repeatCount="indefinite"/></path></svg>
+    <h2>邮件已发送</h2>
+    <p>请查收 <strong id="sentTo"></strong> 的收件箱（含垃圾箱）。<br>没收到？<button type="button" class="resend" id="resendBtn" disabled>60 秒后可重发</button></p>
+  </div>
+</main>
+<script>
+(function(){
+  var sendBtn=document.getElementById('sendBtn'),waiting=document.getElementById('waiting'),formContent=document.getElementById('formContent');
+  var resendBtn=document.getElementById('resendBtn'),countdown=60,timer;
+  sendBtn.addEventListener('click',function(){
+    var c=document.getElementById('contact').value.trim();
+    if(!c)return;
+    document.getElementById('sentTo').textContent=c;
+    formContent.classList.add('hidden');
+    waiting.classList.add('show');
+    startCountdown();
+  });
+  function startCountdown(){
+    countdown=60;resendBtn.disabled=true;resendBtn.textContent=countdown+' 秒后可重发';
+    clearInterval(timer);
+    timer=setInterval(function(){
+      countdown--;
+      if(countdown<=0){clearInterval(timer);resendBtn.disabled=false;resendBtn.textContent='重新发送';}
+      else resendBtn.textContent=countdown+' 秒后可重发';
+    },1000);
+  }
+  resendBtn.addEventListener('click',function(){if(!resendBtn.disabled)startCountdown();});
+  document.getElementById('backLogin').addEventListener('click',function(e){e.preventDefault();formContent.classList.remove('hidden');waiting.classList.remove('show');});
+})();
+</script>
+</body>
+</html>

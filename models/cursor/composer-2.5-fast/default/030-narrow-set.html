@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>资源库筛选</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+:root{--page:#f0fdf4;--surface:#fff;--text:#14532d;--muted:#4b5563;--accent:#16a34a;--accent-light:#dcfce7;--line:#bbf7d0;--tag:#166534}
+html,body{height:100%;background:var(--page);color:var(--text);font-family:system-ui,-apple-system,sans-serif}
+body{display:flex;justify-content:center;padding:24px}
+.frame{width:1280px;height:800px;background:var(--surface);border-radius:12px;border:1px solid var(--line);display:grid;grid-template-columns:280px 1fr;overflow:hidden;box-shadow:0 4px 20px rgba(22,163,74,.08)}
+.filters{padding:28px 24px;border-right:1px solid var(--line);overflow-y:auto}
+.filters h1{font-size:18px;font-weight:700;margin-bottom:4px}
+.result-count{font-size:14px;color:var(--accent);font-weight:600;margin-bottom:24px}
+.filter-group{margin-bottom:20px}
+.filter-group label{display:block;font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px}
+.filter-group select,.filter-group input[type=text]{width:100%;padding:9px 12px;border:1px solid var(--line);border-radius:8px;font-size:14px;background:#fff}
+.filter-group select:focus,.filter-group input:focus{outline:2px solid var(--accent);border-color:var(--accent)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{padding:6px 12px;border:1px solid var(--line);border-radius:999px;font-size:13px;background:#fff;cursor:pointer;transition:background .12s,border-color .12s}
+.chip:hover{border-color:var(--accent)}
+.chip.active{background:var(--accent-light);border-color:var(--accent);color:var(--tag);font-weight:600}
+.chip:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btn-clear{width:100%;margin-top:16px;padding:10px;border:1px dashed var(--line);background:transparent;color:var(--muted);border-radius:8px;font-size:13px;cursor:pointer}
+.btn-clear:hover{border-color:var(--accent);color:var(--accent)}
+.btn-clear:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.results{padding:28px 32px;overflow-y:auto}
+.results-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.results-header h2{font-size:16px;font-weight:600}
+.sort{font-size:13px;color:var(--muted)}
+.card{display:flex;gap:16px;padding:18px;border:1px solid var(--line);border-radius:10px;margin-bottom:12px;transition:box-shadow .15s,border-color .15s}
+.card:hover{box-shadow:0 4px 12px rgba(22,163,74,.1);border-color:#86efac}
+.card-icon{width:48px;height:48px;border-radius:8px;background:var(--accent-light);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.card-body h3{font-size:15px;font-weight:600;margin-bottom:4px}
+.card-body p{font-size:13px;color:var(--muted);line-height:1.45}
+.card-meta{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+.meta-tag{font-size:11px;padding:2px 8px;background:#f0fdf4;border-radius:4px;color:var(--tag)}
+.empty{text-align:center;padding:60px 20px;color:var(--muted)}
+@media(max-width:768px){.frame{width:100%;grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="frame">
+<aside class="filters">
+<h1>资源库筛选</h1>
+<div class="result-count" id="resultCount">共 8 条结果</div>
+<div class="filter-group"><label>关键词</label><input type="text" id="fKeyword" placeholder="搜索标题或描述"></div>
+<div class="filter-group"><label>类型</label>
+<div class="chips" id="fType"><button class="chip active" data-v="all">全部</button><button class="chip" data-v="template">模板</button><button class="chip" data-v="icon">图标</button><button class="chip" data-v="photo">图片</button></div>
+</div>
+<div class="filter-group"><label>授权</label><select id="fLicense"><option value="all">全部授权</option><option value="free">免费商用</option><option value="paid">付费</option></select></div>
+<div class="filter-group"><label>更新时间</label><select id="fTime"><option value="all">不限</option><option value="week">近一周</option><option value="month">近一月</option></select></div>
+<button class="btn-clear" id="btnClear">清除全部筛选</button>
+</aside>
+<main class="results">
+<div class="results-header"><h2>匹配资源</h2><span class="sort">按相关度排序</span></div>
+<div id="resultList"></div>
+</main>
+</div>
+<script>
+const data=[
+{id:1,title:'电商详情页模板',desc:'含主图、规格选择与评价模块的 Figma 组件库',type:'template',license:'free',time:'week',icon:'📦'},
+{id:2,title:'线性图标包 · 导航',desc:'48 枚 24px 导航类 SVG 图标，含暗色变体',type:'icon',license:'free',time:'week',icon:'◻'},
+{id:3,title:'咖啡馆氛围图集',desc:'12 张高清实拍，适用于餐饮品牌官网',type:'photo',license:'paid',time:'month',icon:'📷'},
+{id:4,title:'仪表盘 UI Kit',desc:'数据卡片、图表与侧边栏的完整设计系统',type:'template',license:'paid',time:'month',icon:'📊'},
+{id:5,title:'社交图标 · 圆角',desc:'主流平台品牌色图标，PNG 与 SVG',type:'icon',license:'free',time:'week',icon:'🔗'},
+{id:6,title:'产品摄影背景',desc:'纯色与渐变背景，适合电商主图合成',type:'photo',license:'free',time:'month',icon:'🖼'},
+{id:7,title:'移动端表单模板',desc:'登录、注册与支付流程的页面模板',type:'template',license:'free',time:'week',icon:'📱'},
+{id:8,title:'手绘插画素材',desc:'生活方式主题，可用于博客与 newsletter',type:'photo',license:'paid',time:'month',icon:'🎨'}
+];
+let filters={keyword:'',type:'all',license:'all',time:'all'};
+const listEl=document.getElementById('resultList');
+const countEl=document.getElementById('resultCount');
+function match(item){
+if(filters.keyword&&!item.title.includes(filters.keyword)&&!item.desc.includes(filters.keyword))return false;
+if(filters.type!=='all'&&item.type!==filters.type)return false;
+if(filters.license!=='all'&&item.license!==filters.license)return false;
+if(filters.time!=='all'&&item.time!==filters.time)return false;
+return true;
+}
+function render(){
+const res=data.filter(match);
+countEl.textContent='共 '+res.length+' 条结果';
+if(!res.length){listEl.innerHTML='<div class="empty">没有匹配的资源，试试放宽筛选条件</div>';return}
+listEl.innerHTML=res.map(r=>`<article class="card"><div class="card-icon">${r.icon}</div><div class="card-body"><h3>${r.title}</h3><p>${r.desc}</p><div class="card-meta"><span class="meta-tag">${r.type==='template'?'模板':r.type==='icon'?'图标':'图片'}</span><span class="meta-tag">${r.license==='free'?'免费商用':'付费'}</span></div></div></article>`).join('');
+}
+document.getElementById('fKeyword').oninput=e=>{filters.keyword=e.target.value.trim();render()};
+document.querySelectorAll('#fType .chip').forEach(c=>c.onclick=()=>{document.querySelectorAll('#fType .chip').forEach(x=>x.classList.remove('active'));c.classList.add('active');filters.type=c.dataset.v;render()});
+document.getElementById('fLicense').onchange=e=>{filters.license=e.target.value;render()};
+document.getElementById('fTime').onchange=e=>{filters.time=e.target.value;render()};
+document.getElementById('btnClear').onclick=()=>{
+filters={keyword:'',type:'all',license:'all',time:'all'};
+document.getElementById('fKeyword').value='';
+document.querySelectorAll('#fType .chip').forEach((c,i)=>c.classList.toggle('active',i===0));
+document.getElementById('fLicense').value='all';
+document.getElementById('fTime').value='all';
+render();
+};
+render();
+</script>
+</body>
+</html>

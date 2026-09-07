@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>脉聊 · 即时通讯</title>
+<style>
+:root{--page:#1a1033;--surface:#251845;--text:#f3e8ff;--muted:#a78bfa;--accent:#c084fc;--accent2:#818cf8;--border:#3b2766;--error:#fb7185;--success:#4ade80;--bubble-me:#6d28d9;--bubble-them:#2e1f4d}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;background:var(--page);color:var(--text);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+.phone{width:390px;height:844px;background:var(--surface);border-radius:40px;border:3px solid var(--border);overflow:hidden;display:flex;flex-direction:column}
+.toolbar{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.toolbar h1{font-size:17px}
+.toggle-fail{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted);cursor:pointer}
+.toggle-fail input{width:16px;height:16px}
+.screen{display:none;flex:1;flex-direction:column;overflow:hidden}.screen.active{display:flex}
+.sessions{flex:1;overflow-y:auto}
+.session{display:flex;gap:12px;padding:14px 16px;border-bottom:1px solid var(--border);cursor:pointer}
+.session:hover,.session.active{background:rgba(192,132,252,.1)}
+.session-av{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-weight:600}
+.session-info{flex:1;min-width:0}
+.session-info .name{font-weight:600;font-size:15px}
+.session-info .preview{font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+.chat-header{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.back-btn{background:none;border:none;color:var(--accent);font-size:20px;cursor:pointer;padding:4px}
+.messages{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px}
+.msg{max-width:75%;padding:10px 14px;border-radius:16px;font-size:14px;line-height:1.5;position:relative}
+.msg.me{align-self:flex-end;background:var(--bubble-me);border-bottom-right-radius:4px}
+.msg.them{align-self:flex-start;background:var(--bubble-them);border-bottom-left-radius:4px}
+.msg-status{font-size:11px;margin-top:4px;opacity:.8}
+.msg-status.failed{color:var(--error)}
+.msg-status.sent{color:var(--success)}
+.retry-btn{background:none;border:1px solid var(--error);color:var(--error);padding:2px 8px;border-radius:6px;font-size:11px;cursor:pointer;margin-left:6px}
+.compose{display:flex;gap:8px;padding:12px 16px;border-top:1px solid var(--border);background:var(--surface)}
+.compose input{flex:1;background:var(--page);border:1px solid var(--border);border-radius:20px;padding:10px 16px;color:var(--text);font-size:14px;outline:none}
+.compose input:focus{border-color:var(--accent)}
+.send-btn{background:var(--accent);border:none;color:#fff;width:40px;height:40px;border-radius:50%;cursor:pointer;font-size:16px}
+.send-btn:hover{filter:brightness(1.1)}
+</style>
+</head>
+<body>
+<div class="phone">
+<div class="toolbar"><h1>脉聊</h1><label class="toggle-fail"><input type="checkbox" id="failMode">模拟发送失败</label></div>
+<div id="listScreen" class="screen active">
+<div class="sessions" id="sessionList"></div>
+</div>
+<div id="chatScreen" class="screen">
+<div class="chat-header"><button class="back-btn" id="backList">←</button><span id="chatTitle">会话</span></div>
+<div class="messages" id="msgArea"></div>
+<div class="compose"><input id="msgInput" placeholder="输入消息…"><button class="send-btn" id="sendBtn">↑</button></div>
+</div>
+</div>
+<script>
+const chats=[
+{id:1,name:'设计组',preview:'明天评审别忘了',msgs:[{t:'them',c:'明天评审别忘了带原型'},{t:'me',c:'好的，我已经更新了',s:'delivered'}]},
+{id:2,name:'陈雨',preview:'周末一起跑步吗',msgs:[{t:'them',c:'周末一起跑步吗？'}]},
+{id:3,name:'产品通知',preview:'版本 2.4 已发布',msgs:[{t:'them',c:'版本 2.4 已发布，请查看更新日志'}]}
+];
+let cur=null,pendingFail=false;
+const $=id=>document.getElementById(id);
+function renderList(){$('sessionList').innerHTML=chats.map(c=>`<div class="session" data-id="${c.id}"><div class="session-av">${c.name[0]}</div><div class="session-info"><div class="name">${c.name}</div><div class="preview">${c.preview}</div></div></div>`).join('');
+document.querySelectorAll('.session').forEach(s=>s.onclick=()=>openChat(+s.dataset.id));}
+function openChat(id){cur=chats.find(c=>c.id===id);$('chatTitle').textContent=cur.name;renderMsgs();$('listScreen').classList.remove('active');$('chatScreen').classList.add('active');}
+function renderMsgs(){$('msgArea').innerHTML=cur.msgs.map((m,i)=>`<div class="msg ${m.t}">${m.c}${m.t==='me'?`<div class="msg-status ${m.s||''}">${statusText(m,i)}</div>`:''}</div>`).join('');$('msgArea').scrollTop=9999;}
+function statusText(m,i){if(m.s==='failed')return'发送失败<button class="retry-btn" data-i="'+i+'">重试</button>';if(m.s==='delivered')return'已送达';if(m.s==='sending')return'发送中…';return'';}
+function sendMsg(text){const fail=$('failMode').checked;if(fail){cur.msgs.push({t:'me',c:text,s:'failed'});$('failMode').checked=false;}else cur.msgs.push({t:'me',c:text,s:'delivered'});cur.preview=text;renderMsgs();renderList();}
+$('sendBtn').onclick=()=>{const t=$('msgInput').value.trim();if(!t||!cur)return;$('msgInput').value='';sendMsg(t);};
+$('msgInput').onkeydown=e=>{if(e.key==='Enter'){$('sendBtn').click();}};
+$('backList').onclick=()=>{$('chatScreen').classList.remove('active');$('listScreen').classList.add('active');};
+$('msgArea').onclick=e=>{if(e.target.classList.contains('retry-btn')){const i=+e.target.dataset.i;cur.msgs[i].s='delivered';renderMsgs();}};
+renderList();
+</script>
+</body>
+</html>

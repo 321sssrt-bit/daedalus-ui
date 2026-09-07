@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>账号设置</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+:root{--page:#f4f4f5;--surface:#fff;--text:#18181b;--muted:#71717a;--accent:#2563eb;--line:#e4e4e7;--hover:#fafafa}
+html,body{height:100%;background:var(--page);color:var(--text);font-family:system-ui,-apple-system,sans-serif}
+body{display:flex;justify-content:center;padding:24px}
+.frame{width:1280px;height:800px;background:var(--surface);border-radius:12px;border:1px solid var(--line);display:grid;grid-template-columns:280px 1fr;overflow:hidden}
+.sidebar{border-right:1px solid var(--line);padding:24px 0}
+.sidebar h1{font-size:18px;font-weight:600;padding:0 20px 20px}
+.group-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);padding:16px 20px 8px}
+.nav-row{width:100%;text-align:left;border:none;background:transparent;padding:12px 20px;font-size:14px;color:var(--text);cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:background .12s}
+.nav-row:hover{background:var(--hover)}
+.nav-row.active{background:#eff6ff;color:var(--accent);font-weight:500}
+.nav-row:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.nav-row .arrow{color:var(--muted);font-size:12px}
+.detail{padding:32px 40px;overflow-y:auto}
+.detail h2{font-size:22px;font-weight:600;margin-bottom:8px}
+.detail .desc{font-size:14px;color:var(--muted);margin-bottom:28px;line-height:1.5}
+.identity{display:flex;align-items:center;gap:16px;padding:20px;background:var(--hover);border-radius:10px;margin-bottom:28px;border:1px solid var(--line)}
+.avatar{width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#2563eb,#7c3aed);color:#fff;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:600}
+.identity h3{font-size:16px;font-weight:600}
+.identity p{font-size:13px;color:var(--muted);margin-top:2px}
+.field{margin-bottom:20px}
+.field label{display:block;font-size:13px;font-weight:500;margin-bottom:6px;color:var(--muted)}
+.field input,.field select{width:100%;max-width:400px;padding:10px 12px;border:1px solid var(--line);border-radius:8px;font-size:14px}
+.field input:focus,.field select:focus{outline:2px solid var(--accent);border-color:var(--accent)}
+.toggle-row{display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid var(--line);max-width:480px}
+.toggle-row span{font-size:14px}
+.switch{width:44px;height:24px;background:var(--line);border-radius:999px;border:none;cursor:pointer;position:relative;transition:background .15s}
+.switch.on{background:var(--accent)}
+.switch::after{content:'';position:absolute;width:20px;height:20px;background:#fff;border-radius:50%;top:2px;left:2px;transition:left .15s;box-shadow:0 1px 3px rgba(0,0,0,.15)}
+.switch.on::after{left:22px}
+.btn-save{margin-top:24px;padding:10px 20px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer}
+.btn-save:hover{background:#1d4ed8}
+.btn-save:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media(max-width:768px){.frame{width:100%;grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="frame">
+<nav class="sidebar">
+<h1>账号设置</h1>
+<div class="identity" style="margin:0 16px 16px;padding:16px">
+<div class="avatar">沈</div>
+<div><h3>沈清和</h3><p>shen.qinghe@example.com</p></div>
+</div>
+<div class="group-label">个人资料</div>
+<button class="nav-row active" data-panel="basicInfo">基本资料<span class="arrow">›</span></button>
+<button class="nav-row" data-panel="security">登录与安全<span class="arrow">›</span></button>
+<div class="group-label">偏好</div>
+<button class="nav-row" data-panel="notify">通知设置<span class="arrow">›</span></button>
+<button class="nav-row" data-panel="privacy">隐私与数据<span class="arrow">›</span></button>
+<div class="group-label">订阅</div>
+<button class="nav-row" data-panel="billing">账单与方案<span class="arrow">›</span></button>
+</nav>
+<div class="detail" id="detail"></div>
+</div>
+<script>
+const panels={
+basicInfo:{title:'基本资料',desc:'管理你的公开信息与联系方式。',html:`<div class="field"><label>显示名称</label><input type="text" value="沈清和"></div><div class="field"><label>用户名</label><input type="text" value="@shenqh"></div><div class="field"><label>个人简介</label><input type="text" value="产品设计师 · 上海"></div><button class="btn-save">保存更改</button>`},
+security:{title:'登录与安全',desc:'密码、双重验证与活跃会话。',html:`<div class="field"><label>登录邮箱</label><input type="email" value="shen.qinghe@example.com" readonly></div><div class="field"><label>密码</label><input type="password" value="********" readonly></div><div class="toggle-row"><span>双重验证</span><button class="switch on" aria-label="双重验证"></button></div><div class="toggle-row"><span>异地登录提醒</span><button class="switch on" aria-label="异地登录"></button></div><button class="btn-save">更新安全设置</button>`},
+notify:{title:'通知设置',desc:'选择你希望接收的提醒方式。',html:`<div class="toggle-row"><span>产品更新邮件</span><button class="switch on"></button></div><div class="toggle-row"><span>评论与 @ 提醒</span><button class="switch on"></button></div><div class="toggle-row"><span>营销推送</span><button class="switch"></button></div><div class="toggle-row"><span>浏览器推送</span><button class="switch"></button></div><button class="btn-save">保存偏好</button>`},
+privacy:{title:'隐私与数据',desc:'控制谁能看到你的活动与数据导出。',html:`<div class="field"><label>个人主页可见性</label><select><option>所有人</option><option selected>仅登录用户</option><option>仅自己</option></select></div><div class="toggle-row"><span>允许搜索引擎索引</span><button class="switch"></button></div><div class="toggle-row"><span>活动状态显示</span><button class="switch on"></button></div><button class="btn-save">保存隐私设置</button>`},
+billing:{title:'账单与方案',desc:'查看当前订阅与管理付款方式。',html:`<p style="font-size:15px;margin-bottom:12px">当前方案：<strong>专业版</strong> · ¥ 68/月</p><p style="font-size:14px;color:var(--muted);margin-bottom:20px">下次续费：2026 年 10 月 7 日</p><button class="btn-save">管理订阅</button>`}
+};
+const detail=document.getElementById('detail');
+function show(key){
+document.querySelectorAll('.nav-row').forEach(r=>r.classList.toggle('active',r.dataset.panel===key));
+const p=panels[key];
+detail.innerHTML=`<h2>${p.title}</h2><p class="desc">${p.desc}</p>${p.html}`;
+detail.querySelectorAll('.switch').forEach(sw=>{sw.onclick=()=>sw.classList.toggle('on')});
+detail.querySelectorAll('.btn-save').forEach(b=>{b.onclick=()=>{b.textContent='已保存';b.disabled=true}});
+}
+document.querySelectorAll('.nav-row').forEach(r=>r.onclick=()=>show(r.dataset.panel));
+show('basicInfo');
+</script>
+</body>
+</html>

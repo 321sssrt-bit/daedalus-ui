@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>日历 · 周视图</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--page:#eef4fb;--surface:#fff;--text:#1a2b3c;--muted:#6b8299;--accent:#2563eb;--accent-soft:#dbeafe;--border:#c8d8ea;--today:#fef3c7}
+html,body{height:100%;font-family:"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;background:var(--page);color:var(--text)}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+body{min-width:768px}
+.shell{max-width:1280px;min-height:800px;margin:0 auto;padding:24px 32px;display:grid;grid-template-columns:1fr 320px;gap:24px}
+.toolbar{grid-column:1/-1;display:flex;justify-content:space-between;align-items:center}
+.toolbar h1{font-size:22px;font-weight:600}
+.nav-btn{border:1px solid var(--border);background:var(--surface);padding:8px 14px;border-radius:8px;cursor:pointer;font-family:inherit;font-size:13px;color:var(--text)}
+.nav-btn:hover{background:var(--accent-soft)}
+.week-grid{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;display:grid;grid-template-columns:repeat(7,1fr)}
+.day-head{padding:12px 8px;text-align:center;font-size:12px;font-weight:600;color:var(--muted);background:#f8fafc;border-bottom:1px solid var(--border)}
+.day-cell{min-height:120px;border-right:1px solid var(--border);border-bottom:1px solid var(--border);padding:8px;position:relative}
+.day-cell:nth-child(7n){border-right:none}
+.day-cell.today{background:var(--today)}
+.day-num{font-size:14px;font-weight:600;margin-bottom:6px;color:var(--muted)}
+.day-cell.today .day-num{color:#b45309}
+.event{font-size:11px;padding:4px 6px;border-radius:4px;margin-bottom:4px;cursor:pointer;border:none;width:100%;text-align:left;font-family:inherit;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.event.meeting{background:#dbeafe;color:#1d4ed8}
+.event.deadline{background:#fee2e2;color:#b91c1c}
+.event.review{background:#d1fae5;color:#047857}
+.event:hover{filter:brightness(.95)}
+.detail{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;display:flex;flex-direction:column;gap:12px}
+.detail h2{font-size:16px}
+.detail .empty{color:var(--muted);font-size:14px;line-height:1.6;margin-top:40px;text-align:center}
+.detail .tag{display:inline-block;font-size:11px;padding:3px 8px;border-radius:4px;font-weight:600}
+.detail .meta{font-size:13px;color:var(--muted);line-height:1.7}
+.detail .close{align-self:flex-end;border:none;background:transparent;color:var(--accent);cursor:pointer;font-size:13px;font-family:inherit;display:none}
+.detail.has-event .close{display:block}
+</style>
+</head>
+<body>
+<div class="shell">
+  <div class="toolbar">
+    <h1>2026 年 9 月 第 1 周</h1>
+    <div><button class="nav-btn" type="button">← 上一周</button> <button class="nav-btn" type="button">下一周 →</button></div>
+  </div>
+  <section class="week-grid" id="grid" aria-label="周日历"></section>
+  <aside class="detail" id="detail" aria-live="polite">
+    <h2>事件详情</h2>
+    <p class="empty" id="detail-empty">点击左侧任意事件查看详情</p>
+    <div id="detail-body" hidden>
+      <span class="tag" id="detail-tag"></span>
+      <h3 id="detail-title" style="font-size:18px;margin:8px 0"></h3>
+      <p class="meta" id="detail-meta"></p>
+      <p id="detail-desc" style="font-size:14px;line-height:1.6"></p>
+      <button class="close" type="button" id="detail-close">关闭详情</button>
+    </div>
+  </aside>
+</div>
+<script>
+const EVENTS=[
+  {day:1,title:"产品评审会",type:"meeting",time:"09:30–10:30",loc:"3 号会议室",desc:"评审 Q3 功能清单与排期，请提前阅读 PRD。"},
+  {day:1,title:"设计稿截止",type:"deadline",time:"18:00",loc:"—",desc:"移动端改版 v2 设计稿需提交至共享盘。"},
+  {day:3,title:"客户演示",type:"meeting",time:"14:00–15:00",loc:"线上 Zoom",desc:"向华东区客户演示新仪表盘功能。"},
+  {day:4,title:"代码审查",type:"review",time:"11:00–12:00",loc:"工位 A 区",desc:"支付模块重构 PR #482 集中审查。"},
+  {day:5,title:"周报提交",type:"deadline",time:"17:00",loc:"—",desc:"本周进展与风险同步至团队 wiki。"},
+  {day:6,title:"团建午餐",type:"meeting",time:"12:00–13:30",loc:"楼下「食光」",desc:"季度团建，统计人数后订位。"}
+];
+const labels=["周一 9/1","周二 9/2","周三 9/3","周四 9/4","周五 9/5","周六 9/6","周日 9/7"];
+const typeLabel={meeting:"会议",deadline:"截止",review:"审查"};
+const grid=document.getElementById("grid");
+labels.forEach((l,i)=>{
+  grid.innerHTML+=`<div class="day-head">${l.split(" ")[0]}</div>`;
+});
+labels.forEach((l,i)=>{
+  const d=i+1;const today=d===7;
+  let ev=EVENTS.filter(e=>e.day===d).map(e=>`<button class="event ${e.type}" data-id="${EVENTS.indexOf(e)}">${e.title}</button>`).join("");
+  grid.innerHTML+=`<div class="day-cell${today?" today":""}"><div class="day-num">${l.split(" ")[1]||d}</div>${ev}</div>`;
+});
+const detail=document.getElementById("detail"),empty=document.getElementById("detail-empty"),body=document.getElementById("detail-body");
+grid.addEventListener("click",e=>{
+  const btn=e.target.closest(".event");if(!btn)return;
+  const ev=EVENTS[+btn.dataset.id];
+  empty.hidden=true;body.hidden=false;detail.classList.add("has-event");
+  document.getElementById("detail-tag").textContent=typeLabel[ev.type];
+  document.getElementById("detail-tag").className="tag event "+ev.type;
+  document.getElementById("detail-title").textContent=ev.title;
+  document.getElementById("detail-meta").textContent=`${ev.time} · ${ev.loc}`;
+  document.getElementById("detail-desc").textContent=ev.desc;
+});
+document.getElementById("detail-close").onclick=()=>{empty.hidden=false;body.hidden=true;detail.classList.remove("has-event");};
+</script>
+</body>
+</html>

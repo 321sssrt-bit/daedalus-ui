@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>文件上传</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+:root{--page:#0c1222;--surface:#151b2e;--text:#e2e8f0;--muted:#64748b;--accent:#38bdf8;--line:#1e293b;--success:#34d399;--warn:#fbbf24;--danger:#f87171}
+html,body{height:100%;background:var(--page);color:var(--text);font-family:"Cascadia Code","Consolas",system-ui,monospace}
+body{display:flex;justify-content:center;align-items:center;padding:24px}
+.frame{width:1280px;height:800px;background:var(--surface);border:1px solid var(--line);border-radius:12px;display:flex;flex-direction:column;padding:32px 40px;overflow:hidden}
+header h1{font-size:20px;font-weight:600;font-family:system-ui,sans-serif;margin-bottom:4px}
+header p{font-size:13px;color:var(--muted);font-family:system-ui,sans-serif;margin-bottom:24px}
+.dropzone{border:2px dashed var(--line);border-radius:12px;padding:48px;text-align:center;cursor:pointer;transition:border-color .15s,background .15s;margin-bottom:24px}
+.dropzone:hover,.dropzone.dragover{border-color:var(--accent);background:rgba(56,189,248,.05)}
+.dropzone:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.dropzone svg{margin-bottom:12px;opacity:.6}
+.dropzone p{font-size:15px;font-family:system-ui,sans-serif}
+.dropzone .hint{font-size:12px;color:var(--muted);margin-top:8px;font-family:system-ui,sans-serif}
+.queue h2{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:12px;font-family:system-ui,sans-serif}
+.file-list{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:10px;margin-bottom:20px}
+.file-row{display:grid;grid-template-columns:1fr 100px 120px 80px;gap:16px;align-items:center;padding:14px 16px;background:#0f172a;border:1px solid var(--line);border-radius:8px;font-size:13px}
+.file-name{font-weight:500;font-family:system-ui,sans-serif;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.file-size{color:var(--muted);font-variant-numeric:tabular-nums}
+.status{font-size:12px;padding:4px 10px;border-radius:999px;text-align:center;font-family:system-ui,sans-serif;font-weight:600}
+.status.queued{background:#1e3a5f;color:var(--accent)}
+.status.processing{background:#422006;color:var(--warn)}
+.status.done{background:#064e3b;color:var(--success)}
+.btn-icon{background:transparent;border:1px solid var(--line);color:var(--muted);width:32px;height:32px;border-radius:6px;cursor:pointer;font-size:14px}
+.btn-icon:hover{color:var(--danger);border-color:var(--danger)}
+.btn-icon:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.actions{display:flex;justify-content:flex-end;gap:12px}
+.btn{padding:12px 24px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;border:none;font-family:system-ui,sans-serif}
+.btn-primary{background:var(--accent);color:#0c1222}
+.btn-primary:hover{background:#7dd3fc}
+.btn-primary:disabled{opacity:.4;cursor:not-allowed}
+.btn-primary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+input[type=file]{display:none}
+@media(max-width:768px){.file-row{grid-template-columns:1fr 80px}}
+</style>
+</head>
+<body>
+<div class="frame">
+<header><h1>批量文件上传</h1><p>支持 PDF、DOCX、PNG · 单文件最大 50 MB</p></header>
+<div class="dropzone" id="dropzone" tabindex="0">
+<svg width="48" height="48" viewBox="0 0 48 48" fill="none"><path d="M24 32V16M24 16l-8 8M24 16l8 8" stroke="#38bdf8" stroke-width="2" stroke-linecap="round"/><rect x="4" y="4" width="40" height="40" rx="8" stroke="#1e293b" stroke-width="2"/></svg>
+<p>拖放文件到此处，或点击选择</p>
+<p class="hint">也可使用 Ctrl+V 粘贴截图</p>
+<input type="file" id="fileInput" multiple>
+</div>
+<div class="queue"><h2>上传队列 · <span id="queueCount">3</span> 个文件</h2>
+<div class="file-list" id="fileList"></div>
+</div>
+<div class="actions"><button class="btn btn-primary" id="btnProcess">开始处理</button></div>
+</div>
+<script>
+const files=[
+{name:'品牌手册_v3.pdf',size:'4.2 MB',status:'queued'},
+{name:'门店照片_合集.zip',size:'28.6 MB',status:'queued'},
+{name:'Logo_矢量稿.svg',size:'156 KB',status:'queued'}
+];
+const list=document.getElementById('fileList');
+const countEl=document.getElementById('queueCount');
+function fmtStatus(s){return s==='queued'?'待处理':s==='processing'?'处理中':'已完成'}
+function render(){
+countEl.textContent=files.length;
+list.innerHTML=files.map((f,i)=>`<div class="file-row"><span class="file-name">${f.name}</span><span class="file-size">${f.size}</span><span class="status ${f.status}">${fmtStatus(f.status)}</span><button class="btn-icon" data-i="${i}" aria-label="删除">×</button></div>`).join('');
+list.querySelectorAll('.btn-icon').forEach(b=>b.onclick=()=>{files.splice(+b.dataset.i,1);render()});
+document.getElementById('btnProcess').disabled=files.length===0||files.every(f=>f.status==='done');
+}
+const dz=document.getElementById('dropzone');
+const fi=document.getElementById('fileInput');
+dz.onclick=()=>fi.click();
+dz.onkeydown=e=>{if(e.key==='Enter'||e.key===' ')fi.click()};
+dz.ondragover=e=>{e.preventDefault();dz.classList.add('dragover')};
+dz.ondragleave=()=>dz.classList.remove('dragover');
+dz.ondrop=e=>{e.preventDefault();dz.classList.remove('dragover');addFiles(e.dataTransfer.files)};
+fi.onchange=()=>addFiles(fi.files);
+function addFiles(fl){
+[...fl].forEach(f=>files.push({name:f.name,size:(f.size/1048576).toFixed(1)+' MB',status:'queued'}));
+render();
+}
+document.getElementById('btnProcess').onclick=()=>{
+let i=0;
+const tick=()=>{
+if(i>=files.length)return;
+files[i].status='processing';render();
+setTimeout(()=>{files[i].status='done';i++;render();tick()},600);
+};
+tick();
+};
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>泳道流 · 看板</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --page:#f0f4f8;--surface:#ffffff;--text:#1e293b;--muted:#64748b;
+  --accent:#3b82f6;--lane1:#dbeafe;--lane2:#fef3c7;--lane3:#dcfce7;
+  --border:#cbd5e1;--card-shadow:0 1px 3px rgba(30,41,59,.08);
+}
+html{font-family:"PingFang SC","Segoe UI",sans-serif;background:var(--page);color:var(--text);min-height:100vh}
+.board-wrap{max-width:1280px;margin:0 auto;padding:24px 28px;min-height:100vh}
+.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}
+.header h1{font-size:20px;font-weight:700}
+.header-actions{display:flex;gap:10px;align-items:center}
+.btn-add{height:38px;padding:0 18px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:6px}
+.btn-add:hover{background:#2563eb}
+.filter{font-size:13px;color:var(--muted);padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:var(--surface)}
+.board{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;align-items:start}
+.lane{border-radius:12px;padding:16px;min-height:420px}
+.lane:nth-child(1){background:var(--lane1)}
+.lane:nth-child(2){background:var(--lane2)}
+.lane:nth-child(3){background:var(--lane3)}
+.lane-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;padding-bottom:10px;border-bottom:2px solid rgba(30,41,59,.08)}
+.lane-head h2{font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:.04em}
+.lane-count{font-size:12px;background:rgba(255,255,255,.7);padding:2px 8px;border-radius:10px;color:var(--muted)}
+.cards{display:flex;flex-direction:column;gap:10px;min-height:60px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px;cursor:grab;box-shadow:var(--card-shadow);transition:box-shadow .15s,transform .15s}
+.card:hover{box-shadow:0 4px 12px rgba(30,41,59,.12);transform:translateY(-1px)}
+.card:active{cursor:grabbing}
+.card.dragging{opacity:.5;transform:rotate(2deg)}
+.card h3{font-size:14px;font-weight:600;margin-bottom:6px}
+.card p{font-size:12px;color:var(--muted);line-height:1.4}
+.card-tags{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+.tag{font-size:11px;padding:2px 8px;border-radius:4px;background:#f1f5f9;color:var(--muted)}
+.card.selected{outline:2px solid var(--accent);outline-offset:1px}
+.lane.drag-over{outline:2px dashed var(--accent);outline-offset:-2px}
+.modal-bg{position:fixed;inset:0;background:rgba(30,41,59,.4);display:none;align-items:center;justify-content:center;z-index:10}
+.modal-bg.open{display:flex}
+.modal{background:var(--surface);border-radius:12px;padding:24px;width:90%;max-width:400px;box-shadow:0 16px 48px rgba(0,0,0,.15)}
+.modal h2{font-size:16px;margin-bottom:16px}
+.modal input{width:100%;height:40px;border:1px solid var(--border);border-radius:6px;padding:0 12px;font-size:14px;font-family:inherit;margin-bottom:12px}
+.modal textarea{width:100%;height:72px;border:1px solid var(--border);border-radius:6px;padding:10px 12px;font-size:13px;font-family:inherit;resize:none;margin-bottom:16px}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end}
+.modal-actions button{padding:8px 16px;border-radius:6px;font-size:14px;cursor:pointer;font-family:inherit;border:1px solid var(--border);background:var(--surface)}
+.modal-actions .primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+@media(max-width:768px){.board{grid-template-columns:1fr}.board-wrap{padding:16px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="board-wrap">
+  <header class="header">
+    <h1>泳道流 · 产品迭代看板</h1>
+    <div class="header-actions">
+      <span class="filter">筛选：全部成员</span>
+      <button type="button" class="btn-add" id="addBtn">+ 新建条目</button>
+    </div>
+  </header>
+  <div class="board" id="board">
+    <div class="lane" data-lane="todo">
+      <div class="lane-head"><h2>待办</h2><span class="lane-count">3</span></div>
+      <div class="cards">
+        <div class="card" draggable="true" data-id="c1"><h3>用户反馈汇总</h3><p>整理上周 47 条反馈并分类</p><div class="card-tags"><span class="tag">研究</span></div></div>
+        <div class="card" draggable="true" data-id="c2"><h3>性能基准测试</h3><p>首屏加载目标 &lt; 1.2s</p><div class="card-tags"><span class="tag">工程</span></div></div>
+        <div class="card" draggable="true" data-id="c3"><h3>竞品功能对比</h3><p>三家同类产品矩阵</p><div class="card-tags"><span class="tag">产品</span></div></div>
+      </div>
+    </div>
+    <div class="lane" data-lane="doing">
+      <div class="lane-head"><h2>进行中</h2><span class="lane-count">2</span></div>
+      <div class="cards">
+        <div class="card" draggable="true" data-id="c4"><h3>看板拖拽优化</h3><p>触摸设备兼容与动画</p><div class="card-tags"><span class="tag">前端</span></div></div>
+        <div class="card" draggable="true" data-id="c5"><h3>通知中心改版</h3><p>未读分组与批量操作</p><div class="card-tags"><span class="tag">设计</span></div></div>
+      </div>
+    </div>
+    <div class="lane" data-lane="done">
+      <div class="lane-head"><h2>已完成</h2><span class="lane-count">1</span></div>
+      <div class="cards">
+        <div class="card" draggable="true" data-id="c6"><h3>登录页 A/B 测试</h3><p>方案 B 转化率 +12%</p><div class="card-tags"><span class="tag">增长</span></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="modal-bg" id="modalBg">
+  <div class="modal" role="dialog">
+    <h2>新建条目</h2>
+    <input type="text" id="newTitle" placeholder="标题">
+    <textarea id="newDesc" placeholder="简要描述"></textarea>
+    <div class="modal-actions">
+      <button type="button" id="cancelBtn">取消</button>
+      <button type="button" class="primary" id="saveBtn">添加到待办</button>
+    </div>
+  </div>
+</div>
+<script>
+(function(){
+  var dragged=null;
+  document.querySelectorAll('.card').forEach(function(card){
+    card.addEventListener('click',function(e){
+      if(card.classList.contains('dragging'))return;
+      document.querySelectorAll('.card').forEach(function(c){c.classList.remove('selected');});
+      card.classList.add('selected');
+    });
+    card.addEventListener('dragstart',function(e){dragged=card;card.classList.add('dragging');e.dataTransfer.effectAllowed='move';});
+    card.addEventListener('dragend',function(){card.classList.remove('dragging');dragged=null;document.querySelectorAll('.lane').forEach(function(l){l.classList.remove('drag-over');});updateCounts();});
+  });
+  document.querySelectorAll('.lane').forEach(function(lane){
+    lane.addEventListener('dragover',function(e){e.preventDefault();lane.classList.add('drag-over');});
+    lane.addEventListener('dragleave',function(){lane.classList.remove('drag-over');});
+    lane.addEventListener('drop',function(e){e.preventDefault();lane.classList.remove('drag-over');if(dragged)lane.querySelector('.cards').appendChild(dragged);updateCounts();});
+  });
+  function updateCounts(){
+    document.querySelectorAll('.lane').forEach(function(lane){
+      lane.querySelector('.lane-count').textContent=lane.querySelectorAll('.card').length;
+    });
+  }
+  var modal=document.getElementById('modalBg');
+  document.getElementById('addBtn').addEventListener('click',function(){modal.classList.add('open');document.getElementById('newTitle').focus();});
+  document.getElementById('cancelBtn').addEventListener('click',function(){modal.classList.remove('open');});
+  document.getElementById('saveBtn').addEventListener('click',function(){
+    var t=document.getElementById('newTitle').value.trim();if(!t)return;
+    var d=document.getElementById('newDesc').value.trim();
+    var card=document.createElement('div');card.className='card';card.draggable=true;
+    card.innerHTML='<h3>'+t+'</h3><p>'+(d||'暂无描述')+'</p><div class="card-tags"><span class="tag">新建</span></div>';
+    document.querySelector('[data-lane=todo] .cards').appendChild(card);
+    card.addEventListener('click',function(){document.querySelectorAll('.card').forEach(function(c){c.classList.remove('selected');});card.classList.add('selected');});
+    card.addEventListener('dragstart',function(e){dragged=card;card.classList.add('dragging');});
+    card.addEventListener('dragend',function(){card.classList.remove('dragging');dragged=null;updateCounts();});
+    document.getElementById('newTitle').value='';document.getElementById('newDesc').value='';
+    modal.classList.remove('open');updateCounts();
+  });
+})();
+</script>
+</body>
+</html>

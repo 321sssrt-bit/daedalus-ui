@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>发布确认 · 星港控制台</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --page:#0a1628;--surface:#122038;--surface2:#1a2d4a;
+  --text:#e8eef7;--muted:#7a8fa8;--accent:#f0a030;--accent-dim:#c47a18;
+  --border:#2a4060;--danger:#e05555;--ok:#3dd68c;
+  --radius:10px;--font:system-ui,-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+  --mono:"Cascadia Code","SF Mono",Consolas,monospace;
+}
+html{font-family:var(--font);background:var(--page);color:var(--text);min-height:100vh}
+body{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+.shell{max-width:720px;width:100%}
+.badge{display:inline-flex;align-items:center;gap:8px;font-size:12px;color:var(--accent);letter-spacing:.08em;text-transform:uppercase;margin-bottom:16px}
+.badge svg{width:16px;height:16px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:32px 36px;box-shadow:0 24px 48px rgba(0,0,0,.35)}
+h1{font-size:22px;font-weight:600;margin-bottom:8px}
+.sub{color:var(--muted);font-size:14px;line-height:1.6;margin-bottom:24px}
+.consequence{background:var(--surface2);border-left:3px solid var(--accent);padding:16px 18px;border-radius:0 var(--radius) var(--radius) 0;margin-bottom:28px}
+.consequence p{font-size:15px;line-height:1.65}
+.consequence strong{color:var(--accent)}
+.meta{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:28px}
+.meta-item{background:var(--surface2);padding:12px 14px;border-radius:var(--radius);font-size:13px}
+.meta-item span{display:block;color:var(--muted);font-size:11px;margin-bottom:4px}
+.meta-item code{font-family:var(--mono);font-size:12px;color:var(--text)}
+.check-row{display:flex;align-items:flex-start;gap:12px;margin-bottom:28px;cursor:pointer}
+.check-row input{width:18px;height:18px;margin-top:2px;accent-color:var(--accent);cursor:pointer}
+.check-row label{font-size:14px;line-height:1.55;cursor:pointer;color:var(--muted)}
+.check-row label em{font-style:normal;color:var(--text)}
+.actions{display:flex;gap:12px;justify-content:flex-end;align-items:center}
+.btn{padding:11px 22px;border-radius:var(--radius);font-size:14px;font-weight:500;border:none;cursor:pointer;transition:background .2s,opacity .2s,transform .2s}
+.btn-back{background:transparent;color:var(--muted);border:1px solid var(--border)}
+.btn-back:hover{background:var(--surface2);color:var(--text)}
+.btn-back:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btn-confirm{background:var(--accent);color:#1a1200}
+.btn-confirm:hover:not(:disabled){background:#ffb84d}
+.btn-confirm:focus-visible{outline:2px solid var(--text);outline-offset:2px}
+.btn-confirm:disabled{opacity:.35;cursor:not-allowed}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--ok);color:#0a2818;padding:12px 24px;border-radius:var(--radius);font-size:14px;font-weight:500;opacity:0;transition:transform .35s ease,opacity .35s ease;pointer-events:none}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+@media(max-width:768px){
+  .card{padding:24px 20px}
+  .meta{grid-template-columns:1fr}
+  .actions{flex-direction:column-reverse}
+  .btn{width:100%;text-align:center}
+}
+@media(prefers-reduced-motion:reduce){
+  .btn,.toast{transition:none}
+}
+</style>
+</head>
+<body>
+<div class="shell">
+  <div class="badge">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg>
+    发布确认
+  </div>
+  <div class="card">
+    <h1>确认发布「秋季促销页 v2.3」？</h1>
+    <p class="sub">此操作将立即对线上用户可见，发布后无法一键撤回，只能再次发布覆盖。</p>
+    <div class="consequence">
+      <p>按下确认后，<strong>prod 环境全部节点将在约 90 秒内切换至新版本</strong>，期间可能出现短暂样式闪烁；已有 CDN 缓存最长 15 分钟才完全刷新。</p>
+    </div>
+    <div class="meta">
+      <div class="meta-item"><span>目标环境</span><code>production / cn-east</code></div>
+      <div class="meta-item"><span>构建编号</span><code>#8842 · 林晓审核通过</code></div>
+    </div>
+    <div class="check-row" id="checkRow">
+      <input type="checkbox" id="ack" aria-describedby="ackLabel">
+      <label id="ackLabel" for="ack">我已阅读后果，并确认 <em>prod 环境</em> 可以承受短暂可见性切换</label>
+    </div>
+    <div class="actions">
+      <button type="button" class="btn btn-back" id="backBtn">返回编辑</button>
+      <button type="button" class="btn btn-confirm" id="confirmBtn" disabled>确认发布</button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite">已提交发布任务 · 可在部署日志查看进度</div>
+<script>
+const ack=document.getElementById('ack'),confirmBtn=document.getElementById('confirmBtn'),backBtn=document.getElementById('backBtn'),toast=document.getElementById('toast');
+ack.addEventListener('change',()=>{confirmBtn.disabled=!ack.checked});
+confirmBtn.addEventListener('click',()=>{
+  if(!ack.checked)return;
+  confirmBtn.disabled=true;confirmBtn.textContent='发布中…';
+  setTimeout(()=>{toast.classList.add('show');confirmBtn.textContent='已发布';},600);
+});
+backBtn.addEventListener('click',()=>{document.querySelector('.card').style.opacity='.6';backBtn.textContent='已返回草稿';backBtn.disabled=true;});
+</script>
+</body>
+</html>

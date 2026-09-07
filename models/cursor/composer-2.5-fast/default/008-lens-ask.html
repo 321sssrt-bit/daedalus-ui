@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>透镜问 · 权限请求</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --page:#0f172a;--glass:rgba(30,41,59,.75);--text:#f1f5f9;--muted:#94a3b8;
+  --accent:#38bdf8;--lens:#0ea5e9;--allow:#22c55e;--deny:#64748b;
+}
+html{font-family:"PingFang SC","Segoe UI",sans-serif;background:var(--page);color:var(--text);min-height:100vh}
+body{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:32px;background:radial-gradient(circle at 30% 20%,#1e3a5f 0%,var(--page) 50%)}
+.overlay{position:fixed;inset:0;background:rgba(15,23,42,.6);backdrop-filter:blur(4px)}
+.modal{position:relative;width:100%;max-width:480px;background:var(--glass);border:1px solid rgba(56,189,248,.25);border-radius:16px;padding:32px;box-shadow:0 24px 64px rgba(0,0,0,.45)}
+.lens-icon{width:56px;height:56px;margin:0 auto 20px;background:radial-gradient(circle at 35% 35%,#7dd3fc,var(--lens));border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 0 24px rgba(14,165,233,.4)}
+.lens-icon svg{width:28px;height:28px}
+.modal h2{font-size:20px;text-align:center;margin-bottom:8px}
+.modal .why{font-size:14px;color:var(--muted);text-align:center;line-height:1.65;margin-bottom:24px}
+.perm-list{background:rgba(15,23,42,.5);border-radius:12px;padding:16px 18px;margin-bottom:28px;border:1px solid rgba(148,163,184,.15)}
+.perm-item{display:flex;gap:12px;padding:10px 0;border-bottom:1px solid rgba(148,163,184,.1);font-size:14px;line-height:1.5}
+.perm-item:last-child{border-bottom:none;padding-bottom:0}
+.perm-item svg{flex-shrink:0;margin-top:2px}
+.perm-item strong{display:block;color:var(--accent);font-size:13px;margin-bottom:2px}
+.actions{display:flex;flex-direction:column;gap:10px}
+.btn{height:46px;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;border:none;transition:opacity .2s,transform .1s}
+.btn-allow{background:var(--allow);color:#fff}
+.btn-allow:hover{filter:brightness(1.06)}
+.btn-once{background:transparent;border:1px solid var(--accent);color:var(--accent)}
+.btn-once:hover{background:rgba(56,189,248,.1)}
+.btn-deny{background:transparent;color:var(--deny);font-weight:500;font-size:14px;height:40px}
+.btn-deny:hover{color:var(--muted)}
+.result{margin-top:16px;padding:12px;border-radius:8px;font-size:13px;text-align:center;display:none;background:rgba(34,197,94,.12);color:#86efac;border:1px solid rgba(34,197,94,.3)}
+.result.show{display:block}
+@media(max-width:768px){.modal{padding:24px 20px;border-radius:12px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="overlay" aria-hidden="true"></div>
+<div class="modal" role="dialog" aria-labelledby="permTitle">
+  <div class="lens-icon">
+    <svg viewBox="0 0 28 28" fill="none"><circle cx="14" cy="14" r="10" stroke="#fff" stroke-width="2"/><circle cx="14" cy="14" r="4" fill="#fff"/></svg>
+  </div>
+  <h2 id="permTitle">「透镜笔记」想访问您的麦克风</h2>
+  <p class="why">开启麦克风后，您可以使用语音转文字快速记录想法。音频仅在本地处理，不会上传至服务器。</p>
+  <div class="perm-list">
+    <div class="perm-item">
+      <svg width="18" height="18" viewBox="0 0 18 18"><path d="M9 12a3 3 0 003-3V5a3 3 0 10-6 0v4a3 3 0 003 3z" stroke="#38bdf8" fill="none"/><path d="M5 9v1a4 4 0 008 0V9M9 14v2" stroke="#38bdf8" fill="none"/></svg>
+      <div><strong>麦克风</strong>录制短语音片段并转为文字</div>
+    </div>
+    <div class="perm-item">
+      <svg width="18" height="18" viewBox="0 0 18 18"><rect x="3" y="5" width="12" height="9" rx="1" stroke="#38bdf8" fill="none"/><circle cx="9" cy="9.5" r="2" stroke="#38bdf8" fill="none"/></svg>
+      <div><strong>可选：摄像头</strong>视频笔记功能需要时可另行授权</div>
+    </div>
+  </div>
+  <div class="actions">
+    <button type="button" class="btn btn-allow" id="allowBtn">允许</button>
+    <button type="button" class="btn btn-once" id="onceBtn">仅此一次</button>
+    <button type="button" class="btn btn-deny" id="denyBtn">拒绝</button>
+  </div>
+  <div class="result" id="result" role="status"></div>
+</div>
+<script>
+(function(){
+  var r=document.getElementById('result');
+  document.getElementById('allowBtn').addEventListener('click',function(){r.className='result show';r.textContent='已允许麦克风访问。您可以开始语音输入。';});
+  document.getElementById('onceBtn').addEventListener('click',function(){r.className='result show';r.style.background='rgba(56,189,248,.12)';r.style.color='#7dd3fc';r.style.borderColor='rgba(56,189,248,.3)';r.textContent='本次会话已临时授权，关闭应用后需重新确认。';});
+  document.getElementById('denyBtn').addEventListener('click',function(){r.className='result show';r.style.background='rgba(100,116,139,.15)';r.style.color='#94a3b8';r.style.borderColor='rgba(100,116,139,.3)';r.textContent='已拒绝。您仍可使用键盘输入，语音功能将不可用。';});
+})();
+</script>
+</body>
+</html>

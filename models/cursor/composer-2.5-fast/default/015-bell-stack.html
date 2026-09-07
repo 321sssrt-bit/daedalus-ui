@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>通知中心 · 铃栈</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--page:#0f0a1a;--surface:#1a1228;--surface2:#241a36;--text:#ede8f5;--muted:#9d8fb8;--accent:#a855f7;--border:#3d2f55;--unread-dot:#c084fc;--sys:#6366f1;--msg:#22c55e;--warn:#f59e0b;--bill:#ec4899}
+html,body{height:100%;font-family:"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;background:var(--page);color:var(--text)}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+body{min-width:768px}
+.shell{max-width:1280px;min-height:800px;margin:0 auto;padding:32px 48px}
+header{display:flex;justify-content:space-between;align-items:center;margin-bottom:28px}
+header h1{font-size:24px;font-weight:700}
+.mark-all{border:1px solid var(--accent);background:transparent;color:var(--accent);padding:10px 20px;border-radius:8px;cursor:pointer;font-family:inherit;font-size:13px;font-weight:600}
+.mark-all:hover{background:rgba(168,85,247,.15)}
+.stack{display:flex;flex-direction:column;gap:10px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 20px;display:grid;grid-template-columns:auto 1fr auto;gap:14px;align-items:start;cursor:pointer;transition:transform .2s,box-shadow .2s}
+@media (prefers-reduced-motion:reduce){.card{transition:none}}
+.card:hover{transform:translateX(4px);box-shadow:-4px 0 0 var(--accent)}
+.card.read{opacity:.65}
+.card.read:hover{opacity:.85}
+.icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700}
+.icon.sys{background:rgba(99,102,241,.2);color:var(--sys)}
+.icon.msg{background:rgba(34,197,94,.2);color:var(--msg)}
+.icon.warn{background:rgba(245,158,11,.2);color:var(--warn)}
+.icon.bill{background:rgba(236,72,153,.2);color:var(--bill)}
+.body h3{font-size:15px;font-weight:600;margin-bottom:4px;display:flex;align-items:center;gap:8px}
+.unread-badge{width:8px;height:8px;border-radius:50%;background:var(--unread-dot);flex-shrink:0}
+.body p{font-size:13px;color:var(--muted);line-height:1.5}
+.time{font-size:12px;color:var(--muted);white-space:nowrap}
+.expand{margin-top:10px;padding-top:10px;border-top:1px solid var(--border);font-size:13px;line-height:1.6;color:var(--text);display:none}
+.card.expanded .expand{display:block}
+.chevron{font-size:12px;color:var(--muted);transition:transform .2s}
+.card.expanded .chevron{transform:rotate(180deg)}
+</style>
+</head>
+<body>
+<div class="shell">
+  <header>
+    <h1>通知中心 <span style="font-size:14px;color:var(--muted);font-weight:400" id="unread-count">5 条未读</span></h1>
+    <button class="mark-all" type="button" id="mark-all">全部标为已读</button>
+  </header>
+  <div class="stack" id="stack"></div>
+</div>
+<script>
+const ITEMS=[
+  {id:1,type:"sys",icon:"⚙",title:"系统维护完成",summary:"生产集群已于 03:00 完成例行升级，服务已恢复。",detail:"升级内容：Kubernetes 1.29 补丁、Redis 内存碎片整理。若仍遇 502 错误请刷新或联系值班。",time:"2 分钟前",read:false,expandable:true},
+  {id:2,type:"msg",icon:"✉",title:"李桐 回复了你的评论",summary:"「同意，下周一起对一下接口字段。」",detail:"",time:"18 分钟前",read:false,expandable:false},
+  {id:3,type:"warn",icon:"!",title:"磁盘使用率告警",summary:"节点 db-03 数据盘使用率达 87%，建议清理日志。",detail:"当前占用 174GB / 200GB。可执行 logrotate 或扩容。告警阈值 85%，严重阈值 95%。",time:"1 小时前",read:false,expandable:true},
+  {id:4,type:"bill",icon:"¥",title:"9 月账单已生成",summary:"团队版订阅 ¥2,880，将于 9 月 15 日扣款。",detail:"",time:"昨天",read:true,expandable:false},
+  {id:5,type:"sys",icon:"🔐",title:"新设备登录提醒",summary:"Windows · 上海 · Chrome 139 于 09:42 登录您的账号。",detail:"如非本人操作，请立即修改密码并撤销该会话。",time:"昨天",read:true,expandable:true},
+  {id:6,type:"msg",icon:"📎",title:"项目「北极星」已共享给你",summary:"张薇 邀请你协作编辑需求文档。",detail:"",time:"9/5",read:true,expandable:false}
+];
+const stack=document.getElementById("stack"),countEl=document.getElementById("unread-count");
+function unreadCount(){return ITEMS.filter(i=>!i.read).length;}
+function render(){
+  stack.innerHTML=ITEMS.map(i=>`
+    <article class="card${i.read?" read":""}" data-id="${i.id}" tabindex="0">
+      <div class="icon ${i.type}">${i.icon}</div>
+      <div class="body">
+        <h3>${!i.read?'<span class="unread-badge" aria-label="未读"></span>':''}${i.title}</h3>
+        <p>${i.summary}</p>
+        ${i.expandable?`<div class="expand">${i.detail}</div>`:''}
+      </div>
+      <div><span class="time">${i.time}</span>${i.expandable?'<div class="chevron" style="text-align:right;margin-top:8px">▼</div>':''}</div>
+    </article>`).join("");
+  countEl.textContent=unreadCount()+" 条未读";
+}
+stack.addEventListener("click",e=>{
+  const card=e.target.closest(".card");if(!card||e.target.closest(".mark-all"))return;
+  const item=ITEMS.find(x=>x.id===+card.dataset.id);
+  if(item.expandable){card.classList.toggle("expanded");}
+  item.read=true;card.classList.add("read");
+  card.querySelector(".unread-badge")?.remove();
+  countEl.textContent=unreadCount()+" 条未读";
+});
+document.getElementById("mark-all").onclick=()=>{ITEMS.forEach(i=>i.read=true);render();};
+render();
+</script>
+</body>
+</html>

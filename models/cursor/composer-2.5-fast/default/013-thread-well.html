@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>收件箱 · 深井</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--page:#f4efe6;--surface:#fffcf7;--text:#2c2419;--muted:#8a7d6b;--accent:#8b5a2b;--accent-soft:#ede0d0;--border:#ddd3c4;--unread:#c45c26}
+html,body{height:100%;font-family:Georgia,"Songti SC","PingFang SC",serif;background:var(--page);color:var(--text)}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+body{min-width:768px}
+.shell{max-width:1280px;min-height:800px;margin:0 auto;padding:20px 28px;display:grid;grid-template-rows:auto 1fr;gap:16px}
+header{display:flex;justify-content:space-between;align-items:center}
+header h1{font-size:24px;font-weight:400;font-family:"Segoe UI","PingFang SC",sans-serif}
+.filters{display:flex;gap:8px}
+.filters button{border:1px solid var(--border);background:var(--surface);padding:7px 16px;border-radius:20px;font-size:13px;cursor:pointer;font-family:inherit;color:var(--muted)}
+.filters button.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.layout{display:grid;grid-template-columns:380px 1fr;gap:0;border:1px solid var(--border);border-radius:10px;overflow:hidden;background:var(--surface);min-height:680px}
+.list{border-right:1px solid var(--border);overflow-y:auto}
+.item{display:grid;grid-template-columns:28px 1fr auto;gap:8px;padding:14px 16px;border-bottom:1px solid var(--border);cursor:pointer;align-items:start;font-family:"Segoe UI","PingFang SC",sans-serif}
+.item:hover{background:var(--accent-soft)}
+.item.selected{background:#e8dcc8}
+.item.unread .subject{font-weight:700}
+.item.unread .dot{width:8px;height:8px;border-radius:50%;background:var(--unread);margin-top:6px}
+.star{border:none;background:none;cursor:pointer;font-size:16px;color:var(--border);padding:0;line-height:1}
+.star.on{color:#d4a017}
+.subject{font-size:14px;margin-bottom:2px}
+.preview{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.time{font-size:11px;color:var(--muted);white-space:nowrap}
+.read-pane{padding:28px 36px;overflow-y:auto;font-family:"Segoe UI","PingFang SC",sans-serif}
+.read-pane h2{font-size:20px;font-weight:600;margin-bottom:8px;font-family:Georgia,"Songti SC",serif}
+.read-pane .from{font-size:13px;color:var(--muted);margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--border)}
+.read-pane p{font-size:15px;line-height:1.75;margin-bottom:12px}
+.read-empty{display:flex;align-items:center;justify-content:center;height:100%;color:var(--muted);font-size:15px}
+</style>
+</head>
+<body>
+<div class="shell">
+  <header>
+    <h1>深井收件箱</h1>
+    <div class="filters" role="tablist">
+      <button type="button" class="active" data-filter="all">全部</button>
+      <button type="button" data-filter="unread">未读</button>
+      <button type="button" data-filter="starred">星标</button>
+    </div>
+  </header>
+  <div class="layout">
+    <div class="list" id="list"></div>
+    <div class="read-pane" id="read"><div class="read-empty">选择左侧邮件阅读</div></div>
+  </div>
+</div>
+<script>
+const MSGS=[
+  {id:1,from:"林晓 · 产品",subject:"下周迭代范围确认",preview:"请确认 v2.4 是否包含导出功能…",body:"Hi，\n\n请在周五前确认 v2.4 迭代是否包含批量导出与权限细分两项。若资源不足，建议将导出顺延至 v2.5。\n\n— 林晓",time:"10:24",unread:true,star:false},
+  {id:2,from:"系统通知",subject:"您的 API 密钥将于 7 天后过期",preview:"请前往安全中心轮换密钥…",body:"您好，\n\n生产环境 API 密钥（末尾 …8f2a）将在 2026-09-14 过期。请在安全中心生成新密钥并更新调用方配置。\n\n此致",time:"昨天",unread:true,star:true},
+  {id:3,from:"陈默 · 设计",subject:"新版图标包已上传",preview:"Figma 链接见内，请查收…",body:"图标包已整理完毕，共 48 枚线性图标，统一 24px 网格。Figma 文件链接已附在团队空间「品牌资产」目录。\n\n如有遗漏请告知。",time:"昨天",unread:false,star:false},
+  {id:4,from:"财务部",subject:"8 月报销截止提醒",preview:"请于 9 月 10 日前提交…",body:"各位同事，\n\n8 月差旅与招待报销请于 9 月 10 日 18:00 前在费控系统提交。逾期将顺延至下月批次。\n\n财务部",time:"9/5",unread:false,star:false},
+  {id:5,from:"王帆 · 工程",subject:"Re: 数据库慢查询",preview:"已加索引，请再观察…",body:"已在 orders 表补充 (user_id, created_at) 复合索引，慢查询日志显示 P95 从 820ms 降至 95ms。请再观察 48 小时，若仍异常 ping 我。",time:"9/4",unread:false,star:true}
+];
+let filter="all",selected=null;
+const listEl=document.getElementById("list"),readEl=document.getElementById("read");
+function filtered(){return MSGS.filter(m=>filter==="all"||(filter==="unread"&&m.unread)||(filter==="starred"&&m.star));}
+function renderList(){
+  listEl.innerHTML=filtered().map(m=>`
+    <div class="item${m.unread?" unread":""}${selected===m.id?" selected":""}" data-id="${m.id}">
+      <button class="star${m.star?" on":""}" type="button" aria-label="星标" data-star="${m.id}">${m.star?"★":"☆"}</button>
+      <div><div class="subject">${m.subject}</div><div class="preview">${m.preview}</div></div>
+      <div class="time">${m.time}</div>
+    </div>`).join("")||'<div style="padding:24px;color:#8a7d6b;text-align:center">无匹配邮件</div>';
+}
+function renderRead(m){
+  if(!m){readEl.innerHTML='<div class="read-empty">选择左侧邮件阅读</div>';return;}
+  readEl.innerHTML=`<h2>${m.subject}</h2><div class="from">${m.from} · ${m.time}</div>${m.body.split("\n").map(p=>`<p>${p}</p>`).join("")}`;
+}
+listEl.addEventListener("click",e=>{
+  if(e.target.closest("[data-star]")){e.stopPropagation();const id=+e.target.closest("[data-star]").dataset.star;const m=MSGS.find(x=>x.id===id);m.star=!m.star;renderList();return;}
+  const item=e.target.closest(".item");if(!item)return;
+  selected=+item.dataset.id;const m=MSGS.find(x=>x.id===selected);m.unread=false;renderList();renderRead(m);
+});
+document.querySelectorAll(".filters button").forEach(b=>b.onclick=()=>{document.querySelectorAll(".filters button").forEach(x=>x.classList.remove("active"));b.classList.add("active");filter=b.dataset.filter;renderList();});
+renderList();
+</script>
+</body>
+</html>

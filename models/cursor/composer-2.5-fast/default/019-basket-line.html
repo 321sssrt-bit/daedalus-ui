@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>购物车 · 线篮</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--page:#fefefe;--surface:#fff;--text:#222;--muted:#666;--accent:#222;--border:#ddd;--line:#333;--danger:#c0392b}
+html,body{height:100%;font-family:"Courier New","PingFang SC",monospace;background:var(--page);color:var(--text)}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+body{min-width:768px}
+.shell{max-width:1280px;min-height:800px;margin:0 auto;padding:32px 48px;display:grid;grid-template-columns:1fr 300px;gap:40px;align-items:start}
+header{grid-column:1/-1;border-bottom:2px solid var(--line);padding-bottom:16px;margin-bottom:8px}
+header h1{font-size:22px;font-weight:700;letter-spacing:.05em}
+.items{display:flex;flex-direction:column;gap:0}
+.row{display:grid;grid-template-columns:48px 1fr 120px 100px 40px;gap:16px;align-items:center;padding:20px 0;border-bottom:1px dashed var(--border);font-family:"Segoe UI","PingFang SC",sans-serif}
+.row .icon{font-size:28px;text-align:center}
+.row h3{font-size:15px;font-weight:600;margin-bottom:4px}
+.row .unit{font-size:12px;color:var(--muted)}
+.qty{display:flex;border:1px solid var(--line);width:fit-content}
+.qty button{width:32px;height:32px;border:none;background:var(--surface);cursor:pointer;font-size:16px;font-family:inherit}
+.qty button:hover{background:#f0f0f0}
+.qty span{width:36px;text-align:center;line-height:32px;font-size:14px;border-left:1px solid var(--line);border-right:1px solid var(--line)}
+.subtotal{font-size:15px;font-weight:700;text-align:right;font-family:"Courier New",monospace}
+.del{border:none;background:none;color:var(--danger);cursor:pointer;font-size:18px;line-height:1;padding:4px}
+.del:hover{opacity:.7}
+.summary{border:2px solid var(--line);padding:24px;position:sticky;top:32px}
+.summary h2{font-size:14px;letter-spacing:.1em;margin-bottom:20px;font-weight:700}
+.line{display:flex;justify-content:space-between;margin-bottom:10px;font-size:13px;font-family:"Segoe UI","PingFang SC",sans-serif}
+.line.total{font-size:18px;font-weight:700;margin-top:16px;padding-top:16px;border-top:2px solid var(--line);font-family:"Courier New",monospace}
+.checkout{width:100%;margin-top:20px;border:2px solid var(--line);background:var(--accent);color:#fff;padding:14px;font-size:13px;font-weight:700;letter-spacing:.08em;cursor:pointer;font-family:inherit}
+.checkout:hover{background:#444}
+.empty{padding:60px;text-align:center;color:var(--muted);font-family:"Segoe UI","PingFang SC",sans-serif}
+</style>
+</head>
+<body>
+<div class="shell">
+  <header><h1>线篮 · 购物车 ( <span id="count">3</span> )</h1></header>
+  <div class="items" id="items"></div>
+  <aside class="summary">
+    <h2>合计</h2>
+    <div class="line"><span>小计</span><span id="sub">¥0</span></div>
+    <div class="line"><span>运费</span><span>¥0</span></div>
+    <div class="line total"><span>应付</span><span id="total">¥0</span></div>
+    <button class="checkout" type="button" id="checkout">去结算</button>
+  </aside>
+</div>
+<script>
+let cart=[
+  {id:1,name:"极简台灯",unit:"黑色 / 触摸调光",price:249,emoji:"💡",qty:1},
+  {id:2,name:"棉麻抱枕套",unit:"45×45 cm / 米白",price:89,emoji:"🛋",qty:2},
+  {id:3,name:"不锈钢保温杯",unit:"480ml / 磨砂绿",price:168,emoji:"🫖",qty:1},
+  {id:4,name:"桌面收纳盒",unit:"三格 / 原木色",price:56,emoji:"📦",qty:1}
+];
+function totals(){
+  const sub=cart.reduce((s,i)=>s+i.price*i.qty,0);
+  document.getElementById("sub").textContent="¥"+sub;
+  document.getElementById("total").textContent="¥"+sub;
+  document.getElementById("count").textContent=cart.length;
+}
+function render(){
+  const el=document.getElementById("items");
+  if(!cart.length){el.innerHTML='<div class="empty">购物车是空的</div>';totals();return;}
+  el.innerHTML=cart.map(i=>`
+    <div class="row" data-id="${i.id}">
+      <div class="icon">${i.emoji}</div>
+      <div><h3>${i.name}</h3><div class="unit">${i.unit} · 单价 ¥${i.price}</div></div>
+      <div class="qty">
+        <button type="button" data-act="minus" aria-label="减少">−</button>
+        <span>${i.qty}</span>
+        <button type="button" data-act="plus" aria-label="增加">+</button>
+      </div>
+      <div class="subtotal">¥${i.price*i.qty}</div>
+      <button class="del" type="button" data-act="del" aria-label="删除">×</button>
+    </div>`).join("");
+  totals();
+}
+document.getElementById("items").onclick=e=>{
+  const row=e.target.closest(".row");if(!row)return;
+  const id=+row.dataset.id;const item=cart.find(x=>x.id===id);
+  const act=e.target.dataset.act;
+  if(act==="plus")item.qty++;
+  else if(act==="minus"&&item.qty>1)item.qty--;
+  else if(act==="del")cart=cart.filter(x=>x.id!==id);
+  render();
+};
+document.getElementById("checkout").onclick=()=>{alert("即将跳转结算页 · 应付 "+document.getElementById("total").textContent);};
+render();
+</script>
+</body>
+</html>

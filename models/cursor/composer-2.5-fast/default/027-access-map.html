@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>角色与权限</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+:root{--page:#1e1b4b;--surface:#fff;--text:#1e1b4b;--muted:#64748b;--accent:#7c3aed;--accent-light:#ede9fe;--line:#e2e8f0;--preview:#fef3c7}
+html,body{height:100%;background:var(--page);font-family:system-ui,-apple-system,sans-serif;color:var(--text)}
+body{display:flex;justify-content:center;align-items:center;padding:24px}
+.frame{width:1280px;height:800px;background:var(--surface);border-radius:14px;display:grid;grid-template-columns:240px 1fr;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.4)}
+.roles{background:#312e81;color:#e0e7ff;padding:24px 0;display:flex;flex-direction:column}
+.roles h1{font-size:16px;font-weight:600;padding:0 20px 20px;color:#fff}
+.role-btn{width:100%;text-align:left;border:none;background:transparent;padding:14px 20px;font-size:14px;color:#c7d2fe;cursor:pointer;border-left:3px solid transparent;transition:background .12s}
+.role-btn:hover{background:rgba(255,255,255,.08)}
+.role-btn.active{background:rgba(124,58,237,.3);color:#fff;border-left-color:#a78bfa;font-weight:600}
+.role-btn:focus-visible{outline:2px solid #a78bfa;outline-offset:-2px}
+.main{display:flex;flex-direction:column;overflow:hidden}
+.toolbar{padding:20px 28px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+.toolbar h2{font-size:20px;font-weight:700}
+.preview-badge{font-size:12px;background:var(--preview);color:#92400e;padding:4px 10px;border-radius:999px;font-weight:600;display:none}
+.preview-badge.show{display:inline-block}
+.toolbar-actions{display:flex;gap:10px}
+.btn{padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;border:none}
+.btn-ghost{background:transparent;border:1px solid var(--line);color:var(--text)}
+.btn-ghost:hover{background:#f8fafc}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{background:#6d28d9}
+.btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.perms{flex:1;overflow-y:auto;padding:24px 28px}
+.perm-group{margin-bottom:24px}
+.perm-group h3{font-size:13px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px}
+.perm-item{display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid var(--line);border-radius:8px;margin-bottom:8px;background:#fafafa}
+.perm-item input{width:18px;height:18px;accent-color:var(--accent)}
+.perm-item label{flex:1;font-size:14px;cursor:pointer}
+.perm-item .hint{font-size:12px;color:var(--muted)}
+.perm-item.disabled{opacity:.5;pointer-events:none}
+.footer{padding:16px 28px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:10px;background:#fafafa}
+.toast{position:fixed;bottom:32px;left:50%;transform:translateX(-50%);background:var(--accent);color:#fff;padding:12px 24px;border-radius:8px;font-size:14px;opacity:0;transition:opacity .2s}
+.toast.show{opacity:1}
+@media(max-width:768px){.frame{width:100%;grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="frame">
+<nav class="roles"><h1>团队角色</h1>
+<button class="role-btn active" data-role="admin">管理员</button>
+<button class="role-btn" data-role="editor">编辑者</button>
+<button class="role-btn" data-role="viewer">查看者</button>
+</nav>
+<div class="main">
+<div class="toolbar">
+<div><h2 id="roleTitle">管理员</h2> <span class="preview-badge" id="previewBadge">预览模式</span></div>
+<div class="toolbar-actions"><button class="btn btn-ghost" id="btnPreview">切换预览</button><button class="btn btn-primary" id="btnSave">保存更改</button></div>
+</div>
+<div class="perms" id="perms"></div>
+<div class="footer"><button class="btn btn-ghost">取消</button><button class="btn btn-primary" id="btnSave2">保存更改</button></div>
+</div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+const roleData={
+admin:{title:'管理员',perms:[{g:'内容',items:[{id:'c1',label:'创建与编辑内容',hint:'文章、页面、媒体',on:true},{id:'c2',label:'发布内容',hint:'含定时发布',on:true},{id:'c3',label:'删除内容',hint:'含回收站',on:true}]},{g:'成员',items:[{id:'m1',label:'邀请成员',hint:'发送邀请链接',on:true},{id:'m2',label:'管理角色',hint:'分配与撤销',on:true}]},{g:'系统',items:[{id:'s1',label:'账单与订阅',hint:'查看与变更方案',on:true},{id:'s2',label:'API 密钥',hint:'创建与吊销',on:true}]}]},
+editor:{title:'编辑者',perms:[{g:'内容',items:[{id:'c1',label:'创建与编辑内容',hint:'文章、页面、媒体',on:true},{id:'c2',label:'发布内容',hint:'含定时发布',on:true},{id:'c3',label:'删除内容',hint:'含回收站',on:false}]},{g:'成员',items:[{id:'m1',label:'邀请成员',hint:'发送邀请链接',on:false},{id:'m2',label:'管理角色',hint:'分配与撤销',on:false}]},{g:'系统',items:[{id:'s1',label:'账单与订阅',hint:'查看与变更方案',on:false},{id:'s2',label:'API 密钥',hint:'创建与吊销',on:false}]}]},
+viewer:{title:'查看者',perms:[{g:'内容',items:[{id:'c1',label:'创建与编辑内容',hint:'文章、页面、媒体',on:false},{id:'c2',label:'发布内容',hint:'含定时发布',on:false},{id:'c3',label:'删除内容',hint:'含回收站',on:false}]},{g:'成员',items:[{id:'m1',label:'邀请成员',hint:'发送邀请链接',on:false},{id:'m2',label:'管理角色',hint:'分配与撤销',on:false}]},{g:'系统',items:[{id:'s1',label:'账单与订阅',hint:'查看与变更方案',on:false},{id:'s2',label:'API 密钥',hint:'创建与吊销',on:false}]}]}
+};
+let activeRole='admin',preview=false;
+const permsEl=document.getElementById('perms');
+function render(){
+const d=roleData[activeRole];
+document.getElementById('roleTitle').textContent=d.title;
+document.getElementById('previewBadge').classList.toggle('show',preview);
+permsEl.innerHTML=d.perms.map(g=>`<div class="perm-group"><h3>${g.g}</h3>${g.items.map(it=>`<div class="perm-item${preview?' disabled':''}"><input type="checkbox" id="${it.id}" ${it.on?'checked':''} ${preview?'disabled':''}><label for="${it.id}">${it.label}<div class="hint">${it.hint}</div></label></div>`).join('')}</div>`).join('');
+if(!preview)permsEl.querySelectorAll('input').forEach(inp=>{inp.onchange=()=>{const item=d.perms.flatMap(g=>g.items).find(i=>i.id===inp.id);if(item)item.on=inp.checked}});
+}
+document.querySelectorAll('.role-btn').forEach(b=>{b.onclick=()=>{activeRole=b.dataset.role;document.querySelectorAll('.role-btn').forEach(x=>x.classList.toggle('active',x===b));render()}});
+document.getElementById('btnPreview').onclick=()=>{preview=!preview;document.getElementById('btnPreview').textContent=preview?'退出预览':'切换预览';render()};
+function save(){const t=document.getElementById('toast');t.textContent='「'+roleData[activeRole].title+'」权限已保存';t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2000)}
+document.getElementById('btnSave').onclick=save;
+document.getElementById('btnSave2').onclick=save;
+render();
+</script>
+</body>
+</html>

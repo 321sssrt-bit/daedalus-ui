@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>映厅 · 音视频平台</title>
+<style>
+:root{--page:#0d0d0d;--surface:#1a1a1a;--text:#f5f5f5;--muted:#737373;--accent:#e11d48;--accent2:#fbbf24;--border:#2a2a2a;--success:#22c55e}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;background:var(--page);color:var(--text);min-height:100vh}
+.app{max-width:1280px;margin:0 auto;padding:24px 32px}
+header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px}
+.logo{font-size:24px;font-weight:700;color:var(--accent)}
+.logo span{color:var(--text);font-weight:400}
+.nav{display:flex;gap:8px}
+.nav button{background:var(--surface);border:1px solid var(--border);color:var(--text);padding:8px 16px;border-radius:8px;cursor:pointer;font-size:14px}
+.nav button.active,.nav button:hover{border-color:var(--accent);color:var(--accent)}
+.screen{display:none}.screen.active{display:block}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.item{background:var(--surface);border-radius:12px;overflow:hidden;cursor:pointer;border:1px solid var(--border);transition:border-color .2s}
+.item:hover{border-color:var(--accent)}
+.thumb{height:140px;background:linear-gradient(135deg,#292524,#44403c);display:flex;align-items:center;justify-content:center;font-size:48px}
+.item-info{padding:12px}
+.item-info h3{font-size:14px;margin-bottom:4px}
+.item-info p{font-size:12px;color:var(--muted)}
+.player-layout{display:grid;grid-template-columns:1fr 280px;gap:24px}
+.player-box{background:#000;border-radius:12px;aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.player-box .big-play{font-size:64px;opacity:.9}
+.player-controls{padding:16px 0}
+.progress-wrap{height:6px;background:var(--border);border-radius:3px;margin:12px 0;cursor:pointer;position:relative}
+.progress-fill{height:100%;background:var(--accent);border-radius:3px;width:0;transition:width .3s}
+.progress-wrap.paused .progress-fill{transition:none}
+.time{font-size:13px;color:var(--muted)}
+.ctrl-row{display:flex;gap:12px;align-items:center;margin-top:12px}
+.ctrl-btn{background:var(--surface);border:1px solid var(--border);color:var(--text);padding:8px 16px;border-radius:8px;cursor:pointer;font-size:13px}
+.ctrl-btn:hover{border-color:var(--accent)}
+.ctrl-btn.danger{border-color:var(--accent);color:var(--accent)}
+.state-badge{display:inline-block;padding:4px 10px;border-radius:6px;font-size:12px;margin-left:8px}
+.state-badge.playing{background:rgba(34,197,94,.2);color:var(--success)}
+.state-badge.paused{background:rgba(251,191,36,.2);color:var(--accent2)}
+.state-badge.offline{background:rgba(225,29,72,.2);color:var(--accent)}
+.queue{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px}
+.queue h3{font-size:14px;margin-bottom:12px;color:var(--muted)}
+.queue-item{padding:10px;border-radius:8px;cursor:pointer;font-size:13px;margin-bottom:6px}
+.queue-item:hover,.queue-item.active{background:var(--border)}
+.alert{padding:12px 16px;border-radius:10px;margin:12px 0;font-size:14px;background:rgba(225,29,72,.15);color:var(--accent);border:1px solid rgba(225,29,72,.3)}
+.back{color:var(--accent);cursor:pointer;font-size:14px;margin-bottom:16px;display:inline-block}
+@media(max-width:768px){.grid{grid-template-columns:repeat(2,1fr)}.player-layout{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="app">
+<header><div class="logo">映厅 <span>Cinema</span></div><nav><button class="active" data-go="discover">发现</button><button data-go="player" id="navPlayer" style="display:none">播放中</button></nav></header>
+<div id="discover" class="screen active">
+<h2 style="margin-bottom:16px;font-size:18px">推荐内容</h2>
+<div class="grid" id="contentGrid"></div>
+</div>
+<div id="player" class="screen">
+<span class="back" data-go="discover">← 返回发现</span>
+<div class="player-layout">
+<div>
+<div class="player-box" id="playerBox"><span class="big-play" id="playIcon">▶</span></div>
+<div class="player-controls">
+<h2 id="nowTitle">—</h2>
+<span class="state-badge" id="stateBadge">就绪</span>
+<div id="netAlert"></div>
+<div class="progress-wrap" id="progressBar"><div class="progress-fill" id="progressFill"></div></div>
+<div class="time"><span id="curTime">0:00</span> / <span id="durTime">0:00</span> · 已保存进度</div>
+<div class="ctrl-row">
+<button class="ctrl-btn" id="playPause">播放</button>
+<button class="ctrl-btn" id="seekFwd">+30秒</button>
+<button class="ctrl-btn danger" id="simDisconnect">模拟网络中断</button>
+<button class="ctrl-btn" id="reconnect" style="display:none">重新连接</button>
+</div>
+</div>
+</div>
+<div class="queue"><h3>播放队列</h3><div id="queueList"></div></div>
+</div>
+</div>
+</div>
+<script>
+const items=[
+{id:1,title:'城市夜行纪录片',dur:720,emoji:'🌃'},
+{id:2,title:'独立音乐人现场',dur:540,emoji:'🎸'},
+{id:3,title:'科幻短片：回声',dur:480,emoji:'🚀'},
+{id:4,title:'美食之旅 · 川味',dur:600,emoji:'🍜'},
+{id:5,title:'自然纪录 · 高原',dur:900,emoji:'🏔'},
+{id:6,title:'动画精选集',dur:420,emoji:'🎬'},
+{id:7,title:'古典音乐会精选',dur:780,emoji:'🎻'},
+{id:8,title:'科技前沿访谈',dur:360,emoji:'💡'}
+];
+let current=null,progress=0,playing=false,offline=false,timer=null,queue=[];
+const $=id=>document.getElementById(id);
+function fmt(s){const m=Math.floor(s/60),sec=s%60;return m+':'+(sec<10?'0':'')+sec;}
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));$(id).classList.add('active');document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('active',b.dataset.go===id));}
+function renderGrid(){$('contentGrid').innerHTML=items.map(i=>`<div class="item" data-id="${i.id}"><div class="thumb">${i.emoji}</div><div class="item-info"><h3>${i.title}</h3><p>${fmt(i.dur)}</p></div></div>`).join('');
+document.querySelectorAll('.item').forEach(el=>el.onclick=()=>startPlay(+el.dataset.id));}
+function startPlay(id){current=items.find(i=>i.id===id);if(!queue.find(q=>q.id===id))queue.push(current);progress=0;playing=false;offline=false;clearInterval(timer);updatePlayer();renderQueue();show('player');$('navPlayer').style.display='inline-block';}
+function updatePlayer(){$('nowTitle').textContent=current.title;$('durTime').textContent=fmt(current.dur);$('curTime').textContent=fmt(progress);$('progressFill').style.width=(progress/current.dur*100)+'%';
+$('playIcon').textContent=playing?'⏸':'▶';$('playPause').textContent=playing?'暂停':'播放';
+const badge=$('stateBadge');if(offline){badge.textContent='网络中断';badge.className='state-badge offline';$('netAlert').innerHTML='<div class="alert">网络已中断，播放已暂停，进度已保留在 '+fmt(progress)+'</div>';$('reconnect').style.display='inline-block';$('simDisconnect').style.display='none';}
+else if(playing){badge.textContent='播放中';badge.className='state-badge playing';$('netAlert').innerHTML='';$('reconnect').style.display='none';$('simDisconnect').style.display='inline-block';}
+else{badge.textContent='已暂停';badge.className='state-badge paused';if(!offline)$('netAlert').innerHTML='';}}
+function renderQueue(){$('queueList').innerHTML=queue.map(q=>`<div class="queue-item${q.id===current.id?' active':''}" data-id="${q.id}">${q.title}</div>`).join('');
+document.querySelectorAll('.queue-item').forEach(el=>el.onclick=()=>startPlay(+el.dataset.id));}
+function tick(){if(playing&&!offline&&progress<current.dur){progress++;updatePlayer();if(progress>=current.dur){playing=false;clearInterval(timer);updatePlayer();}}}
+document.querySelectorAll('[data-go]').forEach(el=>el.onclick=()=>show(el.dataset.go));
+$('playPause').onclick=()=>{if(offline)return;playing=!playing;if(playing){timer=setInterval(tick,1000);}else clearInterval(timer);updatePlayer();};
+$('seekFwd').onclick=()=>{if(!current)return;progress=Math.min(progress+30,current.dur);updatePlayer();};
+$('simDisconnect').onclick=()=>{offline=true;playing=false;clearInterval(timer);updatePlayer();};
+$('reconnect').onclick=()=>{offline=false;playing=true;timer=setInterval(tick,1000);updatePlayer();};
+$('progressBar').onclick=e=>{const r=e.currentTarget.getBoundingClientRect();progress=Math.floor((e.clientX-r.left)/r.width*current.dur);updatePlayer();};
+renderGrid();
+</script>
+</body>
+</html>

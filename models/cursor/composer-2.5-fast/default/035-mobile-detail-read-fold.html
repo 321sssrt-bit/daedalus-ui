@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>内容详情 · 折页</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --page:#faf6f0;--surface:#fff;--text:#2c2416;--muted:#8a7d6b;
+  --accent:#c45c26;--accent-light:#f5e6dc;--border:#e8dfd0;
+  --font:Georgia,"Songti SC","SimSun",serif;--sans:system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+}
+html{font-family:var(--sans);background:#d4c8b8;min-height:100vh}
+body{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.phone{width:390px;height:844px;background:var(--page);border-radius:44px;border:8px solid #1a1a1a;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 32px 64px rgba(0,0,0,.2);position:relative}
+.notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:120px;height:28px;background:#1a1a1a;border-radius:0 0 18px 18px;z-index:10}
+.header{padding:48px 20px 12px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--border);background:var(--surface)}
+.back{background:none;border:none;color:var(--muted);cursor:pointer;padding:4px}
+.back svg{width:24px;height:24px}
+.header h1{font-family:var(--font);font-size:18px;font-weight:600;color:var(--text);flex:1;line-height:1.35}
+.scroll{flex:1;overflow-y:auto;padding:20px}
+.control{background:var(--accent-light);border-radius:12px;padding:16px;margin-bottom:20px}
+.control label{display:block;font-size:12px;color:var(--muted);margin-bottom:10px}
+.font-row{display:flex;align-items:center;gap:12px}
+.font-row button{width:36px;height:36px;border-radius:8px;border:1px solid var(--border);background:var(--surface);font-size:18px;cursor:pointer;color:var(--text)}
+.font-row button:hover{background:var(--accent-light)}
+.font-row button:focus-visible{outline:2px solid var(--accent)}
+.font-row span{flex:1;text-align:center;font-size:14px;color:var(--text)}
+.body-text{font-family:var(--font);font-size:17px;line-height:1.85;color:var(--text);transition:font-size .2s}
+.body-text p{margin-bottom:16px}
+.body-text p:first-child::first-letter{font-size:2.4em;float:left;line-height:1;margin:4px 8px 0 0;color:var(--accent)}
+.footer{padding:12px 20px 32px;background:var(--surface);border-top:1px solid var(--border);display:flex;gap:12px}
+.btn{flex:1;padding:14px;border-radius:12px;font-size:15px;font-weight:600;border:none;cursor:pointer;transition:background .2s,transform .2s}
+.btn-fav{background:var(--surface);color:var(--accent);border:1px solid var(--accent)}
+.btn-fav:hover{background:var(--accent-light)}
+.btn-fav.saved{background:var(--accent);color:#fff;border-color:var(--accent)}
+.btn-start{background:var(--accent);color:#fff}
+.btn-start:hover{filter:brightness(1.05)}
+.btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media(prefers-reduced-motion:reduce){.body-text,.btn{transition:none}}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="notch"></div>
+  <header class="header">
+    <button class="back" aria-label="返回"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg></button>
+    <h1>在慢邮时代读一封长信</h1>
+  </header>
+  <div class="scroll">
+    <div class="control">
+      <label>正文字号</label>
+      <div class="font-row">
+        <button id="smaller" aria-label="缩小">A−</button>
+        <span id="sizeLabel">标准 · 17px</span>
+        <button id="larger" aria-label="放大">A+</button>
+      </div>
+    </div>
+    <article class="body-text" id="bodyText">
+      <p>亲爱的读者：当你展开这封信时，请允许自己放慢呼吸。我们刻意保留了纸页的留白，因为阅读从来不只是信息的搬运，而是一次与自我的对话。</p>
+      <p>下面的段落会随字号调节即时重排。较大的字适合夜间床头，较小的字则便于在通勤途中一次读完。选择一种属于你的节奏，然后继续向下。</p>
+      <p>若你已收藏，它会在你的书架里等待；若选择开始，我们将记住你读到的位置，下次从同一行继续。</p>
+    </article>
+  </div>
+  <footer class="footer">
+    <button class="btn btn-fav" id="favBtn">♡ 收藏</button>
+    <button class="btn btn-start" id="startBtn">开始阅读</button>
+  </footer>
+</div>
+<script>
+const bodyText=document.getElementById('bodyText'),sizeLabel=document.getElementById('sizeLabel'),favBtn=document.getElementById('favBtn');
+const sizes=[15,17,19,21];let si=1;
+document.getElementById('smaller').addEventListener('click',()=>{if(si>0){si--;apply();}});
+document.getElementById('larger').addEventListener('click',()=>{if(si<sizes.length-1){si++;apply();}});
+function apply(){bodyText.style.fontSize=sizes[si]+'px';sizeLabel.textContent=['紧凑 · 15px','标准 · 17px','舒适 · 19px','大字 · 21px'][si];}
+favBtn.addEventListener('click',()=>{favBtn.classList.toggle('saved');favBtn.textContent=favBtn.classList.contains('saved')?'♥ 已收藏':'♡ 收藏';});
+document.getElementById('startBtn').addEventListener('click',()=>{document.getElementById('startBtn').textContent='继续阅读 · 第 1 段';});
+</script>
+</body>
+</html>

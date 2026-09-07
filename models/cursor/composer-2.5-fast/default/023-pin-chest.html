@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>我的收藏夹</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+:root{--page:#eef2ff;--surface:#fff;--text:#1e1b4b;--muted:#6366a0;--accent:#6366f1;--accent2:#a78bfa;--line:#e0e7ff;--danger:#ef4444}
+html,body{height:100%;background:var(--page);color:var(--text);font-family:system-ui,-apple-system,sans-serif}
+body{display:flex;justify-content:center;align-items:flex-start;padding:24px}
+.frame{width:1280px;height:800px;background:var(--surface);border-radius:16px;box-shadow:0 8px 32px rgba(99,102,241,.12);display:flex;flex-direction:column;overflow:hidden}
+header{padding:28px 36px 0;display:flex;justify-content:space-between;align-items:flex-end}
+header h1{font-size:26px;font-weight:700}
+header p{font-size:14px;color:var(--muted);margin-top:4px}
+.count-badge{font-size:13px;background:var(--line);color:var(--accent);padding:6px 14px;border-radius:999px;font-weight:600}
+.tabs{display:flex;gap:8px;padding:20px 36px 0;border-bottom:1px solid var(--line)}
+.tab{padding:10px 18px;border:none;background:transparent;font-size:14px;color:var(--muted);cursor:pointer;border-radius:8px 8px 0 0;font-weight:500;transition:color .15s,background .15s}
+.tab:hover{color:var(--text);background:#f5f3ff}
+.tab.active{color:var(--accent);background:#f5f3ff;border-bottom:2px solid var(--accent);margin-bottom:-1px}
+.tab:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.content{flex:1;overflow-y:auto;padding:24px 36px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.pin{background:#fafaff;border:1px solid var(--line);border-radius:12px;padding:18px;position:relative;transition:box-shadow .15s,border-color .15s}
+.pin:hover{box-shadow:0 4px 16px rgba(99,102,241,.1);border-color:#c7d2fe}
+.pin-type{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--accent2);font-weight:600}
+.pin h3{font-size:15px;margin:8px 0 6px;font-weight:600;line-height:1.35}
+.pin p{font-size:13px;color:var(--muted);line-height:1.45}
+.pin-meta{font-size:12px;color:#94a3b8;margin-top:12px}
+.btn-remove{position:absolute;top:12px;right:12px;width:28px;height:28px;border:none;background:#fff;border-radius:6px;color:var(--muted);cursor:pointer;font-size:16px;line-height:1;border:1px solid var(--line)}
+.btn-remove:hover{color:var(--danger);border-color:#fecaca;background:#fef2f2}
+.btn-remove:focus-visible{outline:2px solid var(--danger);outline-offset:2px}
+.empty{text-align:center;padding:60px;color:var(--muted);font-size:15px}
+@media(max-width:768px){.frame{width:100%;height:auto}.grid{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<div class="frame">
+<header><div><h1>我的收藏夹</h1><p>稍后阅读、灵感与工具</p></div><span class="count-badge" id="countBadge">7 项</span></header>
+<nav class="tabs" id="tabs"></nav>
+<div class="content"><div class="grid" id="grid"></div></div>
+</div>
+<script>
+const cats=[{id:'all',label:'全部'},{id:'read',label:'阅读'},{id:'design',label:'设计'},{id:'tool',label:'工具'}];
+const items=[
+{id:1,cat:'read',title:'《手工纸坊的最后冬天》',desc:'工艺纪实长文，关于即将停产的纸坊与传承困境。',meta:'深读目录 · 2 天前'},
+{id:2,cat:'read',title:'算法推荐下的阅读窄门',desc:'文化评论，讨论注意力与深度阅读的关系。',meta:'思辨 · 1 周前'},
+{id:3,cat:'design',title:'Brutalist Web Design 图集',desc:'粗粝排版与纯文字导航的编辑网站案例。',meta:'Are.na · 3 天前'},
+{id:4,cat:'design',title:'2026 品牌色彩趋势报告',desc:'Pantone 与独立工作室联合发布的年度观察。',meta:'PDF · 5 天前'},
+{id:5,cat:'tool',title:'Figma 变量组件模板',desc:'含暗色模式切换的设计系统 starter kit。',meta:'Community · 1 天前'},
+{id:6,cat:'tool',title:'本地 Markdown 知识库',desc:'离线优先的笔记工具，支持双向链接。',meta:'GitHub · 4 天前'},
+{id:7,cat:'read',title:'夜行巴士与边缘城镇',desc:'旅行随笔，写三省交界的小城变迁。',meta:'途 · 2 周前'}
+];
+let activeCat='all';
+const tabsEl=document.getElementById('tabs');
+const grid=document.getElementById('grid');
+const badge=document.getElementById('countBadge');
+cats.forEach(c=>{
+const t=document.createElement('button');
+t.className='tab'+(c.id===activeCat?' active':'');
+t.textContent=c.label;
+t.onclick=()=>{activeCat=c.id;document.querySelectorAll('.tab').forEach(el=>el.classList.toggle('active',el.textContent===c.label));render()};
+tabsEl.appendChild(t);
+});
+function render(){
+const filtered=activeCat==='all'?items:items.filter(i=>i.cat===activeCat);
+badge.textContent=items.length+' 项';
+grid.innerHTML='';
+if(!filtered.length){grid.innerHTML='<div class="empty">该分类暂无收藏</div>';return}
+filtered.forEach(item=>{
+const el=document.createElement('article');
+el.className='pin';
+el.dataset.id=item.id;
+el.innerHTML=`<button class="btn-remove" aria-label="移除">×</button><div class="pin-type">${cats.find(c=>c.id===item.cat).label}</div><h3>${item.title}</h3><p>${item.desc}</p><div class="pin-meta">${item.meta}</div>`;
+el.querySelector('.btn-remove').onclick=e=>{e.stopPropagation();removeItem(item.id)};
+grid.appendChild(el);
+});
+}
+function removeItem(id){
+const idx=items.findIndex(i=>i.id===id);
+if(idx>-1){items.splice(idx,1);render()}
+}
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>数据看板 · 余烬分析</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --page:#120a06;--surface:#1e120c;--surface2:#2a1810;--text:#f5e6dc;--muted:#9a7b6a;
+  --accent:#ff6b35;--accent2:#ffb347;--border:#3d2518;--glow:rgba(255,107,53,.35);
+}
+html,body{height:100%;font-family:"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;background:var(--page);color:var(--text)}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+body{min-width:768px;overflow-x:auto}
+.shell{max-width:1280px;min-height:800px;margin:0 auto;padding:28px 36px;display:flex;flex-direction:column;gap:24px}
+header{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:1px solid var(--border);padding-bottom:18px}
+header h1{font-size:26px;font-weight:700;letter-spacing:.02em}
+header p{color:var(--muted);font-size:14px;margin-top:4px}
+.granularity{display:flex;gap:6px;background:var(--surface);padding:4px;border-radius:10px;border:1px solid var(--border)}
+.granularity button{border:none;background:transparent;color:var(--muted);padding:8px 18px;border-radius:8px;font-size:13px;cursor:pointer;font-family:inherit}
+.granularity button:hover{color:var(--text)}
+.granularity button.active{background:var(--accent);color:#1a0a00;font-weight:600}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.kpi{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 20px;position:relative;overflow:hidden}
+.kpi::after{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--accent),var(--accent2))}
+.kpi .label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.kpi .value{font-size:32px;font-weight:700;margin:8px 0 4px;color:var(--accent2)}
+.kpi .delta{font-size:13px;color:#6ecf8a}
+.kpi .delta.down{color:#e86a6a}
+.chart-panel{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px 28px;display:flex;flex-direction:column;min-height:380px;box-shadow:0 0 40px var(--glow)}
+.chart-panel h2{font-size:16px;font-weight:600;margin-bottom:20px}
+.chart-wrap{flex:1;display:flex;align-items:flex-end;gap:8px;padding-top:12px;border-left:1px solid var(--border);border-bottom:1px solid var(--border);position:relative}
+.bar-group{flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;height:100%;justify-content:flex-end}
+.bar{width:100%;max-width:48px;background:linear-gradient(180deg,var(--accent2),var(--accent));border-radius:6px 6px 0 0;min-height:4px;transition:height .35s ease,opacity .25s}
+@media (prefers-reduced-motion:reduce){.bar{transition:none}}
+.bar-group span{font-size:11px;color:var(--muted);white-space:nowrap}
+.chart-legend{margin-top:16px;font-size:13px;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="shell">
+  <header>
+    <div>
+      <h1>余烬分析 · 访问趋势</h1>
+      <p>上次同步：今天 14:32 · 数据源：生产集群</p>
+    </div>
+    <div class="granularity" role="tablist" aria-label="时间粒度">
+      <button type="button" data-gran="day" class="active" role="tab" aria-selected="true">按日</button>
+      <button type="button" data-gran="week" role="tab" aria-selected="false">按周</button>
+      <button type="button" data-gran="month" role="tab" aria-selected="false">按月</button>
+    </div>
+  </header>
+  <section class="kpis" aria-label="关键指标">
+    <article class="kpi"><div class="label">总访问量</div><div class="value" id="kpi-total">128,450</div><div class="delta" id="kpi-total-d">↑ 12.4% 较上期</div></article>
+    <article class="kpi"><div class="label">独立访客</div><div class="value" id="kpi-uv">34,210</div><div class="delta" id="kpi-uv-d">↑ 8.1% 较上期</div></article>
+    <article class="kpi"><div class="label">平均停留</div><div class="value" id="kpi-dur">4m 18s</div><div class="delta down" id="kpi-dur-d">↓ 0.6% 较上期</div></article>
+    <article class="kpi"><div class="label">转化率</div><div class="value" id="kpi-cvr">3.7%</div><div class="delta" id="kpi-cvr-d">↑ 0.3pt 较上期</div></article>
+  </section>
+  <section class="chart-panel" aria-label="主趋势图">
+    <h2 id="chart-title">近 7 日访问量</h2>
+    <div class="chart-wrap" id="chart" role="img" aria-label="柱状趋势图"></div>
+    <p class="chart-legend">纵轴：会话数 · 点击粒度按钮切换聚合周期</p>
+  </section>
+</div>
+<script>
+const DATA={
+  day:{title:"近 7 日访问量",labels:["周一","周二","周三","周四","周五","周六","周日"],values:[8200,9100,8800,10200,11500,9800,7600],
+    kpis:{total:"128,450",uv:"34,210",dur:"4m 18s",cvr:"3.7%",td:"↑ 12.4% 较上期",ud:"↑ 8.1% 较上期",dd:"↓ 0.6% 较上期",cd:"↑ 0.3pt 较上期"}},
+  week:{title:"近 8 周访问量",labels:["W1","W2","W3","W4","W5","W6","W7","W8"],values:[52000,48000,55000,61000,58000,64000,67000,72000],
+    kpis:{total:"417,000",uv:"112,800",dur:"4m 02s",cvr:"3.5%",td:"↑ 18.2% 较上期",ud:"↑ 11.0% 较上期",dd:"↓ 1.2% 较上期",cd:"↑ 0.1pt 较上期"}},
+  month:{title:"近 6 个月访问量",labels:["4月","5月","6月","7月","8月","9月"],values:[180000,195000,210000,225000,240000,258000],
+    kpis:{total:"1.31M",uv:"356,400",dur:"3m 54s",cvr:"3.4%",td:"↑ 22.8% 较上期",ud:"↑ 15.6% 较上期",dd:"↓ 2.1% 较上期",cd:"持平 较上期"}}
+};
+const chart=document.getElementById("chart");
+function render(gran){
+  const d=DATA[gran];const max=Math.max(...d.values);
+  document.getElementById("chart-title").textContent=d.title;
+  document.getElementById("kpi-total").textContent=d.kpis.total;
+  document.getElementById("kpi-uv").textContent=d.kpis.uv;
+  document.getElementById("kpi-dur").textContent=d.kpis.dur;
+  document.getElementById("kpi-cvr").textContent=d.kpis.cvr;
+  document.getElementById("kpi-total-d").textContent=d.kpis.td;
+  document.getElementById("kpi-uv-d").textContent=d.kpis.ud;
+  document.getElementById("kpi-dur-d").textContent=d.kpis.dd;
+  document.getElementById("kpi-cvr-d").textContent=d.kpis.cd;
+  chart.innerHTML=d.labels.map((l,i)=>`<div class="bar-group"><div class="bar" style="height:${Math.round(d.values[i]/max*260)}px" title="${d.values[i].toLocaleString()}"></div><span>${l}</span></div>`).join("");
+}
+document.querySelectorAll(".granularity button").forEach(btn=>{
+  btn.addEventListener("click",()=>{
+    document.querySelectorAll(".granularity button").forEach(b=>{b.classList.remove("active");b.setAttribute("aria-selected","false");});
+    btn.classList.add("active");btn.setAttribute("aria-selected","true");
+    render(btn.dataset.gran);
+  });
+});
+render("day");
+</script>
+</body>
+</html>

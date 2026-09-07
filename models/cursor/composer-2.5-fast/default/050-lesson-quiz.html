@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>课栈 · 学习练习</title>
+<style>
+:root{--page:#f8fafc;--surface:#ffffff;--text:#0f172a;--muted:#64748b;--accent:#1d4ed8;--accent-light:#dbeafe;--border:#e2e8f0;--error:#dc2626;--success:#16a34a;--sidebar:#1e3a5f}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;background:var(--page);color:var(--text);min-height:100vh}
+.app{max-width:1280px;margin:0 auto;padding:24px 32px;display:grid;grid-template-columns:260px 1fr;gap:24px;min-height:calc(100vh - 48px)}
+.sidebar{background:var(--sidebar);color:#fff;border-radius:12px;padding:24px}
+.sidebar h2{font-size:18px;margin-bottom:20px}
+.course-item{padding:12px;border-radius:8px;cursor:pointer;font-size:14px;margin-bottom:6px;opacity:.85}
+.course-item:hover,.course-item.active{background:rgba(255,255,255,.15);opacity:1}
+.main{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:32px}
+.main h1{font-size:24px;margin-bottom:8px}
+.progress-bar{height:6px;background:var(--border);border-radius:3px;margin:16px 0 24px;overflow:hidden}
+.progress-fill{height:100%;background:var(--accent);width:33%;transition:width .3s}
+.question{font-size:18px;line-height:1.6;margin-bottom:24px}
+.options{display:flex;flex-direction:column;gap:12px}
+.opt{padding:16px 20px;border:2px solid var(--border);border-radius:12px;cursor:pointer;font-size:16px;transition:border-color .2s,background .2s}
+.opt:hover{border-color:var(--accent);background:var(--accent-light)}
+.opt.selected{border-color:var(--accent);background:var(--accent-light)}
+.opt.wrong{border-color:var(--error);background:#fef2f2}
+.opt.correct{border-color:var(--success);background:#ecfdf5}
+.btn{padding:12px 28px;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;border:none;margin-top:20px}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:disabled{background:#94a3b8;cursor:not-allowed}
+.btn-secondary{background:#fff;border:1px solid var(--border);color:var(--text);margin-left:12px}
+.feedback{margin-top:24px;padding:20px;border-radius:12px;display:none}
+.feedback.show{display:block}
+.feedback.wrong{background:#fef2f2;border:1px solid #fecaca}
+.feedback.correct{background:#ecfdf5;border:1px solid #a7f3d0}
+.feedback h3{margin-bottom:8px;font-size:16px}
+.feedback p{font-size:14px;line-height:1.6;color:var(--muted)}
+.screen{display:none}.screen.active{display:block}
+@media(max-width:768px){.app{grid-template-columns:1fr}.sidebar{display:none}}
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="sidebar">
+<h2>课栈 LearnStack</h2>
+<div class="course-item active" data-c="1">UX 设计基础</div>
+<div class="course-item" data-c="2">信息架构入门</div>
+<div class="course-item" data-c="3">可用性测试</div>
+</aside>
+<main class="main">
+<div id="entry" class="screen active">
+<h1>UX 设计基础</h1>
+<p style="color:var(--muted);margin-bottom:16px">第 2 章 · 用户研究 · 练习 1/3</p>
+<div class="progress-bar"><div class="progress-fill"></div></div>
+<p style="font-size:15px;line-height:1.7;margin-bottom:24px">本练习将检验你对用户访谈方法的理解。请选择最恰当的答案。</p>
+<button class="btn btn-primary" id="startQuiz">开始练习</button>
+</div>
+<div id="quiz" class="screen">
+<h1>练习 · 用户访谈</h1>
+<div class="progress-bar"><div class="progress-fill" style="width:66%"></div></div>
+<p class="question">在进行用户访谈时，以下哪种做法<strong>最不合适</strong>？</p>
+<div class="options" id="optList">
+<div class="opt" data-v="a">A. 使用开放式问题引导用户描述体验</div>
+<div class="opt" data-v="b">B. 在访谈中频繁打断用户以纠正其观点</div>
+<div class="opt" data-v="c">C. 记录用户的原话而非仅记结论</div>
+<div class="opt" data-v="d">D. 访谈前准备提纲但不照本宣科</div>
+</div>
+<button class="btn btn-primary" id="submitAns" disabled>提交答案</button>
+<div class="feedback" id="feedback">
+<h3 id="fbTitle">—</h3>
+<p id="fbText">—</p>
+<button class="btn btn-secondary" id="retryBtn" style="display:none;margin-top:16px;margin-left:0">再次作答</button>
+<button class="btn btn-primary" id="nextBtn" style="display:none;margin-top:16px">继续</button>
+</div>
+</div>
+<div id="done" class="screen">
+<h1 style="color:var(--success)">✓ 订正成功</h1>
+<p style="font-size:16px;margin:16px 0;line-height:1.7">你已成功完成本练习。用户访谈的核心是倾听而非说服，打断用户会破坏信任并污染数据。</p>
+<button class="btn btn-primary" id="restart">返回课程</button>
+</div>
+</main>
+</div>
+<script>
+let selected=null,submitted=false,correct='b';
+const $=id=>document.getElementById(id);
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));$(id).classList.add('active');}
+$('startQuiz').onclick=()=>show('quiz');
+document.querySelectorAll('.opt').forEach(o=>o.onclick=()=>{if(submitted)return;document.querySelectorAll('.opt').forEach(x=>x.classList.remove('selected'));o.classList.add('selected');selected=o.dataset.v;$('submitAns').disabled=false;});
+$('submitAns').onclick=()=>{if(!selected)return;submitted=true;
+const fb=$('feedback');fb.classList.add('show');
+if(selected===correct){fb.className='feedback show correct';$('fbTitle').textContent='回答正确';$('fbText').textContent='开放式提问与忠实记录是访谈最佳实践。';$('nextBtn').style.display='inline-block';document.querySelector('[data-v="'+selected+'"]').classList.add('correct');}
+else{fb.className='feedback show wrong';$('fbTitle').textContent='回答错误';$('fbText').textContent='解释：访谈中不应频繁打断用户。打断会破坏对话流、让用户感到被评判，且可能遗漏关键信息。正确做法是耐心倾听，用追问而非纠正来深入。';$('retryBtn').style.display='inline-block';document.querySelector('[data-v="'+selected+'"]').classList.add('wrong');document.querySelector('[data-v="'+correct+'"]').classList.add('correct');}
+$('submitAns').disabled=true;document.querySelectorAll('.opt').forEach(o=>o.style.pointerEvents='none');};
+$('retryBtn').onclick=()=>{selected=null;submitted=false;document.querySelectorAll('.opt').forEach(o=>{o.classList.remove('selected','wrong','correct');o.style.pointerEvents='auto';});$('feedback').classList.remove('show');$('retryBtn').style.display='none';$('submitAns').disabled=true;};
+$('nextBtn').onclick=$('restart').onclick=()=>{if($('nextBtn').style.display==='inline-block')show('done');else{selected=null;submitted=false;document.querySelectorAll('.opt').forEach(o=>{o.classList.remove('selected','wrong','correct');o.style.pointerEvents='auto';});$('feedback').classList.remove('show');$('retryBtn').style.display='none';$('nextBtn').style.display='none';$('submitAns').disabled=true;show('entry');}};
+</script>
+</body>
+</html>

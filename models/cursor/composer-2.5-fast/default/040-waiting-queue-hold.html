@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>等候 · 排队中</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --page:#eff6ff;--surface:#fff;--text:#1e3a5f;--muted:#64748b;
+  --accent:#2563eb;--accent-light:#dbeafe;--active:#3b82f6;
+  --border:#bfdbfe;--font:system-ui,-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+html{font-family:var(--font);background:#93c5fd;min-height:100vh}
+body{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.phone{width:390px;height:844px;background:var(--page);border-radius:44px;border:8px solid #1a1a1a;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 32px 64px rgba(0,0,0,.2);position:relative}
+.notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:120px;height:28px;background:#1a1a1a;border-radius:0 0 18px 18px;z-index:10}
+.content{flex:1;padding:56px 24px 24px;display:flex;flex-direction:column}
+.spinner-wrap{display:flex;justify-content:center;margin-bottom:28px}
+.spinner{width:56px;height:56px;border:4px solid var(--accent-light);border-top-color:var(--accent);border-radius:50%;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+h1{font-size:22px;font-weight:700;text-align:center;color:var(--text);margin-bottom:8px}
+.status-text{text-align:center;font-size:14px;color:var(--muted);margin-bottom:32px;line-height:1.5}
+.steps{background:var(--surface);border-radius:16px;padding:20px;margin-bottom:24px;border:1px solid var(--border)}
+.step{display:flex;align-items:flex-start;gap:14px;padding:12px 0;position:relative}
+.step:not(:last-child)::after{content:"";position:absolute;left:11px;top:36px;width:2px;height:calc(100% - 8px);background:var(--border)}
+.step.done .dot{background:var(--accent);border-color:var(--accent)}
+.step.done .dot svg{display:block}
+.step.active .dot{background:var(--active);border-color:var(--active);box-shadow:0 0 0 4px var(--accent-light)}
+.step.pending .dot{background:var(--surface);border-color:var(--border)}
+.dot{width:24px;height:24px;border-radius:50%;border:2px solid;display:flex;align-items:center;justify-content:center;flex-shrink:0;position:relative;z-index:1}
+.dot svg{width:12px;height:12px;color:#fff;display:none}
+.step-body{flex:1;padding-top:2px}
+.step-body .name{font-size:14px;font-weight:600;color:var(--text)}
+.step-body .desc{font-size:12px;color:var(--muted);margin-top:2px}
+.step.pending .name,.step.pending .desc{color:var(--muted)}
+.eta{background:linear-gradient(135deg,var(--accent),#1d4ed8);color:#fff;border-radius:14px;padding:18px 20px;text-align:center;margin-bottom:28px}
+.eta .label{font-size:12px;opacity:.85;margin-bottom:4px}
+.eta .time{font-size:28px;font-weight:700}
+.actions{display:flex;flex-direction:column;gap:10px;margin-top:auto;padding-bottom:16px}
+.btn{padding:14px;border-radius:12px;font-size:15px;font-weight:500;border:none;cursor:pointer;transition:background .2s}
+.btn-side{background:var(--surface);color:var(--accent);border:1px solid var(--border)}
+.btn-side:hover{background:var(--accent-light)}
+.btn-cancel{background:transparent;color:var(--muted);font-size:14px}
+.btn-cancel:hover{color:var(--text)}
+@media(prefers-reduced-motion:reduce){.spinner{animation:none;border-top-color:var(--accent);opacity:.7}}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="notch"></div>
+  <div class="content">
+    <div class="spinner-wrap"><div class="spinner" id="spinner"></div></div>
+    <h1>正在处理您的申请</h1>
+    <p class="status-text" id="statusText">系统正在核验材料，请保持 App 在前台或选择放到一边。</p>
+    <div class="steps">
+      <div class="step done"><div class="dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div><div class="step-body"><div class="name">提交申请</div><div class="desc">已完成 · 14:32</div></div></div>
+      <div class="step active" id="currentStep"><div class="dot"></div><div class="step-body"><div class="name">身份核验</div><div class="desc">进行中…</div></div></div>
+      <div class="step pending"><div class="dot"></div><div class="step-body"><div class="name">生成凭证</div><div class="desc">等待上一步完成</div></div></div>
+    </div>
+    <div class="eta">
+      <div class="label">预计剩余时间</div>
+      <div class="time" id="etaTime">约 2 分钟</div>
+    </div>
+    <div class="actions">
+      <button class="btn btn-side" id="sideBtn">放到一边，完成后通知我</button>
+      <button class="btn btn-cancel" id="cancelBtn">取消申请</button>
+    </div>
+  </div>
+</div>
+<script>
+const sideBtn=document.getElementById('sideBtn'),cancelBtn=document.getElementById('cancelBtn'),statusText=document.getElementById('statusText'),etaTime=document.getElementById('etaTime');
+sideBtn.addEventListener('click',()=>{sideBtn.textContent='已开启后台通知';sideBtn.disabled=true;statusText.textContent='您可以离开此页，完成后将推送通知。';});
+cancelBtn.addEventListener('click',()=>{if(confirm('确定取消当前申请？已提交的信息将不会保存。')){document.querySelector('.content').innerHTML='<h1 style="text-align:center;margin-top:120px;font-size:20px;color:#64748b">申请已取消</h1>';}});
+let sec=120;setInterval(()=>{if(sec>0){sec-=5;const m=Math.ceil(sec/60);etaTime.textContent=m<=1?'不到 1 分钟':'约 '+m+' 分钟';}},5000);
+</script>
+</body>
+</html>
