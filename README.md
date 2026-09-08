@@ -33,7 +33,7 @@ Daedalus 是一套面向 UI Agent 与模型的公开产品设计评测，也是�
 
 ## 当前公开答卷
 
-十份完整答卷现已发布。点击下方入口进入各自的专属展厅，或打开 **[综合展厅](https://321sssrt-bit.github.io/daedalus-ui/)** 统一浏览。
+十一份完整答卷现已发布。点击下方入口进入各自的专属展厅，或打开 **[综合展厅](https://321sssrt-bit.github.io/daedalus-ui/)** 统一浏览。
 
 | Harness | Model | 思考档位 | 完成度 | 状态 | 专属展厅 |
 | --- | --- | --- | --- | --- | --- |
@@ -47,6 +47,15 @@ Daedalus 是一套面向 UI Agent 与模型的公开产品设计评测，也是�
 | Codex | GPT-6 Astra | `max` | 50 / 50 | Complete | [进入展厅 →](https://321sssrt-bit.github.io/daedalus-ui/submissions/codex--gpt-6-astra--max/) |
 | Kimi Code | Qwen3.8 Flash Next | `xhigh` | 50 / 50 | Complete | [进入展厅 →](https://321sssrt-bit.github.io/daedalus-ui/submissions/kimi-code--qwen3.8-flash-next--xhigh/) |
 | Cursor | Composer 2.5 Fast | `default` | 50 / 50 | Complete | [进入展厅 →](https://321sssrt-bit.github.io/daedalus-ui/submissions/cursor--composer-2.5-fast--default/) |
+| DeepSeek Harness | DeepSeek V4.1 Flash expires-on-0910 | `max` | 50 / 50 | Complete | [进入展厅 →](https://321sssrt-bit.github.io/daedalus-ui/submissions/deepseek-harness--deepseek-v4.1-flash-expires-on-0910--max/) |
+
+## DeepSeek V4.1 Flash · max · 2026.09.08
+
+[![DeepSeek V4.1 Flash max 答卷的六个真实页面预览](docs/assets/deepseek-v41-flash-max-preview.png)](https://321sssrt-bit.github.io/daedalus-ui/submissions/deepseek-harness--deepseek-v4.1-flash-expires-on-0910--max/)
+
+**50 / 50 已登记完成。** 每题均附离线 HTML、复现规范和设计意图。上图为登录、概览、商店、播放器、购物原型和旅行原型的真实页面截图。提交时项目校验与展厅构建通过；截图展示不代表全部交互流程已经验收。
+
+[进入本次展厅 →](https://321sssrt-bit.github.io/daedalus-ui/submissions/deepseek-harness--deepseek-v4.1-flash-expires-on-0910--max/) · [查看答卷源码](models/deepseek-harness/deepseek-v4.1-flash-expires-on-0910/max) · [运行回执](models/deepseek-harness/deepseek-v4.1-flash-expires-on-0910/max/run-receipt.json)
 
 ## GPT-6 Astra · max · 2026.09.05
 

@@ -33,7 +33,7 @@ The project was initially inspired by [Hall of One Hundred](https://miaai-lab.gi
 
 ## Current public submissions
 
-Ten complete submissions are now published. Open a dedicated gallery below, or use the **[combined gallery](https://321sssrt-bit.github.io/daedalus-ui/)** to browse them together.
+Eleven complete submissions are now published. Open a dedicated gallery below, or use the **[combined gallery](https://321sssrt-bit.github.io/daedalus-ui/)** to browse them together.
 
 | Harness | Model | Reasoning effort | Completion | Status | Gallery |
 | --- | --- | --- | --- | --- | --- |
@@ -47,6 +47,15 @@ Ten complete submissions are now published. Open a dedicated gallery below, or u
 | Codex | GPT-6 Astra | `max` | 50 / 50 | Complete | [Open gallery →](https://321sssrt-bit.github.io/daedalus-ui/submissions/codex--gpt-6-astra--max/) |
 | Kimi Code | Qwen3.8 Flash Next | `xhigh` | 50 / 50 | Complete | [Open gallery →](https://321sssrt-bit.github.io/daedalus-ui/submissions/kimi-code--qwen3.8-flash-next--xhigh/) |
 | Cursor | Composer 2.5 Fast | `default` | 50 / 50 | Complete | [Open gallery →](https://321sssrt-bit.github.io/daedalus-ui/submissions/cursor--composer-2.5-fast--default/) |
+| DeepSeek Harness | DeepSeek V4.1 Flash expires-on-0910 | `max` | 50 / 50 | Complete | [Open gallery →](https://321sssrt-bit.github.io/daedalus-ui/submissions/deepseek-harness--deepseek-v4.1-flash-expires-on-0910--max/) |
+
+## DeepSeek V4.1 Flash · max — September 8, 2026
+
+[![Six actual page previews from the DeepSeek V4.1 Flash max submission](docs/assets/deepseek-v41-flash-max-preview.png)](https://321sssrt-bit.github.io/daedalus-ui/submissions/deepseek-harness--deepseek-v4.1-flash-expires-on-0910--max/)
+
+**50 / 50 marked complete.** Each piece includes offline HTML, a reproduction specification, and a design-intent document. These actual screenshots show sign-in, overview, store, player, shopping, and travel pages. Repository validation and gallery build passed at submission; the previews do not certify every interaction flow.
+
+[Open this gallery →](https://321sssrt-bit.github.io/daedalus-ui/submissions/deepseek-harness--deepseek-v4.1-flash-expires-on-0910--max/) · [Browse the source](models/deepseek-harness/deepseek-v4.1-flash-expires-on-0910/max) · [Run receipt](models/deepseek-harness/deepseek-v4.1-flash-expires-on-0910/max/run-receipt.json)
 
 ## GPT-6 Astra · max — September 5, 2026
 
