@@ -285,6 +285,11 @@ class LifecycleTests(unittest.TestCase):
             self.assertNotIn("allow-same-origin", gallery)
             self.assertIn("noopener noreferrer", gallery)
             self.assertIn("../../answers/codex--gpt-5.6-sol--xhigh/", solo)
+            # Previews reuse the copied answer files, never duplicate their HTML in the index.
+            for page in (gallery, solo):
+                payload = json.loads(page.split("window.DAEDALUS_DATA=", 1)[1].split(";</script>", 1)[0])
+                for submission in payload["submissions"]:
+                    self.assertTrue(all("html" not in piece for piece in submission["pieces"]))
             self.assertTrue((root / "dist" / "daedalus-offline-gallery.zip").is_file())
 
     @unittest.skipUnless(os.name == "nt", "Windows ACL regression")
@@ -306,6 +311,8 @@ class LifecycleTests(unittest.TestCase):
             self.assertTrue(receipt["ok"])
             gallery = (root / "dist" / "site" / "index.html").read_text(encoding="utf-8")
             self.assertIn('id="export-specs"', gallery)
+            for control in ("compare-left", "compare-right", "swap-pair", "category-filter", "page-top"):
+                self.assertIn(f'id="{control}"', gallery)
             self.assertIn("[hidden]{display:none!important}", gallery)
             self.assertIn("一键导出规范", gallery)
             self.assertIn("对比 041–050", gallery)
@@ -340,7 +347,7 @@ class LifecycleTests(unittest.TestCase):
             self.assertNotIn("function pieceArchive", gallery)
             self.assertNotIn("function viewText(text){const blob=", gallery)
 
-    def test_reader_keyboard_works_after_focus_moves_to_dialog_controls(self) -> None:
+    def test_gallery_selection_export_top_and_reader_keyboard(self) -> None:
         node = shutil.which("node")
         if not node:
             self.skipTest("Node.js is required for the generated-gallery behavior probe")
@@ -361,7 +368,7 @@ const scripts = [...page.matchAll(/<script>([\s\S]*?)<\/script>/g)];
 const source = scripts.at(-1)[1];
 class FakeClassList { add(){} remove(){} }
 class FakeElement {
-  constructor(tag="div") { this.tagName=tag.toUpperCase(); this.children=[]; this.listeners={}; this.attributes={}; this.classList=new FakeClassList(); this.hidden=false; this.inert=false; this.textContent=""; this.scrollTop=0; this.clientHeight=500; this.scrollHeight=2000; }
+  constructor(tag="div") { this.tagName=tag.toUpperCase(); this.children=[]; this.listeners={}; this.attributes={}; this.classList=new FakeClassList(); this.hidden=false; this.inert=false; this.textContent=""; this.scrollTop=0; this.clientHeight=500; this.scrollHeight=2000; this.value=""; this.options=[]; }
   append(...items){ this.children.push(...items); }
   appendChild(item){ this.children.push(item); }
   replaceChildren(...items){ this.children=[...items]; }
@@ -375,14 +382,46 @@ class FakeElement {
 }
 const elements = {};
 for (const selector of ["main","#browse-mode","#compare-mode","#export-specs","#reader-overlay",".reader-panel","#reader-kind","#reader-title","#reader-note","#reader-content","#reader-export","#reader-progress","#reader-top","#reader-close","body>header"]) elements[selector]=new FakeElement();
+for (const selector of ["#answer-filter","#answer-picker","#prototype-filter","#prototype-picker","#category-filter","#browse-filters","#pair-picker","#compare-left","#compare-right","#swap-pair","#browse-note","#page-top"]) elements[selector]=new FakeElement();
 const document = {
   body:new FakeElement("body"), activeElement:null,
   querySelector(selector){ return elements[selector] || null; },
   createElement(tag){ return new FakeElement(tag); },
   addEventListener(){}
 };
-const context = {window:{DAEDALUS_DATA:{submissions:[],categories:[],prototypeTasks:[]}},document,Blob:function(){},URL:{createObjectURL(){return "blob:test";},revokeObjectURL(){}},setTimeout(){}};
+const sample=(id,category,owner)=>({id,category,title:id,slug:id,scene:"场景",spec:`${owner}-${id}`,url:`answers/${owner}/${id}.html`});
+const data={submissions:["alpha","beta","gamma"].map(key=>({key,displayName:key,harness:"test",model:key,reasoningEffort:"max",pieces:[sample("001","pages",key),sample("041","products",key),sample("042","products",key)]})),categories:[{id:"pages",label:"页面",range:["001","040"]},{id:"products",label:"原型",range:["041","050"]}],prototypeTasks:[{id:"041",title:"购物",scene:"购买"},{id:"042",title:"钱包",scene:"转账"}]};
+elements["#prototype-filter"].value="041";
+for(const id of ["#compare-left","#compare-right"])elements[id].options=data.submissions.map(sub=>({value:sub.key}));
+const context = {window:{DAEDALUS_DATA:data,scrollTo({top}){this.scrollY=top}},document,ResizeObserver:class {observe(){} disconnect(){}},Blob:function(){},URL:{createObjectURL(){return "blob:test";},revokeObjectURL(){}},setTimeout(){}};
 vm.runInNewContext(source,context);
+const assert=require("node:assert/strict");
+const textTree=element=>element.textContent+element.children.map(textTree).join(" ");
+const select=(id,value)=>{elements[id].value=value;elements[id].dispatch("change",{});};
+const preview=context.cardFor(sample("001","pages","alpha")).children[0].children[0];
+assert.equal(preview.src,"answers/alpha/001.html");
+assert.equal(preview.srcdoc,undefined);
+assert.equal(preview.loading,"lazy");
+assert.equal(preview.attributes.sandbox,"allow-scripts");
+assert.equal(context.cardFor(sample("041","products","alpha"),true).children[0].children[0].loading,"eager");
+assert.equal(elements["main"].children.length,1,"browse should start with one submission");
+select("#category-filter","products");
+assert.equal(elements["main"].children[0].children.length,2,"category filter should show only one category");
+select("#compare-left","gamma");
+context.setMode("compare");
+assert.deepEqual(Array.from(context.compareRows(),sub=>sub.key),["gamma","beta"]);
+assert.equal(elements["main"].children[1].children.length,2,"only the chosen opponents should render");
+assert.ok(!textTree(elements["main"]).includes("alpha"));
+assert.ok(elements["#compare-right"].options.find(option=>option.value==="gamma").disabled,"same submission must not be selectable twice");
+select("#prototype-filter","042");
+assert.deepEqual(Array.from(context.compareRows(),sub=>sub.key),["gamma","beta"],"changing task must retain opponents");
+let exported="";context.download=(filename,text)=>{exported=text;};context.exportSpecs();
+assert.ok(exported.includes("gamma-042")&&exported.includes("beta-042")&&!exported.includes("alpha-042"),"export must follow the selected pair");
+context.setMode("browse");context.exportSpecs();
+assert.ok(exported.includes("alpha-041")&&!exported.includes("alpha-001")&&!exported.includes("beta-041"),"browse export must follow both filters");
+context.window.scrollY=1200;elements["#page-top"].dispatch("click",{});
+assert.equal(context.window.scrollY,0,"page top must scroll the document");
+assert.equal(document.activeElement,elements["#browse-mode"]);
 const piece={id:"001",slug:"scheme-001",title:"方案001",spec:"规范正文",intent:"意图正文",specUrl:"answers/001.spec.md",intentUrl:"answers/001.intent.md"};
 const opener=new FakeElement("button");
 context.showReader(piece,"spec",opener);
@@ -396,6 +435,19 @@ if(!content.attributes["aria-label"]?.includes("复现规范正文")) throw new 
 if(elements["#reader-export"].href!==piece.specUrl || elements["#reader-export"].download!=="001-scheme-001.spec.md") throw new Error("reader export is not a native file link");
 context.closeReader();
 if(!opener.focused) throw new Error("reader did not restore focus to its opener");
+assert.equal(elements["#page-top"].inert,false);
+data.submissions[1].pieces=[];data.submissions[1].status="forfeited";data.submissions[1].forfeitReason="未完成";
+context.setMode("compare");
+assert.ok(textTree(elements["main"]).includes("已弃权：未完成"),"missing work must remain explicit");
+data.submissions=data.submissions.slice(0,2);elements["#compare-left"].value="alpha";elements["#compare-right"].value="beta";context.syncPair();
+elements["#swap-pair"].dispatch("click",{});
+assert.deepEqual(Array.from(context.compareRows(),sub=>sub.key),["beta","alpha"],"two submissions must be swappable");
+data.submissions=data.submissions.slice(0,1);elements["#compare-left"].value="alpha";elements["#compare-right"].value="";context.syncPair();context.render();
+assert.equal(elements["#compare-right"].disabled,true);
+assert.equal(elements["#swap-pair"].disabled,true);
+assert.ok(textTree(elements["main"]).includes("当前只有一份登记答卷"));
+data.submissions=[];elements["#compare-left"].value="";context.syncPair();context.render();
+assert.ok(textTree(elements["main"]).includes("暂无登记答卷"));
 """,
                 encoding="utf-8",
             )
