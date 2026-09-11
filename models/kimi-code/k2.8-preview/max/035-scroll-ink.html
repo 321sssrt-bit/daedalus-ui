@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>雨夜读帖 · 夜读专栏</title>
+<style>
+  :root{
+    --paper:#f3edde;
+    --paper-deep:#e9e0c8;
+    --ink:#2d2924;
+    --ink-soft:#6b6152;
+    --line:#d9cfb6;
+    --cinnabar:#b3402a;
+    --cinnabar-deep:#93301f;
+    --stage:#171310;
+    --stage-soft:#241f19;
+    --bezel:#26211a;
+    --fs:17px;
+    --lh:2.0;
+    --serif:"Songti SC","STSong","SimSun","Noto Serif CJK SC","Source Han Serif SC",serif;
+    --sans:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%}
+  body{
+    font-family:var(--sans);
+    background:var(--stage);
+    color:var(--ink);
+  }
+
+  /* ============ 舞台（宽屏） ============ */
+  .stage{
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:18px;
+    padding:44px 16px;
+    background:
+      radial-gradient(1200px 600px at 50% -10%, var(--stage-soft) 0%, var(--stage) 60%),
+      var(--stage);
+  }
+  .caption{
+    color:#8a8272;
+    font-size:12px;
+    letter-spacing:.14em;
+  }
+
+  /* ============ 手机框 ============ */
+  .phone{
+    position:relative;
+    width:390px;
+    height:min(844px, calc(100vh - 120px));
+    min-height:600px;
+    background:var(--bezel);
+    border:1px solid #3a332a;
+    border-radius:52px;
+    padding:11px;
+    box-shadow:
+      0 0 0 2px #0d0b08,
+      0 34px 90px rgba(0,0,0,.62),
+      0 6px 22px rgba(0,0,0,.5);
+  }
+  .notch{
+    position:absolute;
+    top:20px;left:50%;
+    transform:translateX(-50%);
+    width:112px;height:26px;
+    background:#0c0a07;
+    border-radius:20px;
+    z-index:40;
+  }
+  .homebar{
+    position:absolute;
+    bottom:19px;left:50%;
+    transform:translateX(-50%);
+    width:118px;height:4px;
+    border-radius:2px;
+    background:rgba(45,41,36,.4);
+    z-index:40;
+  }
+  .screen{
+    position:relative;
+    height:100%;
+    background:var(--paper);
+    border-radius:42px;
+    overflow:hidden;
+    display:flex;
+    flex-direction:column;
+  }
+
+  /* ============ 状态栏 ============ */
+  .statusbar{
+    height:46px;
+    flex:0 0 46px;
+    display:flex;
+    align-items:flex-end;
+    justify-content:space-between;
+    padding:0 26px 6px;
+    font-size:13px;
+    font-weight:600;
+    color:var(--ink);
+    z-index:30;
+  }
+  .sb-right{display:flex;align-items:center;gap:6px}
+  .sb-bars{display:flex;align-items:flex-end;gap:1.5px;height:11px}
+  .sb-bars i{width:3px;background:var(--ink);border-radius:1px;display:block}
+  .sb-bars i:nth-child(1){height:4px}
+  .sb-bars i:nth-child(2){height:6px}
+  .sb-bars i:nth-child(3){height:8px}
+  .sb-bars i:nth-child(4){height:11px}
+  .sb-5g{font-size:10px;font-weight:600;letter-spacing:.02em}
+  .sb-batt{
+    width:22px;height:11px;
+    border:1.5px solid var(--ink);
+    border-radius:3px;
+    position:relative;
+    padding:1px;
+  }
+  .sb-batt::after{
+    content:"";
+    position:absolute;
+    right:-4px;top:3px;
+    width:2px;height:4px;
+    background:var(--ink);
+    border-radius:0 2px 2px 0;
+  }
+  .sb-batt i{display:block;width:70%;height:100%;background:var(--ink);border-radius:1px}
+
+  /* ============ 顶栏 ============ */
+  .appbar{
+    flex:0 0 48px;
+    height:48px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:0 14px;
+    background:var(--paper);
+    border-bottom:1px solid var(--line);
+    z-index:25;
+  }
+  .appbar-btn{
+    border:none;background:transparent;
+    font-family:var(--sans);
+    font-size:15px;color:var(--ink);
+    display:flex;align-items:center;gap:2px;
+    min-width:44px;height:44px;
+    cursor:pointer;
+    border-radius:10px;
+  }
+  .appbar-btn:active{background:var(--paper-deep)}
+  .appbar-btn .chev{font-size:22px;line-height:1;margin-top:-2px}
+  .appbar-title{
+    font-size:14px;
+    letter-spacing:.22em;
+    color:var(--ink-soft);
+    display:flex;align-items:center;gap:8px;
+  }
+  .seal{
+    width:20px;height:20px;
+    background:var(--cinnabar);
+    color:var(--paper);
+    font-family:var(--serif);
+    font-size:12px;
+    display:flex;align-items:center;justify-content:center;
+    border-radius:4px;
+  }
+  .progress{
+    flex:0 0 2px;
+    height:2px;
+    background:var(--line);
+    position:relative;
+    z-index:24;
+  }
+  .progress i{
+    position:absolute;left:0;top:0;bottom:0;
+    width:0%;
+    background:var(--cinnabar);
+    transition:width .12s linear;
+  }
+
+  /* ============ 滚动区 ============ */
+  .scroll{
+    flex:1;
+    overflow-y:auto;
+    overflow-x:hidden;
+    scroll-behavior:smooth;
+    position:relative;
+  }
+  .hero{
+    padding:26px 24px 0;
+    animation:rise .5s ease-out both;
+  }
+  @keyframes rise{
+    from{opacity:0;transform:translateY(10px)}
+    to{opacity:1;transform:translateY(0)}
+  }
+  .hero-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:12px;
+  }
+  .hero-main{flex:1;min-width:0}
+  .tag{
+    display:inline-block;
+    font-size:11px;
+    letter-spacing:.18em;
+    color:var(--cinnabar);
+    border:1px solid var(--cinnabar);
+    border-radius:3px;
+    padding:3px 8px 2px;
+    margin-bottom:14px;
+  }
+  .title{
+    font-family:var(--serif);
+    font-size:27px;
+    line-height:1.42;
+    font-weight:700;
+    letter-spacing:.04em;
+    color:var(--ink);
+  }
+  .dek{
+    margin-top:12px;
+    font-size:13.5px;
+    line-height:1.8;
+    color:var(--ink-soft);
+  }
+  .meta{
+    margin-top:16px;
+    font-size:12px;
+    color:var(--ink-soft);
+    letter-spacing:.05em;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    flex-wrap:wrap;
+  }
+  .meta b{color:var(--ink);font-weight:600}
+  .meta .dot{width:3px;height:3px;border-radius:50%;background:var(--line)}
+  .vlabel{
+    flex:0 0 auto;
+    writing-mode:vertical-rl;
+    font-family:var(--serif);
+    font-size:12px;
+    letter-spacing:.34em;
+    color:var(--ink-soft);
+    border-left:1px solid var(--line);
+    padding-left:10px;
+    height:132px;
+  }
+  .rule{
+    margin:22px 24px 0;
+    display:flex;
+    align-items:center;
+    gap:12px;
+  }
+  .rule::before,.rule::after{
+    content:"";
+    flex:1;
+    height:1px;
+    background:var(--line);
+  }
+  .rule span{
+    font-family:var(--serif);
+    font-size:12px;
+    color:var(--cinnabar);
+    letter-spacing:.3em;
+  }
+
+  /* ============ 字号工具条（吸顶） ============ */
+  .toolbox{
+    position:sticky;
+    top:0;
+    z-index:20;
+    margin:0;
+    padding:12px 24px;
+    background:var(--paper);
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+  }
+  .toolbox::after{
+    content:"";
+    position:absolute;
+    left:24px;right:24px;bottom:0;
+    height:1px;
+    background:var(--line);
+  }
+  .toolbox-label{
+    font-size:12px;
+    color:var(--ink-soft);
+    letter-spacing:.14em;
+    display:flex;
+    align-items:center;
+    gap:6px;
+  }
+  .toolbox-label .aa{font-family:var(--serif);font-size:13px;color:var(--ink)}
+  .fs-group{
+    display:flex;
+    border:1px solid var(--line);
+    border-radius:9px;
+    overflow:hidden;
+    background:var(--paper-deep);
+  }
+  .fs-btn{
+    border:none;
+    background:transparent;
+    font-family:var(--sans);
+    font-size:13px;
+    color:var(--ink-soft);
+    padding:7px 15px;
+    cursor:pointer;
+    border-left:1px solid var(--line);
+    transition:background .18s ease,color .18s ease;
+  }
+  .fs-btn:first-child{border-left:none}
+  .fs-btn.on{
+    background:var(--ink);
+    color:var(--paper);
+  }
+
+  /* ============ 正文 ============ */
+  .article{
+    padding:8px 24px 30px;
+    font-family:var(--serif);
+    font-size:var(--fs);
+    line-height:var(--lh);
+    color:var(--ink);
+    letter-spacing:.015em;
+    text-align:justify;
+  }
+  .article p{
+    margin:1.1em 0;
+    transition:font-size .22s ease,line-height .22s ease;
+  }
+  .article p.lede::first-letter{
+    font-size:2.9em;
+    float:left;
+    line-height:1;
+    margin:7px 9px 0 0;
+    color:var(--cinnabar);
+    font-weight:700;
+  }
+  .sec{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    margin:2em 0 .4em;
+    font-family:var(--sans);
+  }
+  .sec::before,.sec::after{
+    content:"";
+    flex:1;
+    height:1px;
+    background:var(--line);
+  }
+  .sec span{
+    font-size:13px;
+    letter-spacing:.42em;
+    color:var(--cinnabar);
+    font-family:var(--serif);
+    font-weight:700;
+  }
+  .pull{
+    margin:1.8em 0;
+    padding:20px 18px;
+    background:var(--paper-deep);
+    border-left:3px solid var(--cinnabar);
+    border-radius:0 10px 10px 0;
+    font-size:1.08em;
+    line-height:1.95;
+    color:var(--ink);
+  }
+  .pull::before{
+    content:"「";
+    color:var(--cinnabar);
+    font-size:1.3em;
+    margin-right:2px;
+  }
+  .pull::after{
+    content:"」";
+    color:var(--cinnabar);
+    font-size:1.3em;
+    margin-left:2px;
+  }
+  .fin{
+    margin:2.4em 0 0;
+    text-align:center;
+    font-family:var(--sans);
+    font-size:12px;
+    letter-spacing:.4em;
+    color:var(--ink-soft);
+  }
+  .fin::before{
+    content:"";
+    display:block;
+    width:44px;height:1px;
+    background:var(--cinnabar);
+    margin:0 auto 14px;
+  }
+  .author-note{
+    margin:26px 24px 8px;
+    padding:16px 18px;
+    background:var(--paper-deep);
+    border-radius:12px;
+    display:flex;
+    gap:14px;
+    align-items:center;
+  }
+  .avatar{
+    flex:0 0 44px;
+    width:44px;height:44px;
+    border-radius:50%;
+    background:var(--ink);
+    color:var(--paper);
+    font-family:var(--serif);
+    font-size:19px;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .author-note .an-name{font-size:14px;font-weight:600}
+  .author-note .an-name small{font-weight:400;color:var(--ink-soft);font-size:11px;margin-left:8px;letter-spacing:.08em}
+  .author-note .an-bio{margin-top:5px;font-size:12px;color:var(--ink-soft);line-height:1.7}
+  .scrollpad{height:26px}
+
+  /* ============ 底部操作栏 ============ */
+  .tabbar{
+    flex:0 0 66px;
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:10px 18px 16px;
+    background:var(--paper);
+    border-top:1px solid var(--line);
+    z-index:25;
+  }
+  .fav{
+    flex:0 0 auto;
+    border:1px solid var(--line);
+    background:var(--paper);
+    border-radius:12px;
+    height:42px;
+    padding:0 14px;
+    display:flex;
+    align-items:center;
+    gap:7px;
+    cursor:pointer;
+    color:var(--ink);
+    font-family:var(--sans);
+    font-size:13px;
+    transition:border-color .18s ease,background .18s ease;
+  }
+  .fav svg{width:17px;height:17px;display:block;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linejoin:round}
+  .fav.on{
+    background:#f7e9e2;
+    border-color:var(--cinnabar);
+    color:var(--cinnabar);
+  }
+  .fav.on svg{fill:var(--cinnabar);stroke:var(--cinnabar)}
+  .fav:active{transform:scale(.97)}
+  .fav-count{font-variant-numeric:tabular-nums;color:var(--ink-soft)}
+  .fav.on .fav-count{color:var(--cinnabar)}
+  .start{
+    flex:1;
+    height:42px;
+    border:none;
+    border-radius:12px;
+    background:var(--ink);
+    color:var(--paper);
+    font-family:var(--sans);
+    font-size:15px;
+    letter-spacing:.2em;
+    cursor:pointer;
+    transition:background .18s ease;
+  }
+  .start:hover{background:var(--cinnabar-deep)}
+  .start:active{background:var(--cinnabar);transform:scale(.98)}
+
+  /* ============ Toast ============ */
+  .toast{
+    position:absolute;
+    left:50%;
+    bottom:82px;
+    transform:translateX(-50%) translateY(8px);
+    background:var(--ink);
+    color:var(--paper);
+    font-size:13px;
+    letter-spacing:.06em;
+    padding:9px 18px;
+    border-radius:999px;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .22s ease,transform .22s ease;
+    z-index:35;
+    white-space:nowrap;
+  }
+  .toast.show{
+    opacity:1;
+    transform:translateX(-50%) translateY(0);
+  }
+
+  /* ============ 窄屏：占满 ============ */
+  @media (max-width:560px){
+    .stage{padding:0;gap:0}
+    .caption{display:none}
+    .phone{
+      width:100%;
+      height:100dvh;
+      min-height:0;
+      border:none;
+      border-radius:0;
+      padding:0;
+      box-shadow:none;
+    }
+    .screen{border-radius:0}
+    .notch,.homebar{display:none}
+  }
+
+  /* ============ 减少动态 ============ */
+  @media (prefers-reduced-motion: reduce){
+    .scroll{scroll-behavior:auto}
+    .hero{animation:none}
+    .article p,.fs-btn,.fav,.start,.progress i,.toast{transition:none}
+  }
+</style>
+</head>
+<body>
+<div class="stage" id="si-stage">
+  <div class="phone" id="si-phone">
+    <div class="notch" aria-hidden="true"></div>
+    <div class="screen" id="si-screen">
+      <div class="statusbar" aria-hidden="true">
+        <span class="sb-time">9:41</span>
+        <span class="sb-right">
+          <span class="sb-bars"><i></i><i></i><i></i><i></i></span>
+          <span class="sb-5g">5G</span>
+          <span class="sb-batt"><i></i></span>
+        </span>
+      </div>
+
+      <header class="appbar">
+        <button class="appbar-btn" id="si-back" type="button" aria-label="返回专栏">
+          <span class="chev">‹</span>专栏
+        </button>
+        <div class="appbar-title">夜 读<span class="seal">读</span></div>
+        <button class="appbar-btn" id="si-toc" type="button" aria-label="查看目录">目录</button>
+      </header>
+
+      <div class="progress" aria-hidden="true"><i id="si-fill"></i></div>
+
+      <div class="scroll" id="si-scroll">
+        <section class="hero">
+          <div class="hero-top">
+            <div class="hero-main">
+              <span class="tag">专栏 · 随笔</span>
+              <h1 class="title" id="si-title">雨夜读帖</h1>
+              <p class="dek">雨声、旧帖与一盏灯——关于慢下来的三个片段。</p>
+              <div class="meta">
+                <span><b>沈砚秋</b></span>
+                <span class="dot"></span>
+                <span>全文 862 字</span>
+                <span class="dot"></span>
+                <span>约 6 分钟</span>
+              </div>
+            </div>
+            <div class="vlabel" aria-hidden="true">雨夜读帖 · 卷三</div>
+          </div>
+        </section>
+
+        <div class="rule" aria-hidden="true"><span>卷 首</span></div>
+
+        <div class="toolbox" id="si-toolbox">
+          <span class="toolbox-label"><span class="aa">Aa</span>字号</span>
+          <div class="fs-group" role="group" aria-label="调整正文字号">
+            <button class="fs-btn" id="si-fs-s" type="button" data-fs="s" aria-pressed="false">小</button>
+            <button class="fs-btn on" id="si-fs-m" type="button" data-fs="m" aria-pressed="true">中</button>
+            <button class="fs-btn" id="si-fs-l" type="button" data-fs="l" aria-pressed="false">大</button>
+          </div>
+        </div>
+
+        <article class="article" id="si-article">
+          <p class="lede">雨从傍晚开始下，到掌灯时分还没有停的意思。窗外的梧桐被洗得发暗，路灯在水汽里晕开一团一团黄。这样的晚上不适合出门，也不适合说话，适合把一册旧帖摊在膝上，慢慢看。</p>
+
+          <div class="sec"><span>一</span></div>
+          <p>帖是前人临的《兰亭》，纸已经黄了，边角微微卷起，像一片干透的茶叶。年轻时只觉得它旧，如今翻开来，纸性还在，墨色还润，才晓得什么叫做传下去的东西。</p>
+          <p>最耐看的是「之」字。同是写一个之，每一个都不同：有的像飞鸟掠过水面，翅膀一带就过去了；有的像老人拄杖过桥，一步一步都踩得实。字不是印出来的，是一口气一口气写出来的，所以重复里藏着不重复。</p>
+
+          <div class="sec"><span>二</span></div>
+          <p>字与字之间留着空白，那不是空，是让气走得过去的地方。行气一通，满篇就活了。做人大概也是这样，日程排得太满，话赶话地说，反倒没了回旋的余地。</p>
+          <div class="pull">慢不是慢，是把四散的心神，一笔一画地收拢回来。</div>
+          <p>母亲从前常说，字要慢慢写，人要慢慢做。那时不懂，总觉得慢是一种落后。这些年在外地，键盘敲得多，毛笔搁下了，倒是雨夜偶尔翻帖，才想起她说话时不抬头的样子。</p>
+
+          <div class="sec"><span>三</span></div>
+          <p>窗外的雨一阵紧一阵松，灯下的影子也跟着晃。帖上的字却稳稳的，像渡口——水涨水落，船来船往，它总在那里。人能够倚仗的东西其实不多，几页旧纸、半盏灯，有时就够了。</p>
+          <p>读到「后之视今，亦犹今之视昔」，忽然有些走神。几百年前的雨夜，也有一个人这样坐着吗？纸会旧，墨会淡，可对坐着的人来说，那一页是新的。</p>
+
+          <div class="sec"><span>尾 声</span></div>
+          <p>读完最后一页，雨也小了。把帖放回原处，心里像是被雨水洗过一遍。有些东西不必拥有，隔几年翻一翻，知道它还在，就够了。</p>
+
+          <div class="fin" id="si-fin">卷 终</div>
+        </article>
+
+        <aside class="author-note">
+          <div class="avatar" aria-hidden="true">砚</div>
+          <div>
+            <div class="an-name">沈砚秋<small>夜读专栏 签约作者</small></div>
+            <div class="an-bio">写字的人，现居杭州。相信纸比屏幕长寿，雨比晴天耐听。</div>
+          </div>
+        </aside>
+
+        <div class="scrollpad" aria-hidden="true"></div>
+      </div>
+
+      <footer class="tabbar">
+        <button class="fav" id="si-fav" type="button" aria-pressed="false" aria-label="收藏本文">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 17.6 18.2 21l-1.65-7.05L22 9.3l-7.2-.62L12 2.2 9.2 8.68 2 9.3l5.45 4.65L5.8 21z"/></svg>
+          <span class="fav-text" id="si-fav-text">收藏</span>
+          <span class="fav-count" id="si-fav-count">1284</span>
+        </button>
+        <button class="start" id="si-start" type="button">开始阅读</button>
+      </footer>
+
+      <div class="toast" id="si-toast" role="status" aria-live="polite"></div>
+    </div>
+    <div class="homebar" aria-hidden="true"></div>
+  </div>
+  <div class="caption" aria-hidden="true">035 · 内容详情 · scroll-ink · 390 × 844</div>
+</div>
+
+<script>
+(function(){
+  var root = document.documentElement;
+  var scrollEl = document.getElementById('si-scroll');
+  var fill = document.getElementById('si-fill');
+  var toast = document.getElementById('si-toast');
+  var toastTimer = null;
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+  function showToast(msg){
+    toast.textContent = msg;
+    toast.classList.add('show');
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(function(){ toast.classList.remove('show'); }, 1800);
+  }
+
+  /* ---------- 阅读进度 ---------- */
+  function updateProgress(){
+    var max = scrollEl.scrollHeight - scrollEl.clientHeight;
+    var pct = max > 0 ? (scrollEl.scrollTop / max) * 100 : 0;
+    fill.style.width = pct.toFixed(1) + '%';
+  }
+  scrollEl.addEventListener('scroll', updateProgress, {passive:true});
+  window.addEventListener('resize', updateProgress);
+  updateProgress();
+
+  /* ---------- 字号调节 ---------- */
+  var FS = { s:{fs:'15px', lh:'1.9'}, m:{fs:'17px', lh:'2.0'}, l:{fs:'19px', lh:'2.1'} };
+  var fsBtns = Array.prototype.slice.call(document.querySelectorAll('.fs-btn'));
+  function applyFs(key, silent){
+    var cfg = FS[key] || FS.m;
+    root.style.setProperty('--fs', cfg.fs);
+    root.style.setProperty('--lh', cfg.lh);
+    fsBtns.forEach(function(b){
+      var on = b.getAttribute('data-fs') === key;
+      b.classList.toggle('on', on);
+      b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+    try{ localStorage.setItem('si-fs', key); }catch(e){}
+    if (!silent) showToast('字号：' + ({s:'小', m:'中', l:'大'})[key]);
+  }
+  fsBtns.forEach(function(b){
+    b.addEventListener('click', function(){ applyFs(b.getAttribute('data-fs')); });
+  });
+  var savedFs = null;
+  try{ savedFs = localStorage.getItem('si-fs'); }catch(e){}
+  if (savedFs && FS[savedFs]) applyFs(savedFs, true);
+
+  /* ---------- 收藏切换 ---------- */
+  var favBtn = document.getElementById('si-fav');
+  var favText = document.getElementById('si-fav-text');
+  var favCount = document.getElementById('si-fav-count');
+  var BASE_COUNT = 1284;
+  var favOn = false;
+  try{ favOn = localStorage.getItem('si-fav') === '1'; }catch(e){}
+  function renderFav(){
+    favBtn.classList.toggle('on', favOn);
+    favBtn.setAttribute('aria-pressed', favOn ? 'true' : 'false');
+    favText.textContent = favOn ? '已收藏' : '收藏';
+    favCount.textContent = String(BASE_COUNT + (favOn ? 1 : 0));
+  }
+  favBtn.addEventListener('click', function(){
+    favOn = !favOn;
+    try{ localStorage.setItem('si-fav', favOn ? '1' : '0'); }catch(e){}
+    renderFav();
+    showToast(favOn ? '已收入我的收藏' : '已取消收藏');
+  });
+  renderFav();
+
+  /* ---------- 开始阅读 ---------- */
+  document.getElementById('si-start').addEventListener('click', function(){
+    var y = document.getElementById('si-toolbox').offsetTop - 50;
+    scrollEl.scrollTo({ top: y < 0 ? 0 : y, behavior: reduce.matches ? 'auto' : 'smooth' });
+    showToast('从卷首开始');
+  });
+
+  /* ---------- 顶栏 ---------- */
+  document.getElementById('si-back').addEventListener('click', function(){
+    showToast('已回到专栏列表（演示）');
+  });
+  document.getElementById('si-toc').addEventListener('click', function(){
+    var fin = document.getElementById('si-fin');
+    scrollEl.scrollTo({ top: fin.offsetTop - scrollEl.clientHeight + 160, behavior: reduce.matches ? 'auto' : 'smooth' });
+    showToast('目录：一 · 二 · 三 · 尾声');
+  });
+})();
+</script>
+</body>
+</html>

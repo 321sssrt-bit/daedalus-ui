@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>市集账房 · 掌柜流水台</title>
+<style>
+  :root{
+    --paper:#f4e7cd;
+    --paper-card:#fbf4e2;
+    --ink:#33261a;
+    --ink-soft:#6f5c44;
+    --line:#d9c49b;
+    --wood:#7a4f2a;
+    --wood-deep:#4e3017;
+    --wood-btn:#8a5a2e;
+    --cinnabar:#bf3b26;
+    --cinnabar-deep:#93291a;
+    --brass:#a87f35;
+    --ok:#3e6b3f;
+    --danger-tint:#f6ddd2;
+    --font-kai:"Kaiti SC","STKaiti","KaiTi","BiauKai","DFKai-SB",serif;
+    --font-body:system-ui,-apple-system,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    --radius-ctl:8px;
+    --radius-card:14px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  [hidden]{display:none !important;}
+  html,body{height:100%;}
+  body{
+    font-family:var(--font-body);
+    color:var(--ink);
+    background:
+      radial-gradient(1100px 520px at 15% -12%, #f9eed7 0%, transparent 60%),
+      radial-gradient(900px 480px at 108% 112%, #ead9b6 0%, transparent 55%),
+      var(--paper);
+    font-size:15px;
+    line-height:1.6;
+  }
+  button{font-family:inherit;cursor:pointer;}
+  button:focus-visible{outline:3px solid var(--cinnabar);outline-offset:2px;}
+
+  /* ===== 顶栏 ===== */
+  #topbar{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:0 28px;height:68px;
+    background:linear-gradient(180deg,#6a4423 0%, var(--wood-deep) 100%);
+    border-bottom:3px solid var(--brass);
+    color:#f3e6c8;
+  }
+  .brand{display:flex;align-items:center;gap:14px;}
+  .seal-mini{
+    width:40px;height:40px;flex:none;
+    display:flex;align-items:center;justify-content:center;
+    background:var(--cinnabar);color:#fdf6e6;
+    font-family:var(--font-kai);font-size:22px;font-weight:700;
+    border-radius:6px;transform:rotate(-4deg);
+    box-shadow:0 2px 0 var(--cinnabar-deep);
+  }
+  .brand h1{font-family:var(--font-kai);font-size:24px;letter-spacing:2px;line-height:1.2;}
+  .brand p{font-size:12px;opacity:.78;letter-spacing:1px;}
+  .top-meta{display:flex;align-items:center;gap:18px;font-size:13px;}
+  .counter-no{
+    border:1px solid var(--brass);border-radius:999px;
+    padding:4px 12px;color:#e8d3a0;letter-spacing:1px;
+  }
+
+  /* ===== 主区 ===== */
+  #main{
+    display:flex;gap:24px;align-items:stretch;
+    max-width:1280px;margin:0 auto;
+    padding:24px 28px 32px;
+    min-height:calc(100vh - 68px);
+  }
+
+  /* 货架 */
+  #shelf-area{flex:1 1 auto;min-width:0;}
+  .shelf-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:16px;}
+  .shelf-head h2{font-family:var(--font-kai);font-size:26px;letter-spacing:3px;}
+  .shelf-head .hint{font-size:13px;color:var(--ink-soft);}
+  #product-grid{
+    display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));
+    gap:18px;
+  }
+  .p-card{
+    background:var(--paper-card);
+    border:1px solid var(--line);
+    border-radius:var(--radius-card);
+    padding:18px 18px 16px;
+    display:flex;flex-direction:column;gap:10px;
+    box-shadow:0 1px 0 rgba(78,48,23,.08);
+    transition:transform .18s ease, box-shadow .18s ease;
+  }
+  .p-card:hover{transform:translateY(-3px);box-shadow:0 10px 22px -12px rgba(78,48,23,.45);}
+  .p-top{display:flex;align-items:center;justify-content:space-between;}
+  .p-tag{
+    font-size:11px;letter-spacing:2px;color:#f3e6c8;
+    background:var(--wood);border-radius:4px;padding:2px 8px;
+  }
+  .p-from{font-size:12px;color:var(--ink-soft);}
+  .p-name{font-family:var(--font-kai);font-size:20px;letter-spacing:1px;}
+  .p-desc{font-size:13px;color:var(--ink-soft);min-height:40px;}
+  .p-foot{display:flex;align-items:center;justify-content:space-between;margin-top:2px;}
+  .p-price{font-family:var(--font-kai);font-size:18px;color:var(--cinnabar-deep);}
+  .p-price small{font-size:12px;color:var(--ink-soft);font-family:var(--font-body);}
+  .btn-wood{
+    background:linear-gradient(180deg,var(--wood-btn),var(--wood));
+    color:#f7ecd4;border:none;border-radius:var(--radius-ctl);
+    padding:8px 16px;font-size:14px;letter-spacing:1px;
+    box-shadow:0 2px 0 var(--wood-deep);
+    transition:filter .15s ease, transform .1s ease;
+  }
+  .btn-wood:hover{filter:brightness(1.12);}
+  .btn-wood:active{transform:translateY(1px);box-shadow:0 1px 0 var(--wood-deep);}
+
+  /* 账台 */
+  #cart-area{
+    flex:0 0 400px;width:400px;
+    background:var(--paper-card);
+    border:1px solid var(--line);
+    border-radius:var(--radius-card);
+    display:flex;flex-direction:column;
+    box-shadow:0 14px 30px -18px rgba(78,48,23,.4);
+    overflow:hidden;align-self:flex-start;
+    max-height:calc(100vh - 124px);
+    position:sticky;top:24px;
+  }
+  .cart-head{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:14px 18px;
+    background:linear-gradient(180deg,#6a4423,var(--wood-deep));
+    color:#f3e6c8;
+  }
+  .cart-head h2{font-family:var(--font-kai);font-size:20px;letter-spacing:3px;}
+  #cart-count{font-size:12px;border:1px solid var(--brass);border-radius:999px;padding:2px 10px;color:#e8d3a0;}
+
+  #cart-warning{
+    margin:14px 18px 0;
+    background:var(--danger-tint);
+    border:1px solid var(--cinnabar);
+    border-left:5px solid var(--cinnabar);
+    border-radius:6px;
+    padding:10px 12px;
+    font-size:13px;color:var(--cinnabar-deep);
+    line-height:1.55;
+    animation:warnIn .22s ease;
+  }
+  #cart-warning strong{color:var(--cinnabar-deep);}
+  @keyframes warnIn{
+    from{opacity:0;transform:translateY(-6px);}
+    to{opacity:1;transform:translateY(0);}
+  }
+
+  #cart-lines{flex:1 1 auto;overflow-y:auto;padding:6px 18px;}
+  .cart-line{
+    padding:12px 2px 10px;
+    border-bottom:1px dashed var(--line);
+  }
+  .cart-line.over{border-left:4px solid var(--cinnabar);padding-left:8px;background:rgba(191,59,38,.05);}
+  .cl-top{display:flex;align-items:baseline;gap:8px;}
+  .cl-name{font-weight:600;font-size:14px;}
+  .cl-spec{font-size:12px;color:var(--ink-soft);}
+  .cl-remove{
+    margin-left:auto;background:none;border:none;
+    color:var(--ink-soft);font-size:12px;text-decoration:underline dotted;
+  }
+  .cl-remove:hover{color:var(--cinnabar-deep);}
+  .cl-flag{
+    display:inline-block;font-size:11px;color:#fdf6e6;background:var(--cinnabar);
+    border-radius:4px;padding:1px 7px;letter-spacing:1px;margin-top:4px;
+  }
+  .cl-bottom{display:flex;align-items:center;justify-content:space-between;margin-top:8px;}
+  .cl-price{font-family:var(--font-kai);font-size:16px;color:var(--cinnabar-deep);}
+  .cart-line.flash{animation:lineFlash .9s ease;}
+  @keyframes lineFlash{
+    0%{background-color:rgba(168,127,53,.30);}
+    100%{background-color:transparent;}
+  }
+
+  #cart-empty{
+    padding:36px 18px;text-align:center;color:var(--ink-soft);font-size:13px;
+    background:repeating-linear-gradient(transparent 0 27px, rgba(217,196,155,.35) 27px 28px);
+  }
+
+  #cart-summary{
+    border-top:2px solid var(--wood-deep);
+    padding:14px 18px 18px;
+    background:linear-gradient(180deg,rgba(217,196,155,.25),transparent);
+  }
+  .sum-row{display:flex;justify-content:space-between;font-size:14px;padding:3px 0;}
+  .sum-row .lab{color:var(--ink-soft);}
+  .sum-row.total{
+    font-family:var(--font-kai);font-size:20px;color:var(--cinnabar-deep);
+    border-top:1px dashed var(--line);margin-top:6px;padding-top:10px;
+  }
+  #submit-btn{
+    width:100%;margin-top:12px;
+    background:linear-gradient(180deg,#d04a32,var(--cinnabar));
+    color:#fdf6e6;border:none;border-radius:var(--radius-ctl);
+    padding:12px;font-size:16px;letter-spacing:4px;font-family:var(--font-kai);
+    box-shadow:0 3px 0 var(--cinnabar-deep);
+    transition:filter .15s ease, transform .1s ease;
+  }
+  #submit-btn:hover:not(:disabled){filter:brightness(1.1);}
+  #submit-btn:active:not(:disabled){transform:translateY(2px);box-shadow:0 1px 0 var(--cinnabar-deep);}
+  #submit-btn:disabled{
+    background:#b7a98d;color:#efe6d2;cursor:not-allowed;box-shadow:none;
+  }
+  #submit-hint{font-size:12px;color:var(--ink-soft);text-align:center;margin-top:8px;}
+  #submit-hint.warn{color:var(--cinnabar-deep);font-weight:600;}
+
+  /* 数量步进器 */
+  .qty-ctl{display:inline-flex;align-items:center;gap:0;border:1px solid var(--line);border-radius:var(--radius-ctl);overflow:hidden;background:#fffdf6;}
+  .qty-ctl button{
+    width:32px;height:32px;border:none;background:var(--paper);
+    font-size:16px;color:var(--wood-deep);line-height:1;
+    transition:background .12s ease;
+  }
+  .qty-ctl button:hover{background:var(--line);}
+  .qty-ctl .qnum{width:40px;text-align:center;font-size:15px;font-weight:600;}
+  .qty-ctl.small button{width:26px;height:26px;font-size:14px;}
+  .qty-ctl.small .qnum{width:32px;font-size:14px;}
+
+  /* 选购弹层 */
+  .modal-mask{
+    position:fixed;inset:0;z-index:50;
+    background:rgba(51,38,26,.55);
+    display:flex;align-items:center;justify-content:center;
+    padding:24px;
+  }
+  .modal{
+    position:relative;width:520px;max-width:100%;
+    background:var(--paper-card);
+    border:1px solid var(--line);border-radius:var(--radius-card);
+    padding:26px 28px 24px;
+    box-shadow:0 30px 60px -20px rgba(51,38,26,.55);
+    animation:modalIn .2s ease;
+  }
+  @keyframes modalIn{
+    from{opacity:0;transform:translateY(14px) scale(.98);}
+    to{opacity:1;transform:translateY(0) scale(1);}
+  }
+  .modal-close{
+    position:absolute;top:12px;right:14px;
+    width:32px;height:32px;border-radius:50%;
+    border:1px solid var(--line);background:var(--paper);
+    color:var(--ink-soft);font-size:16px;line-height:1;
+  }
+  .modal-close:hover{background:var(--line);color:var(--ink);}
+  .modal h3{font-family:var(--font-kai);font-size:24px;letter-spacing:2px;padding-right:40px;}
+  .spec-sub{font-size:13px;color:var(--ink-soft);margin-top:2px;}
+  .block-label{font-size:13px;letter-spacing:2px;color:var(--ink-soft);margin:18px 0 8px;}
+  #spec-chips{display:flex;flex-wrap:wrap;gap:10px;}
+  .spec-chip{
+    position:relative;
+    border:1.5px solid var(--line);border-radius:var(--radius-ctl);
+    background:#fffdf6;padding:8px 14px;font-size:14px;
+    display:flex;flex-direction:column;align-items:flex-start;gap:1px;
+    transition:border-color .12s ease, background .12s ease;
+  }
+  .spec-chip:hover{border-color:var(--brass);}
+  .spec-chip .chip-price{font-size:12px;color:var(--ink-soft);}
+  .spec-chip.sel{border-color:var(--cinnabar);background:var(--danger-tint);box-shadow:0 0 0 1px var(--cinnabar);}
+  .spec-chip.sel .chip-price{color:var(--cinnabar-deep);}
+  .chip-badge{
+    position:absolute;top:-9px;right:-8px;
+    background:var(--cinnabar);color:#fdf6e6;
+    font-size:10px;border-radius:999px;padding:1px 7px;letter-spacing:1px;
+    transform:rotate(3deg);
+  }
+  .qty-row{display:flex;align-items:center;gap:14px;}
+  .stock-hint{font-size:12px;color:var(--ok);}
+  .stock-hint.low{color:var(--cinnabar-deep);font-weight:600;}
+  .spec-error{
+    margin-top:16px;
+    background:var(--danger-tint);
+    border:1px solid var(--cinnabar);border-left:5px solid var(--cinnabar);
+    border-radius:6px;padding:10px 12px;
+    font-size:13px;color:var(--cinnabar-deep);
+    animation:warnIn .22s ease;
+  }
+  .modal-foot{
+    display:flex;align-items:center;justify-content:space-between;gap:14px;
+    margin-top:22px;padding-top:16px;border-top:1px dashed var(--line);
+  }
+  .price-line{font-size:13px;color:var(--ink-soft);}
+  .price-line b{font-family:var(--font-kai);font-size:20px;color:var(--cinnabar-deep);margin-left:2px;}
+  #add-btn{
+    background:linear-gradient(180deg,#d04a32,var(--cinnabar));
+    color:#fdf6e6;border:none;border-radius:var(--radius-ctl);
+    padding:11px 26px;font-size:15px;letter-spacing:2px;font-family:var(--font-kai);
+    box-shadow:0 3px 0 var(--cinnabar-deep);
+    transition:filter .15s ease, transform .1s ease;
+  }
+  #add-btn:hover:not(:disabled){filter:brightness(1.1);}
+  #add-btn:active:not(:disabled){transform:translateY(2px);box-shadow:0 1px 0 var(--cinnabar-deep);}
+  #add-btn:disabled{background:#b7a98d;color:#efe6d2;cursor:not-allowed;box-shadow:none;}
+
+  /* 回执 */
+  .receipt-mask{
+    position:fixed;inset:0;z-index:60;
+    background:rgba(51,38,26,.6);
+    display:flex;align-items:center;justify-content:center;
+    padding:24px;
+  }
+  .receipt{
+    position:relative;width:460px;max-width:100%;
+    background:var(--paper-card);
+    border-radius:var(--radius-card);
+    padding:28px 30px 24px;
+    box-shadow:0 30px 60px -20px rgba(51,38,26,.6);
+    border:1px solid var(--line);
+    animation:modalIn .22s ease;
+  }
+  .receipt::after{
+    content:"";display:block;height:10px;margin:18px -30px -24px;
+    background:linear-gradient(-45deg, transparent 6px, var(--paper-card) 0) 0 0/12px 12px repeat-x,
+               linear-gradient(45deg, transparent 6px, var(--paper-card) 0) 6px 0/12px 12px repeat-x;
+  }
+  .receipt h3{font-family:var(--font-kai);font-size:26px;letter-spacing:6px;text-align:center;}
+  .receipt .r-sub{text-align:center;font-size:12px;color:var(--ink-soft);letter-spacing:2px;margin-top:2px;}
+  .receipt-no{
+    margin-top:14px;font-size:13px;color:var(--ink-soft);
+    display:flex;justify-content:space-between;align-items:baseline;
+    border-top:1px dashed var(--line);border-bottom:1px dashed var(--line);
+    padding:8px 0;
+  }
+  .receipt-no strong{font-family:var(--font-kai);font-size:17px;color:var(--cinnabar-deep);letter-spacing:1px;}
+  #receipt-lines{margin-top:10px;}
+  .r-line{display:flex;justify-content:space-between;font-size:14px;padding:5px 0;border-bottom:1px dashed var(--line);}
+  .r-line .r-qty{color:var(--ink-soft);font-size:12px;margin-left:8px;}
+  .r-sum{margin-top:12px;font-size:14px;}
+  .r-sum .sum-row.total{font-size:22px;}
+  .stamp{
+    position:absolute;right:26px;bottom:86px;
+    width:88px;height:88px;border:3px solid var(--cinnabar);border-radius:50%;
+    color:var(--cinnabar);font-family:var(--font-kai);font-size:30px;letter-spacing:4px;
+    display:flex;align-items:center;justify-content:center;
+    transform:rotate(-12deg);opacity:.88;
+    box-shadow:inset 0 0 0 2px rgba(191,59,38,.25);
+    animation:stampIn .3s cubic-bezier(.2,1.4,.4,1) .15s both;
+    pointer-events:none;
+  }
+  @keyframes stampIn{
+    from{opacity:0;transform:rotate(-28deg) scale(1.7);}
+    to{opacity:.88;transform:rotate(-12deg) scale(1);}
+  }
+  .receipt-note{margin-top:16px;font-size:12px;color:var(--ink-soft);text-align:center;}
+  #back-btn{
+    width:100%;margin-top:14px;
+    background:linear-gradient(180deg,var(--wood-btn),var(--wood));
+    color:#f7ecd4;border:none;border-radius:var(--radius-ctl);
+    padding:11px;font-size:15px;letter-spacing:3px;font-family:var(--font-kai);
+    box-shadow:0 3px 0 var(--wood-deep);
+  }
+  #back-btn:hover{filter:brightness(1.12);}
+
+  /* 入账提示条 */
+  #toast{
+    position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(16px);
+    background:var(--wood-deep);color:#f3e6c8;
+    padding:10px 22px;border-radius:999px;font-size:14px;letter-spacing:1px;
+    opacity:0;pointer-events:none;z-index:70;
+    transition:opacity .2s ease, transform .2s ease;
+    box-shadow:0 10px 24px -10px rgba(51,38,26,.6);
+  }
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+  /* 响应式 */
+  @media (max-width:1080px){
+    #main{flex-direction:column;}
+    #cart-area{flex:none;width:100%;max-height:none;position:static;}
+    #cart-lines{max-height:320px;}
+  }
+  @media (max-width:560px){
+    #product-grid{grid-template-columns:1fr;}
+    .top-meta{display:none;}
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *,*::before,*::after{
+      animation-duration:.01ms !important;
+      animation-iteration-count:1 !important;
+      transition-duration:.01ms !important;
+    }
+  }
+</style>
+</head>
+<body>
+  <header id="topbar">
+    <div class="brand">
+      <span class="seal-mini">账</span>
+      <div>
+        <h1>市集账房</h1>
+        <p>掌柜流水台 · 选货入账一体</p>
+      </div>
+    </div>
+    <div class="top-meta">
+      <span id="today">今日</span>
+      <span class="counter-no">第肆拾壹号柜台</span>
+    </div>
+  </header>
+
+  <main id="main">
+    <section id="shelf-area" aria-label="今日货架">
+      <div class="shelf-head">
+        <h2>今日货架</h2>
+        <p class="hint">点「开单选购」挑规格、定数量，账台上实时合计</p>
+      </div>
+      <div id="product-grid"></div>
+    </section>
+
+    <aside id="cart-area" aria-label="流水账台">
+      <div class="cart-head">
+        <h2>流水账台</h2>
+        <span id="cart-count">空账</span>
+      </div>
+
+      <div id="cart-warning" hidden></div>
+
+      <div id="cart-lines"></div>
+      <div id="cart-empty">账台还空着。<br>去左边货架挑几样，回来核对合计。</div>
+
+      <div id="cart-summary">
+        <div class="sum-row"><span class="lab">货款小计</span><span id="sum-sub">¥0.00</span></div>
+        <div class="sum-row"><span class="lab">脚力运费</span><span id="sum-ship">¥0.00</span></div>
+        <div class="sum-row total"><span>应付合计</span><span id="sum-total">¥0.00</span></div>
+        <button id="submit-btn" type="button" disabled>提交订单</button>
+        <p id="submit-hint">账台为空，先选货入账</p>
+      </div>
+    </aside>
+  </main>
+
+  <div id="spec-modal" class="modal-mask" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="spec-title">
+      <button id="spec-close" class="modal-close" type="button" aria-label="收起">✕</button>
+      <h3 id="spec-title"></h3>
+      <p id="spec-sub" class="spec-sub"></p>
+
+      <p class="block-label">挑选规格</p>
+      <div id="spec-chips"></div>
+
+      <p class="block-label">数量</p>
+      <div class="qty-row">
+        <div class="qty-ctl">
+          <button id="qty-minus" type="button" aria-label="减一件">−</button>
+          <span id="qty-num" class="qnum">1</span>
+          <button id="qty-plus" type="button" aria-label="加一件">＋</button>
+        </div>
+        <span id="stock-hint" class="stock-hint"></span>
+      </div>
+
+      <div id="spec-error" class="spec-error" hidden></div>
+
+      <div class="modal-foot">
+        <p class="price-line">单价 <b id="spec-price"></b>　本笔小计 <b id="spec-line-total"></b></p>
+        <button id="add-btn" type="button">加入购物车</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="receipt-overlay" class="receipt-mask" hidden>
+    <div class="receipt" role="dialog" aria-modal="true" aria-labelledby="receipt-title">
+      <h3 id="receipt-title">收银回执</h3>
+      <p class="r-sub">市集账房 · 货讫两清</p>
+      <p class="receipt-no"><span>回执编号</span><strong id="receipt-no"></strong></p>
+      <div id="receipt-lines"></div>
+      <div class="r-sum">
+        <div class="sum-row"><span class="lab">货款小计</span><span id="receipt-sub"></span></div>
+        <div class="sum-row"><span class="lab">脚力运费</span><span id="receipt-ship"></span></div>
+        <div class="sum-row total"><span>实收合计</span><span id="receipt-total"></span></div>
+      </div>
+      <div class="stamp">收讫</div>
+      <p class="receipt-note">货已入账、款已结清，凭此回执到肆拾壹号柜台取货。</p>
+      <button id="back-btn" type="button">收好回执，继续逛逛</button>
+    </div>
+  </div>
+
+  <div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  var FREE_SHIP = 88;      // 货款满 88 元免脚力运费
+  var SHIP_FEE  = 8;
+
+  var PRODUCTS = [
+    { id:"p1", name:"云溪手作陶杯", tag:"陶器", desc:"粗陶手拉坯，三遍施釉，窑变出好看的火痕。",
+      specs:[
+        { name:"月白釉 · 中号",     price:68,  stock:12 },
+        { name:"朱砂红釉 · 大号",   price:88,  stock:1  },
+        { name:"草木灰釉 · 小号",   price:58,  stock:7  }
+      ]},
+    { id:"p2", name:"山雾正山小种", tag:"茶叶", desc:"武夷山桐木关春料，传统松烟熏制，桂圆汤感。",
+      specs:[
+        { name:"100g 铁罐装", price:128, stock:20 },
+        { name:"250g 礼袋装", price:298, stock:6  }
+      ]},
+    { id:"p3", name:"桐木手编竹篮", tag:"竹器", desc:"老篾匠细工编制，盛果蔬、做收纳都体面。",
+      specs:[
+        { name:"圆篮 · 小号", price:45, stock:8 },
+        { name:"圆篮 · 中号", price:68, stock:3 }
+      ]},
+    { id:"p4", name:"溪谷桂花蜜", tag:"蜜酿", desc:"霜降后摇蜜，一年只割一茬，花香干净。",
+      specs:[
+        { name:"380g 玻璃瓶", price:36, stock:15 },
+        { name:"750g 陶坛装", price:69, stock:4  }
+      ]},
+    { id:"p5", name:"粗布扎染桌旗", tag:"布艺", desc:"植物蓝染粗布，越洗越软，铺在桌上很静气。",
+      specs:[
+        { name:"1.2m 短桌款", price:59, stock:5 },
+        { name:"1.8m 长桌款", price:79, stock:2 }
+      ]},
+    { id:"p6", name:"古法黑芝麻丸", tag:"食养", desc:"九蒸九晒黑芝麻，蜂蜜炼丸，一天两粒。",
+      specs:[
+        { name:"150g 纸盒装", price:29, stock:30 },
+        { name:"300g 木盒装", price:52, stock:10 }
+      ]}
+  ];
+
+  var cart = [];            // { pid, spec, qty }
+  var modal = { pid:null, specIdx:0, qty:1 };
+  var orderSeq = 0;
+  var lastFlashKey = null;
+
+  function $(id){ return document.getElementById(id); }
+  function fmt(n){ return "¥" + n.toFixed(2); }
+  function findProduct(pid){
+    for (var i=0;i<PRODUCTS.length;i++){ if (PRODUCTS[i].id===pid) return PRODUCTS[i]; }
+    return null;
+  }
+  function findSpec(p, specName){
+    for (var i=0;i<p.specs.length;i++){ if (p.specs[i].name===specName) return p.specs[i]; }
+    return null;
+  }
+  function lineKey(pid, spec){ return pid + "::" + spec; }
+
+  /* ---------- 货架 ---------- */
+  function renderProducts(){
+    var html = "";
+    PRODUCTS.forEach(function(p){
+      var min = p.specs[0].price;
+      p.specs.forEach(function(s){ if (s.price < min) min = s.price; });
+      html += '<article class="p-card">'
+        + '<div class="p-top"><span class="p-tag">' + p.tag + '</span>'
+        + '<span class="p-from">' + p.specs.length + ' 种规格</span></div>'
+        + '<h3 class="p-name">' + p.name + '</h3>'
+        + '<p class="p-desc">' + p.desc + '</p>'
+        + '<div class="p-foot"><span class="p-price">' + fmt(min) + ' <small>起</small></span>'
+        + '<button type="button" class="btn-wood" data-open="' + p.id + '">开单选购</button></div>'
+        + '</article>';
+    });
+    $("product-grid").innerHTML = html;
+  }
+
+  /* ---------- 选购弹层 ---------- */
+  function openSpec(pid){
+    modal.pid = pid;
+    modal.specIdx = 0;
+    modal.qty = 1;
+    var p = findProduct(pid);
+    $("spec-title").textContent = p.name;
+    $("spec-sub").textContent = p.desc;
+    renderModal();
+    $("spec-modal").hidden = false;
+  }
+  function closeSpec(){ $("spec-modal").hidden = true; modal.pid = null; }
+
+  function renderModal(){
+    var p = findProduct(modal.pid);
+    if (!p) return;
+    var chips = "";
+    p.specs.forEach(function(s, i){
+      var low = s.stock <= 1;
+      chips += '<button type="button" class="spec-chip' + (i===modal.specIdx ? " sel" : "") + '" data-idx="' + i + '">'
+        + '<span>' + s.name + '</span>'
+        + '<span class="chip-price">' + fmt(s.price) + (low ? ' · 仅剩 ' + s.stock + ' 件' : ' · 现货 ' + s.stock + ' 件') + '</span>'
+        + (low ? '<span class="chip-badge">仅剩 1 件</span>' : '')
+        + '</button>';
+    });
+    $("spec-chips").innerHTML = chips;
+
+    var spec = p.specs[modal.specIdx];
+    $("qty-num").textContent = modal.qty;
+    $("spec-price").textContent = fmt(spec.price);
+    $("spec-line-total").textContent = fmt(spec.price * modal.qty);
+
+    var hint = $("stock-hint");
+    if (spec.stock <= 1){
+      hint.textContent = "此规格仅剩 " + spec.stock + " 件，下单请抓紧";
+      hint.className = "stock-hint low";
+    } else {
+      hint.textContent = "此规格现货 " + spec.stock + " 件";
+      hint.className = "stock-hint";
+    }
+
+    var over = modal.qty > spec.stock;
+    var err = $("spec-error");
+    if (over){
+      err.innerHTML = "库存不足：「" + p.name + " · " + spec.name + "」仅剩 <strong>" + spec.stock + "</strong> 件，"
+        + "不够 " + modal.qty + " 件。请把数量减到 " + spec.stock + " 件以内，或改选有货规格。";
+      err.hidden = false;
+    } else {
+      err.hidden = true;
+    }
+    $("add-btn").disabled = over;
+  }
+
+  function addToCart(){
+    var p = findProduct(modal.pid);
+    if (!p) return;
+    var spec = p.specs[modal.specIdx];
+    if (modal.qty > spec.stock) return;   // 阻止错误入账
+    var key = lineKey(p.id, spec.name);
+    var existed = false;
+    cart.forEach(function(it){
+      if (lineKey(it.pid, it.spec) === key){ it.qty += modal.qty; existed = true; }
+    });
+    if (!existed) cart.push({ pid:p.id, spec:spec.name, qty:modal.qty });
+    lastFlashKey = key;
+    closeSpec();
+    renderCart();
+    toast("已入流水账台：" + p.name + " × " + modal.qty);
+  }
+
+  /* ---------- 账台 ---------- */
+  function violations(){
+    var bad = [];
+    cart.forEach(function(it, idx){
+      var p = findProduct(it.pid);
+      var s = findSpec(p, it.spec);
+      if (it.qty > s.stock) bad.push({ idx:idx, item:it, product:p, spec:s });
+    });
+    return bad;
+  }
+
+  function renderCart(){
+    var linesHtml = "";
+    var count = 0, subtotal = 0;
+    var bad = violations();
+    var badIdx = {};
+    bad.forEach(function(b){ badIdx[b.idx] = b; });
+
+    cart.forEach(function(it, idx){
+      var p = findProduct(it.pid);
+      var s = findSpec(p, it.spec);
+      var lineTotal = s.price * it.qty;
+      count += it.qty;
+      subtotal += lineTotal;
+      var over = !!badIdx[idx];
+      var key = lineKey(it.pid, it.spec);
+      linesHtml += '<div class="cart-line' + (over ? " over" : "") + (key===lastFlashKey ? " flash" : "") + '" data-idx="' + idx + '">'
+        + '<div class="cl-top"><span class="cl-name">' + p.name + '</span>'
+        + '<span class="cl-spec">' + it.spec + '</span>'
+        + '<button type="button" class="cl-remove" data-remove="' + idx + '">划掉这笔</button></div>'
+        + (over ? '<span class="cl-flag">超库存 · 仅剩 ' + s.stock + ' 件</span>' : '')
+        + '<div class="cl-bottom">'
+        + '<span class="qty-ctl small">'
+        + '<button type="button" data-dec="' + idx + '" aria-label="减一件">−</button>'
+        + '<span class="qnum">' + it.qty + '</span>'
+        + '<button type="button" data-inc="' + idx + '" aria-label="加一件">＋</button>'
+        + '</span>'
+        + '<span class="cl-price">' + fmt(lineTotal) + '</span>'
+        + '</div></div>';
+    });
+    lastFlashKey = null;
+
+    $("cart-lines").innerHTML = linesHtml;
+    $("cart-lines").hidden = cart.length === 0;
+    $("cart-empty").hidden = cart.length !== 0;
+    $("cart-count").textContent = count === 0 ? "空账" : "共 " + count + " 件";
+
+    var ship = (subtotal >= FREE_SHIP || subtotal === 0) ? 0 : SHIP_FEE;
+    $("sum-sub").textContent = fmt(subtotal);
+    $("sum-ship").textContent = ship === 0 ? "免运费" : fmt(ship);
+    $("sum-total").textContent = fmt(subtotal + ship);
+
+    var warn = $("cart-warning");
+    if (bad.length){
+      var msg = "库存不足，拦下未入账的订单：";
+      bad.forEach(function(b){
+        msg += "<br>「" + b.product.name + " · " + b.spec.name + "」仅剩 " + b.spec.stock
+             + " 件，账上记了 " + b.item.qty + " 件——请减到 " + b.spec.stock + " 件以内，或划掉改选有货规格。";
+      });
+      warn.innerHTML = msg;
+      warn.hidden = false;
+    } else {
+      warn.hidden = true;
+    }
+
+    var btn = $("submit-btn");
+    var hint = $("submit-hint");
+    if (cart.length === 0){
+      btn.disabled = true;
+      hint.textContent = "账台为空，先选货入账";
+      hint.className = "";
+    } else if (bad.length){
+      btn.disabled = true;
+      hint.textContent = "有货目库存不足，处理后才能提交";
+      hint.className = "warn";
+    } else {
+      btn.disabled = false;
+      hint.textContent = "账货两讫，点上方朱砂印提交";
+      hint.className = "";
+    }
+  }
+
+  function cartQty(idx, delta){
+    cart[idx].qty += delta;
+    if (cart[idx].qty < 1) cart[idx].qty = 1;   // 减到 0 请用「划掉这笔」
+    renderCart();
+  }
+  function cartRemove(idx){
+    cart.splice(idx, 1);
+    renderCart();
+  }
+
+  /* ---------- 下单与回执 ---------- */
+  function submitOrder(){
+    if (violations().length) { renderCart(); return; }   // 阻止错误提交
+    if (cart.length === 0) return;
+
+    var subtotal = 0, count = 0, linesHtml = "";
+    cart.forEach(function(it){
+      var p = findProduct(it.pid);
+      var s = findSpec(p, it.spec);
+      subtotal += s.price * it.qty;
+      count += it.qty;
+      linesHtml += '<div class="r-line"><span>' + p.name + '<span class="r-qty">' + it.spec + ' × ' + it.qty + '</span></span>'
+                  + '<span>' + fmt(s.price * it.qty) + '</span></div>';
+    });
+    var ship = subtotal >= FREE_SHIP ? 0 : SHIP_FEE;
+
+    orderSeq += 1;
+    var d = new Date();
+    var ymd = d.getFullYear() + String(d.getMonth()+1).padStart(2,"0") + String(d.getDate()).padStart(2,"0");
+    var no = "BZ-" + ymd + "-" + String(orderSeq).padStart(3,"0");
+
+    $("receipt-no").textContent = no;
+    $("receipt-lines").innerHTML = linesHtml;
+    $("receipt-sub").textContent = fmt(subtotal) + "（" + count + " 件）";
+    $("receipt-ship").textContent = ship === 0 ? "免运费（满 " + FREE_SHIP + " 元）" : fmt(ship);
+    $("receipt-total").textContent = fmt(subtotal + ship);
+
+    cart = [];
+    renderCart();
+    $("receipt-overlay").hidden = false;
+  }
+
+  function closeReceipt(){ $("receipt-overlay").hidden = true; }
+
+  /* ---------- 杂项 ---------- */
+  var toastTimer = null;
+  function toast(text){
+    var t = $("toast");
+    t.textContent = text;
+    t.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function(){ t.classList.remove("show"); }, 1800);
+  }
+
+  function initDate(){
+    var d = new Date();
+    var week = ["日","一","二","三","四","五","六"][d.getDay()];
+    $("today").textContent = d.getFullYear() + " 年 " + (d.getMonth()+1) + " 月 " + d.getDate() + " 日 · 星期" + week;
+  }
+
+  /* ---------- 事件 ---------- */
+  $("product-grid").addEventListener("click", function(e){
+    var btn = e.target.closest("[data-open]");
+    if (btn) openSpec(btn.getAttribute("data-open"));
+  });
+  $("spec-chips").addEventListener("click", function(e){
+    var chip = e.target.closest("[data-idx]");
+    if (!chip) return;
+    modal.specIdx = parseInt(chip.getAttribute("data-idx"), 10);
+    renderModal();
+  });
+  $("qty-minus").addEventListener("click", function(){
+    modal.qty = Math.max(1, modal.qty - 1);
+    renderModal();
+  });
+  $("qty-plus").addEventListener("click", function(){
+    modal.qty += 1;   // 不做上限封顶，选超过现货即触发库存不足提示
+    renderModal();
+  });
+  $("add-btn").addEventListener("click", addToCart);
+  $("spec-close").addEventListener("click", closeSpec);
+  $("spec-modal").addEventListener("click", function(e){
+    if (e.target === $("spec-modal")) closeSpec();
+  });
+
+  $("cart-lines").addEventListener("click", function(e){
+    var inc = e.target.closest("[data-inc]");
+    var dec = e.target.closest("[data-dec]");
+    var rem = e.target.closest("[data-remove]");
+    if (inc) cartQty(parseInt(inc.getAttribute("data-inc"), 10), +1);
+    else if (dec) cartQty(parseInt(dec.getAttribute("data-dec"), 10), -1);
+    else if (rem) cartRemove(parseInt(rem.getAttribute("data-remove"), 10));
+  });
+
+  $("submit-btn").addEventListener("click", submitOrder);
+  $("back-btn").addEventListener("click", closeReceipt);
+  $("receipt-overlay").addEventListener("click", function(e){
+    if (e.target === $("receipt-overlay")) closeReceipt();
+  });
+  document.addEventListener("keydown", function(e){
+    if (e.key === "Escape"){
+      if (!$("receipt-overlay").hidden) closeReceipt();
+      else if (!$("spec-modal").hidden) closeSpec();
+    }
+  });
+
+  initDate();
+  renderProducts();
+  renderCart();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>发布确认 · 晓记文档</title>
+<style>
+  :root {
+    --paper-bg: #faf7f2;
+    --paper-face: #fffdf9;
+    --cinnabar: #b2311f;
+    --cinnabar-deep: #8f2115;
+    --ink: #2b2620;
+    --ink-soft: #8a7f72;
+    --line: #e5ded2;
+    --wash: #f6e8e3;
+    --seal-pale: #e9c7bd;
+    --serif: Georgia, "Times New Roman", "Songti SC", "STSong", "SimSun", serif;
+    --sans: "Segoe UI", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body { height: 100%; }
+
+  body {
+    background: var(--paper-bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.7;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+  }
+
+  /* 顶部品牌条 */
+  .topbar {
+    width: 100%;
+    max-width: 960px;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 20px 8px 12px;
+    color: var(--ink-soft);
+    font-size: 12.5px;
+    letter-spacing: 0.12em;
+  }
+  .topbar .brand { font-family: var(--serif); font-size: 14px; color: var(--ink); letter-spacing: 0.2em; }
+  .topbar .brand::before { content: ""; display: inline-block; width: 9px; height: 9px; background: var(--cinnabar); margin-right: 8px; }
+
+  /* 纸张 */
+  .paper-wrap {
+    flex: 1;
+    width: 100%;
+    max-width: 960px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 12px 8px 48px;
+  }
+
+  .paper {
+    position: relative;
+    width: 100%;
+    max-width: 680px;
+    background: var(--paper-face);
+    border: 1px solid var(--line);
+    border-top: 3px solid var(--cinnabar);
+    box-shadow: 0 1px 2px rgba(43, 38, 32, 0.06), 0 12px 32px rgba(43, 38, 32, 0.08);
+    padding: 56px 64px 48px;
+    overflow: hidden;
+  }
+
+  .doc-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12.5px;
+    color: var(--ink-soft);
+    letter-spacing: 0.06em;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .doc-title {
+    font-family: var(--serif);
+    font-size: 27px;
+    font-weight: 700;
+    line-height: 1.5;
+    padding: 28px 0 8px;
+  }
+  .doc-sub { color: var(--ink-soft); font-size: 13.5px; padding-bottom: 28px; }
+  .doc-sub b { color: var(--ink); font-weight: 600; }
+
+  /* 后果框 */
+  .consequence {
+    background: var(--wash);
+    border-left: 3px solid var(--cinnabar);
+    padding: 18px 22px;
+    margin-bottom: 36px;
+  }
+  .consequence .label {
+    display: block;
+    font-size: 12px;
+    letter-spacing: 0.28em;
+    color: var(--cinnabar-deep);
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .consequence p {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--cinnabar-deep);
+    line-height: 1.8;
+  }
+
+  /* 操作区 */
+  .actions { position: relative; }
+
+  .ack {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 22px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .ack input { position: absolute; opacity: 0; width: 0; height: 0; }
+  .ack .box {
+    flex: 0 0 auto;
+    width: 19px;
+    height: 19px;
+    margin-top: 2px;
+    border: 1.5px solid var(--ink-soft);
+    background: var(--paper-face);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 160ms ease, border-color 160ms ease;
+  }
+  .ack .box svg { width: 12px; height: 12px; opacity: 0; transform: scale(0.5); transition: opacity 140ms ease, transform 140ms ease; }
+  .ack input:checked + .box { background: var(--cinnabar); border-color: var(--cinnabar); }
+  .ack input:checked + .box svg { opacity: 1; transform: scale(1); }
+  .ack input:focus-visible + .box { outline: 2px solid var(--cinnabar); outline-offset: 2px; }
+  .ack .text { font-size: 14px; color: var(--ink); }
+  .ack .text em { font-style: normal; font-weight: 600; color: var(--cinnabar-deep); }
+
+  .action-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .btn-back {
+    background: none;
+    border: none;
+    font-family: var(--sans);
+    font-size: 14px;
+    color: var(--ink-soft);
+    cursor: pointer;
+    padding: 10px 4px;
+    border-bottom: 1px solid transparent;
+    letter-spacing: 0.04em;
+  }
+  .btn-back:hover { color: var(--ink); border-bottom-color: var(--ink-soft); }
+  .btn-back:focus-visible { outline: 2px solid var(--cinnabar); outline-offset: 2px; }
+
+  .btn-seal {
+    font-family: var(--serif);
+    font-size: 17px;
+    font-weight: 700;
+    letter-spacing: 0.35em;
+    text-indent: 0.35em;
+    color: #fffdf9;
+    background: var(--cinnabar);
+    border: none;
+    padding: 15px 40px;
+    cursor: pointer;
+    box-shadow: 0 2px 0 var(--cinnabar-deep), 0 6px 14px rgba(178, 49, 31, 0.28);
+    transition: background 180ms ease, transform 120ms ease, box-shadow 120ms ease;
+  }
+  .btn-seal:not(:disabled):hover { background: var(--cinnabar-deep); }
+  .btn-seal:not(:disabled):focus-visible { outline: 3px solid var(--seal-pale); outline-offset: 2px; }
+  .btn-seal:not(:disabled):active { transform: translateY(2px); box-shadow: 0 0 0 var(--cinnabar-deep), 0 3px 8px rgba(178, 49, 31, 0.3); }
+  .btn-seal:disabled {
+    background: #c9bfb2;
+    box-shadow: none;
+    cursor: not-allowed;
+    color: #faf7f2;
+  }
+  .btn-seal.stamped { background: var(--cinnabar-deep); cursor: default; transform: none; box-shadow: 0 1px 0 var(--cinnabar-deep); letter-spacing: 0.35em; }
+  .btn-seal.pressed { animation: press 260ms ease; }
+  @keyframes press {
+    0% { transform: scale(1); }
+    40% { transform: scale(1.07) translateY(2px); }
+    100% { transform: scale(1); }
+  }
+
+  /* 返回后的退出遮罩 */
+  .veil {
+    position: absolute;
+    inset: -12px;
+    background: rgba(250, 247, 242, 0.94);
+    border: 1px dashed var(--line);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 10px;
+    text-align: center;
+    padding: 24px;
+  }
+  .veil.show { display: flex; }
+  .veil p { font-family: var(--serif); font-size: 16px; color: var(--ink); }
+  .veil p small { display: block; font-family: var(--sans); font-size: 12.5px; color: var(--ink-soft); margin-top: 4px; }
+  .btn-reenter {
+    margin-top: 6px;
+    font-size: 13px;
+    color: var(--cinnabar-deep);
+    background: none;
+    border: 1px solid var(--cinnabar);
+    padding: 8px 22px;
+    cursor: pointer;
+    letter-spacing: 0.08em;
+    transition: background 160ms ease, color 160ms ease;
+  }
+  .btn-reenter:hover { background: var(--cinnabar); color: #fffdf9; }
+  .btn-reenter:focus-visible { outline: 2px solid var(--cinnabar); outline-offset: 2px; }
+
+  /* 顶部通知条 */
+  .notice {
+    width: 100%;
+    max-width: 960px;
+    padding: 0 8px;
+    display: none;
+  }
+  .notice.show { display: block; }
+  .notice-inner {
+    background: var(--ink);
+    color: #faf7f2;
+    font-size: 13px;
+    padding: 10px 18px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+  }
+  .notice-inner .dot { color: var(--seal-pale); margin-right: 8px; }
+  .notice-inner button { background: none; border: none; color: var(--seal-pale); cursor: pointer; font-size: 13px; padding: 2px 6px; }
+  .notice-inner button:hover { color: #fffdf9; }
+
+  /* 回执区 */
+  .receipt {
+    display: none;
+    margin-top: 36px;
+    border-top: 1px solid var(--line);
+    padding-top: 24px;
+  }
+  .receipt.show { display: flex; gap: 28px; align-items: flex-start; }
+
+  .receipt dl { flex: 1; }
+  .receipt dt { font-size: 12px; color: var(--ink-soft); letter-spacing: 0.18em; margin-bottom: 2px; }
+  .receipt dd { font-family: var(--serif); font-size: 15px; color: var(--ink); margin-bottom: 14px; }
+  .receipt .hint { font-family: var(--sans); font-size: 12.5px; color: var(--ink-soft); }
+
+  /* 朱红圆戳 */
+  .stamp {
+    flex: 0 0 auto;
+    width: 128px;
+    height: 128px;
+    opacity: 0;
+    transform: rotate(-10deg) scale(2.2);
+  }
+  .stamp.show { animation: stamp-in 420ms cubic-bezier(0.22, 1.2, 0.36, 1) forwards; }
+  @keyframes stamp-in {
+    0% { opacity: 0; transform: rotate(-22deg) scale(2.2); }
+    55% { opacity: 1; transform: rotate(-7deg) scale(0.96); }
+    75% { transform: rotate(-11deg) scale(1.03); }
+    100% { opacity: 1; transform: rotate(-10deg) scale(1); }
+  }
+
+  /* 响应式：768px 以下 */
+  @media (max-width: 768px) {
+    .paper { padding: 36px 26px 32px; }
+    .doc-title { font-size: 22px; }
+    .action-row { flex-direction: column; align-items: stretch; }
+    .btn-seal { width: 100%; padding: 14px 20px; }
+    .btn-back { align-self: flex-start; }
+    .receipt.show { flex-direction: column; }
+    .stamp { width: 104px; height: 104px; }
+    .topbar { flex-direction: column; gap: 2px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .btn-seal, .btn-seal.pressed, .ack .box, .ack .box svg { transition: none; animation: none; }
+    .btn-seal.pressed { transform: none; }
+    .stamp.show { animation: none; opacity: 1; transform: rotate(-10deg) scale(1); }
+  }
+</style>
+</head>
+<body>
+
+  <header class="topbar">
+    <span class="brand">晓记文档</span>
+    <span>发布确认 · 第 3 步 / 共 3 步</span>
+  </header>
+
+  <div class="notice" id="notice" role="status">
+    <div class="notice-inner">
+      <span><span class="dot">●</span>已返回编辑，草稿已保存，发布未执行。</span>
+      <button type="button" id="btn-reenter-top">重新进入确认</button>
+    </div>
+  </div>
+
+  <main class="paper-wrap">
+    <article class="paper" id="paper">
+      <div class="doc-meta">
+        <span>文号：XJ-RPT-2026-0147</span>
+        <span>版本：v3.2（送审稿）</span>
+      </div>
+
+      <h1 class="doc-title">发布《2026 年第一季度供应商交付报告》</h1>
+      <p class="doc-sub">作者：<b>陈知远</b>　·　撰写人：供应链分析组　·　全文 <b>4,312</b> 字，含 6 张数据表　·　读者范围：全体内部成员</p>
+
+      <section class="consequence" aria-label="发布后果">
+        <span class="label">发 布 后 果</span>
+        <p>这一下盖下去，本文将立即对所有内部读者公开，<em style="font-style:normal">此后不能再编辑、不能撤回</em>；如需修改，必须另行发布更正声明。</p>
+      </section>
+
+      <div class="actions" id="actions">
+        <label class="ack" for="ack-check">
+          <input type="checkbox" id="ack-check">
+          <span class="box" aria-hidden="true">
+            <svg viewBox="0 0 12 12"><path d="M1.5 6.5 L4.5 9.5 L10.5 2.5" fill="none" stroke="#fffdf9" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </span>
+          <span class="text">我已通读并<em>接受上述后果</em>，明白发布不可撤回。</span>
+        </label>
+
+        <div class="action-row">
+          <button type="button" class="btn-back" id="btn-back">← 返回继续修改</button>
+          <button type="button" class="btn-seal" id="btn-seal" disabled>盖印发布</button>
+        </div>
+
+        <div class="veil" id="veil">
+          <p>已退出本次发布流程<small>内容仍以草稿保留，可随时回来继续。</small></p>
+          <button type="button" class="btn-reenter" id="btn-reenter">重新进入确认</button>
+        </div>
+      </div>
+
+      <section class="receipt" id="receipt" aria-label="发布回执">
+        <dl>
+          <dt>发布编号</dt><dd id="receipt-no">XJ-PUB-260428-0917</dd>
+          <dt>发布时间</dt><dd id="receipt-time">2026-04-28 09:17</dd>
+          <dt>可见范围</dt><dd>全体内部成员</dd>
+          <p class="hint">更正路径：文档右上角「⋯」→ 发布更正声明。原文与本回执将永久留存。</p>
+        </dl>
+        <svg class="stamp" id="stamp" viewBox="0 0 128 128" aria-label="已发布印章">
+          <defs>
+            <filter id="stamp-rough">
+              <feTurbulence type="fractalNoise" baseFrequency="0.09" numOctaves="2" seed="7" result="n"/>
+              <feDisplacementMap in="SourceGraphic" in2="n" scale="3.2"/>
+            </filter>
+          </defs>
+          <g filter="url(#stamp-rough)">
+            <circle cx="64" cy="64" r="56" fill="none" stroke="#b2311f" stroke-width="5" opacity="0.88"/>
+            <circle cx="64" cy="64" r="47" fill="none" stroke="#b2311f" stroke-width="1.2" opacity="0.55"/>
+            <path d="M64 30 l6.5 13.2 14.6 2.1 -10.6 10.3 2.5 14.5 -13 -6.8 -13 6.8 2.5 -14.5 -10.6 -10.3 14.6 -2.1 Z" fill="#b2311f" opacity="0.82"/>
+            <text x="64" y="88" text-anchor="middle" font-family="Georgia, 'Songti SC', SimSun, serif" font-size="20" font-weight="700" fill="#b2311f" opacity="0.9" letter-spacing="2">已发布</text>
+          </g>
+        </svg>
+      </section>
+    </article>
+  </main>
+
+<script>
+(function () {
+  var ack = document.getElementById('ack-check');
+  var seal = document.getElementById('btn-seal');
+  var back = document.getElementById('btn-back');
+  var veil = document.getElementById('veil');
+  var notice = document.getElementById('notice');
+  var receipt = document.getElementById('receipt');
+  var stamp = document.getElementById('stamp');
+  var reenter1 = document.getElementById('btn-reenter');
+  var reenter2 = document.getElementById('btn-reenter-top');
+
+  function nowText() {
+    var d = new Date();
+    function p(n) { return (n < 10 ? '0' : '') + n; }
+    return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes());
+  }
+
+  ack.addEventListener('change', function () {
+    if (seal.classList.contains('stamped')) return;
+    seal.disabled = !ack.checked;
+  });
+
+  seal.addEventListener('click', function () {
+    if (seal.disabled || seal.classList.contains('stamped')) return;
+    seal.classList.add('pressed');
+    seal.textContent = '已 发 布';
+    seal.classList.add('stamped');
+    seal.disabled = true;
+    document.getElementById('receipt-time').textContent = nowText();
+    receipt.classList.add('show');
+    stamp.classList.add('show');
+    setTimeout(function () { seal.classList.remove('pressed'); }, 300);
+    receipt.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  });
+
+  function exitFlow() {
+    if (seal.classList.contains('stamped')) return;
+    veil.classList.add('show');
+    notice.classList.add('show');
+    ack.checked = false;
+    seal.disabled = true;
+  }
+
+  function reenterFlow() {
+    veil.classList.remove('show');
+    notice.classList.remove('show');
+  }
+
+  back.addEventListener('click', exitFlow);
+  reenter1.addEventListener('click', reenterFlow);
+  reenter2.addEventListener('click', reenterFlow);
+})();
+</script>
+</body>
+</html>

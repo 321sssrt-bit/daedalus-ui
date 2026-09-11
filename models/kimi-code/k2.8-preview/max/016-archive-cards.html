@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>成员目录 · 人事档案室</title>
+<style>
+:root {
+  --desk: #35322b;
+  --desk-deep: #2a2823;
+  --paper: #efe3c4;
+  --paper-deep: #e3d3ac;
+  --paper-edge: #c9b488;
+  --ink: #33291d;
+  --ink-soft: #6b5f4c;
+  --stamp: #b03a2a;
+  --metal: #9aa0a6;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  background: var(--desk);
+  color: var(--ink);
+  font-family: "Courier New", Courier, monospace;
+  font-size: 14px;
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+/* 页眉 */
+.site-header {
+  background: var(--desk-deep);
+  border-bottom: 3px double var(--paper-edge);
+}
+.header-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 26px 24px 22px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+.brand { display: flex; align-items: center; gap: 16px; }
+.brand-seal {
+  width: 52px;
+  height: 52px;
+  flex: none;
+  border: 2px solid var(--stamp);
+  border-radius: 6px;
+  color: var(--stamp);
+  display: grid;
+  place-items: center;
+  font-size: 26px;
+  font-weight: 700;
+  transform: rotate(-6deg);
+}
+.brand h1 {
+  margin: 0;
+  font-size: 26px;
+  line-height: 1.2;
+  letter-spacing: .12em;
+  color: var(--paper);
+}
+.tagline {
+  margin: 4px 0 0;
+  font-size: 12px;
+  letter-spacing: .14em;
+  color: var(--metal);
+}
+.header-meta { display: flex; gap: 28px; margin: 0; flex-wrap: wrap; }
+.header-meta dt { font-size: 11px; letter-spacing: .12em; color: var(--metal); }
+.header-meta dd { margin: 2px 0 0; font-size: 14px; letter-spacing: .06em; color: var(--paper); }
+
+/* 筛选栏：文件夹标签页 */
+.folder-bar {
+  background: var(--paper-deep);
+  border-bottom: 1px solid var(--paper-edge);
+}
+.folder-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 14px 24px 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+.tab {
+  font: inherit;
+  font-size: 13px;
+  letter-spacing: .06em;
+  padding: 9px 16px 10px;
+  background: transparent;
+  color: var(--ink-soft);
+  border: 1px solid var(--paper-edge);
+  border-bottom: none;
+  border-radius: 8px 8px 0 0;
+  cursor: pointer;
+  transition: background-color .15s ease, color .15s ease;
+}
+.tab:hover { background: var(--paper); color: var(--ink); }
+.tab:focus-visible { outline: 3px solid var(--stamp); outline-offset: 2px; }
+.tab[aria-selected="true"] {
+  background: var(--paper);
+  color: var(--ink);
+  font-weight: 700;
+  transform: translateY(1px);
+  box-shadow: inset 0 3px 0 var(--stamp);
+}
+.result-line {
+  margin: 0 0 10px;
+  font-size: 12px;
+  letter-spacing: .08em;
+  color: var(--ink-soft);
+}
+
+/* 卡片网格 */
+.card-grid {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 34px 24px 20px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 28px 24px;
+}
+.card {
+  height: 300px;
+  perspective: 1400px;
+  cursor: pointer;
+  outline: none;
+  transition: transform .18s ease;
+}
+.card:hover { transform: translateY(-4px) rotate(-.5deg); }
+.card:hover .card-front { box-shadow: 0 16px 30px rgba(0, 0, 0, .42); }
+.card:focus-visible { outline: 3px dashed var(--stamp); outline-offset: 4px; }
+.card.is-hidden { display: none; }
+.card.animate-in { animation: cardIn .3s ease both; }
+
+.card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform .55s cubic-bezier(.2, .7, .3, 1.1);
+}
+.card.is-flipped .card-inner { transform: rotateY(180deg); }
+
+.card-face {
+  position: absolute;
+  inset: 0;
+  border-radius: 6px;
+  border: 1px solid var(--paper-edge);
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, .35);
+}
+.card-front { background: var(--paper); }
+.card-back {
+  background: var(--paper-deep);
+  transform: rotateY(180deg);
+  overflow-y: auto;
+}
+
+.paperclip {
+  position: absolute;
+  top: -10px;
+  right: 16px;
+  width: 22px;
+  height: 34px;
+  transform: rotate(14deg);
+  z-index: 2;
+}
+.paperclip path {
+  fill: none;
+  stroke: var(--metal);
+  stroke-width: 2.6;
+  stroke-linecap: round;
+}
+
+.card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.emp-no { font-size: 12px; letter-spacing: .14em; color: var(--ink-soft); }
+.stamp {
+  border: 2px solid var(--stamp);
+  border-radius: 4px;
+  color: var(--stamp);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: .3em;
+  padding: 2px 6px 2px 9px;
+  transform: rotate(8deg);
+  opacity: .85;
+}
+.emp-name {
+  margin: 10px 0 0;
+  font-size: 25px;
+  line-height: 1.2;
+  letter-spacing: .1em;
+  color: var(--ink);
+}
+.emp-fields { margin: 14px 0 0; }
+.field {
+  display: flex;
+  gap: 12px;
+  padding: 5px 0;
+  border-bottom: 1px dashed var(--paper-edge);
+  font-size: 13px;
+}
+.field dt { width: 3.2em; flex: none; letter-spacing: .2em; color: var(--ink-soft); }
+.field dd { margin: 0; letter-spacing: .04em; color: var(--ink); }
+.flip-hint {
+  margin: auto 0 0;
+  font-size: 12px;
+  letter-spacing: .1em;
+  text-align: right;
+  color: var(--ink-soft);
+}
+.back-title {
+  margin: 0;
+  font-size: 15px;
+  letter-spacing: .24em;
+  color: var(--ink);
+}
+.bio { margin: 12px 0 0; font-size: 13px; line-height: 1.8; color: var(--ink); }
+.back-fields { margin-top: 12px; }
+.back .flip-hint {
+  text-align: center;
+  border: 1px solid var(--ink-soft);
+  border-radius: 4px;
+  padding: 3px 0;
+}
+
+/* 页脚 */
+.site-footer { background: var(--desk-deep); margin-top: 20px; }
+.footer-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 16px 24px;
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  font-size: 12px;
+  letter-spacing: .1em;
+  color: var(--metal);
+}
+
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 1080px) {
+  .card-grid { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 860px) {
+  .card-grid { grid-template-columns: repeat(2, 1fr); gap: 24px 18px; padding: 26px 16px 16px; }
+  .header-inner { padding: 20px 16px 16px; }
+  .brand h1 { font-size: 22px; }
+  .folder-inner { padding: 12px 16px 0; }
+}
+@media (max-width: 520px) {
+  .card-grid { grid-template-columns: 1fr; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card, .card-inner, .tab { transition: none !important; }
+  .card:hover { transform: none; }
+  .card.animate-in { animation: none; }
+}
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="header-inner">
+    <div class="brand">
+      <span class="brand-seal" aria-hidden="true">档</span>
+      <div>
+        <h1>成员目录</h1>
+        <p class="tagline">人事档案室 · 在册人员检索</p>
+      </div>
+    </div>
+    <dl class="header-meta">
+      <div>
+        <dt>卷宗编号</dt>
+        <dd>DK-HR-016</dd>
+      </div>
+      <div>
+        <dt>归档日期</dt>
+        <dd>2025-11-20</dd>
+      </div>
+      <div>
+        <dt>在册人数</dt>
+        <dd>12 人</dd>
+      </div>
+    </dl>
+  </div>
+</header>
+
+<div class="folder-bar">
+  <div class="folder-inner">
+    <div class="tabs" role="tablist" aria-label="按部门筛选档案">
+      <button type="button" class="tab" role="tab" data-dept="all" aria-selected="true">全部</button>
+      <button type="button" class="tab" role="tab" data-dept="研发部" aria-selected="false">研发部</button>
+      <button type="button" class="tab" role="tab" data-dept="设计部" aria-selected="false">设计部</button>
+      <button type="button" class="tab" role="tab" data-dept="运营部" aria-selected="false">运营部</button>
+      <button type="button" class="tab" role="tab" data-dept="市场部" aria-selected="false">市场部</button>
+      <button type="button" class="tab" role="tab" data-dept="人事部" aria-selected="false">人事部</button>
+      <button type="button" class="tab" role="tab" data-dept="行政部" aria-selected="false">行政部</button>
+    </div>
+    <p class="result-line" id="resultLine" aria-live="polite">全部 · 共 12 份档案</p>
+  </div>
+</div>
+
+<main class="card-grid" id="cardGrid">
+
+  <article class="card" id="card-01" data-dept="研发部" tabindex="0" role="button" aria-pressed="false" aria-label="陈屿的档案卡，点击或回车翻开">
+    <div class="card-inner">
+      <div class="card-face card-front">
+        <svg class="paperclip" viewBox="0 0 32 48" aria-hidden="true" focusable="false">
+          <path d="M8 40 V16 a8 8 0 0 1 16 0 V40 a8 8 0 0 1 -16 0"></path>
+          <path d="M13 12 V34 a3 3 0 0 0 6 0 V12"></path>
+        </svg>
+        <div class="card-top">
+          <span class="emp-no">DK-1023</span>
+          <span class="stamp" aria-hidden="true">在册</span>
+        </div>
+        <h2 class="emp-name">陈屿</h2>
+        <dl class="emp-fields">
+          <div class="field"><dt>部门</dt><dd>研发部</dd></div>
+          <div class="field"><dt>职务</dt><dd>前端工程师</dd></div>
+          <div class="field"><dt>入职</dt><dd>2019-04-11</dd></div>
+        </dl>
+        <p class="flip-hint">▸ 点击翻开档案</p>
+      </div>
+      <div class="card-face card-back" aria-hidden="true">
+        <div class="card-top">
+          <h2 class="back-title">档案摘要</h2>
+          <span class="emp-no">DK-1023</span>
+        </div>
+        <p class="bio">负责成员目录检索界面的重构，坚持每个动效都写明时长再动手。工位常备一把游标卡尺，说是用来量像素。</p>
+        <dl class="emp-fields back-fields">
+          <div class="field"><dt>分机</dt><dd>8031</dd></div>
+          <div class="field"><dt>座位</dt><dd>B-12</dd></div>
+          <div class="field"><dt>直属</dt><dd>赵启铭</dd></div>
+        </dl>
+        <p class="flip-hint">▪ 点击合上档案 ▪</p>
+      </div>
+    </div>
+  </article>
+
+  <article class="card" id="card-02" data-dept="研发部" tabindex="0" role="button" aria-pressed="false" aria-label="林晚舟的档案卡，点击或回车翻开">
+    <div class="card-inner">
+      <div class="card-face card-front">
+        <svg class="paperclip" viewBox="0 0 32 48" aria-hidden="true" focusable="false">
+          <path d="M8 40 V16 a8 8 0 0 1 16 0 V40 a8 8 0 0 1 -16 0"></path>
+          <path d="M13 12 V34 a3 3 0 0 0 6 0 V12"></path>
+        </svg>
+        <div class="card-top">
+          <span class="emp-no">DK-1047</span>
+          <span class="stamp" aria-hidden="true">在册</span>
+        </div>
+        <h2 class="emp-name">林晚舟</h2>
+        <dl class="emp-fields">
+          <div class="field"><dt>部门</dt><dd>研发部</dd></div>
+          <div class="field"><dt>职务</dt><dd>后端工程师</dd></div>
+          <div class="field"><dt>入职</dt><dd>2017-08-23</dd></div>
+        </dl>
+        <p class="flip-hint">▸ 点击翻开档案</p>
+      </div>
+      <div class="card-face card-back" aria-hidden="true">
+        <div class="card-top">
+          <h2 class="back-title">档案摘要</h2>
+          <span class="emp-no">DK-1047</span>
+        </div>
+        <p class="bio">维护档案索引与权限接口七年，口头禅是「先上日志再说话」。午休固定在楼梯间读字典附录。</p>
+        <dl class="emp-fields back-fields">
+          <div class="field"><dt>分机</dt><dd>8032</dd></div>
+          <div class="field"><dt>座位</dt><dd>B-08</dd></div>
+          <div class="field"><dt>直属</dt><dd>赵启铭</dd></div>
+        </dl>
+        <p class="flip-hint">▪ 点击合上档案 ▪</p>
+      </div>
+    </div>
+  </article>
+
+  <article class="card" id="card-03" data-dept="研发部" tabindex="0" role="button" aria-pressed="false" aria-label="苏麦的档案卡，点击或回车翻开">
+    <div class="card-inner">
+      <div class="card-face card-front">
+        <svg class="paperclip" viewBox="0 0 32 48" aria-hidden="true" focusable="false">
+          <path d="M8 40 V16 a8 8 0 0 1 16 0 V40 a8 8 0 0 1 -16 0"></path>
+          <path d="M13 12 V34 a3 3 0 0 0 6 0 V12"></path>
+        </svg>
+        <div class="card-top">
+          <span class="emp-no">DK-1077</span>
+          <span class="stamp" aria-hidden="true">在册</span>
+        </div>
+        <h2 class="emp-name">苏麦</h2>
+        <dl class="emp-fields">
+          <div class="field"><dt>部门</dt><dd>研发部</dd></div>
+          <div class="field"><dt>职务</dt><dd>测试工程师</dd></div>
+          <div class="field"><dt>入职</dt><dd>2021-03-15</dd></div>
+        </dl>
+        <p class="flip-hint">▸ 点击翻开档案</p>
+      </div>
+      <div class="card-face card-back" aria-hidden="true">
+        <div class="card-top">
+          <h2 class="back-title">档案摘要</h2>
+          <span class="emp-no">DK-1077</span>
+        </div>
+        <p class="bio">专攻边界用例，去年一人提交了四百多张缺陷单，被全组称为「找茬冠军」。家里养着一只名叫「回归」的猫。</p>
+        <dl class="emp-fields back-fields">
+          <div class="field"><dt>分机</dt><dd>8033</dd></div>
+          <div class="field"><dt>座位</dt><dd>B-15</dd></div>
+          <div class="field"><dt>直属</dt><dd>赵启铭</dd></div>
+        </dl>
+        <p class="flip-hint">▪ 点击合上档案 ▪</p>
+      </div>
+    </div>
+  </article>
+
+  <article class="card" id="card-04" data-dept="研发部" tabindex="0" role="button" aria-pressed="false" aria-label="高崇的档案卡，点击或回车翻开">
+    <div class="card-inner">
+      <div class="card-face card-front">
+        <svg class="paperclip" viewBox="0 0 32 48" aria-hidden="true" focusable="false">
+          <path d="M8 40 V16 a8 8 0 0 1 16 0 V40 a8 8 0 0 1 -16 0"></path>
+          <path d="M13 12 V34 a3 3 0 0 0 6 0 V12"></path>
+        </svg>
+        <div class="card-top">
+          <span class="emp-no">DK-1102</span>
+          <span class="stamp" aria-hidden="true">在册</span>
+        </div>
+        <h2 class="emp-name">高崇</h2>
+        <dl class="emp-fields">
+          <div class="field"><dt>部门</dt><dd>研发部</dd></div>
+          <div class="field"><dt>职务</dt><dd>算法工程师</dd></div>
+          <div class="field"><dt>入职</dt><dd>2022-06-06</dd></div>
+        </dl>
+        <p class="flip-hint">▸ 点击翻开档案</p>
+      </div>
+      <div class="card-face card-back" aria-hidden="true">
+        <div class="card-top">
+          <h2 class="back-title">档案摘要</h2>
+          <span class="emp-no">DK-1102</span>
+        </div>
+        <p class="bio">负责人员画像聚类模型，坚持手写每一行注释。早餐六年未变：两个菜包，一杯豆浆。</p>
+        <dl class="emp-fields back-fields">
+          <div class="field"><dt>分机</dt><dd>8034</dd></div>
+          <div class="field"><dt>座位</dt><dd>B-21</dd></div>
+          <div class="field"><dt>直属</dt><dd>赵启铭</dd></div>
+        </dl>
+        <p class="flip-hint">▪ 点击合上档案 ▪</p>
+      </div>
+    </div>
+  </article>
+
+  <article class="card" id="card-05" data-dept="设计部" tabindex="0" role="button" aria-pressed="false" aria-label="叶蓁的档案卡，点击或回车翻开">
+    <div class="card-inner">
+      <div class="card-face card-front">
+        <svg class="paperclip" viewBox="0 0 32 48" aria-hidden="true" focusable="false">
+          <path d="M8 40 V16 a8 8 0 0 1 16 0 V40 a8 8 0 0 1 -16 0"></path>
+          <path d="M13 12 V34 a3 3 0 0 0 6 0 V12"></path>
+        </svg>
+        <div class="card-top">
+          <span class="emp-no">DK-2041</span>
+          <span class="stamp" aria-hidden="true">在册</span>
+        </div>
+        <h2 class="emp-name">叶蓁</h2>
+        <dl class="emp-fields">
+          <div class="field"><dt>部门</dt><dd>设计部</dd></div>
+          <div class="field"><dt>职务</dt><dd>视觉设计师</dd></div>
+          <div class="field"><dt>入职</dt><dd>2020-09-01</dd></div>
+        </dl>
+        <p class="flip-hint">▸ 点击翻开档案</p>
+      </div>
+      <div class="card-face card-back" aria-hidden="true">
+        <div class="card-top">
+          <h2 class="back-title">档案摘要</h2>
+          <span class="emp-no">DK-2041</span>
+        </div>
+        <p class="bio">这套档案卡与红印章的视觉样式出自她手，私下收藏了一百多枚老橡皮章。桌面永远收拾得像印刷打样台。</p>
+        <dl class="emp-fields back-fields">
+          <div class="field"><dt>分机</dt><dd>8021</dd></div>
+          <div class="field"><dt>座位</dt><dd>D-03</dd></div>
+          <div class="field"><dt>直属</dt><dd>顾岚</dd></div>
+        </dl>
+        <p class="flip-hint">▪ 点击合上档案 ▪</p>
+      </div>
+    </div>
+  </article>
+
+  <article class="card" id="card-06" data-dept="设计部" tabindex="0" role="button" aria-pressed="false" aria-label="江一帆的档案卡，点击或回车翻开">
+    <div class="card-inner">
+      <div class="card-face card-front">
+        <svg class="paperclip" viewBox="0 0 32 48" aria-hidden="true" focusable="false">
+          <path d="M8 40 V16 a8 8 0 0 1 16 0 V40 a8 8 0 0 1 -16 0"></path>
+          <path d="M13 12 V34 a3 3 0 0 0 6 0 V12"></path>
+        </svg>
+        <div class="card-top">
+          <span class="emp-no">DK-2055</span>
+          <span class="stamp" aria-hidden="true">在册</span>
+        </div>
+        <h2 class="emp-name">江一帆</h2>
+        <dl class="emp-fields">
+          <div class="field"><dt>部门</dt><dd>设计部</dd></div>
+          <div class="field"><dt>职务</dt><dd>交互设计师</dd></div>
+          <div class="field"><dt>入职</dt><dd>2023-02-27</dd></div>
+        </dl>
+        <p class="flip-hint">▸ 点击翻开档案</p>
+      </div>
+      <div class="card-face card-back" aria-hidden="true">
+        <div class="card-top">
+          <h2 class="back-title">档案摘要</h2>
+          <span class="emp-no">DK-2055</span>
+        </div>
+        <p class="bio">为档案卡片的翻转做过十四版动效原型，最后留下了最朴素的一版。周末在旧货市场淘打字机色带。</p>
+        <dl class="emp-fields back-fields">
+          <div class="field"><dt>分机</dt><dd>8022</dd></div>
+          <div class="field"><dt>座位</dt><dd>D-05</dd></div>
+          <div class="field"><dt>直属</dt><dd>顾岚</dd></div>
+        </dl>
+        <p class="flip-hint">▪ 点击合上档案 ▪</p>
+      </div>
+    </div>
+  </article>
+
+  <article class="card" id="card-07" data-dept="运营部" tabindex="0" role="button" aria-pressed="false" aria-label="白露的档案卡，点击或回车翻开">
+    <div class="card-inner">
+      <div class="card-face card-front">
+        <svg class="paperclip" viewBox="0 0 32 48" aria-hidden="true" focusable="false">
+          <path d="M8 40 V16 a8 8 0 0 1 16 0 V40 a8 8 0 0 1 -16 0"></path>
+          <path d="M13 12 V34 a3 3 0 0 0 6 0 V12"></path>
+        </svg>
+        <div class="card-top">
+          <span class="emp-no">DK-3012</span>
+          <span class="stamp" aria-hidden="true">在册</span>
+        </div>
+        <h2 class="emp-name">白露</h2>
+        <dl class="emp-fields">
+          <div class="field"><dt>部门</dt><dd>运营部</dd></div>
+          <div class="field"><dt>职务</dt><dd>内容运营</dd></div>
+          <div class="field"><dt>入职</dt><dd>2018-11-11</dd></div>
+        </dl>
+        <p class="flip-hint">▸ 点击翻开档案</p>
+      </div>
+      <div class="card-face card-back" aria-hidden="true">
+        <div class="card-top">
+          <h2 class="back-title">档案摘要</h2>
+          <span class="emp-no">DK-3012</span>
+        </div>
+        <p class="bio">主笔每月一期的《档案室通讯》，选题全部来自一线访谈。抽屉里锁着历年样刊，蜡封完好，谁也不许碰。</p>
+        <dl class="emp-fields back-fields">
+          <div class="field"><dt>分机</dt><dd>8011</dd></div>
+          <div class="field"><dt>座位</dt><dd>C-02</dd></div>
+          <div class="field"><dt>直属</dt><dd>童牧</dd></div>
+        </dl>
+        <p class="flip-hint">▪ 点击合上档案 ▪</p>
+      </div>
+    </div>
+  </article>
+
+  <article class="card" id="card-08" data-dept="运营部" tabindex="0" role="button" aria-pressed="false" aria-label="程亦的档案卡，点击或回车翻开">
+    <div class="card-inner">
+      <div class="card-face card-front">
+        <svg class="paperclip" viewBox="0 0 32 48" aria-hidden="true" focusable="false">
+          <path d="M8 40 V16 a8 8 0 0 1 16 0 V40 a8 8 0 0 1 -16 0"></path>
+          <path d="M13 12 V34 a3 3 0 0 0 6 0 V12"></path>
+        </svg>
+        <div class="card-top">
+          <span class="emp-no">DK-3028</span>
+          <span class="stamp" aria-hidden="true">在册</span>
+        </div>
+        <h2 class="emp-name">程亦</h2>
+        <dl class="emp-fields">
+          <div class="field"><dt>部门</dt><dd>运营部</dd></div>
+          <div class="field"><dt>职务</dt><dd>用户运营</dd></div>
+          <div class="field"><dt>入职</dt><dd>2020-05-19</dd></div>
+        </dl>
+        <p class="flip-hint">▸ 点击翻开档案</p>
+      </div>
+      <div class="card-face card-back" aria-hidden="true">
+        <div class="card-top">
+          <h2 class="back-title">档案摘要</h2>
+          <span class="emp-no">DK-3028</span>
+        </div>
+        <p class="bio">维护新员工建档流程，整理过一份三百条的答疑清单，新人第一周都靠它活。只喝手冲咖啡，公开鄙视挂耳。</p>
+        <dl class="emp-fields back-fields">
+          <div class="field"><dt>分机</dt><dd>8012</dd></div>
+          <div class="field"><dt>座位</dt><dd>C-06</dd></div>
+          <div class="field"><dt>直属</dt><dd>童牧</dd></div>
+        </dl>
+        <p class="flip-hint">▪ 点击合上档案 ▪</p>
+      </div>
+    </div>
+  </article>
+
+  <article class="card" id="card-09" data-dept="市场部" tabindex="0" role="button" aria-pressed="false" aria-label="韩拓的档案卡，点击或回车翻开">
+    <div class="card-inner">
+      <div class="card-face card-front">
+        <svg class="paperclip" viewBox="0 0 32 48" aria-hidden="true" focusable="false">
+          <path d="M8 40 V16 a8 8 0 0 1 16 0 V40 a8 8 0 0 1 -16 0"></path>
+          <path d="M13 12 V34 a3 3 0 0 0 6 0 V12"></path>
+        </svg>
+        <div class="card-top">
+          <span class="emp-no">DK-4019</span>
+          <span class="stamp" aria-hidden="true">在册</span>
+        </div>
+        <h2 class="emp-name">韩拓</h2>
+        <dl class="emp-fields">
+          <div class="field"><dt>部门</dt><dd>市场部</dd></div>
+          <div class="field"><dt>职务</dt><dd>品牌经理</dd></div>
+          <div class="field"><dt>入职</dt><dd>2016-07-07</dd></div>
+        </dl>
+        <p class="flip-hint">▸ 点击翻开档案</p>
+      </div>
+      <div class="card-face card-back" aria-hidden="true">
+        <div class="card-top">
+          <h2 class="back-title">档案摘要</h2>
+          <span class="emp-no">DK-4019</span>
+        </div>
+        <p class="bio">把「档案室」三个字做成了部门的文化符号，谈合作只递纸质名片。后备厢常年放着一捆牛皮纸档案袋。</p>
+        <dl class="emp-fields back-fields">
+          <div class="field"><dt>分机</dt><dd>8001</dd></div>
+          <div class="field"><dt>座位</dt><dd>A-09</dd></div>
+          <div class="field"><dt>直属</dt><dd>纪云声</dd></div>
+        </dl>
+        <p class="flip-hint">▪ 点击合上档案 ▪</p>
+      </div>
+    </div>
+  </article>
+
+  <article class="card" id="card-10" data-dept="市场部" tabindex="0" role="button" aria-pressed="false" aria-label="夏栀的档案卡，点击或回车翻开">
+    <div class="card-inner">
+      <div class="card-face card-front">
+        <svg class="paperclip" viewBox="0 0 32 48" aria-hidden="true" focusable="false">
+          <path d="M8 40 V16 a8 8 0 0 1 16 0 V40 a8 8 0 0 1 -16 0"></path>
+          <path d="M13 12 V34 a3 3 0 0 0 6 0 V12"></path>
+        </svg>
+        <div class="card-top">
+          <span class="emp-no">DK-4033</span>
+          <span class="stamp" aria-hidden="true">在册</span>
+        </div>
+        <h2 class="emp-name">夏栀</h2>
+        <dl class="emp-fields">
+          <div class="field"><dt>部门</dt><dd>市场部</dd></div>
+          <div class="field"><dt>职务</dt><dd>渠道专员</dd></div>
+          <div class="field"><dt>入职</dt><dd>2024-04-08</dd></div>
+        </dl>
+        <p class="flip-hint">▸ 点击翻开档案</p>
+      </div>
+      <div class="card-face card-back" aria-hidden="true">
+        <div class="card-top">
+          <h2 class="back-title">档案摘要</h2>
+          <span class="emp-no">DK-4033</span>
+        </div>
+        <p class="bio">入职第一年跑遍七个城市，笔记本记满了渠道行情。工牌背面贴着一张手绘的城市地图，路线用红笔标着。</p>
+        <dl class="emp-fields back-fields">
+          <div class="field"><dt>分机</dt><dd>8002</dd></div>
+          <div class="field"><dt>座位</dt><dd>A-11</dd></div>
+          <div class="field"><dt>直属</dt><dd>纪云声</dd></div>
+        </dl>
+        <p class="flip-hint">▪ 点击合上档案 ▪</p>
+      </div>
+    </div>
+  </article>
+
+  <article class="card" id="card-11" data-dept="人事部" tabindex="0" role="button" aria-pressed="false" aria-label="方晴的档案卡，点击或回车翻开">
+    <div class="card-inner">
+      <div class="card-face card-front">
+        <svg class="paperclip" viewBox="0 0 32 48" aria-hidden="true" focusable="false">
+          <path d="M8 40 V16 a8 8 0 0 1 16 0 V40 a8 8 0 0 1 -16 0"></path>
+          <path d="M13 12 V34 a3 3 0 0 0 6 0 V12"></path>
+        </svg>
+        <div class="card-top">
+          <span class="emp-no">DK-5001</span>
+          <span class="stamp" aria-hidden="true">在册</span>
+        </div>
+        <h2 class="emp-name">方晴</h2>
+        <dl class="emp-fields">
+          <div class="field"><dt>部门</dt><dd>人事部</dd></div>
+          <div class="field"><dt>职务</dt><dd>HRBP</dd></div>
+          <div class="field"><dt>入职</dt><dd>2015-10-12</dd></div>
+        </dl>
+        <p class="flip-hint">▸ 点击翻开档案</p>
+      </div>
+      <div class="card-face card-back" aria-hidden="true">
+        <div class="card-top">
+          <h2 class="back-title">档案摘要</h2>
+          <span class="emp-no">DK-5001</span>
+        </div>
+        <p class="bio">所有在册档案的最后一道审核都由她签字，字迹十几年没变过。办公室摆着一台还能用的老式中文打字机。</p>
+        <dl class="emp-fields back-fields">
+          <div class="field"><dt>分机</dt><dd>8051</dd></div>
+          <div class="field"><dt>座位</dt><dd>E-01</dd></div>
+          <div class="field"><dt>直属</dt><dd>沈其南</dd></div>
+        </dl>
+        <p class="flip-hint">▪ 点击合上档案 ▪</p>
+      </div>
+    </div>
+  </article>
+
+  <article class="card" id="card-12" data-dept="行政部" tabindex="0" role="button" aria-pressed="false" aria-label="周其峰的档案卡，点击或回车翻开">
+    <div class="card-inner">
+      <div class="card-face card-front">
+        <svg class="paperclip" viewBox="0 0 32 48" aria-hidden="true" focusable="false">
+          <path d="M8 40 V16 a8 8 0 0 1 16 0 V40 a8 8 0 0 1 -16 0"></path>
+          <path d="M13 12 V34 a3 3 0 0 0 6 0 V12"></path>
+        </svg>
+        <div class="card-top">
+          <span class="emp-no">DK-6007</span>
+          <span class="stamp" aria-hidden="true">在册</span>
+        </div>
+        <h2 class="emp-name">周其峰</h2>
+        <dl class="emp-fields">
+          <div class="field"><dt>部门</dt><dd>行政部</dd></div>
+          <div class="field"><dt>职务</dt><dd>行政主管</dd></div>
+          <div class="field"><dt>入职</dt><dd>2013-03-04</dd></div>
+        </dl>
+        <p class="flip-hint">▸ 点击翻开档案</p>
+      </div>
+      <div class="card-face card-back" aria-hidden="true">
+        <div class="card-top">
+          <h2 class="back-title">档案摘要</h2>
+          <span class="emp-no">DK-6007</span>
+        </div>
+        <p class="bio">管着整层楼的钥匙和打印纸，成员目录用纸的采购也归他。自称全公司最后一个会用算盘的人。</p>
+        <dl class="emp-fields back-fields">
+          <div class="field"><dt>分机</dt><dd>8061</dd></div>
+          <div class="field"><dt>座位</dt><dd>F-01</dd></div>
+          <div class="field"><dt>直属</dt><dd>沈其南</dd></div>
+        </dl>
+        <p class="flip-hint">▪ 点击合上档案 ▪</p>
+      </div>
+    </div>
+  </article>
+
+</main>
+
+<footer class="site-footer">
+  <div class="footer-inner">
+    <span>本目录仅限内部查阅 · 人事档案室监制</span>
+    <span>第 1 页 / 共 1 页 · 打字第 016 号</span>
+  </div>
+</footer>
+
+<script>
+(function () {
+  var tabs = Array.prototype.slice.call(document.querySelectorAll('.tab'));
+  var grid = document.getElementById('cardGrid');
+  var cards = Array.prototype.slice.call(grid.querySelectorAll('.card'));
+  var resultLine = document.getElementById('resultLine');
+
+  function applyFilter(dept, label) {
+    var n = 0;
+    cards.forEach(function (card) {
+      var match = dept === 'all' || card.getAttribute('data-dept') === dept;
+      card.classList.toggle('is-hidden', !match);
+      card.classList.remove('animate-in');
+      if (match) {
+        n += 1;
+        void card.offsetWidth;
+        card.classList.add('animate-in');
+      }
+    });
+    resultLine.textContent = label + ' · 共 ' + n + ' 份档案';
+  }
+
+  tabs.forEach(function (tab, i) {
+    tab.addEventListener('click', function () {
+      tabs.forEach(function (t) { t.setAttribute('aria-selected', 'false'); });
+      tab.setAttribute('aria-selected', 'true');
+      applyFilter(tab.getAttribute('data-dept'), tab.textContent.trim());
+    });
+    tab.addEventListener('keydown', function (e) {
+      var next = null;
+      if (e.key === 'ArrowRight') { next = tabs[(i + 1) % tabs.length]; }
+      if (e.key === 'ArrowLeft') { next = tabs[(i - 1 + tabs.length) % tabs.length]; }
+      if (next) {
+        e.preventDefault();
+        next.focus();
+        next.click();
+      }
+    });
+  });
+
+  function setFlipped(card, flipped) {
+    card.classList.toggle('is-flipped', flipped);
+    card.setAttribute('aria-pressed', flipped ? 'true' : 'false');
+    var back = card.querySelector('.card-back');
+    if (back) { back.setAttribute('aria-hidden', flipped ? 'false' : 'true'); }
+  }
+
+  grid.addEventListener('click', function (e) {
+    var card = e.target.closest('.card');
+    if (!card) { return; }
+    setFlipped(card, !card.classList.contains('is-flipped'));
+  });
+
+  grid.addEventListener('keydown', function (e) {
+    var card = e.target.closest('.card');
+    if (!card) { return; }
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      setFlipped(card, !card.classList.contains('is-flipped'));
+    }
+  });
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== 'Escape') { return; }
+    var flipped = document.querySelectorAll('.card.is-flipped');
+    Array.prototype.forEach.call(flipped, function (card) {
+      setFlipped(card, false);
+      card.focus();
+    });
+  });
+})();
+</script>
+
+</body>
+</html>

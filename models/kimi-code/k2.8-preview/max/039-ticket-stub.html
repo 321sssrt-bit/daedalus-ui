@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>出票成功 · 江城轮渡</title>
+<style>
+  :root {
+    --stage: #191B21;
+    --frame: #0F1114;
+    --paper: #F4EEE1;
+    --card: #FFFDF6;
+    --ink: #24262D;
+    --muted: #8C8679;
+    --line: #DCD3BF;
+    --accent: #BF3F2A;
+    --ok: #2F7A58;
+    --chip: #EFE7D5;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; }
+  body {
+    background: var(--stage);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+  }
+  .mono {
+    font-family: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  }
+
+  /* 手机框：窄屏占满，宽屏化为圆角机身 */
+  .phone {
+    width: 100%;
+    height: 100dvh;
+    background: var(--frame);
+    position: relative;
+  }
+  .screen {
+    width: 100%;
+    height: 100%;
+    background: var(--paper);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  @media (min-width: 560px) {
+    body { padding: 40px 0; }
+    .phone {
+      width: 390px;
+      height: 800px;
+      border-radius: 48px;
+      padding: 10px;
+      box-shadow: 0 32px 72px rgba(0, 0, 0, 0.55), 0 0 0 2px #2A2D36 inset;
+      flex: none;
+    }
+    .screen { border-radius: 38px; }
+    .notch {
+      display: block;
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 108px;
+      height: 28px;
+      background: var(--frame);
+      border-radius: 0 0 18px 18px;
+      z-index: 30;
+    }
+  }
+  .notch { display: none; }
+
+  /* 状态栏 */
+  .statusbar {
+    height: 44px;
+    flex: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 26px 0 30px;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: var(--ink);
+    position: relative;
+    z-index: 20;
+  }
+  .statusbar svg { display: block; }
+
+  /* 内容滚动区 */
+  .page {
+    flex: 1;
+    overflow-y: auto;
+    padding: 6px 20px 90px;
+    scrollbar-width: none;
+  }
+  .page::-webkit-scrollbar { display: none; }
+
+  .brand {
+    text-align: center;
+    font-size: 12px;
+    letter-spacing: 0.42em;
+    color: var(--muted);
+    padding: 10px 0 18px;
+    text-indent: 0.42em;
+  }
+
+  /* 票卡：撕角 + 打孔分隔 */
+  .ticket {
+    position: relative;
+    background: var(--card);
+    border-radius: 14px;
+    box-shadow: 0 10px 28px rgba(36, 38, 45, 0.14);
+    animation: rise 0.5s cubic-bezier(0.22, 0.9, 0.3, 1) both;
+  }
+  .ticket::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 42px;
+    height: 42px;
+    background: var(--accent);
+    clip-path: polygon(100% 0, 0 0, 100% 100%);
+  }
+  .ticket::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 36px;
+    height: 36px;
+    background: var(--paper);
+    clip-path: polygon(100% 0, 0 0, 100% 100%);
+  }
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(22px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .success {
+    text-align: center;
+    padding: 30px 24px 6px;
+  }
+  .success .mark {
+    width: 58px;
+    height: 58px;
+    margin: 0 auto 14px;
+    display: block;
+  }
+  .success h1 {
+    font-size: 24px;
+    line-height: 1.3;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+  }
+  .success p {
+    margin-top: 8px;
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--muted);
+  }
+
+  .serial {
+    text-align: center;
+    padding: 20px 20px 24px;
+  }
+  .serial .label {
+    font-size: 11px;
+    letter-spacing: 0.34em;
+    color: var(--muted);
+    text-indent: 0.34em;
+    margin-bottom: 8px;
+  }
+  .serial .code {
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    color: var(--ink);
+  }
+  .serial .code em { font-style: normal; color: var(--accent); }
+
+  .fields {
+    border-top: 1px dashed var(--line);
+    margin: 0 20px;
+    padding: 16px 2px 18px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: 18px;
+    row-gap: 14px;
+  }
+  .field .k {
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+  .field .v {
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.4;
+  }
+  .field.wide { grid-column: 1 / -1; }
+
+  .tear-line {
+    position: relative;
+    border-top: 2px dashed var(--line);
+    margin: 4px 20px 0;
+  }
+  .tear-line::before,
+  .tear-line::after {
+    content: "";
+    position: absolute;
+    top: -10px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--paper);
+  }
+  .tear-line::before { left: -30px; }
+  .tear-line::after { right: -30px; }
+
+  .stub {
+    padding: 20px 24px 24px;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+  }
+  .barcode { flex: none; }
+  .stub .meta .k { font-size: 11px; letter-spacing: 0.18em; color: var(--muted); margin-bottom: 4px; }
+  .stub .meta .v { font-size: 14px; font-weight: 600; }
+  .stub .meta .tip { font-size: 12px; color: var(--muted); margin-top: 6px; line-height: 1.5; }
+
+  /* 明细折叠 */
+  .detail-toggle {
+    width: 100%;
+    margin-top: 14px;
+    border: 1px solid var(--line);
+    background: var(--card);
+    border-radius: 12px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ink);
+    cursor: pointer;
+    transition: background 0.2s ease;
+  }
+  .detail-toggle:hover { background: var(--chip); }
+  .detail-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .detail-toggle .chev {
+    flex: none;
+    transition: transform 0.28s cubic-bezier(0.3, 0.8, 0.3, 1);
+  }
+  .detail-toggle[aria-expanded="true"] .chev { transform: rotate(180deg); }
+  .detail-panel {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.32s cubic-bezier(0.3, 0.8, 0.3, 1);
+  }
+  .detail-panel.open { grid-template-rows: 1fr; }
+  .detail-inner { overflow: hidden; }
+  .detail-card {
+    margin-top: 10px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: var(--card);
+    padding: 16px 18px;
+  }
+  .row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    line-height: 2.1;
+    color: var(--ink);
+  }
+  .row span:last-child { font-weight: 600; }
+  .row.discount span:last-child { color: var(--ok); }
+  .row.total {
+    border-top: 1px dashed var(--line);
+    margin-top: 6px;
+    padding-top: 8px;
+    font-size: 14px;
+    font-weight: 700;
+  }
+  .notice {
+    margin-top: 12px;
+    font-size: 12px;
+    line-height: 1.7;
+    color: var(--muted);
+  }
+
+  /* 主按钮 */
+  .finish {
+    position: absolute;
+    left: 20px;
+    right: 20px;
+    bottom: 26px;
+    z-index: 10;
+  }
+  .finish button {
+    width: 100%;
+    height: 52px;
+    border: none;
+    border-radius: 26px;
+    background: var(--ink);
+    color: var(--card);
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 0.3em;
+    text-indent: 0.3em;
+    cursor: pointer;
+    box-shadow: 0 10px 22px rgba(36, 38, 45, 0.3);
+    transition: transform 0.15s ease, background 0.2s ease;
+  }
+  .finish button:hover { background: #101218; }
+  .finish button:active { transform: scale(0.97); }
+  .finish button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+  /* 底部横条与提示 */
+  .homebar {
+    position: absolute;
+    bottom: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 134px;
+    height: 5px;
+    border-radius: 3px;
+    background: rgba(36, 38, 45, 0.32);
+    z-index: 25;
+    pointer-events: none;
+  }
+  .toast {
+    position: absolute;
+    left: 50%;
+    bottom: 96px;
+    transform: translateX(-50%) translateY(12px);
+    background: var(--ink);
+    color: var(--card);
+    font-size: 13px;
+    line-height: 1.5;
+    padding: 10px 18px;
+    border-radius: 20px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease, transform 0.25s ease;
+    z-index: 40;
+    white-space: nowrap;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ticket { animation: none; }
+    .detail-panel, .detail-toggle .chev, .finish button, .toast { transition-duration: 0.01ms; }
+  }
+</style>
+</head>
+<body>
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="screen">
+      <div class="statusbar">
+        <span class="mono">9:41</span>
+        <svg width="64" height="14" viewBox="0 0 64 14" fill="none" aria-hidden="true">
+          <rect x="0" y="7" width="3" height="5" rx="1" fill="#24262D"/>
+          <rect x="5" y="5" width="3" height="7" rx="1" fill="#24262D"/>
+          <rect x="10" y="3" width="3" height="9" rx="1" fill="#24262D"/>
+          <rect x="15" y="1" width="3" height="11" rx="1" fill="#24262D"/>
+          <path d="M24 5.5c2.8-2.4 7.2-2.4 10 0l-1.4 1.6c-2-1.7-5.2-1.7-7.2 0z" fill="#24262D"/>
+          <path d="M26.4 8c1.5-1.3 3.7-1.3 5.2 0l-1.3 1.5c-.8-.7-1.8-.7-2.6 0z" fill="#24262D"/>
+          <circle cx="29" cy="10.8" r="1.4" fill="#24262D"/>
+          <rect x="40" y="3" width="18" height="8" rx="2.5" stroke="#24262D" stroke-opacity="0.5" fill="none"/>
+          <rect x="42" y="5" width="11" height="4" rx="1" fill="#2F7A58"/>
+          <path d="M59.5 5.5v3c1.2-.2 2-1 2-1.5s-.8-1.3-2-1.5z" fill="#24262D" fill-opacity="0.5"/>
+        </svg>
+      </div>
+
+      <main class="page">
+        <p class="brand">江 城 轮 渡</p>
+
+        <section class="ticket" aria-label="电子登船凭证">
+          <div class="success">
+            <svg class="mark" viewBox="0 0 58 58" fill="none" aria-hidden="true">
+              <circle cx="29" cy="29" r="26" stroke="#2F7A58" stroke-width="3"/>
+              <path d="M18 30l7.5 7.5L41 22" stroke="#2F7A58" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <h1>出票成功</h1>
+            <p>凭证已生效并同步至票夹，登船时出示编号即可检票。</p>
+          </div>
+
+          <div class="serial">
+            <p class="label">凭 证 编 号</p>
+            <p class="code mono">DZ<em>·</em>2609<em>·</em>0417<em>·</em>88</p>
+          </div>
+
+          <div class="fields">
+            <div class="field wide">
+              <p class="k">航 线</p>
+              <p class="v">武昌中华路码头 → 汉口武汉关码头</p>
+            </div>
+            <div class="field">
+              <p class="k">开 航 时 间</p>
+              <p class="v mono">09-14 14:30</p>
+            </div>
+            <div class="field">
+              <p class="k">舱 位 · 座 席</p>
+              <p class="v">二等舱 A12</p>
+            </div>
+            <div class="field">
+              <p class="k">检 票 口</p>
+              <p class="v">B3</p>
+            </div>
+            <div class="field">
+              <p class="k">乘 客</p>
+              <p class="v">林一舟 · 成人 ×1</p>
+            </div>
+          </div>
+
+          <div class="tear-line"></div>
+
+          <div class="stub">
+            <svg class="barcode" width="104" height="52" viewBox="0 0 104 52" fill="none" aria-hidden="true">
+              <rect x="0" width="3" height="40" fill="#24262D"/>
+              <rect x="6" width="2" height="40" fill="#24262D"/>
+              <rect x="11" width="4" height="40" fill="#24262D"/>
+              <rect x="18" width="2" height="40" fill="#24262D"/>
+              <rect x="23" width="3" height="40" fill="#24262D"/>
+              <rect x="30" width="5" height="40" fill="#24262D"/>
+              <rect x="38" width="2" height="40" fill="#24262D"/>
+              <rect x="43" width="3" height="40" fill="#24262D"/>
+              <rect x="50" width="2" height="40" fill="#24262D"/>
+              <rect x="55" width="4" height="40" fill="#24262D"/>
+              <rect x="62" width="2" height="40" fill="#24262D"/>
+              <rect x="67" width="3" height="40" fill="#24262D"/>
+              <rect x="74" width="5" height="40" fill="#24262D"/>
+              <rect x="82" width="2" height="40" fill="#24262D"/>
+              <rect x="87" width="3" height="40" fill="#24262D"/>
+              <rect x="94" width="2" height="40" fill="#24262D"/>
+              <rect x="99" width="3" height="40" fill="#24262D"/>
+              <text x="0" y="49" font-family="monospace" font-size="8" letter-spacing="2" fill="#8C8679">DZ2609041788</text>
+            </svg>
+            <div class="meta">
+              <p class="k">副 券 · 检 票 联</p>
+              <p class="v">开航前 15 分钟停止检票</p>
+              <p class="tip">请提前 30 分钟抵达码头，逾期视同作废。</p>
+            </div>
+          </div>
+        </section>
+
+        <button class="detail-toggle" id="detailToggle" aria-expanded="false" aria-controls="detailPanel">
+          行程与费用明细
+          <svg class="chev" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <path d="M4 6l4 4 4-4" stroke="#BF3F2A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+        <div class="detail-panel" id="detailPanel" role="region" aria-label="行程与费用明细">
+          <div class="detail-inner">
+            <div class="detail-card">
+              <div class="row"><span>成人轮渡票 ×1</span><span class="mono">¥28.00</span></div>
+              <div class="row"><span>夜间航班服务费</span><span class="mono">¥2.00</span></div>
+              <div class="row discount"><span>江城通会员优惠</span><span class="mono">−¥5.00</span></div>
+              <div class="row total"><span>实付款</span><span class="mono">¥25.00</span></div>
+              <p class="notice">退改规则：开航前 2 小时可免费改签一次；开航后票款不退。恶劣天气停航将全额原路退回。</p>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <div class="finish">
+        <button id="finishBtn" type="button">完 成</button>
+      </div>
+
+      <div class="toast" id="toast" role="status">已收进票夹，祝航程顺利</div>
+      <div class="homebar"></div>
+    </div>
+  </div>
+
+<script>
+  (function () {
+    var toggle = document.getElementById('detailToggle');
+    var panel = document.getElementById('detailPanel');
+    toggle.addEventListener('click', function () {
+      var open = panel.classList.toggle('open');
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+
+    var finish = document.getElementById('finishBtn');
+    var toast = document.getElementById('toast');
+    var timer = null;
+    finish.addEventListener('click', function () {
+      toast.classList.add('show');
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(function () {
+        toast.classList.remove('show');
+      }, 2200);
+    });
+  })();
+</script>
+</body>
+</html>

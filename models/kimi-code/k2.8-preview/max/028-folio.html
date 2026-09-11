@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>卷宗 Folio · 项目立项长表单</title>
+<style>
+  :root{
+    --desk:#251d15;
+    --desk-2:#33281a;
+    --kraft:#c69c6d;
+    --kraft-deep:#ab8354;
+    --kraft-dark:#8a6742;
+    --kraft-edge:#6f5232;
+    --paper:#f4e9d3;
+    --paper-2:#ecdfc4;
+    --writein:#fbf6ea;
+    --ink:#352a1d;
+    --ink-soft:#5c4c36;
+    --muted:#857254;
+    --line:#d9c8a6;
+    --red:#b23a2b;
+    --red-deep:#8f2d21;
+    --ok:#4b7355;
+    --radius-ctl:4px;
+    --radius-paper:6px;
+    --shadow-desk:0 24px 48px rgba(0,0,0,.45);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    font-family:-apple-system,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    color:var(--ink);
+    background:
+      repeating-linear-gradient(0deg, rgba(255,255,255,.018) 0 2px, transparent 2px 6px),
+      radial-gradient(1100px 520px at 72% -12%, var(--desk-2) 0%, var(--desk) 58%);
+    min-height:100vh;
+  }
+  .mono{font-family:"SFMono-Regular",Consolas,"Liberation Mono",monospace;}
+
+  /* ===== 顶栏 ===== */
+  .topbar{
+    height:64px;display:flex;align-items:center;justify-content:space-between;
+    padding:0 32px;border-bottom:1px solid rgba(198,156,109,.28);
+    color:var(--paper);
+  }
+  .brand{display:flex;align-items:baseline;gap:12px;}
+  .brand .logo{
+    font-family:Georgia,"Songti SC","STSong","SimSun",serif;
+    font-size:22px;letter-spacing:2px;color:var(--kraft);
+    border:1.5px solid var(--kraft-deep);border-radius:var(--radius-ctl);
+    padding:2px 10px;
+  }
+  .brand .doc-title{font-size:15px;letter-spacing:1px;color:#e9dcc2;}
+  .brand .doc-no{font-size:12px;color:var(--muted);letter-spacing:1px;}
+  .top-actions{display:flex;align-items:center;gap:12px;}
+  .save-state{font-size:12px;color:var(--muted);min-width:120px;text-align:right;}
+  .save-state.saved{color:#c9d4b8;}
+
+  /* ===== 按钮 ===== */
+  .btn{
+    font:inherit;font-size:14px;cursor:pointer;border-radius:var(--radius-ctl);
+    padding:9px 18px;border:1px solid transparent;transition:background .15s ease,color .15s ease,border-color .15s ease,transform .1s ease;
+  }
+  .btn:active{transform:translateY(1px);}
+  .btn-ghost{background:transparent;border-color:var(--kraft-dark);color:var(--paper);}
+  .btn-ghost:hover{background:rgba(198,156,109,.16);border-color:var(--kraft);}
+  .btn-solid{background:var(--kraft);color:var(--ink);border-color:var(--kraft-deep);font-weight:600;}
+  .btn-solid:hover{background:var(--kraft-deep);}
+  .btn-seal{background:var(--red);color:#fdf3e4;border-color:var(--red-deep);font-weight:600;}
+  .btn-seal:hover{background:var(--red-deep);}
+  .btn:focus-visible{outline:2px solid var(--paper);outline-offset:2px;}
+  .folder .btn:focus-visible{outline-color:var(--red);}
+  .btn[disabled]{opacity:.45;cursor:not-allowed;transform:none;}
+
+  /* ===== 主体两栏 ===== */
+  .shell{
+    max-width:1184px;margin:20px auto 0;height:calc(100vh - 104px);
+    display:flex;gap:20px;padding:0 20px;
+  }
+
+  /* ===== 左侧节签栏 ===== */
+  .rail{
+    width:264px;flex:none;position:relative;border-radius:var(--radius-paper);
+    background:linear-gradient(160deg,var(--kraft) 0%,var(--kraft-deep) 100%);
+    box-shadow:var(--shadow-desk);
+    padding:22px 16px 18px 30px;display:flex;flex-direction:column;gap:16px;
+    border:1px solid var(--kraft-edge);
+  }
+  .rail::before,.rail::after{
+    content:"";position:absolute;left:11px;width:9px;height:9px;border-radius:50%;
+    background:var(--desk);box-shadow:inset 0 1px 2px rgba(0,0,0,.7);
+  }
+  .rail::before{top:20px;}
+  .rail::after{top:38px;}
+  .rail-head{
+    font-size:12px;letter-spacing:3px;color:var(--kraft-edge);font-weight:700;
+  }
+  .tabs{display:flex;flex-direction:column;gap:8px;}
+  .tab{
+    display:flex;align-items:center;gap:10px;width:100%;text-align:left;cursor:pointer;
+    font:inherit;color:var(--ink);
+    background:linear-gradient(180deg,#e8d7b4,#dcc79e);
+    border:1px solid var(--kraft-edge);border-left-width:5px;border-radius:0 var(--radius-ctl) var(--radius-ctl) 0;
+    padding:10px 10px 10px 12px;min-height:60px;
+    transition:transform .12s ease,background .15s ease,box-shadow .15s ease;
+  }
+  .tab:hover{background:#efe0bd;transform:translateX(3px);}
+  .tab.active{
+    background:var(--paper);border-left-color:var(--red);
+    transform:translateX(8px);box-shadow:-4px 3px 8px rgba(0,0,0,.28);
+    font-weight:600;
+  }
+  .tab.done .tab-num{background:var(--ok);border-color:var(--ok);color:#f4f9f0;}
+  .tab .tab-num{
+    flex:none;width:30px;height:30px;border-radius:50%;
+    border:1.5px solid var(--kraft-dark);color:var(--ink-soft);
+    display:flex;align-items:center;justify-content:center;
+    font-family:Georgia,"Songti SC","STSong","SimSun",serif;font-size:13px;
+  }
+  .tab .tab-text{flex:1;display:flex;flex-direction:column;gap:2px;min-width:0;}
+  .tab .tab-text b{font-size:14px;font-weight:600;}
+  .tab .tab-progress{font-size:11px;color:var(--muted);font-style:normal;}
+  .tab .tab-badge{
+    flex:none;min-width:20px;height:20px;border-radius:10px;padding:0 5px;
+    background:var(--red);color:#fdf3e4;font-size:11px;font-weight:700;
+    display:none;align-items:center;justify-content:center;
+  }
+  .tab.has-error .tab-badge{display:inline-flex;}
+
+  .draft-card{
+    margin-top:auto;background:rgba(37,29,21,.16);border:1px dashed var(--kraft-edge);
+    border-radius:var(--radius-paper);padding:14px;display:flex;flex-direction:column;gap:10px;
+  }
+  .draft-card .pct-row{display:flex;justify-content:space-between;align-items:baseline;font-size:13px;color:var(--ink);}
+  .draft-card .pct-row b{font-family:Georgia,"Songti SC","STSong","SimSun",serif;font-size:18px;color:var(--red-deep);}
+  .progress{height:8px;border-radius:4px;background:rgba(37,29,21,.25);overflow:hidden;}
+  .progress-fill{height:100%;width:0%;background:var(--ok);border-radius:4px;transition:width .25s ease;}
+  .draft-meta{font-size:11px;color:var(--ink-soft);line-height:1.5;}
+  .link-btn{
+    align-self:flex-start;font:inherit;font-size:12px;cursor:pointer;
+    background:none;border:none;color:var(--red-deep);text-decoration:underline;padding:0;
+  }
+  .link-btn:hover{color:var(--red);}
+
+  /* ===== 右侧卷宗夹 ===== */
+  .folder{flex:1;min-width:0;display:flex;flex-direction:column;position:relative;}
+  .folder-tab{
+    align-self:flex-start;height:34px;margin-left:34px;position:relative;z-index:1;
+    background:linear-gradient(180deg,var(--kraft-deep),var(--kraft-dark));
+    color:#fdf3e2;border:1px solid var(--kraft-edge);border-bottom:none;
+    border-radius:8px 8px 0 0;padding:7px 20px 0;
+    font-size:13px;letter-spacing:2px;font-weight:600;
+    box-shadow:0 -3px 6px rgba(0,0,0,.25);
+  }
+  .folder-body{
+    flex:1;min-height:0;position:relative;border-radius:var(--radius-paper);
+    background:
+      repeating-linear-gradient(0deg, rgba(138,103,66,.05) 0 1px, transparent 1px 28px),
+      linear-gradient(165deg,var(--paper) 0%,var(--paper-2) 100%);
+    border:1px solid var(--kraft-edge);
+    box-shadow:var(--shadow-desk), inset 0 1px 0 rgba(255,255,255,.5);
+    padding:30px 36px 26px;overflow-y:auto;
+  }
+  .folder-body::before{
+    content:"";position:absolute;inset:10px;border:1px solid var(--line);border-radius:4px;pointer-events:none;
+  }
+
+  /* ===== 分节面板 ===== */
+  .panel{display:none;position:relative;}
+  .panel.active{display:block;animation:pageIn .28s ease;}
+  @keyframes pageIn{
+    from{opacity:0;transform:translateX(16px);}
+    to{opacity:1;transform:none;}
+  }
+  .sec-head{display:flex;align-items:baseline;gap:14px;border-bottom:2px solid var(--ink);padding-bottom:12px;margin-bottom:6px;}
+  .sec-no{
+    font-family:Georgia,"Songti SC","STSong","SimSun",serif;font-size:40px;color:var(--kraft-deep);
+    line-height:1;
+  }
+  .sec-head h2{font-family:Georgia,"Songti SC","STSong","SimSun",serif;font-size:22px;letter-spacing:2px;}
+  .sec-head .sec-desc{width:100%;font-size:13px;color:var(--muted);margin-top:6px;}
+  .sec-hint{font-size:12px;color:var(--muted);margin:10px 0 18px;}
+  .req{color:var(--red);font-style:normal;margin-left:2px;font-family:Georgia,serif;}
+
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:18px 24px;}
+  .field{display:flex;flex-direction:column;gap:6px;min-width:0;}
+  .field.span-2{grid-column:span 2;}
+  .f-label{font-size:13px;font-weight:600;color:var(--ink);}
+  .f-hint{font-size:11px;color:var(--muted);font-weight:400;}
+  .field input[type="text"],.field input[type="tel"],.field input[type="date"],
+  .field select,.field textarea{
+    font:inherit;font-size:14px;color:var(--ink);
+    background:var(--writein);border:1px solid var(--kraft-dark);
+    border-radius:var(--radius-ctl);padding:0 12px;height:42px;width:100%;
+    transition:border-color .15s ease,box-shadow .15s ease,background .15s ease;
+  }
+  .field textarea{height:auto;min-height:88px;padding:10px 12px;resize:vertical;line-height:1.6;}
+  .field input::placeholder,.field textarea::placeholder{color:#b3a684;}
+  .field input:hover,.field select:hover,.field textarea:hover{border-color:var(--kraft-edge);}
+  .field input:focus,.field select:focus,.field textarea:focus{
+    outline:none;border-color:var(--red);
+    box-shadow:0 0 0 3px rgba(178,58,43,.18);background:#fffdf6;
+  }
+  .field.invalid input,.field.invalid select,.field.invalid textarea{
+    border-color:var(--red);background:#f9ece8;
+    animation:shake .18s ease;
+  }
+  @keyframes shake{
+    0%,100%{transform:translateX(0);}
+    33%{transform:translateX(-4px);}
+    66%{transform:translateX(4px);}
+  }
+  .f-err{font-size:12px;color:var(--red);display:flex;align-items:center;gap:5px;}
+  .f-err::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--red);flex:none;}
+  .f-ok{font-size:12px;color:var(--ok);}
+
+  .choice-row{display:flex;flex-wrap:wrap;gap:10px;}
+  .choice{
+    display:inline-flex;align-items:center;gap:7px;cursor:pointer;
+    font-size:13px;color:var(--ink);
+    background:var(--writein);border:1px solid var(--kraft-dark);
+    border-radius:999px;padding:7px 14px;transition:all .15s ease;user-select:none;
+  }
+  .choice:hover{border-color:var(--kraft-edge);background:#fffdf6;}
+  .choice input{accent-color:var(--red);width:14px;height:14px;cursor:pointer;}
+  .choice:has(input:checked){border-color:var(--red);background:#f6e3de;font-weight:600;}
+  .choice:focus-within{outline:2px solid var(--red);outline-offset:2px;}
+
+  .panel-nav{
+    display:flex;justify-content:space-between;gap:12px;
+    margin-top:26px;padding-top:16px;border-top:1px dashed var(--kraft-dark);
+  }
+  .panel-nav .right{margin-left:auto;display:flex;gap:12px;}
+
+  /* ===== 提示条 ===== */
+  .toast{
+    position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(80px);
+    background:var(--ink);color:var(--paper);font-size:13px;
+    padding:11px 20px;border-radius:var(--radius-ctl);border:1px solid var(--kraft-dark);
+    box-shadow:0 10px 24px rgba(0,0,0,.4);opacity:0;z-index:60;
+    transition:transform .25s ease,opacity .25s ease;pointer-events:none;max-width:80vw;
+  }
+  .toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
+  .toast.warn{background:var(--red-deep);}
+
+  /* ===== 受理印章浮层 ===== */
+  .stamp-overlay{
+    position:fixed;inset:0;background:rgba(24,18,11,.62);z-index:80;
+    display:none;align-items:center;justify-content:center;padding:24px;
+  }
+  .stamp-overlay.show{display:flex;animation:fadeIn .2s ease;}
+  @keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+  .stamp-card{
+    position:relative;width:520px;max-width:100%;background:var(--paper);
+    border:1px solid var(--kraft-edge);border-radius:var(--radius-paper);
+    box-shadow:var(--shadow-desk);padding:34px 36px 28px;
+    animation:cardUp .3s ease;
+  }
+  @keyframes cardUp{from{transform:translateY(24px);opacity:0;}to{transform:none;opacity:1;}}
+  .stamp-card h3{
+    font-family:Georgia,"Songti SC","STSong","SimSun",serif;font-size:20px;letter-spacing:3px;
+    border-bottom:2px solid var(--ink);padding-bottom:12px;margin-bottom:14px;
+  }
+  .stamp-rows{display:flex;flex-direction:column;gap:8px;margin-bottom:8px;}
+  .stamp-rows .row{display:flex;justify-content:space-between;gap:16px;font-size:13px;border-bottom:1px dashed var(--line);padding-bottom:8px;}
+  .stamp-rows .row span{color:var(--muted);}
+  .stamp-rows .row b{font-weight:600;text-align:right;max-width:65%;}
+  .stamp-time{font-size:11px;color:var(--muted);margin-bottom:20px;}
+  .stamp-actions{display:flex;justify-content:flex-end;gap:12px;}
+  .seal{
+    position:absolute;top:-34px;right:-30px;width:136px;height:136px;border-radius:50%;
+    border:4px double var(--red);color:var(--red);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+    transform:rotate(-12deg) scale(1.6);opacity:0;background:rgba(178,58,43,.05);
+    font-family:Georgia,"Songti SC","STSong","SimSun",serif;
+    animation:stampIn .3s ease .18s forwards;
+    pointer-events:none;
+  }
+  @keyframes stampIn{
+    0%{transform:rotate(-12deg) scale(1.6);opacity:0;}
+    60%{opacity:1;}
+    100%{transform:rotate(-12deg) scale(1);opacity:1;}
+  }
+  .seal .seal-main{font-size:34px;font-weight:700;letter-spacing:6px;}
+  .seal .seal-sub{font-size:10px;letter-spacing:2px;}
+
+  /* ===== 响应式 ===== */
+  @media (max-width:900px){
+    .topbar{padding:0 18px;height:56px;}
+    .brand .doc-no{display:none;}
+    .shell{flex-direction:column;height:auto;min-height:calc(100vh - 76px);margin-top:12px;gap:14px;padding:0 14px 20px;}
+    .rail{width:100%;padding:16px 14px 14px 24px;gap:12px;}
+    .rail::before{top:14px;}
+    .rail::after{top:30px;}
+    .tabs{flex-direction:row;overflow-x:auto;padding-bottom:4px;}
+    .tab{flex:0 0 auto;min-height:52px;width:auto;border-left-width:1px;border-bottom-width:4px;border-radius:var(--radius-ctl) var(--radius-ctl) 0 0;padding:8px 12px;}
+    .tab.active{transform:translateY(3px);border-bottom-color:var(--red);box-shadow:0 -3px 8px rgba(0,0,0,.25);}
+    .draft-card{flex-direction:row;align-items:center;flex-wrap:wrap;}
+    .folder-tab{margin-left:20px;height:30px;padding-top:5px;font-size:12px;}
+    .folder-body{padding:22px 20px 20px;}
+    .grid{grid-template-columns:1fr;}
+    .field.span-2{grid-column:span 1;}
+    .sec-no{font-size:30px;}
+    .sec-head h2{font-size:18px;}
+  }
+
+  /* ===== 减少动态 ===== */
+  @media (prefers-reduced-motion: reduce){
+    *,*::before,*::after{
+      animation-duration:.01ms !important;
+      animation-iteration-count:1 !important;
+      transition-duration:.01ms !important;
+      scroll-behavior:auto !important;
+    }
+    .panel.active,.stamp-card,.stamp-overlay.show,.seal{animation:none;}
+    .seal{transform:rotate(-12deg) scale(1);opacity:1;}
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="logo">卷宗 FOLIO</span>
+    <span class="doc-title">项目立项申请</span>
+    <span class="doc-no mono">档案号 LX-2026-0187</span>
+  </div>
+  <div class="top-actions">
+    <span class="save-state" id="saveStateText">尚未保存草稿</span>
+    <button type="button" class="btn btn-ghost" id="draftBtn">保存草稿</button>
+    <button type="button" class="btn btn-seal" id="submitBtnTop">提交申请</button>
+  </div>
+</header>
+
+<div class="shell">
+  <aside class="rail">
+    <div class="rail-head">卷 宗 目 录 · 共 4 节</div>
+    <nav class="tabs" id="railNav" aria-label="表单节导航">
+      <button type="button" class="tab active" id="tab-1" data-target="sec-1" aria-selected="true">
+        <span class="tab-num">1</span>
+        <span class="tab-text"><b>基本信息</b><i class="tab-progress" id="tp-1">必填 0/4</i></span>
+        <span class="tab-badge" id="tb-1">0</span>
+      </button>
+      <button type="button" class="tab" id="tab-2" data-target="sec-2" aria-selected="false">
+        <span class="tab-num">2</span>
+        <span class="tab-text"><b>需求与范围</b><i class="tab-progress" id="tp-2">必填 0/2</i></span>
+        <span class="tab-badge" id="tb-2">0</span>
+      </button>
+      <button type="button" class="tab" id="tab-3" data-target="sec-3" aria-selected="false">
+        <span class="tab-num">3</span>
+        <span class="tab-text"><b>人员与排期</b><i class="tab-progress" id="tp-3">必填 0/3</i></span>
+        <span class="tab-badge" id="tb-3">0</span>
+      </button>
+      <button type="button" class="tab" id="tab-4" data-target="sec-4" aria-selected="false">
+        <span class="tab-num">4</span>
+        <span class="tab-text"><b>风险与确认</b><i class="tab-progress" id="tp-4">必填 0/2</i></span>
+        <span class="tab-badge" id="tb-4">0</span>
+      </button>
+    </nav>
+    <div class="draft-card">
+      <div class="pct-row"><span>总体完成度</span><b id="overallPct">0%</b></div>
+      <div class="progress"><div class="progress-fill" id="overallFill"></div></div>
+      <div class="draft-meta" id="draftMeta">草稿未保存。填写中途可随时存到本机浏览器。</div>
+      <button type="button" class="link-btn" id="clearDraftBtn">清空草稿并重填</button>
+    </div>
+  </aside>
+
+  <main class="folder">
+    <div class="folder-tab" id="folderTab"><span id="folderTabText">第 1 节 · 基本信息</span></div>
+    <div class="folder-body">
+
+      <section class="panel active" id="sec-1" data-tab-title="第 1 节 · 基本信息" aria-label="基本信息">
+        <div class="sec-head">
+          <span class="sec-no">01</span>
+          <div>
+            <h2>基本信息</h2>
+            <p class="sec-desc">立项人是谁、项目叫什么、打算什么时候动工。带 <span class="req">*</span> 的为必填项。</p>
+          </div>
+        </div>
+        <p class="sec-hint">小贴士：部门选择后，审批会按部门路由到对应负责人。</p>
+        <div class="grid">
+          <label class="field span-2" for="f-name">
+            <span class="f-label">项目名称<span class="req">*</span></span>
+            <input type="text" id="f-name" data-req data-label="项目名称" placeholder="例如：仓储盘点自动化改造" autocomplete="off">
+            <span class="f-err" id="err-f-name" role="alert" hidden></span>
+          </label>
+          <label class="field" for="f-dept">
+            <span class="f-label">申请部门<span class="req">*</span></span>
+            <select id="f-dept" data-req data-label="申请部门">
+              <option value="" selected disabled>请选择部门</option>
+              <option value="供应链中心">供应链中心</option>
+              <option value="零售运营部">零售运营部</option>
+              <option value="客户成功部">客户成功部</option>
+              <option value="数据平台部">数据平台部</option>
+              <option value="品牌市场部">品牌市场部</option>
+            </select>
+            <span class="f-err" id="err-f-dept" role="alert" hidden></span>
+          </label>
+          <label class="field" for="f-owner">
+            <span class="f-label">项目负责人<span class="req">*</span></span>
+            <input type="text" id="f-owner" data-req data-label="项目负责人" placeholder="姓名，例如：陈以宁" autocomplete="off">
+            <span class="f-err" id="err-f-owner" role="alert" hidden></span>
+          </label>
+          <label class="field" for="f-start">
+            <span class="f-label">期望启动日期<span class="req">*</span></span>
+            <input type="date" id="f-start" data-req data-label="期望启动日期">
+            <span class="f-err" id="err-f-start" role="alert" hidden></span>
+          </label>
+          <label class="field" for="f-phone">
+            <span class="f-label">联系电话<span class="f-hint">（选填，便于回访）</span></span>
+            <input type="tel" id="f-phone" data-label="联系电话" placeholder="手机或座机，例如 138 0000 0000" autocomplete="off">
+            <span class="f-err" id="err-f-phone" role="alert" hidden></span>
+          </label>
+        </div>
+        <footer class="panel-nav">
+          <span></span>
+          <div class="right"><button type="button" class="btn btn-solid" data-goto="sec-2">下一节：需求与范围</button></div>
+        </footer>
+      </section>
+
+      <section class="panel" id="sec-2" data-tab-title="第 2 节 · 需求与范围" aria-label="需求与范围">
+        <div class="sec-head">
+          <span class="sec-no">02</span>
+          <div>
+            <h2>需求与范围</h2>
+            <p class="sec-desc">说清楚为什么做、做完能得到什么。写得越具体，评审越快。</p>
+          </div>
+        </div>
+        <p class="sec-hint">小贴士：背景描述建议包含现状数据，例如“每月人工盘点耗时约 120 小时”。</p>
+        <div class="grid">
+          <label class="field span-2" for="f-bg">
+            <span class="f-label">项目背景与要解决的问题<span class="req">*</span></span>
+            <textarea id="f-bg" data-req data-label="项目背景" placeholder="现状是什么？痛点发生在哪个环节？影响了谁？" ></textarea>
+            <span class="f-err" id="err-f-bg" role="alert" hidden></span>
+          </label>
+          <label class="field span-2" for="f-goal">
+            <span class="f-label">预期成果与衡量方式<span class="req">*</span></span>
+            <textarea id="f-goal" data-req data-label="预期成果" placeholder="例如：盘点耗时降至 20 小时内，账实差异率低于 0.5%"></textarea>
+            <span class="f-err" id="err-f-goal" role="alert" hidden></span>
+          </label>
+          <div class="field span-2">
+            <span class="f-label">优先级预判<span class="f-hint">（选填，单选）</span></span>
+            <div class="choice-row" role="radiogroup" aria-label="优先级预判">
+              <label class="choice"><input type="radio" name="prio" id="prio-high" value="高：本季度必须启动">高 · 本季度必须启动</label>
+              <label class="choice"><input type="radio" name="prio" id="prio-mid" value="中：有资源就做" checked>中 · 有资源就做</label>
+              <label class="choice"><input type="radio" name="prio" id="prio-low" value="低：先记下来">低 · 先记下来</label>
+            </div>
+          </div>
+          <div class="field span-2">
+            <span class="f-label">涉及系统或业务线<span class="f-hint">（选填，可多选）</span></span>
+            <div class="choice-row">
+              <label class="choice"><input type="checkbox" id="sc-wms" value="WMS 仓储系统">WMS 仓储系统</label>
+              <label class="choice"><input type="checkbox" id="sc-erp" value="ERP 财务">ERP 财务</label>
+              <label class="choice"><input type="checkbox" id="sc-crm" value="CRM 会员">CRM 会员</label>
+              <label class="choice"><input type="checkbox" id="sc-app" value="门店 App">门店 App</label>
+            </div>
+          </div>
+        </div>
+        <footer class="panel-nav">
+          <button type="button" class="btn btn-ghost" data-goto="sec-1">上一节</button>
+          <div class="right"><button type="button" class="btn btn-solid" data-goto="sec-3">下一节：人员与排期</button></div>
+        </footer>
+      </section>
+
+      <section class="panel" id="sec-3" data-tab-title="第 3 节 · 人员与排期" aria-label="人员与排期">
+        <div class="sec-head">
+          <span class="sec-no">03</span>
+          <div>
+            <h2>人员与排期</h2>
+            <p class="sec-desc">谁来干、干多久、第一个可检查的节点是什么时候。</p>
+          </div>
+        </div>
+        <p class="sec-hint">小贴士：里程碑日期不能早于期望启动日期，提交时会被拦下。</p>
+        <div class="grid">
+          <label class="field span-2" for="f-members">
+            <span class="f-label">核心成员名单<span class="req">*</span></span>
+            <textarea id="f-members" data-req data-label="核心成员名单" placeholder="每行一位：姓名（角色），例如：&#10;陈以宁（项目负责人）&#10;王一帆（仓储主管）"></textarea>
+            <span class="f-err" id="err-f-members" role="alert" hidden></span>
+          </label>
+          <label class="field" for="f-cycle">
+            <span class="f-label">预估周期<span class="req">*</span></span>
+            <select id="f-cycle" data-req data-label="预估周期">
+              <option value="" selected disabled>请选择周期</option>
+              <option value="2 周以内">2 周以内</option>
+              <option value="1 个月左右">1 个月左右</option>
+              <option value="1 个季度">1 个季度</option>
+              <option value="半年以上">半年以上</option>
+            </select>
+            <span class="f-err" id="err-f-cycle" role="alert" hidden></span>
+          </label>
+          <label class="field" for="f-milestone">
+            <span class="f-label">首个里程碑日期<span class="req">*</span></span>
+            <input type="date" id="f-milestone" data-req data-label="首个里程碑日期">
+            <span class="f-err" id="err-f-milestone" role="alert" hidden></span>
+          </label>
+        </div>
+        <footer class="panel-nav">
+          <button type="button" class="btn btn-ghost" data-goto="sec-2">上一节</button>
+          <div class="right"><button type="button" class="btn btn-solid" data-goto="sec-4">下一节：风险与确认</button></div>
+        </footer>
+      </section>
+
+      <section class="panel" id="sec-4" data-tab-title="第 4 节 · 风险与确认" aria-label="风险与确认">
+        <div class="sec-head">
+          <span class="sec-no">04</span>
+          <div>
+            <h2>风险与确认</h2>
+            <p class="sec-desc">提前把坑写下来，并确认信息真实有效。</p>
+          </div>
+        </div>
+        <p class="sec-hint">小贴士：勾确认框后才能提交；主要风险可以写“暂无”，但不能留空。</p>
+        <div class="grid">
+          <label class="field span-2" for="f-risk">
+            <span class="f-label">主要风险与依赖<span class="req">*</span></span>
+            <textarea id="f-risk" data-req data-label="主要风险" placeholder="例如：依赖仓储部 3 月淡季窗口；PDA 设备需提前采购 20 台"></textarea>
+            <span class="f-err" id="err-f-risk" role="alert" hidden></span>
+          </label>
+          <label class="field span-2" for="f-note">
+            <span class="f-label">补充备注<span class="f-hint">（选填）</span></span>
+            <textarea id="f-note" data-label="补充备注" placeholder="任何想对评审人说的补充说明"></textarea>
+          </label>
+          <div class="field span-2" id="agreeField">
+            <label class="choice" for="f-agree">
+              <input type="checkbox" id="f-agree" data-req data-label="信息真实性确认">
+              本人确认以上内容真实有效，并同意按《内部数据管理办法》使用所填信息<span class="req">*</span>
+            </label>
+            <span class="f-err" id="err-f-agree" role="alert" hidden></span>
+          </div>
+        </div>
+        <footer class="panel-nav">
+          <button type="button" class="btn btn-ghost" data-goto="sec-3">上一节</button>
+          <div class="right"><button type="button" class="btn btn-seal" id="submitBtnBottom">提交申请</button></div>
+        </footer>
+      </section>
+
+    </div>
+  </main>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<div class="stamp-overlay" id="stampOverlay" role="dialog" aria-modal="true" aria-label="提交成功回执">
+  <div class="stamp-card">
+    <div class="seal" aria-hidden="true">
+      <span class="seal-main">已受理</span>
+      <span class="seal-sub">FOLIO · 立项档案</span>
+    </div>
+    <h3>立项申请已受理</h3>
+    <div class="stamp-rows" id="stampRows"></div>
+    <div class="stamp-time mono" id="stampTime"></div>
+    <div class="stamp-actions">
+      <button type="button" class="btn btn-ghost" id="continueEditBtn" style="color:var(--ink);border-color:var(--kraft-dark);">继续编辑</button>
+      <button type="button" class="btn btn-seal" id="newFormBtn">再填一份</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var DRAFT_KEY = "folio-draft-v1";
+  var panels = Array.prototype.slice.call(document.querySelectorAll(".panel"));
+  var tabs = Array.prototype.slice.call(document.querySelectorAll(".tab"));
+  var toastEl = document.getElementById("toast");
+  var toastTimer = null;
+
+  function $(id){ return document.getElementById(id); }
+  function allReq(){ return Array.prototype.slice.call(document.querySelectorAll("[data-req]")); }
+
+  /* ---------- 提示条 ---------- */
+  function toast(msg, warn){
+    toastEl.textContent = msg;
+    toastEl.classList.toggle("warn", !!warn);
+    toastEl.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function(){ toastEl.classList.remove("show"); }, 2600);
+  }
+
+  /* ---------- 节切换 ---------- */
+  function showSection(id, focusFirst){
+    panels.forEach(function(p){ p.classList.toggle("active", p.id === id); });
+    tabs.forEach(function(t){
+      var on = t.dataset.target === id;
+      t.classList.toggle("active", on);
+      t.setAttribute("aria-selected", on ? "true" : "false");
+    });
+    var panel = $(id);
+    $("folderTabText").textContent = panel.dataset.tabTitle;
+    if(focusFirst){
+      var first = panel.querySelector("input,select,textarea");
+      if(first) first.focus();
+    }
+  }
+
+  tabs.forEach(function(t){
+    t.addEventListener("click", function(){ showSection(t.dataset.target, true); });
+  });
+  Array.prototype.forEach.call(document.querySelectorAll("[data-goto]"), function(b){
+    b.addEventListener("click", function(){ showSection(b.dataset.goto, true); });
+  });
+
+  /* ---------- 完成度 ---------- */
+  function elFilled(el){
+    if(el.type === "checkbox") return el.checked;
+    return String(el.value).trim() !== "";
+  }
+  function refreshSection(sec){
+    var req = Array.prototype.slice.call(sec.querySelectorAll("[data-req]"));
+    var filled = req.filter(elFilled).length;
+    var idx = panels.indexOf(sec) + 1;
+    var tp = $("tp-" + idx), tab = $("tab-" + idx);
+    tp.textContent = filled === req.length ? "已完成 " + filled + "/" + req.length : "必填 " + filled + "/" + req.length;
+    tab.classList.toggle("done", filled === req.length && req.length > 0);
+    var errs = sec.querySelectorAll(".field.invalid").length;
+    $("tb-" + idx).textContent = errs;
+    tab.classList.toggle("has-error", errs > 0);
+  }
+  function refreshOverall(){
+    var req = allReq();
+    var filled = req.filter(elFilled).length;
+    var pct = req.length ? Math.round(filled / req.length * 100) : 0;
+    $("overallPct").textContent = pct + "%";
+    $("overallFill").style.width = pct + "%";
+  }
+  function refreshAll(){ panels.forEach(refreshSection); refreshOverall(); }
+
+  /* ---------- 校验 ---------- */
+  function setErr(el, msg){
+    var field = el.closest(".field");
+    if(!field) return;
+    field.classList.add("invalid");
+    var err = field.querySelector(".f-err");
+    if(err){ err.textContent = msg; err.hidden = false; }
+  }
+  function clearErr(el){
+    var field = el.closest(".field");
+    if(!field) return;
+    field.classList.remove("invalid");
+    var err = field.querySelector(".f-err");
+    if(err){ err.hidden = true; err.textContent = ""; }
+  }
+  function validateField(el){
+    var label = el.dataset.label || "该字段";
+    if(el.id === "f-agree"){
+      return el.checked ? "" : "提交前请勾选确认信息真实有效";
+    }
+    if(!elFilled(el)) return "请填写" + label;
+    if(el.id === "f-phone"){
+      var v = el.value.trim();
+      if(!/^[0-9+\-\s]{5,20}$/.test(v)) return "电话格式不正确，请检查";
+    }
+    if(el.id === "f-milestone"){
+      var start = $("f-start").value;
+      if(start && el.value < start) return "里程碑不能早于期望启动日期";
+    }
+    return "";
+  }
+
+  Array.prototype.forEach.call(document.querySelectorAll("input,select,textarea"), function(el){
+    el.addEventListener("input", function(){ clearErr(el); refreshAll(); });
+    el.addEventListener("change", function(){ clearErr(el); refreshAll(); });
+  });
+
+  /* ---------- 草稿 ---------- */
+  function collectDraft(){
+    var v = {};
+    Array.prototype.forEach.call(document.querySelectorAll("input,select,textarea"), function(el){
+      if(el.type === "checkbox") v[el.id] = el.checked;
+      else if(el.type === "radio"){ if(el.checked) v[el.id] = el.value; }
+      else v[el.id] = el.value;
+    });
+    return v;
+  }
+  function applyDraft(v){
+    Object.keys(v).forEach(function(k){
+      var el = $(k);
+      if(!el) return;
+      if(el.type === "checkbox") el.checked = !!v[k];
+      else if(el.type === "radio") el.checked = (el.value === v[k]);
+      else el.value = v[k];
+    });
+  }
+  function fmtTime(d){
+    function z(n){ return (n < 10 ? "0" : "") + n; }
+    return z(d.getHours()) + ":" + z(d.getMinutes()) + ":" + z(d.getSeconds());
+  }
+  function saveDraft(silent){
+    var at = new Date();
+    try{
+      localStorage.setItem(DRAFT_KEY, JSON.stringify({ v: collectDraft(), at: at.getTime() }));
+    }catch(e){
+      toast("本地存储不可用，草稿未能保存", true);
+      return;
+    }
+    var t = fmtTime(at);
+    $("saveStateText").textContent = "草稿已存 " + t.slice(0,5);
+    $("saveStateText").classList.add("saved");
+    $("draftMeta").textContent = "草稿保存在本机浏览器 · " + t + "。下次打开本页自动恢复。";
+    if(!silent) toast("草稿已保存到本地（此浏览器）");
+  }
+  function loadDraft(){
+    var raw = null;
+    try{ raw = localStorage.getItem(DRAFT_KEY); }catch(e){ return; }
+    if(!raw) return;
+    try{
+      var data = JSON.parse(raw);
+      if(data && data.v){ applyDraft(data.v); }
+      if(data && data.at){
+        var t = fmtTime(new Date(data.at));
+        $("saveStateText").textContent = "已恢复 " + t.slice(0,5) + " 的草稿";
+        $("saveStateText").classList.add("saved");
+        $("draftMeta").textContent = "已恢复本机草稿（" + t + "）。保存草稿会覆盖它。";
+      }
+    }catch(e){ /* 损坏的草稿直接忽略 */ }
+  }
+  function clearDraft(){
+    try{ localStorage.removeItem(DRAFT_KEY); }catch(e){}
+    Array.prototype.forEach.call(document.querySelectorAll("input,select,textarea"), function(el){
+      if(el.type === "checkbox" || el.type === "radio") el.checked = false;
+      else el.value = "";
+    });
+    document.getElementById("prio-mid").checked = true;
+    Array.prototype.forEach.call(document.querySelectorAll(".field.invalid"), function(f){ f.classList.remove("invalid"); });
+    $("saveStateText").textContent = "尚未保存草稿";
+    $("saveStateText").classList.remove("saved");
+    $("draftMeta").textContent = "草稿未保存。填写中途可随时存到本机浏览器。";
+    refreshAll();
+    toast("已清空草稿，可以重新填写");
+  }
+
+  $("draftBtn").addEventListener("click", function(){ saveDraft(false); });
+  $("clearDraftBtn").addEventListener("click", clearDraft);
+
+  /* ---------- 提交 ---------- */
+  function submit(){
+    var firstBad = null, badCount = 0;
+    allReq().forEach(function(el){ clearErr(el); });
+    allReq().forEach(function(el){
+      var msg = validateField(el);
+      if(msg){ setErr(el, msg); badCount++; if(!firstBad) firstBad = el; }
+    });
+    refreshAll();
+    if(badCount > 0){
+      var sec = firstBad.closest(".panel");
+      showSection(sec.id, false);
+      firstBad.focus();
+      toast("还有 " + badCount + " 项必填未完成，已跳到第一节缺项", true);
+      return;
+    }
+    var rows = [
+      ["项目名称", $("f-name").value.trim()],
+      ["负责人 / 部门", $("f-owner").value.trim() + " · " + $("f-dept").value],
+      ["期望启动", $("f-start").value],
+      ["预估周期", $("f-cycle").value],
+      ["首个里程碑", $("f-milestone").value],
+      ["优先级", (document.querySelector("input[name=prio]:checked") || {}).value || "未选择"]
+    ];
+    $("stampRows").innerHTML = rows.map(function(r){
+      return '<div class="row"><span>' + r[0] + '</span><b></b></div>';
+    }).join("");
+    Array.prototype.forEach.call($("stampRows").children, function(div, i){
+      div.querySelector("b").textContent = rows[i][1];
+    });
+    $("stampTime").textContent = "受理时间 " + fmtTime(new Date()) + " · 档案号 LX-2026-0187 · 副本已归档";
+    $("stampOverlay").classList.add("show");
+  }
+  $("submitBtnTop").addEventListener("click", submit);
+  $("submitBtnBottom").addEventListener("click", submit);
+  $("continueEditBtn").addEventListener("click", function(){ $("stampOverlay").classList.remove("show"); });
+  $("newFormBtn").addEventListener("click", function(){
+    $("stampOverlay").classList.remove("show");
+    clearDraft();
+    showSection("sec-1", true);
+  });
+  $("stampOverlay").addEventListener("click", function(e){
+    if(e.target === $("stampOverlay")) $("stampOverlay").classList.remove("show");
+  });
+
+  /* ---------- 启动 ---------- */
+  loadDraft();
+  refreshAll();
+})();
+</script>
+</body>
+</html>

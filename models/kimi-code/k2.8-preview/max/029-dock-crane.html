@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>029 文件上传 · 码头吊运调度台</title>
+<style>
+:root{
+  --page:#14171C;
+  --panel:#1C2129;
+  --card:#23282F;
+  --dock:#242B34;
+  --line:#3A4149;
+  --text:#E9EDF2;
+  --muted:#8A93A0;
+  --yellow:#F2B100;
+  --yellow-deep:#C98F00;
+  --btn-hover:#FFC51E;
+  --danger:#E1543B;
+  --ok:#3FBF6B;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  background:var(--page);
+  color:var(--text);
+  font-family:"PingFang SC","Microsoft YaHei","Segoe UI",sans-serif;
+  min-height:100vh;
+}
+.mono{font-family:"Cascadia Mono",Consolas,"Courier New",monospace}
+button{font-family:inherit}
+
+/* 顶栏 */
+#pg-header{
+  height:64px;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 40px;
+  background:#171B21;
+  border-bottom:2px solid var(--yellow);
+}
+.brand{display:flex;align-items:center;gap:12px}
+.brand-mark{
+  width:34px;height:34px;border-radius:4px;
+  background:var(--yellow);
+  display:flex;align-items:center;justify-content:center;
+  flex:0 0 auto;
+}
+.brand-name{font-size:16px;font-weight:700;letter-spacing:1px}
+.brand-sub{font-size:12px;color:var(--muted);letter-spacing:2px;margin-left:2px}
+.brand-sep{width:1px;height:20px;background:var(--line);margin:0 14px}
+.header-meta{display:flex;align-items:center;gap:14px;font-size:12px;color:var(--muted)}
+.header-meta .mval{color:var(--text);font-size:12px}
+.header-meta .msep{color:var(--line)}
+
+/* 画布 */
+.wrap{max-width:1160px;margin:0 auto;padding:28px 24px 48px}
+.deck{display:grid;grid-template-columns:420px 1fr;gap:24px;align-items:start}
+
+/* 吊装区（拖放/选择） */
+#dock-zone{
+  min-height:600px;
+  border:2px dashed var(--line);
+  border-radius:8px;
+  background:linear-gradient(180deg,var(--dock) 0%,#1E242C 100%);
+  display:flex;flex-direction:column;
+  padding:0 32px 32px;
+  cursor:pointer;
+  transition:border-color .16s ease,background .16s ease,box-shadow .16s ease;
+}
+#dock-zone:hover{border-color:var(--yellow)}
+#dock-zone.is-over{
+  border-color:var(--yellow);
+  background:#2B333D;
+  box-shadow:inset 0 0 0 2px var(--yellow);
+}
+#dock-zone:focus-visible{outline:2px solid var(--yellow);outline-offset:3px}
+.hazard{
+  height:8px;margin:0 -32px 28px;
+  background:repeating-linear-gradient(-45deg,var(--yellow) 0 12px,transparent 12px 24px);
+  border-radius:8px 8px 0 0;
+}
+.dock-body{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:14px}
+.crane{display:block}
+.dock-kicker{font-size:12px;color:var(--yellow);letter-spacing:3px;font-weight:600}
+.dock-title{font-size:22px;font-weight:700;line-height:1.35}
+.dock-desc{font-size:13px;color:var(--muted);line-height:1.8}
+.dock-desc .mono{font-size:12px}
+#pick-btn{
+  margin-top:6px;
+  height:44px;padding:0 26px;
+  background:var(--yellow);color:var(--page);
+  border:none;border-radius:4px;
+  font-size:15px;font-weight:700;letter-spacing:1px;
+  cursor:pointer;
+  box-shadow:0 2px 0 var(--yellow-deep);
+}
+#pick-btn:hover{background:var(--btn-hover)}
+#pick-btn:active{transform:translateY(1px);box-shadow:0 1px 0 var(--yellow-deep)}
+#pick-btn:focus-visible{outline:2px solid var(--text);outline-offset:2px}
+.dock-hint{font-size:12px;color:var(--muted)}
+.dock-stats{
+  display:flex;gap:0;margin-top:26px;
+  border-top:1px solid var(--line);padding-top:20px;width:100%;
+}
+.stat{flex:1;text-align:center}
+.stat + .stat{border-left:1px solid var(--line)}
+.stat-v{font-size:20px;font-weight:700;color:var(--yellow)}
+.stat-l{font-size:12px;color:var(--muted);margin-top:6px}
+
+/* 舱单队列面板 */
+#queue-panel{
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:8px;
+  overflow:hidden;
+}
+#queue-head{
+  height:52px;
+  display:flex;align-items:center;gap:10px;
+  padding:0 20px;
+  border-bottom:1px solid var(--line);
+  font-size:15px;font-weight:600;
+}
+#queue-head .qh-tag{
+  font-size:11px;font-weight:700;color:var(--page);
+  background:var(--yellow);border-radius:3px;
+  padding:3px 8px;letter-spacing:1px;
+}
+#queue-head .qh-total{margin-left:auto;font-size:12px;color:var(--muted);font-weight:400}
+#queue-head .qh-total .mono{color:var(--text);font-size:13px}
+#queue-list{
+  list-style:none;
+  padding:16px 20px;
+  display:flex;flex-direction:column;gap:12px;
+  max-height:472px;overflow-y:auto;
+}
+#queue-empty{
+  padding:44px 0;text-align:center;
+  color:var(--muted);font-size:13px;display:none;
+}
+.file-card{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-left:4px solid var(--yellow);
+  border-radius:6px;
+  padding:14px 16px;
+  transition:opacity .2s ease,transform .2s ease,border-color .16s ease;
+}
+.file-card[data-state="done"]{border-left-color:var(--ok)}
+.file-card.is-out{opacity:0;transform:translateX(24px)}
+.card-top{display:flex;align-items:center;gap:12px}
+.ext-badge{
+  width:46px;height:30px;flex:0 0 auto;
+  background:var(--yellow);color:var(--page);
+  border-radius:3px;
+  font-size:11px;font-weight:800;letter-spacing:.5px;
+  display:flex;align-items:center;justify-content:center;
+}
+.file-card[data-state="done"] .ext-badge{background:var(--ok)}
+.file-main{flex:1;min-width:0}
+.file-name{
+  font-size:14px;font-weight:600;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.file-meta{font-size:12px;color:var(--muted);margin-top:5px}
+.file-meta .file-size{color:var(--text);font-size:12px}
+.state-chip{
+  flex:0 0 auto;
+  font-size:12px;
+  padding:4px 10px;border-radius:4px;
+  border:1px solid var(--line);color:var(--muted);
+  white-space:nowrap;
+}
+.state-chip.is-run{
+  color:var(--page);background:var(--yellow);
+  border-color:var(--yellow);font-weight:700;
+}
+.state-chip.is-done{
+  color:#0E1B12;background:var(--ok);
+  border-color:var(--ok);font-weight:700;
+}
+.del-btn{
+  flex:0 0 auto;
+  background:none;
+  border:1px solid var(--line);color:var(--muted);
+  border-radius:4px;padding:5px 10px;
+  font-size:12px;cursor:pointer;
+  transition:border-color .16s ease,color .16s ease;
+}
+.del-btn:hover{border-color:var(--danger);color:var(--danger)}
+.del-btn:focus-visible{outline:2px solid var(--danger);outline-offset:2px}
+.gauge{
+  height:6px;margin-top:12px;
+  background:#171B21;border-radius:3px;
+  overflow:hidden;
+}
+.gauge-fill{
+  display:block;height:100%;width:0;
+  background:linear-gradient(90deg,var(--yellow-deep),var(--yellow));
+  transition:width .18s linear;
+}
+.file-card[data-state="done"] .gauge-fill{background:var(--ok)}
+
+/* 作业栏 */
+#queue-foot{
+  height:76px;
+  border-top:1px solid var(--line);
+  background:#191E25;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 20px;gap:16px;
+}
+.foot-title{font-size:14px;font-weight:600}
+.foot-sub{font-size:12px;color:var(--muted);margin-top:5px}
+#start-btn{
+  height:44px;padding:0 28px;flex:0 0 auto;
+  background:var(--yellow);color:var(--page);
+  border:none;border-radius:4px;
+  font-size:15px;font-weight:700;letter-spacing:1px;
+  cursor:pointer;
+  box-shadow:0 2px 0 var(--yellow-deep);
+}
+#start-btn:hover:not(:disabled){background:var(--btn-hover)}
+#start-btn:active:not(:disabled){transform:translateY(1px);box-shadow:0 1px 0 var(--yellow-deep)}
+#start-btn:disabled{background:var(--line);color:var(--muted);cursor:not-allowed;box-shadow:none}
+#start-btn:focus-visible{outline:2px solid var(--text);outline-offset:2px}
+
+@media (max-width:980px){
+  #pg-header{padding:0 20px}
+  .brand-sep,.header-meta .hidable{display:none}
+  .deck{grid-template-columns:1fr}
+  #dock-zone{min-height:300px}
+  #queue-list{max-height:none}
+}
+
+@media (prefers-reduced-motion:reduce){
+  *{transition:none !important;animation:none !important}
+}
+</style>
+</head>
+<body>
+
+<header id="pg-header">
+  <div class="brand">
+    <span class="brand-mark" aria-hidden="true">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#14171C" stroke-width="2" stroke-linecap="square">
+        <path d="M3 20h18"/>
+        <path d="M8 20V5h12"/>
+        <path d="M8 8L3 6"/>
+        <path d="M15 5v5"/>
+        <path d="M13 10h4v4h-4z"/>
+      </svg>
+    </span>
+    <span class="brand-name">津港重工</span>
+    <span class="brand-sub">JINGANG HEAVY</span>
+    <span class="brand-sep"></span>
+    <span style="font-size:14px;color:#E9EDF2">单证吊装调度台</span>
+  </div>
+  <div class="header-meta">
+    <span>调度员 <span class="mval mono">王工</span></span>
+    <span class="msep">/</span>
+    <span>泊位 <span class="mval mono">A-07</span></span>
+    <span class="msep hidable">/</span>
+    <span class="hidable">夜班 <span class="mval mono">22:00–06:00</span></span>
+  </div>
+</header>
+
+<div class="wrap">
+  <main class="deck">
+
+    <section id="dock-zone" tabindex="0" aria-label="单据吊装泊位，点击选择文件或拖拽文件到此">
+      <div class="hazard" aria-hidden="true"></div>
+      <div class="dock-body">
+        <svg class="crane" viewBox="0 0 220 130" width="220" height="130" role="img" aria-label="门座起重机示意图">
+          <path d="M10 118h200" stroke="#3A4149" stroke-width="4" fill="none"/>
+          <path d="M56 118V22h128" stroke="#3A4149" stroke-width="5" fill="none" stroke-linecap="square"/>
+          <path d="M56 40L24 28" stroke="#3A4149" stroke-width="4" fill="none"/>
+          <rect x="60" y="26" width="20" height="14" fill="#8A93A0"/>
+          <path d="M150 22v26" stroke="#8A93A0" stroke-width="2" fill="none"/>
+          <rect x="132" y="48" width="38" height="24" rx="2" fill="#F2B100"/>
+          <path d="M132 56h38M132 64h38" stroke="#14171C" stroke-width="2" fill="none"/>
+          <path d="M60 118l14-28M60 118l-14-28" stroke="#3A4149" stroke-width="3" fill="none"/>
+        </svg>
+        <p class="dock-kicker">BERTH A-07 · 单据吊装泊位</p>
+        <h2 class="dock-title">把文件拖到这里装船</h2>
+        <p class="dock-desc">支持 <span class="mono">PDF / XLSX / DOCX / CSV</span><br>单箱不超过 <span class="mono">50 MB</span>，入列后可批量吊装处理</p>
+        <button id="pick-btn" type="button">从堆场选择文件</button>
+        <p class="dock-hint">也可以直接将文件从文件夹拖入本泊位</p>
+        <div class="dock-stats">
+          <div class="stat"><div class="stat-v mono">128</div><div class="stat-l">今日已入舱（票）</div></div>
+          <div class="stat"><div class="stat-v mono">4.2s</div><div class="stat-l">平均吊装（秒/箱）</div></div>
+          <div class="stat"><div class="stat-v mono">空闲</div><div class="stat-l">泊位状态</div></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="queue-panel" aria-label="待装船舱单队列">
+      <div id="queue-head">
+        <span class="qh-tag">舱单</span>
+        <span>待装船队列</span>
+        <span class="qh-total"><span class="mono" id="queue-count">3</span> 票 · 共 <span class="mono" id="queue-total">4.5 MB</span></span>
+      </div>
+      <ul id="queue-list"></ul>
+      <div id="queue-empty">泊位空闲 · 暂无待装船单据</div>
+      <div id="queue-foot">
+        <div class="foot-meta">
+          <p class="foot-title">批量吊装作业</p>
+          <p class="foot-sub" id="foot-sub">3 票待装船 · 预计 12 秒</p>
+        </div>
+        <button id="start-btn" type="button">启动吊装作业</button>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<input id="file-picker" type="file" multiple hidden>
+
+<script>
+(function(){
+  var dock=document.getElementById('dock-zone'),
+      picker=document.getElementById('file-picker'),
+      list=document.getElementById('queue-list'),
+      emptyTip=document.getElementById('queue-empty'),
+      startBtn=document.getElementById('start-btn'),
+      queueCount=document.getElementById('queue-count'),
+      queueTotal=document.getElementById('queue-total'),
+      footSub=document.getElementById('foot-sub'),
+      seq=0, running=false, timers={};
+
+  function fmtSize(b){
+    if(b>=1048576){ return (b/1048576).toFixed(1)+' MB'; }
+    if(b>=1024){ return Math.round(b/1024)+' KB'; }
+    return b+' B';
+  }
+
+  function makeCard(name,size){
+    seq++;
+    var dot=name.lastIndexOf('.');
+    var ext=(dot>=0?name.slice(dot+1):'').toUpperCase().slice(0,4)||'FILE';
+    var li=document.createElement('li');
+    li.className='file-card';
+    li.id='file-'+seq;
+    li.dataset.state='waiting';
+    li.dataset.size=size;
+
+    var top=document.createElement('div'); top.className='card-top';
+    var badge=document.createElement('span'); badge.className='ext-badge mono'; badge.textContent=ext;
+    var main=document.createElement('div'); main.className='file-main';
+    var fn=document.createElement('p'); fn.className='file-name'; fn.textContent=name;
+    var fm=document.createElement('p'); fm.className='file-meta';
+    var fs=document.createElement('span'); fs.className='file-size mono'; fs.textContent=fmtSize(size);
+    var no=document.createElement('span'); no.textContent=' · 单证 JG-'+String(1000+seq);
+    fm.appendChild(fs); fm.appendChild(no);
+    main.appendChild(fn); main.appendChild(fm);
+    var chip=document.createElement('span'); chip.className='state-chip'; chip.textContent='待装船';
+    var del=document.createElement('button'); del.className='del-btn'; del.type='button'; del.textContent='退运';
+    top.appendChild(badge); top.appendChild(main); top.appendChild(chip); top.appendChild(del);
+    var gauge=document.createElement('div'); gauge.className='gauge';
+    var fill=document.createElement('i'); fill.className='gauge-fill';
+    gauge.appendChild(fill);
+    li.appendChild(top); li.appendChild(gauge);
+    return li;
+  }
+
+  function addFile(name,size){
+    list.appendChild(makeCard(name,size));
+    updateSummary();
+  }
+
+  function updateSummary(){
+    var cards=list.querySelectorAll('.file-card');
+    var waiting=0, total=0;
+    cards.forEach(function(c){
+      total+=Number(c.dataset.size);
+      if(c.dataset.state==='waiting'){ waiting++; }
+    });
+    queueCount.textContent=cards.length;
+    queueTotal.textContent=fmtSize(total);
+    emptyTip.style.display=cards.length?'none':'block';
+    if(running){
+      footSub.textContent='吊装作业进行中，请保持泊位畅通';
+    }else if(waiting>0){
+      footSub.textContent=waiting+' 票待装船 · 预计 '+(waiting*4)+' 秒';
+    }else if(cards.length>0){
+      footSub.textContent='本批单据全部入舱，可以收工';
+    }else{
+      footSub.textContent='泊位空闲，等待单据入列';
+    }
+    startBtn.disabled=running||waiting===0;
+    startBtn.textContent=running?'吊装作业进行中…':'启动吊装作业';
+  }
+
+  function runCard(card){
+    var pct=0,
+        fill=card.querySelector('.gauge-fill'),
+        chip=card.querySelector('.state-chip');
+    card.dataset.state='running';
+    chip.className='state-chip is-run';
+    timers[card.id]=setInterval(function(){
+      pct=Math.min(100,pct+2+Math.random()*6);
+      fill.style.width=pct+'%';
+      chip.textContent='吊装中 '+Math.floor(pct)+'%';
+      if(pct>=100){
+        clearInterval(timers[card.id]); delete timers[card.id];
+        card.dataset.state='done';
+        chip.className='state-chip is-done';
+        chip.textContent='已入舱';
+        if(!list.querySelector('.file-card[data-state="running"]')){ running=false; }
+        updateSummary();
+      }
+    },90);
+  }
+
+  startBtn.addEventListener('click',function(){
+    if(running){ return; }
+    var waiting=list.querySelectorAll('.file-card[data-state="waiting"]');
+    if(!waiting.length){ return; }
+    running=true;
+    updateSummary();
+    waiting.forEach(function(c){ runCard(c); });
+  });
+
+  dock.addEventListener('click',function(){ picker.click(); });
+  dock.addEventListener('keydown',function(e){
+    if(e.key==='Enter'||e.key===' '){ e.preventDefault(); picker.click(); }
+  });
+  picker.addEventListener('change',function(){
+    Array.prototype.forEach.call(picker.files,function(f){ addFile(f.name,f.size); });
+    picker.value='';
+  });
+
+  ['dragenter','dragover'].forEach(function(evt){
+    dock.addEventListener(evt,function(e){ e.preventDefault(); dock.classList.add('is-over'); });
+  });
+  ['dragleave','drop'].forEach(function(evt){
+    dock.addEventListener(evt,function(e){ e.preventDefault(); dock.classList.remove('is-over'); });
+  });
+  dock.addEventListener('drop',function(e){
+    Array.prototype.forEach.call(e.dataTransfer.files,function(f){ addFile(f.name,f.size); });
+  });
+
+  list.addEventListener('click',function(e){
+    var btn=e.target.closest('.del-btn');
+    if(!btn){ return; }
+    var card=btn.closest('.file-card');
+    if(timers[card.id]){
+      clearInterval(timers[card.id]); delete timers[card.id];
+      if(!list.querySelector('.file-card[data-state="running"]')){ running=false; }
+    }
+    card.classList.add('is-out');
+    setTimeout(function(){ card.remove(); updateSummary(); },200);
+  });
+
+  /* 初始舱单：三票已入列单据 */
+  addFile('Q4舱单-津海2298.xlsx',3774873);
+  addFile('报关委托书-PTC0412.pdf',831488);
+  addFile('美西线CW7装箱单.csv',131072);
+})();
+</script>
+</body>
+</html>

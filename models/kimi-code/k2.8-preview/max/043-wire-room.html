@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>电报室 · 有线传讯</title>
+<style>
+  :root {
+    --wall: #171310;
+    --desk: #211b12;
+    --panel: #2b2417;
+    --panel-edge: #3a2f1d;
+    --paper: #f3e9cf;
+    --kraft: #e2d3ac;
+    --ink: #2b2417;
+    --ink-soft: #6d6046;
+    --brass: #b98a3e;
+    --brass-hi: #e8c87e;
+    --brass-dark: #7d5a24;
+    --line-ok: #7fae5f;
+    --alarm: #c0472f;
+    --dim: #a89368;
+    --radius-tape: 3px;
+    --radius-btn: 50%;
+    --font-display: Georgia, "Times New Roman", "Songti SC", serif;
+    --font-body: system-ui, -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    --font-mono: ui-monospace, "Courier New", monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body { height: 100%; }
+
+  body {
+    font-family: var(--font-body);
+    background:
+      radial-gradient(1200px 600px at 50% -10%, #241c10 0%, transparent 60%),
+      var(--wall);
+    color: var(--dim);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100dvh;
+    overflow: hidden;
+  }
+
+  /* ===== 手机框：宽屏时呈现圆角机身 + 刘海 + home 条 ===== */
+  .phone {
+    position: relative;
+    width: 100vw;
+    height: 100dvh;
+    background: var(--desk);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .notch, .homebar { display: none; }
+
+  @media (min-width: 520px) {
+    .phone {
+      width: 390px;
+      height: 844px;
+      max-height: 94vh;
+      border-radius: 44px;
+      border: 10px solid #0c0a07;
+      box-shadow:
+        0 0 0 2px #3a2f1d,
+        0 30px 80px rgba(0, 0, 0, 0.65),
+        inset 0 0 0 1px rgba(232, 200, 126, 0.12);
+    }
+    .notch {
+      display: block;
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 120px;
+      height: 26px;
+      background: #0c0a07;
+      border-radius: 0 0 16px 16px;
+      z-index: 30;
+    }
+    .homebar {
+      display: block;
+      position: absolute;
+      bottom: 6px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 128px;
+      height: 4px;
+      border-radius: 2px;
+      background: rgba(232, 200, 126, 0.45);
+      z-index: 30;
+    }
+  }
+
+  /* ===== 应用外壳 ===== */
+  .app { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+
+  .masthead {
+    flex: 0 0 auto;
+    padding: 18px 16px 12px;
+    background: linear-gradient(180deg, #2b2417 0%, #241d12 100%);
+    border-bottom: 1px solid var(--panel-edge);
+    position: relative;
+    z-index: 5;
+  }
+  .masthead::after {
+    content: "";
+    position: absolute;
+    left: 0; right: 0; bottom: -3px;
+    height: 2px;
+    background: repeating-linear-gradient(90deg, var(--brass-dark) 0 6px, transparent 6px 12px);
+    opacity: 0.5;
+  }
+
+  .mast-row { display: flex; align-items: center; gap: 10px; }
+
+  .lamp {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: var(--line-ok);
+    box-shadow: 0 0 8px 1px rgba(127, 174, 95, 0.8);
+    flex: 0 0 auto;
+  }
+  .lamp.alarm {
+    background: var(--alarm);
+    box-shadow: 0 0 8px 1px rgba(192, 71, 47, 0.8);
+  }
+
+  .mast-title {
+    font-family: var(--font-display);
+    font-size: 17px;
+    letter-spacing: 4px;
+    color: var(--brass-hi);
+    flex: 1;
+  }
+
+  .morse-badge {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--dim);
+    border: 1px solid var(--panel-edge);
+    border-radius: 3px;
+    padding: 2px 6px;
+  }
+
+  .mast-sub {
+    margin-top: 6px;
+    font-size: 12px;
+    letter-spacing: 1px;
+    color: var(--dim);
+    display: flex;
+    justify-content: space-between;
+  }
+
+  /* ===== 屏幕切换：名单 / 会话 ===== */
+  .screens {
+    flex: 1;
+    min-height: 0;
+    position: relative;
+    overflow: hidden;
+  }
+  .screen {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    transform: translateX(100%);
+    transition: transform 0.28s cubic-bezier(0.3, 0.8, 0.3, 1);
+    background: var(--desk);
+  }
+  .screen.active { transform: translateX(0); }
+  #screen-list.active ~ #screen-chat { transform: translateX(100%); }
+  #screen-list:not(.active) ~ #screen-chat.active { transform: translateX(0); }
+
+  /* ===== 会话名单 ===== */
+  .list-head {
+    padding: 14px 16px 8px;
+    font-family: var(--font-display);
+    font-size: 13px;
+    letter-spacing: 3px;
+    color: var(--dim);
+  }
+  .conv-list { flex: 1; overflow-y: auto; padding: 0 8px 16px; }
+
+  .conv {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    padding: 12px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    border: 1px solid transparent;
+  }
+  .conv:hover { background: #2b2417; }
+  .conv:focus-visible { outline: 2px solid var(--brass); outline-offset: 1px; }
+  .conv.current { background: #2b2417; border-color: var(--panel-edge); }
+
+  .conv-avatar {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    flex: 0 0 auto;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-display);
+    font-size: 16px;
+    color: #1c1508;
+    background: radial-gradient(circle at 32% 28%, var(--brass-hi) 0%, var(--brass) 46%, var(--brass-dark) 100%);
+    box-shadow: inset 0 0 0 2px rgba(60, 42, 12, 0.55), 0 2px 4px rgba(0, 0, 0, 0.5);
+  }
+
+  .conv-main { flex: 1; min-width: 0; }
+  .conv-name { font-size: 15px; color: #eadfc2; letter-spacing: 0.5px; }
+  .conv-preview {
+    margin-top: 3px;
+    font-size: 12px;
+    color: var(--dim);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .conv-side { flex: 0 0 auto; text-align: right; }
+  .conv-time { font-family: var(--font-mono); font-size: 11px; color: var(--ink-soft); }
+  .conv-unread {
+    display: inline-block;
+    margin-top: 5px;
+    min-width: 18px; height: 18px;
+    line-height: 18px;
+    padding: 0 5px;
+    border-radius: 9px;
+    background: var(--alarm);
+    color: #f7ecd4;
+    font-size: 11px;
+    text-align: center;
+  }
+  .conv-unread[hidden] { display: none; }
+
+  /* ===== 会话屏 ===== */
+  .chat-head {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    background: #241d12;
+    border-bottom: 1px solid var(--panel-edge);
+  }
+  .back-btn {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    border: 1px solid var(--panel-edge);
+    background: transparent;
+    color: var(--brass-hi);
+    font-size: 18px;
+    cursor: pointer;
+    flex: 0 0 auto;
+  }
+  .back-btn:hover { background: #2b2417; }
+  .back-btn:focus-visible { outline: 2px solid var(--brass); outline-offset: 1px; }
+
+  .chat-peer { flex: 1; min-width: 0; }
+  .chat-peer-name { font-size: 15px; color: #eadfc2; letter-spacing: 0.5px; }
+  .chat-peer-line { font-size: 11px; color: var(--dim); margin-top: 2px; font-family: var(--font-mono); }
+
+  /* 检修横幅 */
+  .maint-banner {
+    flex: 0 0 auto;
+    display: none;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    background: rgba(192, 71, 47, 0.14);
+    border-bottom: 1px dashed rgba(192, 71, 47, 0.7);
+    color: #e8a292;
+    font-size: 12px;
+    letter-spacing: 0.5px;
+  }
+  .maint-banner.show { display: flex; }
+  .maint-banner .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--alarm);
+    box-shadow: 0 0 6px rgba(192, 71, 47, 0.9);
+    flex: 0 0 auto;
+  }
+
+  /* 消息区：账页底纹 */
+  .msg-scroll {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 16px 14px 12px;
+    background:
+      repeating-linear-gradient(180deg, transparent 0 27px, rgba(168, 147, 104, 0.08) 27px 28px),
+      var(--desk);
+  }
+
+  .day-divider {
+    text-align: center;
+    margin: 4px 0 14px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--ink-soft);
+  }
+  .day-divider span {
+    background: var(--panel);
+    border: 1px solid var(--panel-edge);
+    border-radius: 3px;
+    padding: 2px 10px;
+    color: var(--dim);
+  }
+
+  .tape-row { display: flex; margin-bottom: 14px; }
+  .tape-row.in { justify-content: flex-start; }
+  .tape-row.out { justify-content: flex-end; }
+
+  .tape {
+    position: relative;
+    max-width: 78%;
+    padding: 10px 12px 8px;
+    border-radius: var(--radius-tape);
+    color: var(--ink);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.45);
+    font-size: 14.5px;
+    line-height: 1.55;
+    transform: rotate(-0.4deg);
+  }
+  .tape.in { background: var(--kraft); transform: rotate(0.4deg); }
+  .tape.out { background: var(--paper); }
+  /* 纸条左侧打孔带 */
+  .tape::before {
+    content: "";
+    position: absolute;
+    top: 6px; bottom: 6px; left: 5px;
+    width: 3px;
+    background: repeating-linear-gradient(180deg, transparent 0 5px, rgba(43, 36, 23, 0.35) 5px 10px);
+    border-radius: 2px;
+  }
+  .tape.in::before { background: repeating-linear-gradient(180deg, transparent 0 5px, rgba(43, 36, 23, 0.28) 5px 10px); }
+  .tape .text { padding-left: 6px; word-break: break-word; }
+
+  .tape-meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    justify-content: flex-end;
+    margin-top: 5px;
+    padding-left: 6px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--ink-soft);
+  }
+  .tape.in .tape-meta { justify-content: flex-start; }
+
+  .ticks { display: inline-flex; align-items: center; gap: 2px; height: 12px; }
+  .ticks svg { width: 14px; height: 10px; display: block; }
+  .ticks .t2 { display: none; }
+  .ticks.delivered .t2 { display: block; }
+  .ticks.delivered svg path { stroke: #4c7a34; }
+  .ticks svg path {
+    fill: none;
+    stroke: var(--ink-soft);
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .status-word { letter-spacing: 0.5px; }
+  .tape.sending .status-word { color: var(--brass-dark); }
+  .tape.failed { border: 1px dashed var(--alarm); }
+  .tape.failed .text { color: var(--ink); }
+  .tape.failed .status-word { color: var(--alarm); font-weight: 600; }
+
+  .stamp {
+    position: absolute;
+    top: -9px; right: 8px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 1px;
+    color: var(--alarm);
+    border: 1.5px solid var(--alarm);
+    border-radius: 2px;
+    padding: 1px 5px;
+    background: var(--paper);
+    transform: rotate(-5deg);
+  }
+
+  .retry-btn {
+    display: none;
+    margin-top: 6px;
+    margin-left: 6px;
+    padding: 4px 12px;
+    font-size: 12px;
+    font-family: var(--font-body);
+    letter-spacing: 1px;
+    color: #f7ecd4;
+    background: linear-gradient(180deg, var(--brass) 0%, var(--brass-dark) 100%);
+    border: 1px solid #5d431a;
+    border-radius: 3px;
+    cursor: pointer;
+  }
+  .retry-btn:hover { filter: brightness(1.12); }
+  .retry-btn:focus-visible { outline: 2px solid var(--brass-hi); outline-offset: 1px; }
+  .tape.failed .retry-btn { display: inline-block; }
+
+  /* ===== 电报键盘区（输入 + 检修闸刀 + 拍发键） ===== */
+  .keypad {
+    flex: 0 0 auto;
+    padding: 10px 12px 14px;
+    background: linear-gradient(180deg, #241d12 0%, #2b2417 100%);
+    border-top: 1px solid var(--panel-edge);
+  }
+
+  .composer { display: flex; align-items: flex-end; gap: 10px; }
+
+  .input-wrap {
+    flex: 1;
+    min-width: 0;
+    background: var(--paper);
+    border-radius: 4px;
+    border: 1px solid #cfc093;
+    padding: 2px;
+  }
+  .input-wrap:focus-within { border-color: var(--brass); box-shadow: 0 0 0 2px rgba(185, 138, 62, 0.35); }
+  #msg-input {
+    display: block;
+    width: 100%;
+    border: none;
+    background: transparent;
+    resize: none;
+    max-height: 96px;
+    min-height: 40px;
+    padding: 9px 10px;
+    font-family: var(--font-body);
+    font-size: 14.5px;
+    line-height: 1.5;
+    color: var(--ink);
+    outline: none;
+  }
+  #msg-input::placeholder { color: var(--ink-soft); }
+
+  .send-key {
+    flex: 0 0 auto;
+    width: 52px; height: 52px;
+    border-radius: var(--radius-btn);
+    border: 2px solid #5d431a;
+    cursor: pointer;
+    color: #1c1508;
+    font-family: var(--font-display);
+    font-size: 15px;
+    letter-spacing: 2px;
+    text-indent: 2px;
+    background: radial-gradient(circle at 34% 30%, var(--brass-hi) 0%, var(--brass) 48%, var(--brass-dark) 100%);
+    box-shadow: 0 3px 0 #4a3512, 0 5px 8px rgba(0, 0, 0, 0.5);
+  }
+  .send-key:hover:not(:disabled) { filter: brightness(1.08); }
+  .send-key:active:not(:disabled) { transform: translateY(2px); box-shadow: 0 1px 0 #4a3512, 0 2px 4px rgba(0, 0, 0, 0.5); }
+  .send-key:focus-visible { outline: 2px solid var(--brass-hi); outline-offset: 2px; }
+  .send-key:disabled {
+    cursor: not-allowed;
+    filter: grayscale(0.7) brightness(0.6);
+    box-shadow: none;
+  }
+  .send-key.sending { animation: keypulse 0.5s ease-in-out infinite alternate; }
+  @keyframes keypulse {
+    from { filter: brightness(0.95); }
+    to { filter: brightness(1.25); }
+  }
+
+  /* 线路检修闸刀 */
+  .rail {
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    border: 1px solid var(--panel-edge);
+    border-radius: 6px;
+    background: #1d1710;
+  }
+  .rail-label { flex: 1; }
+  .rail-name { font-size: 13px; color: #d8c9a3; letter-spacing: 1px; }
+  .rail-hint { font-size: 11px; color: var(--ink-soft); margin-top: 2px; }
+  .rail-tag {
+    display: none;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--alarm);
+    border: 1px solid var(--alarm);
+    border-radius: 2px;
+    padding: 1px 5px;
+    letter-spacing: 1px;
+  }
+  .rail.armed .rail-tag { display: inline-block; margin-left: 8px; }
+
+  .knife {
+    position: relative;
+    width: 56px; height: 28px;
+    flex: 0 0 auto;
+    border-radius: 14px;
+    border: 1px solid #5d431a;
+    background: linear-gradient(180deg, #171208 0%, #241a0c 100%);
+    cursor: pointer;
+    padding: 0;
+  }
+  .knife:focus-visible { outline: 2px solid var(--brass-hi); outline-offset: 2px; }
+  .knife .lever {
+    position: absolute;
+    top: 2px; left: 2px;
+    width: 24px; height: 22px;
+    border-radius: 11px;
+    background: radial-gradient(circle at 34% 30%, var(--brass-hi) 0%, var(--brass) 55%, var(--brass-dark) 100%);
+    box-shadow: 0 2px 3px rgba(0, 0, 0, 0.6);
+    transition: transform 0.18s ease;
+  }
+  .knife[aria-pressed="true"] .lever { transform: translateX(26px); }
+  .knife[aria-pressed="true"] { border-color: var(--alarm); }
+
+  /* 轻提示 */
+  .toast {
+    position: absolute;
+    left: 50%;
+    bottom: 132px;
+    transform: translateX(-50%) translateY(8px);
+    max-width: 300px;
+    background: rgba(23, 19, 16, 0.94);
+    border: 1px solid var(--brass-dark);
+    color: #eadfc2;
+    font-size: 12px;
+    letter-spacing: 0.5px;
+    padding: 8px 14px;
+    border-radius: 4px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    z-index: 20;
+    text-align: center;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .screen { transition: none; }
+    .knife .lever, .toast { transition: none; }
+    .send-key.sending { animation: none; }
+  }
+</style>
+</head>
+<body>
+  <div class="phone">
+    <div class="notch" aria-hidden="true"></div>
+    <div class="app">
+
+      <header class="masthead">
+        <div class="mast-row">
+          <span class="lamp" id="line-lamp" aria-hidden="true"></span>
+          <h1 class="mast-title">电报室</h1>
+          <span class="morse-badge" aria-hidden="true">·−· −−− −− ·−</span>
+        </div>
+        <div class="mast-sub">
+          <span>西关电报局 · 第 3 号线</span>
+          <span id="line-word">线路畅通</span>
+        </div>
+      </header>
+
+      <div class="screens">
+
+        <!-- 名单屏 -->
+        <section class="screen active" id="screen-list" aria-label="会话名单">
+          <div class="list-head">在 线 名 单</div>
+          <div class="conv-list" id="conv-list" role="listbox" aria-label="选择会话"></div>
+        </section>
+
+        <!-- 会话屏 -->
+        <section class="screen" id="screen-chat" aria-label="当前会话">
+          <div class="chat-head">
+            <button class="back-btn" id="back-btn" aria-label="返回名单">‹</button>
+            <div class="chat-peer">
+              <div class="chat-peer-name" id="peer-name"></div>
+              <div class="chat-peer-line" id="peer-line"></div>
+            </div>
+          </div>
+
+          <div class="maint-banner" id="maint-banner" role="alert">
+            <span class="dot" aria-hidden="true"></span>
+            <span>线路检修中 —— 电文无法拍发，合闸后重试</span>
+          </div>
+
+          <div class="msg-scroll" id="msg-scroll" aria-live="polite"></div>
+
+          <div class="keypad">
+            <div class="composer">
+              <div class="input-wrap">
+                <textarea id="msg-input" rows="1" placeholder="拟好电文，拍发出去…" aria-label="电文输入"></textarea>
+              </div>
+              <button class="send-key" id="send-btn" disabled aria-label="拍发电文">拍发</button>
+            </div>
+            <div class="rail" id="rail">
+              <div class="rail-label">
+                <span class="rail-name">线路检修</span><span class="rail-tag">已合闸断开</span>
+                <div class="rail-hint">扳下后，下一条电文拍发失败，用于演练断线重发</div>
+              </div>
+              <button class="knife" id="maint-toggle" role="switch" aria-pressed="false" aria-label="线路检修开关">
+                <span class="lever" aria-hidden="true"></span>
+              </button>
+            </div>
+          </div>
+        </section>
+
+      </div>
+
+      <div class="toast" id="toast" role="status"></div>
+      <div class="homebar" aria-hidden="true"></div>
+    </div>
+  </div>
+
+<script>
+(function () {
+  "use strict";
+
+  var MAINT = false;
+  var currentId = null;
+  var msgSeq = 0;
+
+  var conversations = [
+    {
+      id: "conv-wang", name: "南关车站 · 王调度", code: "第 3 号线 · 南关站",
+      time: "14:32", unread: 2,
+      messages: [
+        { dir: "in", text: "三号站台清完了，货车可以进站。", time: "14:20", status: "delivered" },
+        { dir: "out", text: "收到，我让机车转到三股道。", time: "14:26", status: "delivered" },
+        { dir: "in", text: "好，挂完车厢回话。", time: "14:32", status: "delivered" }
+      ]
+    },
+    {
+      id: "conv-li", name: "机务段 · 李师傅", code: "第 5 号线 · 机务段",
+      time: "13:05", unread: 0,
+      messages: [
+        { dir: "in", text: "今晚夜班我值，锅炉都检查过了。", time: "13:01", status: "delivered" },
+        { dir: "out", text: "辛苦，三点那班准点开。", time: "13:05", status: "delivered" }
+      ]
+    },
+    {
+      id: "conv-chen", name: "城西粮行 · 陈掌柜", code: "第 2 号线 · 城西",
+      time: "昨天", unread: 0,
+      messages: [
+        { dir: "in", text: "明早送到，货单随船一起过去。", time: "昨天", status: "delivered" },
+        { dir: "out", text: "成，到埠喊伙计去接。", time: "昨天", status: "delivered" }
+      ]
+    },
+    {
+      id: "conv-zhao", name: "河畔电站 · 小赵", code: "第 7 号线 · 电站",
+      time: "昨天", unread: 0,
+      messages: [
+        { dir: "out", text: "今晚检修线路，提前十分钟停机。", time: "昨天", status: "delivered" },
+        { dir: "in", text: "电压稳了，可以开机。", time: "昨天", status: "delivered" }
+      ]
+    }
+  ];
+
+  var $ = function (id) { return document.getElementById(id); };
+  var convListEl = $("conv-list");
+  var msgScroll = $("msg-scroll");
+  var inputEl = $("msg-input");
+  var sendBtn = $("send-btn");
+  var toastEl = $("toast");
+  var toastTimer = null;
+
+  function esc(s) {
+    return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+
+  function nowTime() {
+    var d = new Date();
+    var hh = ("0" + d.getHours()).slice(-2);
+    var mm = ("0" + d.getMinutes()).slice(-2);
+    return hh + ":" + mm;
+  }
+
+  function showToast(text) {
+    toastEl.textContent = text;
+    toastEl.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { toastEl.classList.remove("show"); }, 2400);
+  }
+
+  function convById(id) {
+    for (var i = 0; i < conversations.length; i++) {
+      if (conversations[i].id === id) return conversations[i];
+    }
+    return null;
+  }
+
+  /* ---------- 名单渲染 ---------- */
+  function renderList() {
+    var html = "";
+    conversations.forEach(function (c) {
+      var last = c.messages[c.messages.length - 1];
+      var preview = last ? last.text : "";
+      html += '<div class="conv' + (c.id === currentId ? " current" : "") + '" role="option" aria-selected="' +
+        (c.id === currentId) + '" data-id="' + c.id + '" tabindex="0">' +
+        '<div class="conv-avatar" aria-hidden="true">' + esc(c.name.charAt(0)) + "</div>" +
+        '<div class="conv-main">' +
+        '<div class="conv-name">' + esc(c.name) + "</div>" +
+        '<div class="conv-preview">' + esc(preview) + "</div>" +
+        "</div>" +
+        '<div class="conv-side">' +
+        '<div class="conv-time">' + esc(c.time) + "</div>" +
+        '<span class="conv-unread"' + (c.unread ? "" : " hidden") + ">" + c.unread + "</span>" +
+        "</div>" +
+        "</div>";
+    });
+    convListEl.innerHTML = html;
+  }
+
+  convListEl.addEventListener("click", function (e) {
+    var row = e.target.closest(".conv");
+    if (row) openChat(row.getAttribute("data-id"));
+  });
+  convListEl.addEventListener("keydown", function (e) {
+    if (e.key === "Enter") {
+      var row = e.target.closest(".conv");
+      if (row) openChat(row.getAttribute("data-id"));
+    }
+  });
+
+  /* ---------- 会话渲染 ---------- */
+  function tapeHtml(m, idx) {
+    var statusWord = "";
+    var stateClass = "";
+    var stamp = "";
+    var retry = "";
+    if (m.dir === "out") {
+      if (m.status === "sending") { statusWord = "拍发中…"; stateClass = " sending"; }
+      else if (m.status === "sent") { statusWord = "已发出"; }
+      else if (m.status === "delivered") { statusWord = "已签收"; stateClass = " delivered"; }
+      else if (m.status === "failed") {
+        statusWord = "发送失败 · 线路中断";
+        stateClass = " failed";
+        stamp = '<span class="stamp">线路中断</span>';
+        retry = '<button class="retry-btn" data-idx="' + idx + '">重试拍发</button>';
+      }
+    }
+    var ticks = m.dir === "out"
+      ? '<span class="ticks' + (m.status === "delivered" ? " delivered" : "") + '" aria-hidden="true">' +
+        '<svg viewBox="0 0 16 12"><path d="M1 6.5 5.5 11 15 1"/></svg>' +
+        '<svg class="t2" viewBox="0 0 16 12"><path d="M1 6.5 5.5 11 15 1"/></svg></span>'
+      : "";
+    var statusPart = m.dir === "out"
+      ? '<span class="status-word">' + statusWord + "</span>" + ticks
+      : "";
+    return '<div class="tape-row ' + m.dir + '">' +
+      '<div class="tape ' + m.dir + stateClass + '" data-idx="' + idx + '">' +
+      stamp +
+      '<div class="text">' + esc(m.text) + "</div>" +
+      '<div class="tape-meta">' + statusPart + "<span>" + esc(m.time) + "</span></div>" +
+      retry +
+      "</div></div>";
+  }
+
+  function renderMessages() {
+    var c = convById(currentId);
+    if (!c) return;
+    var html = '<div class="day-divider"><span>今 天</span></div>';
+    c.messages.forEach(function (m, i) { html += tapeHtml(m, i); });
+    msgScroll.innerHTML = html;
+    msgScroll.scrollTop = msgScroll.scrollHeight;
+  }
+
+  function openChat(id) {
+    currentId = id;
+    var c = convById(id);
+    c.unread = 0;
+    $("peer-name").textContent = c.name;
+    $("peer-line").textContent = c.code + " · 收报机就绪";
+    renderList();
+    renderMessages();
+    $("screen-list").classList.remove("active");
+    $("screen-chat").classList.add("active");
+    inputEl.focus();
+  }
+
+  $("back-btn").addEventListener("click", function () {
+    $("screen-chat").classList.remove("active");
+    $("screen-list").classList.add("active");
+    renderList();
+  });
+
+  /* ---------- 输入与拍发 ---------- */
+  function syncSend() {
+    sendBtn.disabled = inputEl.value.trim().length === 0;
+  }
+  inputEl.addEventListener("input", syncSend);
+
+  function applyStatus(tapeEl, m) {
+    var c = convById(currentId);
+    if (!c) return;
+    var fresh = tapeHtml(m, tapeEl.getAttribute("data-idx"));
+    var tmp = document.createElement("div");
+    tmp.innerHTML = fresh;
+    tapeEl.replaceWith(tmp.firstChild);
+    msgScroll.scrollTop = msgScroll.scrollHeight;
+  }
+
+  function tapeOf(idx) {
+    return msgScroll.querySelector('.tape[data-idx="' + idx + '"]');
+  }
+
+  function runWire(m, c, idx) {
+    /* 拍发中 → 单勾（已发出）→ 双勾（已签收）；检修中则失败 */
+    var tapeEl = tapeOf(idx);
+    if (!tapeEl) return;
+    setTimeout(function () {
+      if (MAINT) {
+        m.status = "failed";
+        applyStatus(tapeEl, m);
+        showToast("第 3 号线中断，电文未送出，内容已保留");
+        return;
+      }
+      m.status = "sent";
+      applyStatus(tapeOf(idx) || tapeEl, m);
+      setTimeout(function () {
+        m.status = "delivered";
+        applyStatus(tapeOf(idx) || tapeEl, m);
+      }, 800);
+    }, 700);
+  }
+
+  function sendMessage() {
+    var text = inputEl.value.trim();
+    if (!text) return;
+    var c = convById(currentId);
+    if (!c) return;
+    var m = { dir: "out", text: text, time: nowTime(), status: "sending" };
+    c.messages.push(m);
+    c.time = m.time;
+    inputEl.value = "";
+    syncSend();
+    renderMessages();
+    runWire(m, c, c.messages.length - 1);
+    inputEl.focus();
+  }
+
+  sendBtn.addEventListener("click", sendMessage);
+  inputEl.addEventListener("keydown", function (e) {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  });
+
+  /* 重试：仍在检修则再次失败；已合闸恢复则走正常拍发 */
+  msgScroll.addEventListener("click", function (e) {
+    var btn = e.target.closest(".retry-btn");
+    if (!btn) return;
+    var c = convById(currentId);
+    var idx = parseInt(btn.getAttribute("data-idx"), 10);
+    var m = c.messages[idx];
+    if (!m || m.status !== "failed") return;
+    m.status = "sending";
+    renderMessages();
+    runWire(m, c, idx);
+  });
+
+  /* ---------- 线路检修闸刀 ---------- */
+  var toggle = $("maint-toggle");
+  toggle.addEventListener("click", function () {
+    MAINT = !MAINT;
+    toggle.setAttribute("aria-pressed", String(MAINT));
+    $("rail").classList.toggle("armed", MAINT);
+    $("maint-banner").classList.toggle("show", MAINT);
+    $("line-lamp").classList.toggle("alarm", MAINT);
+    $("line-word").textContent = MAINT ? "线路检修" : "线路畅通";
+    if (MAINT) {
+      showToast("闸刀已扳下：下一条电文将拍发失败");
+    } else {
+      showToast("闸刀已合上：线路恢复，可重试失败的电文");
+    }
+  });
+
+  /* ---------- 初始 ---------- */
+  renderList();
+  syncSend();
+})();
+</script>
+</body>
+</html>

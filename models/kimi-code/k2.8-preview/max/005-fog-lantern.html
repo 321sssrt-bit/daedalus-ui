@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>找回密码 · 雾港通行证</title>
+<style>
+  :root{
+    --page:#1c1f24;
+    --page-deep:#15181c;
+    --surface:#2b3038;
+    --surface-2:#343a43;
+    --line:#454b55;
+    --text:#ede8de;
+    --muted:#98a0aa;
+    --accent:#d9934a;
+    --accent-deep:#c9853f;
+    --accent-pale:#e8b878;
+    --danger:#c26d5a;
+    --radius-ctl:10px;
+    --radius-card:16px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    background:var(--page);
+    color:var(--text);
+    -webkit-font-smoothing:antialiased;
+  }
+  /* 雾灰底：多层径向渐变叠出雾气 */
+  .scene{
+    position:relative;
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:220px 24px 96px;
+    background:
+      radial-gradient(640px 420px at 18% 12%, rgba(152,160,170,.10), transparent 70%),
+      radial-gradient(760px 520px at 84% 78%, rgba(152,160,170,.08), transparent 70%),
+      radial-gradient(520px 380px at 72% 18%, rgba(217,147,74,.05), transparent 70%),
+      linear-gradient(180deg, var(--page) 0%, var(--page-deep) 100%);
+    overflow:hidden;
+  }
+  /* 灯笼：悬于卡片上方居中 */
+  .lantern-wrap{
+    position:absolute;
+    top:0;
+    left:50%;
+    transform-origin:50% 0;
+    animation:swing 6s ease-in-out infinite alternate;
+    pointer-events:none;
+  }
+  @keyframes swing{
+    from{transform:translateX(-50%) rotate(-1.4deg);}
+    to{transform:translateX(-50%) rotate(1.4deg);}
+  }
+  .glow{animation:glowPulse 3.4s ease-in-out infinite alternate;}
+  @keyframes glowPulse{
+    from{opacity:.72;}
+    to{opacity:1;}
+  }
+  /* 卡片 */
+  .card{
+    position:relative;
+    z-index:2;
+    width:400px;
+    background:var(--surface);
+    border:1px solid rgba(237,232,222,.08);
+    border-radius:var(--radius-card);
+    box-shadow:0 24px 64px rgba(0,0,0,.45), 0 2px 8px rgba(0,0,0,.35);
+    padding:36px 32px 28px;
+  }
+  .brand{
+    text-align:center;
+    font-size:12px;
+    letter-spacing:.32em;
+    color:var(--muted);
+    margin-bottom:20px;
+    text-indent:.32em;
+  }
+  .title{
+    font-size:28px;
+    line-height:1.3;
+    font-weight:600;
+    text-align:center;
+  }
+  .subtitle{
+    margin-top:10px;
+    font-size:14px;
+    line-height:1.7;
+    color:var(--muted);
+    text-align:center;
+  }
+  .field{margin-top:26px;}
+  .field-label{
+    display:block;
+    font-size:13px;
+    color:var(--text);
+    margin-bottom:8px;
+  }
+  .input{
+    width:100%;
+    height:48px;
+    padding:0 14px;
+    font-size:15px;
+    color:var(--text);
+    background:var(--surface-2);
+    border:1px solid var(--line);
+    border-radius:var(--radius-ctl);
+    outline:none;
+    transition:border-color .18s ease, box-shadow .18s ease;
+  }
+  .input::placeholder{color:#6d7681;}
+  .input:focus{
+    border-color:var(--accent);
+    box-shadow:0 0 0 3px rgba(217,147,74,.22);
+  }
+  .input[aria-invalid="true"]{
+    border-color:var(--danger);
+  }
+  .input[aria-invalid="true"]:focus{
+    box-shadow:0 0 0 3px rgba(194,109,90,.22);
+  }
+  .error{
+    display:none;
+    margin-top:8px;
+    font-size:12px;
+    line-height:1.5;
+    color:var(--danger);
+  }
+  .error.show{display:block;}
+  /* 主按钮 */
+  .btn{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    width:100%;
+    height:48px;
+    margin-top:22px;
+    font-size:15px;
+    font-weight:600;
+    letter-spacing:.04em;
+    color:#1c1f24;
+    background:linear-gradient(180deg, var(--accent-pale) 0%, var(--accent) 52%, var(--accent-deep) 100%);
+    border:none;
+    border-radius:var(--radius-ctl);
+    cursor:pointer;
+    transition:filter .18s ease, transform .12s ease;
+  }
+  .btn:hover{filter:brightness(1.08);}
+  .btn:active{transform:translateY(1px);}
+  .btn:disabled{
+    cursor:not-allowed;
+    filter:saturate(.15) brightness(.82);
+    color:#4a515b;
+    background:var(--surface-2);
+    border:1px solid var(--line);
+  }
+  .btn.loading{cursor:progress;filter:brightness(1.02);}
+  .btn.loading::after{
+    content:"";
+    width:15px;
+    height:15px;
+    border:2px solid rgba(28,31,36,.30);
+    border-top-color:#1c1f24;
+    border-radius:50%;
+    animation:spin .7s linear infinite;
+  }
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .fineprint{
+    margin-top:14px;
+    font-size:12px;
+    line-height:1.6;
+    color:var(--muted);
+    text-align:center;
+  }
+  .link-btn{
+    display:block;
+    margin:20px auto 0;
+    padding:6px 10px;
+    font-size:13px;
+    color:var(--muted);
+    background:none;
+    border:none;
+    border-radius:6px;
+    cursor:pointer;
+    transition:color .18s ease;
+  }
+  .link-btn:hover{color:var(--accent-pale);}
+  .divider{
+    margin-top:22px;
+    padding-top:18px;
+    border-top:1px solid rgba(237,232,222,.08);
+  }
+  /* 等待态 */
+  .wait-icon{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    width:64px;
+    height:64px;
+    margin:6px auto 0;
+    border-radius:50%;
+    background:rgba(217,147,74,.12);
+    border:1px solid rgba(217,147,74,.35);
+  }
+  .wait-title{
+    margin-top:18px;
+    font-size:22px;
+    line-height:1.35;
+    font-weight:600;
+    text-align:center;
+  }
+  .wait-body{
+    margin-top:10px;
+    font-size:14px;
+    line-height:1.7;
+    color:var(--muted);
+    text-align:center;
+  }
+  .wait-body strong{color:var(--text);font-weight:600;}
+  .panel[hidden]{display:none;}
+  .fade-in{animation:fadeUp .34s ease both;}
+  @keyframes fadeUp{
+    from{opacity:0;transform:translateY(8px);}
+    to{opacity:1;transform:translateY(0);}
+  }
+  /* 页脚 */
+  .footer{
+    position:absolute;
+    left:0;
+    right:0;
+    bottom:22px;
+    z-index:2;
+    text-align:center;
+    font-size:12px;
+    color:#6d7681;
+    letter-spacing:.08em;
+  }
+  /* 提示条 */
+  .toast{
+    position:fixed;
+    left:50%;
+    bottom:56px;
+    transform:translateX(-50%) translateY(12px);
+    z-index:10;
+    max-width:min(90vw,420px);
+    padding:10px 18px;
+    font-size:13px;
+    line-height:1.5;
+    color:var(--text);
+    background:#3a4049;
+    border:1px solid var(--line);
+    border-radius:10px;
+    box-shadow:0 12px 32px rgba(0,0,0,.4);
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .22s ease, transform .22s ease;
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+  @media (max-width:768px){
+    .scene{padding:180px 20px 88px;}
+    .lantern-wrap{transform-origin:50% 0;}
+    .lantern-wrap svg{width:160px;height:172px;}
+    .card{width:100%;max-width:400px;padding:28px 22px 22px;}
+    .title{font-size:24px;}
+    .footer{bottom:16px;}
+  }
+  @media (prefers-reduced-motion: reduce){
+    .lantern-wrap,.glow,.btn.loading::after{animation:none;}
+    .fade-in{animation:none;}
+    .input,.btn,.link-btn,.toast{transition:none;}
+  }
+</style>
+</head>
+<body>
+<div class="scene">
+  <div class="lantern-wrap" aria-hidden="true">
+    <svg width="200" height="196" viewBox="0 0 200 196" fill="none">
+      <defs>
+        <radialGradient id="glowGrad" cx="0.5" cy="0.5" r="0.5">
+          <stop offset="0%" stop-color="#e9b266" stop-opacity="0.38"/>
+          <stop offset="55%" stop-color="#e9b266" stop-opacity="0.12"/>
+          <stop offset="100%" stop-color="#e9b266" stop-opacity="0"/>
+        </radialGradient>
+        <radialGradient id="bodyGrad" cx="0.42" cy="0.38" r="0.75">
+          <stop offset="0%" stop-color="#f2c47e"/>
+          <stop offset="62%" stop-color="#dd9c50"/>
+          <stop offset="100%" stop-color="#c9853f"/>
+        </radialGradient>
+      </defs>
+      <circle class="glow" cx="100" cy="112" r="92" fill="url(#glowGrad)"/>
+      <line x1="100" y1="0" x2="100" y2="58" stroke="#565d68" stroke-width="2"/>
+      <rect x="88" y="58" width="24" height="10" rx="4" fill="#3a3f47"/>
+      <ellipse cx="100" cy="112" rx="34" ry="44" fill="url(#bodyGrad)"/>
+      <ellipse cx="100" cy="112" rx="34" ry="44" fill="none" stroke="rgba(120,70,20,0.28)" stroke-width="1.5"/>
+      <ellipse cx="100" cy="112" rx="22" ry="44" fill="none" stroke="rgba(120,70,20,0.22)" stroke-width="1"/>
+      <ellipse cx="100" cy="112" rx="10" ry="44" fill="none" stroke="rgba(120,70,20,0.22)" stroke-width="1"/>
+      <ellipse cx="100" cy="88" rx="26" ry="10" fill="#ffffff" opacity="0.14"/>
+      <rect x="90" y="152" width="20" height="8" rx="3" fill="#3a3f47"/>
+      <line x1="100" y1="160" x2="100" y2="184" stroke="#a76f33" stroke-width="2"/>
+      <circle cx="100" cy="163" r="3.2" fill="#c9853f"/>
+    </svg>
+  </div>
+
+  <main class="card">
+    <p class="brand">雾港通行证</p>
+
+    <section class="panel" id="panel-form" aria-labelledby="form-title">
+      <h1 class="title" id="form-title">找回密码</h1>
+      <p class="subtitle">输入注册时使用的手机号或邮箱，<br>我们把重置入口发给你。</p>
+      <form id="reset-form" novalidate>
+        <div class="field">
+          <label class="field-label" for="contact">手机号或邮箱</label>
+          <input class="input" id="contact" name="contact" type="text"
+                 placeholder="例如 name@example.com 或 138 0000 0000"
+                 autocomplete="username" aria-describedby="contact-error">
+          <p class="error" id="contact-error" role="alert"></p>
+        </div>
+        <button class="btn" id="send-btn" type="submit"><span class="btn-label">发送重置入口</span></button>
+      </form>
+      <p class="fineprint">重置入口 15 分钟内有效；为保障账户安全，每小时最多发送 3 次。</p>
+      <button class="link-btn" id="back-login" type="button">← 返回登录</button>
+    </section>
+
+    <section class="panel" id="panel-wait" aria-labelledby="wait-title" hidden>
+      <div class="wait-icon" aria-hidden="true">
+        <svg width="30" height="30" viewBox="0 0 30 30" fill="none">
+          <rect x="3" y="6" width="24" height="18" rx="3" stroke="#e8b878" stroke-width="1.8"/>
+          <path d="M4 8.5 L15 16.5 L26 8.5" stroke="#e8b878" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="24.5" cy="6.5" r="4" fill="#d9934a"/>
+        </svg>
+      </div>
+      <h2 class="wait-title" id="wait-title">重置入口已发出</h2>
+      <p class="wait-body">我们已向 <strong id="wait-contact"></strong> 发送重置入口，请在 15 分钟内按提示完成重置。没收到的话，先去垃圾邮件里看看。</p>
+      <button class="btn" id="resend-btn" type="button" disabled><span class="btn-label">60 秒后可重新发送</span></button>
+      <div class="divider">
+        <button class="link-btn" id="back-login-wait" type="button">← 返回登录</button>
+      </div>
+    </section>
+  </main>
+
+  <p class="footer">雾港通行证 · 安全中心</p>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+  "use strict";
+  var TOTAL = 60;
+  var formPanel = document.getElementById("panel-form");
+  var waitPanel = document.getElementById("panel-wait");
+  var form = document.getElementById("reset-form");
+  var input = document.getElementById("contact");
+  var errorEl = document.getElementById("contact-error");
+  var sendBtn = document.getElementById("send-btn");
+  var sendLabel = sendBtn.querySelector(".btn-label");
+  var waitContact = document.getElementById("wait-contact");
+  var resendBtn = document.getElementById("resend-btn");
+  var resendLabel = resendBtn.querySelector(".btn-label");
+  var toast = document.getElementById("toast");
+  var timer = null;
+  var toastTimer = null;
+
+  function validate(v){
+    var phone = /^1[3-9]\d{9}$/;
+    var email = /^[\w.+-]+@[\w-]+(\.[\w-]+)+$/;
+    return phone.test(v) || email.test(v);
+  }
+
+  function maskContact(v){
+    if(/^1[3-9]\d{9}$/.test(v)){
+      return v.slice(0,3) + "****" + v.slice(7);
+    }
+    var at = v.indexOf("@");
+    var name = v.slice(0, at);
+    var domain = v.slice(at);
+    if(name.length <= 2){ return name[0] + "***" + domain; }
+    return name[0] + "***" + name[name.length-1] + domain;
+  }
+
+  function showError(msg){
+    errorEl.textContent = msg;
+    errorEl.classList.add("show");
+    input.setAttribute("aria-invalid","true");
+  }
+  function clearError(){
+    errorEl.textContent = "";
+    errorEl.classList.remove("show");
+    input.removeAttribute("aria-invalid");
+  }
+
+  function showToast(msg){
+    toast.textContent = msg;
+    toast.classList.add("show");
+    if(toastTimer){ clearTimeout(toastTimer); }
+    toastTimer = setTimeout(function(){ toast.classList.remove("show"); }, 2600);
+  }
+
+  function startCountdown(){
+    var n = TOTAL;
+    resendBtn.disabled = true;
+    resendLabel.textContent = n + " 秒后可重新发送";
+    if(timer){ clearInterval(timer); }
+    timer = setInterval(function(){
+      n -= 1;
+      if(n <= 0){
+        clearInterval(timer);
+        timer = null;
+        resendLabel.textContent = "重新发送";
+        resendBtn.disabled = false;
+      }else{
+        resendLabel.textContent = n + " 秒后可重新发送";
+      }
+    }, 1000);
+  }
+
+  function enterWaiting(v){
+    waitContact.textContent = maskContact(v);
+    formPanel.hidden = true;
+    waitPanel.hidden = false;
+    waitPanel.classList.remove("fade-in");
+    void waitPanel.offsetWidth;
+    waitPanel.classList.add("fade-in");
+    startCountdown();
+  }
+
+  function doSend(done){
+    sendBtn.classList.add("loading");
+    sendBtn.disabled = true;
+    sendLabel.textContent = "发送中…";
+    setTimeout(function(){
+      sendBtn.classList.remove("loading");
+      sendBtn.disabled = false;
+      sendLabel.textContent = "发送重置入口";
+      done();
+    }, 900);
+  }
+
+  form.addEventListener("submit", function(e){
+    e.preventDefault();
+    var v = input.value.replace(/\s+/g,"");
+    if(!validate(v)){
+      showError("请输入有效的 11 位手机号或邮箱地址");
+      input.focus();
+      return;
+    }
+    clearError();
+    doSend(function(){ enterWaiting(v); });
+  });
+
+  input.addEventListener("input", function(){
+    if(input.getAttribute("aria-invalid")){ clearError(); }
+  });
+
+  resendBtn.addEventListener("click", function(){
+    if(resendBtn.disabled){ return; }
+    resendBtn.classList.add("loading");
+    resendBtn.disabled = true;
+    resendLabel.textContent = "发送中…";
+    setTimeout(function(){
+      resendBtn.classList.remove("loading");
+      resendLabel.textContent = "已重新发送";
+      showToast("重置入口已重新发送，请查收");
+      setTimeout(startCountdown, 900);
+    }, 900);
+  });
+
+  var backBtns = [document.getElementById("back-login"), document.getElementById("back-login-wait")];
+  backBtns.forEach(function(b){
+    b.addEventListener("click", function(){
+      showToast("本题仅演示找回流程，未连接登录页");
+    });
+  });
+})();
+</script>
+</body>
+</html>

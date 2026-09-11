@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>潮信控制台 · 今日甲板</title>
+<style>
+  :root {
+    --page: #0a1424;
+    --surface: #12233d;
+    --surface-2: #182a49;
+    --line: #27405f;
+    --line-soft: #1c3050;
+    --text: #e9eff8;
+    --muted: #8ea1bd;
+    --brass: #c9a445;
+    --brass-deep: #9c7a2e;
+    --brass-soft: rgba(201, 164, 69, .14);
+    --ok: #4cc38a;
+    --danger: #e0665f;
+    --sky: #6db3f2;
+    --font: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Segoe UI", system-ui, sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body { height: 100%; }
+
+  body {
+    font-family: var(--font);
+    color: var(--text);
+    background:
+      radial-gradient(1100px 700px at 78% -12%, #14294a 0%, transparent 58%),
+      repeating-linear-gradient(0deg, rgba(141, 161, 189, .045) 0 1px, transparent 1px 56px),
+      repeating-linear-gradient(90deg, rgba(141, 161, 189, .045) 0 1px, transparent 1px 56px),
+      var(--page);
+    overflow: hidden;
+    font-variant-numeric: tabular-nums;
+  }
+
+  button { font-family: var(--font); cursor: pointer; }
+  button:disabled { cursor: default; }
+
+  /* ---------- 应用骨架 ---------- */
+  #app { display: flex; height: 100vh; }
+
+  #sidebar {
+    width: 216px;
+    flex: none;
+    display: flex;
+    flex-direction: column;
+    background: linear-gradient(180deg, #0c1830 0%, var(--page) 100%);
+    border-right: 1px solid var(--line);
+    padding: 18px 12px 14px;
+    gap: 18px;
+  }
+
+  #brand { display: flex; align-items: center; gap: 10px; padding: 2px 8px; }
+  #brand-mark {
+    width: 34px; height: 34px; flex: none;
+    border: 1px solid var(--brass);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--brass);
+  }
+  #brand-name { font-size: 15px; font-weight: 600; letter-spacing: .06em; }
+  #brand-sub { font-size: 10px; color: var(--muted); letter-spacing: .22em; margin-top: 1px; }
+
+  #side-nav { display: flex; flex-direction: column; gap: 4px; }
+
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    width: 100%;
+    padding: 9px 10px;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--muted);
+    font-size: 13px;
+    text-align: left;
+    transition: background .18s ease, color .18s ease, border-color .18s ease;
+  }
+  .nav-item svg { flex: none; opacity: .85; }
+  .nav-item:hover { background: var(--surface); color: var(--text); }
+  .nav-item.active {
+    background: var(--brass-soft);
+    border-color: rgba(201, 164, 69, .45);
+    color: var(--brass);
+    font-weight: 600;
+  }
+  .nav-badge {
+    margin-left: auto;
+    min-width: 20px; height: 18px;
+    padding: 0 6px;
+    border-radius: 9px;
+    background: var(--danger);
+    color: #fff;
+    font-size: 11px;
+    line-height: 18px;
+    text-align: center;
+  }
+  .nav-badge.quiet { background: var(--surface-2); color: var(--muted); border: 1px solid var(--line); }
+
+  #side-foot {
+    margin-top: auto;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--surface);
+    padding: 12px;
+    font-size: 12px;
+    line-height: 1.7;
+    color: var(--muted);
+  }
+  #side-foot strong { display: block; color: var(--text); font-size: 13px; font-weight: 600; }
+  #side-foot .duty-tag {
+    display: inline-block;
+    margin-top: 6px;
+    padding: 1px 8px;
+    border: 1px solid rgba(201, 164, 69, .5);
+    border-radius: 999px;
+    color: var(--brass);
+    font-size: 11px;
+  }
+
+  #main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+
+  /* ---------- 顶栏 ---------- */
+  #topbar {
+    height: 60px;
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    padding: 0 24px;
+    border-bottom: 1px solid var(--line);
+    background: rgba(12, 24, 48, .55);
+  }
+  #crumb { font-size: 13px; color: var(--muted); white-space: nowrap; }
+  #crumb strong { color: var(--brass); font-weight: 600; }
+  #shift-info { font-size: 12px; color: var(--muted); white-space: nowrap; }
+  #top-actions { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+
+  #search-box {
+    display: flex; align-items: center; gap: 8px;
+    width: 240px; height: 34px;
+    padding: 0 12px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--muted);
+  }
+  #search-box input {
+    flex: 1; min-width: 0;
+    border: 0; outline: 0;
+    background: transparent;
+    color: var(--text);
+    font-size: 13px;
+    font-family: var(--font);
+  }
+  #search-box input::placeholder { color: var(--muted); }
+  #search-box:focus-within { border-color: var(--brass); }
+
+  #bell-btn {
+    position: relative;
+    width: 36px; height: 36px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--muted);
+    display: flex; align-items: center; justify-content: center;
+    transition: color .18s ease, border-color .18s ease;
+  }
+  #bell-btn:hover { color: var(--brass); border-color: rgba(201, 164, 69, .5); }
+  #bell-count {
+    position: absolute; top: -6px; right: -6px;
+    min-width: 18px; height: 18px;
+    padding: 0 5px;
+    border-radius: 9px;
+    background: var(--danger);
+    color: #fff;
+    font-size: 11px; line-height: 18px; text-align: center;
+  }
+
+  #avatar {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 13px; color: var(--text);
+    white-space: nowrap;
+  }
+  #avatar-mark {
+    width: 30px; height: 30px; border-radius: 50%;
+    border: 1px solid var(--brass);
+    background: var(--brass-soft);
+    color: var(--brass);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 600;
+  }
+
+  /* ---------- 内容区 ---------- */
+  #content { flex: 1; overflow-y: auto; padding: 20px 24px 28px; }
+
+  .view { display: none; }
+  .view.active { display: block; animation: view-in .22s ease; }
+
+  @keyframes view-in {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+  }
+
+  .panel-head {
+    display: flex; align-items: center; gap: 10px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .panel-title { font-size: 13px; font-weight: 600; letter-spacing: .08em; }
+  .panel-title::before {
+    content: "";
+    display: inline-block;
+    width: 6px; height: 6px;
+    margin-right: 8px;
+    background: var(--brass);
+    transform: rotate(45deg);
+  }
+  .panel-extra { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+
+  .link-btn {
+    border: 0; background: transparent;
+    color: var(--sky);
+    font-size: 12px;
+    padding: 4px 2px;
+  }
+  .link-btn:hover { text-decoration: underline; }
+
+  /* ---------- 数字仪表行 ---------- */
+  #stat-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  .stat {
+    position: relative;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 14px 16px 12px;
+    min-height: 158px;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .stat::before, .stat::after {
+    content: "";
+    position: absolute;
+    width: 12px; height: 12px;
+    pointer-events: none;
+  }
+  .stat::before { top: 7px; left: 7px; border-top: 1px solid var(--brass); border-left: 1px solid var(--brass); }
+  .stat::after { bottom: 7px; right: 7px; border-bottom: 1px solid var(--brass); border-right: 1px solid var(--brass); }
+
+  .stat-label { font-size: 12px; letter-spacing: .14em; color: var(--muted); }
+  .stat-value { font-size: 30px; line-height: 1.1; font-weight: 600; letter-spacing: .01em; }
+  .stat-value small { font-size: 13px; font-weight: 400; color: var(--muted); margin-left: 4px; }
+  .stat-delta { font-size: 12px; display: flex; align-items: center; gap: 6px; }
+  .stat-delta.up { color: var(--ok); }
+  .stat-delta.down { color: var(--danger); }
+  .stat-delta .ref { color: var(--muted); }
+  .stat-foot { margin-top: auto; display: flex; align-items: flex-end; justify-content: space-between; gap: 10px; }
+  .spark { display: block; }
+  .stat-note { font-size: 11px; color: var(--muted); text-align: right; line-height: 1.5; }
+
+  /* ---------- 下方双栏 ---------- */
+  #dash-lower {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 330px;
+    gap: 14px;
+    margin-top: 14px;
+  }
+
+  /* 队列 */
+  .chip-row { display: flex; align-items: center; gap: 8px; }
+  .chip {
+    padding: 4px 12px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--muted);
+    font-size: 12px;
+    transition: color .18s ease, border-color .18s ease, background .18s ease;
+  }
+  .chip:hover { color: var(--text); border-color: var(--muted); }
+  .chip.active {
+    background: var(--brass-soft);
+    border-color: rgba(201, 164, 69, .55);
+    color: var(--brass);
+    font-weight: 600;
+  }
+
+  .qhead, .qrow {
+    display: grid;
+    grid-template-columns: 96px minmax(0, 1.3fr) 60px 62px minmax(110px, .9fr) 92px;
+    align-items: center;
+    gap: 12px;
+    padding: 0 16px;
+  }
+  .qhead {
+    height: 36px;
+    font-size: 11px;
+    letter-spacing: .1em;
+    color: var(--muted);
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .qrow {
+    min-height: 58px;
+    border-bottom: 1px solid var(--line-soft);
+    font-size: 13px;
+    transition: background .15s ease;
+  }
+  .qrow:last-child { border-bottom: 0; }
+  .qrow:hover { background: var(--surface-2); }
+  .qrow.is-done { opacity: .5; }
+
+  .st {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 12px; white-space: nowrap;
+  }
+  .st::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+  .st.wait { color: var(--sky); }
+  .st.working { color: var(--brass); }
+  .st.done { color: var(--ok); }
+  .st.delay { color: var(--danger); }
+
+  .ship-main { min-width: 0; }
+  .ship-name { font-weight: 600; font-size: 13px; }
+  .ship-cargo { font-size: 12px; color: var(--muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .cell-pier, .cell-eta { font-size: 13px; color: var(--text); }
+  .cell-eta.late { color: var(--danger); }
+
+  .prog { display: flex; align-items: center; gap: 8px; min-width: 0; }
+  .prog-track { flex: 1; height: 4px; border-radius: 2px; background: var(--line-soft); overflow: hidden; }
+  .prog-fill { height: 100%; border-radius: 2px; background: var(--brass); transition: width .4s ease; }
+  .prog-fill.done { background: var(--ok); }
+  .prog-num { font-size: 12px; color: var(--muted); width: 34px; text-align: right; }
+
+  .row-btn {
+    height: 28px;
+    padding: 0 10px;
+    border-radius: 6px;
+    border: 1px solid rgba(201, 164, 69, .55);
+    background: transparent;
+    color: var(--brass);
+    font-size: 12px;
+    transition: background .18s ease, color .18s ease;
+  }
+  .row-btn:hover { background: var(--brass-soft); }
+  .row-btn.ghost { border-color: var(--line); color: var(--muted); }
+  .row-btn.ghost:hover { color: var(--text); background: var(--surface-2); }
+  .row-btn:disabled { border-color: var(--line); color: var(--muted); background: transparent; opacity: .7; }
+
+  .queue-empty {
+    padding: 32px 16px;
+    text-align: center;
+    color: var(--muted);
+    font-size: 13px;
+  }
+
+  /* 右侧仪表栏 */
+  #rail { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+
+  #weather { display: flex; gap: 14px; padding: 14px 16px; align-items: center; }
+  #compass-wrap { position: relative; width: 96px; height: 96px; flex: none; }
+  #compass-ring { position: absolute; inset: 0; border: 1px solid var(--line); border-radius: 50%; }
+  #compass-ring::before {
+    content: ""; position: absolute; inset: 6px;
+    border: 1px dashed var(--line-soft); border-radius: 50%;
+  }
+  #needle {
+    position: absolute; left: 50%; top: 50%;
+    width: 2px; height: 64px;
+    margin: -32px 0 0 -1px;
+    transform-origin: 50% 50%;
+    transition: transform 1.2s cubic-bezier(.3, .9, .3, 1);
+  }
+  #needle::before {
+    content: ""; position: absolute; top: 0; left: 0;
+    border-left: 5px solid transparent; border-right: 5px solid transparent;
+    border-bottom: 30px solid var(--brass);
+    transform: translateX(-4px);
+  }
+  #needle::after {
+    content: ""; position: absolute; bottom: 0; left: 0;
+    border-left: 5px solid transparent; border-right: 5px solid transparent;
+    border-top: 26px solid var(--line);
+    transform: translateX(-4px);
+  }
+  .compass-n {
+    position: absolute; top: 8px; left: 50%; transform: translateX(-50%);
+    font-size: 10px; color: var(--brass); letter-spacing: .1em;
+  }
+  #weather-data { flex: 1; min-width: 0; font-size: 12px; }
+  .wrow { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px dashed var(--line-soft); }
+  .wrow:last-child { border-bottom: 0; }
+  .wrow span:first-child { color: var(--muted); }
+  .wrow b { font-weight: 600; color: var(--text); }
+
+  #alerts-mini .mini-alert, .alert-row { display: flex; gap: 10px; padding: 10px 16px; border-bottom: 1px solid var(--line-soft); font-size: 12px; line-height: 1.6; }
+  .mini-alert:last-child { border-bottom: 0; }
+  .sev { flex: none; width: 34px; height: 18px; line-height: 18px; text-align: center; border-radius: 4px; font-size: 11px; margin-top: 1px; }
+  .sev.high { background: rgba(224, 102, 95, .16); color: var(--danger); border: 1px solid rgba(224, 102, 95, .5); }
+  .sev.mid { background: rgba(201, 164, 69, .14); color: var(--brass); border: 1px solid rgba(201, 164, 69, .5); }
+  .alert-text { color: var(--text); }
+  .alert-text em { display: block; font-style: normal; color: var(--muted); }
+
+  #logbook ul { list-style: none; padding: 10px 16px 12px; }
+  #logbook li { display: flex; gap: 10px; padding: 6px 0; font-size: 12px; line-height: 1.6; border-bottom: 1px dashed var(--line-soft); }
+  #logbook li:last-child { border-bottom: 0; }
+  #logbook time { flex: none; color: var(--brass); font-variant-numeric: tabular-nums; }
+  #logbook span { color: var(--muted); }
+
+  /* ---------- 全宽队列 / 告警视图 ---------- */
+  .view-wide { display: flex; flex-direction: column; gap: 14px; }
+
+  .alert-row { align-items: flex-start; padding: 14px 16px; }
+  .alert-row.acked { opacity: .45; }
+  .alert-body { flex: 1; min-width: 0; }
+  .alert-title { font-size: 13px; font-weight: 600; color: var(--text); }
+  .alert-desc { font-size: 12px; color: var(--muted); margin-top: 3px; line-height: 1.6; }
+  .alert-time { flex: none; font-size: 11px; color: var(--muted); }
+
+  .subhead {
+    font-size: 12px; letter-spacing: .12em; color: var(--muted);
+    margin: 6px 2px 0;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .subhead::after { content: ""; flex: 1; height: 1px; background: var(--line-soft); }
+
+  /* ---------- 吞吐海图 ---------- */
+  #chart-panel { padding: 16px; }
+  #chart-bars {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    align-items: end;
+    gap: 14px;
+    height: 240px;
+    margin-top: 14px;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 0;
+  }
+  .bar-col { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 8px; height: 100%; }
+  .bar-val { font-size: 11px; color: var(--muted); }
+  .bar {
+    width: 100%; max-width: 56px;
+    background: linear-gradient(180deg, var(--brass) 0%, var(--brass-deep) 100%);
+    border-radius: 4px 4px 0 0;
+    transition: height .5s ease;
+    min-height: 4px;
+  }
+  .bar.today { background: linear-gradient(180deg, var(--sky) 0%, #3a78b8 100%); }
+  #chart-x { display: grid; grid-template-columns: repeat(7, 1fr); gap: 14px; margin-top: 8px; }
+  #chart-x span { text-align: center; font-size: 12px; color: var(--muted); }
+  #chart-x span.today { color: var(--sky); font-weight: 600; }
+
+  /* ---------- 响应式 ---------- */
+  @media (max-width: 900px) {
+    #sidebar { width: 64px; padding: 18px 8px 14px; }
+    #brand-name, #brand-sub, .nav-text, #side-foot { display: none; }
+    #brand { justify-content: center; padding: 0; }
+    .nav-item { justify-content: center; padding: 10px 0; }
+    .nav-badge { position: absolute; margin-left: 0; transform: translate(14px, -10px); }
+    .nav-item { position: relative; }
+    #topbar { gap: 12px; padding: 0 16px; }
+    #search-box { width: 160px; }
+    #shift-info { display: none; }
+    #content { padding: 14px 14px 20px; }
+    #stat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    #dash-lower { grid-template-columns: 1fr; }
+    .qhead, .qrow { grid-template-columns: 88px minmax(0, 1fr) 56px minmax(100px, .8fr) 84px; }
+    .qhead .h-eta, .cell-eta { display: none; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: .01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: .01ms !important;
+    }
+    #needle { transition: none; }
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <aside id="sidebar">
+    <div id="brand">
+      <div id="brand-mark" aria-hidden="true">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+          <path d="M9 1 L11 9 L9 17 L7 9 Z" fill="currentColor"/>
+          <path d="M2 9 H16" stroke="currentColor" stroke-width="1"/>
+        </svg>
+      </div>
+      <div>
+        <div id="brand-name">潮信控制台</div>
+        <div id="brand-sub">HARBOURLOG</div>
+      </div>
+    </div>
+
+    <nav id="side-nav" aria-label="主导航">
+      <button type="button" class="nav-item active" data-view="dash">
+        <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><rect x="1" y="1" width="5.5" height="5.5" rx="1" stroke="currentColor"/><rect x="8.5" y="1" width="5.5" height="5.5" rx="1" stroke="currentColor"/><rect x="1" y="8.5" width="5.5" height="5.5" rx="1" stroke="currentColor"/><rect x="8.5" y="8.5" width="5.5" height="5.5" rx="1" stroke="currentColor"/></svg>
+        <span class="nav-text">今日甲板</span>
+      </button>
+      <button type="button" class="nav-item" data-view="queue">
+        <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><path d="M1.5 3.5 H13.5 M1.5 7.5 H13.5 M1.5 11.5 H9" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+        <span class="nav-text">船期队列</span>
+        <span class="nav-badge quiet" id="queue-badge">5</span>
+      </button>
+      <button type="button" class="nav-item" data-view="alerts">
+        <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><path d="M7.5 1.8 L13 12.2 H2 Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="M7.5 6 V8.8" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><circle cx="7.5" cy="10.6" r=".9" fill="currentColor"/></svg>
+        <span class="nav-text">告警舱</span>
+        <span class="nav-badge" id="alert-badge">3</span>
+      </button>
+      <button type="button" class="nav-item" data-view="chart">
+        <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><path d="M2 13 V8 M6 13 V4 M10 13 V6.5 M14 13 V2.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+        <span class="nav-text">吞吐海图</span>
+      </button>
+    </nav>
+
+    <div id="side-foot">
+      <strong>甲班 · 值班主任</strong>
+      陈砚舟 当值
+      <br>交班时间 18:00
+      <span class="duty-tag">当值中</span>
+    </div>
+  </aside>
+
+  <div id="main">
+    <header id="topbar">
+      <div id="crumb">潮信港调度室 / <strong id="crumb-current">今日甲板</strong></div>
+      <div id="shift-info"><span id="today-line">—</span> · 班次甲班 · 气象东南风 6.4 m/s</div>
+      <div id="top-actions">
+        <label id="search-box">
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="5.5" cy="5.5" r="4" stroke="currentColor" stroke-width="1.3"/><path d="M8.8 8.8 L12 12" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+          <input type="search" placeholder="搜索船名、泊位、作业单号" aria-label="搜索">
+        </label>
+        <button type="button" id="bell-btn" aria-label="告警提醒">
+          <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><path d="M7.5 1.6 C4.7 1.6 3.4 3.8 3.4 6.2 C3.4 9.6 2.2 10.8 1.6 11.4 H13.4 C12.8 10.8 11.6 9.6 11.6 6.2 C11.6 3.8 10.3 1.6 7.5 1.6 Z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/><path d="M6 13.2 C6.3 13.9 6.8 14.2 7.5 14.2 C8.2 14.2 8.7 13.9 9 13.2" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+          <span id="bell-count">3</span>
+        </button>
+        <div id="avatar">
+          <span id="avatar-mark">陈</span>
+          <span>陈砚舟</span>
+        </div>
+      </div>
+    </header>
+
+    <main id="content">
+      <!-- 视图一：今日甲板 -->
+      <section class="view active" id="view-dash" aria-label="今日甲板">
+        <div id="stat-grid">
+          <div class="stat" id="stat-berth">
+            <div class="stat-label">今日靠泊</div>
+            <div class="stat-value"><span id="v-berth">17</span><small>艘次</small></div>
+            <div class="stat-delta up">▲ 较昨日 +3 <span class="ref">昨日 14</span></div>
+            <div class="stat-foot">
+              <svg class="spark" width="104" height="28" viewBox="0 0 104 28" fill="none" aria-hidden="true">
+                <polyline points="0,20 15,17 30,19 45,12 60,14 75,8 90,10 104,4" stroke="#c9a445" stroke-width="1.6" stroke-linecap="round"/>
+              </svg>
+              <div class="stat-note">全港 7 个生产性泊位</div>
+            </div>
+          </div>
+          <div class="stat" id="stat-dep">
+            <div class="stat-label">今日离泊</div>
+            <div class="stat-value"><span id="v-dep">18</span><small>艘次</small></div>
+            <div class="stat-delta down">▼ 较昨日 −2 <span class="ref">昨日 20</span></div>
+            <div class="stat-foot">
+              <svg class="spark" width="104" height="28" viewBox="0 0 104 28" fill="none" aria-hidden="true">
+                <polyline points="0,8 15,12 30,9 45,14 60,11 75,16 90,13 104,18" stroke="#e0665f" stroke-width="1.6" stroke-linecap="round"/>
+              </svg>
+              <div class="stat-note">平均在港停时 11.6 h</div>
+            </div>
+          </div>
+          <div class="stat" id="stat-work">
+            <div class="stat-label">在港作业</div>
+            <div class="stat-value"><span id="v-work">2</span><small>艘</small></div>
+            <div class="stat-delta up"><span class="ref">作业船舶实时计数</span></div>
+            <div class="stat-foot">
+              <svg class="spark" width="104" height="28" viewBox="0 0 104 28" fill="none" aria-hidden="true">
+                <polyline points="0,22 15,18 30,20 45,15 60,17 75,13 90,15 104,12" stroke="#6db3f2" stroke-width="1.6" stroke-linecap="round"/>
+              </svg>
+              <div class="stat-note">含 1 艘滚装、1 艘散货</div>
+            </div>
+          </div>
+          <div class="stat" id="stat-ton">
+            <div class="stat-label">今日吞吐</div>
+            <div class="stat-value"><span id="v-ton">12,480</span><small>吨</small></div>
+            <div class="stat-delta up">▲ 较昨日 +12.6% <span class="ref">昨日 11,086 吨</span></div>
+            <div class="stat-foot">
+              <button type="button" class="row-btn" id="recal-btn">校准罗经</button>
+              <div class="stat-note" id="ton-note">统计截至 <span id="ton-clock">10:24</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div id="dash-lower">
+          <div class="panel" id="queue-panel">
+            <div class="panel-head">
+              <div class="panel-title">今日作业队列</div>
+              <div class="panel-extra">
+                <button type="button" class="link-btn" data-goto="queue">进入船期队列 →</button>
+              </div>
+            </div>
+            <div class="qhead" aria-hidden="true">
+              <span>状态</span><span>船名 / 货类</span><span>泊位</span><span class="h-eta">预抵</span><span>进度</span><span>操作</span>
+            </div>
+            <div id="queue-preview"></div>
+          </div>
+
+          <div id="rail">
+            <div class="panel" id="weather">
+              <div id="compass-wrap" aria-hidden="true">
+                <div id="compass-ring"></div>
+                <div class="compass-n">N</div>
+                <div id="needle"></div>
+              </div>
+              <div id="weather-data">
+                <div class="wrow"><span>风向风速</span><b>东南 6.4 m/s</b></div>
+                <div class="wrow"><span>浪高</span><b>0.8 m</b></div>
+                <div class="wrow"><span>能见度</span><b>12 nm</b></div>
+              </div>
+            </div>
+
+            <div class="panel" id="alerts-mini">
+              <div class="panel-head">
+                <div class="panel-title">告警速览</div>
+                <div class="panel-extra">
+                  <button type="button" class="link-btn" data-goto="alerts">告警舱 →</button>
+                </div>
+              </div>
+              <div id="alerts-mini-list"></div>
+            </div>
+
+            <div class="panel" id="logbook">
+              <div class="panel-head"><div class="panel-title">值班日志</div></div>
+              <ul>
+                <li><time>07:50</time><span>夜班交接完成，无遗留事项</span></li>
+                <li><time>09:25</time><span>3# 泊位龙门吊 2# 恢复作业</span></li>
+                <li><time>10:05</time><span>调度会：午后风浪加大，注意小型船靠泊窗口</span></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 视图二：船期队列 -->
+      <section class="view" id="view-queue" aria-label="船期队列">
+        <div class="view-wide">
+          <div class="panel">
+            <div class="panel-head">
+              <div class="panel-title">船期作业队列</div>
+              <div class="panel-extra">
+                <div class="chip-row" id="queue-chips">
+                  <button type="button" class="chip active" data-filter="all">全部</button>
+                  <button type="button" class="chip" data-filter="wait">待靠泊</button>
+                  <button type="button" class="chip" data-filter="working">作业中</button>
+                  <button type="button" class="chip" data-filter="delay">延误</button>
+                  <button type="button" class="chip" data-filter="done">已完成</button>
+                </div>
+              </div>
+            </div>
+            <div class="qhead" aria-hidden="true">
+              <span>状态</span><span>船名 / 货类</span><span>泊位</span><span class="h-eta">预抵</span><span>进度</span><span>操作</span>
+            </div>
+            <div id="queue-full"></div>
+          </div>
+          <div class="subhead">操作说明：「确认靠泊」将船只转入作业中并计入今日靠泊；「结办」归档该船并更新在港作业数</div>
+        </div>
+      </section>
+
+      <!-- 视图三：告警舱 -->
+      <section class="view" id="view-alerts" aria-label="告警舱">
+        <div class="view-wide">
+          <div class="panel">
+            <div class="panel-head"><div class="panel-title">待确认告警</div></div>
+            <div id="alerts-open"></div>
+          </div>
+          <div class="subhead">已确认</div>
+          <div class="panel">
+            <div id="alerts-closed"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 视图四：吞吐海图 -->
+      <section class="view" id="view-chart" aria-label="吞吐海图">
+        <div class="panel" id="chart-panel">
+          <div class="panel-head" style="padding: 0 0 4px; border-bottom: 0;">
+            <div class="panel-title">近 7 日吞吐海图</div>
+            <div class="panel-extra"><span style="font-size:12px;color:var(--muted)">单位：吨 / 日</span></div>
+          </div>
+          <div id="chart-bars"></div>
+          <div id="chart-x"></div>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+  var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  /* ---------- 数据 ---------- */
+  var ships = [
+    { id: 1, name: "弘远 17",  cargo: "集装箱 · 1,240 TEU", pier: "3#", eta: "08:30", status: "working", prog: 62 },
+    { id: 2, name: "蓝鲸 9",   cargo: "散货 · 8,600 吨",     pier: "5#", eta: "09:10", status: "working", prog: 35 },
+    { id: 3, name: "海沣 223", cargo: "滚装 · 320 辆",       pier: "1#", eta: "10:40", status: "wait",    prog: 0 },
+    { id: 4, name: "鹭岛之星", cargo: "客运 · 1,050 人",     pier: "2#", eta: "11:15", status: "wait",    prog: 0 },
+    { id: 5, name: "远洋 68",  cargo: "集装箱 · 980 TEU",    pier: "4#", eta: "13:20", status: "wait",    prog: 0 },
+    { id: 6, name: "瀚潮 5",   cargo: "油化 · 4,200 吨",     pier: "6#", eta: "14:05", status: "delay",   prog: 0 },
+    { id: 7, name: "宁舟 12",  cargo: "散货 · 5,300 吨",     pier: "5#", eta: "15:30", status: "wait",    prog: 0 }
+  ];
+
+  var alerts = [
+    { id: 1, sev: "high", title: "6# 泊位计划冲突", desc: "油化船「瀚潮 5」受涌浪影响延误约 45 分钟，与 15:00 引航窗口重叠。", time: "10:12", acked: false },
+    { id: 2, sev: "mid",  title: "2# 库场堆存率 92%", desc: "冷藏箱堆存接近上限，建议加快疏港或启用 4# 备用库场。", time: "09:48", acked: false },
+    { id: 3, sev: "mid",  title: "东防波堤风力偏高", desc: "实测风速 9.8 m/s，小型船靠离泊作业已加挂限制信号。", time: "09:05", acked: false }
+  ];
+
+  var week = [
+    { label: "周五", tons: 10820 }, { label: "周六", tons: 9640 },
+    { label: "周日", tons: 11260 }, { label: "周一", tons: 12480 },
+    { label: "周二", tons: 11890 }, { label: "周三", tons: 13075 },
+    { label: "今日", tons: 12480, today: true }
+  ];
+
+  var STATUS = {
+    wait:    { cls: "wait",    label: "待靠泊" },
+    working: { cls: "working", label: "作业中" },
+    done:    { cls: "done",    label: "已完成" },
+    delay:   { cls: "delay",   label: "延误" }
+  };
+
+  /* ---------- 工具 ---------- */
+  function $(id) { return document.getElementById(id); }
+  function fmt(n) { return n.toLocaleString("zh-Hans-CN"); }
+  function el(tag, cls, text) {
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text !== undefined) n.textContent = text;
+    return n;
+  }
+
+  /* ---------- 船期队列渲染 ---------- */
+  function shipAction(s) {
+    if (s.status === "wait")    return { label: "确认靠泊", kind: "primary" };
+    if (s.status === "delay")   return { label: "改排窗口", kind: "ghost" };
+    if (s.status === "working") return { label: "结办", kind: "primary" };
+    return { label: "已结办", kind: "disabled" };
+  }
+
+  function renderShipRow(s) {
+    var st = STATUS[s.status];
+    var row = el("div", "qrow" + (s.status === "done" ? " is-done" : ""));
+    row.appendChild(el("span", "st " + st.cls, st.label));
+
+    var main = el("div", "ship-main");
+    main.appendChild(el("div", "ship-name", s.name));
+    main.appendChild(el("div", "ship-cargo", s.cargo));
+    row.appendChild(main);
+
+    row.appendChild(el("span", "cell-pier", s.pier + " 泊位"));
+
+    var eta = el("span", "cell-eta" + (s.status === "delay" ? " late" : ""), s.eta);
+    if (s.status === "delay") eta.textContent = s.eta + " · 延 45 分";
+    row.appendChild(eta);
+
+    var prog = el("div", "prog");
+    var track = el("div", "prog-track");
+    var fill = el("div", "prog-fill" + (s.status === "done" ? " done" : ""));
+    fill.style.width = s.prog + "%";
+    track.appendChild(fill);
+    prog.appendChild(track);
+    prog.appendChild(el("span", "prog-num", s.prog + "%"));
+    row.appendChild(prog);
+
+    var act = shipAction(s);
+    var btn = el("button", "row-btn" + (act.kind === "ghost" ? " ghost" : ""), act.label);
+    btn.type = "button";
+    if (act.kind === "disabled") btn.disabled = true;
+    btn.addEventListener("click", function () { onShipAction(s.id); });
+    row.appendChild(btn);
+    return row;
+  }
+
+  function renderQueue() {
+    var open = ships.filter(function (s) { return s.status !== "done"; });
+    $("queue-badge").textContent = open.length;
+
+    var prev = $("queue-preview");
+    prev.textContent = "";
+    open.slice(0, 5).forEach(function (s) { prev.appendChild(renderShipRow(s)); });
+
+    var full = $("queue-full");
+    full.textContent = "";
+    var filter = document.querySelector("#queue-chips .chip.active");
+    var f = filter ? filter.getAttribute("data-filter") : "all";
+    var list = f === "all" ? ships : ships.filter(function (s) { return s.status === f; });
+    if (list.length === 0) {
+      full.appendChild(el("div", "queue-empty", "当前筛选下没有船只，切换上方筛选查看其它状态。"));
+    } else {
+      list.forEach(function (s) { full.appendChild(renderShipRow(s)); });
+    }
+  }
+
+  function onShipAction(id) {
+    var s = ships.filter(function (x) { return x.id === id; })[0];
+    if (!s) return;
+    if (s.status === "wait") {
+      s.status = "working";
+      s.prog = 12 + Math.floor(Math.random() * 18);
+      pushLog(s.name + " 已靠泊 " + s.pier + " 泊位，开始作业");
+    } else if (s.status === "delay") {
+      s.status = "wait";
+      pushLog(s.name + " 已改排至 15:50 引航窗口");
+    } else if (s.status === "working") {
+      s.status = "done";
+      s.prog = 100;
+      pushLog(s.name + " 作业结办，单船吞吐计入今日总量");
+    }
+    renderAll();
+  }
+
+  /* ---------- 告警渲染 ---------- */
+  function renderAlerts() {
+    var openList = alerts.filter(function (a) { return !a.acked; });
+    var closedList = alerts.filter(function (a) { return a.acked; });
+
+    $("alert-badge").textContent = openList.length;
+    $("alert-badge").style.display = openList.length ? "" : "none";
+    $("bell-count").textContent = openList.length;
+    $("bell-count").style.display = openList.length ? "" : "none";
+
+    var mini = $("alerts-mini-list");
+    mini.textContent = "";
+    if (openList.length === 0) {
+      mini.appendChild(el("div", "mini-alert", "全部告警已确认，舱面平稳。"));
+    } else {
+      openList.slice(0, 2).forEach(function (a) { mini.appendChild(renderAlertRow(a, false)); });
+    }
+
+    var open = $("alerts-open");
+    open.textContent = "";
+    if (openList.length === 0) open.appendChild(el("div", "queue-empty", "没有待确认告警。"));
+    openList.forEach(function (a) { open.appendChild(renderAlertRow(a, true)); });
+
+    var closed = $("alerts-closed");
+    closed.textContent = "";
+    if (closedList.length === 0) closed.appendChild(el("div", "queue-empty", "尚无已确认记录。"));
+    closedList.forEach(function (a) { closed.appendChild(renderAlertRow(a, false)); });
+  }
+
+  function renderAlertRow(a, withBtn) {
+    var row = el("div", "alert-row" + (a.acked ? " acked" : ""));
+    row.appendChild(el("span", "sev " + a.sev, a.sev === "high" ? "高" : "中"));
+    var body = el("div", "alert-body");
+    body.appendChild(el("div", "alert-title", a.title));
+    body.appendChild(el("div", "alert-desc", a.desc));
+    row.appendChild(body);
+    row.appendChild(el("span", "alert-time", a.time));
+    if (withBtn) {
+      var btn = el("button", "row-btn", "确认");
+      btn.type = "button";
+      btn.addEventListener("click", function () {
+        a.acked = true;
+        pushLog("告警「" + a.title + "」已确认");
+        renderAll();
+      });
+      row.appendChild(btn);
+    }
+    return row;
+  }
+
+  /* ---------- 数字仪表 ---------- */
+  function renderStats() {
+    var arrived = ships.filter(function (s) { return s.status === "working" || s.status === "done"; }).length;
+    var working = ships.filter(function (s) { return s.status === "working"; }).length;
+    var done = ships.filter(function (s) { return s.status === "done"; }).length;
+    $("v-berth").textContent = 15 + arrived;
+    $("v-work").textContent = working;
+    var ton = week[6].tons + done * 860;
+    $("v-ton").textContent = fmt(ton);
+  }
+
+  var tonTimer = null;
+  function recalibrate() {
+    var next = 11800 + Math.floor(Math.random() * 1800);
+    var cur = week[6].tons;
+    var target = $("v-ton");
+    var now = new Date();
+    $("ton-clock").textContent = ("0" + now.getHours()).slice(-2) + ":" + ("0" + now.getMinutes()).slice(-2);
+    week = week.map(function (d, i) {
+      return i === 6 ? { label: d.label, tons: next, today: true } : d;
+    });
+    renderChart();
+    if (reduceMotion) { renderStats(); return; }
+    if (tonTimer) clearInterval(tonTimer);
+    var t0 = Date.now(), dur = 600;
+    tonTimer = setInterval(function () {
+      var k = Math.min(1, (Date.now() - t0) / dur);
+      var val = Math.round(cur + (next - cur) * k);
+      target.textContent = fmt(val);
+      if (k >= 1) { clearInterval(tonTimer); tonTimer = null; renderStats(); }
+    }, 40);
+  }
+
+  /* ---------- 海图 ---------- */
+  function renderChart() {
+    var max = Math.max.apply(null, week.map(function (d) { return d.tons; }));
+    var bars = $("chart-bars");
+    bars.textContent = "";
+    var xs = $("chart-x");
+    xs.textContent = "";
+    week.forEach(function (d) {
+      var col = el("div", "bar-col");
+      col.appendChild(el("span", "bar-val", fmt(d.tons)));
+      var bar = el("div", "bar" + (d.today ? " today" : ""));
+      bar.style.height = Math.round(d.tons / max * 200) + "px";
+      col.appendChild(bar);
+      bars.appendChild(col);
+      xs.appendChild(el("span", d.today ? "today" : "", d.label));
+    });
+  }
+
+  /* ---------- 值班日志 ---------- */
+  function pushLog(text) {
+    var ul = document.querySelector("#logbook ul");
+    var li = el("li");
+    var now = new Date();
+    li.appendChild(el("time", "", ("0" + now.getHours()).slice(-2) + ":" + ("0" + now.getMinutes()).slice(-2)));
+    li.appendChild(el("span", "", text));
+    ul.insertBefore(li, ul.firstChild);
+  }
+
+  /* ---------- 视图切换 ---------- */
+  var VIEW_NAMES = { dash: "今日甲板", queue: "船期队列", alerts: "告警舱", chart: "吞吐海图" };
+  function switchView(name) {
+    document.querySelectorAll(".nav-item").forEach(function (b) {
+      b.classList.toggle("active", b.getAttribute("data-view") === name);
+    });
+    document.querySelectorAll(".view").forEach(function (v) {
+      v.classList.toggle("active", v.id === "view-" + name);
+    });
+    $("crumb-current").textContent = VIEW_NAMES[name] || "今日甲板";
+    $("content").scrollTop = 0;
+  }
+
+  document.querySelectorAll(".nav-item").forEach(function (b) {
+    b.addEventListener("click", function () { switchView(b.getAttribute("data-view")); });
+  });
+  document.querySelectorAll("[data-goto]").forEach(function (b) {
+    b.addEventListener("click", function () { switchView(b.getAttribute("data-goto")); });
+  });
+  $("bell-btn").addEventListener("click", function () { switchView("alerts"); });
+  document.querySelectorAll("#queue-chips .chip").forEach(function (c) {
+    c.addEventListener("click", function () {
+      document.querySelectorAll("#queue-chips .chip").forEach(function (x) { x.classList.remove("active"); });
+      c.classList.add("active");
+      renderQueue();
+    });
+  });
+  $("recal-btn").addEventListener("click", recalibrate);
+
+  /* ---------- 时钟与日期 ---------- */
+  function tick() {
+    var d = new Date();
+    var wd = ["日", "一", "二", "三", "四", "五", "六"][d.getDay()];
+    $("today-line").textContent = d.getFullYear() + " 年 " + (d.getMonth() + 1) + " 月 " + d.getDate() + " 日 星期" + wd;
+  }
+  tick();
+
+  /* ---------- 罗经针 ---------- */
+  var deg = 135;
+  function needle() {
+    deg += Math.round((Math.random() - 0.5) * 14);
+    deg = Math.max(115, Math.min(160, deg));
+    $("needle").style.transform = "rotate(" + deg + "deg)";
+  }
+  $("needle").style.transform = "rotate(" + deg + "deg)";
+  if (!reduceMotion) setInterval(needle, 4000);
+
+  function renderAll() {
+    renderQueue();
+    renderAlerts();
+    renderStats();
+  }
+  renderChart();
+  renderAll();
+})();
+</script>
+</body>
+</html>

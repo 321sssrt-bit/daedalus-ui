@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>鸣铃 · 通知总机</title>
+<style>
+:root{
+  --page:#160b05;
+  --wood-deep:#20130a;
+  --wood:#2c1a0e;
+  --wood-hi:#3f2a17;
+  --brass:#c9973f;
+  --brass-hi:#e8c37a;
+  --brass-deep:#8a6224;
+  --copper:#b0703c;
+  --paper:#f3e6cf;
+  --ink:#33220f;
+  --text:#f0e2c8;
+  --muted:#a98f6d;
+  --dim:#6f5a3e;
+  --red:#ff5147;
+  --amber:#ffb347;
+  --cyan:#55d6ea;
+  --green:#6fe08a;
+  --violet:#c493ff;
+  --rose:#ff9ec6;
+  --serif:Georgia,"Times New Roman","Songti SC","STSong","SimSun",serif;
+  --sans:"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Segoe UI",system-ui,sans-serif;
+  --mono:"Courier New",ui-monospace,Consolas,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  min-height:100vh;
+  font-family:var(--sans);
+  color:var(--text);
+  background:
+    radial-gradient(1100px 500px at 50% -8%, rgba(255,214,150,.05), transparent 60%),
+    radial-gradient(900px 600px at 85% 110%, rgba(0,0,0,.5), transparent 55%),
+    repeating-linear-gradient(93deg, rgba(0,0,0,.16) 0 2px, transparent 2px 7px, rgba(255,255,255,.02) 7px 10px, transparent 10px 15px),
+    linear-gradient(165deg, var(--wood-hi), var(--wood) 42%, var(--wood-deep) 90%);
+  background-color:var(--page);
+}
+button{font-family:inherit}
+:focus-visible{outline:2px solid var(--brass-hi);outline-offset:2px}
+
+.console{
+  max-width:1180px;
+  min-height:calc(100vh - 48px);
+  margin:24px auto;
+  padding:26px 28px 20px;
+  position:relative;
+  border-radius:14px;
+  border:1px solid rgba(0,0,0,.6);
+  background:
+    radial-gradient(1200px 420px at 50% -12%, rgba(255,214,150,.06), transparent 60%),
+    repeating-linear-gradient(92deg, rgba(0,0,0,.13) 0 2px, transparent 2px 6px, rgba(255,255,255,.016) 6px 9px, transparent 9px 14px),
+    linear-gradient(163deg, var(--wood-hi), var(--wood) 40%, var(--wood-deep));
+  box-shadow:
+    inset 0 1px 0 rgba(255,220,160,.08),
+    inset 0 0 0 6px rgba(0,0,0,.28),
+    inset 0 0 64px rgba(0,0,0,.5),
+    0 30px 60px rgba(0,0,0,.55);
+}
+.screw{
+  position:absolute;width:18px;height:18px;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%, var(--brass-hi), var(--brass) 55%, var(--brass-deep));
+  box-shadow:inset 0 -1px 2px rgba(0,0,0,.5), inset 0 1px 1px rgba(255,255,255,.5), 0 1px 3px rgba(0,0,0,.7);
+}
+.screw::after{content:"";position:absolute;left:3px;right:3px;top:8px;height:2px;background:rgba(58,37,8,.75);border-radius:1px;transform:rotate(38deg)}
+.screw.tl{top:9px;left:9px}.screw.tr{top:9px;right:9px}.screw.bl{bottom:9px;left:9px}.screw.br{bottom:9px;right:9px}
+
+/* ===== 顶部：铭牌 + 仪表 + 控制 ===== */
+.topbar{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.nameplate{
+  height:58px;padding:6px 26px 8px;display:flex;flex-direction:column;justify-content:center;
+  border-radius:8px;border:1px solid #6d4c1c;
+  background:linear-gradient(180deg,var(--brass-hi),var(--brass) 46%,var(--brass-deep));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.5), inset 0 -2px 3px rgba(0,0,0,.35), 0 2px 6px rgba(0,0,0,.5);
+}
+.nameplate h1{
+  font-family:var(--serif);font-size:21px;font-weight:700;letter-spacing:.14em;color:#3a2508;line-height:1.25;
+  text-shadow:0 1px 0 rgba(255,255,255,.35), 0 -1px 0 rgba(0,0,0,.35);
+}
+.nameplate .sub{font-size:10.5px;letter-spacing:.32em;color:#4a320e;text-shadow:0 1px 0 rgba(255,255,255,.3)}
+.instr{font-size:11px;color:var(--dim);letter-spacing:.06em}
+.gauge{
+  display:flex;align-items:center;gap:14px;margin-left:auto;flex-wrap:wrap;
+}
+.plate{
+  background:linear-gradient(180deg,#120a05,#1e1209);
+  border:1px solid rgba(201,151,63,.4);
+  border-radius:6px;padding:7px 14px;
+  box-shadow:inset 0 2px 6px rgba(0,0,0,.75), 0 1px 0 rgba(255,220,160,.06);
+  font-family:var(--mono);font-size:13px;color:var(--brass-hi);letter-spacing:.06em;
+  text-align:center;min-width:104px;
+}
+.plate small{display:block;font-size:9.5px;color:var(--dim);letter-spacing:.24em;font-family:var(--sans)}
+.plate b{font-weight:700}
+.lever{
+  height:46px;padding:0 20px;border-radius:8px;border:1px solid #6d4c1c;cursor:pointer;
+  background:linear-gradient(180deg,var(--brass-hi),var(--brass) 50%,#a5762c);
+  color:#31200a;font-size:14px;font-weight:700;letter-spacing:.1em;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.55), inset 0 -3px 5px rgba(0,0,0,.3), 0 4px 0 #5f421a, 0 7px 12px rgba(0,0,0,.5);
+  transition:transform .12s ease, box-shadow .12s ease, filter .2s ease;
+}
+.lever:hover{filter:brightness(1.06)}
+.lever:active{transform:translateY(3px);box-shadow:inset 0 1px 0 rgba(255,255,255,.4), inset 0 -2px 4px rgba(0,0,0,.35), 0 1px 0 #5f421a, 0 3px 6px rgba(0,0,0,.5)}
+.lever[disabled]{filter:saturate(.35) brightness(.72);cursor:default;transform:none}
+.lever[disabled]:active{box-shadow:inset 0 1px 0 rgba(255,255,255,.55), inset 0 -3px 5px rgba(0,0,0,.3), 0 4px 0 #5f421a, 0 7px 12px rgba(0,0,0,.5)}
+.switchwrap{display:flex;align-items:center;gap:9px}
+.switchwrap span{font-size:12px;color:var(--muted);letter-spacing:.08em}
+.switch{
+  width:64px;height:30px;border-radius:999px;cursor:pointer;position:relative;
+  background:#150c06;border:1px solid rgba(201,151,63,.45);
+  box-shadow:inset 0 2px 6px rgba(0,0,0,.8);
+  transition:background .2s ease;
+}
+.switch .knob{
+  position:absolute;top:2px;left:2px;width:24px;height:24px;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%, var(--brass-hi), var(--brass) 60%, var(--brass-deep));
+  box-shadow:0 2px 4px rgba(0,0,0,.65), inset 0 1px 0 rgba(255,255,255,.5);
+  transition:left .18s ease;
+}
+.switch[aria-pressed="true"]{background:#3a2208}
+.switch[aria-pressed="true"] .knob{left:calc(100% - 26px)}
+
+/* ===== 话单列表 ===== */
+.board{margin-top:18px;display:flex;flex-direction:column;gap:8px}
+.call{
+  border-radius:10px;overflow:hidden;
+  background:linear-gradient(180deg, rgba(0,0,0,.32), rgba(0,0,0,.22));
+  border:1px solid rgba(201,151,63,.22);
+  box-shadow:inset 0 1px 0 rgba(0,0,0,.5), inset 0 -1px 0 rgba(255,220,160,.04);
+  transition:border-color .25s ease, background .25s ease;
+}
+.call.unread{border-color:rgba(201,151,63,.5);background:linear-gradient(180deg, rgba(0,0,0,.22), rgba(0,0,0,.3))}
+.call.filtered-out{display:none}
+.strip{display:flex;align-items:center;gap:14px;padding:12px 16px;width:100%}
+.call-main{
+  flex:1;min-width:0;display:flex;align-items:center;gap:14px;
+  background:none;border:0;color:inherit;text-align:left;cursor:pointer;padding:0;font:inherit;
+}
+.call[data-type="alert"]{--lamp:var(--red)}
+.call[data-type="assign"]{--lamp:var(--amber)}
+.call[data-type="comment"]{--lamp:var(--cyan)}
+.call[data-type="system"]{--lamp:var(--green)}
+.call[data-type="milestone"]{--lamp:var(--violet)}
+.call[data-type="member"]{--lamp:var(--rose)}
+.lamp-wrap{position:relative;width:30px;height:30px;flex:none;display:grid;place-items:center}
+.socket{
+  width:26px;height:26px;border-radius:50%;
+  background:radial-gradient(circle at 50% 42%, #0a0503 0 5px, var(--copper) 6px 9px, #6e4023 10px 12px, #241209 13px);
+  box-shadow:0 1px 2px rgba(0,0,0,.8), inset 0 1px 1px rgba(255,255,255,.14);
+}
+.lamp{
+  position:absolute;width:11px;height:11px;border-radius:50%;
+  background:#3d3a33;box-shadow:inset 0 1px 2px rgba(0,0,0,.8);
+  transition:background .3s ease, box-shadow .3s ease;
+}
+.call.unread .lamp{
+  background:var(--lamp);
+  box-shadow:0 0 5px var(--lamp), 0 0 13px var(--lamp), 0 0 26px var(--lamp), inset 0 -1px 1px rgba(0,0,0,.35);
+  animation:lampflicker 3.6s infinite;
+}
+@keyframes lampflicker{
+  0%,100%{opacity:1}
+  7%{opacity:.5}
+  11%{opacity:1}
+  44%{opacity:.82}
+  52%{opacity:1}
+  78%{opacity:.92}
+}
+.tag{
+  flex:none;width:58px;height:22px;border-radius:3px;display:grid;place-items:center;
+  background:linear-gradient(180deg,var(--brass-hi),var(--brass) 55%,var(--brass-deep));
+  color:#33200a;font-size:11px;font-weight:700;letter-spacing:.18em;font-family:var(--serif);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.4), 0 1px 2px rgba(0,0,0,.6);
+}
+.mid{flex:1;min-width:0}
+.ttl{font-size:15px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:color .25s ease}
+.call.read .ttl{color:var(--muted);font-weight:500}
+.sum{font-size:12.5px;color:var(--muted);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.meta{flex:none;width:118px;text-align:right;font-family:var(--mono);font-size:11.5px;color:var(--dim)}
+.meta .jack{display:block;color:var(--brass);letter-spacing:.12em;font-size:11px}
+.studs{flex:none;display:flex;gap:10px}
+.stud{
+  width:30px;height:30px;border-radius:50%;border:1px solid #6d4c1c;cursor:pointer;
+  background:radial-gradient(circle at 35% 30%, var(--brass-hi), var(--brass) 55%, var(--brass-deep));
+  color:#33200a;display:grid;place-items:center;
+  box-shadow:0 2px 0 #5f421a, 0 3px 5px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.5);
+  transition:transform .1s ease, box-shadow .1s ease, filter .2s ease;
+}
+.stud:hover{filter:brightness(1.08)}
+.stud:active{transform:translateY(2px);box-shadow:0 0 0 #5f421a, 0 1px 3px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.4)}
+.stud svg{width:14px;height:14px;display:block}
+.stud .chev{transition:transform .22s ease}
+.call.open .stud .chev{transform:rotate(180deg)}
+.stud.readed{filter:saturate(.4) brightness(.7);cursor:default}
+.stud.readed:hover{filter:saturate(.4) brightness(.7)}
+
+/* ===== 展开话单井 ===== */
+.well{max-height:0;overflow:hidden;transition:max-height .28s ease}
+.well-inner{
+  margin:2px 16px 14px;padding:12px 18px 14px;border-radius:4px;
+  color:var(--ink);font-size:13px;line-height:27px;
+  background:
+    repeating-linear-gradient(180deg, transparent 0 26px, rgba(122,84,32,.2) 26px 27px),
+    linear-gradient(180deg,#f6ead2, var(--paper));
+  box-shadow:inset 0 0 0 1px rgba(122,84,32,.35), inset 0 2px 8px rgba(0,0,0,.22), 0 1px 0 rgba(255,255,255,.05);
+}
+.well-row{display:flex;gap:12px}
+.well-row b{flex:none;width:76px;color:#7a5623;font-weight:600}
+.well-btn{
+  margin-top:10px;height:32px;padding:0 15px;border-radius:6px;cursor:pointer;
+  border:1px solid #7a5623;color:var(--paper);font-size:12.5px;letter-spacing:.06em;
+  background:linear-gradient(180deg,#5b3d18,#3f2a10);
+  box-shadow:inset 0 1px 0 rgba(255,220,160,.25), 0 2px 4px rgba(0,0,0,.4);
+  transition:filter .15s ease;
+}
+.well-btn:hover{filter:brightness(1.15)}
+.well-btn.done{background:linear-gradient(180deg,#2e4d33,#1f3524);border-color:#3f6b46;cursor:default}
+.well-btn.done:hover{filter:none}
+
+.empty{display:none;text-align:center;padding:40px 0 32px;color:var(--muted);font-size:13px;letter-spacing:.22em}
+.empty.show{display:block}
+.empty i{
+  display:block;width:14px;height:14px;border-radius:50%;margin:0 auto 12px;
+  background:#3d3a33;box-shadow:inset 0 1px 2px rgba(0,0,0,.8);
+}
+
+.foot{
+  margin-top:16px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;
+  border-top:1px solid rgba(201,151,63,.25);padding-top:13px;
+}
+.leg{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--muted);letter-spacing:.06em}
+.leg i{width:10px;height:10px;border-radius:50%;background:var(--c);box-shadow:0 0 6px var(--c)}
+.serial{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:.1em}
+
+@media (max-width:768px){
+  .console{margin:12px;padding:16px;min-height:calc(100vh - 24px)}
+  .nameplate{flex:1 1 100%;height:52px}
+  .nameplate h1{font-size:18px}
+  .gauge{margin-left:0}
+  .instr{display:none}
+  .strip{flex-wrap:wrap;row-gap:10px;padding:12px}
+  .call-main{flex:1 1 calc(100% - 44px);flex-wrap:wrap;row-gap:6px}
+  .mid{flex:1 1 calc(100% - 130px);min-width:180px}
+  .ttl,.sum{white-space:normal}
+  .meta{flex:1 1 100%;display:flex;gap:14px;justify-content:flex-start;text-align:left;width:auto;margin-top:4px}
+  .studs{margin-left:auto}
+  .well-inner{margin:2px 10px 12px}
+  .serial{margin-left:0}
+}
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important}
+  .call.unread .lamp{animation:none}
+}
+</style>
+</head>
+<body>
+<main class="console" id="console">
+  <span class="screw tl"></span><span class="screw tr"></span><span class="screw bl"></span><span class="screw br"></span>
+
+  <header class="topbar">
+    <div class="nameplate">
+      <h1>通知总机</h1>
+      <div class="sub">鸣铃工作台 · 值班面板</div>
+    </div>
+    <div class="instr">规程 · 拉线展话单，灭灯作已读</div>
+    <div class="gauge">
+      <div class="plate"><small>值班日期</small><span id="datePlate">—</span></div>
+      <div class="plate"><small>值机时钟</small><span id="clock">--:--:--</span></div>
+      <div class="plate"><small>待亮灯</small><b id="unreadNum">4</b> 盏</div>
+      <button class="lever" id="leverAll" type="button">全部标已读</button>
+      <div class="switchwrap">
+        <span>只看待亮灯</span>
+        <button class="switch" id="filterSwitch" type="button" role="switch" aria-checked="false" aria-label="只看待亮灯的通知"><span class="knob"></span></button>
+      </div>
+    </div>
+  </header>
+
+  <section class="board" id="list" aria-label="通知话单">
+
+    <article class="call unread" data-type="alert">
+      <div class="strip">
+        <button class="call-main" type="button" aria-expanded="false">
+          <span class="lamp-wrap"><span class="socket"></span><span class="lamp"></span></span>
+          <span class="tag">告警</span>
+          <span class="mid">
+            <span class="ttl">构建失败 · gallery-pipeline #482</span>
+            <span class="sum">「打包静态资源」步骤退出，返回码 127，本次发布已被阻止。</span>
+          </span>
+          <span class="meta"><span class="jack">J-01</span><span>3 分钟前</span></span>
+        </button>
+        <div class="studs">
+          <button class="stud stud-exp" type="button" aria-label="展开话单"><svg class="chev" viewBox="0 0 16 16" fill="none"><path d="M3 6l5 5 5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          <button class="stud stud-read" type="button" aria-label="灭灯标为已读"><svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="4" fill="currentColor"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button>
+        </div>
+      </div>
+      <div class="well"><div class="well-inner">
+        <div class="well-row"><b>失败步骤</b><span>打包静态资源（第 6 / 9 步），进程退出码 127：缺失依赖 sharp。</span></div>
+        <div class="well-row"><b>触发提交</b><span>9f31c2a「换用本地图床」· 提交人 何述。</span></div>
+        <div class="well-row"><b>近三次构建</b><span>失败 · 失败 · 成功（#479）。</span></div>
+        <div class="well-row"><b>处置建议</b><span>回滚至上一成功包后重装依赖，再重新触发流水线。</span></div>
+      </div></div>
+    </article>
+
+    <article class="call unread" data-type="assign">
+      <div class="strip">
+        <button class="call-main" type="button" aria-expanded="false">
+          <span class="lamp-wrap"><span class="socket"></span><span class="lamp"></span></span>
+          <span class="tag">指派</span>
+          <span class="mid">
+            <span class="ttl">陈屿向你指派了任务</span>
+            <span class="sum">展厅灯箱施工图 · 项目「秋季展厅」· 交付截止 周五 18:00。</span>
+          </span>
+          <span class="meta"><span class="jack">J-02</span><span>18 分钟前</span></span>
+        </button>
+        <div class="studs">
+          <button class="stud stud-exp" type="button" aria-label="展开话单"><svg class="chev" viewBox="0 0 16 16" fill="none"><path d="M3 6l5 5 5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          <button class="stud stud-read" type="button" aria-label="灭灯标为已读"><svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="4" fill="currentColor"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button>
+        </div>
+      </div>
+      <div class="well"><div class="well-inner">
+        <div class="well-row"><b>任务</b><span>绘制展厅灯箱施工图（含电路走位与散热示意）。</span></div>
+        <div class="well-row"><b>前置任务</b><span>「电路走位图」已由何述完成，可直接引用。</span></div>
+        <div class="well-row"><b>参考资料</b><span>共享文件夹「灯箱 / 终稿」内有尺寸稿与材质清单。</span></div>
+        <div class="well-row"><b>备注</b><span>陈屿：客户周四要看初稿，优先画正面剖视。</span></div>
+      </div></div>
+    </article>
+
+    <article class="call unread" data-type="comment">
+      <div class="strip">
+        <button class="call-main" type="button" aria-expanded="false">
+          <span class="lamp-wrap"><span class="socket"></span><span class="lamp"></span></span>
+          <span class="tag">批注</span>
+          <span class="mid">
+            <span class="ttl">沈青回复了你的批注</span>
+            <span class="sum">报价单 v3：「灯箱这一项按含税价算吗？口径要对齐再上版。」</span>
+          </span>
+          <span class="meta"><span class="jack">J-03</span><span>1 小时前</span></span>
+        </button>
+        <div class="studs">
+          <button class="stud stud-exp" type="button" aria-label="展开话单"><svg class="chev" viewBox="0 0 16 16" fill="none"><path d="M3 6l5 5 5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          <button class="stud stud-read" type="button" aria-label="灭灯标为已读"><svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="4" fill="currentColor"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button>
+        </div>
+      </div>
+      <div class="well"><div class="well-inner">
+        <div class="well-row"><b>所在文档</b><span>报价单 v3 · 第 4 条「展厅灯箱」。</span></div>
+        <div class="well-row"><b>你的原批注</b><span>「灯箱单价请核对含税口径，避免和运输费重复计。」</span></div>
+        <div class="well-row"><b>沈青的回复</b><span>「按含税价算。运输费已单列在第 7 条，我再把第 4 条的口径注清楚。」</span></div>
+      </div></div>
+    </article>
+
+    <article class="call unread open" data-type="system">
+      <div class="strip">
+        <button class="call-main" type="button" aria-expanded="true">
+          <span class="lamp-wrap"><span class="socket"></span><span class="lamp"></span></span>
+          <span class="tag">公告</span>
+          <span class="mid">
+            <span class="ttl">平台例行维护通知</span>
+            <span class="sum">本周四 02:00–04:00 平台升级，期间工作台转为只读。</span>
+          </span>
+          <span class="meta"><span class="jack">J-04</span><span>2 小时前</span></span>
+        </button>
+        <div class="studs">
+          <button class="stud stud-exp" type="button" aria-label="收起话单"><svg class="chev" viewBox="0 0 16 16" fill="none"><path d="M3 6l5 5 5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          <button class="stud stud-read" type="button" aria-label="灭灯标为已读"><svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="4" fill="currentColor"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button>
+        </div>
+      </div>
+      <div class="well"><div class="well-inner">
+        <div class="well-row"><b>维护窗口</b><span>本周四 02:00 – 04:00，预计 120 分钟。</span></div>
+        <div class="well-row"><b>影响范围</b><span>工作台转为只读；消息投递延迟约 5 分钟；构建队列暂停调度。</span></div>
+        <div class="well-row"><b>值班工程师</b><span>关河 · 维护期间可内线呼叫 808。</span></div>
+        <button class="well-btn" id="regBtn" type="button">登记为值守人</button>
+      </div></div>
+    </article>
+
+    <article class="call read" data-type="milestone">
+      <div class="strip">
+        <button class="call-main" type="button" aria-expanded="false">
+          <span class="lamp-wrap"><span class="socket"></span><span class="lamp"></span></span>
+          <span class="tag">里程</span>
+          <span class="mid">
+            <span class="ttl">项目「秋季展厅」达成里程碑</span>
+            <span class="sum">整体进度推进至 90%，剩余关键任务 3 项。</span>
+          </span>
+          <span class="meta"><span class="jack">J-05</span><span>昨天 21:14</span></span>
+        </button>
+        <div class="studs">
+          <button class="stud stud-exp" type="button" aria-label="展开话单"><svg class="chev" viewBox="0 0 16 16" fill="none"><path d="M3 6l5 5 5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          <button class="stud stud-read readed" type="button" disabled aria-label="已读"><svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="4" fill="currentColor"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button>
+        </div>
+      </div>
+      <div class="well"><div class="well-inner">
+        <div class="well-row"><b>进度</b><span>秋季展厅整体进度 90%，较上周 +12%。</span></div>
+        <div class="well-row"><b>剩余关键任务</b><span>灯箱施工图、展台灯光编程、验收排期确认，共 3 项。</span></div>
+        <div class="well-row"><b>下一阶段</b><span>整体验收排期，预计下周一发出邀约。</span></div>
+      </div></div>
+    </article>
+
+    <article class="call read" data-type="member">
+      <div class="strip">
+        <button class="call-main" type="button" aria-expanded="false">
+          <span class="lamp-wrap"><span class="socket"></span><span class="lamp"></span></span>
+          <span class="tag">新人</span>
+          <span class="mid">
+            <span class="ttl">梁照加入了工作室</span>
+            <span class="sum">结构工程师 · 由陈屿邀请加入「北墙照明」，权限为可查看可评论。</span>
+          </span>
+          <span class="meta"><span class="jack">J-06</span><span>昨天 17:40</span></span>
+        </button>
+        <div class="studs">
+          <button class="stud stud-exp" type="button" aria-label="展开话单"><svg class="chev" viewBox="0 0 16 16" fill="none"><path d="M3 6l5 5 5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          <button class="stud stud-read readed" type="button" disabled aria-label="已读"><svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="4" fill="currentColor"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button>
+        </div>
+      </div>
+      <div class="well"><div class="well-inner">
+        <div class="well-row"><b>成员</b><span>梁照 · 结构工程师 · 本次加入 1 个工作室。</span></div>
+        <div class="well-row"><b>邀请人</b><span>陈屿（管理员）。</span></div>
+        <div class="well-row"><b>默认权限</b><span>可查看、可评论，不可改动「秋季展厅」的任务分派。</span></div>
+      </div></div>
+    </article>
+
+  </section>
+
+  <div class="empty" id="emptyState"><i></i>所有灯都灭了，总机暂无话务</div>
+
+  <footer class="foot">
+    <span class="leg"><i style="--c:var(--red)"></i>告警</span>
+    <span class="leg"><i style="--c:var(--amber)"></i>指派</span>
+    <span class="leg"><i style="--c:var(--cyan)"></i>批注</span>
+    <span class="leg"><i style="--c:var(--green)"></i>公告</span>
+    <span class="leg"><i style="--c:var(--violet)"></i>里程</span>
+    <span class="leg"><i style="--c:var(--rose)"></i>新人</span>
+    <span class="serial">机身编号 ML-015 · 值班台 №3</span>
+  </footer>
+</main>
+
+<script>
+(function(){
+  var rows = Array.prototype.slice.call(document.querySelectorAll('.call'));
+  var unreadNum = document.getElementById('unreadNum');
+  var lever = document.getElementById('leverAll');
+  var filter = document.getElementById('filterSwitch');
+  var empty = document.getElementById('emptyState');
+  var clock = document.getElementById('clock');
+  var datePlate = document.getElementById('datePlate');
+  var regBtn = document.getElementById('regBtn');
+  var filterOn = false;
+  var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function setWell(row, open){
+    var well = row.querySelector('.well');
+    well.style.maxHeight = open ? well.scrollHeight + 'px' : '0px';
+    row.querySelector('.call-main').setAttribute('aria-expanded', open ? 'true' : 'false');
+  }
+  function toggle(row){
+    var open = row.classList.toggle('open');
+    setWell(row, open);
+  }
+  rows.forEach(function(row){
+    if(row.classList.contains('open')){ setWell(row, true); }
+    row.querySelector('.call-main').addEventListener('click', function(){ toggle(row); });
+    row.querySelector('.stud-exp').addEventListener('click', function(){ toggle(row); });
+    var rd = row.querySelector('.stud-read');
+    rd.addEventListener('click', function(){
+      if(row.classList.contains('unread')){
+        row.classList.remove('unread');
+        row.classList.add('read');
+        rd.classList.add('readed');
+        rd.disabled = true;
+        rd.setAttribute('aria-label','已读');
+        update();
+      }
+    });
+  });
+
+  function update(){
+    var n = 0;
+    rows.forEach(function(r){
+      var u = r.classList.contains('unread');
+      if(u) n++;
+      r.classList.toggle('filtered-out', filterOn && !u);
+    });
+    unreadNum.textContent = n;
+    lever.disabled = (n === 0);
+    lever.textContent = (n === 0) ? '灯已全灭' : '全部标已读';
+    empty.classList.toggle('show', filterOn && n === 0);
+  }
+
+  lever.addEventListener('click', function(){
+    var pending = rows.filter(function(r){ return r.classList.contains('unread'); });
+    pending.forEach(function(r, i){
+      var delay = reduceMotion ? 0 : i * 110;
+      setTimeout(function(){
+        r.classList.remove('unread');
+        r.classList.add('read');
+        var rd = r.querySelector('.stud-read');
+        rd.classList.add('readed');
+        rd.disabled = true;
+        rd.setAttribute('aria-label','已读');
+        update();
+      }, delay);
+    });
+  });
+
+  filter.addEventListener('click', function(){
+    filterOn = !filterOn;
+    filter.setAttribute('aria-checked', filterOn ? 'true' : 'false');
+    update();
+  });
+
+  if(regBtn){
+    regBtn.addEventListener('click', function(){
+      regBtn.classList.add('done');
+      regBtn.textContent = '已登记 · 周四 02:00 值守';
+      regBtn.disabled = true;
+    });
+  }
+
+  function tick(){
+    var d = new Date();
+    clock.textContent = d.toLocaleTimeString('zh-CN', {hour12:false});
+    datePlate.textContent = d.toLocaleDateString('zh-CN', {month:'2-digit', day:'2-digit', weekday:'short'});
+  }
+  tick();
+  setInterval(tick, 1000);
+
+  window.addEventListener('resize', function(){
+    rows.forEach(function(r){
+      if(r.classList.contains('open')){ setWell(r, true); }
+    });
+  });
+})();
+</script>
+</body>
+</html>

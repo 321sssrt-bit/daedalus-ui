@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>驿邮工作台 · 内部来信分拣台</title>
+<style>
+:root{
+  --green-950:#0d3423;
+  --green-900:#12402c;
+  --green-800:#1a5238;
+  --green-700:#226345;
+  --green-100:#dde9db;
+  --desk:#e8ddc2;
+  --desk-deep:#ded1b0;
+  --paper:#f8f1de;
+  --paper-hi:#fbf6e7;
+  --paper-deep:#f0e5c9;
+  --ink:#312b1d;
+  --ink-soft:#4c4431;
+  --muted:#82765a;
+  --line:#d2c49d;
+  --line-soft:#e0d5b4;
+  --seal:#c2452d;
+  --seal-deep:#9e3520;
+  --gold:#d9a441;
+  --airmail-blue:#2f5d9e;
+  --serif:Georgia,"Times New Roman","Songti SC","STSong","SimSun",serif;
+  --sans:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Segoe UI",system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:var(--sans);
+  color:var(--ink);
+  background:radial-gradient(1200px 500px at 70% -10%,rgba(255,255,255,.35),transparent 60%),linear-gradient(160deg,var(--desk),var(--desk-deep));
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+}
+button{font-family:var(--sans)}
+button:focus-visible,.msg-card:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+
+/* ===== 顶栏 ===== */
+#topbar{
+  height:60px;flex:none;display:flex;align-items:center;gap:14px;padding:0 24px;
+  color:var(--paper);
+  background:linear-gradient(180deg,var(--green-900),var(--green-950));
+  border-bottom:3px double rgba(248,241,222,.35);
+}
+.brand-stamp{
+  width:38px;height:44px;flex:none;background:var(--paper);color:var(--green-800);
+  border-radius:3px;display:grid;place-items:center;
+  font-family:var(--serif);font-size:21px;font-weight:700;
+  outline:2px dashed var(--green-800);outline-offset:-6px;
+  box-shadow:0 2px 6px rgba(0,0,0,.28);transform:rotate(-3deg);
+}
+.brand-text{line-height:1.2}
+.brand-name{font-family:var(--serif);font-size:19px;font-weight:700;letter-spacing:2px}
+.brand-sub{font-size:12px;opacity:.75;margin-top:3px;letter-spacing:1px}
+.top-right{margin-left:auto;display:flex;align-items:center;gap:12px}
+#unreadPill{
+  display:inline-flex;align-items:center;gap:8px;
+  background:rgba(248,241,222,.14);border:1px solid rgba(248,241,222,.35);
+  padding:6px 14px;border-radius:999px;font-size:13px;
+}
+#unreadPill b{color:var(--gold);font-size:15px}
+#btnReadAll{
+  height:34px;padding:0 16px;border-radius:999px;cursor:pointer;
+  border:1px solid rgba(248,241,222,.5);background:transparent;color:var(--paper);font-size:13px;
+  transition:background .18s ease,border-color .18s ease;
+}
+#btnReadAll:hover{background:rgba(248,241,222,.16);border-color:rgba(248,241,222,.85)}
+
+/* ===== 三栏外壳 ===== */
+#shell{flex:1;min-height:0;display:flex}
+
+/* 左：分拣格口 */
+#rail{
+  width:204px;flex:none;padding:18px 14px;display:flex;flex-direction:column;gap:10px;
+  background:linear-gradient(180deg,rgba(248,241,222,.28),rgba(222,209,176,.45));
+  border-right:1px solid var(--line);
+}
+.rail-title{font-size:11px;letter-spacing:3px;color:var(--muted);padding:0 4px 2px;display:flex;align-items:center;gap:8px}
+.rail-title::after{content:"";flex:1;height:1px;background:var(--line)}
+.rail-item{
+  width:100%;display:flex;align-items:center;gap:10px;padding:11px 12px;cursor:pointer;
+  background:rgba(248,241,222,.55);border:1px solid var(--line);border-radius:8px;
+  color:var(--ink-soft);font-size:14px;text-align:left;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.5),0 1px 2px rgba(49,43,29,.06);
+  transition:transform .18s ease,border-color .18s ease,background .18s ease,color .18s ease;
+}
+.rail-item svg{width:17px;height:17px;flex:none}
+.rail-item:hover{border-color:var(--green-700);transform:translateY(-1px)}
+.rail-item.active{background:var(--green-800);border-color:var(--green-950);color:var(--paper);box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 2px 6px rgba(13,52,35,.28)}
+.rail-item .txt{flex:1;white-space:nowrap}
+.rail-count{font-size:12px;background:var(--paper-deep);border:1px solid var(--line);color:var(--ink-soft);border-radius:999px;padding:1px 8px}
+.rail-item.active .rail-count{background:rgba(248,241,222,.18);border-color:transparent;color:var(--paper)}
+.rail-note{margin-top:auto;font-size:11.5px;color:var(--muted);display:flex;align-items:center;gap:7px;padding:2px 4px 0}
+.rail-note i{width:7px;height:7px;border-radius:50%;background:var(--green-700);flex:none}
+
+/* 中：来件序列 */
+#listpane{width:404px;flex:none;border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:0}
+#listhead{padding:18px 20px 10px;display:flex;align-items:baseline;gap:10px;border-bottom:1px dashed var(--line)}
+#listTitle{font-size:15px;font-weight:600;letter-spacing:1px}
+#listDesc{margin-left:auto;font-size:12px;color:var(--muted)}
+#msglist{flex:1;overflow-y:auto;list-style:none;padding:12px 14px 20px;display:flex;flex-direction:column;gap:10px}
+#msglist::-webkit-scrollbar,.paper-body::-webkit-scrollbar{width:10px}
+#msglist::-webkit-scrollbar-thumb,.paper-body::-webkit-scrollbar-thumb{background:var(--line);border-radius:6px;border:2px solid var(--desk)}
+.paper-body::-webkit-scrollbar-thumb{border-color:var(--paper)}
+
+.msg-card{
+  position:relative;background:var(--paper);border:1px solid var(--line);border-radius:8px;
+  padding:12px 14px 11px 16px;cursor:pointer;
+  box-shadow:0 1px 2px rgba(49,43,29,.08);
+  transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease;
+}
+.msg-card::before{content:"";position:absolute;left:0;top:10px;bottom:10px;width:3px;border-radius:2px;background:transparent}
+.msg-card.unread{background:var(--paper-hi)}
+.msg-card.unread::before{background:var(--green-700)}
+.msg-card:hover{transform:translateY(-1px);box-shadow:0 6px 14px rgba(49,43,29,.14);border-color:#c3b183}
+.msg-card.selected{border-color:var(--green-700);box-shadow:0 0 0 1px var(--green-700),0 8px 18px rgba(26,82,56,.16)}
+.msg-card.archived{opacity:.86}
+.c-row{display:flex;align-items:baseline;gap:8px}
+.c-top .from{font-size:13.5px;font-weight:600;color:var(--ink)}
+.c-top .time{margin-left:auto;font-size:12px;color:var(--muted);flex:none}
+.c-sub{margin-top:5px}
+.c-sub .dot{display:none;width:8px;height:8px;border-radius:50%;background:var(--seal);flex:none;align-self:center}
+.msg-card.unread .c-sub .dot{display:inline-block}
+.c-sub .subject{font-size:14.5px;font-weight:500;color:var(--ink-soft);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.msg-card.unread .c-sub .subject{font-weight:600;color:var(--ink)}
+.c-preview{margin-top:4px;font-size:12.5px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.c-bot{margin-top:9px;align-items:center}
+.tag{font-size:11px;padding:2px 9px;border-radius:999px;background:var(--green-100);color:var(--green-800);border:1px solid rgba(26,82,56,.18);flex:none}
+.acts{margin-left:auto;display:flex;gap:6px}
+.icon-btn{
+  width:27px;height:27px;border-radius:7px;border:1px solid transparent;background:transparent;
+  color:var(--muted);cursor:pointer;display:grid;place-items:center;opacity:0;
+  transition:opacity .18s ease,background .18s ease,border-color .18s ease,color .18s ease;
+}
+.msg-card:hover .icon-btn,.msg-card:focus-within .icon-btn,.msg-card.starred .btn-star{opacity:1}
+.icon-btn:hover{background:var(--paper-deep);border-color:var(--line);color:var(--green-800)}
+.icon-btn svg{width:15px;height:15px}
+.btn-star.starred{color:var(--gold);opacity:1}
+.btn-star.starred svg path{fill:var(--gold);stroke:var(--gold)}
+
+#listEmpty{padding:48px 24px;text-align:center;color:var(--muted)}
+#listEmpty svg{width:88px;height:64px;opacity:.7}
+#listEmpty h3{font-family:var(--serif);font-size:17px;color:var(--ink-soft);margin-top:14px;font-weight:700}
+#listEmpty p{font-size:12.5px;margin-top:6px}
+
+/* 右：读信区 */
+#reader{flex:1;min-width:0;padding:22px 26px;display:flex}
+.paper{
+  flex:1;min-width:0;background:var(--paper);border:1px solid var(--line-soft);border-radius:10px;
+  box-shadow:0 2px 4px rgba(49,43,29,.10),0 18px 44px rgba(49,43,29,.16);
+  display:flex;flex-direction:column;overflow:hidden;
+  animation:paperIn .28s ease both;
+}
+@keyframes paperIn{from{opacity:.35;transform:translateY(6px)}to{opacity:1;transform:none}}
+.paper-head{position:relative;padding:26px 34px 18px;flex:none}
+.chip{display:inline-block;font-size:11px;padding:2px 10px;border-radius:999px;background:var(--green-100);color:var(--green-800);border:1px solid rgba(26,82,56,.18)}
+.stamp-corner{
+  position:absolute;top:20px;right:28px;width:64px;height:74px;z-index:2;
+  transform:rotate(5deg);background:var(--green-100);color:var(--green-800);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;
+  box-shadow:0 2px 6px rgba(49,43,29,.20);
+}
+.stamp-corner::after{content:"";position:absolute;inset:4px;border:1.5px dashed var(--green-700)}
+.sc-top{font-size:10px;letter-spacing:2px}
+.sc-main{font-family:var(--serif);font-size:24px;font-weight:700;line-height:1.1}
+.sc-denom{font-size:10px}
+.postmark{position:absolute;right:96px;top:36px;width:104px;color:var(--seal);opacity:.7;transform:rotate(-9deg);z-index:1;pointer-events:none}
+.postmark circle{fill:none;stroke:currentColor}
+.pm-text{font-family:var(--serif);font-size:19px;font-weight:700;fill:currentColor}
+.pm-date{font-size:10.5px;letter-spacing:1.5px;fill:currentColor}
+.paper-subject{font-family:var(--serif);font-size:24px;line-height:1.4;color:var(--ink);margin-top:12px;max-width:70%;font-weight:700}
+.paper-meta{margin-top:10px;font-size:12.5px;color:var(--muted);letter-spacing:.3px}
+.airmail{height:4px;margin:0 34px;flex:none;border-radius:2px;opacity:.75;background:repeating-linear-gradient(90deg,var(--seal) 0 14px,transparent 14px 20px,var(--airmail-blue) 20px 34px,transparent 34px 40px)}
+.paper-body{flex:1;overflow-y:auto;padding:20px 36px 24px}
+.paper-body p{font-size:15.5px;line-height:1.95;color:var(--ink-soft);margin-bottom:13px;text-align:justify}
+.paper-body .sign{margin-top:20px;text-align:right;font-family:var(--serif);font-size:15px;color:var(--ink)}
+.paper-foot{
+  flex:none;display:flex;align-items:center;gap:10px;padding:14px 34px;
+  border-top:1px dashed var(--line);background:linear-gradient(180deg,rgba(240,229,201,.30),rgba(240,229,201,.55));
+}
+.btn{
+  height:38px;padding:0 16px;border-radius:8px;border:1px solid var(--line);background:var(--paper-hi);
+  color:var(--ink-soft);font-size:13.5px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;
+  transition:background .18s ease,border-color .18s ease,color .18s ease,transform .12s ease;
+}
+.btn svg{width:15px;height:15px}
+.btn:hover{border-color:var(--green-700);color:var(--green-800)}
+.btn:active{transform:translateY(1px)}
+.btn-star.on{background:var(--green-800);border-color:var(--green-950);color:var(--paper)}
+.btn-star.on svg path{fill:var(--gold);stroke:var(--gold)}
+.btn-primary{background:var(--green-700);border-color:var(--green-950);color:#fdfaf0;font-weight:600}
+.btn-primary:hover{background:var(--green-800);color:#ffffff}
+.btn-ghost{border-color:transparent;background:transparent;color:var(--muted)}
+.btn-ghost:hover{color:var(--seal-deep);border-color:transparent;background:rgba(194,69,45,.08)}
+.foot-note{margin-left:auto;font-size:12px;color:var(--muted)}
+
+#readerEmpty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--muted);text-align:center;padding:24px}
+#readerEmpty svg{width:140px;height:100px;opacity:.65}
+#readerEmpty h2{font-family:var(--serif);font-size:20px;color:var(--ink-soft);margin-top:18px;font-weight:700;letter-spacing:2px}
+#readerEmpty p{font-size:13px;margin-top:8px}
+
+/* 吐司 */
+#toast{
+  position:fixed;left:50%;bottom:28px;transform:translate(-50%,16px);z-index:50;
+  background:var(--green-950);color:var(--paper);padding:11px 20px;border-radius:999px;font-size:13.5px;
+  box-shadow:0 10px 30px rgba(13,52,35,.4);opacity:0;pointer-events:none;
+  transition:opacity .25s ease,transform .25s ease;
+}
+#toast.show{opacity:1;transform:translate(-50%,0)}
+
+/* ===== 响应式 ===== */
+@media (max-width:1100px){
+  #rail{width:176px}
+  #listpane{width:348px}
+}
+@media (max-width:900px){
+  #rail{width:64px;padding:16px 10px}
+  .rail-title{justify-content:center;padding:0}
+  .rail-title::after{display:none}
+  .rail-item{justify-content:center;padding:12px 0}
+  .rail-item .txt,.rail-item .rail-count,.rail-note{display:none}
+  #listpane{width:300px}
+}
+@media (max-width:768px){
+  #topbar{padding:0 16px}
+  .brand-sub{display:none}
+  #listpane{width:252px}
+  #listhead{padding:14px 14px 8px}
+  #listDesc{display:none}
+  .msg-card{padding:10px 12px 9px 13px}
+  #reader{padding:14px}
+  .paper-head{padding:20px 18px 14px}
+  .paper-subject{font-size:20px;max-width:78%}
+  .stamp-corner{width:54px;height:62px;top:14px;right:14px}
+  .sc-main{font-size:19px}
+  .postmark{width:82px;right:60px;top:22px}
+  .airmail{margin:0 18px}
+  .paper-body{padding:16px 18px 20px}
+  .paper-body p{font-size:14.5px}
+  .paper-foot{padding:12px 18px;flex-wrap:wrap}
+}
+
+/* ===== 减少动态 ===== */
+@media (prefers-reduced-motion: reduce){
+  .paper{animation:none}
+  .msg-card,.rail-item,.icon-btn,.btn,#btnReadAll{transition:none}
+  #toast{transition:none}
+}
+</style>
+</head>
+<body>
+
+<header id="topbar">
+  <div class="brand-stamp" aria-hidden="true">邮</div>
+  <div class="brand-text">
+    <div class="brand-name">驿邮工作台</div>
+    <div class="brand-sub">内部来信 · 分拣台</div>
+  </div>
+  <div class="top-right">
+    <span id="unreadPill">未读 <b id="unreadNum">0</b> 封</span>
+    <button type="button" id="btnReadAll">全部标为已读</button>
+  </div>
+</header>
+
+<div id="shell">
+  <nav id="rail" aria-label="分拣格口">
+    <div class="rail-title">分拣格口</div>
+    <button type="button" class="rail-item active" data-filter="all" aria-pressed="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3.5 7l8.5 6 8.5-6"/></svg>
+      <span class="txt">全部来件</span><span class="rail-count" id="cnt-all">0</span>
+    </button>
+    <button type="button" class="rail-item" data-filter="unread" aria-pressed="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3.5 7l8.5 6 8.5-6"/><circle cx="18" cy="6" r="2.6" fill="currentColor" stroke="none"/></svg>
+      <span class="txt">未读</span><span class="rail-count" id="cnt-unread">0</span>
+    </button>
+    <button type="button" class="rail-item" data-filter="starred" aria-pressed="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4.2l2.4 4.8 5.3.8-3.8 3.7.9 5.3-4.8-2.5-4.8 2.5.9-5.3-3.8-3.7 5.3-.8z"/></svg>
+      <span class="txt">星标</span><span class="rail-count" id="cnt-starred">0</span>
+    </button>
+    <button type="button" class="rail-item" data-filter="archived" aria-pressed="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8h17"/><path d="M5 8l1.2-3h11.6L19 8"/><path d="M6 8v10a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V8"/><path d="M10 12.5h4"/></svg>
+      <span class="txt">已归档</span><span class="rail-count" id="cnt-archived">0</span>
+    </button>
+    <div class="rail-note"><i aria-hidden="true"></i>邮路畅通 · 值台 07:30</div>
+  </nav>
+
+  <section id="listpane" aria-label="来件序列">
+    <div id="listhead">
+      <h2 id="listTitle">来件序列</h2>
+      <span id="listDesc">按投递先后</span>
+    </div>
+    <ul id="msglist"></ul>
+    <div id="listEmpty" hidden>
+      <svg viewBox="0 0 140 100" aria-hidden="true"><rect x="10" y="18" width="120" height="70" rx="6" fill="none" stroke="currentColor" stroke-width="3"/><path d="M10 24l60 40 60-40" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/><circle cx="106" cy="34" r="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-dasharray="3 4"/></svg>
+      <h3 id="emptyTitle"></h3>
+      <p id="emptyDesc"></p>
+    </div>
+  </section>
+
+  <main id="reader" aria-label="读信区"></main>
+</div>
+
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+var MESSAGES=[
+  {id:"m1",from:"赵启铭",dept:"发行部",tag:"出版",time:"09:42",when:"今日 09:42",no:"驿-0913-01",unread:true,starred:false,archived:false,
+   subject:"《山茶文具店》第三版加印排期确认",
+   preview:"第三版首印八千册预计 9 月 12 日到库，印厂已确认封面专色票号 G-214……",
+   body:["第三版首印八千册预计 9 月 12 日到库。印厂已确认封面专色票号 G-214，与第二版保持一致，锁线与圆脊工艺不变。",
+         "请在本周五前回签电子排期单，仓库要据此预留仓位与防潮垫板。若对到库时段有特殊要求，直接回复本件即可。"],
+   sign:"发行部 · 赵启铭"},
+  {id:"m2",from:"财务共享中心",dept:"复核台",tag:"财务",time:"08:15",when:"今日 08:15",no:"驿-0913-02",unread:true,starred:false,archived:false,
+   subject:"七月差旅报销单已退回：缺两张票据",
+   preview:"你提交的七月差旅报销单（BX-20260817-033）审核未通过，缺少杭州回程车票……",
+   body:["你提交的七月差旅报销单（单号 BX-20260817-033）审核未通过。退回原因：缺 8 月 2 日杭州回程高铁纸质票、8 月 3 日住宿水单两张票据。",
+         "请于 9 月 5 日前将补件上传至财务共享平台「待补件」栏目；逾期将转入下月批次，本月不再受理。"],
+   sign:"财务共享中心 · 复核台"},
+  {id:"m3",from:"运维值班机器人",dept:"7×24",tag:"系统",time:"昨天 22:03",when:"昨日 22:03",no:"驿-0913-03",unread:true,starred:false,archived:false,
+   subject:"【停机通知】档案系统 9 月 14 日 02:00–04:00 升级",
+   preview:"档案系统将于 9 月 14 日（周日）02:00–04:00 停机升级至 v5.8，期间检索与借阅……",
+   body:["档案系统将于 9 月 14 日（周日）02:00–04:00 停机升级至 v5.8，期间检索、借阅与导出接口不可用，页面会显示维护公告。",
+         "已挂起的借阅任务会在升级完成后自动重试，无需重新提交；如 04:30 后仍有失败任务，请直接报值班群并附单号。"],
+   sign:"运维值班机器人 · 7×24"},
+  {id:"m4",from:"周芸",dept:"拾光书店",tag:"客户",time:"昨天 16:47",when:"昨日 16:47",no:"驿-0913-04",unread:true,starred:true,archived:false,
+   subject:"《海边诊所》增订两百册的回执",
+   preview:"增订的两百册已随 SF 件发出，预计周三到店；附赠书签反响很好，想再订《山茶……",
+   body:["上次增订的《海边诊所》两百册已发出，物流单号 SF136-7742-0836，预计周三到店，麻烦安排人签收并核对包件数。",
+         "随书附赠的二十张书签客人很喜欢，结账台都快拿完了。想再追加《山茶文具店》三百册，请回个熟悉的折扣口径。"],
+   sign:"拾光书店 · 周芸"},
+  {id:"m5",from:"产品委员会",dept:"版本台",tag:"系统",time:"昨天 11:20",when:"昨日 11:20",no:"驿-0913-05",unread:true,starred:false,archived:false,
+   subject:"工作台 3.2 灰度名单（第三批，共 46 人）",
+   preview:"第三批灰度覆盖发行部、库房与客服一组；新功能「来信分流规则」默认关闭……",
+   body:["第三批灰度共 46 人，覆盖发行部、库房与客服一组，名单见附表。灰度自今日 14:00 起按工位陆续推送，无需手动更新。",
+         "新功能「来信分流规则」默认关闭，需要在设置中手动开启；体验反馈请统一在来信标题前标注【3.2 灰度】，便于版本台归类。"],
+   sign:"产品委员会 · 版本台"},
+  {id:"m6",from:"陈诺",dept:"人力资源部",tag:"人事",time:"周一 10:05",when:"周一 10:05",no:"驿-0913-06",unread:false,starred:false,archived:false,
+   subject:"九月轮岗意愿征集，本周五 18:00 截止",
+   preview:"九月开放轮岗岗位：库房调度、门店支援、客服质检，填写入口在 OA「发展」页……",
+   body:["九月开放的轮岗岗位：库房调度、门店支援、客服质检，任期均为一个月，原岗位工作需交接完毕。",
+         "填写入口在 OA「发展」页，截止 9 月 11 日 18:00，逾期视为本轮放弃，不计入绩效记录。"],
+   sign:"人力资源部 · 陈诺"},
+  {id:"m7",from:"客户成功组",dept:"星洲物流",tag:"外部",time:"9 月 5 日",when:"9 月 5 日 15:26",no:"驿-0913-07",unread:false,starred:true,archived:false,
+   subject:"台风延误说明：华东线妥投时效顺延 1–2 天",
+   preview:"受台风「木兰」影响，华东线 9 月 8–10 日揽收的快件妥投时效普遍顺延……",
+   body:["受台风「木兰」影响，华东线 9 月 8–10 日揽收的快件妥投时效普遍顺延 1–2 天，干线车辆已改道绕行。",
+         "已为合作方开通绿色查询通道，异常单可直接对接值班调度，无需排队；因此产生的客诉工单请标注「气象延误」。"],
+   sign:"星洲物流 · 客户成功组"},
+  {id:"m8",from:"总经理办公室",dept:"秘书处",tag:"行政",time:"9 月 4 日",when:"9 月 4 日 09:12",no:"驿-0913-08",unread:false,starred:false,archived:false,
+   subject:"关于 9 月 15 日起启用新邮件分拣规范的通知",
+   preview:"跨部门来件统一经「驿邮」分拣台派发，私人事务不再进入工作序列……",
+   body:["自 9 月 15 日起，跨部门来件统一经「驿邮」分拣台派发，私人事务请走线下流程，不再进入工作来件序列。",
+         "各部门设一名分拣联络员，负责核对格口与处理退件，名单请于 9 月 12 日前报总办秘书处。"],
+   sign:"总经理办公室 · 秘书处"}
+];
+
+var FILTERS={
+  all:{desc:"按投递先后",empty:["格口已清空","今日来件全部分拣完毕"]},
+  unread:{desc:"仅未读",empty:["没有未读来件","新来信会带红点进入序列"]},
+  starred:{desc:"仅星标",empty:["还没有星标信","在任意一封信上点星即可收藏"]},
+  archived:{desc:"已收入格口 · 可还原",empty:["归档格口是空的","归档的来件会收在这里，可随时还原"]}
+};
+
+var IC={
+  star:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4.2l2.4 4.8 5.3.8-3.8 3.7.9 5.3-4.8-2.5-4.8 2.5.9-5.3-3.8-3.7 5.3-.8z"/></svg>',
+  arch:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8h17"/><path d="M5 8l1.2-3h11.6L19 8"/><path d="M6 8v10a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V8"/><path d="M10 12.5h4"/></svg>',
+  restore:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10a8 8 0 1 1 2 5.3"/><path d="M4 4.5V10h5.5"/></svg>'
+};
+
+var state={filter:"all",current:null};
+var railEl=document.getElementById("rail");
+var msglist=document.getElementById("msglist");
+var listEmpty=document.getElementById("listEmpty");
+var readerEl=document.getElementById("reader");
+var toastEl=document.getElementById("toast");
+var toastTimer=null;
+
+function countOf(fn){var n=0;for(var i=0;i<MESSAGES.length;i++){if(fn(MESSAGES[i]))n++;}return n;}
+function byId(id){for(var i=0;i<MESSAGES.length;i++){if(MESSAGES[i].id===id)return MESSAGES[i];}return null;}
+function matches(m){switch(state.filter){
+  case "unread":return !m.archived&&m.unread;
+  case "starred":return !m.archived&&m.starred;
+  case "archived":return m.archived;
+  default:return !m.archived;}}
+
+function renderRail(){
+  document.getElementById("cnt-all").textContent=countOf(function(m){return !m.archived;});
+  document.getElementById("cnt-unread").textContent=countOf(function(m){return !m.archived&&m.unread;});
+  document.getElementById("cnt-starred").textContent=countOf(function(m){return !m.archived&&m.starred;});
+  document.getElementById("cnt-archived").textContent=countOf(function(m){return m.archived;});
+  document.getElementById("unreadNum").textContent=countOf(function(m){return !m.archived&&m.unread;});
+  var items=railEl.querySelectorAll(".rail-item");
+  for(var i=0;i<items.length;i++){
+    var on=items[i].getAttribute("data-filter")===state.filter;
+    items[i].classList.toggle("active",on);
+    items[i].setAttribute("aria-pressed",on?"true":"false");
+  }
+}
+
+function cardHTML(m){
+  var cls="msg-card";
+  if(m.unread)cls+=" unread";
+  if(m.starred)cls+=" starred";
+  if(m.archived)cls+=" archived";
+  if(state.current===m.id)cls+=" selected";
+  var act=m.archived?"restore":"archive";
+  var icon=m.archived?IC.restore:IC.arch;
+  return '<li class="'+cls+'" data-id="'+m.id+'" tabindex="0" aria-label="'+m.subject+'">'
+    +'<div class="c-row c-top"><span class="from">'+m.from+' · '+m.dept+'</span><span class="time">'+m.time+'</span></div>'
+    +'<div class="c-row c-sub"><span class="dot" aria-hidden="true"></span><span class="subject">'+m.subject+'</span></div>'
+    +'<div class="c-row c-preview">'+m.preview+'</div>'
+    +'<div class="c-row c-bot"><span class="tag">'+m.tag+'</span><span class="acts">'
+    +'<button type="button" class="icon-btn btn-star'+(m.starred?' starred':'')+'" data-act="star" aria-pressed="'+(m.starred?"true":"false")+'" aria-label="切换星标">'+IC.star+'</button>'
+    +'<button type="button" class="icon-btn" data-act="'+act+'" aria-label="'+(m.archived?"还原":"归档")+'">'+icon+'</button>'
+    +'</span></div></li>';
+}
+
+function renderList(){
+  document.getElementById("listDesc").textContent=FILTERS[state.filter].desc;
+  var html="";var shown=0;
+  for(var i=0;i<MESSAGES.length;i++){if(matches(MESSAGES[i])){html+=cardHTML(MESSAGES[i]);shown++;}}
+  msglist.innerHTML=html;
+  if(shown===0){
+    listEmpty.hidden=false;
+    document.getElementById("emptyTitle").textContent=FILTERS[state.filter].empty[0];
+    document.getElementById("emptyDesc").textContent=FILTERS[state.filter].empty[1];
+  }else{listEmpty.hidden=true;}
+}
+
+function renderReader(){
+  var m=state.current?byId(state.current):null;
+  if(!m){
+    readerEl.innerHTML='<div id="readerEmpty">'
+      +'<svg viewBox="0 0 140 100" aria-hidden="true"><rect x="10" y="18" width="120" height="70" rx="6" fill="none" stroke="currentColor" stroke-width="3"/><path d="M10 24l60 40 60-40" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/><circle cx="106" cy="34" r="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-dasharray="3 4"/></svg>'
+      +'<h2>待取件</h2><p>从左侧来件序列里点一封信，在这里拆读。</p></div>';
+    return;
+  }
+  var paras="";
+  for(var i=0;i<m.body.length;i++){paras+="<p>"+m.body[i]+"</p>";}
+  var starBtn='<button type="button" class="btn btn-star'+(m.starred?' on':'')+'" data-act="star" aria-pressed="'+(m.starred?"true":"false")+'">'+IC.star+(m.starred?"已星标":"加星标")+'</button>';
+  var mainBtn=m.archived
+    ?'<button type="button" class="btn btn-primary" data-act="restore">'+IC.restore+'还原此信</button>'
+    :'<button type="button" class="btn btn-primary" data-act="archive">'+IC.arch+'归档此信</button>';
+  var note=m.archived?"此信已归档 · 可在此还原":"此信在分拣序列中";
+  readerEl.innerHTML='<article class="paper">'
+    +'<header class="paper-head">'
+    +'<span class="chip">'+m.tag+'</span>'
+    +'<div class="stamp-corner" aria-hidden="true"><span class="sc-top">内部</span><span class="sc-main">邮</span><span class="sc-denom">1.20</span></div>'
+    +'<svg class="postmark" viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="52" stroke-width="3" stroke-dasharray="3 6"/><circle cx="60" cy="60" r="33" stroke-width="2"/><text x="60" y="57" text-anchor="middle" class="pm-text">驿邮</text><text x="60" y="76" text-anchor="middle" class="pm-date">09·13</text></svg>'
+    +'<h1 class="paper-subject">'+m.subject+'</h1>'
+    +'<p class="paper-meta">'+m.from+' · '+m.dept+' ｜ '+m.when+' ｜ 编号 '+m.no+'</p>'
+    +'</header>'
+    +'<div class="airmail" aria-hidden="true"></div>'
+    +'<div class="paper-body">'+paras+'<p class="sign">—— '+m.sign+'</p></div>'
+    +'<footer class="paper-foot">'+starBtn+mainBtn+'<button type="button" class="btn btn-ghost" data-act="unread">标为未读</button><span class="foot-note">'+note+'</span></footer>'
+    +'</article>';
+}
+
+function renderAll(){
+  if(state.current&&!matches(byId(state.current))){state.current=null;}
+  renderRail();renderList();renderReader();
+}
+
+function toast(msg){
+  toastEl.textContent=msg;
+  toastEl.classList.add("show");
+  if(toastTimer)clearTimeout(toastTimer);
+  toastTimer=setTimeout(function(){toastEl.classList.remove("show");},2400);
+}
+
+function openMessage(id){
+  var m=byId(id);if(!m)return;
+  m.unread=false;
+  state.current=id;
+  renderAll();
+}
+
+function act(type,id){
+  var m=byId(id);if(!m)return;
+  if(type==="star"){m.starred=!m.starred;}
+  else if(type==="archive"){m.archived=true;if(state.current===id){state.current=null;}toast("已放入「已归档」格口");}
+  else if(type==="restore"){m.archived=false;toast("已退回分拣序列");}
+  else if(type==="unread"){m.unread=true;toast("已标为未读，稍后回读");}
+  renderAll();
+}
+
+railEl.addEventListener("click",function(e){
+  var btn=e.target.closest(".rail-item");if(!btn)return;
+  state.filter=btn.getAttribute("data-filter");
+  renderAll();
+});
+
+msglist.addEventListener("click",function(e){
+  var btn=e.target.closest("button[data-act]");
+  var card=e.target.closest(".msg-card");
+  if(btn&&card){e.stopPropagation();act(btn.getAttribute("data-act"),card.getAttribute("data-id"));return;}
+  if(card){openMessage(card.getAttribute("data-id"));}
+});
+msglist.addEventListener("keydown",function(e){
+  var card=e.target.closest?e.target.closest(".msg-card"):null;
+  if(card&&(e.key==="Enter"||e.key===" ")){e.preventDefault();openMessage(card.getAttribute("data-id"));}
+});
+
+readerEl.addEventListener("click",function(e){
+  var btn=e.target.closest("button[data-act]");if(!btn||!state.current)return;
+  act(btn.getAttribute("data-act"),state.current);
+});
+
+document.getElementById("btnReadAll").addEventListener("click",function(){
+  for(var i=0;i<MESSAGES.length;i++){MESSAGES[i].unread=false;}
+  toast("今日来信已全部标为已读");
+  renderAll();
+});
+
+state.current="m1";
+MESSAGES[0].unread=false;
+renderAll();
+</script>
+</body>
+</html>

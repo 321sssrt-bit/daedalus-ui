@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>二次验证 · DAEDALUS-SEC 身份核验终端</title>
+<style>
+  :root{
+    --page:#070B12;
+    --panel:#0C1119;
+    --panel-2:#101826;
+    --line:#1C2A3D;
+    --text:#D6E4F0;
+    --muted:#5E7186;
+    --accent:#00E5FF;
+    --danger:#FF3B5C;
+    --ok:#2BFF88;
+    --mono:ui-monospace,"Cascadia Mono","JetBrains Mono",Consolas,"Courier New",monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    background:var(--page);
+    color:var(--text);
+    font-family:var(--mono);
+    font-size:14px;
+    line-height:1.6;
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    overflow-x:hidden;
+  }
+  /* 蓝图网格 + 扫描线氛围层 */
+  .bg-grid{
+    position:fixed;inset:0;z-index:0;pointer-events:none;
+    background-image:
+      linear-gradient(#1C2A3D2E 1px,transparent 1px),
+      linear-gradient(90deg,#1C2A3D2E 1px,transparent 1px);
+    background-size:48px 48px;
+  }
+  .bg-grid::after{
+    content:"";position:absolute;inset:0;
+    background:repeating-linear-gradient(0deg,transparent 0 3px,#00000042 3px 4px);
+    opacity:.35;
+  }
+  .bg-grid::before{
+    content:"";position:absolute;inset:0;
+    background:radial-gradient(ellipse 720px 460px at 50% 38%,#00E5FF10 0%,transparent 70%);
+  }
+
+  .topbar{
+    position:relative;z-index:1;
+    display:flex;justify-content:space-between;align-items:center;
+    padding:16px 32px;
+    border-bottom:1px solid var(--line);
+    background:#0C1119CC;
+  }
+  .brand{font-size:13px;letter-spacing:2px;color:var(--text);font-weight:700}
+  .brand .brand-sep{color:var(--accent);margin:0 8px}
+  .session{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:8px}
+  .dot-live{width:8px;height:8px;background:var(--ok);display:inline-block;animation:pulse 1.6s infinite}
+
+  .stage{
+    position:relative;z-index:1;
+    flex:1;
+    display:grid;
+    grid-template-columns:560px 360px;
+    gap:32px;
+    justify-content:center;
+    align-content:center;
+    padding:32px;
+  }
+
+  /* 终端窗口 */
+  .terminal{
+    background:var(--panel);
+    border:1px solid var(--line);
+    box-shadow:0 0 0 1px #00000080,0 24px 64px #00000066;
+  }
+  .term-bar{
+    display:flex;align-items:center;gap:8px;
+    padding:10px 16px;
+    border-bottom:1px solid var(--line);
+    background:var(--panel-2);
+  }
+  .sq{width:10px;height:10px;display:inline-block}
+  .sq-r{background:var(--danger)}
+  .sq-y{background:#E5A800}
+  .sq-g{background:var(--ok)}
+  .term-title{margin-left:8px;font-size:12px;color:var(--muted);letter-spacing:1px}
+  .term-ver{margin-left:auto;font-size:11px;color:var(--muted)}
+
+  .term-body{padding:28px 32px 32px}
+  .boot-line{font-size:13px;color:var(--ok)}
+  .boot-line.sub{color:var(--muted);margin-top:4px}
+  .boot-line .ttl{color:var(--accent)}
+  .caret{display:inline-block;width:8px;height:15px;background:var(--accent);margin-left:6px;vertical-align:-2px;animation:blink 1s steps(1) infinite}
+
+  /* 验证码六格 */
+  .otp-row{
+    display:flex;gap:12px;
+    margin-top:24px;
+  }
+  .otp-cell{
+    width:64px;height:72px;
+    background:var(--panel-2);
+    border:1px solid var(--line);
+    color:var(--text);
+    font-family:var(--mono);
+    font-size:32px;
+    text-align:center;
+    caret-color:var(--accent);
+    outline:none;
+    border-radius:0;
+    transition:border-color .12s linear,box-shadow .12s linear,color .12s linear;
+  }
+  .otp-cell:focus{
+    border-color:var(--accent);
+    box-shadow:0 0 0 1px var(--accent),0 0 20px #00E5FF47;
+    color:var(--accent);
+  }
+  .otp-cell.filled{border-color:#00E5FF8C;color:var(--accent)}
+  .otp-row.err .otp-cell{border-color:var(--danger);color:var(--danger);box-shadow:0 0 0 1px var(--danger)}
+  .otp-row.ok .otp-cell{border-color:var(--ok);color:var(--ok);box-shadow:0 0 0 1px var(--ok),0 0 20px #2BFF8833}
+  .shake{animation:shake .28s linear}
+
+  /* 状态行 */
+  .meta-row{
+    display:flex;align-items:center;gap:16px;
+    margin-top:16px;min-height:24px;
+  }
+  .attempts{display:flex;gap:6px}
+  .att{width:22px;height:6px;background:var(--panel-2);border:1px solid var(--line);display:inline-block}
+  .att.used{background:var(--danger);border-color:var(--danger)}
+  .msg{font-size:12px;color:var(--muted)}
+  .msg.err{color:var(--danger)}
+  .msg.ok{color:var(--ok)}
+
+  /* 锁定条 */
+  .lock-bar{
+    display:none;
+    margin-top:16px;
+    padding:10px 14px;
+    border:1px solid var(--danger);
+    background:#FF3B5C12;
+    color:var(--danger);
+    font-size:12px;letter-spacing:1px;
+  }
+  .lock-bar.show{display:block}
+
+  .action-row{display:flex;gap:12px;margin-top:20px}
+  .btn{
+    font-family:var(--mono);
+    font-size:13px;
+    letter-spacing:2px;
+    height:44px;
+    padding:0 24px;
+    border-radius:0;
+    border:1px solid var(--line);
+    background:var(--panel-2);
+    color:var(--text);
+    cursor:pointer;
+    transition:background .12s linear,color .12s linear,border-color .12s linear,box-shadow .12s linear;
+  }
+  .btn-primary{background:var(--accent);border-color:var(--accent);color:#06121A;font-weight:700}
+  .btn-primary:hover:not(:disabled){box-shadow:0 0 22px #00E5FF66}
+  .btn-ghost:hover:not(:disabled){border-color:var(--accent);color:var(--accent)}
+  .btn:disabled{background:#10202E;border-color:var(--line);color:var(--muted);cursor:not-allowed}
+  .btn:focus-visible{outline:none;box-shadow:0 0 0 1px var(--accent),0 0 16px #00E5FF47}
+
+  /* 安全信道面板 */
+  .channel{margin-top:24px;border:1px solid var(--line);background:var(--panel-2)}
+  .channel-head{
+    padding:8px 14px;
+    font-size:11px;letter-spacing:2px;color:var(--muted);
+    border-bottom:1px solid var(--line);
+    display:flex;justify-content:space-between;
+  }
+  .channel-head .sim{color:var(--accent)}
+  .channel-body{padding:14px}
+  .sms{font-size:12px;color:var(--muted);line-height:1.8}
+  .sms strong{color:var(--accent);font-size:16px;letter-spacing:4px;font-weight:700}
+
+  /* 审计日志 */
+  .log-panel{
+    background:var(--panel);
+    border:1px solid var(--line);
+    align-self:start;
+    max-height:520px;
+    overflow:hidden;
+  }
+  .log-head{
+    padding:10px 16px;font-size:11px;letter-spacing:2px;color:var(--muted);
+    border-bottom:1px solid var(--line);background:var(--panel-2);
+  }
+  .log-list{list-style:none;padding:12px 16px;font-size:11px;color:var(--muted);max-height:440px;overflow-y:auto}
+  .log-list li{padding:4px 0;border-bottom:1px dashed #1C2A3D80}
+  .log-list .t{color:var(--accent);margin-right:10px}
+  .log-list li.warn{color:var(--danger)}
+  .log-list li.good{color:var(--ok)}
+
+  .foot{
+    position:relative;z-index:1;
+    padding:12px 32px;
+    border-top:1px solid var(--line);
+    font-size:11px;color:var(--muted);letter-spacing:1px;
+    text-align:center;
+  }
+
+  /* 成功覆盖层 */
+  .overlay{
+    position:fixed;inset:0;z-index:10;
+    background:#070B12D9;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .overlay[hidden]{display:none}
+  .overlay-card{
+    width:420px;
+    background:var(--panel);
+    border:1px solid var(--ok);
+    box-shadow:0 0 40px #2BFF8826;
+    padding:32px;
+    text-align:center;
+  }
+  .overlay-card h2{font-size:18px;letter-spacing:4px;color:var(--ok);margin:16px 0 8px}
+  .overlay-card p{font-size:12px;color:var(--muted);line-height:1.8}
+  .overlay-card .btn{margin-top:24px}
+
+  @keyframes blink{0%,49%{opacity:1}50%,100%{opacity:0}}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
+  @keyframes shake{
+    0%,100%{transform:translateX(0)}
+    20%{transform:translateX(-6px)}
+    40%{transform:translateX(6px)}
+    60%{transform:translateX(-4px)}
+    80%{transform:translateX(4px)}
+  }
+
+  @media (max-width:920px){
+    .stage{grid-template-columns:minmax(0,560px);padding:20px 16px}
+    .term-body{padding:20px}
+    .otp-row{gap:8px}
+    .otp-cell{width:52px;height:60px;font-size:26px}
+    .log-panel{max-height:none}
+    .log-list{max-height:220px}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .caret,.dot-live{animation:none}
+    .shake{animation:none}
+    .otp-cell,.btn{transition:none}
+  }
+</style>
+</head>
+<body>
+  <div class="bg-grid" aria-hidden="true"></div>
+
+  <header class="topbar">
+    <div class="brand">DAEDALUS-SEC<span class="brand-sep">//</span>身份核验终端</div>
+    <div class="session">会话 <span id="tb-session">A-7734</span><span class="dot-live" aria-hidden="true"></span>链路已加密 · AES-256</div>
+  </header>
+
+  <main class="stage">
+    <section class="terminal" id="terminal" aria-label="二次验证终端">
+      <div class="term-bar">
+        <span class="sq sq-r" aria-hidden="true"></span>
+        <span class="sq sq-y" aria-hidden="true"></span>
+        <span class="sq sq-g" aria-hidden="true"></span>
+        <span class="term-title">otp_verify.exe — 二次验证</span>
+        <span class="term-ver">build 2.4.1</span>
+      </div>
+      <div class="term-body">
+        <p class="boot-line">&gt; 登录口令校验通过，进入第二步身份核验<span class="caret" aria-hidden="true"></span></p>
+        <p class="boot-line sub">检测到非常用设备登录，请输入安全信道收到的 6 位验证码。本窗口有效时间 <span class="ttl" id="ttl-text">05:00</span></p>
+
+        <div class="otp-row" id="otp-row" role="group" aria-label="六位数字验证码输入">
+          <input class="otp-cell" id="otp-0" type="text" inputmode="numeric" maxlength="2" autocomplete="one-time-code" aria-label="验证码第 1 位">
+          <input class="otp-cell" id="otp-1" type="text" inputmode="numeric" maxlength="2" aria-label="验证码第 2 位">
+          <input class="otp-cell" id="otp-2" type="text" inputmode="numeric" maxlength="2" aria-label="验证码第 3 位">
+          <input class="otp-cell" id="otp-3" type="text" inputmode="numeric" maxlength="2" aria-label="验证码第 4 位">
+          <input class="otp-cell" id="otp-4" type="text" inputmode="numeric" maxlength="2" aria-label="验证码第 5 位">
+          <input class="otp-cell" id="otp-5" type="text" inputmode="numeric" maxlength="2" aria-label="验证码第 6 位">
+        </div>
+
+        <div class="meta-row">
+          <div class="attempts" aria-label="剩余尝试次数">
+            <span class="att" id="att-0"></span>
+            <span class="att" id="att-1"></span>
+            <span class="att" id="att-2"></span>
+          </div>
+          <p class="msg" id="msg-line">等待输入验证码…</p>
+        </div>
+
+        <div class="lock-bar" id="lock-bar">!! 连续错误已达上限 · 输入已锁定 · <span id="lock-cd">30</span> 秒后自动解锁</div>
+
+        <div class="action-row">
+          <button class="btn btn-primary" id="btn-verify" type="button" disabled>核验身份</button>
+          <button class="btn btn-ghost" id="btn-resend" type="button" disabled>重新发送（<span id="resend-cd">59</span>s）</button>
+        </div>
+
+        <div class="channel" id="channel-panel">
+          <div class="channel-head"><span>安全信道 · 上行短信截获</span><span class="sim">SIM-0721</span></div>
+          <div class="channel-body">
+            <p class="sms">【戴达罗斯安全】您正在登录身份核验终端，验证码为 <strong id="code-text">—</strong>，5 分钟内有效。工作人员不会索取此码，请勿泄露给任何人。</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <aside class="log-panel" id="log-panel" aria-label="审计日志">
+      <div class="log-head">审计日志 · audit.log</div>
+      <ul class="log-list" id="log-list"></ul>
+    </aside>
+  </main>
+
+  <footer class="foot">支持键盘逐位输入与整段粘贴 · Enter 提交核验 · 连续错误 3 次将临时锁定 30 秒</footer>
+
+  <div class="overlay" id="overlay-success" hidden>
+    <div class="overlay-card" role="alertdialog" aria-label="验证成功">
+      <svg width="56" height="56" viewBox="0 0 56 56" aria-hidden="true">
+        <rect x="2" y="2" width="52" height="52" fill="none" stroke="#2BFF88" stroke-width="2"></rect>
+        <path d="M14 29 L24 39 L42 18" fill="none" stroke="#2BFF88" stroke-width="4"></path>
+      </svg>
+      <h2>身份已确认</h2>
+      <p>会话凭证已签发 · SCOPE=read/write<br>授信有效期 2 小时 · 设备指纹已记录</p>
+      <button class="btn btn-primary" id="btn-reset" type="button">重新演示</button>
+    </div>
+  </div>
+
+<script>
+(function(){
+  "use strict";
+  var CELLS = 6, MAX_ATTEMPT = 3, LOCK_SECONDS = 30, RESEND_SECONDS = 59, TTL_SECONDS = 300;
+  var code = "", attemptsLeft = MAX_ATTEMPT, locked = false, expired = false;
+  var resendLeft = RESEND_SECONDS, ttlLeft = TTL_SECONDS, lockLeft = 0, startAt = Date.now();
+  var row = document.getElementById("otp-row");
+  var msg = document.getElementById("msg-line");
+  var btnVerify = document.getElementById("btn-verify");
+  var btnResend = document.getElementById("btn-resend");
+  var resendCd = document.getElementById("resend-cd");
+  var lockBar = document.getElementById("lock-bar");
+  var lockCd = document.getElementById("lock-cd");
+  var ttlText = document.getElementById("ttl-text");
+  var codeText = document.getElementById("code-text");
+  var overlay = document.getElementById("overlay-success");
+  var logList = document.getElementById("log-list");
+  var inputs = [];
+  for (var i = 0; i < CELLS; i++) inputs.push(document.getElementById("otp-" + i));
+
+  function stamp(){
+    var s = (Date.now() - startAt) / 1000;
+    return "T+" + (s < 10 ? "0" : "") + s.toFixed(1);
+  }
+  function log(text, kind){
+    var li = document.createElement("li");
+    if (kind) li.className = kind;
+    var t = document.createElement("span");
+    t.className = "t"; t.textContent = stamp();
+    li.appendChild(t);
+    li.appendChild(document.createTextNode(text));
+    logList.insertBefore(li, logList.firstChild);
+  }
+  function genCode(){
+    var d = "";
+    for (var i = 0; i < CELLS; i++) d += Math.floor(Math.random() * 10);
+    return d;
+  }
+  function fmt(s){
+    var m = Math.floor(s / 60), r = s % 60;
+    return (m < 10 ? "0" + m : m) + ":" + (r < 10 ? "0" + r : r);
+  }
+  function setMsg(text, kind){
+    msg.textContent = text;
+    msg.className = "msg" + (kind ? " " + kind : "");
+  }
+  function syncAttempts(){
+    for (var i = 0; i < MAX_ATTEMPT; i++)
+      document.getElementById("att-" + i).className = "att" + (i < MAX_ATTEMPT - attemptsLeft ? " used" : "");
+  }
+  function syncVerify(){
+    var full = inputs.every(function(el){ return el.value !== ""; });
+    btnVerify.disabled = !full || locked;
+  }
+  function setLocked(v){
+    locked = v;
+    inputs.forEach(function(el){ el.disabled = v; });
+    lockBar.className = v ? "lock-bar show" : "lock-bar";
+    syncVerify();
+  }
+  function clearCells(){
+    inputs.forEach(function(el){ el.value = ""; el.className = "otp-cell"; });
+    row.className = "otp-row";
+  }
+  function issueCode(reason){
+    code = genCode();
+    codeText.textContent = code.split("").join(" ");
+    expired = false; ttlLeft = TTL_SECONDS;
+    ttlText.textContent = fmt(ttlLeft);
+    clearCells();
+    inputs[0].focus();
+    resendLeft = RESEND_SECONDS;
+    btnResend.disabled = true;
+    btnResend.innerHTML = "重新发送（<span id=\"resend-cd\">" + resendLeft + "</span>s）";
+    resendCd = document.getElementById("resend-cd");
+    setMsg(reason || "新验证码已下发，请查收安全信道");
+    log("新验证码已通过安全信道下发", "good");
+  }
+  function verify(){
+    if (locked) return;
+    var val = inputs.map(function(el){ return el.value; }).join("");
+    if (val.length < CELLS){ setMsg("请先输入完整的 6 位验证码"); return; }
+    if (expired){
+      setMsg("验证码已过期，请重新发送", "err");
+      row.classList.add("shake");
+      log("提交失败：验证码已过期", "warn");
+      btnResend.disabled = false;
+      btnResend.textContent = "重新发送验证码";
+      return;
+    }
+    if (val === code){
+      row.className = "otp-row ok";
+      inputs.forEach(function(el){ el.className = "otp-cell"; el.disabled = true; });
+      setMsg("验证通过，正在签发会话凭证…", "ok");
+      log("核验通过：签发会话凭证", "good");
+      btnVerify.disabled = true; btnResend.disabled = true;
+      setTimeout(function(){ overlay.hidden = false; }, 650);
+    } else {
+      attemptsLeft--;
+      syncAttempts();
+      row.className = "otp-row err";
+      row.classList.add("shake");
+      setTimeout(function(){ row.classList.remove("shake"); }, 320);
+      if (attemptsLeft <= 0){
+        setLocked(true);
+        lockLeft = LOCK_SECONDS;
+        lockCd.textContent = lockLeft;
+        setMsg("连续错误次数过多，输入已临时锁定", "err");
+        log("锁定触发：连续错误 " + MAX_ATTEMPT + " 次", "warn");
+      } else {
+        setMsg("验证码错误，剩余尝试次数 " + attemptsLeft + " 次", "err");
+        log("核验失败：验证码错误（剩余 " + attemptsLeft + " 次）", "warn");
+      }
+      clearCells();
+      inputs[0].focus();
+    }
+    syncVerify();
+  }
+  inputs.forEach(function(el, idx){
+    el.addEventListener("input", function(){
+      var v = el.value.replace(/\D/g, "");
+      el.value = v.slice(-1);
+      el.className = "otp-cell" + (el.value ? " filled" : "");
+      if (el.value && idx < CELLS - 1) inputs[idx + 1].focus();
+      syncVerify();
+    });
+    el.addEventListener("keydown", function(e){
+      if (e.key === "Backspace" && el.value === "" && idx > 0){ inputs[idx - 1].focus(); inputs[idx - 1].value = ""; inputs[idx - 1].className = "otp-cell"; }
+      if (e.key === "ArrowLeft" && idx > 0) inputs[idx - 1].focus();
+      if (e.key === "ArrowRight" && idx < CELLS - 1) inputs[idx + 1].focus();
+      if (e.key === "Enter") verify();
+    });
+    el.addEventListener("paste", function(e){
+      e.preventDefault();
+      var digits = (e.clipboardData || window.clipboardData).getData("text").replace(/\D/g, "").slice(0, CELLS);
+      if (!digits) return;
+      clearCells();
+      for (var k = 0; k < digits.length; k++){
+        inputs[k].value = digits[k];
+        inputs[k].className = "otp-cell filled";
+      }
+      inputs[Math.min(digits.length, CELLS - 1)].focus();
+      syncVerify();
+      log("检测到整段粘贴，已自动分发至输入格");
+    });
+  });
+  btnVerify.addEventListener("click", verify);
+  btnResend.addEventListener("click", function(){
+    if (btnResend.disabled) return;
+    issueCode("新验证码已发送至安全信道，请重新输入");
+  });
+  document.getElementById("btn-reset").addEventListener("click", function(){
+    overlay.hidden = true;
+    attemptsLeft = MAX_ATTEMPT;
+    syncAttempts();
+    setLocked(false);
+    issueCode("演示已重置，请重新完成核验");
+  });
+  setInterval(function(){
+    if (resendLeft > 0){
+      resendLeft--;
+      if (resendCd) resendCd.textContent = resendLeft;
+      if (resendLeft === 0){
+        btnResend.disabled = false;
+        btnResend.textContent = "重新发送验证码";
+        log("重发冷却结束，可重新发送验证码", "good");
+      }
+    }
+    if (!expired && ttlLeft > 0){
+      ttlLeft--;
+      ttlText.textContent = fmt(ttlLeft);
+      if (ttlLeft === 0){
+        expired = true;
+        setMsg("当前验证码已过期，请重新发送", "err");
+        btnResend.disabled = false;
+        btnResend.textContent = "重新发送验证码";
+        log("验证码过期，等待用户重新发送", "warn");
+      }
+    }
+    if (locked && lockLeft > 0){
+      lockLeft--;
+      lockCd.textContent = lockLeft;
+      if (lockLeft === 0){
+        attemptsLeft = MAX_ATTEMPT;
+        syncAttempts();
+        setLocked(false);
+        setMsg("已解锁，尝试次数重置，请重新输入");
+        log("锁定解除：尝试次数已重置", "good");
+        inputs[0].focus();
+      }
+    }
+  }, 1000);
+  issueCode("等待输入验证码…");
+  setMsg("等待输入验证码…");
+  log("系统就绪，终端会话建立");
+  inputs[0].focus();
+})();
+</script>
+</body>
+</html>

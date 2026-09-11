@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>前方施工 · 近道出行</title>
+<style>
+  :root{
+    --page:#17140e;
+    --surface:#221d13;
+    --surface-2:#2e281a;
+    --line:#463e28;
+    --text:#f2ecd8;
+    --muted:#a99c7c;
+    --hazard:#f2b705;
+    --hazard-deep:#c98f04;
+    --ink:#181407;
+    --danger:#df5f47;
+    --ok:#4cc07f;
+    --beacon:#ffb020;
+    --road:#262115;
+    --radius-ctl:14px;
+    --radius-card:20px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    background:#0f0d09;
+    color:var(--text);
+    -webkit-font-smoothing:antialiased;
+  }
+  /* 宽屏展台：居中手机框 */
+  .stage{
+    min-height:100svh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:48px 24px;
+    background:
+      radial-gradient(700px 460px at 50% 0%, rgba(242,183,5,.05), transparent 70%),
+      linear-gradient(180deg,#12100b 0%, #0f0d09 100%);
+  }
+  .phone{
+    width:414px;
+    height:868px;
+    padding:12px;
+    border-radius:52px;
+    background:linear-gradient(160deg,#2a2519,#0b0a06);
+    box-shadow:0 48px 100px rgba(0,0,0,.6), 0 6px 18px rgba(0,0,0,.5), inset 0 0 0 2px #3a3320;
+    position:relative;
+    flex:none;
+  }
+  .screen{
+    width:100%;
+    height:100%;
+    border-radius:40px;
+    overflow:hidden;
+    position:relative;
+    background:var(--page);
+    display:flex;
+    flex-direction:column;
+  }
+  .notch{
+    position:absolute;
+    top:10px;
+    left:50%;
+    transform:translateX(-50%);
+    width:132px;
+    height:26px;
+    border-radius:13px;
+    background:#060503;
+    z-index:30;
+  }
+  .notch::after{
+    content:"";
+    position:absolute;
+    right:14px;
+    top:50%;
+    transform:translateY(-50%);
+    width:8px;
+    height:8px;
+    border-radius:50%;
+    background:#1d1a12;
+    box-shadow:inset 0 0 2px #000;
+  }
+  .statusbar{
+    height:54px;
+    flex:none;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:14px 30px 0;
+    font-size:15px;
+    font-weight:600;
+    position:relative;
+    z-index:20;
+  }
+  .status-ic{display:flex;gap:6px;align-items:center;color:var(--text);}
+  .scroll{
+    flex:1;
+    overflow-y:auto;
+    overflow-x:hidden;
+    scrollbar-width:none;
+  }
+  .scroll::-webkit-scrollbar{display:none;}
+  /* 黄黑施工条纹带：45° 斜纹循环漂移 */
+  .stripe{
+    height:10px;
+    flex:none;
+    background:repeating-linear-gradient(45deg, var(--hazard) 0 14px, var(--ink) 14px 28px);
+    animation:stripeDrift 1.4s linear infinite;
+  }
+  @keyframes stripeDrift{
+    to{background-position:39.6px 0;}
+  }
+  /* 路障场景 */
+  .hero{padding:18px 20px 0;}
+  .hero svg{display:block;width:100%;height:auto;}
+  .beacon,.beacon-glow{animation:blink 1.3s ease-in-out infinite alternate;}
+  @keyframes blink{
+    from{opacity:.3;}
+    to{opacity:1;}
+  }
+  .loading .beacon{animation-duration:.4s;}
+  .loading .beacon-glow{animation-duration:.4s;}
+  /* 故障工单号 */
+  .ticket{
+    margin:18px 20px 0;
+    background:var(--surface);
+    border:1px dashed var(--hazard);
+    border-radius:14px;
+    padding:13px 16px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+  }
+  .ticket .tk-label{font-size:12px;color:var(--muted);margin-bottom:5px;}
+  .ticket .tk-no{
+    font-family:ui-monospace,"SF Mono","Cascadia Mono",Consolas,"Courier New",monospace;
+    font-size:21px;
+    font-weight:700;
+    letter-spacing:.05em;
+    color:var(--hazard);
+    font-variant-numeric:tabular-nums;
+  }
+  .copy-btn{
+    flex:none;
+    font-family:inherit;
+    font-size:12px;
+    padding:7px 12px;
+    border-radius:9px;
+    border:1px solid var(--line);
+    background:transparent;
+    color:var(--muted);
+    cursor:pointer;
+  }
+  .copy-btn:active{transform:translateY(1px);}
+  /* 主信息面板 */
+  .panel{padding:20px 20px 8px;}
+  h1{font-size:24px;line-height:1.35;font-weight:700;margin:2px 0 10px;}
+  .lead{font-size:14px;line-height:1.75;color:var(--muted);}
+  .meta{
+    margin:16px 0 0;
+    border:1px solid var(--line);
+    border-radius:var(--radius-card);
+    background:var(--surface);
+    overflow:hidden;
+  }
+  .meta .row{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    gap:14px;
+    padding:11px 16px;
+    font-size:13px;
+    line-height:1.5;
+  }
+  .meta .row+.row{border-top:1px solid var(--line);}
+  .meta .k{color:var(--muted);flex:none;}
+  .meta .v{text-align:right;}
+  /* 结果横幅 */
+  .banner{
+    display:none;
+    margin:16px 0 0;
+    padding:12px 14px;
+    border-radius:12px;
+    font-size:13px;
+    line-height:1.6;
+  }
+  .banner.show{display:block;animation:fadeUp .3s ease;}
+  .banner.fail{background:rgba(223,95,71,.12);border:1px solid rgba(223,95,71,.55);}
+  .banner.ok{background:rgba(76,192,127,.13);border:1px solid rgba(76,192,127,.55);}
+  /* 操作区 */
+  .actions{margin:18px 0 0;display:flex;flex-direction:column;gap:12px;}
+  .btn{
+    height:52px;
+    border-radius:var(--radius-ctl);
+    font-size:15px;
+    font-weight:600;
+    letter-spacing:.04em;
+    border:none;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:9px;
+    font-family:inherit;
+  }
+  .btn:active{transform:translateY(1px);}
+  .btn-primary{
+    background:linear-gradient(180deg, var(--hazard) 0%, var(--hazard-deep) 100%);
+    color:var(--ink);
+    box-shadow:0 6px 16px rgba(242,183,5,.25);
+  }
+  .btn-primary[disabled]{opacity:.75;cursor:default;}
+  .btn-ghost{
+    background:transparent;
+    border:1px solid var(--line);
+    color:var(--text);
+  }
+  .spin{
+    width:16px;
+    height:16px;
+    flex:none;
+    border-radius:50%;
+    border:2px solid rgba(24,20,7,.35);
+    border-top-color:var(--ink);
+    animation:spin .8s linear infinite;
+  }
+  @keyframes spin{
+    to{transform:rotate(360deg);}
+  }
+  .note{display:none;margin:14px 0 0;font-size:12px;color:var(--muted);text-align:center;}
+  .note.show{display:block;animation:fadeUp .3s ease;}
+  /* 恢复通行视图 */
+  .open-hero{display:flex;justify-content:center;padding:8px 0 4px;}
+  /* 页脚与提示条 */
+  .foot{padding:18px 20px 28px;text-align:center;font-size:11px;color:var(--muted);}
+  .toast{
+    position:absolute;
+    left:20px;
+    right:20px;
+    bottom:30px;
+    z-index:40;
+    background:var(--surface-2);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:12px 14px;
+    font-size:13px;
+    text-align:center;
+    opacity:0;
+    transform:translateY(10px);
+    transition:opacity .22s ease, transform .22s ease;
+    pointer-events:none;
+  }
+  .toast.show{opacity:1;transform:translateY(0);}
+  .homebar{
+    position:absolute;
+    bottom:8px;
+    left:50%;
+    transform:translateX(-50%);
+    width:134px;
+    height:5px;
+    border-radius:3px;
+    background:rgba(242,236,216,.4);
+    z-index:40;
+  }
+  @keyframes fadeUp{
+    from{opacity:0;transform:translateY(10px);}
+    to{opacity:1;transform:translateY(0);}
+  }
+  .fade-in{animation:fadeUp .32s ease;}
+  /* 窄屏：手机框占满 */
+  @media (max-width:560px){
+    .stage{padding:0;}
+    .phone{width:100vw;height:100dvh;border-radius:0;padding:0;box-shadow:none;background:transparent;}
+    .screen{border-radius:0;}
+    .notch,.homebar{display:none;}
+  }
+  @media (min-width:561px) and (max-height:940px){
+    .stage{padding:20px;}
+    .phone{transform:scale(.82);}
+  }
+  /* 减少动态：条纹停漂、警示灯常亮、旋转环停转，保留状态切换 */
+  @media (prefers-reduced-motion: reduce){
+    .stripe,.beacon,.beacon-glow{animation:none;}
+    .beacon,.beacon-glow{opacity:1;}
+    .spin{animation:none;border-top-color:rgba(24,20,7,.35);}
+    .fade-in,.banner.show,.note.show{animation:none;}
+    .toast,.btn{transition:none;}
+  }
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="phone">
+    <div class="screen" id="screen">
+      <div class="notch"></div>
+      <header class="statusbar">
+        <span id="sbTime">21:47</span>
+        <span class="status-ic" aria-hidden="true">
+          <svg width="17" height="11" viewBox="0 0 17 11" fill="currentColor"><rect x="0" y="7" width="3" height="4" rx="1"/><rect x="4.5" y="5" width="3" height="6" rx="1"/><rect x="9" y="2.5" width="3" height="8.5" rx="1"/><rect x="13.5" y="0" width="3" height="11" rx="1"/></svg>
+          <svg width="16" height="11" viewBox="0 0 16 11" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M1.5 4a10 10 0 0 1 13 0"/><path d="M4 6.6a6.4 6.4 0 0 1 8 0"/><circle cx="8" cy="9.2" r="1.3" fill="currentColor" stroke="none"/></svg>
+          <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x="0.5" y="0.5" width="21" height="11" rx="3.5" stroke="currentColor" opacity=".5"/><rect x="2.5" y="2.5" width="13" height="7" rx="2" fill="currentColor"/><path d="M23 4v4a2 2 0 0 0 0-4Z" fill="currentColor" opacity=".5"/></svg>
+        </span>
+      </header>
+
+      <main class="scroll" id="scrollArea">
+        <div class="stripe"></div>
+
+        <section class="hero" aria-label="施工改道场景">
+          <svg viewBox="0 0 350 200" role="img" aria-label="路障与改道牌插画">
+            <defs>
+              <pattern id="hazardP" width="16" height="16" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+                <rect width="16" height="16" fill="#f2b705"/>
+                <rect width="8" height="16" fill="#181407"/>
+              </pattern>
+            </defs>
+            <!-- 路面 -->
+            <polygon points="55,200 295,200 225,118 125,118" fill="#262115"/>
+            <line x1="175" y1="196" x2="175" y2="126" stroke="#f2ecd8" stroke-opacity=".45" stroke-width="5" stroke-dasharray="12 12"/>
+            <!-- 烟尘 -->
+            <circle cx="118" cy="82" r="3" fill="#a99c7c" opacity=".3"/>
+            <circle cx="238" cy="70" r="2.4" fill="#a99c7c" opacity=".25"/>
+            <circle cx="252" cy="86" r="3" fill="#a99c7c" opacity=".2"/>
+            <!-- 路障 A 字腿 -->
+            <polygon points="132,128 141,128 129,158 120,158" fill="#181407"/>
+            <polygon points="209,128 218,128 230,158 221,158" fill="#181407"/>
+            <!-- 路障条纹板 -->
+            <rect x="122" y="102" width="106" height="26" rx="3" fill="url(#hazardP)" stroke="#181407" stroke-width="3"/>
+            <!-- 警示灯 -->
+            <line x1="175" y1="102" x2="175" y2="90" stroke="#181407" stroke-width="3"/>
+            <circle cx="175" cy="84" r="11" fill="#ffb020" opacity=".3" class="beacon-glow"/>
+            <circle cx="175" cy="84" r="5.5" fill="#ffb020" class="beacon"/>
+            <!-- 改道牌 -->
+            <line x1="286" y1="108" x2="286" y2="152" stroke="#a99c7c" stroke-width="4"/>
+            <g transform="rotate(8 286 86)">
+              <rect x="263" y="62" width="46" height="46" rx="4" fill="#f2b705" stroke="#181407" stroke-width="3"/>
+              <path d="M272 92 H284 V78 H294" fill="none" stroke="#181407" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M288 72 L294 78 L288 84" fill="none" stroke="#181407" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+            </g>
+            <text x="286" y="140" text-anchor="middle" font-size="11" font-weight="700" fill="#f2b705">改道</text>
+            <!-- 锥桶 -->
+            <g transform="translate(84,148)">
+              <rect x="-4" y="27" width="26" height="5" rx="2" fill="#181407"/>
+              <path d="M0 27 L9 1 L18 27 Z" fill="#df5f47" stroke="#181407" stroke-width="2"/>
+              <rect x="4.2" y="12" width="9.6" height="5" fill="#f2ecd8"/>
+            </g>
+          </svg>
+        </section>
+
+        <section class="ticket" aria-label="故障工单号">
+          <div>
+            <div class="tk-label">故障工单号</div>
+            <div class="tk-no" id="ticketNo">GD-2026-0911-038</div>
+          </div>
+          <button class="copy-btn" id="copyBtn" type="button">复制</button>
+        </section>
+
+        <section class="panel" id="blockedView">
+          <h1>前方施工，此路暂时走不通</h1>
+          <p class="lead">解放大道南段今晚临时封闭抢修，你规划的这条路线正好压到封闭口。路线草稿和收藏点都存在本机，路一通就能接着走，什么都不用重填。</p>
+
+          <div class="meta">
+            <div class="row"><span class="k">影响路段</span><span class="v">解放大道南段 · 中山路口—滨江路口</span></div>
+            <div class="row"><span class="k">封闭原因</span><span class="v">地下管廊抢修（非事故）</span></div>
+            <div class="row"><span class="k">预计恢复</span><span class="v">今晚 23:40 前</span></div>
+            <div class="row"><span class="k">最近重试</span><span class="v" id="lastTry">尚未重试</span></div>
+          </div>
+
+          <div class="banner fail" id="resultBanner" role="status" aria-live="polite"></div>
+
+          <div class="actions">
+            <button class="btn btn-primary" id="retryBtn" type="button">
+              <span class="spin" style="display:none"></span>
+              <span class="btn-label">重新尝试通行</span>
+            </button>
+            <button class="btn btn-ghost" id="homeBtn" type="button">回到首页</button>
+          </div>
+          <p class="note" id="failNote">已连续 2 次未通 · 已为你开启 5 分钟自动重试</p>
+        </section>
+
+        <section class="panel" id="openView" hidden>
+          <div class="open-hero">
+            <svg width="64" height="64" viewBox="0 0 64 64" role="img" aria-label="已恢复">
+              <circle cx="32" cy="32" r="29" fill="none" stroke="#4cc07f" stroke-width="3"/>
+              <path d="M20 33 L28.5 41.5 L44 24.5" fill="none" stroke="#4cc07f" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <h1>抢通了，这条路能走了</h1>
+          <p class="lead">养护队提前收工，封闭口刚恢复通行。之前的路线草稿原样保留，点「继续出发」就能接着导航。</p>
+          <div class="actions">
+            <button class="btn btn-primary" id="goBtn" type="button">继续出发</button>
+            <button class="btn btn-ghost" id="homeBtn2" type="button">回到首页</button>
+          </div>
+        </section>
+
+        <p class="foot">近道出行 · 路况为演示数据，工单由市政抢修接口同步</p>
+      </main>
+
+      <div class="toast" id="toast" role="status"></div>
+      <div class="homebar"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var $ = function(id){ return document.getElementById(id); };
+  var attempts = 0, busy = false, toastTimer = null;
+  var retry = $('retryBtn'), banner = $('resultBanner'), note = $('failNote'),
+      lastTry = $('lastTry'), toast = $('toast'), screen = $('screen');
+
+  function showToast(msg){
+    toast.textContent = msg;
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function(){ toast.classList.remove('show'); }, 2600);
+  }
+  function setLoading(on){
+    busy = on;
+    retry.disabled = on;
+    retry.setAttribute('aria-busy', on ? 'true' : 'false');
+    retry.querySelector('.btn-label').textContent = on ? '正在尝试通行…' : '重新尝试通行';
+    retry.querySelector('.spin').style.display = on ? '' : 'none';
+    screen.classList.toggle('loading', on);
+  }
+  retry.addEventListener('click', function(){
+    if (busy) return;
+    setLoading(true);
+    setTimeout(function(){
+      setLoading(false);
+      attempts++;
+      if (attempts >= 3){
+        $('blockedView').hidden = true;
+        var open = $('openView');
+        open.hidden = false;
+        open.classList.add('fade-in');
+        open.scrollIntoView({block:'start'});
+      } else {
+        banner.textContent = attempts === 1
+          ? '养护队还在作业，此路仍不通（第 1 次重试）。'
+          : '第 2 次重试仍不通。可以先回首页，系统每 5 分钟替你自动再试一次。';
+        banner.className = 'banner fail show';
+        if (attempts >= 2) note.classList.add('show');
+        lastTry.textContent = '第 ' + attempts + ' 次 · 仍不通 · 刚刚';
+      }
+    }, 1400);
+  });
+  $('homeBtn').addEventListener('click', function(){ showToast('本题仅演示故障页，首页未接入'); });
+  $('homeBtn2').addEventListener('click', function(){ showToast('本题仅演示故障页，首页未接入'); });
+  $('goBtn').addEventListener('click', function(){ showToast('本题仅演示故障流程，导航未真实接入'); });
+  $('copyBtn').addEventListener('click', function(){
+    var t = $('ticketNo').textContent;
+    function done(){
+      $('copyBtn').textContent = '已复制';
+      setTimeout(function(){ $('copyBtn').textContent = '复制'; }, 1600);
+    }
+    function legacy(){
+      var ta = document.createElement('textarea');
+      ta.value = t;
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand('copy'); } catch (e) {}
+      document.body.removeChild(ta);
+      done();
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(t).then(done, legacy);
+    } else {
+      legacy();
+    }
+  });
+})();
+</script>
+</body>
+</html>

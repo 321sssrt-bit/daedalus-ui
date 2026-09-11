@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>拾光笔记 · 麦克风权限请求</title>
+<style>
+  :root {
+    --page-a: #e9f0f9;
+    --page-b: #d7e2f2;
+    --page-c: #c6d5ea;
+    --card: #ffffff;
+    --ink: #1d2b3f;
+    --muted: #61718a;
+    --accent: #2e6be6;
+    --accent-deep: #2053bd;
+    --accent-soft: #e3edfb;
+    --line: #d9e3f0;
+    --edge: #c3d2e8;
+    --soft: #eef3fa;
+    --shadow: 0 24px 64px rgba(29, 43, 63, 0.18), 0 4px 16px rgba(29, 43, 63, 0.10);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body { height: 100%; }
+
+  body {
+    font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Segoe UI", system-ui, sans-serif;
+    color: var(--ink);
+    background: linear-gradient(135deg, var(--page-a) 0%, var(--page-b) 48%, var(--page-c) 100%);
+    overflow: hidden;
+  }
+
+  /* ---------- 应用外壳（请求背后的真实产品） ---------- */
+  #app-shell {
+    display: flex;
+    height: 100vh;
+  }
+
+  #sidebar {
+    width: 264px;
+    flex: none;
+    background: rgba(255, 255, 255, 0.55);
+    border-right: 1px solid var(--line);
+    padding: 24px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  #brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 8px;
+  }
+
+  #brand-mark {
+    width: 32px;
+    height: 32px;
+    border-radius: 9px;
+    background: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+  }
+
+  #brand-name { font-size: 15px; font-weight: 600; letter-spacing: 0.02em; }
+
+  .side-label {
+    font-size: 12px;
+    color: var(--muted);
+    padding: 0 8px;
+    letter-spacing: 0.08em;
+  }
+
+  #note-list { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+
+  #note-list li {
+    padding: 10px 12px;
+    border-radius: 10px;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--ink);
+  }
+
+  #note-list li span { display: block; font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+  #note-list li.active { background: var(--accent-soft); color: var(--accent-deep); font-weight: 600; }
+  #note-list li.active span { color: var(--accent-deep); }
+
+  #editor {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  #toolbar {
+    height: 56px;
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 24px;
+    border-bottom: 1px solid var(--line);
+    background: rgba(255, 255, 255, 0.4);
+  }
+
+  .tool-btn {
+    width: 34px;
+    height: 34px;
+    border-radius: 9px;
+    border: 1px solid transparent;
+    background: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--ink);
+  }
+
+  .tool-btn:hover { background: var(--soft); }
+
+  #mic-btn {
+    margin-left: auto;
+    width: auto;
+    padding: 0 14px;
+    gap: 7px;
+    font-size: 13px;
+    color: var(--muted);
+    border-color: var(--edge);
+    background: rgba(255, 255, 255, 0.6);
+    cursor: not-allowed;
+  }
+
+  #mic-btn.is-on {
+    color: #ffffff;
+    background: var(--accent);
+    border-color: var(--accent);
+    cursor: pointer;
+  }
+
+  #mic-btn.is-temp { color: var(--accent-deep); background: var(--accent-soft); border-color: var(--edge); cursor: pointer; }
+
+  #doc {
+    padding: 40px 56px;
+    max-width: 760px;
+  }
+
+  #doc h1 { font-size: 26px; font-weight: 600; line-height: 1.4; margin-bottom: 8px; }
+  #doc .meta { font-size: 12px; color: var(--muted); margin-bottom: 28px; }
+  #doc p { font-size: 14px; line-height: 1.9; color: #33445c; margin-bottom: 16px; }
+
+  /* ---------- 遮罩与玻璃卡片 ---------- */
+  #overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(23, 37, 56, 0.34);
+    backdrop-filter: blur(7px);
+    -webkit-backdrop-filter: blur(7px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    z-index: 10;
+  }
+
+  #perm-card {
+    width: 480px;
+    max-width: 100%;
+    background: rgba(255, 255, 255, 0.72);
+    border: 1px solid rgba(255, 255, 255, 0.85);
+    border-radius: 24px;
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(22px) saturate(1.4);
+    -webkit-backdrop-filter: blur(22px) saturate(1.4);
+    padding: 36px 40px 30px;
+    animation: card-in 320ms cubic-bezier(0.22, 0.9, 0.32, 1) both;
+  }
+
+  @keyframes card-in {
+    from { opacity: 0; transform: translateY(14px) scale(0.985); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  .card-head { display: flex; align-items: flex-start; gap: 16px; margin-bottom: 18px; }
+
+  #app-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 13px;
+    background: linear-gradient(150deg, #4a83ec, var(--accent-deep));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    box-shadow: 0 6px 16px rgba(46, 107, 230, 0.35);
+  }
+
+  .eyebrow { font-size: 12px; color: var(--accent-deep); font-weight: 600; letter-spacing: 0.06em; margin-bottom: 4px; }
+  #perm-card h2 { font-size: 21px; font-weight: 600; line-height: 1.45; }
+
+  .scope-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 12.5px;
+    color: var(--accent-deep);
+    background: var(--accent-soft);
+    border-radius: 999px;
+    padding: 5px 12px;
+    margin-bottom: 14px;
+  }
+
+  .why-text { font-size: 14px; line-height: 1.85; color: #33445c; margin-bottom: 16px; }
+
+  #detail-toggle {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--soft);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 11px 14px;
+    font-size: 13px;
+    color: var(--ink);
+    font-weight: 500;
+    cursor: pointer;
+    font-family: inherit;
+  }
+
+  #detail-toggle .chev { transition: transform 200ms ease; color: var(--muted); }
+  #detail-toggle[aria-expanded="true"] .chev { transform: rotate(180deg); }
+
+  #detail-body {
+    display: none;
+    padding: 12px 4px 2px 18px;
+    font-size: 13px;
+    line-height: 1.9;
+    color: var(--muted);
+  }
+
+  #detail-body.open { display: block; }
+  #detail-body li { margin-bottom: 4px; }
+  #detail-body li b { color: var(--ink); font-weight: 600; }
+
+  .card-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 26px;
+  }
+
+  .btn {
+    font-family: inherit;
+    font-size: 14.5px;
+    font-weight: 600;
+    border-radius: 13px;
+    padding: 12px 22px;
+    cursor: pointer;
+    transition: background 180ms ease, box-shadow 180ms ease, transform 120ms ease, border-color 180ms ease;
+    border: 1px solid transparent;
+  }
+
+  .btn:active { transform: translateY(1px); }
+
+  .btn-primary {
+    background: var(--accent);
+    color: #ffffff;
+    box-shadow: 0 8px 20px rgba(46, 107, 230, 0.32);
+  }
+
+  .btn-primary:hover { background: var(--accent-deep); box-shadow: 0 10px 24px rgba(46, 107, 230, 0.4); }
+  .btn-primary:focus-visible { outline: 2px solid var(--accent-deep); outline-offset: 2px; }
+
+  .btn-secondary {
+    background: rgba(255, 255, 255, 0.6);
+    border-color: var(--edge);
+    color: #24406e;
+  }
+
+  .btn-secondary:hover { background: #ffffff; border-color: var(--accent); }
+  .btn-secondary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .link-deny {
+    background: none;
+    border: none;
+    font-family: inherit;
+    font-size: 13.5px;
+    color: var(--muted);
+    cursor: pointer;
+    padding: 8px 4px;
+    border-radius: 8px;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-color: transparent;
+    transition: color 160ms ease, text-decoration-color 160ms ease;
+  }
+
+  .link-deny:hover { color: var(--ink); text-decoration-color: var(--ink); }
+  .link-deny:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .card-foot {
+    margin-top: 18px;
+    padding-top: 14px;
+    border-top: 1px solid var(--line);
+    font-size: 12px;
+    line-height: 1.7;
+    color: var(--muted);
+  }
+
+  /* ---------- 结果面板 ---------- */
+  .panel { display: none; }
+  .panel.show { display: block; }
+
+  .result-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+  }
+
+  .result-icon.ok { background: var(--accent-soft); color: var(--accent-deep); }
+  .result-icon.off { background: var(--soft); color: var(--muted); }
+
+  .panel h2 { margin-bottom: 10px; }
+  .panel .desc { font-size: 14px; line-height: 1.85; color: #33445c; margin-bottom: 22px; }
+
+  .panel-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+  .link-ghost {
+    background: none;
+    border: none;
+    font-family: inherit;
+    font-size: 13.5px;
+    color: var(--accent-deep);
+    cursor: pointer;
+    padding: 8px 4px;
+    border-radius: 8px;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-color: var(--edge);
+  }
+
+  .link-ghost:hover { text-decoration-color: var(--accent-deep); }
+  .link-ghost:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  /* ---------- 响应式 ---------- */
+  @media (max-width: 960px) {
+    #sidebar { width: 76px; padding: 20px 12px; }
+    #brand-name, .side-label, #note-list li .txt { display: none; }
+    #note-list li { text-align: center; padding: 10px 6px; }
+    #doc { padding: 32px 36px; }
+  }
+
+  @media (max-width: 768px) {
+    #sidebar { display: none; }
+    #doc { padding: 28px 24px; }
+    #perm-card { padding: 28px 24px 24px; border-radius: 20px; }
+    .card-actions { flex-wrap: wrap; }
+    .btn-primary { order: -1; width: 100%; }
+  }
+
+  /* ---------- 减少动态 ---------- */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+    #perm-card { animation: none; }
+  }
+</style>
+</head>
+<body>
+
+<div id="app-shell">
+  <nav id="sidebar" aria-label="笔记列表">
+    <div id="brand">
+      <span id="brand-mark" aria-hidden="true">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+          <path d="M5 19.5V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v13.5" stroke="#ffffff" stroke-width="2" stroke-linecap="round"/>
+          <path d="M8.5 9h7M8.5 13h5" stroke="#ffffff" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </span>
+      <span id="brand-name">拾光笔记</span>
+    </div>
+    <p class="side-label">最近笔记</p>
+    <ul id="note-list">
+      <li class="active"><span class="txt">周会纪要 · 九月排期</span><span>今天 10:24</span></li>
+      <li><span class="txt">产品调研访谈提纲</span><span>昨天 18:02</span></li>
+      <li><span class="txt">阅读摘录《设计中的设计》</span><span>周三 21:15</span></li>
+      <li><span class="txt">旅行清单：川西五日</span><span>9 月 6 日</span></li>
+    </ul>
+  </nav>
+
+  <main id="editor">
+    <div id="toolbar" aria-label="编辑工具栏">
+      <button class="tool-btn" title="加粗" type="button">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M7 5h6a3.5 3.5 0 0 1 0 7H7zM7 12h7a3.5 3.5 0 0 1 0 7H7z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+      </button>
+      <button class="tool-btn" title="列表" type="button">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 6h11M9 12h11M9 18h11" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="5" cy="6" r="1.4" fill="currentColor"/><circle cx="5" cy="12" r="1.4" fill="currentColor"/><circle cx="5" cy="18" r="1.4" fill="currentColor"/></svg>
+      </button>
+      <button class="tool-btn" title="待办" type="button">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect x="4" y="4" width="16" height="16" rx="4" stroke="currentColor" stroke-width="2"/><path d="M8.5 12.5l2.5 2.5 5-5.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <button id="mic-btn" type="button" title="语音便签">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><rect x="9" y="3" width="6" height="11" rx="3" stroke="currentColor" stroke-width="2"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        <span id="mic-label">语音便签未解锁</span>
+      </button>
+    </div>
+    <article id="doc">
+      <h1>周会纪要 · 九月排期</h1>
+      <p class="meta">创建于今天 10:24 · 共 3 位协作成员</p>
+      <p>本次周会确认了九月的目标：新版编辑器上线、语音输入进入内测、移动端同步性能优化三项并行推进。</p>
+      <p>语音便签功能需要访问系统麦克风。正在等待你授权——授权后，点击右上角「语音便签」按钮即可在段落间插入录音。</p>
+    </article>
+  </main>
+</div>
+
+<div id="overlay">
+  <section id="perm-card" role="dialog" aria-modal="true" aria-labelledby="perm-title">
+
+    <div class="panel show" id="panel-ask">
+      <div class="card-head">
+        <span id="app-icon" aria-hidden="true">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <rect x="9" y="3" width="6" height="11" rx="3" stroke="#ffffff" stroke-width="2"/>
+            <path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21" stroke="#ffffff" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </span>
+        <div>
+          <p class="eyebrow">系统权限请求</p>
+          <h2 id="perm-title">允许「拾光笔记」使用你的麦克风？</h2>
+        </div>
+      </div>
+
+      <span class="scope-chip">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M12 3l7 3v5c0 4.4-3 8.4-7 10-4-1.6-7-5.6-7-10V6z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+        所请求权限：麦克风（录音）
+      </span>
+
+      <p class="why-text">开启后，你可以直接在笔记里插入语音便签，也可以用「语音速记」把讲话实时转成文字，会议记录更省事。</p>
+
+      <button id="detail-toggle" type="button" aria-expanded="false" aria-controls="detail-body">
+        具体会访问什么
+        <svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <ul id="detail-body">
+        <li><b>仅在点击录音时启动：</b>录音只在你主动点击「语音便签」或「语音速记」后进行。</li>
+        <li><b>内容留在本地：</b>录音与转写文本仅保存到你的设备，不会上传到云端。</li>
+        <li><b>不做后台监听：</b>应用退到后台或关闭后，麦克风随即停止采集。</li>
+      </ul>
+
+      <div class="card-actions">
+        <button class="link-deny" id="btn-deny" type="button">暂不授权</button>
+        <span style="flex:1"></span>
+        <button class="btn btn-secondary" id="btn-once" type="button">仅此一次</button>
+        <button class="btn btn-primary" id="btn-allow" type="button">允许</button>
+      </div>
+
+      <p class="card-foot">之后可以随时在「设置 → 隐私与权限」中更改这项授权，拒绝不会影响笔记的其他功能。</p>
+    </div>
+
+    <div class="panel" id="panel-allow">
+      <span class="result-icon ok" aria-hidden="true">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/><path d="M8.5 12.5l2.5 2.5 5-5.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </span>
+      <h2>已允许使用麦克风</h2>
+      <p class="desc">「语音便签」和「语音速记」已解锁。回到笔记，点击右上角麦克风按钮即可开始录音。</p>
+      <div class="panel-actions">
+        <button class="btn btn-primary" id="back-allow" type="button">回到笔记</button>
+        <button class="link-ghost reset-link" type="button">重新选择</button>
+      </div>
+    </div>
+
+    <div class="panel" id="panel-once">
+      <span class="result-icon ok" aria-hidden="true">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/><path d="M12 7v5l3.5 2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </span>
+      <h2>本次运行期间允许</h2>
+      <p class="desc">语音便签现在可用；关闭「拾光笔记」后这项授权会失效，下次使用需要重新确认。</p>
+      <div class="panel-actions">
+        <button class="btn btn-primary" id="back-once" type="button">回到笔记</button>
+        <button class="link-ghost reset-link" type="button">重新选择</button>
+      </div>
+    </div>
+
+    <div class="panel" id="panel-deny">
+      <span class="result-icon off" aria-hidden="true">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/><path d="M9 9l6 6M15 9l-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </span>
+      <h2>未授权麦克风</h2>
+      <p class="desc">语音便签与语音速记将保持关闭，笔记的编辑、同步等其他功能不受影响。改变主意的话，随时可以重新开启。</p>
+      <div class="panel-actions">
+        <button class="btn btn-secondary" id="btn-settings" type="button">去设置开启</button>
+        <button class="link-ghost reset-link" type="button">重新考虑</button>
+      </div>
+    </div>
+
+  </section>
+</div>
+
+<script>
+(function () {
+  var panels = {
+    ask: document.getElementById('panel-ask'),
+    allow: document.getElementById('panel-allow'),
+    once: document.getElementById('panel-once'),
+    deny: document.getElementById('panel-deny')
+  };
+  var overlay = document.getElementById('overlay');
+  var micBtn = document.getElementById('mic-btn');
+  var micLabel = document.getElementById('mic-label');
+  var detailToggle = document.getElementById('detail-toggle');
+  var detailBody = document.getElementById('detail-body');
+
+  function show(name) {
+    Object.keys(panels).forEach(function (k) { panels[k].classList.toggle('show', k === name); });
+  }
+
+  function setMic(state) {
+    micBtn.classList.remove('is-on', 'is-temp');
+    if (state === 'on') { micBtn.classList.add('is-on'); micLabel.textContent = '语音便签'; }
+    else if (state === 'temp') { micBtn.classList.add('is-temp'); micLabel.textContent = '语音便签（临时）'; }
+    else { micLabel.textContent = '语音便签未解锁'; }
+  }
+
+  detailToggle.addEventListener('click', function () {
+    var open = detailBody.classList.toggle('open');
+    detailToggle.setAttribute('aria-expanded', String(open));
+  });
+
+  document.getElementById('btn-allow').addEventListener('click', function () { show('allow'); setMic('on'); });
+  document.getElementById('btn-once').addEventListener('click', function () { show('once'); setMic('temp'); });
+  document.getElementById('btn-deny').addEventListener('click', function () { show('deny'); setMic('off'); });
+
+  document.getElementById('back-allow').addEventListener('click', function () { overlay.style.display = 'none'; });
+  document.getElementById('back-once').addEventListener('click', function () { overlay.style.display = 'none'; });
+
+  document.getElementById('btn-settings').addEventListener('click', function () { show('allow'); setMic('on'); });
+
+  Array.prototype.forEach.call(document.querySelectorAll('.reset-link'), function (btn) {
+    btn.addEventListener('click', function () { show('ask'); setMic('off'); overlay.style.display = 'flex'; });
+  });
+})();
+</script>
+
+</body>
+</html>

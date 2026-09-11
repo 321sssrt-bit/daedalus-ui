@@ -33,21 +33,28 @@ The project was initially inspired by [Hall of One Hundred](https://miaai-lab.gi
 
 ## Current public submissions
 
-Eleven complete submissions are now published. Open a dedicated gallery below, or use the **[combined gallery](https://321sssrt-bit.github.io/daedalus-ui/)** to browse them together.
+Twelve complete submissions are now published. Open a dedicated gallery below, or use the **[combined gallery](https://321sssrt-bit.github.io/daedalus-ui/)** to browse them together.
 
 | Harness | Model | Reasoning effort | Completion | Status | Gallery |
 | --- | --- | --- | --- | --- | --- |
+| Kimi Code | K2.8 Preview | `max` | 50 / 50 | Complete | [Open gallery →](https://321sssrt-bit.github.io/daedalus-ui/submissions/kimi-code--k2.8-preview--max/) |
+| DeepSeek Harness | DeepSeek V4.1 Flash expires-on-0910 | `max` | 50 / 50 | Complete | [Open gallery →](https://321sssrt-bit.github.io/daedalus-ui/submissions/deepseek-harness--deepseek-v4.1-flash-expires-on-0910--max/) |
+| Cursor | Composer 2.5 Fast | `default` | 50 / 50 | Complete | [Open gallery →](https://321sssrt-bit.github.io/daedalus-ui/submissions/cursor--composer-2.5-fast--default/) |
+| Kimi Code | Qwen3.8 Flash Next | `xhigh` | 50 / 50 | Complete | [Open gallery →](https://321sssrt-bit.github.io/daedalus-ui/submissions/kimi-code--qwen3.8-flash-next--xhigh/) |
+| Codex | GPT-6 Astra | `max` | 50 / 50 | Complete | [Open gallery →](https://321sssrt-bit.github.io/daedalus-ui/submissions/codex--gpt-6-astra--max/) |
+| Kimi Code | DeepSeek V4 Flash vision-exp | `max` | 50 / 50 | Complete | [Open gallery →](https://321sssrt-bit.github.io/daedalus-ui/submissions/kimi-code--deepseek-v4-flash-vision-exp--max/) |
+| Qoder | 3.8 Flash | `xhigh` | 50 / 50 | Complete | [Open gallery →](https://321sssrt-bit.github.io/daedalus-ui/submissions/qoder--3.8flash--xhigh/) |
 | Codex | GPT-5.6 Sol | `xhigh` | 50 / 50 | Complete | [Open gallery →](https://321sssrt-bit.github.io/daedalus-ui/submissions/codex--gpt-5.6-sol--xhigh/) |
 | DeepSeek Harness | deepseek-v4-pro | `max` | 50 / 50 | Complete | [Open gallery →](https://321sssrt-bit.github.io/daedalus-ui/submissions/deepseek-harness--deepseek-v4-pro--max/) |
 | Kimi Code | K3 | `max` | 50 / 50 | Complete | [Open gallery →](https://321sssrt-bit.github.io/daedalus-ui/submissions/kimi-code--k3--max/) |
-| Kimi Code | DeepSeek V4 Flash vision-exp | `max` | 50 / 50 | Complete | [Open gallery →](https://321sssrt-bit.github.io/daedalus-ui/submissions/kimi-code--deepseek-v4-flash-vision-exp--max/) |
 | Grok Build | Grok 4.6 | `xhigh` | 50 / 50 | Complete | [Open gallery →](https://321sssrt-bit.github.io/daedalus-ui/submissions/grok-build--grok-4.6--xhigh/) |
 | Qoder | Qwen3.8 | `max` | 50 / 50 | Complete | [Open gallery →](https://321sssrt-bit.github.io/daedalus-ui/submissions/qoder--qwen3.8--max/) |
-| Qoder | 3.8 Flash | `xhigh` | 50 / 50 | Complete | [Open gallery →](https://321sssrt-bit.github.io/daedalus-ui/submissions/qoder--3.8flash--xhigh/) |
-| Codex | GPT-6 Astra | `max` | 50 / 50 | Complete | [Open gallery →](https://321sssrt-bit.github.io/daedalus-ui/submissions/codex--gpt-6-astra--max/) |
-| Kimi Code | Qwen3.8 Flash Next | `xhigh` | 50 / 50 | Complete | [Open gallery →](https://321sssrt-bit.github.io/daedalus-ui/submissions/kimi-code--qwen3.8-flash-next--xhigh/) |
-| Cursor | Composer 2.5 Fast | `default` | 50 / 50 | Complete | [Open gallery →](https://321sssrt-bit.github.io/daedalus-ui/submissions/cursor--composer-2.5-fast--default/) |
-| DeepSeek Harness | DeepSeek V4.1 Flash expires-on-0910 | `max` | 50 / 50 | Complete | [Open gallery →](https://321sssrt-bit.github.io/daedalus-ui/submissions/deepseek-harness--deepseek-v4.1-flash-expires-on-0910--max/) |
+
+## K2.8 Preview · max — September 11, 2026
+
+**50 / 50 complete.** Each piece includes an offline HTML page, a reproduction specification, and a design-intent document. The ten product prototypes walk through their normal flows, triggered failures, and recovery within a single page. Repository validation and gallery build passed; the submission was produced by six parallel batches of subagents, and after a mid-run quota interruption the main agent personally finished and re-checked the remaining pieces.
+
+[Open this gallery →](https://321sssrt-bit.github.io/daedalus-ui/submissions/kimi-code--k2.8-preview--max/) · [Browse the source](models/kimi-code/k2.8-preview/max) · [Run receipt](models/kimi-code/k2.8-preview/max/run-receipt.json)
 
 ## DeepSeek V4.1 Flash · max — September 8, 2026
 

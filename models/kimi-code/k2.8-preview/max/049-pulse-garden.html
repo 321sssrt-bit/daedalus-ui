@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>青屿 · 脉动花园</title>
+<style>
+  :root{
+    --page:#edf3ea;
+    --surface:#ffffff;
+    --ink:#1c3426;
+    --muted:#687d6f;
+    --line:#dfe9dd;
+    --track:#e3eee2;
+    --primary:#22784a;
+    --primary-deep:#14522f;
+    --primary-soft:#dff0e3;
+    --pulse:#e14c7c;
+    --danger:#bf3f4b;
+    --danger-soft:#fbecec;
+    --gold:#d9a63f;
+    --r-sm:10px;
+    --r-md:14px;
+    --r-lg:20px;
+    --shadow:0 10px 30px rgba(20,52,38,.10);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","HarmonyOS Sans SC","Microsoft YaHei","Noto Sans CJK SC",sans-serif;
+    background:radial-gradient(900px 620px at 18% 8%,#22402c 0%,#122419 55%,#0c1a11 100%);
+    color:var(--ink);
+  }
+  button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;}
+  input{font:inherit;color:inherit;}
+
+  /* 舞台与手机框 */
+  .pg-stage{min-height:100vh;display:grid;place-items:center;padding:44px 16px;}
+  .pg-device{
+    position:relative;width:390px;height:844px;max-height:calc(100vh - 32px);
+    background:var(--page);border-radius:48px;border:10px solid #0a120c;
+    box-shadow:0 34px 90px rgba(0,0,0,.55),0 4px 18px rgba(0,0,0,.4);
+    overflow:hidden;
+  }
+  .pg-notch{
+    position:absolute;top:0;left:50%;transform:translateX(-50%);
+    width:152px;height:27px;background:#0a120c;border-radius:0 0 19px 19px;z-index:40;
+  }
+  .pg-home{
+    position:absolute;bottom:9px;left:50%;transform:translateX(-50%);
+    width:118px;height:4px;border-radius:2px;background:rgba(28,52,38,.55);z-index:40;
+  }
+  .pg-app{position:absolute;inset:0;display:flex;flex-direction:column;}
+
+  /* 状态栏 */
+  .pg-status{
+    height:46px;flex:none;display:flex;align-items:flex-end;justify-content:space-between;
+    padding:0 26px 4px;font-size:13px;font-weight:600;letter-spacing:.02em;
+  }
+  .pg-status svg{display:inline-block;vertical-align:-2px;}
+
+  /* 页头 */
+  .pg-head{
+    flex:none;display:flex;align-items:center;justify-content:space-between;
+    padding:10px 20px 12px;
+  }
+  .pg-brand{display:flex;align-items:center;gap:9px;}
+  .pg-brand-mark{
+    width:34px;height:34px;border-radius:12px;background:var(--primary);
+    display:grid;place-items:center;color:#fff;flex:none;
+  }
+  .pg-brand-name{font-size:17px;font-weight:800;letter-spacing:.01em;}
+  .pg-brand-sub{font-size:11px;color:var(--muted);margin-top:1px;}
+  .pg-streak{
+    display:flex;align-items:center;gap:6px;background:var(--surface);
+    border:1px solid var(--line);border-radius:999px;padding:6px 12px;
+    font-size:12px;font-weight:600;color:var(--primary-deep);
+  }
+  .pg-streak i{width:8px;height:8px;border-radius:50%;background:var(--gold);flex:none;}
+
+  /* 面板容器 */
+  .pg-panels{flex:1;position:relative;min-height:0;}
+  .pg-panel{
+    position:absolute;inset:0;overflow-y:auto;padding:4px 16px 24px;
+    display:none;scrollbar-width:none;
+  }
+  .pg-panel::-webkit-scrollbar{display:none;}
+  .pg-panel.is-active{display:block;}
+
+  /* 花园面板 */
+  .pg-card{
+    background:var(--surface);border:1px solid var(--line);
+    border-radius:var(--r-lg);box-shadow:var(--shadow);
+  }
+  .pg-garden{padding:18px 18px 16px;margin-bottom:14px;}
+  .pg-garden-visual{position:relative;width:216px;margin:2px auto 4px;}
+  .pg-garden-visual svg{display:block;width:100%;height:auto;}
+  .pg-garden-center{
+    position:absolute;inset:0;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;text-align:center;pointer-events:none;
+  }
+  .pg-pct{font-size:38px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.05;letter-spacing:-.01em;}
+  .pg-pct-sub{font-size:12px;color:var(--muted);margin-top:3px;font-variant-numeric:tabular-nums;}
+  .pg-mood{
+    text-align:center;font-size:13px;color:var(--primary-deep);
+    background:var(--primary-soft);border-radius:999px;
+    padding:7px 14px;margin:8px auto 0;max-width:300px;line-height:1.45;
+  }
+  .pg-ring{transition:stroke-dashoffset .7s cubic-bezier(.33,1,.4,1);}
+  .pg-rose{fill:none;stroke:var(--pulse);stroke-width:2.4;stroke-linejoin:round;opacity:.92;}
+  .pg-rose-inner{fill:none;stroke:var(--gold);stroke-width:1.6;opacity:.55;}
+  .pg-dot-halo{fill:var(--pulse);opacity:.22;}
+  .pg-dot{fill:var(--pulse);}
+  .pg-beat{transform-box:fill-box;transform-origin:center;}
+  .pg-beat.beating{animation:pgBeat .52s cubic-bezier(.36,.06,.2,1);}
+  @keyframes pgBeat{
+    0%{transform:scale(1);}
+    30%{transform:scale(1.07);}
+    55%{transform:scale(.97);}
+    100%{transform:scale(1);}
+  }
+
+  /* 表单卡 */
+  .pg-form-card{padding:18px;}
+  .pg-form-title{font-size:16px;font-weight:800;display:flex;align-items:baseline;justify-content:space-between;}
+  .pg-form-title span{font-size:11px;font-weight:500;color:var(--muted);}
+  .pg-chips{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 16px;}
+  .pg-chip{
+    display:flex;align-items:center;gap:7px;border:1.5px solid var(--line);
+    background:var(--surface);border-radius:999px;padding:8px 13px 8px 9px;
+    font-size:13px;font-weight:600;color:var(--ink);
+    transition:border-color .15s ease,background .15s ease,color .15s ease;
+  }
+  .pg-chip .pg-mono{
+    width:24px;height:24px;border-radius:8px;display:grid;place-items:center;
+    font-size:12px;font-weight:800;background:var(--primary-soft);color:var(--primary-deep);
+    transition:background .15s ease,color .15s ease;
+  }
+  .pg-chip[aria-pressed="true"]{background:var(--primary);border-color:var(--primary);color:#fff;}
+  .pg-chip[aria-pressed="true"] .pg-mono{background:rgba(255,255,255,.22);color:#fff;}
+  .pg-chip:focus-visible{outline:2px solid var(--pulse);outline-offset:2px;}
+  .pg-field{margin-bottom:14px;}
+  .pg-label{display:flex;justify-content:space-between;align-items:baseline;font-size:13px;font-weight:700;margin-bottom:7px;}
+  .pg-label em{font-style:normal;font-size:11px;font-weight:500;color:var(--muted);}
+  .pg-input-wrap{
+    display:flex;align-items:center;background:var(--surface);
+    border:1.5px solid var(--line);border-radius:var(--r-sm);padding:0 13px;
+    transition:border-color .15s ease,box-shadow .15s ease;
+  }
+  .pg-input-wrap:focus-within{border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-soft);}
+  .pg-input-wrap input{
+    flex:1;min-width:0;border:none;outline:none;background:none;height:46px;
+    font-size:16px;font-weight:600;font-variant-numeric:tabular-nums;
+  }
+  .pg-input-wrap input::placeholder{color:#a8b6ab;font-weight:400;}
+  .pg-suffix{font-size:13px;color:var(--muted);flex:none;margin-left:8px;}
+  .pg-msg{font-size:12px;color:var(--muted);margin-top:6px;line-height:1.5;}
+  .pg-field.is-invalid .pg-input-wrap{border-color:var(--danger);background:var(--danger-soft);}
+  .pg-field.is-invalid .pg-input-wrap:focus-within{box-shadow:0 0 0 3px rgba(191,63,75,.14);}
+  .pg-field.is-invalid .pg-msg{color:var(--danger);font-weight:600;}
+  .pg-field.is-invalid .pg-input-wrap{animation:pgShake .24s linear;}
+  @keyframes pgShake{
+    0%,100%{transform:translateX(0);}
+    25%{transform:translateX(-4px);}
+    50%{transform:translateX(4px);}
+    75%{transform:translateX(-3px);}
+  }
+  .pg-alert{
+    display:none;align-items:flex-start;gap:8px;background:var(--danger-soft);
+    border:1px solid rgba(191,63,75,.35);color:var(--danger);
+    border-radius:var(--r-sm);padding:10px 12px;font-size:13px;font-weight:600;line-height:1.45;
+    margin-bottom:14px;
+  }
+  .pg-alert.show{display:flex;}
+  .pg-alert svg{flex:none;margin-top:1px;}
+  .pg-submit{
+    width:100%;height:50px;border-radius:var(--r-md);background:var(--primary);
+    color:#fff;font-size:16px;font-weight:800;letter-spacing:.04em;
+    display:flex;align-items:center;justify-content:center;gap:8px;
+    box-shadow:0 8px 18px rgba(34,120,74,.32);
+    transition:background .15s ease,transform .12s ease,box-shadow .15s ease;
+  }
+  .pg-submit:hover{background:var(--primary-deep);}
+  .pg-submit:active{transform:scale(.98);box-shadow:0 4px 10px rgba(34,120,74,.28);}
+  .pg-submit:focus-visible{outline:2px solid var(--pulse);outline-offset:3px;}
+
+  /* 趋势面板 */
+  .pg-trend-card{padding:18px;margin-bottom:14px;}
+  .pg-trend-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px;}
+  .pg-trend-head h2{font-size:16px;font-weight:800;}
+  .pg-delta{
+    font-size:12px;font-weight:800;font-variant-numeric:tabular-nums;
+    border-radius:999px;padding:4px 10px;background:var(--primary-soft);color:var(--primary-deep);
+  }
+  .pg-delta.is-hot{background:var(--danger-soft);color:var(--danger);}
+  .pg-delta.is-low{background:#f3efe2;color:#8a6d1f;}
+  .pg-delta[hidden]{display:none;}
+  .pg-chart{position:relative;height:216px;margin-top:14px;}
+  .pg-goal-line{
+    position:absolute;left:0;right:0;top:60px;border-top:2px dashed rgba(34,120,74,.45);z-index:1;
+  }
+  .pg-goal-tag{
+    position:absolute;right:0;font-size:10px;color:var(--primary);font-weight:700;
+    background:var(--surface);padding:0 4px;
+  }
+  .pg-bars{position:absolute;inset:0;display:flex;align-items:flex-end;gap:8px;z-index:2;padding-bottom:26px;}
+  .pg-bar-col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;}
+  .pg-bar-val{font-size:10px;color:var(--muted);font-variant-numeric:tabular-nums;margin-bottom:4px;white-space:nowrap;}
+  .pg-bar{
+    width:100%;max-width:30px;border-radius:7px 7px 3px 3px;background:#bcd8c2;
+    transition:height .6s cubic-bezier(.33,1,.4,1);min-height:3px;
+  }
+  .pg-bar-col.is-today .pg-bar{background:linear-gradient(180deg,var(--pulse),#c93a68);}
+  .pg-bar-col.is-today .pg-bar-val{color:var(--pulse);font-weight:800;}
+  .pg-bar-label{font-size:11px;color:var(--muted);margin-top:7px;}
+  .pg-bar-col.is-today .pg-bar-label{color:var(--pulse);font-weight:800;}
+  .pg-feedback{
+    margin-top:16px;display:flex;gap:10px;align-items:flex-start;
+    background:var(--primary-soft);border-radius:var(--r-md);padding:13px 14px;
+  }
+  .pg-feedback svg{flex:none;margin-top:1px;color:var(--primary);}
+  .pg-feedback p{font-size:13px;line-height:1.6;color:var(--primary-deep);}
+  .pg-goal-badge{
+    display:none;margin-top:10px;align-items:center;gap:6px;
+    background:#f7edd8;color:#8a6d1f;font-size:12px;font-weight:800;
+    border-radius:999px;padding:6px 12px;width:fit-content;
+  }
+  .pg-goal-badge.show{display:flex;}
+  .pg-goal-badge i{width:8px;height:8px;border-radius:50%;background:var(--gold);}
+  .pg-stats{display:flex;gap:8px;margin-top:14px;}
+  .pg-stat{
+    flex:1;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);
+    padding:10px 12px;text-align:center;
+  }
+  .pg-stat b{display:block;font-size:16px;font-weight:800;font-variant-numeric:tabular-nums;}
+  .pg-stat span{font-size:11px;color:var(--muted);}
+
+  /* 记录面板 */
+  .pg-rec-head{padding:2px 2px 12px;}
+  .pg-rec-head h2{font-size:18px;font-weight:800;display:flex;align-items:center;gap:8px;}
+  .pg-count-chip{
+    font-size:11px;font-weight:800;background:var(--primary);color:#fff;
+    border-radius:999px;padding:3px 9px;
+  }
+  .pg-rec-sum{font-size:12px;color:var(--muted);margin-top:5px;font-variant-numeric:tabular-nums;}
+  .pg-rec-list{display:flex;flex-direction:column;gap:10px;}
+  .pg-rec{
+    display:flex;align-items:center;gap:12px;background:var(--surface);
+    border:1px solid var(--line);border-radius:var(--r-md);padding:13px 14px;
+    box-shadow:0 3px 10px rgba(20,52,38,.05);
+    animation:pgIn .34s cubic-bezier(.33,1,.4,1);
+  }
+  @keyframes pgIn{
+    from{opacity:0;transform:translateY(10px);}
+    to{opacity:1;transform:translateY(0);}
+  }
+  .pg-rec-mono{
+    width:40px;height:40px;border-radius:13px;flex:none;display:grid;place-items:center;
+    font-size:15px;font-weight:800;color:var(--primary-deep);background:var(--primary-soft);
+  }
+  .pg-rec-mono.is-run{background:#f7e3ea;color:#a6264e;}
+  .pg-rec-mono.is-ride{background:#e7edf9;color:#2b4a8f;}
+  .pg-rec-mono.is-swim{background:#e0f1f6;color:#16657c;}
+  .pg-rec-mono.is-stretch{background:#f3efe2;color:#8a6d1f;}
+  .pg-rec-body{flex:1;min-width:0;}
+  .pg-rec-title{font-size:14px;font-weight:800;display:flex;align-items:center;gap:7px;}
+  .pg-rec-title time{font-size:11px;color:var(--muted);font-weight:500;}
+  .pg-rec-data{font-size:12px;color:var(--muted);margin-top:3px;font-variant-numeric:tabular-nums;}
+  .pg-rec-note{
+    font-size:12px;color:var(--primary-deep);margin-top:4px;
+    background:var(--primary-soft);border-radius:8px;padding:4px 8px;width:fit-content;max-width:100%;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  }
+  .pg-rec-leaf{color:var(--gold);flex:none;}
+  .pg-empty{
+    text-align:center;padding:52px 24px;color:var(--muted);
+  }
+  .pg-empty svg{margin-bottom:12px;color:#b9cbba;}
+  .pg-empty p{font-size:13px;line-height:1.7;}
+  .pg-empty button{
+    margin-top:14px;background:var(--primary);color:#fff;font-weight:800;font-size:14px;
+    border-radius:999px;padding:11px 26px;
+  }
+  .pg-empty button:active{transform:scale(.97);}
+  .pg-foot{text-align:center;font-size:11px;color:#9db0a0;padding:22px 0 6px;}
+
+  /* 标签栏 */
+  .pg-tabbar{
+    flex:none;display:flex;background:var(--surface);border-top:1px solid var(--line);
+    padding:8px 10px 20px;position:relative;z-index:10;
+  }
+  .pg-tab{
+    flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;
+    font-size:11px;color:var(--muted);font-weight:600;padding:4px 0;position:relative;
+  }
+  .pg-tab svg{width:22px;height:22px;}
+  .pg-tab.is-active{color:var(--primary);}
+  .pg-tab.is-active svg{filter:drop-shadow(0 2px 4px rgba(34,120,74,.3));}
+  .pg-tab:focus-visible{outline:2px solid var(--pulse);outline-offset:2px;border-radius:8px;}
+  .pg-badge{
+    position:absolute;top:2px;right:calc(50% - 20px);
+    width:8px;height:8px;border-radius:50%;background:var(--pulse);
+    box-shadow:0 0 0 2px var(--surface);
+  }
+  .pg-badge[hidden]{display:none;}
+
+  /* 轻提示 */
+  .pg-toast{
+    position:absolute;left:50%;bottom:92px;transform:translate(-50%,16px);
+    background:var(--ink);color:#f2f7ef;font-size:13px;font-weight:700;
+    border-radius:999px;padding:11px 18px;opacity:0;pointer-events:none;z-index:30;
+    transition:opacity .25s ease,transform .25s ease;max-width:320px;text-align:center;
+    box-shadow:0 10px 26px rgba(0,0,0,.28);font-variant-numeric:tabular-nums;
+  }
+  .pg-toast.show{opacity:1;transform:translate(-50%,0);}
+  .pg-toast i{font-style:normal;color:#9fd4ae;}
+
+  /* 宽屏窄屏适配 */
+  @media (max-width:519px){
+    .pg-stage{padding:0;}
+    .pg-device{width:100vw;height:100dvh;max-height:none;border:none;border-radius:0;box-shadow:none;}
+    .pg-notch,.pg-home{display:none;}
+    .pg-status{height:14px;}
+    .pg-status .pg-status-inner{display:none;}
+  }
+  @media (min-width:520px){
+    .pg-device{flex:none;}
+  }
+
+  /* 减少动态 */
+  @media (prefers-reduced-motion: reduce){
+    *,*::before,*::after{
+      animation-duration:.01ms !important;
+      animation-iteration-count:1 !important;
+      transition-duration:.01ms !important;
+      scroll-behavior:auto !important;
+    }
+  }
+</style>
+</head>
+<body>
+<div class="pg-stage">
+  <div class="pg-device">
+    <div class="pg-notch" aria-hidden="true"></div>
+    <div class="pg-app">
+      <div class="pg-status" aria-hidden="true">
+        <span class="pg-status-inner" id="pg-clock">9:41</span>
+        <span class="pg-status-inner">
+          <svg width="15" height="11" viewBox="0 0 16 12" fill="currentColor"><rect x="0" y="7" width="3" height="5" rx="1"/><rect x="4.5" y="5" width="3" height="7" rx="1"/><rect x="9" y="2.5" width="3" height="9.5" rx="1"/><rect x="13" y="0" width="3" height="12" rx="1" opacity=".35"/></svg>
+          <svg width="15" height="11" viewBox="0 0 16 12" fill="currentColor" style="margin-left:5px"><path d="M8 9.6a1.6 1.6 0 1 1 0 3.2 1.6 1.6 0 0 1 0-3.2ZM8 5.4c1.9 0 3.6.8 4.8 2l-1.5 1.6a4.6 4.6 0 0 0-6.6 0L3.2 7.4a6.9 6.9 0 0 1 4.8-2ZM8 1c3 0 5.8 1.2 7.8 3.2l-1.5 1.6A8.9 8.9 0 0 0 8 3.2c-2.5 0-4.7 1-6.3 2.6L.2 4.2A11 11 0 0 1 8 1Z"/></svg>
+          <svg width="23" height="11" viewBox="0 0 25 12" fill="none" stroke="currentColor" style="margin-left:5px"><rect x=".7" y=".7" width="20" height="10.6" rx="3" stroke-width="1.2"/><rect x="2.5" y="2.5" width="13" height="7" rx="1.6" fill="currentColor" stroke="none"/><path d="M23 4v4a2.2 2.2 0 0 0 0-4Z" fill="currentColor" stroke="none"/></svg>
+        </span>
+      </div>
+
+      <header class="pg-head">
+        <div class="pg-brand">
+          <span class="pg-brand-mark" aria-hidden="true">
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19C5 9.5 13 4 20 4c0 8-5 15-15 15Z"/><path d="M5 19c3-5.2 7-8.4 11-10.2"/></svg>
+          </span>
+          <div>
+            <div class="pg-brand-name">青屿</div>
+            <div class="pg-brand-sub" id="pg-date">脉动花园</div>
+          </div>
+        </div>
+        <div class="pg-streak"><i aria-hidden="true"></i>连续 12 天</div>
+      </header>
+
+      <div class="pg-panels">
+        <!-- 花园：目标进度 + 录入 -->
+        <section class="pg-panel is-active" id="pg-panel-garden" aria-label="花园">
+          <div class="pg-card pg-garden">
+            <div class="pg-garden-visual">
+              <svg viewBox="0 0 200 200" id="pg-garden-svg" role="img" aria-label="今日目标进度玫瑰环">
+                <defs>
+                  <linearGradient id="pg-ringGrad" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0" stop-color="#22784a"/>
+                    <stop offset="1" stop-color="#5cb37e"/>
+                  </linearGradient>
+                  </defs>
+                <circle cx="100" cy="100" r="86" fill="none" stroke="#e3eee2" stroke-width="10"/>
+                <circle class="pg-ring" id="pg-ring" cx="100" cy="100" r="86" fill="none" stroke="url(#pg-ringGrad)" stroke-width="10" stroke-linecap="round" stroke-dasharray="540.4" stroke-dashoffset="540.4" transform="rotate(-90 100 100)"/>
+                <g class="pg-beat" id="pg-roseG">
+                  <path class="pg-rose" id="pg-rose"/>
+                  <path class="pg-rose-inner" id="pg-roseInner"/>
+                  <circle class="pg-dot-halo" id="pg-dotHalo" r="8"/>
+                  <circle class="pg-dot" id="pg-dot" r="3.6"/>
+                </g>
+              </svg>
+              <div class="pg-garden-center">
+                <div class="pg-pct" id="pg-pct">0%</div>
+                <div class="pg-pct-sub" id="pg-stepsLine">0 / 8,000 步</div>
+              </div>
+            </div>
+            <div class="pg-mood" id="pg-mood">花园刚苏醒，记录第一笔活动让它动起来</div>
+          </div>
+
+          <div class="pg-card pg-form-card">
+            <div class="pg-form-title">记录一次活动 <span>保存后立即更新进度</span></div>
+            <div class="pg-chips" role="group" aria-label="活动类型">
+              <button type="button" class="pg-chip" data-type="walk" aria-pressed="true"><span class="pg-mono">走</span>步行</button>
+              <button type="button" class="pg-chip" data-type="run" aria-pressed="false"><span class="pg-mono">跑</span>跑步</button>
+              <button type="button" class="pg-chip" data-type="ride" aria-pressed="false"><span class="pg-mono">骑</span>骑行</button>
+              <button type="button" class="pg-chip" data-type="swim" aria-pressed="false"><span class="pg-mono">泳</span>游泳</button>
+              <button type="button" class="pg-chip" data-type="stretch" aria-pressed="false"><span class="pg-mono">伸</span>拉伸</button>
+            </div>
+
+            <div class="pg-field" id="pg-field-steps">
+              <label class="pg-label" for="pg-input-steps">步数 <em>必填</em></label>
+              <div class="pg-input-wrap">
+                <input id="pg-input-steps" type="text" inputmode="numeric" autocomplete="off" placeholder="例如 6,240">
+                <span class="pg-suffix">步</span>
+              </div>
+              <div class="pg-msg" id="pg-msg-steps">单次合理范围 1 – 100,000 步</div>
+            </div>
+
+            <div class="pg-field" id="pg-field-min">
+              <label class="pg-label" for="pg-input-min">用时 <em>必填</em></label>
+              <div class="pg-input-wrap">
+                <input id="pg-input-min" type="text" inputmode="numeric" autocomplete="off" placeholder="例如 40">
+                <span class="pg-suffix">分钟</span>
+              </div>
+              <div class="pg-msg" id="pg-msg-min">单次合理范围 1 – 600 分钟</div>
+            </div>
+
+            <div class="pg-field" id="pg-field-note">
+              <label class="pg-label" for="pg-input-note">备注 <em>选填</em></label>
+              <div class="pg-input-wrap">
+                <input id="pg-input-note" type="text" maxlength="24" autocomplete="off" placeholder="例如 雨后江边，空气很好">
+              </div>
+              <div class="pg-msg">最多 24 个字，记录当下的感受</div>
+            </div>
+
+            <div class="pg-alert" id="pg-form-alert" role="alert">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 4.6 2.9 17.5a2 2 0 0 0 1.7 3h14.8a2 2 0 0 0 1.7-3L13.7 4.6a2 2 0 0 0-3.4 0Z"/><path d="M12 9v4.5"/><path d="M12 16.6h.01"/></svg>
+              <span id="pg-alert-text">请先修正标红的字段，再存入花园。</span>
+            </div>
+
+            <button type="button" class="pg-submit" id="pg-save">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21c-5 0-8-3-8-7 2.5 0 4.5 1 5.5 2C9 11 10 6.5 12 4c2 2.5 3 7 2.5 12 1-1 3-2 5.5-2 0 4-3 7-8 7Z"/></svg>
+              存入花园
+            </button>
+          </div>
+        </section>
+
+        <!-- 趋势 -->
+        <section class="pg-panel" id="pg-panel-trend" aria-label="趋势">
+          <div class="pg-card pg-trend-card">
+            <div class="pg-trend-head">
+              <h2>近 7 天趋势</h2>
+              <span class="pg-delta" id="pg-delta" hidden>—</span>
+            </div>
+            <div class="pg-chart">
+              <div class="pg-goal-line" id="pg-goalLine"><span class="pg-goal-tag">目标 8,000</span></div>
+              <div class="pg-bars" id="pg-bars"></div>
+            </div>
+            <div class="pg-feedback">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19C5 9.5 13 4 20 4c0 8-5 15-15 15Z"/><path d="M5 19c3-5.2 7-8.4 11-10.2"/></svg>
+              <p id="pg-feedback">今天还没有记录。存一次活动，让花园先动起来。</p>
+            </div>
+            <div class="pg-goal-badge" id="pg-goalBadge"><i aria-hidden="true"></i>今日目标已达成 · 蔷薇全开</div>
+            <div class="pg-stats">
+              <div class="pg-stat"><b id="pg-avg">6,800</b><span>近 6 日均值</span></div>
+              <div class="pg-stat"><b id="pg-todayStat">0</b><span>今日步数</span></div>
+              <div class="pg-stat"><b id="pg-best">9,020</b><span>7 日最高</span></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 记录 -->
+        <section class="pg-panel" id="pg-panel-records" aria-label="记录">
+          <div class="pg-rec-head">
+            <h2>今日记录 <span class="pg-count-chip" id="pg-countChip">0 条</span></h2>
+            <div class="pg-rec-sum" id="pg-recSum">今日累计 0 步 · 用时 0 分钟</div>
+          </div>
+          <div class="pg-empty" id="pg-empty">
+            <svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21c-5 0-8-3-8-7 2.5 0 4.5 1 5.5 2C9 11 10 6.5 12 4c2 2.5 3 7 2.5 12 1-1 3-2 5.5-2 0 4-3 7-8 7Z"/></svg>
+            <p>今天还没有记录。<br>去「花园」存一次活动，让进度环转起来。</p>
+            <button type="button" id="pg-gotoGarden">去记录</button>
+          </div>
+          <div class="pg-rec-list" id="pg-recList"></div>
+          <div class="pg-foot">青屿 · 让每一步都开花</div>
+        </section>
+      </div>
+
+      <nav class="pg-tabbar" aria-label="主导航">
+        <button type="button" class="pg-tab is-active" data-tab="garden" aria-current="page">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="7" r="2.6"/><circle cx="16.8" cy="10.5" r="2.6"/><circle cx="14.9" cy="16" r="2.6"/><circle cx="9.1" cy="16" r="2.6"/><circle cx="7.2" cy="10.5" r="2.6"/><circle cx="12" cy="12" r="2.2" fill="currentColor" stroke="none"/></svg>
+          花园
+        </button>
+        <button type="button" class="pg-tab" data-tab="trend">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 20v-6"/><path d="M11 20V6"/><path d="M17 20v-9"/><path d="M3 20h18"/></svg>
+          趋势
+          <span class="pg-badge" id="pg-trendBadge" hidden></span>
+        </button>
+        <button type="button" class="pg-tab" data-tab="records">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8.5 6H20"/><path d="M8.5 12H20"/><path d="M8.5 18H20"/><path d="M4 6h.01"/><path d="M4 12h.01"/><path d="M4 18h.01"/></svg>
+          记录
+        </button>
+      </nav>
+    </div>
+    <div class="pg-home" aria-hidden="true"></div>
+    <div class="pg-toast" id="pg-toast" role="status" aria-live="polite"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var RM = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  var LIMIT = { stepsMin:1, stepsMax:100000, minMin:1, minMax:600 };
+  var GOAL = 8000;
+  var DAYS = [
+    { label:"周三", steps:5320 },
+    { label:"周四", steps:8150 },
+    { label:"周五", steps:4680 },
+    { label:"周六", steps:9020 },
+    { label:"周日", steps:6150 },
+    { label:"周一", steps:7480 },
+    { label:"今天", steps:0 }
+  ];
+  var TYPES = {
+    walk:{ name:"步行", cls:"" },
+    run:{ name:"跑步", cls:"is-run" },
+    ride:{ name:"骑行", cls:"is-ride" },
+    swim:{ name:"游泳", cls:"is-swim" },
+    stretch:{ name:"拉伸", cls:"is-stretch" }
+  };
+  var records = [];
+  var activeType = "walk";
+  var trendDirty = false;
+
+  var $ = function(id){ return document.getElementById(id); };
+  var els = {
+    ring:$("pg-ring"), rose:$("pg-rose"), roseInner:$("pg-roseInner"),
+    roseG:$("pg-roseG"), dot:$("pg-dot"), dotHalo:$("pg-dotHalo"),
+    pct:$("pg-pct"), stepsLine:$("pg-stepsLine"), mood:$("pg-mood"),
+    bars:$("pg-bars"), feedback:$("pg-feedback"), delta:$("pg-delta"),
+    avg:$("pg-avg"), todayStat:$("pg-todayStat"), best:$("pg-best"),
+    goalLine:$("pg-goalLine"), goalBadge:$("pg-goalBadge"),
+    inputSteps:$("pg-input-steps"), inputMin:$("pg-input-min"), inputNote:$("pg-input-note"),
+    fieldSteps:$("pg-field-steps"), fieldMin:$("pg-field-min"),
+    msgSteps:$("pg-msg-steps"), msgMin:$("pg-msg-min"),
+    alert:$("pg-form-alert"), alertText:$("pg-alert-text"), save:$("pg-save"),
+    toast:$("pg-toast"), badge:$("pg-trendBadge"),
+    recList:$("pg-recList"), empty:$("pg-empty"), countChip:$("pg-countChip"), recSum:$("pg-recSum")
+  };
+
+  var fmt = function(n){ return Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","); };
+  var todaySteps = function(){ return DAYS[6].steps; };
+
+  /* 玫瑰线：r = R·cos(4θ)，八瓣 */
+  function roseD(cx, cy, R, k, phase){
+    var d = "";
+    for(var i = 0; i <= 360; i += 2){
+      var t = i * Math.PI / 180;
+      var r = R * Math.cos(k * t);
+      var x = cx + r * Math.cos(t + phase);
+      var y = cy + r * Math.sin(t + phase);
+      d += (i === 0 ? "M" : "L") + x.toFixed(1) + "," + y.toFixed(1);
+    }
+    return d + "Z";
+  }
+  els.rose.setAttribute("d", roseD(100, 100, 60, 4, 0));
+  els.roseInner.setAttribute("d", roseD(100, 100, 34, 4, Math.PI / 8));
+
+  /* 沿玫瑰线巡游的光点 */
+  var orbitLen = els.rose.getTotalLength();
+  var orbiting = true;
+  function orbit(t){
+    if(!orbiting) return;
+    var p = els.rose.getPointAtLength(((t / 60) % 1) * orbitLen);
+    els.dot.setAttribute("cx", p.x); els.dot.setAttribute("cy", p.y);
+    els.dotHalo.setAttribute("cx", p.x); els.dotHalo.setAttribute("cy", p.y);
+    requestAnimationFrame(orbit);
+  }
+  if(RM){
+    var p0 = els.rose.getPointAtLength(0);
+    els.dot.setAttribute("cx", p0.x); els.dot.setAttribute("cy", p0.y);
+    els.dotHalo.setAttribute("cx", p0.x); els.dotHalo.setAttribute("cy", p0.y);
+    orbiting = false;
+  }else{
+    requestAnimationFrame(orbit);
+  }
+
+  /* 状态栏时间与日期 */
+  (function(){
+    var now = new Date();
+    var hh = now.getHours(), mm = now.getMinutes();
+    $("pg-clock").textContent = (hh < 10 ? "0" : "") + hh + ":" + (mm < 10 ? "0" : "") + mm;
+    var wd = ["日","一","二","三","四","五","六"][now.getDay()];
+    $("pg-date").textContent = (now.getMonth() + 1) + "月" + now.getDate() + "日 · 周" + wd;
+  })();
+
+  /* 数字滚动 */
+  function countUp(el, from, to, dur, suffix){
+    if(RM || from === to){ el.textContent = fmt(to) + (suffix || ""); return; }
+    var t0 = null;
+    function step(ts){
+      if(!t0) t0 = ts;
+      var p = Math.min((ts - t0) / dur, 1);
+      var e = 1 - Math.pow(1 - p, 3);
+      el.textContent = fmt(from + (to - from) * e) + (suffix || "");
+      if(p < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+
+  /* 目标进度环 + 中心数字 */
+  var shownPct = 0;
+  function renderGarden(animate){
+    var steps = todaySteps();
+    var pct = Math.round(steps / GOAL * 100);
+    var ringP = Math.min(steps / GOAL, 1);
+    els.ring.style.strokeDashoffset = (540.4 * (1 - ringP)).toFixed(1);
+    if(animate){
+      countUp(els.pct, shownPct, pct, 600, "%");
+      var fromSteps = animate.fromSteps != null ? animate.fromSteps : steps;
+      countUp(els.stepsLine, fromSteps, steps, 600, " / " + fmt(GOAL) + " 步");
+    }else{
+      els.pct.textContent = pct + "%";
+      els.stepsLine.textContent = fmt(steps) + " / " + fmt(GOAL) + " 步";
+    }
+    shownPct = pct;
+    var mood;
+    if(steps <= 0) mood = "花园刚苏醒，记录第一笔活动让它动起来";
+    else if(pct < 50) mood = "新芽破土，继续保持";
+    else if(pct < 100) mood = "枝叶生长中，离目标还差 " + fmt(GOAL - steps) + " 步";
+    else mood = "蔷薇全开，今日目标已达成";
+    els.mood.textContent = mood;
+  }
+
+  /* 趋势 */
+  function renderTrend(animate){
+    var hist = DAYS.slice(0, 6);
+    var sum = hist.reduce(function(a, d){ return a + d.steps; }, 0);
+    var avg = Math.round(sum / 6);
+    var today = todaySteps();
+    var all = DAYS.map(function(d){ return d.steps; }).concat([GOAL]);
+    var scaleMax = Math.max.apply(null, all) * 1.12;
+    var H = 180;
+
+    /* 柱子 */
+    var html = "";
+    for(var i = 0; i < 7; i++){
+      var v = DAYS[i].steps;
+      var h = Math.max(Math.round(v / scaleMax * H), v > 0 ? 4 : 3);
+      var valLabel = (i === 6 && v > 0) ? fmt(v) : "";
+      html += '<div class="pg-bar-col' + (i === 6 ? " is-today" : "") + '">' +
+        '<div class="pg-bar-val">' + valLabel + '</div>' +
+        '<div class="pg-bar" data-h="' + h + '"></div>' +
+        '<div class="pg-bar-label">' + DAYS[i].label + '</div>' +
+      '</div>';
+    }
+    els.bars.innerHTML = html;
+    var barsEls = els.bars.querySelectorAll(".pg-bar");
+    for(var j = 0; j < barsEls.length; j++){
+      var b = barsEls[j];
+      if(animate && !RM){
+        (function(el, h){
+          requestAnimationFrame(function(){ requestAnimationFrame(function(){ el.style.height = h + "px"; }); });
+        })(b, parseInt(b.getAttribute("data-h"), 10));
+      }else{
+        b.style.height = b.getAttribute("data-h") + "px";
+      }
+    }
+    var goalTop = 216 - 26 - Math.round(GOAL / scaleMax * H);
+    els.goalLine.style.top = Math.max(goalTop, 4) + "px";
+
+    /* 反馈 */
+    var delta = null, tone = "idle", text;
+    if(today <= 0){
+      text = "今天还没有记录。存一次活动，让花园先动起来。";
+    }else{
+      delta = (today - avg) / avg;
+      var pctTxt = Math.round(Math.abs(delta) * 100);
+      if(delta >= 0.15){ tone = "hot"; text = "状态火热：今日比近 6 日均值高 " + pctTxt + "%，保持节奏，记得补水拉伸。"; }
+      else if(delta >= -0.10){ tone = "steady"; text = "节奏平稳：与近 6 日均值基本持平（" + (delta >= 0 ? "+" : "-") + pctTxt + "%），稳定就是最好的生长。"; }
+      else { tone = "low"; text = "今天偏少：比近 6 日均值低 " + pctTxt + "%，饭后散步 20 分钟就能追上。"; }
+    }
+    els.feedback.textContent = text;
+    if(delta == null){
+      els.delta.hidden = true;
+    }else{
+      els.delta.hidden = false;
+      els.delta.textContent = (delta >= 0 ? "+" : "-") + Math.round(Math.abs(delta) * 100) + "%";
+      els.delta.className = "pg-delta" + (tone === "hot" ? " is-hot" : tone === "low" ? " is-low" : "");
+    }
+    els.goalBadge.classList.toggle("show", today >= GOAL && today > 0);
+
+    /* 统计 */
+    els.avg.textContent = fmt(avg);
+    els.todayStat.textContent = fmt(today);
+    els.best.textContent = fmt(Math.max.apply(null, DAYS.map(function(d){ return d.steps; })));
+  }
+
+  /* 记录列表 */
+  function renderRecords(){
+    els.countChip.textContent = records.length + " 条";
+    var sSum = 0, mSum = 0;
+    records.forEach(function(r){ sSum += r.steps; mSum += r.minutes; });
+    els.recSum.textContent = "今日累计 " + fmt(sSum) + " 步 · 用时 " + fmt(mSum) + " 分钟";
+    els.empty.style.display = records.length ? "none" : "block";
+    var html = "";
+    for(var i = records.length - 1; i >= 0; i--){
+      var r = records[i], t = TYPES[r.type];
+      html += '<div class="pg-rec">' +
+        '<div class="pg-rec-mono ' + t.cls + '">' + t.name.charAt(0) + '</div>' +
+        '<div class="pg-rec-body">' +
+          '<div class="pg-rec-title">' + t.name + ' <time>' + r.time + '</time></div>' +
+          '<div class="pg-rec-data">+' + fmt(r.steps) + ' 步 · 用时 ' + fmt(r.minutes) + ' 分钟</div>' +
+          (r.note ? '<div class="pg-rec-note">' + r.note + '</div>' : '') +
+        '</div>' +
+        '<svg class="pg-rec-leaf" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19C5 9.5 13 4 20 4c0 8-5 15-15 15Z"/></svg>' +
+      '</div>';
+    }
+    els.recList.innerHTML = html;
+  }
+
+  /* 轻提示 */
+  var toastTimer = null;
+  function toast(html){
+    els.toast.innerHTML = html;
+    els.toast.classList.add("show");
+    if(toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(function(){ els.toast.classList.remove("show"); }, 2400);
+  }
+
+  /* 校验 */
+  function parseNum(raw){
+    var s = String(raw).replace(/[\s,，]/g, "");
+    if(s === "") return { empty:true };
+    if(!/^\d+(\.\d+)?$/.test(s)) return { nan:true };
+    return { value: Math.round(parseFloat(s)) };
+  }
+  function setInvalid(field, msgEl, msg){
+    field.classList.remove("is-invalid");
+    void field.offsetWidth; /* 重启动画 */
+    field.classList.add("is-invalid");
+    msgEl.textContent = msg;
+  }
+  function validate(){
+    var errors = [];
+    var ps = parseNum(els.inputSteps.value);
+    if(ps.empty) errors.push({ field:els.fieldSteps, msgEl:els.msgSteps, text:"请输入步数" });
+    else if(ps.nan) errors.push({ field:els.fieldSteps, msgEl:els.msgSteps, text:"步数需为数字" });
+    else if(ps.value < LIMIT.stepsMin) errors.push({ field:els.fieldSteps, msgEl:els.msgSteps, text:"步数不能少于 " + LIMIT.stepsMin + " 步" });
+    else if(ps.value > LIMIT.stepsMax) errors.push({ field:els.fieldSteps, msgEl:els.msgSteps, text:"超出单次合理上限 " + fmt(LIMIT.stepsMax) + " 步，请修正后再保存" });
+    var pm = parseNum(els.inputMin.value);
+    if(pm.empty) errors.push({ field:els.fieldMin, msgEl:els.msgMin, text:"请输入用时" });
+    else if(pm.nan) errors.push({ field:els.fieldMin, msgEl:els.msgMin, text:"用时需为数字" });
+    else if(pm.value < LIMIT.minMin) errors.push({ field:els.fieldMin, msgEl:els.msgMin, text:"用时不能少于 " + LIMIT.minMin + " 分钟" });
+    else if(pm.value > LIMIT.minMax) errors.push({ field:els.fieldMin, msgEl:els.msgMin, text:"超出单次合理上限 " + fmt(LIMIT.minMax) + " 分钟，请修正后再保存" });
+    return { errors:errors, steps: ps.value, minutes: pm.value };
+  }
+
+  /* 保存 */
+  els.save.addEventListener("click", function(){
+    var r = validate();
+    els.alert.classList.remove("show");
+    if(r.errors.length){
+      r.errors.forEach(function(e){ setInvalid(e.field, e.msgEl, e.text); });
+      var first = r.errors[0];
+      els.alertText.textContent = "保存失败：" + first.text + "。原有进度与趋势保持不变。";
+      els.alert.classList.add("show");
+      var inp = first.field.querySelector("input");
+      if(inp) inp.focus();
+      toast("保存失败，请修正标红字段");
+      return;
+    }
+    var before = todaySteps();
+    DAYS[6].steps = before + r.steps;
+    var now = new Date();
+    records.push({
+      type: activeType, steps: r.steps, minutes: r.minutes,
+      note: els.inputNote.value.trim(),
+      time: (now.getHours() < 10 ? "0" : "") + now.getHours() + ":" + (now.getMinutes() < 10 ? "0" : "") + now.getMinutes()
+    });
+    renderGarden({ animate:true, fromSteps: before });
+    renderTrend(true);
+    renderRecords();
+    if(!RM){
+      els.roseG.classList.remove("beating");
+      void els.roseG.getBoundingClientRect();
+      els.roseG.classList.add("beating");
+    }
+    trendDirty = true;
+    els.badge.hidden = false;
+    toast("已存入花园 <i>· 今日 " + Math.round(todaySteps() / GOAL * 100) + "%</i>");
+    els.inputSteps.value = "";
+    els.inputMin.value = "";
+    els.inputNote.value = "";
+  });
+
+  /* 输入即时清除错误 */
+  function liveClear(input, field, msgEl, normalMsg){
+    input.addEventListener("input", function(){
+      if(field.classList.contains("is-invalid")){
+        field.classList.remove("is-invalid");
+        msgEl.textContent = normalMsg;
+      }
+      if(!document.querySelector(".pg-field.is-invalid")) els.alert.classList.remove("show");
+    });
+  }
+  liveClear(els.inputSteps, els.fieldSteps, els.msgSteps, "单次合理范围 1 – 100,000 步");
+  liveClear(els.inputMin, els.fieldMin, els.msgMin, "单次合理范围 1 – 600 分钟");
+
+  /* 类型选择 */
+  var chips = document.querySelectorAll(".pg-chip");
+  chips.forEach(function(c){
+    c.addEventListener("click", function(){
+      chips.forEach(function(x){ x.setAttribute("aria-pressed", "false"); });
+      c.setAttribute("aria-pressed", "true");
+      activeType = c.getAttribute("data-type");
+    });
+  });
+
+  /* 标签切换 */
+  var tabs = document.querySelectorAll(".pg-tab");
+  function switchTab(name){
+    tabs.forEach(function(t){
+      var on = t.getAttribute("data-tab") === name;
+      t.classList.toggle("is-active", on);
+      if(on) t.setAttribute("aria-current", "page");
+      else t.removeAttribute("aria-current");
+    });
+    ["garden", "trend", "records"].forEach(function(n){
+      $("pg-panel-" + n).classList.toggle("is-active", n === name);
+    });
+    if(name === "trend" && trendDirty){
+      trendDirty = false;
+      els.badge.hidden = true;
+    }
+  }
+  tabs.forEach(function(t){
+    t.addEventListener("click", function(){ switchTab(t.getAttribute("data-tab")); });
+  });
+  $("pg-gotoGarden").addEventListener("click", function(){ switchTab("garden"); });
+
+  /* 初始渲染 */
+  renderGarden(null);
+  renderTrend(false);
+  renderRecords();
+})();
+</script>
+</body>
+</html>

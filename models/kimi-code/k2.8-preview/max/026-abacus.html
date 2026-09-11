@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>账单 · 济丰账房</title>
+<style>
+:root{
+  --page:#f3e9cf;
+  --paper:#faf3e0;
+  --paper-2:#efe2c0;
+  --ink:#33261a;
+  --ink-soft:#6f5c3d;
+  --faint:#9b8a63;
+  --red:#8a1f1f;
+  --red-deep:#5f1212;
+  --line:#d8c69a;
+  --line-strong:#c3a96b;
+  --blue:#2c4a6e;
+  --gold:#d9b44a;
+  --font-display:"Kaiti SC","STKaiti","KaiTi","楷体","SimSun",serif;
+  --font-body:"Songti SC","STSong","NSimSun","SimSun","宋体",serif;
+  --font-num:"Courier New","Courier",monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{
+  font-family:var(--font-body);
+  background-color:var(--page);
+  background-image:repeating-linear-gradient(90deg,transparent 0 151px,rgba(138,31,31,.045) 151px 152px);
+  color:var(--ink);
+  font-size:14px;
+  line-height:1.6;
+  min-height:100vh;
+}
+a{color:inherit;text-decoration:none}
+button{font-family:inherit;cursor:pointer}
+.ledger-page{max-width:1180px;margin:0 auto;padding:24px 24px 56px}
+
+/* ---------- 顶栏 ---------- */
+.site-header{
+  height:72px;display:flex;align-items:center;gap:32px;
+  border-bottom:3px double var(--red);
+  padding-bottom:14px;
+}
+.brand{display:flex;align-items:center;gap:12px}
+.brand-seal{
+  width:40px;height:40px;border:2px solid var(--red);color:var(--red);
+  font-family:var(--font-display);font-size:20px;display:flex;align-items:center;justify-content:center;
+  transform:rotate(-4deg);border-radius:3px;line-height:1;
+}
+.brand-name{font-family:var(--font-display);font-size:20px;letter-spacing:2px}
+.brand-sub{font-size:12px;color:var(--ink-soft);letter-spacing:1px;margin-top:1px}
+.nav-list{display:flex;gap:4px;margin-left:8px}
+.nav-list span{
+  padding:6px 14px;font-size:14px;color:var(--ink-soft);border-radius:3px;letter-spacing:1px;
+}
+.nav-list span.is-current{
+  color:var(--paper);background:var(--red);
+  box-shadow:inset 0 0 0 1px var(--red),inset 0 0 0 2px rgba(250,243,224,.35);
+}
+.steward{margin-left:auto;text-align:right;font-size:12px;color:var(--ink-soft)}
+.steward b{font-family:var(--font-display);font-size:14px;color:var(--ink);letter-spacing:1px}
+.steward .avatar{
+  display:inline-flex;width:26px;height:26px;border-radius:50%;
+  border:1px solid var(--red);color:var(--red);align-items:center;justify-content:center;
+  font-family:var(--font-display);margin-left:8px;vertical-align:-7px;
+}
+
+/* ---------- 主体网格 ---------- */
+.main-grid{display:grid;grid-template-columns:336px minmax(0,1fr);gap:24px;margin-top:24px;align-items:start}
+
+/* ---------- 当前方案卡 ---------- */
+.plan-card{
+  position:relative;background:var(--red);color:var(--paper);
+  border-radius:6px;padding:22px 20px 20px;
+  box-shadow:inset 0 0 0 1px var(--red),inset 0 0 0 3px var(--paper),inset 0 0 0 4px rgba(217,180,74,.55);
+}
+.plan-eyebrow{font-size:12px;letter-spacing:4px;color:var(--gold)}
+.plan-stamp{
+  position:absolute;top:16px;right:16px;width:58px;height:58px;
+  border:2px solid var(--paper);border-radius:50%;color:var(--paper);
+  display:flex;align-items:center;justify-content:center;text-align:center;
+  font-family:var(--font-display);font-size:15px;line-height:1.15;
+  transform:rotate(9deg);opacity:.92;letter-spacing:2px;
+}
+.plan-name{font-family:var(--font-display);font-size:26px;letter-spacing:2px;margin-top:8px}
+.plan-price{margin-top:10px;display:flex;align-items:baseline;gap:8px}
+.plan-price .num{font-family:var(--font-num);font-size:34px;font-weight:700;letter-spacing:1px}
+.plan-price .per{font-size:13px;color:var(--gold)}
+.renew-line{margin-top:6px;font-size:12px;color:rgba(250,243,224,.82)}
+.renew-line b{font-family:var(--font-num);font-weight:700}
+.quota-list{margin-top:16px;border-top:1px solid rgba(250,243,224,.3);padding-top:14px;display:flex;flex-direction:column;gap:12px}
+.quota-item{font-size:12px}
+.quota-item .quota-top{display:flex;justify-content:space-between;color:rgba(250,243,224,.92)}
+.quota-item .quota-top b{font-family:var(--font-num);font-weight:700}
+.quota-bar{height:6px;background:rgba(250,243,224,.22);border-radius:3px;margin-top:5px;overflow:hidden}
+.quota-bar i{display:block;height:100%;background:var(--gold);border-radius:3px}
+.plan-actions{margin-top:18px;display:flex;gap:10px}
+.btn-upgrade{
+  flex:1;background:var(--paper);color:var(--red);border:none;border-radius:3px;
+  font-size:14px;padding:9px 0;letter-spacing:2px;font-family:var(--font-display);
+}
+.btn-upgrade:hover{background:#fff8e6}
+.btn-keep{
+  background:transparent;color:var(--paper);border:1px solid rgba(250,243,224,.55);
+  border-radius:3px;font-size:13px;padding:9px 14px;letter-spacing:1px;
+}
+.btn-keep:hover{border-color:var(--paper)}
+.plan-note{margin-top:12px;font-size:11px;color:rgba(250,243,224,.68)}
+
+/* ---------- 支付方式卡 ---------- */
+.pay-card{background:var(--paper);border:1px solid var(--line-strong);border-radius:6px;padding:20px;margin-top:20px}
+.pay-head{display:flex;align-items:center;justify-content:space-between}
+.pay-title{font-family:var(--font-display);font-size:17px;letter-spacing:2px}
+.pay-switch-btn{
+  background:none;border:1px solid var(--red);color:var(--red);border-radius:3px;
+  font-size:12px;padding:4px 12px;letter-spacing:1px;
+}
+.pay-switch-btn:hover{background:var(--red);color:var(--paper)}
+.pay-current{display:flex;align-items:center;gap:12px;margin-top:14px;padding:12px;border:1px dashed var(--line-strong);border-radius:4px}
+.pay-icon{
+  width:38px;height:38px;border:1.5px solid var(--red);border-radius:4px;color:var(--red);
+  display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:18px;flex:none;
+}
+.pay-info{min-width:0}
+.pay-name{font-size:14px;font-weight:700}
+.pay-tail{font-size:12px;color:var(--ink-soft);font-family:var(--font-num)}
+.pay-tail b{color:var(--red)}
+.pay-bound{margin-top:10px;font-size:11px;color:var(--faint)}
+.pay-panel{border-top:1px solid var(--line);margin-top:14px;padding-top:6px;display:none}
+.pay-panel.is-open{display:block}
+.method-item{display:flex;align-items:center;gap:10px;padding:10px 4px;border-bottom:1px dashed var(--line);cursor:pointer}
+.method-item:hover{background:var(--paper-2)}
+.method-item input{accent-color:var(--red);width:15px;height:15px;flex:none}
+.method-item .m-name{font-size:13px}
+.method-item .m-tail{font-size:12px;color:var(--ink-soft);font-family:var(--font-num)}
+.method-item .m-tag{margin-left:auto;font-size:11px;color:var(--red);border:1px solid var(--red);border-radius:3px;padding:1px 6px;flex:none}
+.pay-panel-actions{display:flex;gap:10px;margin-top:12px}
+.pay-confirm{
+  flex:1;background:var(--red);color:var(--paper);border:none;border-radius:3px;
+  font-size:13px;padding:8px 0;letter-spacing:2px;font-family:var(--font-display);
+}
+.pay-confirm:disabled{background:var(--line-strong);color:var(--paper);cursor:not-allowed}
+.pay-cancel{background:none;border:1px solid var(--line-strong);color:var(--ink-soft);border-radius:3px;font-size:13px;padding:8px 14px}
+.pay-cancel:hover{border-color:var(--ink-soft)}
+.pay-hint{margin-top:10px;font-size:11px;color:var(--faint)}
+
+/* ---------- 账页 ---------- */
+.bill-section{background:var(--paper);border:1px solid var(--line-strong);border-radius:6px;padding:22px 22px 18px}
+.bill-head{display:flex;align-items:flex-start;flex-wrap:wrap;gap:14px}
+.bill-title{font-family:var(--font-display);font-size:21px;letter-spacing:2px}
+.bill-title small{font-size:12px;color:var(--faint);letter-spacing:1px;margin-left:8px;font-family:var(--font-body)}
+.filter-tabs{margin-left:auto;display:flex;gap:4px;flex-wrap:wrap}
+.filter-tab{
+  background:none;border:1px solid var(--line-strong);color:var(--ink-soft);border-radius:3px;
+  font-size:12px;padding:5px 12px;letter-spacing:1px;
+}
+.filter-tab .cnt{font-family:var(--font-num);margin-left:4px}
+.filter-tab:hover{border-color:var(--red);color:var(--red)}
+.filter-tab.is-active{background:var(--red);border-color:var(--red);color:var(--paper)}
+.bill-summary{margin-top:10px;font-size:12px;color:var(--ink-soft)}
+.bill-summary b{font-family:var(--font-num);color:var(--red);font-size:14px}
+.table-wrap{margin-top:12px;overflow-x:auto;border-top:3px double var(--red);border-bottom:3px double var(--red)}
+.ledger-table{width:100%;min-width:760px;border-collapse:collapse;font-size:13px}
+.ledger-table th{
+  text-align:left;font-family:var(--font-display);font-size:13px;letter-spacing:2px;color:var(--ink-soft);
+  padding:10px 10px;border-bottom:1px solid var(--line-strong);white-space:nowrap;font-weight:400;
+}
+.ledger-table td{padding:11px 10px;border-bottom:1px dashed var(--line);vertical-align:middle}
+.ledger-row:hover td{background:var(--paper-2)}
+.col-date{font-family:var(--font-num);white-space:nowrap}
+.col-no{font-family:var(--font-num);color:var(--faint);font-size:12px;white-space:nowrap}
+.col-desc{max-width:220px}
+.col-amount{font-family:var(--font-num);font-weight:700;text-align:right;white-space:nowrap;color:var(--blue)}
+.col-amount.is-refunded{color:var(--faint);text-decoration:line-through}
+.badge{display:inline-block;font-size:11px;border-radius:3px;padding:2px 8px;letter-spacing:1px;white-space:nowrap}
+.badge-settled{color:var(--blue);border:1px solid var(--blue)}
+.badge-pending{color:var(--red);border:1px solid var(--red)}
+.badge-refunded{color:var(--faint);border:1px solid var(--line-strong)}
+.row-actions{white-space:nowrap}
+.row-actions a{
+  font-size:12px;color:var(--red);border-bottom:1px solid transparent;margin-right:12px;letter-spacing:1px;
+}
+.row-actions a:hover{border-bottom-color:var(--red)}
+.row-actions a.is-disabled{color:var(--faint);cursor:not-allowed;text-decoration:line-through;border-bottom-color:transparent}
+.total-row td{border-bottom:none;border-top:1px solid var(--line-strong);font-family:var(--font-num);font-weight:700;padding-top:12px}
+.total-row .col-amount{color:var(--red);font-size:15px}
+.total-caps{font-family:var(--font-display);font-size:12px;color:var(--ink-soft);letter-spacing:1px;padding-top:12px}
+
+/* ---------- 发票浮层 ---------- */
+.invoice-overlay{
+  position:fixed;inset:0;background:rgba(51,38,26,.5);display:none;align-items:center;justify-content:center;z-index:40;padding:20px;
+}
+.invoice-overlay.is-open{display:flex}
+.invoice-sheet{
+  width:520px;max-width:100%;background:var(--paper);border-radius:6px;padding:26px 28px 22px;position:relative;
+  border:1px solid var(--line-strong);
+  box-shadow:inset 0 0 0 3px var(--paper),inset 0 0 0 4px var(--red);
+}
+.invoice-title{font-family:var(--font-display);font-size:19px;letter-spacing:4px;text-align:center;color:var(--red)}
+.invoice-no{text-align:center;font-family:var(--font-num);font-size:12px;color:var(--ink-soft);margin-top:4px}
+.invoice-grid{margin-top:16px;font-size:13px;border-top:1px solid var(--line-strong)}
+.invoice-grid .igrid{display:flex;gap:10px;padding:8px 0;border-bottom:1px dashed var(--line)}
+.invoice-grid .ik{width:76px;flex:none;color:var(--ink-soft);font-size:12px;padding-top:1px}
+.invoice-grid .iv{flex:1}
+.invoice-grid .iv.num{font-family:var(--font-num);font-weight:700}
+.invoice-stamp{
+  position:absolute;right:26px;bottom:64px;width:96px;height:96px;opacity:.9;transform:rotate(-11deg);pointer-events:none;
+}
+.invoice-actions{display:flex;gap:10px;margin-top:18px}
+.invoice-download{
+  flex:1;background:var(--red);color:var(--paper);border:none;border-radius:3px;font-size:13px;padding:9px 0;
+  font-family:var(--font-display);letter-spacing:2px;text-align:center;
+}
+.invoice-download:hover{background:var(--red-deep)}
+.invoice-close{background:none;border:1px solid var(--line-strong);color:var(--ink-soft);border-radius:3px;font-size:13px;padding:9px 16px}
+.invoice-close:hover{border-color:var(--ink-soft)}
+
+/* ---------- 批注 Toast ---------- */
+.toast-note{
+  position:fixed;left:50%;bottom:28px;transform:translate(-50%,20px);opacity:0;pointer-events:none;
+  background:var(--paper);border:1px solid var(--red);border-left:4px solid var(--red);border-radius:3px;
+  padding:10px 18px;font-size:13px;color:var(--ink);z-index:50;max-width:min(560px,calc(100% - 32px));
+  box-shadow:0 6px 18px rgba(51,38,26,.18);transition:opacity .24s ease,transform .24s ease;
+}
+.toast-note.is-show{opacity:1;transform:translate(-50%,0)}
+
+/* ---------- 入场动效 ---------- */
+@keyframes rowIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.ledger-row{animation:rowIn .3s ease both}
+.ledger-row:nth-child(1){animation-delay:.02s}.ledger-row:nth-child(2){animation-delay:.06s}
+.ledger-row:nth-child(3){animation-delay:.1s}.ledger-row:nth-child(4){animation-delay:.14s}
+.ledger-row:nth-child(5){animation-delay:.18s}.ledger-row:nth-child(6){animation-delay:.22s}
+@keyframes stampIn{from{opacity:0;transform:rotate(9deg) scale(1.4)}to{opacity:.92;transform:rotate(9deg) scale(1)}}
+.plan-stamp{animation:stampIn .36s ease .12s both}
+
+@media (prefers-reduced-motion: reduce){
+  .ledger-row,.plan-stamp{animation:none}
+  .toast-note{transition:none}
+  *{scroll-behavior:auto}
+}
+
+/* ---------- 响应式 ---------- */
+@media (max-width: 920px){
+  .ledger-page{padding:16px 16px 40px}
+  .site-header{height:auto;flex-wrap:wrap;gap:14px;padding-bottom:12px}
+  .nav-list{order:3;width:100%;margin-left:0}
+  .steward{margin-left:auto}
+  .main-grid{grid-template-columns:1fr}
+  .bill-head{flex-direction:column;align-items:flex-start}
+  .filter-tabs{margin-left:0}
+  .plan-price .num{font-size:28px}
+  .invoice-sheet{width:100%}
+}
+</style>
+</head>
+<body>
+<div class="ledger-page" id="ledgerPage">
+
+  <header class="site-header" id="siteHeader">
+    <div class="brand">
+      <span class="brand-seal">济</span>
+      <div>
+        <div class="brand-name">济丰账房</div>
+        <div class="brand-sub">流水册 · 店铺进销存</div>
+      </div>
+    </div>
+    <nav class="nav-list" aria-label="账房主 navigation">
+      <span class="is-current">账单</span><span>报表</span><span>归档</span><span>设置</span>
+    </nav>
+    <div class="steward">
+      丙午年 七月廿三<br>
+      <b>掌柜 沈明远</b><span class="avatar">沈</span>
+    </div>
+  </header>
+
+  <div class="main-grid" id="mainGrid">
+
+    <aside id="sideColumn">
+      <section class="plan-card" id="planCard" aria-label="当前方案">
+        <div class="plan-eyebrow">现行方案</div>
+        <div class="plan-stamp">现行<br>之印</div>
+        <div class="plan-name" id="planName">流水册 · 掌柜版</div>
+        <div class="plan-price">
+          <span class="num">¥168.00</span><span class="per">/ 月</span>
+        </div>
+        <div class="renew-line">下次扣款 <b>2026-10-01</b> · 由 <b id="renewPayer">徽商钱庄（尾号 8823）</b> 划出</div>
+        <div class="quota-list">
+          <div class="quota-item">
+            <div class="quota-top"><span>入库单量</span><b>326 / 500 张</b></div>
+            <div class="quota-bar"><i style="width:65%"></i></div>
+          </div>
+          <div class="quota-item">
+            <div class="quota-top"><span>伙计账号</span><b>6 / 8 个</b></div>
+            <div class="quota-bar"><i style="width:75%"></i></div>
+          </div>
+          <div class="quota-item">
+            <div class="quota-top"><span>短信报送</span><b>1,240 / 2,000 条</b></div>
+            <div class="quota-bar"><i style="width:62%"></i></div>
+          </div>
+        </div>
+        <div class="plan-actions">
+          <button class="btn-upgrade" type="button">升一档 · 总账房版</button>
+          <button class="btn-keep" type="button">保持本档</button>
+        </div>
+        <div class="plan-note">按月结算，随时可退；升档差价按日折返，不另收手续费。</div>
+      </section>
+
+      <section class="pay-card" id="payCard" aria-label="扣款方式">
+        <div class="pay-head">
+          <div class="pay-title">扣款方式</div>
+          <button class="pay-switch-btn" type="button" id="paySwitchBtn" aria-expanded="false">更换支付方式</button>
+        </div>
+        <div class="pay-current">
+          <span class="pay-icon">票</span>
+          <div class="pay-info">
+            <div class="pay-name" id="payName">徽商钱庄 · 银票卡</div>
+            <div class="pay-tail">尾号 <b id="payTail">8823</b> · 每月一日扣款</div>
+          </div>
+        </div>
+        <div class="pay-bound" id="payBound">绑于 2025-11-02 · 已连续扣款 11 期无退票</div>
+
+        <div class="pay-panel" id="payPanel">
+          <label class="method-item"><input type="radio" name="method" value="徽商钱庄 · 银票卡|8823" checked>
+            <span class="m-name">徽商钱庄 · 银票卡</span><span class="m-tail">尾号 8823</span><span class="m-tag">现行</span></label>
+          <label class="method-item"><input type="radio" name="method" value="晋裕票号 · 汇兑户|4415">
+            <span class="m-name">晋裕票号 · 汇兑户</span><span class="m-tail">尾号 4415</span></label>
+          <label class="method-item"><input type="radio" name="method" value="济丰本票账户|0093">
+            <span class="m-name">济丰本票账户</span><span class="m-tail">尾号 0093 · 线下划账</span></label>
+          <div class="pay-panel-actions">
+            <button class="pay-confirm" type="button" id="payConfirmBtn" disabled>批注换绑</button>
+            <button class="pay-cancel" type="button" id="payCancelBtn">收起</button>
+          </div>
+          <div class="pay-hint">换绑自下个账期生效；本账期仍由原方式扣款，已出账单一律照旧。</div>
+        </div>
+      </section>
+    </aside>
+
+    <section class="bill-section" id="billSection" aria-label="账单流水">
+      <div class="bill-head">
+        <div class="bill-title">账单流水<small>近六个月</small></div>
+        <div class="filter-tabs" role="tablist" aria-label="按状态筛单">
+          <button class="filter-tab is-active" type="button" data-filter="all">全部<span class="cnt">6</span></button>
+          <button class="filter-tab" type="button" data-filter="settled">已结清<span class="cnt">4</span></button>
+          <button class="filter-tab" type="button" data-filter="pending">待出票<span class="cnt">1</span></button>
+          <button class="filter-tab" type="button" data-filter="refunded">已退票<span class="cnt">1</span></button>
+        </div>
+      </div>
+      <div class="bill-summary" id="billSummary">现示 <b id="visibleCount">6</b> / 共 6 笔 · 累计支出 <b id="visibleSum">¥564.00</b> · 本月 ¥168.00</div>
+
+      <div class="table-wrap">
+        <table class="ledger-table" id="ledgerTable">
+          <thead>
+            <tr>
+              <th>日期</th><th>单号</th><th>摘要</th>
+              <th style="text-align:right">金额</th><th>状态</th><th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="ledgerTbody">
+            <tr class="ledger-row" data-status="pending">
+              <td class="col-date">2026-09-01</td>
+              <td class="col-no">LS-2026-0901-011</td>
+              <td class="col-desc">掌柜版月钱（九月）</td>
+              <td class="col-amount" data-sum="168">¥168.00</td>
+              <td><span class="badge badge-pending">待出票</span></td>
+              <td class="row-actions">
+                <a href="#" data-dl="receipt" data-no="LS-2026-0901-011" data-text="济丰账房 电子回单｜单号 LS-2026-0901-011｜掌柜版月钱（九月）｜金额 ¥168.00｜状态：待出票｜凭此据核账。">下载回单</a>
+                <a href="#" data-invoice data-no="INV-2026-0901-011" data-date="2026-09-04" data-item="掌柜版月钱（九月）" data-amount="¥168.00" data-caps="壹佰陆拾捌圆整">发票</a>
+              </td>
+            </tr>
+            <tr class="ledger-row" data-status="settled">
+              <td class="col-date">2026-08-14</td>
+              <td class="col-no">LS-2026-0814-007</td>
+              <td class="col-desc">加购入库单量 200 张</td>
+              <td class="col-amount" data-sum="36">¥36.00</td>
+              <td><span class="badge badge-settled">已结清</span></td>
+              <td class="row-actions">
+                <a href="#" data-dl="receipt" data-no="LS-2026-0814-007" data-text="济丰账房 电子回单｜单号 LS-2026-0814-007｜加购入库单量 200 张｜金额 ¥36.00｜状态：已结清｜凭此据核账。">下载回单</a>
+                <a href="#" data-invoice data-no="INV-2026-0814-007" data-date="2026-08-15" data-item="加购入库单量 200 张" data-amount="¥36.00" data-caps="叁拾陆圆整">发票</a>
+              </td>
+            </tr>
+            <tr class="ledger-row" data-status="settled">
+              <td class="col-date">2026-08-02</td>
+              <td class="col-no">LS-2026-0802-010</td>
+              <td class="col-desc">掌柜版月钱（八月）</td>
+              <td class="col-amount" data-sum="168">¥168.00</td>
+              <td><span class="badge badge-settled">已结清</span></td>
+              <td class="row-actions">
+                <a href="#" data-dl="receipt" data-no="LS-2026-0802-010" data-text="济丰账房 电子回单｜单号 LS-2026-0802-010｜掌柜版月钱（八月）｜金额 ¥168.00｜状态：已结清｜凭此据核账。">下载回单</a>
+                <a href="#" data-invoice data-no="INV-2026-0802-010" data-date="2026-08-03" data-item="掌柜版月钱（八月）" data-amount="¥168.00" data-caps="壹佰陆拾捌圆整">发票</a>
+              </td>
+            </tr>
+            <tr class="ledger-row" data-status="settled">
+              <td class="col-date">2026-07-19</td>
+              <td class="col-no">LS-2026-0719-003</td>
+              <td class="col-desc">短信报送包 1,000 条</td>
+              <td class="col-amount" data-sum="24">¥24.00</td>
+              <td><span class="badge badge-settled">已结清</span></td>
+              <td class="row-actions">
+                <a href="#" data-dl="receipt" data-no="LS-2026-0719-003" data-text="济丰账房 电子回单｜单号 LS-2026-0719-003｜短信报送包 1,000 条｜金额 ¥24.00｜状态：已结清｜凭此据核账。">下载回单</a>
+                <a href="#" data-invoice data-no="INV-2026-0719-003" data-date="2026-07-20" data-item="短信报送包 1,000 条" data-amount="¥24.00" data-caps="贰拾肆圆整">发票</a>
+              </td>
+            </tr>
+            <tr class="ledger-row" data-status="settled">
+              <td class="col-date">2026-07-02</td>
+              <td class="col-no">LS-2026-0702-009</td>
+              <td class="col-desc">掌柜版月钱（七月）</td>
+              <td class="col-amount" data-sum="168">¥168.00</td>
+              <td><span class="badge badge-settled">已结清</span></td>
+              <td class="row-actions">
+                <a href="#" data-dl="receipt" data-no="LS-2026-0702-009" data-text="济丰账房 电子回单｜单号 LS-2026-0702-009｜掌柜版月钱（七月）｜金额 ¥168.00｜状态：已结清｜凭此据核账。">下载回单</a>
+                <a href="#" data-invoice data-no="INV-2026-0702-009" data-date="2026-07-03" data-item="掌柜版月钱（七月）" data-amount="¥168.00" data-caps="壹佰陆拾捌圆整">发票</a>
+              </td>
+            </tr>
+            <tr class="ledger-row" data-status="refunded">
+              <td class="col-date">2026-06-02</td>
+              <td class="col-no">LS-2026-0602-012</td>
+              <td class="col-desc">增值发票开具服务费</td>
+              <td class="col-amount is-refunded" data-sum="0">¥6.00</td>
+              <td><span class="badge badge-refunded">已退票</span></td>
+              <td class="row-actions">
+                <a href="#" data-dl="receipt" data-no="LS-2026-0602-012" data-text="济丰账房 电子回单｜单号 LS-2026-0602-012｜增值发票开具服务费｜金额 ¥6.00｜状态：已退票，款项已原路返还。">下载回单</a>
+                <a href="#" class="is-disabled" aria-disabled="true">发票作废</a>
+              </td>
+            </tr>
+            <tr class="total-row" id="totalRow">
+              <td colspan="3" style="font-family:var(--font-display);letter-spacing:2px">合计（现示）</td>
+              <td class="col-amount" id="totalAmount">¥564.00</td>
+              <td colspan="2" class="total-caps" id="totalCaps">大写：伍佰陆拾肆圆整</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<div class="invoice-overlay" id="invoiceOverlay" role="dialog" aria-modal="true" aria-labelledby="invoiceTitle">
+  <div class="invoice-sheet">
+    <div class="invoice-title" id="invoiceTitle">电子发票</div>
+    <div class="invoice-no" id="invNoText">No. INV-2026-0901-011</div>
+    <div class="invoice-grid">
+      <div class="igrid"><span class="ik">开票日期</span><span class="iv num" id="invDate">2026-09-04</span></div>
+      <div class="igrid"><span class="ik">购买方</span><span class="iv">济丰绸缎庄（掌柜 沈明远）</span></div>
+      <div class="igrid"><span class="ik">税　号</span><span class="iv num">91330106MA2B4C8X7K</span></div>
+      <div class="igrid"><span class="ik">项　目</span><span class="iv" id="invItem">掌柜版月钱（九月）</span></div>
+      <div class="igrid"><span class="ik">金　额</span><span class="iv num" id="invAmount">¥168.00</span></div>
+      <div class="igrid"><span class="ik">大　写</span><span class="iv" id="invAmountCaps">壹佰陆拾捌圆整</span></div>
+      <div class="igrid"><span class="ik">销售方</span><span class="iv">济丰账房 · 杭州济丰账房科技有限公司</span></div>
+    </div>
+    <svg class="invoice-stamp" viewBox="0 0 100 100" aria-hidden="true">
+      <circle cx="50" cy="50" r="46" fill="none" stroke="#8a1f1f" stroke-width="3.5"/>
+      <path d="M50 20 L57.6 40.6 L79.4 41.2 L62.2 54.4 L68.4 75.3 L50 62.9 L31.6 75.3 L37.8 54.4 L20.6 41.2 L42.4 40.6 Z" fill="none" stroke="#8a1f1f" stroke-width="2.4"/>
+      <text x="50" y="57" text-anchor="middle" font-size="13" fill="#8a1f1f" font-family="Kaiti SC,STKaiti,KaiTi,SimSun,serif">济丰账房</text>
+    </svg>
+    <div class="invoice-actions">
+      <a class="invoice-download" href="#" id="invDownload" data-dl="invoice">下载发票（存根联）</a>
+      <button class="invoice-close" type="button" id="invoiceCloseBtn">关 闭</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-note" id="toastNote" role="status"><span id="toastText"></span></div>
+
+<script>
+(function(){
+  "use strict";
+  var $ = function(s){ return document.querySelector(s); };
+  var rows = Array.prototype.slice.call(document.querySelectorAll(".ledger-row"));
+  var tabs = Array.prototype.slice.call(document.querySelectorAll(".filter-tab"));
+  var visibleCount = $("#visibleCount"), visibleSum = $("#visibleSum"), totalAmount = $("#totalAmount"), totalCaps = $("#totalCaps");
+  var toast = $("#toastNote"), toastText = $("#toastText"), toastTimer = null;
+
+  var CN = "零壹贰叁肆伍陆柒捌玖";
+  function wanSection(n){
+    var s="",q=Math.floor(n/1000),r=n%1000,b=Math.floor(r/100),t=Math.floor((r%100)/10),g=r%10;
+    if(q)s+=CN[q]+"仟"; if(b)s+=CN[b]+"佰"; if(t)s+=CN[t]+"拾"; if(g)s+=CN[g];
+    return s;
+  }
+  function toCaps(yuan){
+    if(yuan===0)return "零圆整";
+    var yi=Math.floor(yuan/1e8),wan=Math.floor(yuan%1e8/1e4),rest=yuan%1e4,s="";
+    if(yi)s+=wanSection(yi)+"亿";
+    if(wan)s+=wanSection(wan)+"万";
+    if(rest)s+=wanSection(rest);
+    return (s||"零")+"圆整";
+  }
+
+  function applyFilter(f){
+    var sum=0,cnt=0;
+    rows.forEach(function(r){
+      var ok = (f==="all") || (r.getAttribute("data-status")===f);
+      r.style.display = ok ? "" : "none";
+      if(ok){ cnt++; sum += parseFloat(r.querySelector(".col-amount").getAttribute("data-sum")); }
+    });
+    visibleCount.textContent = cnt;
+    visibleSum.textContent = "¥" + sum.toFixed(2);
+    totalAmount.textContent = "¥" + sum.toFixed(2);
+    totalCaps.textContent = "大写：" + toCaps(sum);
+  }
+  tabs.forEach(function(t){
+    t.addEventListener("click", function(){
+      tabs.forEach(function(x){ x.classList.remove("is-active"); });
+      t.classList.add("is-active");
+      applyFilter(t.getAttribute("data-filter"));
+    });
+  });
+
+  function triggerDownload(text, fname){
+    var a=document.createElement("a");
+    a.href="data:text/plain;charset=utf-8,"+encodeURIComponent(text);
+    a.download=fname;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  }
+  document.querySelectorAll("[data-dl]").forEach(function(el){
+    el.addEventListener("click", function(e){
+      e.preventDefault();
+      triggerDownload(el.getAttribute("data-text"), "回单-"+el.getAttribute("data-no")+".txt");
+    });
+  });
+
+  var overlay=$("#invoiceOverlay"), invDownload=$("#invDownload"), lastFocus=null;
+  function openInvoice(btn){
+    var d=btn.dataset;
+    $("#invNoText").textContent="No. "+d.no;
+    $("#invDate").textContent=d.date;
+    $("#invItem").textContent=d.item;
+    $("#invAmount").textContent=d.amount;
+    $("#invAmountCaps").textContent=d.caps;
+    invDownload.dataset.text="济丰账房 电子发票存根联｜号码 "+d.no+"｜项目 "+d.item+"｜金额 "+d.amount+"（"+d.caps+"）｜销售方 杭州济丰账房科技有限公司。";
+    invDownload.dataset.no=d.no;
+    lastFocus=btn; overlay.classList.add("is-open");
+    $("#invoiceCloseBtn").focus();
+  }
+  document.querySelectorAll("[data-invoice]").forEach(function(b){
+    b.addEventListener("click", function(e){ e.preventDefault(); openInvoice(b); });
+  });
+  $("#invoiceCloseBtn").addEventListener("click", function(){ overlay.classList.remove("is-open"); if(lastFocus)lastFocus.focus(); });
+  overlay.addEventListener("click", function(e){ if(e.target===overlay){ overlay.classList.remove("is-open"); if(lastFocus)lastFocus.focus(); } });
+
+  var paySwitchBtn=$("#paySwitchBtn"), payPanel=$("#payPanel"),
+      payConfirmBtn=$("#payConfirmBtn"), payCancelBtn=$("#payCancelBtn"),
+      payName=$("#payName"), payTail=$("#payTail"), payBound=$("#payBound"), renewPayer=$("#renewPayer");
+  var currentMethod="徽商钱庄 · 银票卡|8823";
+
+  function selectedMethod(){
+    var r=document.querySelector('input[name="method"]:checked');
+    return r ? r.value : null;
+  }
+  function syncConfirm(){
+    var sel=selectedMethod();
+    payConfirmBtn.disabled = (sel===null || sel===currentMethod);
+  }
+  paySwitchBtn.addEventListener("click", function(){
+    var open=payPanel.classList.toggle("is-open");
+    paySwitchBtn.setAttribute("aria-expanded", open ? "true" : "false");
+    paySwitchBtn.textContent = open ? "收起" : "更换支付方式";
+    syncConfirm();
+  });
+  payCancelBtn.addEventListener("click", function(){
+    payPanel.classList.remove("is-open");
+    paySwitchBtn.textContent="更换支付方式";
+    paySwitchBtn.setAttribute("aria-expanded","false");
+  });
+  document.querySelectorAll('input[name="method"]').forEach(function(r){
+    r.addEventListener("change", syncConfirm);
+  });
+  payConfirmBtn.addEventListener("click", function(){
+    var sel=selectedMethod(); if(!sel)return;
+    var parts=sel.split("|"), name=parts[0], tail=parts[1];
+    currentMethod=sel;
+    payName.textContent=name;
+    payTail.textContent=tail;
+    renewPayer.textContent=name.slice(0,name.indexOf(" ·"))+"（尾号 "+tail+"）";
+    payBound.textContent="换绑于 2026-09-11 · 自下个账期生效，本账期仍按原方式扣款";
+    document.querySelector(".pay-current .pay-icon").textContent = tail==="0093" ? "本" : "票";
+    payPanel.classList.remove("is-open");
+    paySwitchBtn.textContent="更换支付方式";
+    paySwitchBtn.setAttribute("aria-expanded","false");
+    showToast("已批注：扣款方式换绑为 "+name+"（尾号 "+tail+"），十月账期起生效。");
+  });
+
+  function showToast(msg){
+    toastText.textContent=msg;
+    toast.classList.add("is-show");
+    clearTimeout(toastTimer);
+    toastTimer=setTimeout(function(){ toast.classList.remove("is-show"); }, 2600);
+  }
+})();
+</script>
+</body>
+</html>

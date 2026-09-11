@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>后台通行令 · 角色权限布告 — 长夜剧团</title>
+<style>
+:root{
+  --stage-0:#1c0716;
+  --curtain:#48122f;
+  --curtain-fold:#5f1739;
+  --curtain-hi:#7c1e4e;
+  --valance:#8e2456;
+  --gold:#d9a441;
+  --gold-soft:#f2cd7e;
+  --paper:#f4e8d2;
+  --paper-edge:#e2cfa8;
+  --ink:#2b1720;
+  --ink-soft:#6b4a57;
+  --muted:#a98fa0;
+  --deny:#4a3040;
+  --danger:#c8523a;
+  --ok:#7dae6f;
+  --line:rgba(217,164,65,.28);
+  --serif:"Kaiti SC","STKaiti","KaiTi","Songti SC",Georgia,serif;
+  --sans:"PingFang SC","Microsoft YaHei","Segoe UI",system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  min-height:100vh;
+  background:var(--stage-0);
+  color:var(--paper);
+  font-family:var(--sans);
+  font-size:14px;
+  line-height:1.6;
+  overflow-x:hidden;
+}
+/* 幕布纵深：两侧垂帘 + 顶部帷幔 */
+body::before{
+  content:"";position:fixed;inset:0;z-index:-2;pointer-events:none;
+  background:
+    radial-gradient(ellipse 560px 340px at 50% -60px, rgba(255,232,168,.16), transparent 70%),
+    linear-gradient(180deg, rgba(142,36,86,.55) 0 84px, transparent 84px),
+    repeating-linear-gradient(90deg,
+      var(--curtain) 0 46px, var(--curtain-fold) 46px 92px,
+      var(--curtain-hi) 92px 100px, var(--curtain-fold) 100px 138px,
+      var(--curtain) 138px 184px);
+}
+body::after{
+  content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background:
+    linear-gradient(90deg, rgba(28,7,22,.92) 0 96px, transparent 220px calc(100% - 220px), rgba(28,7,22,.92) calc(100% - 96px) 100%),
+    radial-gradient(ellipse 900px 500px at 50% 118%, rgba(28,7,22,.85), transparent 70%);
+}
+/* 顶部帷幔波浪 */
+.valance{
+  position:fixed;top:0;left:0;right:0;height:84px;z-index:5;pointer-events:none;
+  background:linear-gradient(180deg, var(--valance), var(--curtain-hi));
+  clip-path:polygon(0 0,100% 0,100% 58%,96% 100%,90% 62%,84% 100%,78% 62%,72% 100%,66% 62%,60% 100%,54% 62%,48% 100%,42% 62%,36% 100%,30% 62%,24% 100%,18% 62%,12% 100%,6% 62%,0 100%);
+  box-shadow:0 10px 24px rgba(0,0,0,.45);
+}
+/* 跑马灯泡带 */
+.bulbs{
+  position:fixed;top:84px;left:0;right:0;height:10px;z-index:5;pointer-events:none;
+  background:radial-gradient(circle 3.5px at 9px 5px, var(--gold-soft) 45%, rgba(242,205,126,.12) 70%, transparent 72%) 0 0/36px 10px repeat-x;
+  filter:drop-shadow(0 0 5px rgba(242,205,126,.75));
+  animation:bulbsGlow 2.6s ease-in-out infinite;
+}
+@keyframes bulbsGlow{
+  0%,100%{opacity:.65}
+  50%{opacity:1}
+}
+.page{
+  max-width:1200px;margin:0 auto;padding:128px 24px 72px;position:relative;
+}
+/* ============ 头部布告栏 ============ */
+.marquee-bar{
+  display:flex;align-items:center;justify-content:space-between;gap:24px;
+  padding:20px 28px;margin-bottom:28px;
+  background:rgba(28,7,22,.72);
+  border:1px solid var(--line);border-radius:14px;
+  backdrop-filter:blur(3px);
+}
+.brand{display:flex;align-items:center;gap:16px;min-width:0}
+.brand svg{flex:none}
+.brand-title{font-family:var(--serif);font-size:30px;letter-spacing:6px;color:var(--gold-soft);line-height:1.2}
+.brand-sub{font-size:12px;color:var(--muted);letter-spacing:2px;margin-top:2px}
+.brand-sub b{color:var(--gold);font-weight:600}
+.head-actions{display:flex;align-items:center;gap:14px;flex:none}
+.dirty-badge{
+  font-size:12px;color:var(--gold-soft);letter-spacing:1px;
+  padding:5px 12px;border:1px dashed var(--gold);border-radius:999px;
+  background:rgba(217,164,65,.1);
+}
+.dirty-badge[hidden]{display:none}
+.btn-seal{
+  font-family:var(--sans);font-size:14px;font-weight:600;letter-spacing:3px;
+  color:var(--ink);background:linear-gradient(180deg,var(--gold-soft),var(--gold));
+  border:none;border-radius:10px;padding:12px 26px;cursor:pointer;
+  box-shadow:0 4px 14px rgba(217,164,65,.35), inset 0 1px 0 rgba(255,255,255,.5);
+  transition:transform .15s ease, box-shadow .15s ease, filter .15s ease;
+}
+.btn-seal:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 8px 20px rgba(217,164,65,.45), inset 0 1px 0 rgba(255,255,255,.5)}
+.btn-seal:focus-visible{outline:3px solid var(--gold-soft);outline-offset:2px}
+.btn-seal:disabled{filter:grayscale(.75) brightness(.72);cursor:not-allowed;box-shadow:none}
+/* ============ 角色名牌 ============ */
+.roles-row{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-bottom:28px;
+}
+.role-card{
+  position:relative;
+  background:linear-gradient(175deg, var(--paper) 0%, #efe0c4 100%);
+  color:var(--ink);
+  border-radius:6px;
+  border:1px solid var(--paper-edge);
+  box-shadow:0 14px 30px rgba(0,0,0,.5);
+  padding:22px 22px 18px;
+  display:flex;flex-direction:column;
+  transition:transform .18s ease, box-shadow .18s ease;
+}
+.role-card::before{ /* 票根打孔边 */
+  content:"";position:absolute;top:0;bottom:0;left:-1px;width:7px;
+  background:radial-gradient(circle 2.6px at 3.5px 12px, var(--stage-0) 45%, transparent 52%) 0 0/7px 24px repeat-y;
+}
+.role-card:hover{transform:translateY(-4px);box-shadow:0 22px 40px rgba(0,0,0,.55), 0 0 0 1px rgba(217,164,65,.35)}
+.role-card:focus-within{outline:2px solid var(--gold);outline-offset:3px}
+.role-card.has-error{box-shadow:0 14px 30px rgba(0,0,0,.5), 0 0 0 2px var(--danger)}
+.nameplate{
+  display:flex;align-items:baseline;justify-content:space-between;gap:10px;
+  border-bottom:2px solid var(--ink);padding-bottom:10px;margin-bottom:14px;
+}
+.nameplate h2{font-family:var(--serif);font-size:26px;letter-spacing:5px;font-weight:700}
+.nameplate .en{font-size:11px;letter-spacing:3px;color:var(--ink-soft)}
+.role-tag{
+  font-size:12px;color:var(--ink-soft);letter-spacing:1px;margin-bottom:12px;
+  display:flex;justify-content:space-between;align-items:center;gap:8px;
+}
+.role-count{
+  font-variant-numeric:tabular-nums;font-weight:600;color:var(--ink);
+  background:rgba(43,23,32,.08);border-radius:999px;padding:2px 10px;font-size:12px;
+}
+.perm-list{list-style:none;display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
+.perm{
+  display:flex;align-items:center;gap:10px;cursor:pointer;
+  padding:7px 10px;border-radius:6px;border:1px solid transparent;
+  transition:background .12s ease, border-color .12s ease;
+}
+.perm:hover{background:rgba(43,23,32,.06);border-color:var(--paper-edge)}
+.perm input{position:absolute;opacity:0;pointer-events:none}
+.perm .box{
+  flex:none;width:18px;height:18px;border-radius:4px;
+  border:2px solid var(--ink-soft);background:transparent;position:relative;
+  transition:background .12s ease, border-color .12s ease;
+}
+.perm .box::after{
+  content:"";position:absolute;left:4.5px;top:1px;width:5px;height:9px;
+  border:solid var(--paper);border-width:0 2.4px 2.4px 0;transform:rotate(45deg) scale(0);
+  transition:transform .14s ease;
+}
+.perm input:checked + .box{background:var(--ink);border-color:var(--ink)}
+.perm input:checked + .box::after{transform:rotate(45deg) scale(1)}
+.perm input:focus-visible + .box{outline:2px solid var(--gold);outline-offset:2px}
+.perm .txt{font-size:13.5px;letter-spacing:.5px}
+.perm input:checked ~ .txt{color:var(--ink)}
+.perm input:not(:checked) ~ .txt{color:var(--ink-soft);text-decoration:line-through;text-decoration-color:rgba(107,74,87,.5);text-decoration-thickness:1px}
+.card-foot{margin-top:auto;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.dirty-tag{
+  font-size:11px;color:#9a5b12;letter-spacing:1px;
+  padding:2px 9px;border-radius:999px;background:rgba(217,164,65,.22);
+  border:1px dashed rgba(154,91,18,.55);
+}
+.dirty-tag[hidden]{display:none}
+.err-stripe{
+  font-size:12px;color:#fff;background:var(--danger);
+  border-radius:6px;padding:6px 10px;letter-spacing:1px;margin-bottom:10px;
+}
+.err-stripe[hidden]{display:none}
+.btn-ghost{
+  font-size:12.5px;letter-spacing:2px;color:var(--ink);cursor:pointer;
+  background:transparent;border:1.5px solid var(--ink);border-radius:999px;
+  padding:6px 16px;transition:background .12s ease,color .12s ease;
+}
+.btn-ghost:hover{background:var(--ink);color:var(--paper)}
+.btn-ghost:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+/* ============ 预览舞台 ============ */
+.preview-stage{
+  position:relative;overflow:hidden;
+  border:1px solid var(--line);border-radius:14px;
+  background:rgba(28,7,22,.82);
+  padding:22px 28px 26px;
+  min-height:238px;
+}
+.preview-stage::before{ /* 聚光锥 */
+  content:"";position:absolute;top:-40px;left:50%;width:520px;height:330px;
+  transform:translateX(-50%);
+  background:radial-gradient(ellipse 260px 200px at 50% 30%, rgba(255,232,168,.18), transparent 70%);
+  clip-path:polygon(44% 0,56% 0,100% 100%,0 100%);
+  pointer-events:none;
+  animation:coneSway 7s ease-in-out infinite alternate;
+}
+@keyframes coneSway{
+  from{transform:translateX(-53%)}
+  to{transform:translateX(-47%)}
+}
+.stage-head{display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;margin-bottom:16px;position:relative;z-index:1}
+.stage-tabs{display:flex;gap:10px;flex-wrap:wrap}
+.stage-tab{
+  font-size:13px;letter-spacing:2px;cursor:pointer;
+  color:var(--muted);background:transparent;
+  border:1px solid rgba(169,143,160,.4);border-radius:999px;padding:7px 18px;
+  transition:color .12s ease,border-color .12s ease,background .12s ease;
+}
+.stage-tab:hover{color:var(--gold-soft);border-color:var(--gold)}
+.stage-tab:focus-visible{outline:2px solid var(--gold-soft);outline-offset:2px}
+.stage-tab.active{
+  color:var(--ink);background:var(--gold);border-color:var(--gold);font-weight:600;
+  box-shadow:0 0 14px rgba(217,164,65,.45);
+}
+.preview-count{font-size:12.5px;color:var(--muted);letter-spacing:1px}
+.preview-count b{color:var(--gold-soft);font-size:16px;font-variant-numeric:tabular-nums}
+.preview-body{position:relative;z-index:1;display:grid;grid-template-columns:220px 1fr;gap:26px;align-items:start}
+.preview-role h3{font-family:var(--serif);font-size:32px;letter-spacing:7px;color:var(--gold-soft);line-height:1.2}
+.preview-role .en{display:block;font-size:11px;letter-spacing:3px;color:var(--muted);margin-top:4px}
+.preview-role .desc{font-size:12.5px;color:var(--muted);margin-top:10px;letter-spacing:.5px}
+.preview-list{list-style:none;display:grid;grid-template-columns:repeat(2,1fr);gap:8px 18px}
+.stage-item{
+  display:flex;align-items:center;gap:9px;
+  font-size:13px;letter-spacing:1px;padding:8px 12px;border-radius:6px;
+}
+.stage-item .dot{flex:none;width:7px;height:7px;border-radius:50%}
+.stage-item.lit{color:var(--paper);background:rgba(217,164,65,.1);border:1px solid rgba(217,164,65,.3)}
+.stage-item.lit .dot{background:var(--gold-soft);box-shadow:0 0 7px rgba(242,205,126,.9)}
+.stage-item.dim{color:var(--deny);background:rgba(74,48,64,.25);border:1px solid rgba(74,48,64,.6)}
+.stage-item.dim .dot{background:var(--deny)}
+/* ============ 封存回执 ============ */
+.receipt{
+  position:fixed;right:24px;bottom:24px;width:340px;z-index:20;
+  background:linear-gradient(172deg, var(--paper), #ecdcbc);
+  color:var(--ink);border-radius:8px;border:1px solid var(--paper-edge);
+  box-shadow:0 24px 50px rgba(0,0,0,.6);
+  padding:18px 20px 16px;
+  transform:translateY(24px);opacity:0;pointer-events:none;
+  transition:transform .3s ease, opacity .3s ease;
+}
+.receipt.show{transform:translateY(0);opacity:1;pointer-events:auto}
+.receipt.fail{background:linear-gradient(172deg,#f3ddd4,#ecc9bd)}
+.receipt h4{
+  font-family:var(--serif);font-size:19px;letter-spacing:4px;
+  display:flex;align-items:center;justify-content:space-between;
+  border-bottom:2px solid var(--ink);padding-bottom:8px;margin-bottom:10px;
+}
+.stamp{
+  font-family:var(--sans);font-size:11px;font-weight:700;letter-spacing:2px;
+  color:var(--danger);border:2.5px solid var(--danger);border-radius:6px;
+  padding:3px 8px;transform:rotate(-7deg);
+}
+.receipt.fail .stamp{color:var(--danger)}
+.receipt:not(.fail) .stamp{color:#2e6b34;border-color:#2e6b34}
+.receipt-rows{list-style:none;display:flex;flex-direction:column;gap:5px;margin-bottom:10px}
+.receipt-rows li{display:flex;justify-content:space-between;font-size:13px;letter-spacing:1px}
+.receipt-rows li b{font-variant-numeric:tabular-nums}
+.receipt-total{
+  display:flex;justify-content:space-between;font-size:13.5px;font-weight:700;
+  border-top:1px dashed var(--ink-soft);padding-top:8px;margin-bottom:6px;letter-spacing:1px;
+}
+.receipt-time{font-size:11px;color:var(--ink-soft);letter-spacing:1px}
+.btn-close{
+  position:absolute;top:10px;right:10px;width:26px;height:26px;border-radius:50%;
+  border:1px solid var(--ink-soft);background:transparent;color:var(--ink-soft);
+  font-size:14px;line-height:1;cursor:pointer;
+}
+.btn-close:hover{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+/* ============ 页脚 ============ */
+.footer-line{
+  margin-top:24px;text-align:center;font-size:12px;color:var(--muted);letter-spacing:2px;
+}
+.footer-line b{color:var(--gold)}
+/* ============ 响应式 ============ */
+@media (max-width:900px){
+  .page{padding:118px 16px 56px}
+  .marquee-bar{flex-direction:column;align-items:flex-start;gap:14px;padding:18px 20px}
+  .roles-row{grid-template-columns:1fr}
+  .preview-body{grid-template-columns:1fr;gap:14px}
+  .preview-list{grid-template-columns:1fr}
+  .brand-title{font-size:24px}
+  .receipt{right:16px;left:16px;width:auto}
+}
+@media (prefers-reduced-motion: reduce){
+  html{scroll-behavior:auto}
+  .bulbs,.preview-stage::before{animation:none}
+  *{transition-duration:.01ms !important}
+}
+</style>
+</head>
+<body>
+<div class="valance" aria-hidden="true"></div>
+<div class="bulbs" aria-hidden="true"></div>
+
+<div class="page">
+  <header class="marquee-bar">
+    <div class="brand">
+      <svg width="40" height="40" viewBox="0 0 40 40" fill="none" role="img" aria-label="剧团面具徽记">
+        <path d="M8 12c0 10 4.5 17 12 17s12-7 12-17c-4 2-8 3-12 3s-8-1-12-3z" fill="#d9a441"/>
+        <circle cx="15" cy="17" r="2" fill="#1c0716"/>
+        <circle cx="25" cy="17" r="2" fill="#1c0716"/>
+        <path d="M16 24c1.3 1.6 2.6 2.4 4 2.4s2.7-.8 4-2.4" stroke="#1c0716" stroke-width="1.8" stroke-linecap="round"/>
+        <path d="M6 9c5 2.5 9.5 3.5 14 3.5S29 11.5 34 9" stroke="#f2cd7e" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      <div>
+        <div class="brand-title">后台通行令</div>
+        <div class="brand-sub">长夜剧团 · 角色权限布告 · <b id="versionLabel">第 4 版</b></div>
+      </div>
+    </div>
+    <div class="head-actions">
+      <span class="dirty-badge" id="dirtyBadge" hidden>有未封存改动</span>
+      <button class="btn-seal" id="saveBtn" type="button">封存此版布告</button>
+    </div>
+  </header>
+
+  <main class="board">
+    <section class="roles-row" aria-label="三个角色的权限名牌">
+
+      <article class="role-card" id="card-director" data-role="director">
+        <div class="nameplate">
+          <h2>团长</h2><span class="en">DIRECTOR</span>
+        </div>
+        <p class="role-tag"><span>全局统筹 · 对整场演出负责</span><span class="role-count" id="count-director">已启用 4/5</span></p>
+        <p class="err-stripe" id="err-director" hidden>该角色至少需要保留一项权限，才能登台。</p>
+        <ul class="perm-list">
+          <li><label class="perm"><input type="checkbox" checked data-perm="审批演出排期"><span class="box" aria-hidden="true"></span><span class="txt">审批演出排期</span></label></li>
+          <li><label class="perm"><input type="checkbox" checked data-perm="发布招募公告"><span class="box" aria-hidden="true"></span><span class="txt">发布招募公告</span></label></li>
+          <li><label class="perm"><input type="checkbox" checked data-perm="管理成员名单"><span class="box" aria-hidden="true"></span><span class="txt">管理成员名单</span></label></li>
+          <li><label class="perm"><input type="checkbox" checked data-perm="查看财务报表"><span class="box" aria-hidden="true"></span><span class="txt">查看财务报表</span></label></li>
+          <li><label class="perm"><input type="checkbox" data-perm="导出观众数据"><span class="box" aria-hidden="true"></span><span class="txt">导出观众数据</span></label></li>
+        </ul>
+        <div class="card-foot">
+          <span class="dirty-tag" id="tag-director" hidden>未封存改动</span>
+          <button class="btn-ghost" type="button" data-jump="director">以此视角预览</button>
+        </div>
+      </article>
+
+      <article class="role-card" id="card-manager" data-role="manager">
+        <div class="nameplate">
+          <h2>舞台监督</h2><span class="en">STAGE MANAGER</span>
+        </div>
+        <p class="role-tag"><span>技术总管 · 管装台与灯光音控</span><span class="role-count" id="count-manager">已启用 3/5</span></p>
+        <p class="err-stripe" id="err-manager" hidden>该角色至少需要保留一项权限，才能登台。</p>
+        <ul class="perm-list">
+          <li><label class="perm"><input type="checkbox" checked data-perm="编辑演出排期"><span class="box" aria-hidden="true"></span><span class="txt">编辑演出排期</span></label></li>
+          <li><label class="perm"><input type="checkbox" checked data-perm="安排装台拆台"><span class="box" aria-hidden="true"></span><span class="txt">安排装台拆台</span></label></li>
+          <li><label class="perm"><input type="checkbox" checked data-perm="调试灯光音控"><span class="box" aria-hidden="true"></span><span class="txt">调试灯光音控</span></label></li>
+          <li><label class="perm"><input type="checkbox" data-perm="申请物料采购"><span class="box" aria-hidden="true"></span><span class="txt">申请物料采购</span></label></li>
+          <li><label class="perm"><input type="checkbox" data-perm="查看财务报表"><span class="box" aria-hidden="true"></span><span class="txt">查看财务报表</span></label></li>
+        </ul>
+        <div class="card-foot">
+          <span class="dirty-tag" id="tag-manager" hidden>未封存改动</span>
+          <button class="btn-ghost" type="button" data-jump="manager">以此视角预览</button>
+        </div>
+      </article>
+
+      <article class="role-card" id="card-performer" data-role="performer">
+        <div class="nameplate">
+          <h2>演员</h2><span class="en">PERFORMER</span>
+        </div>
+        <p class="role-tag"><span>台前演出 · 只管唱念做打</span><span class="role-count" id="count-performer">已启用 3/5</span></p>
+        <p class="err-stripe" id="err-performer" hidden>该角色至少需要保留一项权限，才能登台。</p>
+        <ul class="perm-list">
+          <li><label class="perm"><input type="checkbox" checked data-perm="查看演出排期"><span class="box" aria-hidden="true"></span><span class="txt">查看演出排期</span></label></li>
+          <li><label class="perm"><input type="checkbox" checked data-perm="下载排练资料"><span class="box" aria-hidden="true"></span><span class="txt">下载排练资料</span></label></li>
+          <li><label class="perm"><input type="checkbox" data-perm="提交请假申请"><span class="box" aria-hidden="true"></span><span class="txt">提交请假申请</span></label></li>
+          <li><label class="perm"><input type="checkbox" data-perm="查看个人报酬"><span class="box" aria-hidden="true"></span><span class="txt">查看个人报酬</span></label></li>
+          <li><label class="perm"><input type="checkbox" checked data-perm="参与剧组讨论"><span class="box" aria-hidden="true"></span><span class="txt">参与剧组讨论</span></label></li>
+        </ul>
+        <div class="card-foot">
+          <span class="dirty-tag" id="tag-performer" hidden>未封存改动</span>
+          <button class="btn-ghost" type="button" data-jump="performer">以此视角预览</button>
+        </div>
+      </article>
+
+    </section>
+
+    <section class="preview-stage" aria-label="角色视角预览">
+      <div class="stage-head">
+        <div class="stage-tabs" role="tablist" aria-label="切换预览视角">
+          <button class="stage-tab active" type="button" role="tab" aria-selected="true" data-tab="director">团长视角</button>
+          <button class="stage-tab" type="button" role="tab" aria-selected="false" data-tab="manager">舞台监督视角</button>
+          <button class="stage-tab" type="button" role="tab" aria-selected="false" data-tab="performer">演员视角</button>
+        </div>
+        <p class="preview-count">此视角下，后台将开放 <b id="previewCount">4</b> 项操作</p>
+      </div>
+      <div class="preview-body">
+        <div class="preview-role">
+          <h3 id="previewName">团长</h3>
+          <span class="en" id="previewEn">DIRECTOR · 全局统筹</span>
+          <p class="desc" id="previewDesc">以团长身份进入后台时，看到的操作台如下：勾选项在聚光下亮起，未勾选项沉入暗处。</p>
+        </div>
+        <ul class="preview-list" id="previewList"></ul>
+      </div>
+    </section>
+
+    <p class="footer-line">现行有效：<b id="sealVersion">第 3 版</b> · 上次封存于 2026-03-12 22:08 · 封存后全团后台即时生效</p>
+  </main>
+</div>
+
+<aside class="receipt" id="receipt" role="status" aria-live="polite">
+  <button class="btn-close" id="receiptClose" type="button" aria-label="关闭回执">×</button>
+  <h4 id="receiptTitle">布告已封存</h4>
+  <ul class="receipt-rows" id="receiptRows"></ul>
+  <p class="receipt-total"><span>合计生效权限</span><b id="receiptTotal">10 项</b></p>
+  <p class="receipt-time" id="receiptTime"></p>
+</aside>
+
+<script>
+(function(){
+  var ROLES = {
+    director:  { name:"团长",     en:"DIRECTOR · 全局统筹", desc:"以团长身份进入后台时，看到的操作台如下：勾选项在聚光下亮起，未勾选项沉入暗处。" },
+    manager:   { name:"舞台监督", en:"STAGE MANAGER · 技术总管", desc:"以舞台监督身份进入后台时，装台、灯光、音控逐项排开，只看技术这条线。" },
+    performer: { name:"演员",     en:"PERFORMER · 台前演出", desc:"以演员身份进入后台时，台前相关的寥寥几项亮起，其余一律沉入暗处。" }
+  };
+  var ORDER = ["director","manager","performer"];
+  var activeTab = "director";
+  var savedSnapshot = {};
+
+  function cardOf(role){ return document.getElementById("card-" + role); }
+  function inputsOf(role){ return Array.prototype.slice.call(cardOf(role).querySelectorAll("input[type=checkbox]")); }
+
+  function takeSnapshot(){
+    savedSnapshot = {};
+    ORDER.forEach(function(r){
+      savedSnapshot[r] = inputsOf(r).map(function(i){ return i.checked; });
+    });
+  }
+
+  function countOf(role){
+    return inputsOf(role).filter(function(i){ return i.checked; }).length;
+  }
+
+  function refreshCounts(){
+    ORDER.forEach(function(r){
+      var n = countOf(r), total = inputsOf(r).length;
+      document.getElementById("count-" + r).textContent = "已启用 " + n + "/" + total;
+      var dirty = inputsOf(r).some(function(i, idx){ return i.checked !== savedSnapshot[r][idx]; });
+      document.getElementById("tag-" + r).hidden = !dirty;
+      if(n > 0){
+        document.getElementById("err-" + r).hidden = true;
+        cardOf(r).classList.remove("has-error");
+      }
+    });
+    var anyDirty = ORDER.some(function(r){
+      return inputsOf(r).some(function(i, idx){ return i.checked !== savedSnapshot[r][idx]; });
+    });
+    document.getElementById("dirtyBadge").hidden = !anyDirty;
+  }
+
+  function renderPreview(){
+    var meta = ROLES[activeTab];
+    document.getElementById("previewName").textContent = meta.name;
+    document.getElementById("previewEn").textContent = meta.en;
+    document.getElementById("previewDesc").textContent = meta.desc;
+    var list = document.getElementById("previewList");
+    list.innerHTML = "";
+    inputsOf(activeTab).forEach(function(input){
+      var li = document.createElement("li");
+      li.className = "stage-item " + (input.checked ? "lit" : "dim");
+      var dot = document.createElement("span"); dot.className = "dot";
+      var span = document.createElement("span"); span.textContent = input.dataset.perm;
+      li.appendChild(dot); li.appendChild(span);
+      list.appendChild(li);
+    });
+    document.getElementById("previewCount").textContent = countOf(activeTab);
+    document.querySelectorAll(".stage-tab").forEach(function(tab){
+      var on = tab.dataset.tab === activeTab;
+      tab.classList.toggle("active", on);
+      tab.setAttribute("aria-selected", on ? "true" : "false");
+    });
+  }
+
+  function switchTab(role){
+    activeTab = role;
+    renderPreview();
+  }
+
+  ORDER.forEach(function(r){
+    inputsOf(r).forEach(function(input){
+      input.addEventListener("change", function(){
+        refreshCounts();
+        if(r === activeTab){ renderPreview(); }
+      });
+    });
+  });
+
+  document.querySelectorAll(".stage-tab").forEach(function(tab){
+    tab.addEventListener("click", function(){ switchTab(tab.dataset.tab); });
+  });
+  document.querySelectorAll("[data-jump]").forEach(function(btn){
+    btn.addEventListener("click", function(){ switchTab(btn.dataset.jump); });
+  });
+
+  var receiptTimer = null;
+  function showReceipt(fail, rows, totalText, timeText){
+    var receipt = document.getElementById("receipt");
+    receipt.classList.add("show");
+    receipt.classList.toggle("fail", fail);
+    document.getElementById("receiptTitle").textContent = fail ? "封存被拦下" : "布告已封存";
+    var ul = document.getElementById("receiptRows");
+    ul.innerHTML = "";
+    rows.forEach(function(row){
+      var li = document.createElement("li");
+      var s = document.createElement("span"); s.textContent = row[0];
+      var b = document.createElement("b"); b.textContent = row[1];
+      li.appendChild(s); li.appendChild(b);
+      ul.appendChild(li);
+    });
+    document.getElementById("receiptTotal").textContent = totalText;
+    document.getElementById("receiptTime").textContent = timeText;
+    clearTimeout(receiptTimer);
+    receiptTimer = setTimeout(function(){ receipt.classList.remove("show"); }, fail ? 5200 : 6200);
+  }
+
+  document.getElementById("saveBtn").addEventListener("click", function(){
+    var failRoles = ORDER.filter(function(r){ return countOf(r) === 0; });
+    var now = new Date();
+    var pad = function(n){ return (n < 10 ? "0" : "") + n; };
+    var timeText = "封存时间 " + now.getFullYear() + "-" + pad(now.getMonth()+1) + "-" + pad(now.getDate()) + " " + pad(now.getHours()) + ":" + pad(now.getMinutes()) + ":" + pad(now.getSeconds());
+    if(failRoles.length > 0){
+      failRoles.forEach(function(r){
+        document.getElementById("err-" + r).hidden = false;
+        cardOf(r).classList.add("has-error");
+      });
+      showReceipt(true,
+        failRoles.map(function(r){ return [ROLES[r].name, "0 项 · 未生效"]; }),
+        "共 " + failRoles.length + " 个角色权限为空",
+        "请先为上述角色勾回至少一项权限，再重新封存。");
+      return;
+    }
+    var total = 0;
+    var rows = ORDER.map(function(r){
+      var n = countOf(r);
+      total += n;
+      return [ROLES[r].name, n + " 项"];
+    });
+    takeSnapshot();
+    refreshCounts();
+    var ver = parseInt(document.getElementById("versionLabel").textContent.replace(/\D/g,""), 10);
+    document.getElementById("versionLabel").textContent = "第 " + (ver + 1) + " 版";
+    document.getElementById("sealVersion").textContent = "第 " + ver + " 版";
+    showReceipt(false, rows, "全团共 " + total + " 项 · 即时生效", timeText);
+  });
+
+  document.getElementById("receiptClose").addEventListener("click", function(){
+    document.getElementById("receipt").classList.remove("show");
+  });
+
+  takeSnapshot();
+  refreshCounts();
+  renderPreview();
+})();
+</script>
+</body>
+</html>

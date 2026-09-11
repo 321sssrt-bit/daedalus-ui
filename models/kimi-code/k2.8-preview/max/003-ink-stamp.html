@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>抱朴书局 · 凭函入内</title>
+<style>
+  :root {
+    --paper: #F4EDDD;
+    --panel: #FBF6EA;
+    --ink: #2B2620;
+    --ink-soft: #57493B;
+    --muted: #8A7F6E;
+    --cinnabar: #C3272B;
+    --seal-deep: #9E2B22;
+    --line: rgba(43, 38, 32, 0.14);
+    --radius-ctl: 4px;
+    --radius-card: 6px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body { min-height: 100%; }
+
+  body {
+    background-color: var(--paper);
+    background-image:
+      repeating-linear-gradient(0deg, rgba(43, 38, 32, 0.022) 0 1px, transparent 1px 3px),
+      repeating-linear-gradient(90deg, rgba(43, 38, 32, 0.018) 0 1px, transparent 1px 4px),
+      radial-gradient(1200px 700px at 70% 18%, rgba(255, 252, 244, 0.55), rgba(255, 252, 244, 0) 62%),
+      radial-gradient(900px 600px at 12% 88%, rgba(160, 140, 105, 0.12), rgba(160, 140, 105, 0) 65%);
+    color: var(--ink);
+    font-family: "Songti SC", "STSong", "Noto Serif CJK SC", "SimSun", serif;
+    font-size: 16px;
+    line-height: 1.7;
+  }
+
+  .is-hidden { display: none !important; }
+
+  /* 左侧竖排点缀 */
+  .edge-motto {
+    position: fixed;
+    left: 26px;
+    top: 50%;
+    transform: translateY(-50%);
+    writing-mode: vertical-rl;
+    letter-spacing: 10px;
+    font-size: 14px;
+    color: var(--muted);
+    user-select: none;
+  }
+
+  header {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 0 64px;
+    height: 76px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .brand { display: flex; align-items: center; gap: 14px; }
+
+  .brand-seal {
+    width: 40px;
+    height: 40px;
+    background: var(--cinnabar);
+    color: var(--panel);
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.15;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    writing-mode: vertical-rl;
+    letter-spacing: 2px;
+    box-shadow: 1px 1px 0 rgba(43, 38, 32, 0.25);
+  }
+
+  .brand-name { font-size: 19px; font-weight: 700; letter-spacing: 6px; }
+
+  .hd-note {
+    font-size: 13px;
+    color: var(--ink-soft);
+    letter-spacing: 3px;
+  }
+
+  .wrap {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 56px 64px 64px;
+    display: grid;
+    grid-template-columns: 440px minmax(0, 1fr);
+    gap: 72px;
+    align-items: start;
+  }
+
+  /* 函件卡片 */
+  .invite-card {
+    position: relative;
+    width: 440px;
+    height: 560px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-card);
+    box-shadow: 0 2px 6px rgba(43, 38, 32, 0.10), 0 14px 34px rgba(43, 38, 32, 0.10);
+    padding: 34px 32px;
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: space-between;
+    animation: rise 560ms ease-out both;
+  }
+
+  .card-date {
+    writing-mode: vertical-rl;
+    font-size: 14px;
+    letter-spacing: 8px;
+    color: var(--muted);
+    padding-right: 2px;
+  }
+
+  .card-body {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 296px;
+  }
+
+  .card-text {
+    writing-mode: vertical-rl;
+    height: 330px;
+    font-size: 17px;
+    letter-spacing: 4px;
+    line-height: 2.1;
+    color: var(--ink);
+  }
+
+  .card-seal {
+    width: 72px;
+    height: 72px;
+    background: var(--cinnabar);
+    color: var(--panel);
+    font-size: 24px;
+    font-weight: 700;
+    writing-mode: vertical-rl;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    letter-spacing: 4px;
+    transform: rotate(-4deg);
+    box-shadow: 1px 1px 0 rgba(43, 38, 32, 0.28);
+  }
+
+  .card-sticker {
+    position: absolute;
+    right: 118px;
+    bottom: 150px;
+    background: #FFFFFF;
+    border: 1px dashed rgba(43, 38, 32, 0.35);
+    padding: 10px 14px 8px;
+    transform: rotate(-2.5deg);
+    box-shadow: 0 1px 3px rgba(43, 38, 32, 0.18);
+    text-align: center;
+  }
+
+  .sticker-label {
+    display: block;
+    font-size: 11px;
+    letter-spacing: 4px;
+    color: var(--muted);
+    margin-bottom: 2px;
+  }
+
+  .sticker-code {
+    display: block;
+    font-family: "Courier New", "NSimSun", monospace;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    color: var(--seal-deep);
+  }
+
+  /* 右侧核验栏 */
+  .col-right { max-width: 560px; animation: rise 560ms 90ms ease-out both; }
+
+  .gate-title { font-size: 30px; font-weight: 700; letter-spacing: 8px; margin-bottom: 14px; }
+
+  .gate-sub {
+    font-size: 15px;
+    color: var(--ink-soft);
+    letter-spacing: 1px;
+    margin-bottom: 34px;
+    max-width: 46em;
+  }
+
+  .face-label {
+    display: block;
+    font-size: 13px;
+    letter-spacing: 5px;
+    color: var(--ink-soft);
+    margin-bottom: 12px;
+  }
+
+  .stamp-face {
+    width: 200px;
+    height: 200px;
+    border: 3px solid var(--cinnabar);
+    box-shadow: inset 0 0 0 6px var(--paper), inset 0 0 0 7px rgba(195, 39, 43, 0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 26px;
+    transition: box-shadow 160ms ease;
+  }
+
+  .stamp-face:focus-within {
+    box-shadow: inset 0 0 0 6px var(--paper), inset 0 0 0 7px rgba(195, 39, 43, 0.55), 0 0 0 3px rgba(195, 39, 43, 0.28);
+  }
+
+  .stamp-face.shake { animation: shake 400ms ease; }
+
+  #code-input {
+    width: 100%;
+    height: 100%;
+    border: 0;
+    outline: none;
+    background: transparent;
+    text-align: center;
+    font-family: "Courier New", "NSimSun", monospace;
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: 4px;
+    color: var(--seal-deep);
+    text-transform: uppercase;
+  }
+
+  #code-input::placeholder {
+    color: rgba(138, 127, 110, 0.75);
+    font-family: "Songti SC", "STSong", "Noto Serif CJK SC", "SimSun", serif;
+    font-weight: 400;
+    font-size: 17px;
+    letter-spacing: 6px;
+  }
+
+  .gate-actions { display: flex; align-items: center; gap: 22px; }
+
+  .btn-seal {
+    width: 168px;
+    height: 52px;
+    background: var(--cinnabar);
+    color: var(--panel);
+    border: 0;
+    border-radius: var(--radius-ctl);
+    font-family: inherit;
+    font-size: 17px;
+    font-weight: 700;
+    letter-spacing: 6px;
+    cursor: pointer;
+    box-shadow: 0 2px 0 var(--seal-deep);
+    transition: background-color 160ms ease, transform 120ms ease;
+  }
+
+  .btn-seal:hover { background: var(--seal-deep); }
+  .btn-seal:active { transform: translateY(2px); box-shadow: 0 0 0 var(--seal-deep); }
+  .btn-seal:disabled { background: rgba(138, 127, 110, 0.5); box-shadow: none; cursor: not-allowed; }
+
+  .try-count { font-size: 13px; color: var(--muted); letter-spacing: 2px; }
+
+  .gate-hint {
+    margin-top: 20px;
+    font-size: 13px;
+    color: var(--muted);
+    letter-spacing: 1px;
+  }
+
+  .feedback { margin-top: 30px; min-height: 148px; }
+
+  .stamp-round {
+    width: 128px;
+    height: 128px;
+    border-radius: 50%;
+    border: 4px solid var(--seal-deep);
+    box-shadow: inset 0 0 0 4px var(--paper), inset 0 0 0 5px rgba(158, 43, 34, 0.7);
+    color: var(--seal-deep);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    transform: rotate(-8deg);
+    opacity: 0.94;
+    margin-bottom: 14px;
+  }
+
+  .stamp-round.stamp-in { animation: stamp-in 300ms cubic-bezier(0.2, 1.4, 0.4, 1) both; }
+
+  .fb-msg { font-size: 14px; color: var(--seal-deep); letter-spacing: 1px; }
+
+  .fb-pass-row { display: flex; align-items: center; gap: 26px; }
+
+  .stamp-square {
+    width: 112px;
+    height: 112px;
+    background: var(--cinnabar);
+    color: var(--panel);
+    font-size: 34px;
+    font-weight: 700;
+    writing-mode: vertical-rl;
+    letter-spacing: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transform: rotate(-6deg);
+    box-shadow: 1px 1px 0 rgba(43, 38, 32, 0.28);
+  }
+
+  .stamp-square.stamp-in { animation: stamp-in 300ms cubic-bezier(0.2, 1.4, 0.4, 1) both; }
+
+  .btn-enter {
+    width: 176px;
+    height: 52px;
+    background: transparent;
+    color: var(--cinnabar);
+    border: 2px solid var(--cinnabar);
+    border-radius: var(--radius-ctl);
+    font-family: inherit;
+    font-size: 17px;
+    font-weight: 700;
+    letter-spacing: 6px;
+    cursor: pointer;
+    transition: background-color 160ms ease, color 160ms ease;
+  }
+
+  .btn-enter:hover { background: rgba(195, 39, 43, 0.08); }
+
+  /* 登堂后的开卷栏 */
+  .hall { max-width: 560px; animation: rise 420ms ease-out both; }
+
+  .hall-head { display: flex; align-items: center; gap: 22px; margin-bottom: 20px; }
+
+  .hall-title { font-size: 26px; font-weight: 700; letter-spacing: 6px; }
+
+  .hall-sub { font-size: 14px; color: var(--ink-soft); letter-spacing: 2px; margin-bottom: 26px; }
+
+  .hall-list { list-style: none; border-top: 1px solid var(--line); }
+
+  .hall-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 24px;
+    padding: 15px 2px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .hall-list .t { font-size: 16px; letter-spacing: 2px; }
+  .hall-list .n { font-size: 13px; color: var(--muted); letter-spacing: 1px; white-space: nowrap; }
+
+  .hall-exit {
+    margin-top: 26px;
+    background: none;
+    border: 0;
+    font-family: inherit;
+    font-size: 13px;
+    color: var(--muted);
+    letter-spacing: 2px;
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 4px;
+  }
+
+  .hall-exit:hover { color: var(--seal-deep); }
+
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes stamp-in {
+    0% { opacity: 0; transform: scale(1.8) rotate(-16deg); }
+    62% { opacity: 1; transform: scale(0.94) rotate(-7deg); }
+    100% { opacity: 1; transform: scale(1) rotate(-8deg); }
+  }
+
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-8px); }
+    40% { transform: translateX(8px); }
+    60% { transform: translateX(-5px); }
+    80% { transform: translateX(5px); }
+  }
+
+  @media (max-width: 1100px) {
+    .edge-motto { display: none; }
+  }
+
+  @media (max-width: 900px) {
+    header { padding: 0 28px; }
+    .wrap {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 40px;
+      padding: 36px 28px 48px;
+    }
+    .invite-card { width: 100%; height: auto; min-height: 380px; }
+    .card-text { height: 240px; font-size: 15px; }
+    .card-sticker { right: 96px; bottom: 118px; }
+    .col-right, .hall { max-width: none; }
+  }
+
+  @media (max-width: 520px) {
+    .brand-name { font-size: 16px; letter-spacing: 4px; }
+    .gate-title { font-size: 24px; letter-spacing: 5px; }
+    .stamp-face { width: 176px; height: 176px; }
+    .gate-actions { flex-wrap: wrap; gap: 14px; }
+    .card-sticker { position: static; transform: rotate(-2deg); margin-top: 18px; align-self: flex-start; }
+    .invite-card { flex-direction: column; }
+    .card-date { writing-mode: horizontal-tb; letter-spacing: 4px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+</style>
+</head>
+<body>
+
+  <aside class="edge-motto" aria-hidden="true">未携函者，恕不接待</aside>
+
+  <header>
+    <div class="brand">
+      <span class="brand-seal" aria-hidden="true">抱朴</span>
+      <span class="brand-name">抱朴书局</span>
+    </div>
+    <div class="hd-note">私藏编修 · 受邀可读</div>
+  </header>
+
+  <main class="wrap">
+    <section class="invite-card" id="invite-card" aria-label="邀函">
+      <div class="card-date">戊申年冬 · 敬约</div>
+      <div class="card-body">
+        <p class="card-text">抱朴书局谨订：十一月刊《守拙集》告成，特设私印样书五十部，仅供受邀师友入室开卷。未携函者，恕不接待。</p>
+        <span class="card-seal" aria-hidden="true">抱朴</span>
+      </div>
+      <div class="card-sticker">
+        <span class="sticker-label">字号</span>
+        <span class="sticker-code">BPS-1897</span>
+      </div>
+    </section>
+
+    <div class="col-right">
+      <section class="gate" id="gate-panel" aria-label="入内核验">
+        <h1 class="gate-title">凭函入内</h1>
+        <p class="gate-sub">本局不设公开注册。凡收到宣纸函件者，请誊录函套贴签上的八位字号，钤印核对后方可登堂。</p>
+
+        <label class="face-label" for="code-input">函上贴签 · 八位字号</label>
+        <div class="stamp-face" id="stamp-face">
+          <input id="code-input" type="text" maxlength="9" autocomplete="off" spellcheck="false" placeholder="函上贴签字号" aria-describedby="gate-hint">
+        </div>
+
+        <div class="gate-actions">
+          <button class="btn-seal" id="verify-btn" type="button">核对字号</button>
+          <span class="try-count">已核验 <span id="try-num">0</span> 次</span>
+        </div>
+
+        <p class="gate-hint" id="gate-hint">贴签式样：四位大写字母、连字符、四位数字。</p>
+
+        <div class="feedback" aria-live="polite">
+          <div id="fb-error" class="stamp-round is-hidden">核验未过</div>
+          <p id="fb-error-msg" class="fb-msg is-hidden"></p>
+          <div id="fb-pass-row" class="fb-pass-row is-hidden">
+            <span id="fb-pass" class="stamp-square">准入</span>
+            <button class="btn-enter" id="enter-btn" type="button">登堂开卷</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="hall is-hidden" id="hall-panel" aria-label="今日开卷">
+        <div class="hall-head">
+          <span class="stamp-square" aria-hidden="true">已准入</span>
+          <h2 class="hall-title">现已开卷</h2>
+        </div>
+        <p class="hall-sub">十一月刊三种，编修已为你留样，室内静读，请勿喧哗。</p>
+        <ul class="hall-list">
+          <li><span class="t">《守拙集》卷一</span><span class="n">校样 · 五十部之一</span></li>
+          <li><span class="t">《印谱存真》</span><span class="n">钤印样本 · 内部传阅</span></li>
+          <li><span class="t">《纸田札记》</span><span class="n">编修手记 · 未刊稿</span></li>
+        </ul>
+        <button class="hall-exit" id="exit-btn" type="button">退出，重新核验</button>
+      </section>
+    </div>
+  </main>
+
+<script>
+(function () {
+  var CODE = "BPS-1897";
+  var input = document.getElementById("code-input");
+  var face = document.getElementById("stamp-face");
+  var verifyBtn = document.getElementById("verify-btn");
+  var enterBtn = document.getElementById("enter-btn");
+  var exitBtn = document.getElementById("exit-btn");
+  var gatePanel = document.getElementById("gate-panel");
+  var hallPanel = document.getElementById("hall-panel");
+  var fbError = document.getElementById("fb-error");
+  var fbErrorMsg = document.getElementById("fb-error-msg");
+  var fbPassRow = document.getElementById("fb-pass-row");
+  var tryNum = document.getElementById("try-num");
+  var tries = 0;
+
+  input.addEventListener("input", function () {
+    input.value = input.value.toUpperCase().replace(/[^A-Z0-9-]/g, "");
+    fbError.classList.add("is-hidden");
+    fbErrorMsg.classList.add("is-hidden");
+  });
+
+  input.addEventListener("keydown", function (e) {
+    if (e.key === "Enter") { verify(); }
+  });
+
+  verifyBtn.addEventListener("click", verify);
+  enterBtn.addEventListener("click", enterHall);
+  exitBtn.addEventListener("click", resetAll);
+
+  function verify() {
+    var value = input.value.trim();
+    tries += 1;
+    tryNum.textContent = String(tries);
+    fbPassRow.classList.add("is-hidden");
+
+    if (value === CODE) {
+      fbError.classList.add("is-hidden");
+      fbErrorMsg.classList.add("is-hidden");
+      fbPassRow.classList.remove("is-hidden");
+      replay(fbPassRow.querySelector(".stamp-square"));
+      verifyBtn.disabled = true;
+      input.disabled = true;
+      enterBtn.focus();
+      return;
+    }
+
+    var msg = value === ""
+      ? "印面尚空：请先誊录函上贴签的八位字号，再钤印核对。"
+      : "字号「" + value + "」与函档不符：请核对贴签后重新誊录，或致函书局询补。";
+    fbErrorMsg.textContent = msg;
+    fbError.classList.remove("is-hidden");
+    fbErrorMsg.classList.remove("is-hidden");
+    replay(fbError);
+    face.classList.remove("shake");
+    void face.offsetWidth;
+    face.classList.add("shake");
+    input.select();
+  }
+
+  function enterHall() {
+    gatePanel.classList.add("is-hidden");
+    hallPanel.classList.remove("is-hidden");
+  }
+
+  function resetAll() {
+    hallPanel.classList.add("is-hidden");
+    gatePanel.classList.remove("is-hidden");
+    fbPassRow.classList.add("is-hidden");
+    fbError.classList.add("is-hidden");
+    fbErrorMsg.classList.add("is-hidden");
+    input.value = "";
+    input.disabled = false;
+    verifyBtn.disabled = false;
+    input.focus();
+  }
+
+  function replay(el) {
+    el.classList.remove("stamp-in");
+    void el.offsetWidth;
+    el.classList.add("stamp-in");
+  }
+})();
+</script>
+</body>
+</html>

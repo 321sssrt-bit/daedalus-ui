@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>焦外实验室 · 镜头滤镜档案</title>
+<style>
+:root{
+  --page:#1b1e23;
+  --surface:#24282f;
+  --card:#262b33;
+  --line:#3a4049;
+  --text:#e8ebf0;
+  --muted:#9aa3b2;
+  --accent:#7c6cf5;
+  --accent-blue:#5cc8ff;
+  --accent-pink:#b48cff;
+  --glass-mark:#cfd6ff;
+  --ok:#58d6a3;
+  --warn:#e8b45a;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  background:radial-gradient(1100px 480px at 72% -12%, rgba(124,108,245,.12), rgba(124,108,245,0) 62%), var(--page);
+  color:var(--text);
+  font-family:-apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-size:14px;
+  line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+}
+.lab{max-width:1200px;margin:0 auto;padding:0 24px 56px}
+
+/* 顶栏 */
+.masthead{display:flex;align-items:center;justify-content:space-between;height:64px;border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:12px}
+.brand-mark{width:22px;height:22px;border-radius:50%;padding:2px;background:conic-gradient(from 200deg, var(--accent-blue), var(--accent), var(--accent-pink), var(--accent-blue))}
+.brand-mark::after{content:"";display:block;width:100%;height:100%;border-radius:50%;background:var(--page)}
+.brand-text{display:flex;flex-direction:column;line-height:1.3}
+.brand-text strong{font-size:16px;font-weight:600;letter-spacing:1px}
+.brand-text span{font-size:11px;color:var(--muted);letter-spacing:2px}
+.lab-status{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);font-family:ui-monospace, "Cascadia Mono", Consolas, monospace}
+.status-dot{width:8px;height:8px;border-radius:50%;background:var(--ok);animation:pulse 2.4s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+
+/* 筛选台 */
+.bench{margin-top:20px;padding:20px;border:1px solid var(--line);border-radius:14px;
+  background:linear-gradient(180deg, rgba(124,108,245,.07), rgba(124,108,245,0) 130px), var(--surface)}
+.bench-head{display:flex;align-items:baseline;gap:14px;margin-bottom:16px}
+.bench-head h1{font-size:18px;font-weight:600;letter-spacing:1px}
+.bench-head p{font-size:13px;color:var(--muted)}
+.bench-grid{display:grid;grid-template-columns:repeat(4, minmax(0, 1fr));gap:20px}
+.fgroup{border:0;min-width:0}
+.fgroup legend{font-size:13px;color:var(--muted);margin-bottom:10px;padding:0}
+.gcount{color:var(--accent-blue);font-size:11px;font-family:ui-monospace, "Cascadia Mono", Consolas, monospace;margin-left:2px}
+.gcount:empty{display:none}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{padding:7px 12px;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--muted);
+  font-size:13px;font-family:inherit;cursor:pointer;transition:border-color .16s ease, color .16s ease, background .16s ease}
+.chip:hover{border-color:rgba(124,108,245,.65);color:var(--text)}
+.chip[aria-pressed="true"]{border-color:var(--accent);color:#fff;
+  background:linear-gradient(135deg, rgba(92,200,255,.16), rgba(180,140,255,.22))}
+.chip:focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px}
+.stack{display:flex;flex-direction:column;gap:18px}
+.slider-label{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px}
+.slider-label span{font-size:13px;color:var(--muted)}
+.slider-label output{font-size:13px;color:var(--accent-blue);font-family:ui-monospace, "Cascadia Mono", Consolas, monospace}
+#priceCap{width:100%;height:22px;accent-color:var(--accent);cursor:pointer}
+#priceCap:focus-visible{outline:2px solid var(--accent-blue);outline-offset:4px}
+.toggle-row{display:flex;align-items:center;gap:10px;width:100%;background:none;border:0;cursor:pointer;
+  font-family:inherit;font-size:13px;color:var(--text);text-align:left;padding:2px 0}
+.toggle-row:focus-visible{outline:2px solid var(--accent-blue);outline-offset:3px}
+.switch{position:relative;flex:none;width:42px;height:24px;border-radius:999px;border:1px solid var(--line);
+  background:var(--line);transition:background .16s ease, border-color .16s ease}
+.knob{position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:var(--muted);transition:transform .16s ease, background .16s ease}
+.toggle-row[aria-checked="true"] .switch{background:linear-gradient(135deg, var(--accent-blue), var(--accent));border-color:var(--accent)}
+.toggle-row[aria-checked="true"] .knob{transform:translateX(18px);background:var(--text)}
+.thint{font-style:normal;color:var(--muted);font-size:12px;font-family:ui-monospace, "Cascadia Mono", Consolas, monospace;margin-left:6px}
+
+/* 结果区 */
+.toolbar{display:flex;align-items:center;justify-content:space-between;padding:22px 2px 14px}
+.readout h2{font-size:16px;font-weight:600}
+.readout p{font-size:13px;color:var(--muted)}
+#hitCount{color:var(--accent-blue);font-family:ui-monospace, "Cascadia Mono", Consolas, monospace;font-size:15px}
+.btn-clear{padding:8px 16px;border-radius:8px;border:1px solid var(--line);background:transparent;color:var(--text);
+  font-size:13px;font-family:inherit;cursor:pointer;transition:border-color .16s ease, background .16s ease, color .16s ease}
+.btn-clear:hover:not(:disabled){border-color:var(--accent);color:#fff;background:rgba(124,108,245,.1)}
+.btn-clear:disabled{opacity:.42;cursor:not-allowed}
+.btn-clear:focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill, minmax(260px, 1fr));gap:16px}
+.card{display:flex;flex-direction:column;gap:14px;min-height:296px;padding:18px;border:1px solid var(--line);border-radius:12px;
+  background:var(--card);transition:transform .18s ease, border-color .18s ease;animation:cardIn .24s ease both}
+.card:hover{transform:translateY(-3px);border-color:rgba(124,108,245,.55)}
+@keyframes cardIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.ring{width:120px;height:120px;margin:2px auto 0;border-radius:50%;padding:3px;flex:none;
+  background:conic-gradient(from 200deg, var(--accent-blue), var(--accent), var(--accent-pink), var(--accent-blue))}
+.glass{width:100%;height:100%;border-radius:50%;display:grid;place-items:center;
+  background:radial-gradient(circle at 34% 28%, rgba(92,200,255,.28), rgba(124,108,245,.18) 44%, rgba(20,22,26,.92) 80%)}
+.mark{font-family:ui-monospace, "Cascadia Mono", Consolas, monospace;font-size:13px;letter-spacing:1px;color:var(--glass-mark);text-shadow:0 0 12px rgba(124,108,245,.6)}
+.card-body h3{font-size:15px;font-weight:600}
+.spec-line{font-size:12.5px;color:var(--muted);margin-top:2px}
+.card-foot{display:flex;align-items:center;justify-content:space-between;margin-top:auto}
+.price{font-family:ui-monospace, "Cascadia Mono", Consolas, monospace;font-size:16px;font-weight:600}
+.badge{font-size:11px;padding:3px 8px;border-radius:999px}
+.badge.in{color:var(--ok);background:rgba(88,214,163,.12);border:1px solid rgba(88,214,163,.35)}
+.badge.pre{color:var(--warn);background:rgba(232,180,90,.1);border:1px solid rgba(232,180,90,.35)}
+
+/* 空状态 */
+.empty{margin-top:4px;padding:56px 20px;text-align:center;border:1px dashed var(--line);border-radius:12px}
+.empty-glass{width:64px;height:64px;margin:0 auto 16px;border-radius:50%;padding:3px;
+  background:conic-gradient(from 200deg, #4a5058, #5d5570, #4a5058)}
+.empty-glass::after{content:"";display:block;width:100%;height:100%;border-radius:50%;background:var(--card)}
+.empty-title{font-size:15px;font-weight:600}
+.empty-hint{font-size:13px;color:var(--muted);margin-top:6px}
+.empty .btn-clear{margin-top:18px}
+
+/* 响应式 */
+@media (max-width:1024px){
+  .bench-grid{grid-template-columns:repeat(2, minmax(0, 1fr))}
+  .grid{grid-template-columns:repeat(auto-fill, minmax(240px, 1fr))}
+}
+@media (max-width:640px){
+  .bench-grid{grid-template-columns:1fr}
+  .grid{grid-template-columns:1fr}
+  .masthead{height:auto;flex-wrap:wrap;gap:8px;padding:14px 0}
+  .toolbar{flex-wrap:wrap;gap:10px}
+}
+
+/* 减少动态 */
+@media (prefers-reduced-motion: reduce){
+  *, *::before, *::after{animation-duration:.01ms !important; animation-iteration-count:1 !important; transition-duration:.01ms !important}
+}
+</style>
+</head>
+<body>
+<div class="lab">
+  <header class="masthead">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <div class="brand-text">
+        <strong>焦外实验室</strong>
+        <span>BOKEH LAB · 光学滤镜档案</span>
+      </div>
+    </div>
+    <div class="lab-status"><span class="status-dot" aria-hidden="true"></span>镀膜舱 · 恒温 23.4°C · 湿度 41%</div>
+  </header>
+
+  <section class="bench" aria-label="筛选台">
+    <div class="bench-head">
+      <h1>配镜台</h1>
+      <p>像旋入一片滤镜一样叠加条件，把档案收窄到你要的那几支。</p>
+    </div>
+    <div class="bench-grid">
+      <fieldset class="fgroup">
+        <legend>滤镜类型<span class="gcount" id="gType"></span></legend>
+        <div class="chips">
+          <button type="button" class="chip" data-group="types" data-value="nd" aria-pressed="false">减光 ND</button>
+          <button type="button" class="chip" data-group="types" data-value="cpl" aria-pressed="false">偏振 CPL</button>
+          <button type="button" class="chip" data-group="types" data-value="mist" aria-pressed="false">黑柔</button>
+          <button type="button" class="chip" data-group="types" data-value="lp" aria-pressed="false">抗光害</button>
+          <button type="button" class="chip" data-group="types" data-value="gnd" aria-pressed="false">渐变</button>
+          <button type="button" class="chip" data-group="types" data-value="uv" aria-pressed="false">保护 UV</button>
+        </div>
+      </fieldset>
+      <fieldset class="fgroup">
+        <legend>适用口径<span class="gcount" id="gSize"></span></legend>
+        <div class="chips">
+          <button type="button" class="chip" data-group="sizes" data-value="49" aria-pressed="false">49mm</button>
+          <button type="button" class="chip" data-group="sizes" data-value="58" aria-pressed="false">58mm</button>
+          <button type="button" class="chip" data-group="sizes" data-value="67" aria-pressed="false">67mm</button>
+          <button type="button" class="chip" data-group="sizes" data-value="77" aria-pressed="false">77mm</button>
+          <button type="button" class="chip" data-group="sizes" data-value="82" aria-pressed="false">82mm</button>
+          <button type="button" class="chip" data-group="sizes" data-value="sq" aria-pressed="false">方形插片</button>
+        </div>
+      </fieldset>
+      <fieldset class="fgroup">
+        <legend>镀膜工艺<span class="gcount" id="gCoat"></span></legend>
+        <div class="chips">
+          <button type="button" class="chip" data-group="coatings" data-value="nano" aria-pressed="false">纳米镀膜</button>
+          <button type="button" class="chip" data-group="coatings" data-value="multi" aria-pressed="false">多层镀膜</button>
+          <button type="button" class="chip" data-group="coatings" data-value="none" aria-pressed="false">无镀膜</button>
+        </div>
+      </fieldset>
+      <div class="fgroup stack">
+        <div class="slider-block">
+          <div class="slider-label"><span>价格上限</span><output id="priceOut" for="priceCap">≤ ¥1400</output></div>
+          <input type="range" id="priceCap" min="150" max="1400" step="50" value="1400" aria-label="价格上限">
+        </div>
+        <button type="button" class="toggle-row" id="stockRow" role="switch" aria-checked="false">
+          <span class="switch" aria-hidden="true"><span class="knob"></span></span>
+          <span>仅显示现货<em class="thint" id="stockHint">现货 10 支</em></span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <section class="results" aria-label="检索结果">
+    <div class="toolbar">
+      <div class="readout">
+        <h2>检索结果</h2>
+        <p>匹配 <strong id="hitCount">10</strong> / 10 支滤镜 · 条件实时叠加，计数即时刷新</p>
+      </div>
+      <button type="button" class="btn-clear" id="clearBtn" disabled>清除全部条件</button>
+    </div>
+    <div class="grid" id="grid"></div>
+    <div class="empty" id="emptyState" hidden>
+      <div class="empty-glass" aria-hidden="true"></div>
+      <p class="empty-title">当前光学条件下没有匹配的镜片</p>
+      <p class="empty-hint">试试放宽价格上限，或减少几个类型与口径条件。</p>
+      <button type="button" class="btn-clear" id="clearBtnEmpty">清除全部条件</button>
+    </div>
+  </section>
+</div>
+
+<script>
+var FILTERS = [
+  {name:"玄冰 ND1000 减光镜", mark:"ND1000", type:"nd", sizes:["67","77","82"], showSize:"77mm", coating:"nano", coatingLabel:"纳米镀膜", price:899, stock:true},
+  {name:"玄冰 ND64 减光镜", mark:"ND64", type:"nd", sizes:["58","67","77"], showSize:"67mm", coating:"nano", coatingLabel:"纳米镀膜", price:559, stock:true},
+  {name:"曜石 CPL 偏振镜", mark:"CPL", type:"cpl", sizes:["49","58","67","77","82"], showSize:"77mm", coating:"multi", coatingLabel:"多层镀膜", price:429, stock:true},
+  {name:"曜石 CPL 轻薄框", mark:"CPL-S", type:"cpl", sizes:["49","58"], showSize:"49mm", coating:"multi", coatingLabel:"多层镀膜", price:329, stock:false},
+  {name:"雾川黑柔 1/4", mark:"MIST 1/4", type:"mist", sizes:["58","67","72","77"], showSize:"67mm", coating:"multi", coatingLabel:"多层镀膜", price:599, stock:true},
+  {name:"雾川黑柔 1/8", mark:"MIST 1/8", type:"mist", sizes:["67","77","82"], showSize:"77mm", coating:"multi", coatingLabel:"多层镀膜", price:649, stock:false},
+  {name:"星轨抗光害镜", mark:"LPR", type:"lp", sizes:["77","82"], showSize:"82mm", coating:"nano", coatingLabel:"纳米镀膜", price:669, stock:true},
+  {name:"薄暮 GND8 渐变镜", mark:"GND8", type:"gnd", sizes:["sq"], showSize:"100×150mm", coating:"multi", coatingLabel:"多层镀膜", price:1180, stock:true},
+  {name:"晴护 UV 保护镜", mark:"UV", type:"uv", sizes:["49","52","58"], showSize:"58mm", coating:"none", coatingLabel:"无镀膜", price:159, stock:true},
+  {name:"寒武可变 ND2–32", mark:"VND 2-32", type:"nd", sizes:["67","77","82"], showSize:"77mm", coating:"nano", coatingLabel:"纳米镀膜", price:1299, stock:false}
+];
+
+var PRICE_MAX = 1400;
+var state = {types:new Set(), sizes:new Set(), coatings:new Set(), maxPrice:PRICE_MAX, inStock:false};
+
+var grid = document.getElementById("grid");
+var hitCount = document.getElementById("hitCount");
+var emptyState = document.getElementById("emptyState");
+var clearBtn = document.getElementById("clearBtn");
+var clearBtnEmpty = document.getElementById("clearBtnEmpty");
+var priceCap = document.getElementById("priceCap");
+var priceOut = document.getElementById("priceOut");
+var stockRow = document.getElementById("stockRow");
+var stockHint = document.getElementById("stockHint");
+
+function match(item, ignoreStock){
+  if(state.types.size && !state.types.has(item.type)) return false;
+  if(state.sizes.size && !item.sizes.some(function(s){return state.sizes.has(s)})) return false;
+  if(state.coatings.size && !state.coatings.has(item.coating)) return false;
+  if(item.price > state.maxPrice) return false;
+  if(!ignoreStock && state.inStock && !item.stock) return false;
+  return true;
+}
+
+function gcount(set){ return set.size ? "已选 " + set.size : ""; }
+
+function cardHTML(item, i){
+  var badge = item.stock
+    ? '<span class="badge in">现货</span>'
+    : '<span class="badge pre">预订 · 7 天发货</span>';
+  return '<article class="card" style="animation-delay:' + Math.min(i * 30, 180) + 'ms">' +
+    '<div class="ring"><div class="glass"><span class="mark">' + item.mark + '</span></div></div>' +
+    '<div class="card-body"><h3>' + item.name + '</h3>' +
+    '<p class="spec-line">' + item.showSize + ' · ' + item.coatingLabel + '</p></div>' +
+    '<div class="card-foot"><span class="price">¥ ' + item.price + '</span>' + badge + '</div>' +
+    '</article>';
+}
+
+function render(){
+  var list = FILTERS.filter(function(it){return match(it, false)});
+  hitCount.textContent = list.length;
+  stockHint.textContent = "现货 " + FILTERS.filter(function(it){return match(it, true)}).length + " 支";
+  grid.innerHTML = list.map(cardHTML).join("");
+  emptyState.hidden = list.length !== 0;
+  document.getElementById("gType").textContent = gcount(state.types);
+  document.getElementById("gSize").textContent = gcount(state.sizes);
+  document.getElementById("gCoat").textContent = gcount(state.coatings);
+  var isDefault = !state.types.size && !state.sizes.size && !state.coatings.size && state.maxPrice === PRICE_MAX && !state.inStock;
+  clearBtn.disabled = isDefault;
+}
+
+Array.prototype.forEach.call(document.querySelectorAll(".chip"), function(ch){
+  ch.addEventListener("click", function(){
+    var set = state[ch.dataset.group];
+    var v = ch.dataset.value;
+    if(set.has(v)){ set.delete(v); } else { set.add(v); }
+    ch.setAttribute("aria-pressed", set.has(v));
+    render();
+  });
+});
+
+priceCap.addEventListener("input", function(){
+  state.maxPrice = Number(priceCap.value);
+  priceOut.textContent = "≤ ¥" + priceCap.value;
+  render();
+});
+
+stockRow.addEventListener("click", function(){
+  state.inStock = !state.inStock;
+  stockRow.setAttribute("aria-checked", state.inStock);
+  render();
+});
+
+function clearAll(){
+  state.types.clear(); state.sizes.clear(); state.coatings.clear();
+  state.maxPrice = PRICE_MAX; state.inStock = false;
+  Array.prototype.forEach.call(document.querySelectorAll(".chip"), function(ch){
+    ch.setAttribute("aria-pressed", "false");
+  });
+  priceCap.value = PRICE_MAX;
+  priceOut.textContent = "≤ ¥" + PRICE_MAX;
+  stockRow.setAttribute("aria-checked", "false");
+  render();
+}
+clearBtn.addEventListener("click", clearAll);
+clearBtnEmpty.addEventListener("click", clearAll);
+
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>收银台 · 潮汐生活</title>
+<style>
+:root{
+  --page:#eaf5f1;
+  --page-2:#e0efea;
+  --surface:#ffffff;
+  --ink:#123f3b;
+  --muted:#63807c;
+  --accent:#0d9384;
+  --accent-deep:#0a6e60;
+  --line:#d4e6e0;
+  --soft:#f3faf7;
+  --gold:#b97f1c;
+  --success:#148a5b;
+  --radius-s:10px;
+  --radius-m:12px;
+  --radius-l:16px;
+  --shadow:0 10px 30px rgba(18,63,59,.08);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Segoe UI",sans-serif;
+  background:linear-gradient(180deg,var(--page) 0%,var(--page-2) 100%);
+  color:var(--ink);
+  font-size:15px;
+  line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+}
+button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
+a{color:inherit;text-decoration:none}
+svg{display:block}
+.num{font-variant-numeric:tabular-nums}
+
+/* ===== 顶栏 ===== */
+.topbar{background:var(--surface);border-bottom:1px solid var(--line)}
+.topbar-inner{max-width:1200px;height:64px;margin:0 auto;padding:0 24px;display:flex;align-items:center;gap:20px}
+.brand{display:flex;align-items:center;gap:10px;font-size:18px;font-weight:800;letter-spacing:.5px}
+.brand svg{color:var(--accent)}
+.back{margin-left:auto;font-size:13px;color:var(--muted);display:flex;align-items:center;gap:4px;border:1px solid var(--line);border-radius:999px;padding:6px 14px;transition:border-color .2s,color .2s}
+.back:hover{border-color:var(--accent);color:var(--accent-deep)}
+.order-no{font-size:13px;color:var(--muted)}
+.steps{max-width:1200px;margin:0 auto;padding:0 24px;height:56px;display:flex;align-items:center;gap:8px;list-style:none}
+.steps li{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)}
+.steps li i{font-style:normal;width:22px;height:22px;border-radius:50%;background:var(--soft);border:1px solid var(--line);display:inline-flex;align-items:center;justify-content:center;font-size:12px;color:var(--muted)}
+.steps li.done{color:var(--ink)}
+.steps li.done i{background:var(--accent);border-color:var(--accent);color:#fff}
+.steps li.current{color:var(--accent-deep);font-weight:700}
+.steps li.current i{border-color:var(--accent);color:var(--accent-deep);font-weight:700}
+.steps li+li::before{content:"";width:36px;height:1px;background:var(--line);margin-right:8px}
+
+/* ===== 主区 ===== */
+.wrap{max-width:1200px;margin:0 auto;padding:24px;display:grid;grid-template-columns:minmax(0,1fr) 400px;gap:24px;align-items:start}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-l);box-shadow:var(--shadow)}
+.card-left{padding:28px}
+.card-right{padding:24px;position:sticky;top:24px}
+.sec-title{font-size:17px;font-weight:800;display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.sec-title svg{color:var(--accent)}
+.sec-sub{font-size:13px;color:var(--muted);margin-bottom:16px}
+
+/* 订单摘要 */
+.merchant{display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--soft);border-radius:var(--radius-m);font-size:13px;color:var(--muted);margin-bottom:8px}
+.merchant strong{color:var(--ink);font-size:14px}
+.item{display:grid;grid-template-columns:64px minmax(0,1fr) auto;gap:16px;padding:16px 0;border-bottom:1px dashed var(--line);align-items:center}
+.item:last-of-type{border-bottom:none}
+.thumb{width:64px;height:64px;border-radius:var(--radius-m);background:var(--soft);display:flex;align-items:center;justify-content:center;color:var(--accent-deep)}
+.item-name{font-size:15px;font-weight:700}
+.item-spec{font-size:12.5px;color:var(--muted);margin-top:2px}
+.item-qty{font-size:12.5px;color:var(--muted);margin-top:4px}
+.item-price{font-size:15px;font-weight:700;text-align:right}
+.item-price small{display:block;font-size:12px;color:var(--muted);font-weight:400}
+.fulfil{margin-top:16px;border-top:1px solid var(--line);padding-top:16px;display:grid;gap:12px}
+.fulfil-row{display:flex;gap:12px;font-size:13.5px}
+.fulfil-row dt{width:64px;color:var(--muted);flex:none}
+.fulfil-row dd{color:var(--ink)}
+.tag{display:inline-block;font-size:11px;color:var(--accent-deep);background:var(--soft);border:1px solid var(--line);border-radius:4px;padding:1px 6px;margin-left:8px;vertical-align:1px}
+
+/* 合计栏 */
+.amount-box{display:grid;gap:10px;padding:4px 0 16px;border-bottom:1px solid var(--line)}
+.line{display:flex;justify-content:space-between;font-size:14px}
+.line span:first-child{color:var(--muted)}
+.line.discount span:last-child{color:var(--gold);font-weight:600}
+.line.discount.off{display:none}
+.grand{display:flex;justify-content:space-between;align-items:flex-end;margin:16px 0 20px}
+.grand span{font-size:14px;color:var(--muted)}
+.grand strong{font-size:40px;line-height:1;font-weight:800;color:var(--accent-deep);letter-spacing:-.5px}
+.grand strong small{font-size:20px;font-weight:800;margin-right:2px}
+
+/* 支付方式 */
+.pay-title{font-size:14px;font-weight:700;margin:20px 0 10px}
+.pay-group{display:grid;gap:10px}
+.pay-card{position:relative;display:grid;grid-template-columns:40px minmax(0,1fr) 20px;gap:12px;align-items:center;border:1px solid var(--line);border-radius:var(--radius-m);padding:13px 16px;cursor:pointer;transition:border-color .2s,background .2s,box-shadow .2s;background:var(--surface)}
+.pay-card:hover{border-color:var(--accent)}
+.pay-card.active{border-color:var(--accent);background:var(--soft);box-shadow:0 0 0 3px rgba(13,147,132,.14)}
+.pay-card input{position:absolute;opacity:0;pointer-events:none}
+.pay-ico{width:40px;height:40px;border-radius:10px;background:var(--soft);display:flex;align-items:center;justify-content:center;color:var(--accent-deep)}
+.pay-name{font-size:14.5px;font-weight:700;display:flex;align-items:center;gap:8px}
+.pay-name em{font-style:normal;font-size:11px;font-weight:600;color:var(--accent-deep);background:#fff;border:1px solid var(--line);border-radius:4px;padding:0 6px}
+.pay-desc{font-size:12.5px;color:var(--muted);margin-top:2px}
+.radio{width:18px;height:18px;border-radius:50%;border:2px solid var(--line);justify-self:end;position:relative;transition:border-color .2s;background:#fff}
+.pay-card.active .radio{border-color:var(--accent)}
+.pay-card.active .radio::after{content:"";position:absolute;inset:3px;border-radius:50%;background:var(--accent)}
+.pay-card input:focus-visible~.radio{outline:2px solid var(--accent);outline-offset:2px}
+
+/* 积分开关 */
+.points{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:16px;padding:12px 14px;border:1px dashed var(--line);border-radius:var(--radius-m);cursor:pointer}
+.points-info strong{font-size:13.5px;display:block}
+.points-info em{font-style:normal;font-size:12px;color:var(--gold)}
+.switch{position:relative;flex:none}
+.switch input{position:absolute;opacity:0;inset:0;cursor:pointer}
+.track{display:block;width:42px;height:24px;border-radius:999px;background:var(--line);transition:background .2s;position:relative}
+.knob{position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(18,63,59,.25);transition:transform .2s}
+.switch input:checked~.track{background:var(--accent)}
+.switch input:checked~.track .knob{transform:translateX(18px)}
+.switch input:focus-visible~.track{outline:2px solid var(--accent);outline-offset:2px}
+
+/* 确认按钮 */
+.btn-pay{width:100%;height:52px;border-radius:var(--radius-m);background:var(--accent);color:#fff;font-size:16px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:10px;margin-top:20px;transition:background .2s,transform .15s,box-shadow .2s;box-shadow:0 6px 16px rgba(13,147,132,.28)}
+.btn-pay:hover{background:var(--accent-deep);transform:translateY(-1px)}
+.btn-pay:active{transform:translateY(0);box-shadow:none}
+.btn-pay:focus-visible{outline:2px solid var(--accent-deep);outline-offset:3px}
+.btn-pay[disabled]{background:#9cc9c2;cursor:not-allowed;transform:none;box-shadow:none}
+.spin{width:18px;height:18px;border-radius:50%;border:2px solid rgba(255,255,255,.45);border-top-color:#fff;animation:spin .8s linear infinite;display:none}
+.btn-pay.busy .spin{display:block}
+@keyframes spin{to{transform:rotate(360deg)}}
+.pay-hint{margin-top:12px;font-size:12.5px;color:var(--muted);display:flex;align-items:center;justify-content:center;gap:6px}
+.pay-hint svg{color:var(--accent)}
+
+/* 成功回执 */
+.receipt-wrap{max-width:1200px;margin:0 auto;padding:24px;display:none}
+.receipt{max-width:560px;margin:32px auto;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-l);box-shadow:var(--shadow);padding:40px 36px;text-align:center}
+.receipt.show{display:block;animation:rise .35s ease}
+@keyframes rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.ok-badge{width:64px;height:64px;border-radius:50%;background:var(--soft);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;color:var(--success)}
+.receipt h2{font-size:22px;font-weight:800}
+.receipt .paid{font-size:36px;font-weight:800;color:var(--accent-deep);margin:10px 0 4px;letter-spacing:-.5px}
+.receipt .paid small{font-size:18px}
+.receipt .paid-label{font-size:12.5px;color:var(--muted)}
+.meta{margin:24px 0;border-top:1px dashed var(--line);text-align:left;display:grid}
+.meta-row{display:flex;justify-content:space-between;gap:16px;padding:10px 0;border-bottom:1px dashed var(--line);font-size:13.5px}
+.meta-row:last-child{border-bottom:none}
+.meta-row span:first-child{color:var(--muted)}
+.detail-toggle{font-size:13px;color:var(--accent-deep);font-weight:600;display:inline-flex;align-items:center;gap:4px;margin-bottom:16px}
+.detail-toggle svg{transition:transform .2s}
+.detail-toggle.open svg{transform:rotate(180deg)}
+.detail{display:none;text-align:left;background:var(--soft);border-radius:var(--radius-m);padding:12px 16px;margin-bottom:16px;font-size:13px}
+.detail.show{display:block}
+.detail .d-row{display:flex;justify-content:space-between;padding:4px 0;color:var(--muted)}
+.detail .d-row b{color:var(--ink);font-weight:600}
+.receipt-actions{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.btn-ghost{height:46px;border-radius:var(--radius-m);border:1px solid var(--line);font-size:14.5px;font-weight:600;color:var(--accent-deep);transition:border-color .2s,background .2s}
+.btn-ghost:hover{border-color:var(--accent);background:var(--soft)}
+.btn-solid{height:46px;border-radius:var(--radius-m);background:var(--accent);color:#fff;font-size:14.5px;font-weight:700;transition:background .2s}
+.btn-solid:hover{background:var(--accent-deep)}
+.btn-solid:focus-visible,.btn-ghost:focus-visible{outline:2px solid var(--accent-deep);outline-offset:2px}
+
+/* ===== 响应式 ===== */
+@media (max-width:920px){
+  .wrap{grid-template-columns:1fr}
+  .card-right{position:static}
+  .order-no{display:none}
+}
+@media (max-width:768px){
+  .topbar-inner{padding:0 16px;gap:12px}
+  .brand{font-size:16px}
+  .steps{padding:0 16px}
+  .steps li+li::before{width:16px}
+  .wrap{padding:16px}
+  .card-left{padding:20px}
+  .card-right{padding:20px}
+  .grand strong{font-size:34px}
+  .receipt{padding:32px 24px}
+  .receipt-actions{grid-template-columns:1fr}
+}
+
+/* ===== 减少动态 ===== */
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+  .spin{animation:none;border-top-color:rgba(255,255,255,.45)}
+}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <span class="brand">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="17" cy="7" r="3"/><path d="M3 15c2.5-3.5 5 3.5 7.5 0s5 3.5 7.5 0"/><path d="M3 19c2.5-3.5 5 3.5 7.5 0s5 3.5 7.5 0"/></svg>
+      潮汐生活
+    </span>
+    <span class="order-no num">订单号 2026091217385521</span>
+    <a class="back" href="#"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>返回购物车</a>
+  </div>
+  <ol class="steps" id="stepBar">
+    <li class="done"><i>1</i>购物车</li>
+    <li class="done"><i>2</i>确认订单</li>
+    <li class="current" id="stepPay"><i>3</i>收银台</li>
+  </ol>
+</header>
+
+<main class="wrap" id="checkoutView">
+  <!-- 左：订单摘要 -->
+  <section class="card card-left" aria-label="订单摘要">
+    <h1 class="sec-title">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h14l-1.5 12.5a2 2 0 0 1-2 1.5h-7a2 2 0 0 1-2-1.5L5 4z"/><path d="M9 8a3 3 0 0 0 6 0"/></svg>
+      订单摘要
+    </h1>
+    <p class="sec-sub">请核对商品与收货信息，确认无误后选择支付方式</p>
+
+    <div class="merchant">商家 <strong>潮汐生活官方旗舰店</strong> · 现货 48 小时内发出</div>
+
+    <ul>
+      <li class="item">
+        <span class="thumb"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="8" width="12" height="10" rx="2.5"/><path d="M8.5 15c1.2-1.6 2.4 1.6 3.6 0s2.4 1.6 3.6 0"/><path d="M12 8V5.5"/></svg></span>
+        <div>
+          <p class="item-name">便携超声波清洗机 冰川白</p>
+          <p class="item-spec">规格：标准版 · 全国联保一年</p>
+          <p class="item-qty num">× 1</p>
+        </div>
+        <p class="item-price num">¥529.00<small>单价 ¥529.00</small></p>
+      </li>
+      <li class="item">
+        <span class="thumb"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4.5c1.8 2.4 1.8 4.1 0 5.8-1.8-1.7-1.8-3.4 0-5.8z"/><rect x="9" y="11.5" width="6" height="8" rx="1.6"/><path d="M12 19.5v1"/></svg></span>
+        <div>
+          <p class="item-name">海洋香氛蜡烛 240g 晚风海盐</p>
+          <p class="item-spec">规格：单盒装 · 可燃约 45 小时</p>
+          <p class="item-qty num">× 2</p>
+        </div>
+        <p class="item-price num">¥178.00<small>单价 ¥89.00</small></p>
+      </li>
+      <li class="item">
+        <span class="thumb"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4l-4.5 3 1.8 2.6L8 8.5V20h8V8.5l1.7 1.1 1.8-2.6L15 4a3.6 3.6 0 0 1-6 0z"/><path d="M8 12h8"/></svg></span>
+        <div>
+          <p class="item-name">轻量防晒衣 UPF50+ 雾蓝</p>
+          <p class="item-spec">规格：M 码 · 收纳后约 120g</p>
+          <p class="item-qty num">× 1</p>
+        </div>
+        <p class="item-price num">¥469.00<small>单价 ¥469.00</small></p>
+      </li>
+      <li class="item">
+        <span class="thumb"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="8.5" y="9" width="7" height="11" rx="2"/><path d="M10.5 9V6.5h3V9"/><path d="M10.5 13h3"/></svg></span>
+        <div>
+          <p class="item-name">冷萃咖啡液 30ml×10 条装</p>
+          <p class="item-spec">规格：深烘 · 0 蔗糖</p>
+          <p class="item-qty num">× 2</p>
+        </div>
+        <p class="item-price num">¥122.00<small>单价 ¥61.00</small></p>
+      </li>
+    </ul>
+
+    <dl class="fulfil">
+      <div class="fulfil-row"><dt>收货人</dt><dd>林小满 138****6621<span class="tag">公司</span></dd></div>
+      <div class="fulfil-row"><dt>收货地址</dt><dd>浙江省杭州市西湖区潮汐路 88 号青澜大厦 12 层</dd></div>
+      <div class="fulfil-row"><dt>配送</dt><dd>顺丰标快 · 预计 9 月 15 日（周一）送达</dd></div>
+      <div class="fulfil-row"><dt>发票</dt><dd>不开发票</dd></div>
+    </dl>
+  </section>
+
+  <!-- 右：合计与支付 -->
+  <aside class="card card-right" aria-label="合计与支付">
+    <div class="amount-box" id="amountBox">
+      <div class="line"><span>商品金额</span><span class="num">¥1,298.00</span></div>
+      <div class="line"><span>运费</span><span class="num">¥0.00</span></div>
+      <div class="line discount" id="pointsLine"><span>积分抵扣</span><span class="num">-¥12.00</span></div>
+    </div>
+
+    <div class="grand">
+      <span>应付总额</span>
+      <strong class="num"><small>¥</small><span id="grandTotal">1,286.00</span></strong>
+    </div>
+
+    <p class="pay-title">选择支付方式</p>
+    <div class="pay-group" id="payGroup" role="radiogroup" aria-label="支付方式">
+      <label class="pay-card active">
+        <input type="radio" name="paymethod" value="潮付余额" checked>
+        <span class="pay-ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="13" rx="2.5"/><path d="M3 10.5h18"/><path d="M15.5 14.5h2"/></svg></span>
+        <span><span class="pay-name">潮付余额<em>推荐</em></span><span class="pay-desc num">当前余额 ¥2,450.20 · 支付返 12 积分</span></span>
+        <span class="radio"></span>
+      </label>
+      <label class="pay-card">
+        <input type="radio" name="paymethod" value="微信支付">
+        <span class="pay-ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 11.5c-2.2 0-4-1.5-4-3.4C4.5 5.9 6.6 4 9.2 4h5.6c2.6 0 4.7 1.9 4.7 4.1 0 2.3-2.1 4.1-4.7 4.1h-3.2"/><path d="M9.2 4L8 6.2l2.4-.9L12 7l1.6-1.7 2.4.9L14.8 4"/><circle cx="9" cy="14.5" r="1"/><circle cx="15" cy="14.5" r="1"/><path d="M10 17.5c.8.6 2.2.6 3 0"/></svg></span>
+        <span><span class="pay-name">微信支付</span><span class="pay-desc">扫码或跳转微信完成付款</span></span>
+        <span class="radio"></span>
+      </label>
+      <label class="pay-card">
+        <input type="radio" name="paymethod" value="招商银行储蓄卡(尾号8888)">
+        <span class="pay-ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5.5" width="18" height="13" rx="2.5"/><path d="M3 9.5h18"/><path d="M6.5 14.5h4"/></svg></span>
+        <span><span class="pay-name">银行卡支付</span><span class="pay-desc num">招商银行储蓄卡（尾号 8888）</span></span>
+        <span class="radio"></span>
+      </label>
+    </div>
+
+    <label class="points">
+      <span class="points-info"><strong>使用积分抵扣</strong><em>可用 1,200 积分抵 ¥12.00</em></span>
+      <span class="switch">
+        <input type="checkbox" id="pointsSwitch" checked>
+        <span class="track"><span class="knob"></span></span>
+      </span>
+    </label>
+
+    <button class="btn-pay" id="confirmBtn" type="button">
+      <span class="spin" aria-hidden="true"></span>
+      <span id="confirmText">确认支付 ¥1,286.00</span>
+    </button>
+    <p class="pay-hint">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="10.5" width="14" height="9.5" rx="2"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/></svg>
+      <span id="payHint">将使用 潮付余额 完成支付 · 已加密保护</span>
+    </p>
+  </aside>
+</main>
+
+<!-- 成功回执 -->
+<section class="receipt-wrap" id="receiptView" aria-label="支付回执">
+  <div class="receipt show">
+    <span class="ok-badge"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8.2 12.4l2.6 2.6 5-5.4"/></svg></span>
+    <h2>支付成功</h2>
+    <p class="paid num"><small>¥</small><span id="paidAmount">1,286.00</span></p>
+    <p class="paid-label">实付金额 · 已从账户扣款</p>
+    <div class="meta">
+      <div class="meta-row"><span>交易单号</span><span class="num" id="tradeNo">-</span></div>
+      <div class="meta-row"><span>支付方式</span><span id="paidMethod">-</span></div>
+      <div class="meta-row"><span>支付时间</span><span class="num" id="paidTime">-</span></div>
+      <div class="meta-row"><span>收货人</span><span>林小满 138****6621</span></div>
+    </div>
+    <button class="detail-toggle" id="detailToggle" type="button">
+      查看订单明细
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+    </button>
+    <div class="detail" id="receiptDetail">
+      <div class="d-row"><span>便携超声波清洗机 ×1</span><b class="num">¥529.00</b></div>
+      <div class="d-row"><span>海洋香氛蜡烛 ×2</span><b class="num">¥178.00</b></div>
+      <div class="d-row"><span>轻量防晒衣 ×1</span><b class="num">¥469.00</b></div>
+      <div class="d-row"><span>冷萃咖啡液 ×2</span><b class="num">¥122.00</b></div>
+      <div class="d-row"><span>积分抵扣</span><b class="num" id="detailPoints">-¥12.00</b></div>
+    </div>
+    <div class="receipt-actions">
+      <button class="btn-ghost" id="resetBtn" type="button">完成</button>
+      <button class="btn-solid" id="againBtn" type="button">查看物流进度</button>
+    </div>
+  </div>
+</section>
+
+<script>
+(function(){
+  var prices={full:"1,298.00",off:"1,286.00"};
+  var payCards=Array.prototype.slice.call(document.querySelectorAll(".pay-card"));
+  var hint=document.getElementById("payHint");
+  var btn=document.getElementById("confirmBtn");
+  var confirmText=document.getElementById("confirmText");
+  var grandTotal=document.getElementById("grandTotal");
+  var pointsSwitch=document.getElementById("pointsSwitch");
+  var pointsLine=document.getElementById("pointsLine");
+  var busy=false;
+
+  function currentMethod(){
+    var r=document.querySelector('input[name="paymethod"]:checked');
+    return r?r.value:"潮付余额";
+  }
+  function refreshHint(){
+    hint.textContent="将使用 "+currentMethod()+" 完成支付 · 已加密保护";
+  }
+  payCards.forEach(function(card){
+    card.addEventListener("change",function(){
+      payCards.forEach(function(c){c.classList.toggle("active",c===card);});
+      refreshHint();
+    });
+  });
+
+  function applyPoints(){
+    var on=pointsSwitch.checked;
+    pointsLine.classList.toggle("off",!on);
+    var v=on?prices.off:prices.full;
+    grandTotal.textContent=v;
+    confirmText.textContent="确认支付 ¥"+v;
+    document.getElementById("detailPoints").textContent=on?"-¥12.00":"-¥0.00";
+  }
+  pointsSwitch.addEventListener("change",applyPoints);
+
+  function two(n){return (n<10?"0":"")+n;}
+  function nowText(){
+    var d=new Date();
+    return d.getFullYear()+"年"+(d.getMonth()+1)+"月"+d.getDate()+"日 "+two(d.getHours())+":"+two(d.getMinutes())+":"+two(d.getSeconds());
+  }
+  function tradeNo(){
+    var s="";for(var i=0;i<8;i++){s+=Math.floor(Math.random()*10);}
+    return "T"+new Date().getFullYear()+s;
+  }
+
+  btn.addEventListener("click",function(){
+    if(busy)return;
+    busy=true;
+    btn.disabled=true;
+    btn.classList.add("busy");
+    confirmText.textContent="正在发起支付…";
+    setTimeout(function(){
+      document.getElementById("paidAmount").textContent=pointsSwitch.checked?prices.off:prices.full;
+      document.getElementById("paidMethod").textContent=currentMethod();
+      document.getElementById("paidTime").textContent=nowText();
+      document.getElementById("tradeNo").textContent=tradeNo();
+      document.getElementById("checkoutView").style.display="none";
+      var rv=document.getElementById("receiptView");
+      rv.style.display="block";
+      var step=document.getElementById("stepPay");
+      step.classList.remove("current");
+      step.classList.add("done");
+      step.querySelector("i").textContent="✓";
+      step.childNodes[1].textContent="支付完成";
+      window.scrollTo(0,0);
+    },1400);
+  });
+
+  var detailToggle=document.getElementById("detailToggle");
+  detailToggle.addEventListener("click",function(){
+    var d=document.getElementById("receiptDetail");
+    var open=d.classList.toggle("show");
+    detailToggle.classList.toggle("open",open);
+    detailToggle.childNodes[0].textContent=open?"收起订单明细":"查看订单明细";
+  });
+
+  document.getElementById("resetBtn").addEventListener("click",function(){
+    busy=false;
+    btn.disabled=false;
+    btn.classList.remove("busy");
+    applyPoints();
+    refreshHint();
+    document.getElementById("receiptView").style.display="none";
+    document.getElementById("checkoutView").style.display="";
+    var step=document.getElementById("stepPay");
+    step.classList.add("current");
+    step.classList.remove("done");
+    step.querySelector("i").textContent="3";
+    step.childNodes[1].textContent="收银台";
+    window.scrollTo(0,0);
+  });
+
+  document.getElementById("againBtn").addEventListener("click",function(){
+    var d=document.getElementById("receiptDetail");
+    if(!d.classList.contains("show")){detailToggle.click();}
+  });
+
+  refreshHint();
+})();
+</script>
+</body>
+</html>

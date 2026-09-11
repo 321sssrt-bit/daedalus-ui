@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>账号设置 · 账号开关室</title>
+<style>
+:root{
+  --page:#12151a;
+  --panel:#1d232c;
+  --edge:#313945;
+  --plate-top:#59616c;
+  --plate-bottom:#414852;
+  --ink:#e7ecf2;
+  --dim:#96a1ad;
+  --amber:#ffb02e;
+  --green:#3fd68f;
+  --red:#ff5f56;
+  --input:#141a23;
+  --line:#2b323d;
+  --metal-a:#c9d1da;
+  --metal-b:#8b95a1;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{background:var(--page)}
+body{
+  background:var(--page);
+  color:var(--ink);
+  font-family:"Microsoft YaHei","PingFang SC","Segoe UI",system-ui,sans-serif;
+  font-size:14px;line-height:1.5;
+  overflow-x:hidden;
+}
+.mono{font-family:ui-monospace,"Cascadia Mono",Consolas,"Courier New",monospace}
+.shell{max-width:1280px;min-height:100vh;margin:0 auto;padding:24px;display:flex;flex-direction:column;gap:16px}
+
+/* ---------- 顶栏 ---------- */
+.topbar{
+  height:56px;display:flex;align-items:center;justify-content:space-between;
+  padding:0 16px;border:1px solid var(--edge);border-radius:8px;
+  background:linear-gradient(180deg,#232932,#1a1f27);
+}
+.brand{display:flex;align-items:center;gap:10px}
+.brand strong{font-size:16px;letter-spacing:3px;text-shadow:0 1px 0 rgba(0,0,0,.6)}
+.brand em{display:block;font-style:normal;font-size:9px;letter-spacing:2px;color:var(--dim)}
+.top-right{display:flex;align-items:center;gap:8px}
+.lamp-txt{font-size:11px;color:var(--dim);letter-spacing:1px}
+.clock{font-size:13px;color:var(--dim);border-left:1px solid var(--line);padding-left:12px;margin-left:4px}
+
+/* ---------- 身份行 ---------- */
+.idcard{
+  display:flex;align-items:center;gap:16px;padding:14px 18px;
+  border:1px solid var(--edge);border-radius:8px;background:var(--panel);
+}
+.avatar{
+  width:52px;height:52px;border-radius:10px;flex:none;
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;font-weight:700;color:#12151a;
+  background:linear-gradient(135deg,var(--metal-a),var(--metal-b));
+  border:1px solid #6a7480;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.5),0 2px 4px rgba(0,0,0,.4);
+}
+.name-line{display:flex;align-items:center}
+.name-line strong{font-size:18px;letter-spacing:1px}
+.badge{font-size:10px;letter-spacing:1px;padding:2px 8px;margin-left:10px;border:1px solid var(--amber);color:var(--amber);border-radius:3px}
+.who .sub{margin-top:6px;font-size:12px;color:var(--dim)}
+.who .sub i{font-style:normal;margin:0 8px;color:var(--line)}
+.id-right{margin-left:auto;display:flex;align-items:center;gap:8px}
+.last{font-size:12px;color:var(--dim);border-left:1px solid var(--line);padding-left:12px;margin-left:4px}
+
+/* ---------- 开关面板组 ---------- */
+.deck{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;flex:1}
+.panel{border:1px solid var(--edge);border-radius:8px;background:var(--panel);overflow:hidden;display:flex;flex-direction:column;align-self:start}
+.plate{
+  height:36px;display:flex;align-items:center;gap:10px;padding:0 12px;
+  background:linear-gradient(180deg,var(--plate-top),var(--plate-bottom));
+  border-bottom:1px solid #333a44;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.12);
+}
+.plate strong{font-size:13px;letter-spacing:3px;color:#eef2f7;text-shadow:0 1px 0 rgba(0,0,0,.6)}
+.plate .cap{font-size:9px;letter-spacing:2px;color:#aeb7c2}
+.plate .lamp{margin-left:auto;margin-right:2px}
+.rivet{width:7px;height:7px;border-radius:50%;flex:none;background:radial-gradient(circle at 35% 30%,#c7cfd9,#565e68 55%,#23282f);box-shadow:0 1px 1px rgba(0,0,0,.6)}
+.rows{display:flex;flex-direction:column}
+.row{border-bottom:1px solid var(--line);display:flex;flex-wrap:wrap;align-items:center}
+.row:last-child{border-bottom:0}
+.row-hit{
+  flex:1;min-width:0;height:46px;display:flex;align-items:center;gap:10px;
+  padding:0 14px;border:0;background:transparent;color:inherit;cursor:pointer;text-align:left;
+  font:inherit;
+}
+.row-hit:hover{background:rgba(255,255,255,.02)}
+.row-hit:focus-visible{outline:2px solid var(--amber);outline-offset:-2px}
+.row-label{width:76px;flex:none;font-size:13px;color:var(--ink)}
+.row.open .row-label{color:var(--amber)}
+.row-val{flex:1;min-width:0;font-size:12px;color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chev{width:6px;height:6px;flex:none;border-right:1.5px solid var(--dim);border-top:1.5px solid var(--dim);transform:rotate(45deg);transition:transform .2s ease}
+.row.open .chev{transform:rotate(135deg);border-color:var(--amber)}
+.row-static{height:46px;padding:0 14px}
+.row-static .row-label{width:76px}
+.row>.lamp{margin-left:auto;margin-right:8px}
+
+/* 详情抽屉 */
+.detail{width:100%;max-height:0;overflow:hidden;background:#181d25;transition:max-height .26s ease,padding .26s ease;border-top:0 solid var(--line)}
+.row.open .detail{max-height:340px;padding:12px 14px 14px;border-top-width:1px}
+.fld{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.fld label{width:64px;flex:none;font-size:12px;color:var(--dim)}
+.fld input,.fld textarea,.fld select{
+  flex:1;min-width:0;background:var(--input);border:1px solid #3a424e;border-radius:4px;
+  color:var(--ink);padding:7px 10px;font-size:13px;font-family:inherit;resize:none;
+}
+.fld input:focus,.fld textarea:focus,.fld select:focus{outline:0;border-color:var(--amber);box-shadow:0 0 0 2px rgba(255,176,46,.18)}
+.fld input.bad{border-color:var(--red)}
+.detail-foot{display:flex;align-items:center;gap:10px;margin-top:4px}
+.fld-hint{font-size:11px;color:var(--dim)}
+.detail-note{font-size:12px;color:var(--dim);margin-bottom:8px}
+.msg{font-size:12px}
+.msg.err{color:var(--red)}
+.msg.ok{color:var(--green)}
+.codes{font-size:13px;letter-spacing:1px;color:var(--amber);background:#10141b;border:1px solid #3a424e;border-radius:4px;padding:8px 10px;margin-bottom:8px}
+
+/* 设备列表 */
+.dev-list{list-style:none}
+.dev-list li{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid var(--line)}
+.dev-list li:last-child{border-bottom:0}
+.dev-list strong{font-size:13px;display:block}
+.dev-list li span{font-size:11px;color:var(--dim);display:block;margin-top:2px}
+
+/* 分段选择 */
+.seg{display:flex;border:1px solid #3a424e;border-radius:4px;overflow:hidden;margin-bottom:8px}
+.seg-btn{flex:1;padding:7px 0;font-size:12px;background:transparent;border:0;border-right:1px solid #3a424e;color:var(--dim);cursor:pointer;font-family:inherit}
+.seg-btn:last-child{border-right:0}
+.seg-btn.active{background:#39414c;color:var(--amber)}
+.seg-btn:focus-visible{outline:2px solid var(--amber);outline-offset:-2px}
+
+/* ---------- 控件 ---------- */
+.btn{
+  background:linear-gradient(180deg,#39414c,#2b323c);border:1px solid #59616c;border-radius:4px;
+  color:var(--amber);font-size:12px;letter-spacing:1px;padding:7px 16px;cursor:pointer;font-family:inherit;
+}
+.btn:hover{filter:brightness(1.18)}
+.btn:active{transform:translateY(1px)}
+.btn:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn.ghost{color:var(--ink)}
+.btn.mini{padding:4px 10px;font-size:11px}
+
+.lamp{width:8px;height:8px;border-radius:50%;flex:none;background:#39414c}
+.lamp-green.on{background:var(--green);box-shadow:0 0 6px 1px rgba(63,214,143,.7)}
+.lamp-amber.on{background:var(--amber);box-shadow:0 0 6px 1px rgba(255,176,46,.7);animation:pulse 2.4s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.55}}
+
+.lever{
+  position:relative;width:46px;height:24px;flex:none;border-radius:12px;cursor:pointer;
+  border:1px solid #0b0e12;background:linear-gradient(180deg,#0d1015,#161b22);
+  box-shadow:inset 0 2px 4px rgba(0,0,0,.6);
+  transition:background .2s ease,box-shadow .2s ease;
+}
+.lever::after{
+  content:"";position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%,var(--metal-a),var(--metal-b) 70%);
+  box-shadow:0 1px 2px rgba(0,0,0,.7);
+  transition:transform .18s ease;
+}
+.lever.on{background:linear-gradient(180deg,#3a2f14,#241c0a);box-shadow:inset 0 1px 3px rgba(0,0,0,.6),0 0 8px rgba(255,176,46,.25)}
+.lever.on::after{transform:translateX(22px)}
+.lever:disabled{opacity:.45;cursor:not-allowed}
+.lever:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+
+/* ---------- 通讯记录条 ---------- */
+.logbar{
+  height:34px;display:flex;align-items:center;gap:10px;padding:0 14px;
+  border:1px solid var(--edge);border-radius:6px;background:#171c24;
+  font-size:12px;color:var(--dim);
+}
+.log-time{color:var(--amber)}
+
+/* ---------- 响应式 ---------- */
+@media (max-width:1024px){
+  .deck{grid-template-columns:1fr}
+  .topbar{height:auto;flex-wrap:wrap;gap:8px;padding:10px 16px}
+  .idcard{flex-wrap:wrap}
+  .id-right{margin-left:0}
+}
+
+/* ---------- 减少动态 ---------- */
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{transition-duration:.01ms !important;animation-duration:.01ms !important;animation-iteration-count:1 !important}
+}
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <header class="topbar">
+    <div class="brand">
+      <span class="rivet"></span>
+      <div><strong>账号开关室</strong><em>ACCOUNT SWITCH ROOM</em></div>
+    </div>
+    <div class="top-right">
+      <span class="lamp lamp-green on"></span><span class="lamp-txt">系统正常</span>
+      <span class="lamp lamp-amber on" id="lamp-session"></span><span class="lamp-txt">会话保持</span>
+      <span class="clock mono" id="clock">--:--:--</span>
+    </div>
+  </header>
+
+  <section class="idcard" id="identity" aria-label="身份行">
+    <div class="avatar" id="id-avatar">林</div>
+    <div class="who">
+      <div class="name-line"><strong id="id-name">林澈</strong><span class="badge">高级巡检员</span></div>
+      <div class="sub"><span class="mono" id="id-uid">UID 8842-0917</span><i>·</i><span id="id-dept">运行控制部 · 二组</span></div>
+    </div>
+    <div class="id-right">
+      <span class="lamp lamp-green on"></span><span class="lamp-txt">在线</span>
+      <span class="last">上次登录 2026-09-28 21:14 · 上海</span>
+    </div>
+  </section>
+
+  <main class="deck">
+
+    <section class="panel" id="panel-profile" aria-label="资料设置组">
+      <header class="plate">
+        <span class="rivet"></span>
+        <strong>资料</strong><span class="cap">PROFILE</span>
+        <span class="lamp lamp-green on"></span>
+        <span class="rivet"></span>
+      </header>
+      <div class="rows">
+        <div class="row" id="row-nick">
+          <button class="row-hit" data-expand aria-expanded="false" aria-controls="det-nick">
+            <span class="row-label">昵称</span><span class="row-val" id="val-nick">林澈</span><span class="chev"></span>
+          </button>
+          <div class="detail" id="det-nick">
+            <div class="fld"><label for="inp-nick">新昵称</label><input id="inp-nick" type="text" maxlength="12" value="林澈"></div>
+            <div class="detail-foot"><button class="btn" data-act="save-nick">写入铭牌</button><span class="fld-hint">保存后同步更新顶部身份行。</span></div>
+          </div>
+        </div>
+        <div class="row" id="row-bio">
+          <button class="row-hit" data-expand aria-expanded="false" aria-controls="det-bio">
+            <span class="row-label">个人简介</span><span class="row-val" id="val-bio">专注航线数据 6 年，东区扇区协调</span><span class="chev"></span>
+          </button>
+          <div class="detail" id="det-bio">
+            <div class="fld"><label for="inp-bio">简介</label><textarea id="inp-bio" rows="2" maxlength="60">专注航线数据 6 年，东区扇区协调</textarea></div>
+            <div class="detail-foot"><button class="btn" data-act="save-bio">写入铭牌</button><span class="fld-hint">最多 60 字，显示在协作名片上。</span></div>
+          </div>
+        </div>
+        <div class="row" id="row-dept">
+          <button class="row-hit" data-expand aria-expanded="false" aria-controls="det-dept">
+            <span class="row-label">所属部门</span><span class="row-val" id="val-dept">运行控制部 · 二组</span><span class="chev"></span>
+          </button>
+          <div class="detail" id="det-dept">
+            <div class="fld">
+              <label for="sel-dept">部门</label>
+              <select id="sel-dept">
+                <option selected>运行控制部 · 二组</option>
+                <option>飞行标准部 · 一组</option>
+                <option>机务工程部 · 三组</option>
+              </select>
+            </div>
+            <div class="detail-foot"><button class="btn" data-act="save-dept">写入铭牌</button></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" id="panel-security" aria-label="安全设置组">
+      <header class="plate">
+        <span class="rivet"></span>
+        <strong>安全</strong><span class="cap">SECURITY</span>
+        <span class="lamp lamp-green on"></span>
+        <span class="rivet"></span>
+      </header>
+      <div class="rows">
+        <div class="row" id="row-pass">
+          <button class="row-hit" data-expand aria-expanded="false" aria-controls="det-pass">
+            <span class="row-label">登录密码</span><span class="row-val" id="val-pass">已设置 180 天</span><span class="chev"></span>
+          </button>
+          <div class="detail" id="det-pass">
+            <div class="fld"><label for="inp-pass-old">原密码</label><input id="inp-pass-old" type="password" autocomplete="off" placeholder="输入原密码"></div>
+            <div class="fld"><label for="inp-pass-new">新密码</label><input id="inp-pass-new" type="password" autocomplete="off" placeholder="至少 8 位"></div>
+            <div class="fld"><label for="inp-pass-again">再输入</label><input id="inp-pass-again" type="password" autocomplete="off" placeholder="再输入一次新密码"></div>
+            <div class="detail-foot"><button class="btn" data-act="save-pass">更新密码</button><span class="msg" id="msg-pass"></span></div>
+          </div>
+        </div>
+        <div class="row" id="row-2fa">
+          <button class="row-hit" data-expand aria-expanded="false" aria-controls="det-2fa">
+            <span class="row-label">两步验证</span><span class="row-val" id="val-2fa">已启用</span><span class="chev"></span>
+          </button>
+          <span class="lamp lamp-green on" id="lamp-2fa"></span>
+          <button class="lever on" id="lever-2fa" role="switch" aria-checked="true" aria-label="两步验证开关"></button>
+          <div class="detail" id="det-2fa">
+            <p class="detail-note">使用 Authenticator 应用生成动态口令。备用码仅显示一次，请抄录到离线介质。</p>
+            <div class="codes mono" id="codes">····-····-····-····</div>
+            <div class="detail-foot"><button class="btn ghost" data-act="gen-code">重新生成备用码</button></div>
+          </div>
+        </div>
+        <div class="row" id="row-dev">
+          <button class="row-hit" data-expand aria-expanded="false" aria-controls="det-dev">
+            <span class="row-label">登录设备</span><span class="row-val" id="val-dev">3 台在用</span><span class="chev"></span>
+          </button>
+          <div class="detail" id="det-dev">
+            <ul class="dev-list" id="dev-list">
+              <li>
+                <div><strong>本机 · 塔台工作站</strong><span>Windows 11 · 上海 · 当前会话</span></div>
+                <button class="btn mini" disabled>本机</button>
+              </li>
+              <li>
+                <div><strong>iPhone 15</strong><span>iOS 18 · 北京 · 2026-09-27 08:40</span></div>
+                <button class="btn mini" data-act="kick">下线</button>
+              </li>
+              <li>
+                <div><strong>MacBook Pro 14</strong><span>macOS · 深圳 · 2026-09-25 19:02</span></div>
+                <button class="btn mini" data-act="kick">下线</button>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" id="panel-notify" aria-label="通知设置组">
+      <header class="plate">
+        <span class="rivet"></span>
+        <strong>通知</strong><span class="cap">NOTIFY</span>
+        <span class="lamp lamp-amber on"></span>
+        <span class="rivet"></span>
+      </header>
+      <div class="rows">
+        <div class="row row-static" id="row-master">
+          <span class="row-label">总电门</span><span class="row-val">关闭后锁定全部通道</span>
+          <span class="lamp lamp-amber on" id="lamp-master"></span>
+          <button class="lever on" id="lever-master" role="switch" aria-checked="true" aria-label="通知总开关"></button>
+        </div>
+        <div class="row row-static chan" id="row-mail">
+          <span class="row-label">邮件通知</span><span class="row-val" data-status data-addr="lin@airops.cn">已接通 · lin@airops.cn</span>
+          <span class="lamp lamp-amber on"></span>
+          <button class="lever on" role="switch" aria-checked="true" aria-label="邮件通知开关"></button>
+        </div>
+        <div class="row row-static chan" id="row-sms">
+          <span class="row-label">短信通知</span><span class="row-val" data-status data-addr="138****6621">已接通 · 138****6621</span>
+          <span class="lamp lamp-amber on"></span>
+          <button class="lever on" role="switch" aria-checked="true" aria-label="短信通知开关"></button>
+        </div>
+        <div class="row row-static chan" id="row-push">
+          <span class="row-label">站内推送</span><span class="row-val" data-status data-addr="塔台工作台">已接通 · 塔台工作台</span>
+          <span class="lamp lamp-amber on"></span>
+          <button class="lever on" role="switch" aria-checked="true" aria-label="站内推送开关"></button>
+        </div>
+        <div class="row" id="row-freq">
+          <button class="row-hit" data-expand aria-expanded="false" aria-controls="det-freq">
+            <span class="row-label">提醒频率</span><span class="row-val" id="val-freq">每小时</span><span class="chev"></span>
+          </button>
+          <div class="detail" id="det-freq">
+            <div class="seg" role="group" aria-label="提醒频率">
+              <button class="seg-btn" data-freq="实时">实时</button>
+              <button class="seg-btn active" data-freq="每小时">每小时</button>
+              <button class="seg-btn" data-freq="每天">每天</button>
+            </div>
+            <p class="detail-note">低流量场景建议每小时汇总，避免频繁打断。</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="logbar" aria-live="polite">
+    <span class="lamp lamp-amber on"></span>
+    <span class="log-time mono" id="log-time">--:--:--</span>
+    <span id="log-msg">系统就绪 · 全部开关状态已同步</span>
+  </footer>
+
+</div>
+
+<script>
+(function(){
+  var $ = function(id){ return document.getElementById(id); };
+  var $$ = function(sel){ return Array.prototype.slice.call(document.querySelectorAll(sel)); };
+
+  function ts(d){
+    d = d || new Date();
+    return [d.getHours(), d.getMinutes(), d.getSeconds()].map(function(n){
+      return String(n).padStart(2, '0');
+    }).join(':');
+  }
+  function log(msg){
+    $('log-time').textContent = ts();
+    $('log-msg').textContent = msg;
+  }
+
+  /* 顶栏时钟 */
+  $('clock').textContent = ts();
+  setInterval(function(){ $('clock').textContent = ts(); }, 1000);
+
+  /* 行展开 / 收起 */
+  $$('[data-expand]').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var row = btn.closest('.row');
+      var open = row.classList.toggle('open');
+      btn.setAttribute('aria-expanded', String(open));
+    });
+  });
+
+  /* 拨杆开关 */
+  function chanStatus(row, on, locked){
+    var st = row.querySelector('[data-status]');
+    if(!st) return;
+    st.textContent = on ? ('已接通 · ' + st.dataset.addr) : (locked ? ('已断开 · 总电门锁定') : '已断开');
+  }
+  function afterToggle(id, on, row){
+    if(id === 'lever-2fa'){
+      $('val-2fa').textContent = on ? '已启用' : '已停用';
+      log(on ? '两步验证已启用 · 动态口令生效' : '两步验证已停用 · 账号风险升高');
+      return;
+    }
+    if(id === 'lever-master'){
+      var locked = !on;
+      $$('#panel-notify .chan').forEach(function(r){
+        var lv = r.querySelector('.lever');
+        var lamp = r.querySelector('.lamp');
+        lv.disabled = locked;
+        if(locked){
+          lv.classList.remove('on');
+          lv.setAttribute('aria-checked', 'false');
+          lamp.classList.remove('on');
+          chanStatus(r, false, true);
+        }else{
+          chanStatus(r, lv.classList.contains('on'), false);
+        }
+      });
+      log(on ? '通知总电门已合上 · 通道解锁' : '通知总电门已断开 · 3 条通道锁定');
+      return;
+    }
+    var label = row.querySelector('.row-label').textContent;
+    chanStatus(row, on, false);
+    log(label + (on ? '已接通' : '已断开'));
+  }
+  $$('.lever').forEach(function(lv){
+    lv.addEventListener('click', function(){
+      if(lv.disabled) return;
+      var on = lv.classList.toggle('on');
+      lv.setAttribute('aria-checked', String(on));
+      var row = lv.closest('.row');
+      var lamp = row.querySelector(':scope > .lamp') || row.querySelector('.lamp');
+      if(lamp) lamp.classList.toggle('on', on);
+      afterToggle(lv.id || '', on, row);
+    });
+  });
+
+  /* 资料保存 */
+  $('inp-nick').addEventListener('input', function(){ this.classList.remove('bad'); });
+  $$('[data-act="save-nick"]')[0].addEventListener('click', function(){
+    var v = $('inp-nick').value.trim();
+    if(!v){
+      $('inp-nick').classList.add('bad');
+      log('昵称不能为空 · 写入被拒绝');
+      return;
+    }
+    $('val-nick').textContent = v;
+    $('id-name').textContent = v;
+    $('id-avatar').textContent = v.charAt(0);
+    log('昵称已写入 · ' + v);
+  });
+  $$('[data-act="save-bio"]')[0].addEventListener('click', function(){
+    var v = $('inp-bio').value.trim();
+    if(!v){ log('简介不能为空 · 写入被拒绝'); return; }
+    $('val-bio').textContent = v;
+    log('个人简介已更新 · ' + v.length + ' 字');
+  });
+  $$('[data-act="save-dept"]')[0].addEventListener('click', function(){
+    var v = $('sel-dept').value;
+    $('val-dept').textContent = v;
+    $('id-dept').textContent = v;
+    log('所属部门已调整 · ' + v);
+  });
+
+  /* 密码更新 */
+  $$('[data-act="save-pass"]')[0].addEventListener('click', function(){
+    var oldp = $('inp-pass-old').value;
+    var np = $('inp-pass-new').value;
+    var ap = $('inp-pass-again').value;
+    var msg = $('msg-pass');
+    function fail(text){
+      msg.className = 'msg err';
+      msg.textContent = text;
+      log('密码更新被拒绝 · ' + text);
+    }
+    if(!oldp){ fail('请填写原密码'); return; }
+    if(np.length < 8){ fail('新密码至少 8 位'); return; }
+    if(np !== ap){ fail('两次输入的新密码不一致'); return; }
+    msg.className = 'msg ok';
+    msg.textContent = '已更新 · 下次登录生效';
+    $('val-pass').textContent = '刚刚更新';
+    $('inp-pass-old').value = '';
+    $('inp-pass-new').value = '';
+    $('inp-pass-again').value = '';
+    log('登录密码已更新 · 下次登录生效');
+  });
+
+  /* 备用码 */
+  $$('[data-act="gen-code"]')[0].addEventListener('click', function(){
+    var g = function(){ return Math.random().toString(36).slice(2, 6).toUpperCase(); };
+    $('codes').textContent = g() + '-' + g() + '-' + g() + '-' + g();
+    log('备用码已重新生成 · 旧码即刻失效');
+  });
+
+  /* 设备下线 */
+  function refreshDev(){
+    var n = $$('#dev-list li').length;
+    $('val-dev').textContent = n + ' 台在用';
+  }
+  $$('[data-act="kick"]').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var li = btn.closest('li');
+      var name = li.querySelector('strong').textContent;
+      li.remove();
+      refreshDev();
+      log('设备已强制下线 · ' + name);
+    });
+  });
+
+  /* 提醒频率 */
+  $$('.seg-btn').forEach(function(b){
+    b.addEventListener('click', function(){
+      $$('.seg-btn').forEach(function(x){ x.classList.remove('active'); });
+      b.classList.add('active');
+      $('val-freq').textContent = b.dataset.freq;
+      log('提醒频率已调整 · ' + b.dataset.freq);
+    });
+  });
+})();
+</script>
+</body>
+</html>

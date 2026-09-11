@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>注册 · 苔径 Mossway</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+[hidden]{display:none!important}
+:root{
+  --page:#F1F6EE;
+  --panel-a:#E4F1E7;
+  --panel-b:#F6FAF3;
+  --surface:#FFFFFF;
+  --field:#F7FAF5;
+  --ink:#24382C;
+  --muted:#6E8376;
+  --accent:#2E7D5B;
+  --accent-strong:#256A4C;
+  --line:#D8E6DA;
+  --line-strong:#C3D8C7;
+  --error:#C24B3F;
+  --error-bg:#FCF3F1;
+  --weak:#C67B4E;
+  --mid:#C9A53F;
+  --btn-disabled:#CBDACF;
+  --serif:"Songti SC","STSong",Georgia,"Times New Roman","SimSun",serif;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans CJK SC",sans-serif;
+  --shadow-card:0 24px 60px rgba(36,56,44,.10);
+  --ring:0 0 0 3px rgba(46,125,91,.26);
+  --ring-error:0 0 0 3px rgba(194,75,63,.24);
+}
+html,body{height:100%}
+body{font-family:var(--sans);background:var(--page);color:var(--ink);font-size:15px;line-height:1.7;-webkit-font-smoothing:antialiased}
+.page{min-height:100vh;display:grid;grid-template-columns:40% 60%}
+
+/* 左栏品牌区 */
+.brand{position:relative;overflow:hidden;padding:56px 64px 48px;display:flex;flex-direction:column;gap:38px;
+  background:linear-gradient(160deg,var(--panel-a) 0%,var(--panel-b) 78%)}
+.brand::after{content:"";position:absolute;right:-140px;bottom:-160px;width:420px;height:420px;border-radius:50%;
+  background:radial-gradient(circle,rgba(255,255,255,.55),rgba(255,255,255,0) 68%);pointer-events:none}
+.grain{position:absolute;inset:0;width:100%;height:100%;opacity:.55;pointer-events:none}
+.brand>*{position:relative;z-index:1}
+.brand__top{display:flex;align-items:center;gap:12px}
+.logo-mark{width:40px;height:40px;border-radius:12px;background:var(--accent);display:grid;place-items:center;color:#fff;flex:none}
+.logo-mark svg{width:22px;height:22px}
+.brand__name{font-family:var(--serif);font-size:22px;font-weight:600;letter-spacing:.14em}
+.brand__en{font-size:11px;letter-spacing:.3em;color:var(--muted);text-transform:uppercase;margin-left:2px}
+.brand__body{margin-top:auto;max-width:430px}
+.brand__body h1{font-family:var(--serif);font-size:40px;line-height:1.32;font-weight:600;letter-spacing:.02em}
+.brand__body p{margin-top:18px;color:#4C6154;font-size:15px;line-height:1.9;max-width:350px}
+.brand__art{margin-top:4px}
+.brand__art svg{width:300px;height:216px;display:block}
+.brand__foot{display:flex;justify-content:space-between;color:var(--muted);font-size:13px;letter-spacing:.04em}
+
+/* 右栏表单区 */
+.formside{display:flex;align-items:center;justify-content:center;padding:72px 96px;background:var(--surface)}
+.card{width:100%;max-width:460px;animation:rise .5s cubic-bezier(.2,.7,.2,1) both}
+.card h2{font-size:28px;line-height:1.35;font-weight:600;letter-spacing:.01em}
+.card .sub{color:var(--muted);margin-top:8px}
+.field{margin-top:22px}
+.field label{display:block;font-size:14px;font-weight:500}
+.input{width:100%;height:48px;margin-top:8px;padding:0 14px;border:1px solid var(--line);border-radius:12px;
+  background:var(--field);color:var(--ink);font-size:15px;font-family:inherit;
+  transition:border-color .16s ease,box-shadow .16s ease,background .16s ease}
+.input::placeholder{color:#9DB0A2}
+.input:hover{border-color:var(--line-strong)}
+.input:focus{outline:none;border-color:var(--accent);background:var(--surface);box-shadow:var(--ring)}
+.field.has-error .input{border-color:var(--error);background:var(--error-bg)}
+.field.has-error .input:focus{box-shadow:var(--ring-error)}
+.hint{min-height:20px;margin-top:6px;font-size:13px;line-height:1.5;color:var(--error)}
+.passwrap{position:relative}
+.passwrap .input{padding-right:46px}
+.eye{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:36px;height:36px;border:0;background:transparent;
+  border-radius:10px;display:grid;place-items:center;color:var(--muted);cursor:pointer;
+  transition:background .16s ease,color .16s ease}
+.eye:hover{background:#EDF4EE;color:var(--ink)}
+.eye:focus-visible{outline:none;box-shadow:var(--ring)}
+.eye svg{width:20px;height:20px}
+.eye .icon-off{display:none}
+.eye[aria-pressed="true"] .icon-on{display:none}
+.eye[aria-pressed="true"] .icon-off{display:block}
+.meter{display:flex;gap:6px;margin-top:10px}
+.meter span{height:4px;flex:1;border-radius:2px;background:var(--line);transition:background .2s ease}
+.meter[data-level="1"] span:nth-child(1){background:var(--weak)}
+.meter[data-level="2"] span:nth-child(-n+2){background:var(--mid)}
+.meter[data-level="3"] span{background:var(--accent)}
+.meter-label{margin-top:6px;font-size:12px;color:var(--muted);min-height:18px}
+
+.terms{display:flex;gap:10px;align-items:flex-start;margin-top:22px;font-size:13.5px;color:#43564A;cursor:pointer;line-height:1.6}
+.terms input{appearance:none;width:18px;height:18px;margin-top:2px;flex:none;border:1.5px solid var(--line-strong);
+  border-radius:6px;background:var(--surface);cursor:pointer;position:relative;
+  transition:background .16s ease,border-color .16s ease}
+.terms input:checked{background:var(--accent);border-color:var(--accent)}
+.terms input:checked::after{content:"";position:absolute;left:4.5px;top:1px;width:5px;height:9px;
+  border:solid #fff;border-width:0 2px 2px 0;transform:rotate(42deg)}
+.terms input:focus-visible{outline:none;box-shadow:var(--ring)}
+.gatehint{margin-top:8px;font-size:12px;color:var(--muted)}
+.link{color:var(--accent);text-decoration:none;border-bottom:1px solid transparent;transition:border-color .16s ease,color .16s ease}
+.link:hover{border-bottom-color:var(--accent)}
+
+.primary{position:relative;width:100%;height:52px;margin-top:24px;border:0;border-radius:14px;background:var(--accent);
+  color:#fff;font-size:16px;font-weight:600;font-family:inherit;letter-spacing:.06em;cursor:pointer;
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  transition:background .18s ease,transform .18s ease,box-shadow .18s ease}
+.primary:hover:not(:disabled){background:var(--accent-strong);transform:translateY(-1px);box-shadow:0 10px 22px rgba(46,125,91,.28)}
+.primary:active:not(:disabled){transform:translateY(0);box-shadow:none}
+.primary:focus-visible{outline:none;box-shadow:var(--ring),0 10px 22px rgba(46,125,91,.28)}
+.primary:disabled{background:var(--btn-disabled);color:#8AA392;cursor:not-allowed}
+.primary .spin{display:none;width:16px;height:16px;border:2px solid rgba(255,255,255,.45);border-top-color:#fff;border-radius:50%;
+  animation:spin .8s linear infinite}
+.primary.is-loading .spin{display:inline-block}
+@keyframes spin{to{transform:rotate(360deg)}}
+.switch{margin-top:24px;text-align:center;font-size:14px;color:var(--muted)}
+.switch .link{font-weight:500}
+
+/* 成功面板 */
+.success{width:100%;max-width:460px;text-align:center}
+.success.reveal{animation:rise .45s cubic-bezier(.2,.7,.2,1) both}
+.success .badge{width:64px;height:64px;margin:0 auto;border-radius:50%;background:#E7F3EB;color:var(--accent);display:grid;place-items:center}
+.success h2{margin-top:22px;font-size:26px;font-weight:600}
+.success p{margin-top:10px;color:var(--muted);font-size:14.5px;line-height:1.8}
+.success .email{color:var(--ink);font-weight:500}
+.success .row{display:flex;gap:12px;margin-top:30px}
+.ghost{flex:1;height:48px;border-radius:12px;border:1px solid var(--line-strong);background:var(--surface);
+  color:var(--ink);font-size:14.5px;font-weight:500;font-family:inherit;cursor:pointer;
+  transition:border-color .16s ease,color .16s ease,background .16s ease}
+.ghost:hover:not(:disabled){border-color:var(--accent);color:var(--accent)}
+.ghost:focus-visible{outline:none;box-shadow:var(--ring)}
+.ghost:disabled{color:var(--muted);background:var(--field);cursor:not-allowed}
+
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+
+@media (max-width:900px){
+  .page{grid-template-columns:1fr}
+  .brand{padding:34px 28px 30px;gap:16px}
+  .brand__body{margin-top:6px;max-width:none}
+  .brand__body h1{font-size:28px}
+  .brand__body p{max-width:none;font-size:14px}
+  .brand__art{display:none}
+  .formside{padding:40px 24px 72px;align-items:flex-start}
+  .card h2{font-size:24px}
+  .success h2{font-size:22px}
+}
+
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <aside class="brand">
+    <svg class="grain" aria-hidden="true">
+      <filter id="paperNoise">
+        <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="2" stitchTiles="stitch"/>
+        <feColorMatrix type="saturate" values="0"/>
+      </filter>
+      <rect width="100%" height="100%" filter="url(#paperNoise)" opacity="0.06"/>
+    </svg>
+
+    <header class="brand__top">
+      <span class="logo-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 21v-8"/>
+          <path d="M12 13c0-4.2 3-7 8-7 0 4.2-3 7-8 7z"/>
+          <path d="M12 15.5c0-3.1-2.3-5-6-5 0 3.1 2.3 5 6 5z"/>
+        </svg>
+      </span>
+      <span class="brand__name">苔径</span>
+      <span class="brand__en">Mossway</span>
+    </header>
+
+    <div class="brand__body">
+      <h1>把日常，走成<br>一条安静的小径。</h1>
+      <p>苔径是一本放在口袋里的生活手账。写下今天想完成的三件小事，看日子一点一点长出青苔与光。</p>
+    </div>
+
+    <figure class="brand__art" aria-hidden="true">
+      <svg viewBox="0 0 320 230" fill="none">
+        <circle cx="262" cy="56" r="46" stroke="#5F8F6E" stroke-width="1.4" opacity=".35"/>
+        <g stroke="#5F8F6E" stroke-width="1.6" opacity=".55" stroke-linecap="round">
+          <path d="M18 206 C 82 170, 152 112, 198 34"/>
+          <ellipse cx="66" cy="176" rx="25" ry="8.5" transform="rotate(-28 66 176)"/>
+          <ellipse cx="104" cy="152" rx="25" ry="8.5" transform="rotate(24 104 152)"/>
+          <ellipse cx="128" cy="128" rx="25" ry="8.5" transform="rotate(-32 128 128)"/>
+          <ellipse cx="160" cy="104" rx="25" ry="8.5" transform="rotate(20 160 104)"/>
+          <ellipse cx="180" cy="76" rx="24" ry="8" transform="rotate(-38 180 76)"/>
+          <path d="M198 34 C 204 26, 212 22, 222 21"/>
+          <path d="M198 34 C 192 26, 184 22, 174 22"/>
+        </g>
+        <g fill="#5F8F6E" opacity=".5">
+          <circle cx="226" cy="19" r="3.2"/>
+          <circle cx="170" cy="20" r="2.6"/>
+          <circle cx="238" cy="30" r="2.2"/>
+        </g>
+      </svg>
+    </figure>
+
+    <footer class="brand__foot">
+      <span>© 2026 苔径工作室</span>
+      <span>让每一件小事都算数</span>
+    </footer>
+  </aside>
+
+  <main class="formside">
+    <form class="card" id="signupForm" novalidate>
+      <h2>创建账号</h2>
+      <p class="sub">用邮箱注册，一分钟就好。</p>
+
+      <div class="field">
+        <label for="f-name">怎么称呼你</label>
+        <input class="input" id="f-name" name="name" type="text" placeholder="例如：林晚" autocomplete="nickname" maxlength="24">
+        <p class="hint" id="name-hint" aria-live="polite"></p>
+      </div>
+
+      <div class="field">
+        <label for="f-email">邮箱</label>
+        <input class="input" id="f-email" name="email" type="email" placeholder="you@example.com" autocomplete="email">
+        <p class="hint" id="email-hint" aria-live="polite"></p>
+      </div>
+
+      <div class="field">
+        <label for="f-pass">设置密码</label>
+        <div class="passwrap">
+          <input class="input" id="f-pass" name="password" type="password" placeholder="至少 8 位，包含字母和数字" autocomplete="new-password">
+          <button type="button" class="eye" id="eyeBtn" aria-label="显示密码" aria-pressed="false">
+            <svg class="icon-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/>
+              <circle cx="12" cy="12" r="3"/>
+            </svg>
+            <svg class="icon-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 3l18 18"/>
+              <path d="M10.6 5.9A10.9 10.9 0 0 1 12 5.5c6.4 0 10 6.5 10 6.5a17.4 17.4 0 0 1-3.2 3.9M6.6 6.9A16.8 16.8 0 0 0 2 12s3.6 6.5 10 6.5c1.5 0 2.9-.4 4.1-1"/>
+            </svg>
+          </button>
+        </div>
+        <div class="meter" id="meter" data-level="0" aria-hidden="true"><span></span><span></span><span></span></div>
+        <p class="meter-label" id="meterLabel"></p>
+        <p class="hint" id="pass-hint" aria-live="polite"></p>
+      </div>
+
+      <label class="terms" for="f-terms">
+        <input type="checkbox" id="f-terms">
+        <span>我已阅读并同意<a class="link" href="#">《服务条款》</a>和<a class="link" href="#">《隐私政策》</a></span>
+      </label>
+      <p class="gatehint">勾选同意后，「立即注册」就可以点击了。</p>
+
+      <button type="submit" class="primary" id="submitBtn" disabled>
+        <span class="spin" aria-hidden="true"></span><span class="txt">立即注册</span>
+      </button>
+
+      <p class="switch">已有账号？<a class="link" href="#">去登录</a></p>
+    </form>
+
+    <section class="success" id="successPanel" hidden>
+      <div class="badge" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 12.5l5 5L20 7"/>
+        </svg>
+      </div>
+      <h2>注册成功</h2>
+      <p>验证邮件已发送到 <span class="email" id="successEmail"></span>，<br>点击邮件中的链接，就能正式踏上苔径。</p>
+      <div class="row">
+        <button type="button" class="ghost" id="resendBtn">重新发送验证邮件</button>
+        <button type="button" class="ghost" id="backBtn">返回修改信息</button>
+      </div>
+    </section>
+  </main>
+
+</div>
+
+<script>
+(function(){
+  var form=document.getElementById('signupForm');
+  var nameEl=document.getElementById('f-name');
+  var emailEl=document.getElementById('f-email');
+  var passEl=document.getElementById('f-pass');
+  var termsEl=document.getElementById('f-terms');
+  var btn=document.getElementById('submitBtn');
+  var btnTxt=btn.querySelector('.txt');
+  var eye=document.getElementById('eyeBtn');
+  var meter=document.getElementById('meter');
+  var meterLabel=document.getElementById('meterLabel');
+  var success=document.getElementById('successPanel');
+  var successEmail=document.getElementById('successEmail');
+  var resend=document.getElementById('resendBtn');
+  var back=document.getElementById('backBtn');
+  var timer=null;
+
+  function vName(v){v=v.trim();if(!v){return'告诉我们怎么称呼你'}if(v.length<2||v.length>12){return'称呼需要 2–12 个字符'}return''}
+  function vEmail(v){v=v.trim();if(!v){return'邮箱是必填的'}if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v)){return'邮箱格式好像不太对，再检查一下'}return''}
+  function vPass(v){if(!v){return'设置一个密码吧'}if(v.length<8){return'密码至少 8 位'}if(!(/[A-Za-z]/.test(v)&&/\d/.test(v))){return'密码需要同时包含字母和数字'}return''}
+  var rules=[[nameEl,vName],[emailEl,vEmail],[passEl,vPass]];
+
+  function fieldOf(el){return el.closest('.field')}
+  function mark(el,msg){
+    var f=fieldOf(el),h=f.querySelector('.hint');
+    if(msg){f.classList.add('has-error');h.textContent=msg;el.setAttribute('aria-invalid','true')}
+    else{f.classList.remove('has-error');h.textContent='';el.removeAttribute('aria-invalid')}
+  }
+  function check(el,rule){var msg=rule(el.value);mark(el,msg);return !msg}
+
+  rules.forEach(function(pair){
+    var el=pair[0],rule=pair[1];
+    el.addEventListener('blur',function(){check(el,rule)});
+    el.addEventListener('input',function(){if(fieldOf(el).classList.contains('has-error')){check(el,rule)}});
+  });
+
+  passEl.addEventListener('input',function(){
+    var v=passEl.value,level=0;
+    if(v){
+      var kinds=0;
+      if(/[A-Za-z]/.test(v)){kinds++}
+      if(/\d/.test(v)){kinds++}
+      if(/[^A-Za-z0-9]/.test(v)){kinds++}
+      if(v.length>=10&&kinds>=3){level=3}
+      else if(v.length>=8&&kinds>=2){level=2}
+      else{level=1}
+    }
+    meter.setAttribute('data-level',level);
+    meterLabel.textContent=['','偏弱：再长一点，混点符号会更安全','中等：已经不错，还能更强','很强：这个密码很稳'][level];
+  });
+
+  eye.addEventListener('click',function(){
+    var show=passEl.type==='password';
+    passEl.type=show?'text':'password';
+    eye.setAttribute('aria-pressed',show?'true':'false');
+    eye.setAttribute('aria-label',show?'隐藏密码':'显示密码');
+    passEl.focus();
+  });
+
+  termsEl.addEventListener('change',function(){btn.disabled=!termsEl.checked});
+
+  form.addEventListener('submit',function(e){
+    e.preventDefault();
+    var firstBad=null;
+    rules.forEach(function(pair){if(!check(pair[0],pair[1])&&!firstBad){firstBad=pair[0]}});
+    if(firstBad){firstBad.focus();return}
+    btn.disabled=true;
+    btn.classList.add('is-loading');
+    btnTxt.textContent='正在创建…';
+    setTimeout(function(){
+      successEmail.textContent=emailEl.value.trim();
+      form.hidden=true;
+      success.hidden=false;
+      success.classList.remove('reveal');
+      void success.offsetWidth;
+      success.classList.add('reveal');
+      window.scrollTo(0,0);
+      startCountdown();
+    },900);
+  });
+
+  function startCountdown(){
+    if(timer){clearInterval(timer)}
+    var s=30;
+    resend.disabled=true;
+    resend.textContent='重新发送验证邮件（'+s+'s）';
+    timer=setInterval(function(){
+      s--;
+      if(s<=0){clearInterval(timer);timer=null;resend.disabled=false;resend.textContent='重新发送验证邮件'}
+      else{resend.textContent='重新发送验证邮件（'+s+'s）'}
+    },1000);
+  }
+  resend.addEventListener('click',startCountdown);
+
+  back.addEventListener('click',function(){
+    if(timer){clearInterval(timer);timer=null}
+    success.hidden=true;
+    form.hidden=false;
+    btn.classList.remove('is-loading');
+    btnTxt.textContent='立即注册';
+    btn.disabled=!termsEl.checked;
+    nameEl.focus();
+  });
+})();
+</script>
+</body>
+</html>

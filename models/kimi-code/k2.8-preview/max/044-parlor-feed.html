@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>丝绒会客厅 · 墙面</title>
+<style>
+  :root{
+    --wall:#14291f;
+    --wall-2:#1d3a2c;
+    --wall-deep:#0b1712;
+    --gold:#d4a94e;
+    --gold-deep:#8a6d2f;
+    --canvas:#f3ead3;
+    --ink:#2c2417;
+    --muted:#8b7f63;
+    --fail:#c14b3a;
+    --lamp:#f0c96a;
+    --serif:"Songti SC","STSong","SimSun",serif;
+    --kai:"Kaiti SC","KaiTi","STKaiti",serif;
+    --sans:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    font-family:var(--sans);
+    background:
+      radial-gradient(1200px 600px at 20% -10%, #22392c 0%, transparent 60%),
+      radial-gradient(900px 500px at 90% 110%, #1c2f24 0%, transparent 55%),
+      #0d1a13;
+    display:flex;align-items:center;justify-content:center;
+    min-height:100vh;overflow:hidden;
+  }
+
+  /* ===== 手机框（宽屏） ===== */
+  .stage{display:flex;align-items:center;justify-content:center;width:100%;height:100vh}
+  .phone{
+    position:relative;
+    background:#05080a;
+    border-radius:52px;
+    padding:14px;
+    box-shadow:0 40px 80px rgba(0,0,0,.55), inset 0 0 0 2px #2a2f2c;
+  }
+  .notch{
+    position:absolute;top:14px;left:50%;transform:translateX(-50%);
+    width:112px;height:28px;border-radius:16px;background:#05080a;z-index:40;
+  }
+  .screen{
+    position:relative;width:390px;height:844px;max-height:calc(100vh - 64px);
+    border-radius:40px;overflow:hidden;background:var(--wall);
+    display:flex;flex-direction:column;
+  }
+  .homebar{
+    position:absolute;bottom:7px;left:50%;transform:translateX(-50%);
+    width:128px;height:5px;border-radius:3px;background:rgba(243,234,211,.38);z-index:40;pointer-events:none;
+  }
+
+  /* ===== 屏幕内：墙纸 ===== */
+  .wallpaper{
+    position:absolute;inset:0;pointer-events:none;z-index:0;
+    background:
+      radial-gradient(circle at 25% 18%, rgba(212,169,78,.07) 0 6px, transparent 7px),
+      radial-gradient(circle at 75% 62%, rgba(212,169,78,.06) 0 6px, transparent 7px),
+      repeating-linear-gradient(115deg, rgba(255,255,255,.015) 0 2px, transparent 2px 22px),
+      repeating-linear-gradient(-115deg, rgba(0,0,0,.10) 0 1px, transparent 1px 26px);
+  }
+  .lamp-glow{
+    position:absolute;inset:0;pointer-events:none;z-index:1;
+    background:radial-gradient(360px 220px at 50% -30px, rgba(240,201,106,.16), transparent 70%);
+    transition:opacity .5s ease;
+  }
+  .lights-out .lamp-glow{opacity:0}
+  .lights-out .wallpaper{
+    background:
+      repeating-linear-gradient(115deg, rgba(255,255,255,.008) 0 2px, transparent 2px 22px),
+      repeating-linear-gradient(-115deg, rgba(0,0,0,.18) 0 1px, transparent 1px 26px);
+  }
+  .lights-out .screen-inner{filter:brightness(.72) saturate(.85)}
+  .screen-inner{position:relative;z-index:2;flex:1;display:flex;flex-direction:column;min-height:0;transition:filter .5s ease}
+
+  /* ===== 状态栏 ===== */
+  .statusbar{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:14px 26px 6px;color:var(--canvas);font-size:13px;font-weight:600;
+  }
+  .statusbar .icons{display:flex;gap:5px;align-items:center}
+  .sig{display:flex;gap:2px;align-items:flex-end}
+  .sig i{width:3px;background:var(--canvas);border-radius:1px;display:block}
+  .sig i:nth-child(1){height:4px}.sig i:nth-child(2){height:6px}.sig i:nth-child(3){height:8px}.sig i:nth-child(4){height:10px;opacity:.35}
+  .batt{width:20px;height:10px;border:1.5px solid var(--canvas);border-radius:3px;position:relative;opacity:.9}
+  .batt::after{content:"";position:absolute;inset:1.5px;right:6px;background:var(--canvas);border-radius:1px}
+  .batt::before{content:"";position:absolute;right:-4px;top:2.5px;width:2px;height:4px;background:var(--canvas);border-radius:0 2px 2px 0}
+
+  /* ===== 头部 ===== */
+  .header{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:10px 20px 14px;border-bottom:1px solid rgba(212,169,78,.28);
+    background:linear-gradient(180deg, rgba(29,58,44,.85), rgba(20,41,31,.55));
+  }
+  .brand h1{font-family:var(--serif);font-size:22px;color:var(--canvas);letter-spacing:2px;font-weight:700}
+  .brand p{font-size:11px;color:var(--gold);letter-spacing:3px;margin-top:3px;font-family:var(--kai)}
+  .lamp-ctl{display:flex;align-items:center;gap:8px}
+  .lamp-name{font-size:11px;color:var(--canvas);opacity:.85;line-height:1.35;text-align:right}
+  .lamp-name small{display:block;color:var(--gold);font-size:10px;letter-spacing:1px}
+  .switch{position:relative;width:46px;height:26px;flex:none}
+  .switch input{position:absolute;inset:0;opacity:0;cursor:pointer;z-index:2}
+  .track{position:absolute;inset:0;border-radius:999px;background:#31473a;border:1px solid rgba(212,169,78,.35);transition:background .3s ease}
+  .knob{
+    position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;
+    background:var(--lamp);box-shadow:0 0 10px rgba(240,201,106,.8);transition:transform .3s ease, background .3s ease, box-shadow .3s ease;
+  }
+  .switch input:not(:checked) ~ .track{background:#241f18}
+  .switch input:not(:checked) ~ .knob{transform:translateX(20px);background:#6b6252;box-shadow:none}
+
+  /* ===== 动态墙 ===== */
+  .feed{
+    flex:1;overflow-y:auto;padding:18px 16px 96px;min-height:0;
+    display:flex;flex-direction:column;gap:18px;
+  }
+  .feed::-webkit-scrollbar{width:0}
+  .wall-title{
+    font-family:var(--kai);color:var(--gold);font-size:13px;letter-spacing:4px;text-align:center;
+    display:flex;align-items:center;gap:12px;justify-content:center;margin:2px 0 4px;
+  }
+  .wall-title::before,.wall-title::after{content:"";width:52px;height:1px;background:linear-gradient(90deg,transparent,var(--gold));flex:none}
+  .wall-title::after{background:linear-gradient(90deg,var(--gold),transparent)}
+
+  /* 画框卡片 */
+  .frame{
+    position:relative;background:var(--canvas);border-radius:6px;
+    padding:7px;transform:rotate(var(--tilt,0deg));
+    border:1px solid var(--gold-deep);
+    box-shadow:0 1px 0 rgba(212,169,78,.55) inset, 0 14px 26px rgba(0,0,0,.45);
+  }
+  .frame::before{
+    content:"";position:absolute;inset:3px;border:1px solid rgba(138,109,47,.55);border-radius:4px;pointer-events:none;
+  }
+  .frame .hook{
+    position:absolute;top:-9px;left:50%;transform:translateX(-50%);
+    width:12px;height:12px;border:2px solid var(--gold);border-bottom:none;border-radius:8px 8px 0 0;
+  }
+  .post{background:var(--canvas);border-radius:3px;padding:14px 14px 12px}
+  .post-head{display:flex;align-items:center;gap:10px}
+  .avatar{
+    width:38px;height:38px;border-radius:50%;flex:none;
+    display:flex;align-items:center;justify-content:center;
+    font-family:var(--serif);font-size:16px;color:var(--canvas);
+    background:radial-gradient(circle at 32% 28%, #2c5541, var(--wall-2));
+    border:2px solid var(--gold);box-shadow:0 0 0 2px rgba(138,109,47,.4);
+  }
+  .post-meta{flex:1;min-width:0}
+  .post-name{font-family:var(--serif);font-size:15px;color:var(--ink);font-weight:700;letter-spacing:1px}
+  .post-sub{display:flex;align-items:center;gap:6px;margin-top:3px;font-size:11px;color:var(--muted)}
+  .scope-tag{
+    display:inline-flex;align-items:center;gap:3px;font-size:10px;color:var(--gold-deep);
+    border:1px solid rgba(138,109,47,.5);border-radius:999px;padding:1px 7px;background:rgba(212,169,78,.12);
+    letter-spacing:.5px;white-space:nowrap;
+  }
+  .post-body{margin-top:10px;font-size:14px;line-height:1.75;color:var(--ink)}
+  .post-body em{font-style:normal;background:linear-gradient(transparent 62%, rgba(212,169,78,.4) 62%)}
+  .post-foot{display:flex;gap:4px;margin-top:12px;border-top:1px dashed rgba(138,109,47,.4);padding-top:9px}
+  .chip{
+    flex:1;display:flex;align-items:center;justify-content:center;gap:5px;
+    font-size:12px;color:var(--muted);background:none;border:none;cursor:pointer;
+    padding:6px 0;border-radius:8px;font-family:var(--sans);transition:color .2s ease, background .2s ease;
+  }
+  .chip svg{width:14px;height:14px;flex:none}
+  .chip:hover{background:rgba(212,169,78,.14);color:var(--ink)}
+  .chip.on{color:var(--gold-deep);font-weight:600}
+  .chip.on svg{fill:var(--gold-deep)}
+  .is-new{
+    position:absolute;top:-8px;right:14px;background:var(--fail);color:var(--canvas);
+    font-size:10px;padding:2px 9px;border-radius:999px;letter-spacing:1px;z-index:3;
+    border:1px solid rgba(243,234,211,.4);
+  }
+
+  /* ===== 悬浮上墙按钮 ===== */
+  .fab{
+    position:absolute;right:16px;bottom:78px;z-index:20;
+    display:flex;align-items:center;gap:8px;
+    background:linear-gradient(160deg,#e5bd66,var(--gold) 55%,#a97f31);
+    color:#231a09;font-size:14px;font-weight:700;letter-spacing:1px;
+    border:none;border-radius:999px;padding:13px 20px;cursor:pointer;
+    box-shadow:0 10px 22px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,244,214,.7);
+    font-family:var(--serif);
+  }
+  .fab:active{transform:translateY(1px)}
+
+  /* ===== 底部导航 ===== */
+  .tabbar{
+    display:flex;border-top:1px solid rgba(212,169,78,.28);
+    background:rgba(11,23,18,.92);backdrop-filter:blur(6px);
+    padding:8px 6px 18px;
+  }
+  .tab{
+    flex:1;background:none;border:none;cursor:pointer;color:var(--muted);
+    display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10px;font-family:var(--sans);
+  }
+  .tab svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.6}
+  .tab.active{color:var(--lamp)}
+  .tab .dot{width:4px;height:4px;border-radius:50%;background:var(--gold)}
+
+  /* ===== 底部弹层：挂上墙面 ===== */
+  .scrim{
+    position:absolute;inset:0;background:rgba(5,10,7,.62);z-index:30;
+    opacity:0;pointer-events:none;transition:opacity .3s ease;
+  }
+  .sheet{
+    position:absolute;left:0;right:0;bottom:0;z-index:31;
+    background:linear-gradient(180deg,#1e3d2f,var(--wall-deep));
+    border-radius:22px 22px 0 0;border-top:2px solid var(--gold);
+    border-left:1px solid rgba(212,169,78,.4);border-right:1px solid rgba(212,169,78,.4);
+    padding:14px 18px 24px;transform:translateY(102%);transition:transform .34s cubic-bezier(.22,.9,.3,1);
+    max-height:82%;display:flex;flex-direction:column;
+  }
+  .sheet.open{transform:translateY(0)}
+  .scrim.open{opacity:1;pointer-events:auto}
+  .grab{width:40px;height:4px;border-radius:2px;background:rgba(212,169,78,.5);margin:0 auto 12px}
+  .sheet-head{display:flex;align-items:baseline;justify-content:space-between}
+  .sheet-head h2{font-family:var(--serif);color:var(--canvas);font-size:18px;letter-spacing:2px}
+  .sheet-head .keep{font-size:11px;color:var(--gold)}
+  .draft-wrap{margin-top:12px;background:rgba(243,234,211,.06);border:1px solid rgba(212,169,78,.35);border-radius:12px;padding:12px}
+  .draft-wrap textarea{
+    width:100%;min-height:110px;resize:none;background:transparent;border:none;outline:none;
+    color:var(--canvas);font-size:15px;line-height:1.7;font-family:var(--sans);
+  }
+  .draft-wrap textarea::placeholder{color:#6f7d6f}
+  .draft-bar{display:flex;justify-content:space-between;align-items:center;margin-top:6px}
+  .draft-bar .pen{font-family:var(--kai);font-size:11px;color:var(--gold);letter-spacing:2px}
+  .draft-bar .count{font-size:11px;color:var(--muted)}
+  .vis-title{margin-top:16px;font-size:12px;color:var(--gold);letter-spacing:2px;font-family:var(--kai)}
+  .vis-list{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+  .vis{
+    display:flex;align-items:center;gap:11px;padding:11px 12px;border-radius:12px;cursor:pointer;
+    border:1px solid rgba(212,169,78,.25);background:rgba(243,234,211,.04);transition:border-color .2s ease, background .2s ease;
+  }
+  .vis .glyph{
+    width:32px;height:32px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;
+    font-family:var(--serif);font-size:14px;color:var(--gold);border:1px solid rgba(212,169,78,.5);
+  }
+  .vis .txt{flex:1}
+  .vis .txt b{display:block;font-size:14px;color:var(--canvas);font-weight:600}
+  .vis .txt span{font-size:11px;color:var(--muted)}
+  .vis .radio{width:18px;height:18px;border-radius:50%;border:1.5px solid rgba(212,169,78,.6);flex:none;position:relative}
+  .vis.sel{border-color:var(--gold);background:rgba(212,169,78,.12)}
+  .vis.sel .radio::after{content:"";position:absolute;inset:3.5px;border-radius:50%;background:var(--lamp)}
+  .alert{
+    display:none;margin-top:14px;border:1px solid rgba(193,75,58,.7);background:rgba(193,75,58,.14);
+    border-radius:12px;padding:12px 13px;
+  }
+  .alert.show{display:block;animation:shake .4s ease}
+  .alert h3{font-size:13px;color:#f0a292;display:flex;align-items:center;gap:6px;font-weight:700}
+  .alert p{margin-top:6px;font-size:12px;line-height:1.7;color:rgba(243,234,211,.85)}
+  .alert .hint{color:var(--lamp)}
+  .sheet-actions{display:flex;gap:10px;margin-top:16px}
+  .btn{
+    flex:1;border:none;border-radius:999px;padding:13px 0;font-size:15px;cursor:pointer;
+    font-family:var(--serif);letter-spacing:2px;transition:filter .2s ease, transform .1s ease;
+  }
+  .btn:active{transform:scale(.98)}
+  .btn-primary{
+    background:linear-gradient(160deg,#e5bd66,var(--gold) 55%,#a97f31);color:#231a09;font-weight:700;
+    box-shadow:0 6px 14px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,244,214,.7);
+  }
+  .btn-primary:disabled{filter:grayscale(.7) brightness(.6);cursor:not-allowed;box-shadow:none}
+  .btn-ghost{background:transparent;color:var(--canvas);border:1px solid rgba(212,169,78,.5)}
+
+  /* ===== Toast ===== */
+  .toast{
+    position:absolute;left:50%;bottom:118px;transform:translate(-50%,16px);z-index:50;
+    background:rgba(20,41,31,.96);border:1px solid var(--gold);color:var(--canvas);
+    font-size:13px;padding:10px 18px;border-radius:999px;letter-spacing:1px;
+    opacity:0;pointer-events:none;transition:opacity .3s ease, transform .3s ease;
+    display:flex;align-items:center;gap:7px;box-shadow:0 8px 20px rgba(0,0,0,.5);white-space:nowrap;
+  }
+  .toast.show{opacity:1;transform:translate(-50%,0)}
+  .toast svg{width:14px;height:14px}
+
+  @keyframes shake{
+    0%,100%{transform:translateX(0)}
+    25%{transform:translateX(-5px)}
+    75%{transform:translateX(5px)}
+  }
+  @keyframes hang{
+    0%{opacity:0;transform:translateY(-22px) rotate(var(--tilt,0deg))}
+    60%{opacity:1;transform:translateY(3px) rotate(var(--tilt,0deg))}
+    100%{opacity:1;transform:translateY(0) rotate(var(--tilt,0deg))}
+  }
+  .frame.enter{animation:hang .55s cubic-bezier(.3,.9,.4,1.1)}
+
+  @media (max-width:479px){
+    body{overflow:auto}
+    .stage{height:100dvh}
+    .phone{padding:0;border-radius:0;box-shadow:none;background:transparent;width:100%}
+    .notch,.homebar{display:none}
+    .screen{width:100%;height:100dvh;max-height:none;border-radius:0}
+  }
+  @media (prefers-reduced-motion: reduce){
+    *,*::before,*::after{animation:none !important;transition:none !important}
+    .frame.enter{opacity:1;transform:rotate(var(--tilt,0deg))}
+  }
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="screen" id="screen">
+      <div class="wallpaper"></div>
+      <div class="lamp-glow"></div>
+      <div class="screen-inner" id="screenInner">
+
+        <div class="statusbar">
+          <span id="clock">21:07</span>
+          <span class="icons">
+            <span class="sig"><i></i><i></i><i></i><i></i></span>
+            <span class="batt"></span>
+          </span>
+        </div>
+
+        <header class="header">
+          <div class="brand">
+            <h1>丝绒会客厅</h1>
+            <p>今晚的墙 · 留一面给你</p>
+          </div>
+          <div class="lamp-ctl">
+            <span class="lamp-name">熄灯演示<small>合上开关即断线</small></span>
+            <span class="switch">
+              <input type="checkbox" id="lampSwitch" checked aria-label="熄灯演示开关">
+              <span class="track"></span>
+              <span class="knob"></span>
+            </span>
+          </div>
+        </header>
+
+        <main class="feed" id="feed">
+          <div class="wall-title">今 夜 墙 面</div>
+
+          <article class="frame" style="--tilt:-.4deg">
+            <span class="hook"></span>
+            <div class="post">
+              <div class="post-head">
+                <span class="avatar">沈</span>
+                <div class="post-meta">
+                  <div class="post-name">沈青梧</div>
+                  <div class="post-sub">15 分钟前 · 东道主
+                    <span class="scope-tag">公开厅堂</span>
+                  </div>
+                </div>
+              </div>
+              <p class="post-body">今晚重读《长夜将尽》第三章，忽而明白书名说的不是夜，是<em>不肯先合眼的人</em>。诸位若也没睡，不妨来墙面留一句。</p>
+              <div class="post-foot">
+                <button class="chip on" type="button">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s-7.5-4.6-9.5-9C1 8 3 4.5 6.5 4.5c2 0 3.6 1.2 5.5 3.4 1.9-2.2 3.5-3.4 5.5-3.4C21 4.5 23 8 21.5 12c-2 4.4-9.5 9-9.5 9z"/></svg>
+                  24
+                </button>
+                <button class="chip" type="button">
+                  <svg viewBox="0 0 24 24"><path d="M4 4h16v11H9l-5 5V4z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+                  回话 6
+                </button>
+                <button class="chip" type="button">
+                  <svg viewBox="0 0 24 24"><path d="M6 3h12v18l-6-4.5L6 21z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+                  收藏
+                </button>
+              </div>
+            </div>
+          </article>
+
+          <article class="frame" style="--tilt:.5deg">
+            <span class="hook"></span>
+            <div class="post">
+              <div class="post-head">
+                <span class="avatar">陆</span>
+                <div class="post-meta">
+                  <div class="post-name">陆停云</div>
+                  <div class="post-sub">1 小时前 · 老会员
+                    <span class="scope-tag">会员可见</span>
+                  </div>
+                </div>
+              </div>
+              <p class="post-body">试着用冷泡法侍弄那饼老白茶，七小时出汤，竟喝出一点<em>梨子的清气</em>。配方写在回话里，只给挂牌的诸位。</p>
+              <div class="post-foot">
+                <button class="chip" type="button">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s-7.5-4.6-9.5-9C1 8 3 4.5 6.5 4.5c2 0 3.6 1.2 5.5 3.4 1.9-2.2 3.5-3.4 5.5-3.4C21 4.5 23 8 21.5 12c-2 4.4-9.5 9-9.5 9z"/></svg>
+                  18
+                </button>
+                <button class="chip" type="button">
+                  <svg viewBox="0 0 24 24"><path d="M4 4h16v11H9l-5 5V4z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+                  回话 9
+                </button>
+                <button class="chip" type="button">
+                  <svg viewBox="0 0 24 24"><path d="M6 3h12v18l-6-4.5L6 21z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+                  收藏
+                </button>
+              </div>
+            </div>
+          </article>
+
+          <article class="frame" style="--tilt:-.3deg">
+            <span class="hook"></span>
+            <div class="post">
+              <div class="post-head">
+                <span class="avatar">顾</span>
+                <div class="post-meta">
+                  <div class="post-name">顾棠</div>
+                  <div class="post-sub">昨天 23:41 · 密友
+                    <span class="scope-tag">仅密友</span>
+                  </div>
+                </div>
+              </div>
+              <p class="post-body">阳台的昙花今夜开了，只开给我和三个能凌晨赶来的笨蛋看。花不等人，<em>人也不必等花</em>。</p>
+              <div class="post-foot">
+                <button class="chip" type="button">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s-7.5-4.6-9.5-9C1 8 3 4.5 6.5 4.5c2 0 3.6 1.2 5.5 3.4 1.9-2.2 3.5-3.4 5.5-3.4C21 4.5 23 8 21.5 12c-2 4.4-9.5 9-9.5 9z"/></svg>
+                  7
+                </button>
+                <button class="chip" type="button">
+                  <svg viewBox="0 0 24 24"><path d="M4 4h16v11H9l-5 5V4z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+                  回话 3
+                </button>
+                <button class="chip" type="button">
+                  <svg viewBox="0 0 24 24"><path d="M6 3h12v18l-6-4.5L6 21z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+                  收藏
+                </button>
+              </div>
+            </div>
+          </article>
+
+          <article class="frame" style="--tilt:.35deg">
+            <span class="hook"></span>
+            <div class="post">
+              <div class="post-head">
+                <span class="avatar">白</span>
+                <div class="post-meta">
+                  <div class="post-name">白鹭洲</div>
+                  <div class="post-sub">昨天 20:05 · 过路客
+                    <span class="scope-tag">公开厅堂</span>
+                  </div>
+                </div>
+              </div>
+              <p class="post-body">在旧货摊淘到一盏黄铜台灯，擦净之后亮得像一枚<em>小小的落日</em>。放在会客厅东南角了，谁路过谁替我看着点。</p>
+              <div class="post-foot">
+                <button class="chip" type="button">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s-7.5-4.6-9.5-9C1 8 3 4.5 6.5 4.5c2 0 3.6 1.2 5.5 3.4 1.9-2.2 3.5-3.4 5.5-3.4C21 4.5 23 8 21.5 12c-2 4.4-9.5 9-9.5 9z"/></svg>
+                  31
+                </button>
+                <button class="chip" type="button">
+                  <svg viewBox="0 0 24 24"><path d="M4 4h16v11H9l-5 5V4z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+                  回话 12
+                </button>
+                <button class="chip" type="button">
+                  <svg viewBox="0 0 24 24"><path d="M6 3h12v18l-6-4.5L6 21z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+                  收藏
+                </button>
+              </div>
+            </div>
+          </article>
+        </main>
+
+        <button class="fab" id="fab" type="button">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 4v16M4 12h16"/></svg>
+          上墙说话
+        </button>
+
+        <nav class="tabbar">
+          <button class="tab active" type="button" id="tabWall">
+            <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="1.5"/><rect x="7" y="7" width="10" height="10"/></svg>
+            墙面<span class="dot"></span>
+          </button>
+          <button class="tab" type="button" id="tabTea">
+            <svg viewBox="0 0 24 24"><path d="M5 10h11v6a5 5 0 0 1-5 5h-1a5 5 0 0 1-5-5v-6z"/><path d="M16 11h2a3 3 0 0 1 0 6h-2M8 7c0-1.5 1-1.5 1-3M12 7c0-1.5 1-1.5 1-3"/></svg>
+            茶话
+          </button>
+          <button class="tab" type="button" id="tabRoster">
+            <svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19c.7-3.2 2.9-5 5.5-5s4.8 1.8 5.5 5M16 5.5a3 3 0 0 1 0 5.5M17.5 14.2c1.9.7 3 2.2 3.4 4.8"/></svg>
+            名册
+          </button>
+          <button class="tab" type="button" id="tabMe">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.6"/><path d="M5 20c.9-3.8 3.6-6 7-6s6.1 2.2 7 6"/></svg>
+            我的
+          </button>
+        </nav>
+      </div>
+
+      <div class="scrim" id="scrim"></div>
+
+      <section class="sheet" id="sheet" aria-label="挂上墙面">
+        <div class="grab"></div>
+        <div class="sheet-head">
+          <h2>挂上墙面</h2>
+          <span class="keep">草稿与可见范围会一直留着</span>
+        </div>
+        <div class="draft-wrap">
+          <textarea id="draftText" maxlength="140" placeholder="写点什么，今晚的墙留一面给你。"></textarea>
+          <div class="draft-bar">
+            <span class="pen">即兴 · 不限题材</span>
+            <span class="count" id="charCount">0 / 140</span>
+          </div>
+        </div>
+        <div class="vis-title">这面话，说给谁听</div>
+        <div class="vis-list" id="visList">
+          <div class="vis sel" data-scope="公开厅堂" data-desc="所有人可见" data-glyph="厅" role="radio" aria-checked="true" tabindex="0">
+            <span class="glyph">厅</span>
+            <span class="txt"><b>公开厅堂</b><span>所有人可见，过路客也能驻足</span></span>
+            <span class="radio"></span>
+          </div>
+          <div class="vis" data-scope="会员可见" data-desc="仅挂牌会员" data-glyph="员" role="radio" aria-checked="false" tabindex="0">
+            <span class="glyph">员</span>
+            <span class="txt"><b>会员可见</b><span>只给挂了牌的会员看</span></span>
+            <span class="radio"></span>
+          </div>
+          <div class="vis" data-scope="仅密友" data-desc="三位密友" data-glyph="友" role="radio" aria-checked="false" tabindex="0">
+            <span class="glyph">友</span>
+            <span class="txt"><b>仅密友</b><span>只给三位深夜密友看</span></span>
+            <span class="radio"></span>
+          </div>
+        </div>
+        <div class="alert" id="alertBox" role="alert">
+          <h3>
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#f0a292" stroke-width="2"><path d="M12 3 2.5 20h19L12 3z" stroke-linejoin="round"/><path d="M12 10v4.5M12 17.5v.01"/></svg>
+            上墙未完成 —— 沙龙已熄灯
+          </h3>
+          <p>灯灭期间墙面暂停接待，这条内容<b>没有</b>挂出去。你的正文与所选可见范围都原样保留，随时能重试。</p>
+          <p class="hint">去右上角把「熄灯演示」重新点亮，再点下方重试即可。</p>
+        </div>
+        <div class="sheet-actions">
+          <button class="btn btn-ghost" id="closeSheetBtn" type="button">收起</button>
+          <button class="btn btn-primary" id="publishBtn" type="button" disabled>挂上墙</button>
+        </div>
+      </section>
+
+      <div class="toast" id="toast">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#f0c96a" stroke-width="2.4" stroke-linecap="round"><path d="M4 12.5 9.5 18 20 6.5"/></svg>
+        <span id="toastText">已挂上墙面</span>
+      </div>
+    </div>
+    <div class="homebar"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var screen = document.getElementById('screen');
+  var feed = document.getElementById('feed');
+  var fab = document.getElementById('fab');
+  var scrim = document.getElementById('scrim');
+  var sheet = document.getElementById('sheet');
+  var draftText = document.getElementById('draftText');
+  var charCount = document.getElementById('charCount');
+  var publishBtn = document.getElementById('publishBtn');
+  var closeSheetBtn = document.getElementById('closeSheetBtn');
+  var alertBox = document.getElementById('alertBox');
+  var lampSwitch = document.getElementById('lampSwitch');
+  var toast = document.getElementById('toast');
+  var toastText = document.getElementById('toastText');
+  var visList = document.getElementById('visList');
+  var visItems = visList.querySelectorAll('.vis');
+  var busy = false;
+  var draft = { text:'', scope:'公开厅堂' };
+
+  function showToast(msg){
+    toastText.textContent = msg;
+    toast.classList.add('show');
+    setTimeout(function(){ toast.classList.remove('show'); }, 2200);
+  }
+
+  function openSheet(){
+    scrim.classList.add('open');
+    sheet.classList.add('open');
+    draftText.value = draft.text;
+    syncCount();
+    visItems.forEach(function(v){ setVis(v, v.dataset.scope === draft.scope); });
+    setTimeout(function(){ draftText.focus(); }, 360);
+  }
+  function closeSheet(){
+    scrim.classList.remove('open');
+    sheet.classList.remove('open');
+  }
+
+  function setVis(item, on){
+    item.classList.toggle('sel', on);
+    item.setAttribute('aria-checked', on ? 'true' : 'false');
+  }
+  visItems.forEach(function(item){
+    function pick(){
+      visItems.forEach(function(v){ setVis(v, v === item); });
+      draft.scope = item.dataset.scope;
+    }
+    item.addEventListener('click', pick);
+    item.addEventListener('keydown', function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); pick(); } });
+  });
+
+  function syncCount(){
+    charCount.textContent = draftText.value.length + ' / 140';
+    publishBtn.disabled = draftText.value.trim().length === 0 || busy;
+  }
+  draftText.addEventListener('input', function(){
+    draft.text = draftText.value;
+    syncCount();
+  });
+
+  function firstGlyph(name){ return name.charAt(0); }
+
+  function buildPost(text, scope){
+    var frame = document.createElement('article');
+    frame.className = 'frame enter';
+    frame.style.setProperty('--tilt', (Math.random() > .5 ? '' : '-') + (0.3 + Math.random()*0.25).toFixed(2) + 'deg');
+    var scopeDesc = { '公开厅堂':'所有人可见', '会员可见':'仅挂牌会员', '仅密友':'三位密友' }[scope];
+    frame.innerHTML =
+      '<span class="is-new">新挂上</span><span class="hook"></span>' +
+      '<div class="post">' +
+        '<div class="post-head">' +
+          '<span class="avatar">我</span>' +
+          '<div class="post-meta">' +
+            '<div class="post-name">我</div>' +
+            '<div class="post-sub">刚刚 · 你<span class="scope-tag">' + scope + '</span></div>' +
+          '</div>' +
+        '</div>' +
+        '<p class="post-body"></p>' +
+        '<div class="post-foot">' +
+          '<button class="chip" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s-7.5-4.6-9.5-9C1 8 3 4.5 6.5 4.5c2 0 3.6 1.2 5.5 3.4 1.9-2.2 3.5-3.4 5.5-3.4C21 4.5 23 8 21.5 12c-2 4.4-9.5 9-9.5 9z"/></svg>0</button>' +
+          '<button class="chip" type="button"><svg viewBox="0 0 24 24"><path d="M4 4h16v11H9l-5 5V4z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>回话 0</button>' +
+          '<button class="chip" type="button"><svg viewBox="0 0 24 24"><path d="M6 3h12v18l-6-4.5L6 21z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>收藏</button>' +
+        '</div>' +
+      '</div>';
+    frame.querySelector('.post-body').textContent = text;
+    frame.setAttribute('data-scope-desc', scopeDesc);
+    return frame;
+  }
+
+  function publish(){
+    if(busy || draftText.value.trim().length === 0) return;
+    busy = true;
+    publishBtn.disabled = true;
+    publishBtn.textContent = '上墙中…';
+    var text = draftText.value;
+    var scope = draft.scope;
+    setTimeout(function(){
+      busy = false;
+      if(!lampSwitch.checked){
+        // 熄灯：发布失败，保留草稿与可见范围
+        publishBtn.disabled = false;
+        publishBtn.textContent = '重试上墙';
+        alertBox.classList.remove('show');
+        void alertBox.offsetWidth;
+        alertBox.classList.add('show');
+        return;
+      }
+      // 成功：挂上墙面
+      var post = buildPost(text, scope);
+      feed.insertBefore(post, feed.children[1]);
+      feed.scrollTo({ top: 0, behavior: 'smooth' });
+      draft = { text:'', scope: scope };
+      draftText.value = '';
+      syncCount();
+      publishBtn.textContent = '挂上墙';
+      alertBox.classList.remove('show');
+      closeSheet();
+      showToast('已挂上墙面');
+    }, 900);
+  }
+
+  publishBtn.addEventListener('click', publish);
+  fab.addEventListener('click', openSheet);
+  scrim.addEventListener('click', closeSheet);
+  closeSheetBtn.addEventListener('click', closeSheet);
+
+  lampSwitch.addEventListener('change', function(){
+    screen.classList.toggle('lights-out', !lampSwitch.checked);
+    if(!lampSwitch.checked){ showToast('沙龙已熄灯 · 发布将失败'); }
+    else { showToast('灯亮了 · 可以重试上墙'); }
+  });
+
+  // 点赞 chips（含动态区）
+  feed.addEventListener('click', function(e){
+    var chip = e.target.closest('.chip');
+    if(!chip) return;
+    if(chip.textContent.indexOf('回话') === 0 || chip.textContent.trim().indexOf('收藏') === 0){
+      showToast('原型仅开放墙面浏览与上墙');
+      return;
+    }
+    chip.classList.toggle('on');
+    var n = parseInt(chip.textContent.trim(), 10);
+    if(isNaN(n)) return;
+    chip.innerHTML = chip.innerHTML.replace(/>\s*\d+/, '>' + (chip.classList.contains('on') ? n+1 : n-1));
+  });
+
+  ['tabTea','tabRoster','tabMe'].forEach(function(id){
+    document.getElementById(id).addEventListener('click', function(){ showToast('原型仅开放墙面浏览与上墙'); });
+  });
+
+  function tick(){
+    var d = new Date();
+    document.getElementById('clock').textContent =
+      ('0'+d.getHours()).slice(-2) + ':' + ('0'+d.getMinutes()).slice(-2);
+  }
+  tick(); setInterval(tick, 30000);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,818 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>银幕后 · 放映厅 — 音视频平台</title>
+<style>
+:root{
+  --page:#160b0e;
+  --surface:#211318;
+  --surface-2:#2c1a20;
+  --velvet-deep:#4a0a14;
+  --velvet:#6e1020;
+  --crimson:#a3182c;
+  --beam:#f2b84b;
+  --beam-hi:#f6c866;
+  --beam-lo:#d99a33;
+  --screen:#f6ecd7;
+  --text:#f3e9d8;
+  --muted:#a89080;
+  --danger:#e05252;
+  --ok:#5cb87a;
+  --lobby:#e8c9a8;
+  --line:rgba(243,233,216,.14);
+  --radius-c:18px;
+  --radius-s:10px;
+  --gap:24px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{min-height:100%}
+body{
+  background:radial-gradient(1200px 700px at 50% -10%, #241016 0%, var(--page) 55%), var(--page);
+  color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  font-size:14px;
+  padding:24px;
+  min-width:320px;
+}
+button{font-family:inherit}
+
+/* ---------- 顶栏 ---------- */
+.topbar{
+  height:64px;display:flex;align-items:center;gap:24px;
+  background:linear-gradient(180deg,var(--surface-2),var(--surface));
+  border:1px solid var(--line);border-radius:var(--radius-c);padding:0 20px;
+}
+.brand{display:flex;align-items:center;gap:12px;min-width:210px}
+.reel{width:40px;height:40px;transform-box:fill-box;transform-origin:center;animation:spin 26s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.brand-name{font-family:Georgia,"Times New Roman","Songti SC",serif;font-size:22px;letter-spacing:3px;line-height:1.1}
+.brand-sub{font-size:10px;color:var(--muted);letter-spacing:5px}
+.topnav{display:flex;gap:8px}
+.tab{padding:8px 14px;border-radius:999px;font-size:14px;color:var(--muted);background:transparent;border:1px solid transparent;cursor:pointer}
+.tab.on{background:rgba(242,184,75,.12);color:var(--beam);border-color:rgba(242,184,75,.35)}
+.netpill{
+  margin-left:auto;display:inline-flex;align-items:center;gap:8px;
+  padding:7px 12px;border-radius:999px;border:1px solid var(--line);
+  background:var(--surface);font-size:13px;color:var(--muted);
+}
+.netpill i{width:8px;height:8px;border-radius:50%;background:var(--ok);box-shadow:0 0 8px var(--ok)}
+.netpill.off{color:var(--danger);border-color:rgba(224,82,82,.55)}
+.netpill.off i{background:var(--danger);box-shadow:0 0 8px var(--danger)}
+
+/* ---------- 大厅三栏 ---------- */
+.hall{
+  display:grid;grid-template-columns:300px minmax(0,1fr) 300px;gap:var(--gap);
+  grid-template-areas:"catalog screen side";
+  margin-top:20px;height:612px;
+}
+.catalog{
+  grid-area:catalog;min-height:0;display:flex;flex-direction:column;
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-c);padding:18px;
+}
+.side{grid-area:side;min-height:0;display:flex;flex-direction:column;gap:20px}
+
+/* ---------- 片库 ---------- */
+.catalog h2,.queue-card h3,.status-card h3{
+  font-family:Georgia,"Times New Roman","Songti SC",serif;
+  font-size:17px;letter-spacing:2px;font-weight:600;
+}
+.catalog h2{padding-bottom:12px;border-bottom:1px solid var(--line)}
+.filmlist{overflow-y:auto;margin-top:12px;padding-right:4px;display:flex;flex-direction:column;gap:10px}
+.filmlist::-webkit-scrollbar,.queue-list::-webkit-scrollbar{width:6px}
+.filmlist::-webkit-scrollbar-thumb,.queue-list::-webkit-scrollbar-thumb{background:var(--velvet);border-radius:3px}
+.film{
+  display:flex;gap:12px;padding:10px;border-radius:var(--radius-s);
+  background:var(--surface-2);border:1px solid transparent;cursor:pointer;
+  transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease;text-align:left;width:100%;
+}
+.film:hover{transform:translateY(-2px);border-color:rgba(242,184,75,.4)}
+.film.on{border-color:var(--beam);box-shadow:0 0 0 1px var(--beam) inset}
+.poster{
+  width:60px;height:84px;flex:none;border-radius:6px;position:relative;overflow:hidden;
+  display:flex;align-items:center;justify-content:center;
+  font-family:Georgia,"Songti SC",serif;font-size:28px;color:rgba(246,236,215,.92);
+}
+.poster::after{content:"";position:absolute;inset:0;background:linear-gradient(160deg,rgba(255,255,255,.14),transparent 42%)}
+.film-rate{
+  position:absolute;left:0;bottom:0;right:0;font-size:10px;color:var(--beam);
+  background:rgba(10,5,7,.72);padding:2px 6px;font-style:normal;letter-spacing:.5px;
+}
+.film-t{display:block;font-size:15px;font-weight:600;margin-bottom:4px}
+.film-meta{display:block;font-size:12px;color:var(--muted);line-height:1.5}
+.film-desc{font-size:12px;color:var(--muted);line-height:1.55;margin-top:5px;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.film-hint{display:block;font-size:11px;color:var(--beam);margin-top:6px;opacity:0;transition:opacity .18s ease}
+.film:hover .film-hint{opacity:1}
+
+/* ---------- 银幕 ---------- */
+.screencol{grid-area:screen;min-width:0;display:flex;flex-direction:column;justify-content:center}
+.stage{
+  position:relative;overflow:hidden;border-radius:var(--radius-c);
+  background:#0d0709;border:1px solid var(--line);padding:14px 26px 18px;
+}
+.beam{
+  position:absolute;top:-8px;left:50%;width:660px;height:300px;pointer-events:none;z-index:1;
+  background:linear-gradient(rgba(242,184,75,.26),rgba(242,184,75,0) 78%);
+  clip-path:polygon(44% 0,56% 0,100% 100%,0 100%);
+  animation:breathe 6s ease-in-out infinite;
+}
+.beam.b2{transform:translateX(-88%);width:300px;opacity:.5;animation-delay:-2s}
+.beam.b3{transform:translateX(-12%);width:300px;opacity:.5;animation-delay:-4s}
+@keyframes breathe{50%{opacity:.55}}
+.perf{
+  position:relative;z-index:2;height:14px;border-radius:3px;background-color:#0a0507;
+  background-image:radial-gradient(circle at 9px 50%, #2c1a20 3.6px, transparent 4.2px);
+  background-size:24px 14px;border:1px solid rgba(243,233,216,.07);
+}
+.screenframe{position:relative;display:flex;padding:0 14px;margin:8px 0}
+.screenframe::before,.screenframe::after{
+  content:"";position:absolute;top:-6px;bottom:-6px;width:24px;z-index:3;
+  background:repeating-linear-gradient(90deg,var(--velvet-deep) 0 5px,var(--velvet) 5px 13px,var(--crimson) 13px 18px);
+  box-shadow:0 8px 20px rgba(0,0,0,.55);
+}
+.screenframe::before{left:0;border-radius:4px 0 0 4px}
+.screenframe::after{right:0;border-radius:0 4px 4px 0}
+.screen{
+  position:relative;flex:1;aspect-ratio:16/9;overflow:hidden;
+  background:#0a0507;display:flex;align-items:center;justify-content:center;
+  box-shadow:0 0 60px rgba(242,184,75,.20),0 0 140px rgba(242,184,75,.10),inset 0 0 90px rgba(0,0,0,.65);
+}
+.screen.live::after{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(115deg,transparent 30%,rgba(246,236,215,.07) 45%,transparent 60%);
+  animation:sweep 5s linear infinite;
+}
+@keyframes sweep{from{transform:translateX(-100%)}to{transform:translateX(100%)}}
+.screen-idle{position:relative;z-index:2;text-align:center;color:var(--muted)}
+.screen-idle .idle-glyph{font-family:Georgia,serif;font-size:64px;color:rgba(242,184,75,.4);display:block;margin-bottom:10px}
+.screen-idle p{font-size:14px;letter-spacing:1px;line-height:1.9}
+.projected{position:relative;z-index:2;text-align:center;padding:12px}
+.p-glyph{
+  font-family:Georgia,"Songti SC",serif;font-size:104px;line-height:1;color:var(--screen);
+  text-shadow:0 0 34px rgba(242,184,75,.45);
+}
+.p-title{font-family:Georgia,"Songti SC",serif;font-size:30px;letter-spacing:6px;margin-top:8px}
+.p-meta{font-size:13px;color:var(--muted);margin-top:8px;letter-spacing:1px}
+.p-state{
+  display:inline-block;margin-top:14px;padding:5px 14px;border-radius:999px;font-size:12px;letter-spacing:2px;
+  border:1px solid var(--line);color:var(--muted);background:rgba(13,7,9,.6);
+}
+.p-state.live{color:var(--ok);border-color:rgba(92,184,122,.55)}
+
+/* ---------- 中断浮层 ---------- */
+.offline-overlay{
+  position:absolute;inset:0;z-index:6;display:none;align-items:center;justify-content:center;
+  background:rgba(13,6,8,.84);
+}
+.offline-overlay.show{display:flex}
+.offcard{
+  width:410px;max-width:90%;text-align:center;
+  background:linear-gradient(180deg,var(--surface-2),var(--surface));
+  border:1px solid rgba(224,82,82,.55);border-radius:14px;padding:22px 26px;
+  box-shadow:0 18px 50px rgba(0,0,0,.6);
+}
+.offcard h3{color:var(--danger);font-size:18px;letter-spacing:2px;margin:10px 0 8px}
+.offcard p{font-size:13px;color:var(--muted);line-height:1.8}
+.offcard .kept{color:var(--screen);font-variant-numeric:tabular-nums;font-size:15px}
+.reconnect{
+  margin-top:16px;height:42px;padding:0 24px;border:none;border-radius:var(--radius-s);
+  background:linear-gradient(180deg,var(--beam-hi),var(--beam-lo));
+  color:#2a1608;font-size:14px;font-weight:600;letter-spacing:1px;cursor:pointer;
+}
+.reconnect:hover:not(:disabled){filter:brightness(1.06)}
+.reconnect:disabled{opacity:.75;cursor:wait}
+.spin{
+  display:inline-block;width:14px;height:14px;border-radius:50%;margin-right:8px;vertical-align:-2px;
+  border:2px solid rgba(42,22,8,.35);border-top-color:#2a1608;animation:rot .7s linear infinite;
+}
+@keyframes rot{to{transform:rotate(360deg)}}
+
+/* ---------- 播放控制条 ---------- */
+.controls{
+  margin-top:18px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-c);padding:14px 16px;
+}
+.cbtn{
+  height:40px;min-width:40px;padding:0 14px;border-radius:var(--radius-s);
+  border:1px solid var(--line);background:var(--surface-2);color:var(--text);
+  font-size:14px;letter-spacing:1px;cursor:pointer;
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  transition:border-color .18s ease,color .18s ease,background .18s ease;
+}
+.cbtn:hover:not(:disabled){border-color:var(--beam);color:var(--beam)}
+.cbtn:disabled{opacity:.42;cursor:not-allowed}
+.cbtn.primary{background:linear-gradient(180deg,var(--beam-hi),var(--beam-lo));color:#2a1608;border-color:transparent;font-weight:600}
+.cbtn.primary:hover:not(:disabled){filter:brightness(1.06);color:#2a1608}
+.cbtn.danger{border-color:rgba(224,82,82,.55);color:var(--danger)}
+.cbtn.danger:hover:not(:disabled){background:rgba(224,82,82,.12);color:var(--danger)}
+.time{font-variant-numeric:tabular-nums;font-size:13px;color:var(--muted);white-space:nowrap}
+.time b{color:var(--screen);font-weight:500}
+.seek{
+  flex:1;min-width:150px;height:8px;border-radius:999px;appearance:none;-webkit-appearance:none;outline:none;cursor:pointer;
+  background:linear-gradient(90deg,var(--beam) var(--p,0%),rgba(243,233,216,.16) var(--p,0%));
+}
+.seek::-webkit-slider-thumb{
+  appearance:none;-webkit-appearance:none;width:18px;height:18px;border-radius:50%;
+  background:var(--screen);border:3px solid var(--beam);box-shadow:0 0 10px rgba(242,184,75,.6);cursor:pointer;
+}
+.seek::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:var(--screen);border:3px solid var(--beam);cursor:pointer}
+.seek:disabled{cursor:not-allowed;opacity:.5}
+
+/* ---------- 队列与状态 ---------- */
+.queue-card{flex:1.15;min-height:0;display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-c);padding:16px}
+.queue-list{overflow-y:auto;margin-top:12px;display:flex;flex-direction:column;gap:8px;padding-right:2px}
+.queue-empty{margin-top:12px;font-size:13px;color:var(--muted);line-height:1.8}
+.qitem{
+  display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;
+  background:var(--surface-2);border:1px solid transparent;font-size:13px;
+}
+.qitem.playing{border-color:rgba(92,184,122,.5)}
+.qidx{font-family:Georgia,serif;color:var(--beam);width:16px;flex:none;font-size:13px}
+.qtitle{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.qtime{color:var(--muted);font-size:12px;font-variant-numeric:tabular-nums;flex:none}
+.qbtns{display:flex;gap:4px;flex:none}
+.qbtns button{
+  width:24px;height:24px;border-radius:6px;border:1px solid var(--line);
+  background:transparent;color:var(--muted);font-size:11px;cursor:pointer;line-height:1;
+}
+.qbtns button:hover:not(:disabled){color:var(--beam);border-color:var(--beam)}
+.qbtns button:disabled{opacity:.32;cursor:not-allowed}
+.status-card{flex:1;min-height:0;overflow-y:auto;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-c);padding:16px}
+.chip{
+  display:inline-flex;align-items:center;gap:8px;height:30px;padding:0 12px;margin-top:12px;
+  border-radius:999px;font-size:13px;letter-spacing:1px;
+  border:1px solid var(--line);color:var(--muted);background:var(--surface-2);
+}
+.chip i{width:8px;height:8px;border-radius:50%;background:currentColor}
+.chip.playing{color:var(--ok);border-color:rgba(92,184,122,.5)}
+.chip.playing i{box-shadow:0 0 8px var(--ok);animation:pulse 1.6s ease-in-out infinite}
+.chip.paused{color:var(--beam);border-color:rgba(242,184,75,.5)}
+.chip.offline{color:var(--danger);border-color:rgba(224,82,82,.55)}
+@keyframes pulse{50%{opacity:.3}}
+.kv{display:flex;justify-content:space-between;gap:12px;font-size:13px;padding:8px 0;border-bottom:1px dashed var(--line)}
+.kv span{color:var(--muted);flex:none}
+.kv b{font-weight:500;text-align:right;font-variant-numeric:tabular-nums}
+.saved{
+  margin-top:14px;border:1px dashed rgba(242,184,75,.4);border-radius:12px;padding:12px;
+  background:rgba(242,184,75,.06);font-size:13px;line-height:1.8;
+}
+.saved-empty{color:var(--muted)}
+.saved-badge{
+  display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;letter-spacing:1px;
+  color:#2a1608;background:linear-gradient(180deg,var(--beam-hi),var(--beam-lo));margin-bottom:6px;
+}
+.saved-name{color:var(--screen)}
+.saved-time{color:var(--muted);font-size:12px}
+.backbtn{
+  margin-top:10px;height:34px;padding:0 14px;border-radius:8px;cursor:pointer;
+  border:1px solid rgba(242,184,75,.5);background:transparent;color:var(--beam);font-size:13px;letter-spacing:1px;
+}
+.backbtn:hover{border-color:var(--beam);background:rgba(242,184,75,.1)}
+
+/* ---------- 底部大堂条 ---------- */
+.footer{
+  margin-top:16px;height:40px;display:flex;align-items:center;gap:16px;overflow:hidden;
+  background:linear-gradient(180deg,var(--velvet),var(--velvet-deep));
+  border:1px solid rgba(0,0,0,.45);border-radius:12px;padding:0 18px;
+}
+.seats{display:flex;gap:3px;flex:none}
+.seat{width:24px;height:20px;flex:none;opacity:.95}
+.marq{flex:1;overflow:hidden;white-space:nowrap}
+.marq span{
+  display:inline-block;padding-left:100%;font-size:12px;letter-spacing:3px;color:var(--lobby);
+  animation:marq 24s linear infinite;
+}
+@keyframes marq{to{transform:translateX(-100%)}}
+
+/* ---------- 提示浮条 ---------- */
+.toast{
+  position:fixed;left:50%;bottom:36px;transform:translate(-50%,18px);
+  max-width:78%;padding:12px 20px;border-radius:12px;font-size:14px;letter-spacing:.5px;
+  background:var(--surface-2);border:1px solid rgba(242,184,75,.45);
+  box-shadow:0 12px 40px rgba(0,0,0,.55);opacity:0;pointer-events:none;
+  transition:opacity .25s ease,transform .25s ease;z-index:60;
+}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+/* ---------- 键盘焦点 ---------- */
+:focus-visible{outline:2px solid var(--beam);outline-offset:2px}
+.seek:focus-visible{outline-offset:4px}
+
+/* ---------- 响应式与动效降级 ---------- */
+@media (max-width:1100px){
+  .hall{grid-template-columns:1fr;height:auto;grid-template-areas:"screen" "side" "catalog"}
+  .catalog{max-height:320px}
+  .queue-card{max-height:280px}
+}
+@media (max-width:640px){
+  body{padding:14px}
+  .topbar{flex-wrap:wrap;height:auto;padding:12px;gap:12px}
+  .brand{min-width:0}
+  .netpill{margin-left:0}
+  .beam{width:420px;height:220px}
+  .p-glyph{font-size:64px}
+  .p-title{font-size:22px}
+}
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation:none !important;transition:none !important}
+  .marq span{padding-left:0}
+}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <svg class="reel" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+      <circle cx="24" cy="24" r="21" stroke="#f2b84b" stroke-width="2.5"/>
+      <circle cx="24" cy="24" r="4.5" fill="#f2b84b"/>
+      <circle cx="24" cy="12.5" r="4" stroke="#f6c866" stroke-width="2"/>
+      <circle cx="34.5" cy="30" r="4" stroke="#f6c866" stroke-width="2"/>
+      <circle cx="13.5" cy="30" r="4" stroke="#f6c866" stroke-width="2"/>
+      <path d="M24 45.5v2.5M18 46.8h12" stroke="#f2b84b" stroke-width="2.2" stroke-linecap="round"/>
+    </svg>
+    <div>
+      <div class="brand-name">银幕后</div>
+      <div class="brand-sub">CINEMA&nbsp;REEL</div>
+    </div>
+  </div>
+  <nav class="topnav" aria-label="主导航">
+    <button class="tab on" type="button">片库</button>
+    <button class="tab" type="button">放映厅</button>
+    <button class="tab" type="button">我的片单</button>
+  </nav>
+  <div class="netpill" id="netPill"><i></i><span id="netPillText">网络在线</span></div>
+</header>
+
+<main class="hall">
+
+  <aside class="catalog" aria-label="片库">
+    <h2>正在热映</h2>
+    <div class="filmlist" id="filmList"></div>
+  </aside>
+
+  <section class="screencol" aria-label="播放器">
+    <div class="stage">
+      <div class="beam b1"></div>
+      <div class="beam b2"></div>
+      <div class="beam b3"></div>
+      <div class="perf" aria-hidden="true"></div>
+      <div class="screenframe">
+        <div class="screen" id="screen">
+          <div class="screen-idle" id="screenIdle">
+            <span class="idle-glyph" aria-hidden="true">✦</span>
+            <p>银幕已就绪<br>从左侧片库选择一部影片，开始今日放映</p>
+          </div>
+          <div class="projected" id="screenShow" hidden>
+            <div class="p-glyph" id="pGlyph"></div>
+            <div class="p-title" id="pTitle"></div>
+            <div class="p-meta" id="pMeta"></div>
+            <div class="p-state" id="pState"></div>
+          </div>
+          <div class="offline-overlay" id="offlineOverlay" role="alert">
+            <div class="offcard">
+              <svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="#e05252" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+                <path d="M2 8.6a15 15 0 0 1 20 0"/>
+                <path d="M5.5 12.6a10 10 0 0 1 13 0"/>
+                <path d="M9 16.4a5 5 0 0 1 6 0"/>
+                <circle cx="12" cy="19.6" r="1.4" fill="#e05252" stroke="none"/>
+                <line x1="4" y1="4" x2="20" y2="20"/>
+              </svg>
+              <h3>网络连接已中断</h3>
+              <p>播放已暂停，中断前进度已保留在 <span class="kept" id="keptTime">00:00</span><br>重新连接后将从该进度继续，不会丢失</p>
+              <button class="reconnect" id="reconnectBtn" type="button">重新连接</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="perf" aria-hidden="true"></div>
+    </div>
+
+    <div class="controls" aria-label="播放控制">
+      <button class="cbtn primary" id="playBtn" type="button" disabled><span id="playGlyph">▶</span><span id="playText">播放</span></button>
+      <span class="time"><b id="curTime">00:00</b> / <span id="durTime">--:--</span></span>
+      <input class="seek" id="seekSlider" type="range" min="0" max="1000" value="0" step="1" disabled aria-label="播放进度">
+      <button class="cbtn danger" id="drillBtn" type="button" disabled>断网演练</button>
+      <button class="cbtn" id="saveBtn" type="button" disabled>◆ 保存进度</button>
+    </div>
+  </section>
+
+  <aside class="side" aria-label="队列与状态">
+    <section class="queue-card">
+      <h3>放映队列</h3>
+      <div class="queue-list" id="queueList"></div>
+      <p class="queue-empty" id="queueEmpty">队列暂空。在左侧片库点击影片，会自动加入放映队列。</p>
+    </section>
+    <section class="status-card">
+      <h3>播放状态</h3>
+      <div class="chip" id="stateChip"><i></i><span id="stateChipText">待机</span></div>
+      <dl>
+        <div class="kv"><span>当前影片</span><b id="kvFilm">—</b></div>
+        <div class="kv"><span>当前进度</span><b id="kvProg">—</b></div>
+        <div class="kv"><span>剩余时长</span><b id="kvRemain">—</b></div>
+      </dl>
+      <div class="saved" id="savedBlock">
+        <p class="saved-empty" id="savedEmpty">尚未保存播放状态。<br>开始播放后，点击控制条上的「◆ 保存进度」即可存档。</p>
+      </div>
+    </section>
+  </aside>
+
+</main>
+
+<footer class="footer" aria-hidden="true">
+  <div class="seats" id="seatsLeft"></div>
+  <div class="marq"><span id="marqText">银幕后 · 今日放映 18:30 准时开场 · 全场绒座 148 席 · 请对号入座 · 放映期间请勿大声交谈 · </span></div>
+  <div class="seats" id="seatsRight"></div>
+</footer>
+
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  var FILMS=[
+    {id:"wugang",   title:"雾港夜航", year:2026, genre:"剧情", dur:5880, rate:8.7, glyph:"雾", g1:"#233142", g2:"#0c1420", desc:"雾夜离港的渡轮上，报务员收到一通三十年前的求救信号。"},
+    {id:"tiedao",   title:"铁轨以西", year:2025, genre:"西部", dur:6720, rate:8.2, glyph:"西", g1:"#4a2f1e", g2:"#1c120a", desc:"退役巡道工带着旧手风琴，沿废弃铁路寻找失联的养路队。"},
+    {id:"diantai",  title:"午夜电台", year:2024, genre:"悬疑", dur:5340, rate:7.9, glyph:"电", g1:"#3a1f3f", g2:"#150a18", desc:"凌晨档热线节目接到一通自称来自明天的听众电话。"},
+    {id:"haibian",  title:"海边来信", year:2026, genre:"爱情", dur:6300, rate:8.5, glyph:"信", g1:"#1f4a4a", g2:"#0a1a1a", desc:"灯塔看守人与半岛邮差之间，持续十一年未寄出的信。"},
+    {id:"fangying", title:"放映师",   year:2023, genre:"纪录", dur:5760, rate:8.9, glyph:"映", g1:"#54401f", g2:"#221a0c", desc:"小城老影院最后一位放映师的口述史。"},
+    {id:"yunduan",  title:"云端之城", year:2025, genre:"科幻", dur:7260, rate:8.1, glyph:"云", g1:"#2a3a5e", g2:"#0d1426", desc:"建造在平流层的避难都市，某一天开始缓慢下坠。"},
+    {id:"zuori",    title:"昨日公园", year:2024, genre:"动画", dur:5520, rate:8.4, glyph:"园", g1:"#3f5a2a", g2:"#16200e", desc:"每天闭园之后，一切都会重新长回昨天的城市公园。"},
+    {id:"wusheng",  title:"无声证词", year:2026, genre:"犯罪", dur:6540, rate:8.0, glyph:"证", g1:"#4a2326", g2:"#1e0e10", desc:"聋哑修表师是教堂旧案唯一的目击证人。"}
+  ];
+
+  var state={
+    queue:[],
+    current:null,
+    progress:0,
+    playing:false,
+    offline:false,
+    reconnecting:false,
+    wasPlaying:false,
+    ended:false,
+    saved:null,
+    timer:null
+  };
+
+  function $(id){ return document.getElementById(id); }
+  var filmList=$("filmList"), queueList=$("queueList"), queueEmpty=$("queueEmpty"),
+      screen=$("screen"), screenIdle=$("screenIdle"), screenShow=$("screenShow"),
+      pGlyph=$("pGlyph"), pTitle=$("pTitle"), pMeta=$("pMeta"), pState=$("pState"),
+      offlineOverlay=$("offlineOverlay"), keptTime=$("keptTime"), reconnectBtn=$("reconnectBtn"),
+      playBtn=$("playBtn"), playGlyph=$("playGlyph"), playText=$("playText"),
+      curTime=$("curTime"), durTime=$("durTime"), seekSlider=$("seekSlider"),
+      drillBtn=$("drillBtn"), saveBtn=$("saveBtn"),
+      stateChip=$("stateChip"), stateChipText=$("stateChipText"),
+      kvFilm=$("kvFilm"), kvProg=$("kvProg"), kvRemain=$("kvRemain"),
+      savedBlock=$("savedBlock"), savedEmpty=$("savedEmpty"),
+      netPill=$("netPill"), netPillText=$("netPillText"),
+      toast=$("toast");
+
+  function fmt(s){
+    s=Math.max(0,Math.floor(s));
+    var h=Math.floor(s/3600), m=Math.floor(s%3600/60), x=s%60;
+    function p(n){ return (n<10?"0":"")+n; }
+    return h>0 ? h+":"+p(m)+":"+p(x) : p(m)+":"+p(x);
+  }
+  function filmOf(id){ for(var i=0;i<FILMS.length;i++){ if(FILMS[i].id===id) return FILMS[i]; } return null; }
+
+  var toastTimer=null;
+  function showToast(msg){
+    toast.textContent=msg;
+    toast.classList.add("show");
+    if(toastTimer) clearTimeout(toastTimer);
+    toastTimer=setTimeout(function(){ toast.classList.remove("show"); },2600);
+  }
+
+  /* ---------- 片库渲染 ---------- */
+  function renderFilms(){
+    filmList.innerHTML="";
+    FILMS.forEach(function(f){
+      var card=document.createElement("button");
+      card.type="button";
+      card.className="film"+(state.current===f.id?" on":"");
+      card.setAttribute("aria-label","载入影片 "+f.title);
+      card.innerHTML=
+        '<span class="poster" style="background:linear-gradient(160deg,'+f.g1+','+f.g2+')">'+f.glyph+
+        '<em class="film-rate">★ '+f.rate.toFixed(1)+'</em></span>'+
+        '<span><span class="film-t">'+f.title+'</span>'+
+        '<span class="film-meta">'+f.year+' · '+f.genre+' · '+fmt(f.dur)+'</span>'+
+        '<span class="film-desc">'+f.desc+'</span>'+
+        '<span class="film-hint">点击载入银幕并加入队列</span></span>';
+      card.addEventListener("click",function(){ selectFilm(f.id,true); });
+      filmList.appendChild(card);
+    });
+  }
+
+  /* ---------- 队列渲染 ---------- */
+  function renderQueue(){
+    queueList.innerHTML="";
+    queueEmpty.hidden=state.queue.length>0;
+    state.queue.forEach(function(id,idx){
+      var f=filmOf(id);
+      var item=document.createElement("div");
+      item.className="qitem"+(state.current===id?" playing":"");
+      var isCurrent=(state.current===id);
+      item.innerHTML=
+        '<span class="qidx">'+String(idx+1).padStart(2,"0")+'</span>'+
+        '<span class="qtitle">'+f.title+'</span>'+
+        '<span class="qtime">'+fmt(f.dur)+'</span>';
+      var btns=document.createElement("span");
+      btns.className="qbtns";
+      function mk(label,title,fn,disabled){
+        var b=document.createElement("button");
+        b.type="button"; b.textContent=label; b.title=title;
+        if(disabled) b.disabled=true;
+        b.addEventListener("click",fn);
+        btns.appendChild(b);
+        return b;
+      }
+      mk(isCurrent?"❚❚":"▶", isCurrent?"当前放映中":"放映这一部", function(){
+        if(state.offline){ showToast("网络中断中，无法切换影片"); return; }
+        selectFilm(id,false);
+        startPlay();
+      }, state.offline);
+      mk("↑","前移一位",function(){ moveQueue(idx,-1); }, idx===0||state.offline);
+      mk("↓","后移一位",function(){ moveQueue(idx,1); }, idx===state.queue.length-1||state.offline);
+      mk("✕","移出队列",function(){ removeQueue(id); }, isCurrent||state.offline);
+      item.appendChild(btns);
+      queueList.appendChild(item);
+    });
+  }
+
+  function addQueue(id){
+    if(state.queue.indexOf(id)===-1){ state.queue.push(id); renderQueue(); showToast("已加入放映队列"); }
+  }
+  function removeQueue(id){
+    var i=state.queue.indexOf(id);
+    if(i>-1){ state.queue.splice(i,1); renderQueue(); showToast("已移出放映队列"); }
+  }
+  function moveQueue(i,dir){
+    var j=i+dir;
+    if(j<0||j>=state.queue.length) return;
+    var t=state.queue[i]; state.queue[i]=state.queue[j]; state.queue[j]=t;
+    renderQueue();
+  }
+
+  /* ---------- 播放器 ---------- */
+  function selectFilm(id,fromCatalog){
+    if(state.offline||state.reconnecting){ showToast("网络中断中，请重新连接后再操作"); return; }
+    if(state.current===id){ if(fromCatalog) showToast("《"+filmOf(id).title+"》已在银幕上"); return; }
+    state.current=id;
+    state.progress=0;
+    state.playing=false;
+    state.ended=false;
+    stopTimer();
+    addQueue(id);
+    renderFilms(); renderQueue(); renderScreen(); updateChip(); updateStatus(); updateControls();
+    showToast("已载入《"+filmOf(id).title+"》，点击「播放」开始放映");
+  }
+
+  function renderScreen(){
+    var has=!!state.current;
+    screenIdle.hidden=has;
+    screenShow.hidden=!has;
+    if(has){
+      var f=filmOf(state.current);
+      pGlyph.textContent=f.glyph;
+      pTitle.textContent=f.title;
+      pMeta.textContent=f.year+" · "+f.genre+" · "+fmt(f.dur)+" · ★ "+f.rate.toFixed(1);
+      screen.style.background="radial-gradient(120% 130% at 50% 30%, "+f.g1+" 0%, #0a0507 78%)";
+    }else{
+      screen.style.background="#0a0507";
+    }
+    refreshScreenState();
+  }
+
+  function refreshScreenState(){
+    var cls="p-state";
+    var txt="待放映";
+    if(!state.current){ screen.classList.remove("live"); return; }
+    if(state.offline){ txt="网络中断"; }
+    else if(state.ended){ txt="本场放映结束"; }
+    else if(state.playing){ txt="放映中"; cls+=" live"; }
+    else if(state.progress>0){ txt="已暂停"; }
+    pState.textContent=txt;
+    pState.className=cls;
+    screen.classList.toggle("live", state.playing&&!state.offline);
+  }
+
+  function startTimer(){
+    stopTimer();
+    state.timer=setInterval(tick,1000);
+  }
+  function stopTimer(){ if(state.timer){ clearInterval(state.timer); state.timer=null; } }
+
+  function tick(){
+    if(!state.playing||state.offline) return;
+    var f=filmOf(state.current);
+    state.progress+=1;
+    if(state.progress>=f.dur){ state.progress=f.dur; onEnded(); }
+    updateStatus(); updateSeek();
+  }
+
+  function onEnded(){
+    state.playing=false;
+    stopTimer();
+    refreshScreenState(); updateChip(); updateControls();
+    var i=state.queue.indexOf(state.current);
+    if(i>-1&&i<state.queue.length-1){
+      var next=state.queue[i+1];
+      showToast("《"+filmOf(state.current).title+"》放映结束，自动切换下一部");
+      setTimeout(function(){
+        if(state.offline) return;
+        state.current=next; state.progress=0; state.playing=true; state.ended=false;
+        renderFilms(); renderQueue(); renderScreen(); startTimer();
+        updateChip(); updateStatus(); updateControls(); updateSeek();
+        showToast("开始放映《"+filmOf(next).title+"》");
+      },1200);
+    }else{
+      state.ended=true;
+      refreshScreenState(); updateChip();
+      showToast("本场放映结束，队列已无后续影片");
+    }
+  }
+
+  function startPlay(){
+    if(!state.current){ showToast("请先从片库选择一部影片"); return; }
+    if(state.offline){ showToast("网络中断中，无法播放"); return; }
+    state.playing=true;
+    state.ended=false;
+    startTimer();
+    refreshScreenState(); updateChip(); updateControls(); updateSeek();
+  }
+  function pausePlay(){
+    state.playing=false;
+    stopTimer();
+    refreshScreenState(); updateChip(); updateControls();
+  }
+  function togglePlay(){
+    if(!state.current){ showToast("请先从片库选择一部影片"); return; }
+    if(state.offline){ showToast("网络中断中，请重新连接"); return; }
+    if(state.playing){ pausePlay(); showToast("已暂停，进度保持在 "+fmt(state.progress)); }
+    else{ startPlay(); }
+  }
+
+  function updateSeek(){
+    var f=state.current?filmOf(state.current):null;
+    if(!f){ curTime.textContent="00:00"; durTime.textContent="--:--"; seekSlider.value=0; seekSlider.style.setProperty("--p","0%"); return; }
+    var p=state.progress/f.dur*100;
+    seekSlider.value=String(Math.round(state.progress/f.dur*1000));
+    seekSlider.style.setProperty("--p",p+"%");
+    curTime.textContent=fmt(state.progress);
+    durTime.textContent=fmt(f.dur);
+  }
+
+  function updateStatus(){
+    var f=state.current?filmOf(state.current):null;
+    kvFilm.textContent=f?f.title:"—";
+    kvProg.textContent=f?fmt(state.progress):"—";
+    kvRemain.textContent=f?fmt(f.dur-state.progress):"—";
+    updateSeek();
+  }
+
+  function updateChip(){
+    stateChip.className="chip";
+    var t="待机";
+    if(state.current){
+      if(state.offline){ stateChip.classList.add("offline"); t="网络中断"; }
+      else if(state.playing){ stateChip.classList.add("playing"); t="播放中"; }
+      else if(state.ended){ t="放映结束"; }
+      else if(state.progress>0){ stateChip.classList.add("paused"); t="已暂停"; }
+      else{ t="待放映"; }
+    }
+    stateChipText.textContent=t;
+    refreshScreenState();
+  }
+
+  function updateControls(){
+    var has=!!state.current;
+    var busy=state.offline||state.reconnecting;
+    playBtn.disabled=!has||busy;
+    seekSlider.disabled=!has||busy;
+    drillBtn.disabled=!has||state.offline;
+    saveBtn.disabled=!has||busy;
+    playGlyph.textContent=state.playing?"❚❚":"▶";
+    playText.textContent=state.playing?"暂停":"播放";
+  }
+
+  /* ---------- 保存 / 恢复 ---------- */
+  function renderSaved(){
+    if(!state.saved){ return; }
+    var f=filmOf(state.saved.id);
+    savedBlock.innerHTML=
+      '<span class="saved-badge">已保存</span>'+
+      '<div>《<span class="saved-name">'+f.title+'</span>》 进度 '+fmt(state.saved.progress)+'</div>'+
+      '<div class="saved-time">保存于 '+state.saved.at+'</div>';
+    var back=document.createElement("button");
+    back.type="button"; back.className="backbtn"; back.textContent="回到此进度继续";
+    back.addEventListener("click",restoreSaved);
+    savedBlock.appendChild(back);
+  }
+
+  function saveProgress(){
+    if(!state.current){ showToast("请先选择影片"); return; }
+    if(state.offline){ showToast("网络中断中，无法保存"); return; }
+    var f=filmOf(state.current);
+    var now=new Date();
+    function p(n){ return (n<10?"0":"")+n; }
+    state.saved={id:state.current, progress:state.progress, at:p(now.getHours())+":"+p(now.getMinutes())+":"+p(now.getSeconds())};
+    renderSaved();
+    showToast("已保存播放状态：《"+f.title+"》 "+fmt(state.progress));
+  }
+
+  function restoreSaved(){
+    if(!state.saved) return;
+    if(state.offline){ showToast("网络中断中，请重新连接"); return; }
+    var f=filmOf(state.saved.id);
+    pausePlay();
+    state.current=state.saved.id;
+    state.progress=state.saved.progress;
+    state.ended=false;
+    addQueue(state.saved.id);
+    renderFilms(); renderQueue(); renderScreen(); updateStatus(); updateControls(); updateSeek();
+    startPlay();
+    showToast("已从保存进度 "+fmt(state.saved.progress)+" 继续《"+f.title+"》");
+  }
+
+  /* ---------- 断网演练 / 恢复 ---------- */
+  function drill(){
+    if(!state.current||state.offline) return;
+    state.wasPlaying=state.playing;
+    state.playing=false;
+    stopTimer();
+    state.offline=true;
+    keptTime.textContent=fmt(state.progress);
+    offlineOverlay.classList.add("show");
+    reconnectBtn.disabled=false;
+    reconnectBtn.textContent="重新连接";
+    netPill.classList.add("off");
+    netPillText.textContent="网络离线";
+    renderQueue();
+    updateChip(); updateControls();
+    showToast("断网演练：播放已暂停，进度保留在 "+fmt(state.progress));
+  }
+
+  function reconnect(){
+    if(!state.offline||state.reconnecting) return;
+    state.reconnecting=true;
+    reconnectBtn.disabled=true;
+    reconnectBtn.innerHTML='<span class="spin"></span>正在重新连接…';
+    setTimeout(function(){
+      state.offline=false;
+      state.reconnecting=false;
+      offlineOverlay.classList.remove("show");
+      netPill.classList.remove("off");
+      netPillText.textContent="网络在线";
+      if(state.wasPlaying&&!state.ended){
+        state.playing=true;
+        startTimer();
+        showToast("已恢复连接，从 "+fmt(state.progress)+" 继续播放");
+      }else{
+        showToast("已恢复连接，进度保留在 "+fmt(state.progress));
+      }
+      renderQueue();
+      updateChip(); updateControls(); updateStatus(); updateSeek();
+    },1600);
+  }
+
+  /* ---------- 事件绑定 ---------- */
+  playBtn.addEventListener("click",togglePlay);
+  drillBtn.addEventListener("click",drill);
+  saveBtn.addEventListener("click",saveProgress);
+  reconnectBtn.addEventListener("click",reconnect);
+  seekSlider.addEventListener("input",function(){
+    if(!state.current) return;
+    var f=filmOf(state.current);
+    state.progress=Math.round(f.dur*Number(seekSlider.value)/1000);
+    state.ended=false;
+    updateStatus();
+    if(!state.playing) showToast("已定位到 "+fmt(state.progress));
+  });
+
+  /* ---------- 大堂座位 ---------- */
+  function buildSeats(el,n){
+    var html="";
+    for(var i=0;i<n;i++){
+      var a=(i%2===0)?"#6e1020":"#4a0a14";
+      var b=(i%2===0)?"#a3182c":"#6e1020";
+      html+='<svg class="seat" viewBox="0 0 26 22"><path d="M5 20v-7a8 8 0 0 1 16 0v7z" fill="'+a+'"/><rect x="2" y="11" width="3.4" height="9" rx="1.7" fill="'+b+'"/><rect x="20.6" y="11" width="3.4" height="9" rx="1.7" fill="'+b+'"/></svg>';
+    }
+    el.innerHTML=html;
+  }
+  buildSeats($("seatsLeft"),9);
+  buildSeats($("seatsRight"),9);
+
+  /* ---------- 初始化 ---------- */
+  renderFilms();
+  renderQueue();
+  updateChip();
+  updateStatus();
+  updateControls();
+})();
+</script>
+</body>
+</html>

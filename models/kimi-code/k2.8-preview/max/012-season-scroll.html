@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>时序卷 · 行事历</title>
+<style>
+:root{
+  --wall:#29251f;
+  --paper:#f2e8d0;
+  --paper-deep:#e9dbb8;
+  --frame:#b3a075;
+  --hairline:#d9c89c;
+  --ink:#2f2a22;
+  --ink-soft:#6f6350;
+  --ink-faint:#a3937a;
+  --wood:#4a3524;
+  --wood-hi:#6b4e34;
+  --cap:#8a6540;
+  --seal:#b5402f;
+  --spring:#5d7d3a;  --spring-bg:#edf2df; --spring-fg:#465f2b;
+  --summer:#b04a3c;  --summer-bg:#f7e7e2; --summer-fg:#8d3a2f;
+  --autumn:#b97e26;  --autumn-bg:#f6ecd6; --autumn-fg:#96661c;
+  --winter:#3f5d7a;  --winter-bg:#e5ebf1; --winter-fg:#334d66;
+  --serif:"Songti SC","STSong","STZhongsong","SimSun","NSimSun",Georgia,"Times New Roman",serif;
+  --sans:system-ui,-apple-system,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{ -webkit-text-size-adjust:100%; }
+body{
+  background:
+    radial-gradient(1200px 600px at 50% -10%, rgba(255,244,214,.06), transparent 60%),
+    var(--wall);
+  color:var(--ink);
+  font-family:var(--sans);
+  font-size:14px;
+  line-height:1.6;
+  min-height:100vh;
+  padding:40px 24px 56px;
+}
+button{ font-family:inherit; }
+
+/* ===== 卷轴整体 ===== */
+.scroll{ max-width:1120px; margin:0 auto; }
+.roller{
+  position:relative;
+  height:40px;
+  border-radius:20px;
+  background:linear-gradient(180deg,var(--wood-hi) 0%,var(--wood) 46%,#33241a 100%);
+  box-shadow:0 6px 18px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,235,200,.25);
+}
+.roller::before,.roller::after{
+  content:"";
+  position:absolute;
+  top:50%;
+  width:30px;
+  height:54px;
+  transform:translateY(-50%);
+  border-radius:13px;
+  background:linear-gradient(180deg,#9a7148 0%,var(--cap) 45%,#4f3a26 100%);
+  box-shadow:inset 0 2px 3px rgba(255,240,210,.35), inset 0 -3px 5px rgba(0,0,0,.4), 0 4px 10px rgba(0,0,0,.45);
+}
+.roller::before{ left:-20px; }
+.roller::after{ right:-20px; }
+.roller-bottom{ margin-top:-2px; }
+
+.paper{
+  position:relative;
+  margin:0 10px;
+  padding:36px 64px 30px;
+  background:
+    repeating-linear-gradient(0deg, rgba(140,110,60,.045) 0 1px, transparent 1px 7px),
+    repeating-linear-gradient(90deg, rgba(140,110,60,.03) 0 1px, transparent 1px 9px),
+    linear-gradient(180deg,var(--paper) 0%,#f0e5c9 55%,var(--paper-deep) 100%);
+  box-shadow:inset 0 0 70px rgba(120,90,40,.20), inset 0 0 0 1px rgba(179,160,117,.55), 0 18px 50px rgba(0,0,0,.38);
+}
+
+/* 卷边绫绢竖条 */
+.band{
+  position:absolute;
+  top:34px;
+  bottom:30px;
+  width:22px;
+  writing-mode:vertical-rl;
+  text-align:center;
+  font-family:var(--serif);
+  font-size:13px;
+  letter-spacing:10px;
+  color:var(--seal);
+  opacity:.85;
+  user-select:none;
+}
+.band::before,.band::after{
+  content:"";
+  position:absolute;
+  left:50%;
+  width:10px;
+  height:10px;
+  transform:translateX(-50%) rotate(45deg);
+  border:1px solid var(--seal);
+}
+.band::before{ top:-2px; }
+.band::after{ bottom:-2px; }
+.band-left{ left:20px; }
+.band-right{ right:20px; }
+
+/* ===== 卷首：印章 + 月题 + 翻页 ===== */
+.masthead{
+  display:flex;
+  align-items:center;
+  gap:20px;
+  padding-bottom:20px;
+  border-bottom:2px solid var(--ink);
+  position:relative;
+}
+.masthead::after{
+  content:"";
+  position:absolute;
+  left:0; right:0; bottom:-6px;
+  border-bottom:1px solid var(--ink);
+  opacity:.5;
+}
+.seal{
+  flex:none;
+  width:46px;
+  height:46px;
+  background:linear-gradient(150deg,#c34b36,var(--seal) 60%);
+  color:#fdf6e8;
+  font-family:var(--serif);
+  font-size:17px;
+  font-weight:700;
+  line-height:1.15;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  border-radius:6px;
+  box-shadow:inset 0 0 0 2px rgba(253,246,232,.7), inset 0 0 8px rgba(0,0,0,.25), 0 2px 6px rgba(0,0,0,.25);
+  transform:rotate(-2deg);
+  user-select:none;
+}
+.mast-title{ flex:1; min-width:0; }
+.mast-title h1{
+  font-family:var(--serif);
+  font-size:42px;
+  font-weight:700;
+  line-height:1.1;
+  letter-spacing:.12em;
+}
+.mast-title .sub{
+  margin-top:6px;
+  font-size:13px;
+  color:var(--ink-soft);
+  letter-spacing:.08em;
+}
+.mast-nav{ flex:none; display:flex; gap:10px; align-items:center; }
+.navbtn{
+  height:36px;
+  padding:0 16px;
+  font-size:13px;
+  letter-spacing:.05em;
+  color:var(--ink);
+  background:#f7efdc;
+  border:1px solid #a08c5f;
+  border-radius:4px;
+  cursor:pointer;
+  transition:background .18s ease, transform .18s ease;
+}
+.navbtn:hover:not(:disabled){ background:#efe0bd; transform:translateY(-1px); }
+.navbtn:focus-visible{ outline:2px solid var(--seal); outline-offset:2px; }
+.navbtn:disabled{ opacity:.4; cursor:default; }
+.navbtn.primary-btn{
+  background:var(--ink);
+  color:#f5ecd6;
+  border-color:var(--ink);
+}
+.navbtn.primary-btn:hover:not(:disabled){ background:#453d2f; }
+
+/* ===== 历面外框 ===== */
+.board{
+  margin-top:22px;
+  border:1px solid var(--frame);
+  box-shadow:inset 0 0 0 3px var(--paper), inset 0 0 0 4px #c9b88c;
+  background:rgba(255,252,244,.35);
+  animation:sheetin .32s ease both;
+}
+.weekday{
+  display:grid;
+  grid-template-columns:repeat(7,1fr);
+  border-bottom:1px solid var(--frame);
+}
+.weekday span{
+  height:38px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-family:var(--serif);
+  font-size:14px;
+  letter-spacing:.2em;
+  color:var(--ink-soft);
+  border-right:1px solid var(--hairline);
+}
+.weekday span:last-child{ border-right:none; }
+.weekday span.wk{ color:var(--seal); }
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(7,1fr);
+}
+.day{
+  min-height:94px;
+  padding:6px 8px 8px;
+  border-right:1px solid var(--hairline);
+  border-bottom:1px solid var(--hairline);
+  display:flex;
+  flex-direction:column;
+  background:transparent;
+}
+.day:nth-child(7n){ border-right:none; }
+.day:nth-child(n+36){ border-bottom:none; }
+.day.weekend{ background:rgba(120,95,50,.05); }
+.day.out{ background:rgba(120,95,50,.07); }
+.dhead{
+  display:flex;
+  align-items:baseline;
+  gap:6px;
+  min-height:22px;
+}
+.num{
+  font-family:var(--serif);
+  font-size:17px;
+  font-weight:700;
+  color:var(--ink);
+  line-height:22px;
+  min-width:22px;
+  text-align:center;
+}
+.day.out .num{ color:var(--ink-faint); font-weight:400; font-size:14px; }
+.tag-solar,.tag-lun{
+  font-size:10px;
+  letter-spacing:.02em;
+  padding:1px 5px;
+  border-radius:3px;
+  white-space:nowrap;
+}
+.tag-solar{ color:var(--seal); border:1px solid rgba(181,64,47,.5); }
+.tag-lun{ color:var(--ink-soft); }
+.tag-lun.fest{ color:var(--seal); font-weight:600; }
+.day.today .num{
+  background:var(--seal);
+  color:#fdf6e8;
+  border-radius:50%;
+  box-shadow:0 0 0 3px rgba(181,64,47,.22);
+}
+
+/* 四季事件签 */
+.chip{
+  display:block;
+  width:100%;
+  margin-top:4px;
+  padding:3px 6px 3px 7px;
+  font-size:12px;
+  line-height:1.35;
+  text-align:left;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  cursor:pointer;
+  border:none;
+  border-left:3px solid var(--cat);
+  background:var(--cat-bg);
+  color:var(--cat-fg);
+  border-radius:0 4px 4px 0;
+  transition:transform .16s ease, box-shadow .16s ease, filter .16s ease;
+}
+.chip .ct{ opacity:.72; margin-right:4px; font-size:11px; }
+.chip:hover{ transform:translateX(2px); box-shadow:0 2px 6px rgba(60,45,20,.22); filter:saturate(1.08); }
+.chip:focus-visible{ outline:2px solid var(--cat); outline-offset:1px; }
+.cat-spring{ --cat:var(--spring); --cat-bg:var(--spring-bg); --cat-fg:var(--spring-fg); }
+.cat-summer{ --cat:var(--summer); --cat-bg:var(--summer-bg); --cat-fg:var(--summer-fg); }
+.cat-autumn{ --cat:var(--autumn); --cat-bg:var(--autumn-bg); --cat-fg:var(--autumn-fg); }
+.cat-winter{ --cat:var(--winter); --cat-bg:var(--winter-bg); --cat-fg:var(--winter-fg); }
+/* 卷尾：四季图例 */
+.legend{
+  margin-top:22px;
+  padding-top:16px;
+  border-top:1px solid var(--frame);
+  display:flex;
+  align-items:center;
+  gap:26px;
+  flex-wrap:wrap;
+  font-size:13px;
+  color:var(--ink-soft);
+}
+.legend .lg{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.legend .dot{
+  width:12px; height:12px;
+  border-radius:3px;
+  background:var(--cat);
+  box-shadow:inset 0 0 0 1px rgba(0,0,0,.12);
+}
+.legend .lg b{ color:var(--ink); font-weight:600; }
+.legend .total{ margin-left:auto; letter-spacing:.04em; }
+.legend .total b{ color:var(--seal); font-family:var(--serif); font-size:16px; }
+
+.colophon{
+  margin-top:14px;
+  text-align:center;
+  font-family:var(--serif);
+  font-size:12px;
+  letter-spacing:.35em;
+  color:var(--ink-faint);
+}
+
+/* ===== 详情浮层 ===== */
+.overlay{
+  position:fixed;
+  inset:0;
+  z-index:40;
+  display:none;
+  place-items:center;
+  padding:24px;
+  background:rgba(30,24,16,.55);
+}
+.overlay.open{ display:grid; }
+.modal{
+  position:relative;
+  width:430px;
+  max-width:100%;
+  background:
+    repeating-linear-gradient(0deg, rgba(140,110,60,.05) 0 1px, transparent 1px 7px),
+    linear-gradient(180deg,#f5ecd6,#eee0bf);
+  border:1px solid var(--frame);
+  box-shadow:inset 0 0 0 3px rgba(245,236,214,.9), inset 0 0 0 4px #c9b88c, 0 30px 70px rgba(0,0,0,.5);
+  padding:28px 30px 24px;
+  animation:popin .26s ease both;
+}
+.modal::after{
+  content:"詳";
+  position:absolute;
+  top:18px; right:20px;
+  width:26px; height:26px;
+  display:flex; align-items:center; justify-content:center;
+  font-family:var(--serif);
+  font-size:14px;
+  color:#fdf6e8;
+  background:var(--seal);
+  border-radius:4px;
+  transform:rotate(3deg);
+  opacity:.9;
+}
+.m-head{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding-bottom:14px;
+  border-bottom:1px solid var(--frame);
+}
+.m-tag{
+  flex:none;
+  min-width:34px;
+  height:34px;
+  padding:0 8px;
+  display:flex; align-items:center; justify-content:center;
+  font-family:var(--serif);
+  font-size:16px;
+  font-weight:700;
+  color:#fdf6e8;
+  background:var(--cat);
+  border-radius:5px;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.35);
+}
+.m-head h2{
+  font-family:var(--serif);
+  font-size:21px;
+  font-weight:700;
+  letter-spacing:.04em;
+  line-height:1.3;
+}
+.m-rows{
+  margin-top:16px;
+  display:grid;
+  grid-template-columns:auto 1fr;
+  row-gap:10px;
+  column-gap:18px;
+  font-size:13px;
+}
+.m-rows dt{ color:var(--ink-soft); letter-spacing:.15em; }
+.m-rows dd{ color:var(--ink); }
+.m-rows dd .catname{ color:var(--cat-fg); font-weight:600; }
+.m-note{
+  margin-top:16px;
+  padding:12px 14px;
+  font-size:13px;
+  line-height:1.7;
+  color:var(--ink-soft);
+  background:rgba(255,252,244,.5);
+  border-left:3px solid var(--cat);
+  border-radius:0 4px 4px 0;
+}
+.m-foot{ margin-top:20px; display:flex; justify-content:flex-end; }
+.m-close{
+  height:36px;
+  padding:0 22px;
+  font-size:13px;
+  letter-spacing:.1em;
+  color:#f5ecd6;
+  background:var(--ink);
+  border:none;
+  border-radius:4px;
+  cursor:pointer;
+  transition:background .18s ease;
+}
+.m-close:hover{ background:var(--seal); }
+.m-close:focus-visible{ outline:2px solid var(--seal); outline-offset:2px; }
+
+@keyframes sheetin{
+  from{ opacity:.35; transform:translateY(8px); }
+  to{ opacity:1; transform:none; }
+}
+@keyframes popin{
+  from{ opacity:0; transform:translateY(14px) scale(.98); }
+  to{ opacity:1; transform:none; }
+}
+
+@media (max-width:980px){
+  body{ padding:24px 14px 36px; }
+  .band{ display:none; }
+  .paper{ padding:24px 22px 22px; }
+  .mast-title h1{ font-size:30px; }
+  .day{ min-height:84px; padding:5px 6px 6px; }
+}
+@media (max-width:768px){
+  .roller::before,.roller::after{ width:18px; height:40px; }
+  .roller::before{ left:-10px; }
+  .roller::after{ right:-10px; }
+  .masthead{ flex-wrap:wrap; gap:12px; }
+  .mast-nav{ width:100%; justify-content:flex-start; flex-wrap:wrap; }
+  .weekday span{ font-size:12px; letter-spacing:.05em; }
+  .num{ font-size:14px; }
+  .tag-lun{ display:none; }
+  .chip{ font-size:11px; padding:2px 4px 2px 5px; }
+  .legend{ gap:14px; }
+  .legend .total{ margin-left:0; width:100%; }
+  .modal{ padding:22px 20px 20px; }
+}
+
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{
+    animation-duration:.01ms !important;
+    animation-iteration-count:1 !important;
+    transition-duration:.01ms !important;
+  }
+  .board{ animation:none; }
+  .modal{ animation:none; }
+  .chip:hover{ transform:none; }
+  .navbtn:hover:not(:disabled){ transform:none; }
+}
+</style>
+</head>
+<body>
+
+<div class="scroll">
+  <div class="roller roller-top" aria-hidden="true"></div>
+
+  <div class="paper">
+    <div class="band band-left" aria-hidden="true">顺时而作</div>
+    <div class="band band-right" aria-hidden="true">岁月成卷</div>
+
+    <header class="masthead">
+      <div class="seal" aria-hidden="true">时序</div>
+      <div class="mast-title">
+        <h1 id="monthTitle">九月</h1>
+        <p class="sub" id="monthSub">2026 年 9 月 · 农历八月 · 白露至秋分</p>
+      </div>
+      <div class="mast-nav">
+        <button class="navbtn" id="prevBtn" type="button">‹ 上一月</button>
+        <button class="navbtn" id="nextBtn" type="button">下一月 ›</button>
+        <button class="navbtn primary-btn" id="todayBtn" type="button">回到今日</button>
+      </div>
+    </header>
+
+    <div class="board">
+      <div class="weekday" aria-hidden="true">
+        <span class="wk">日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span class="wk">六</span>
+      </div>
+      <div class="grid" id="grid"></div>
+    </div>
+
+    <footer class="legend" id="legend">
+      <span class="lg cat-spring"><i class="dot"></i><b>春</b>立项播种</span>
+      <span class="lg cat-summer"><i class="dot"></i><b>夏</b>生长执行</span>
+      <span class="lg cat-autumn"><i class="dot"></i><b>秋</b>收获交付</span>
+      <span class="lg cat-winter"><i class="dot"></i><b>冬</b>储藏规划</span>
+      <span class="total" id="legendTotal">本月共 <b>0</b> 件安排</span>
+    </footer>
+
+    <p class="colophon">时 序 卷 · 四 季 行 事 历</p>
+  </div>
+
+  <div class="roller roller-bottom" aria-hidden="true"></div>
+</div>
+
+<div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+  <div class="modal">
+    <div class="m-head">
+      <span class="m-tag" id="modalTag">秋</span>
+      <h2 id="modalTitle">事件标题</h2>
+    </div>
+    <dl class="m-rows">
+      <dt>日期</dt><dd id="modalDate">—</dd>
+      <dt>时间</dt><dd id="modalTime">—</dd>
+      <dt>地点</dt><dd id="modalLoc">—</dd>
+      <dt>时令</dt><dd id="modalCat">—</dd>
+    </dl>
+    <p class="m-note" id="modalDesc">—</p>
+    <div class="m-foot">
+      <button class="m-close" id="closeBtn" type="button">收起</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var EVENTS = {
+    "2026-08-03":[
+      {t:"暑期大促最后一波发货",time:"09:30 – 18:00",cat:"summer",loc:"仓储一部",d:"大促收尾日，当日订单须全部出库，晚八点前回传物流单号。"}
+    ],
+    "2026-08-07":[
+      {t:"立秋 · 换季上新排期会",time:"10:00 – 11:00",cat:"autumn",loc:"三层会议室",d:"确定秋装上新节奏、详情页排期与摄影档期。"}
+    ],
+    "2026-08-12":[
+      {t:"暑期客服值班表确认",time:"15:00 – 15:30",cat:"summer",loc:"线上",d:"确认八月剩余班次，目前缺口两人，需与外包协调补齐。"}
+    ],
+    "2026-08-19":[
+      {t:"年中大促复盘会",time:"14:00 – 16:00",cat:"summer",loc:"大会议室",d:"复盘投放 ROI、退换货原因 Top10，输出三条改进项。"}
+    ],
+    "2026-08-23":[
+      {t:"处暑 · 秋装 lookbook 拍摄",time:"08:30 – 17:30",cat:"autumn",loc:"影棚 B",d:"秋装画册拍摄日，模特九点到场，共六组造型。"}
+    ],
+    "2026-08-27":[
+      {t:"秋季面料供应商谈判",time:"10:00 – 12:00",cat:"autumn",loc:"贵宾室",d:"谈针织面料年度框架价，目标在上季基础上下浮 6%。"}
+    ],
+    "2026-09-01":[
+      {t:"九月排产计划发布",time:"09:30 – 10:30",cat:"autumn",loc:"大会议室",d:"发布九月排产表，同步面料到货风险与备用产线。"}
+    ],
+    "2026-09-02":[
+      {t:"2027 春季新品头脑风暴",time:"15:00 – 16:30",cat:"spring",loc:"三层会议室",d:"为明年春季线收集概念，每人带三个参考款。"}
+    ],
+    "2026-09-04":[
+      {t:"新品详情页设计评审",time:"14:00 – 15:30",cat:"autumn",loc:"三层会议室",d:"评审九月上新的详情页初稿，重点看首屏卖点表达。"}
+    ],
+    "2026-09-07":[
+      {t:"白露 · 节气茶歇",time:"15:00 – 15:30",cat:"autumn",loc:"茶水间",d:"白露饮茶，行政备了雪梨与桂花糕，欢迎顺手尝鲜。"}
+    ],
+    "2026-09-08":[
+      {t:"冬季企划立项会",time:"10:00 – 11:30",cat:"winter",loc:"大会议室",d:"确认冬季企划方向：羽绒服两条线、呢大衣一条线。"}
+    ],
+    "2026-09-11":[
+      {t:"秋季发布会彩排",time:"13:00 – 17:00",cat:"autumn",loc:"一层展厅",d:"全流程走台一遍，灯光音响联调，走位以最终台本为准。"}
+    ],
+    "2026-09-15":[
+      {t:"八月销售数据复盘",time:"10:00 – 11:00",cat:"autumn",loc:"线上",d:"八月 GMV 与转化率复盘，异常波动店铺单独过一遍。"}
+    ],
+    "2026-09-17":[
+      {t:"夏季尾货清仓盘点",time:"14:00 – 17:00",cat:"summer",loc:"仓储二部",d:"夏季尾货清点入仓，按折扣档位贴标分区。"}
+    ],
+    "2026-09-18":[
+      {t:"冬季囤货采购清单确认",time:"09:30 – 10:30",cat:"winter",loc:"采购部",d:"确认冬装首单采购量，羽绒服面料需双供应商备份。"}
+    ],
+    "2026-09-21":[
+      {t:"供应商交付风险对齐",time:"16:00 – 17:00",cat:"autumn",loc:"线上",d:"对齐三家延迟交付供应商的追赶计划，明确赔付条款。"}
+    ],
+    "2026-09-23":[
+      {t:"秋分 · 团队登山",time:"14:00 – 18:00",cat:"autumn",loc:"西山步道",d:"秋分登高，两点山脚集合，自备水与外套。"}
+    ],
+    "2026-09-25":[
+      {t:"中秋伴手礼寄送",time:"10:00 – 12:00",cat:"autumn",loc:"行政部",d:"中秋客户伴手礼分批寄出，大客户名单单独核对地址。"}
+    ],
+    "2026-09-28":[
+      {t:"Q4 营销预算对齐",time:"14:00 – 15:30",cat:"autumn",loc:"大会议室",d:"对齐双十一与双十二预算拆分，确认投放上限。"}
+    ],
+    "2026-09-29":[
+      {t:"双十一项目组启动",time:"09:30 – 11:00",cat:"winter",loc:"大会议室",d:"项目组正式成军，明确作战室地点与晨会制度。"}
+    ],
+    "2026-09-30":[
+      {t:"Q4 OKR 草稿评审",time:"15:00 – 16:30",cat:"winter",loc:"线上",d:"逐组过 Q4 OKR 草稿，假期前定稿。"}
+    ],
+    "2026-10-01":[
+      {t:"国庆假期值班表",time:"全天",cat:"autumn",loc:"公司",d:"假期值班安排生效，值班同学保持电话畅通。"}
+    ],
+    "2026-10-09":[
+      {t:"冬季新品大片拍摄",time:"08:30 – 18:00",cat:"winter",loc:"影棚 A",d:"冬季形象大片拍摄，雪景棚拍，共四套造型。"}
+    ],
+    "2026-10-15":[
+      {t:"双十一备货启动会",time:"10:00 – 11:30",cat:"winter",loc:"大会议室",d:"锁定双十一备货清单与入仓截止日。"}
+    ],
+    "2026-10-18":[
+      {t:"重阳敬老慰问",time:"09:00 – 12:00",cat:"autumn",loc:"社区服务站",d:"重阳慰问社区老人，志愿者九点到场布点。"}
+    ],
+    "2026-10-23":[
+      {t:"霜降 · 冬装补货会",time:"14:00 – 15:00",cat:"winter",loc:"采购部",d:"依据预售数据敲定冬装首批补货量。"}
+    ],
+    "2026-10-27":[
+      {t:"年度预算初审",time:"10:00 – 12:00",cat:"winter",loc:"财务室",d:"各部门年度预算初审，带齐本季实际花费对照表。"}
+    ]
+  };
+
+  var SOLAR = {
+    "2026-08-07":"立秋","2026-08-23":"处暑",
+    "2026-09-07":"白露","2026-09-23":"秋分",
+    "2026-10-08":"寒露","2026-10-23":"霜降"
+  };
+  var LUNAR = {
+    "2026-09-11":"八月初一",
+    "2026-09-25":"八月十五 · 中秋"
+  };
+  var CATS = {
+    spring:{mark:"春",name:"春 · 立项播种"},
+    summer:{mark:"夏",name:"夏 · 生长执行"},
+    autumn:{mark:"秋",name:"秋 · 收获交付"},
+    winter:{mark:"冬",name:"冬 · 储藏规划"}
+  };
+  var SUBS = {
+    "2026-8":"2026 年 8 月 · 农历六月末 · 立秋至处暑",
+    "2026-9":"2026 年 9 月 · 农历八月 · 白露至秋分",
+    "2026-10":"2026 年 10 月 · 农历九月 · 寒露至霜降"
+  };
+  var MIN = {y:2026,m:8}, MAX = {y:2026,m:10};
+  var TODAY = {y:2026,m:9,d:11};
+  var WEEK = ["日","一","二","三","四","五","六"];
+
+  var view = {y:2026,m:9};
+
+  var grid = document.getElementById("grid");
+  var monthTitle = document.getElementById("monthTitle");
+  var monthSub = document.getElementById("monthSub");
+  var prevBtn = document.getElementById("prevBtn");
+  var nextBtn = document.getElementById("nextBtn");
+  var todayBtn = document.getElementById("todayBtn");
+  var legendTotal = document.getElementById("legendTotal");
+  var overlay = document.getElementById("overlay");
+  var closeBtn = document.getElementById("closeBtn");
+
+  function pad(n){ return (n<10?"0":"")+n; }
+  function key(y,m,d){ return y+"-"+pad(m)+"-"+pad(d); }
+
+  function render(){
+    var y = view.y, m = view.m;
+    monthTitle.textContent = m + "月";
+    var sub = SUBS[y+"-"+m];
+    monthSub.textContent = sub || (y+" 年 "+m+" 月");
+
+    var first = new Date(y, m-1, 1).getDay();
+    var dim = new Date(y, m, 0).getDate();
+    var prevDim = new Date(y, m-1, 0).getDate();
+
+    var html = "";
+    var counts = {spring:0,summer:0,autumn:0,winter:0};
+    var total = 0;
+
+    for(var i=0;i<42;i++){
+      var d, out=false, ny=y, nm=m;
+      if(i<first){ d = prevDim-(first-1-i); nm=m-1; out=true; if(nm<1){nm=12;ny=y-1;} }
+      else if(i<first+dim){ d = i-first+1; }
+      else { d = i-first-dim+1; nm=m+1; out=true; if(nm>12){nm=1;ny=y+1;} }
+      var k = key(ny,nm,d);
+      var isWk = (i%7===0 || i%7===6);
+      var cls = "day" + (out?" out":"") + (isWk?" weekend":"");
+      var isToday = (!out && ny===TODAY.y && nm===TODAY.m && d===TODAY.d);
+      if(isToday) cls += " today";
+
+      html += '<div class="'+cls+'"><div class="dhead">';
+      html += '<span class="num">'+d+'</span>';
+      if(SOLAR[k]) html += '<span class="tag-solar">'+SOLAR[k]+'</span>';
+      if(LUNAR[k] && !out) html += '<span class="tag-lun'+(LUNAR[k].indexOf("中秋")>-1?" fest":"")+'">'+LUNAR[k]+'</span>';
+      html += '</div>';
+
+      var evs = EVENTS[k];
+      if(evs && !out){
+        for(var j=0;j<evs.length;j++){
+          var e = evs[j];
+          counts[e.cat]++; total++;
+          html += '<button type="button" class="chip cat-'+e.cat+'" data-k="'+k+'" data-i="'+j+'" title="'+e.t+'">'
+               + '<span class="ct">'+e.time.split(" ")[0]+'</span>'+e.t+'</button>';
+        }
+      }
+      html += '</div>';
+    }
+    grid.innerHTML = html;
+    legendTotal.innerHTML = '本月共 <b>'+total+'</b> 件安排 · 春 '+counts.spring+' / 夏 '+counts.summer+' / 秋 '+counts.autumn+' / 冬 '+counts.winter;
+
+    prevBtn.disabled = (y<=MIN.y && m<=MIN.m);
+    nextBtn.disabled = (y>=MAX.y && m>=MAX.m);
+    todayBtn.disabled = (y===TODAY.y && m===TODAY.m);
+  }
+
+  function openModal(k, i){
+    var e = EVENTS[k][i];
+    var parts = k.split("-");
+    var dt = new Date(+parts[0], +parts[1]-1, +parts[2]);
+    document.getElementById("modalTag").textContent = CATS[e.cat].mark;
+    document.getElementById("modalTag").className = "m-tag cat-"+e.cat;
+    document.getElementById("modalTitle").textContent = e.t;
+    document.getElementById("modalDate").textContent = parts[0]+" 年 "+(+parts[1])+" 月 "+(+parts[2])+" 日 · 周"+WEEK[dt.getDay()];
+    document.getElementById("modalTime").textContent = e.time;
+    document.getElementById("modalLoc").textContent = e.loc;
+    var catCell = document.getElementById("modalCat");
+    catCell.innerHTML = '<span class="catname cat-'+e.cat+'">'+CATS[e.cat].name+'</span>';
+    document.getElementById("modalDesc").textContent = e.d;
+    document.querySelector(".m-note").className = "m-note cat-"+e.cat;
+    overlay.classList.add("open");
+    closeBtn.focus();
+  }
+  function closeModal(){ overlay.classList.remove("open"); }
+
+  grid.addEventListener("click", function(ev){
+    var btn = ev.target.closest(".chip");
+    if(btn) openModal(btn.getAttribute("data-k"), +btn.getAttribute("data-i"));
+  });
+  prevBtn.addEventListener("click", function(){
+    view.m--; if(view.m<1){view.m=12;view.y--;} render();
+  });
+  nextBtn.addEventListener("click", function(){
+    view.m++; if(view.m>12){view.m=1;view.y++;} render();
+  });
+  todayBtn.addEventListener("click", function(){
+    view.y = TODAY.y; view.m = TODAY.m; render();
+  });
+  closeBtn.addEventListener("click", closeModal);
+  overlay.addEventListener("click", function(ev){
+    if(ev.target===overlay) closeModal();
+  });
+  document.addEventListener("keydown", function(ev){
+    if(ev.key==="Escape" && overlay.classList.contains("open")) closeModal();
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>

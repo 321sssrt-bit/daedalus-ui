@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>我的温室 · 列表空态</title>
+<style>
+  :root{
+    --page:#F5F1E6;
+    --surface:#FFFFFF;
+    --ink:#22301F;
+    --muted:#6E7D64;
+    --accent:#2F6B3C;
+    --accent-press:#245231;
+    --accent-soft:#F1F6EC;
+    --line:#E3E8DA;
+    --terra:#C9703C;
+    --terra-dark:#B45E33;
+    --sun:#F2C94C;
+    --dome:#A9BC9B;
+    --wood:#A87B4F;
+    --soil:#5A4632;
+    --frame:#141A12;
+    --toast-ink:#F5F1E6;
+    --radius-ctl:26px;
+    --radius-card:18px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","HarmonyOS Sans SC","Source Han Sans SC","Noto Sans SC","Microsoft YaHei","Segoe UI",sans-serif;
+    background:radial-gradient(1200px 800px at 50% 18%,#2A3527,#171D14);
+    color:var(--ink);
+    display:flex;align-items:center;justify-content:center;
+    min-height:100dvh;
+    padding:24px;
+  }
+  :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+  /* ===== 手机框 ===== */
+  .phone{
+    width:390px;
+    height:min(844px,calc(100dvh - 48px));
+    min-height:600px;
+    background:var(--frame);
+    border-radius:54px;
+    padding:12px;
+    box-shadow:0 30px 80px rgba(0,0,0,.45),inset 0 0 0 2px #3A4433;
+    position:relative;
+    flex:none;
+  }
+  .notch{
+    position:absolute;top:12px;left:50%;transform:translateX(-50%);
+    width:112px;height:26px;background:var(--frame);border-radius:18px;z-index:30;
+  }
+  .screen{
+    height:100%;
+    border-radius:42px;
+    overflow:hidden;
+    background:var(--page);
+    display:flex;flex-direction:column;
+    position:relative;
+  }
+
+  /* ===== 状态栏 ===== */
+  .statusbar{
+    height:44px;flex:none;
+    display:flex;align-items:center;justify-content:space-between;
+    padding:0 22px 0 26px;
+    font-size:14px;font-weight:600;letter-spacing:.2px;
+    color:var(--ink);
+  }
+  .statusbar .icons{display:flex;align-items:center;gap:5px}
+
+  /* ===== 应用头部 ===== */
+  .app-header{
+    flex:none;
+    display:flex;align-items:center;justify-content:space-between;
+    padding:10px 20px 12px;
+  }
+  .app-header h1{font-size:20px;font-weight:700;letter-spacing:.5px}
+  .icon-btn{
+    position:relative;width:38px;height:38px;border:none;background:transparent;
+    border-radius:12px;display:grid;place-items:center;cursor:pointer;color:var(--ink);
+  }
+  .icon-btn:active{background:var(--line)}
+  .icon-btn .dot{
+    position:absolute;top:7px;right:7px;width:8px;height:8px;border-radius:50%;
+    background:var(--terra);border:2px solid var(--page);
+  }
+
+  /* ===== 内容区 ===== */
+  .content{
+    flex:1;overflow-y:auto;overscroll-behavior:contain;
+    padding:6px 24px 28px;
+    scrollbar-width:none;
+  }
+  .content::-webkit-scrollbar{display:none}
+
+  .halo{
+    width:216px;height:216px;margin:6px auto -8px;border-radius:50%;
+    background:radial-gradient(circle,rgba(87,167,99,.18) 0%,rgba(87,167,99,0) 70%);
+    display:grid;place-items:center;
+  }
+  .hero-svg{display:block}
+
+  .eyebrow{
+    text-align:center;margin-top:14px;
+    font-size:12px;font-weight:600;letter-spacing:2px;color:var(--terra);
+  }
+  .empty-title{
+    text-align:center;margin-top:8px;
+    font-size:22px;font-weight:700;letter-spacing:.5px;line-height:1.35;
+  }
+  .empty-desc{
+    text-align:center;margin:10px auto 0;max-width:286px;
+    font-size:14px;line-height:1.8;color:var(--muted);
+  }
+
+  .btn-primary{
+    width:100%;height:52px;margin-top:24px;
+    border:none;border-radius:var(--radius-ctl);
+    background:var(--accent);color:#fff;
+    font-size:16px;font-weight:600;letter-spacing:4px;
+    display:flex;align-items:center;justify-content:center;gap:8px;
+    cursor:pointer;
+    box-shadow:0 8px 18px rgba(47,107,60,.28);
+    transition:background .18s ease,transform .12s ease,box-shadow .18s ease;
+  }
+  .btn-primary .chev{transition:transform .2s ease}
+  .btn-primary[aria-expanded="true"] .chev{transform:rotate(180deg)}
+  .btn-primary:active{background:var(--accent-press);transform:translateY(1px);box-shadow:0 4px 10px rgba(47,107,60,.28)}
+
+  .link-quiet{
+    display:block;margin:16px auto 0;width:max-content;
+    font-size:14px;color:var(--accent);text-decoration:underline;
+    text-underline-offset:4px;text-decoration-thickness:1px;
+    background:none;border:none;cursor:pointer;
+  }
+  .link-quiet:active{color:var(--accent-press)}
+
+  /* ===== 创建选项面板 ===== */
+  .panel{
+    margin-top:20px;background:var(--surface);
+    border:1px solid var(--line);border-radius:var(--radius-card);
+    padding:16px 14px 14px;
+  }
+  .panel[hidden]{display:none}
+  .panel-head{display:flex;align-items:center;justify-content:space-between;padding:0 4px 4px}
+  .panel-head h2{font-size:15px;font-weight:700;letter-spacing:.5px}
+  .panel-head p{font-size:12px;color:var(--muted);margin-top:3px}
+  .panel-close{
+    width:30px;height:30px;border:none;border-radius:50%;cursor:pointer;
+    background:var(--accent-soft);color:var(--muted);
+    display:grid;place-items:center;flex:none;
+  }
+  .panel-close:active{background:var(--line)}
+  .opt{
+    display:flex;align-items:center;gap:12px;
+    width:100%;margin-top:8px;padding:12px;
+    border:1.5px solid transparent;border-radius:14px;
+    background:transparent;text-align:left;cursor:pointer;
+    transition:border-color .15s ease,background .15s ease;
+  }
+  .opt-ic{
+    width:38px;height:38px;border-radius:12px;flex:none;
+    background:var(--accent-soft);color:var(--accent);
+    display:grid;place-items:center;
+  }
+  .opt-txt{flex:1;min-width:0}
+  .opt-txt b{display:block;font-size:14px;font-weight:600;color:var(--ink)}
+  .opt-txt span{display:block;font-size:12px;color:var(--muted);margin-top:2px;line-height:1.5}
+  .opt-check{
+    width:22px;height:22px;border-radius:50%;flex:none;
+    border:1.5px solid var(--line);display:grid;place-items:center;
+    color:#fff;transition:background .15s ease,border-color .15s ease;
+  }
+  .opt.selected{border-color:var(--accent);background:var(--accent-soft)}
+  .opt.selected .opt-check{background:var(--accent);border-color:var(--accent)}
+  .opt:not(.selected) .opt-check svg{visibility:hidden}
+
+  /* ===== Toast ===== */
+  .toast{
+    position:absolute;left:50%;bottom:96px;transform:translateX(-50%) translateY(8px);
+    max-width:300px;padding:10px 16px;border-radius:20px;
+    background:var(--ink);color:var(--toast-ink);
+    font-size:13px;line-height:1.5;text-align:center;
+    opacity:0;pointer-events:none;z-index:40;
+    transition:opacity .2s ease,transform .2s ease;
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  /* ===== 底栏 ===== */
+  .navwrap{flex:none;background:var(--surface);border-top:1px solid var(--line)}
+  .nav{
+    display:flex;padding:8px 6px 0;
+  }
+  .nav-item{
+    flex:1;border:none;background:transparent;cursor:pointer;
+    display:flex;flex-direction:column;align-items:center;gap:3px;
+    padding:4px 0 2px;color:var(--muted);
+  }
+  .nav-item span{font-size:10px;letter-spacing:1px}
+  .nav-item.active{color:var(--accent)}
+  .nav-item.active .nav-ic{transform:translateY(-1px)}
+  .nav-ic{transition:transform .15s ease}
+  .nav-item:active{color:var(--accent-press)}
+  .home-indicator{
+    width:120px;height:4px;border-radius:2px;margin:6px auto 8px;
+    background:rgba(34,48,31,.35);
+  }
+
+  /* ===== 动效 ===== */
+  @keyframes rise{
+    from{opacity:0;transform:translateY(10px)}
+    to{opacity:1;transform:translateY(0)}
+  }
+  .rise{animation:rise .5s cubic-bezier(.22,.8,.35,1) both}
+  .d1{animation-delay:.05s}.d2{animation-delay:.14s}.d3{animation-delay:.22s}
+  .d4{animation-delay:.3s}.d5{animation-delay:.38s}.d6{animation-delay:.46s}
+  @keyframes panelIn{
+    from{opacity:0;transform:translateY(8px)}
+    to{opacity:1;transform:translateY(0)}
+  }
+  .panel{animation:panelIn .24s ease-out both}
+
+  @media (prefers-reduced-motion: reduce){
+    *{animation:none !important;transition:none !important}
+  }
+
+  /* ===== 窄屏：手机框占满 ===== */
+  @media (max-width:560px){
+    body{padding:0}
+    .phone{
+      width:100vw;height:100dvh;min-height:100dvh;
+      border-radius:0;padding:0;box-shadow:none;
+    }
+    .screen{border-radius:0}
+    .notch{display:none}
+  }
+</style>
+</head>
+<body>
+
+<div class="phone">
+  <div class="notch" aria-hidden="true"></div>
+  <div class="screen">
+
+    <!-- 状态栏 -->
+    <div class="statusbar">
+      <span id="statusTime">9:41</span>
+      <span class="icons" aria-hidden="true">
+        <svg width="17" height="12" viewBox="0 0 17 12" fill="currentColor"><rect x="0" y="7" width="3" height="5" rx="1"/><rect x="4.5" y="5" width="3" height="7" rx="1"/><rect x="9" y="2.5" width="3" height="9.5" rx="1"/><rect x="13.5" y="0" width="3" height="12" rx="1"/></svg>
+        <svg width="16" height="12" viewBox="0 0 16 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M1.5 4.5a10 10 0 0 1 13 0M4 7.2a6.4 6.4 0 0 1 8 0M6.6 9.8a2.8 2.8 0 0 1 2.8 0"/><circle cx="8" cy="11" r="1" fill="currentColor" stroke="none"/></svg>
+        <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x="0.5" y="0.5" width="21" height="11" rx="3" stroke="currentColor" opacity=".4"/><rect x="2" y="2" width="15" height="8" rx="1.8" fill="currentColor"/><path d="M23 4v4a2.2 2.2 0 0 0 0-4z" fill="currentColor" opacity=".5"/></svg>
+      </span>
+    </div>
+
+    <!-- 应用头部 -->
+    <header class="app-header">
+      <h1>我的温室</h1>
+      <button class="icon-btn" id="bellBtn" type="button" aria-label="养护提醒，3 条未读">
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 8-3 8h18s-3-1-3-8"/><path d="M13.7 20a2 2 0 0 1-3.4 0"/></svg>
+        <span class="dot" aria-hidden="true"></span>
+      </button>
+    </header>
+
+    <!-- 空态内容 -->
+    <main class="content">
+      <div class="halo rise d1">
+        <!-- 温室玻璃罩 + 赤陶盆 + 幼苗 -->
+        <svg class="hero-svg" width="240" height="190" viewBox="0 0 240 190" role="img" aria-label="玻璃温室罩里的一盆幼苗">
+          <circle cx="196" cy="30" r="13" fill="#F2C94C" opacity=".85"/>
+          <rect x="28" y="150" width="184" height="8" rx="4" fill="#A87B4F"/>
+          <rect x="40" y="146" width="160" height="5" rx="2.5" fill="#C99560"/>
+          <path d="M60 150 A60 62 0 0 1 180 150 Z" fill="rgba(255,255,255,.45)" stroke="#A9BC9B" stroke-width="2"/>
+          <path d="M73 138 A47 47 0 0 1 106 94" fill="none" stroke="rgba(255,255,255,.95)" stroke-width="3" stroke-linecap="round"/>
+          <circle cx="120" cy="87" r="3.5" fill="#A9BC9B"/>
+          <path d="M100 66 c1.5 4 4 6.5 8 8 -4 1.5 -6.5 4 -8 8 -1.5 -4 -4 -6.5 -8 -8 4 -1.5 6.5 -4 8 -8z" fill="#F2C94C" opacity=".9"/>
+          <path d="M196 96 c1.1 3 3 4.9 6 6 -3 1.1 -4.9 3 -6 6 -1.1 -3 -3 -4.9 -6 -6 3 -1.1 4.9 -3 6 -6z" fill="#F2C94C" opacity=".65"/>
+          <path d="M92 116 L148 116 L140 148 L100 148 Z" fill="#C9703C"/>
+          <rect x="88" y="110" width="64" height="10" rx="3.5" fill="#B45E33"/>
+          <ellipse cx="120" cy="114" rx="25" ry="4.5" fill="#5A4632"/>
+          <path d="M120 112 C120 98 120 88 120 78" fill="none" stroke="#2F6B3C" stroke-width="3" stroke-linecap="round"/>
+          <path d="M120 92 C104 88 98 76 100 66 C112 68 120 78 120 92 Z" fill="#3E8A4E"/>
+          <path d="M120 84 C136 80 142 68 140 58 C128 60 120 70 120 84 Z" fill="#57A763"/>
+          <path d="M120 78 C120 66 124 58 131 53 C131 66 127 74 120 80 Z" fill="#6FBF79"/>
+        </svg>
+      </div>
+
+      <p class="eyebrow rise d2">已入住 0 株 · 空温室</p>
+      <h2 class="empty-title rise d3">温室里还空空的</h2>
+      <p class="empty-desc rise d4">你照顾的每一株植物都会住进这间温室。添加第一株，从一次浇水、一片新叶开始记录。</p>
+
+      <button class="btn-primary rise d5" id="createBtn" type="button" aria-expanded="false" aria-controls="createPanel">
+        <svg width="17" height="17" viewBox="0 0 17 17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8.5 2.5v12M2.5 8.5h12"/></svg>
+        <span id="createBtnLabel">去创建</span>
+        <svg class="chev" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 5.5 7 9l3.5-3.5"/></svg>
+      </button>
+
+      <button class="link-quiet rise d6" id="exampleLink" type="button">先看看示例温室</button>
+
+      <!-- 创建方式面板（点击「去创建」展开） -->
+      <section class="panel" id="createPanel" hidden aria-label="选择创建方式">
+        <div class="panel-head">
+          <div>
+            <h2>选择创建方式</h2>
+            <p>先选一种，资料随时补</p>
+          </div>
+          <button class="panel-close" id="panelCloseBtn" type="button" aria-label="收起创建选项">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 2l8 8M10 2l-8 8"/></svg>
+          </button>
+        </div>
+        <button class="opt" id="optPhoto" type="button" data-name="拍照识别">
+          <span class="opt-ic"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h2.5l1.6-2.4A1.5 1.5 0 0 1 9.4 5h5.2a1.5 1.5 0 0 1 1.3.6L17.5 8H20a1.5 1.5 0 0 1 1.5 1.5V18a1.5 1.5 0 0 1-1.5 1.5H4A1.5 1.5 0 0 1 2.5 18V9.5A1.5 1.5 0 0 1 4 8z"/><circle cx="12" cy="13.2" r="3.6"/></svg></span>
+          <span class="opt-txt"><b>拍照识别</b><span>对着植物拍一张，自动匹配名称与养护建议</span></span>
+          <span class="opt-check"><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6.2 4.8 9 10 3.2"/></svg></span>
+        </button>
+        <button class="opt" id="optAlbum" type="button" data-name="相册上传">
+          <span class="opt-ic"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="15" rx="2.5"/><circle cx="8.6" cy="10" r="1.8"/><path d="m21 16.5-4.8-4.8a1.5 1.5 0 0 0-2.1 0L6.5 19.5"/></svg></span>
+          <span class="opt-txt"><b>相册上传</b><span>从相册里挑一张现成的植物照片</span></span>
+          <span class="opt-check"><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6.2 4.8 9 10 3.2"/></svg></span>
+        </button>
+        <button class="opt" id="optManual" type="button" data-name="手动录入">
+          <span class="opt-ic"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></span>
+          <span class="opt-txt"><b>手动录入</b><span>自己填写名称、品种和入住日期</span></span>
+          <span class="opt-check"><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6.2 4.8 9 10 3.2"/></svg></span>
+        </button>
+      </section>
+    </main>
+
+    <!-- 底栏 -->
+    <nav class="navwrap" aria-label="底部导航">
+      <div class="nav">
+        <button class="nav-item active" type="button" data-nav="温室">
+          <svg class="nav-ic" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10.5V20h13v-9.5"/><path d="M12 20v-5.5c0-1.4 1-2.5 2.5-2.5s2.5 1.1 2.5 2.5V17"/></svg>
+          <span>温室</span>
+        </button>
+        <button class="nav-item" type="button" data-nav="发现">
+          <svg class="nav-ic" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m15.2 8.8-2 4.4-4.4 2 2-4.4z"/></svg>
+          <span>发现</span>
+        </button>
+        <button class="nav-item" type="button" data-nav="提醒">
+          <svg class="nav-ic" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 8-3 8h18s-3-1-3-8"/><path d="M13.7 20a2 2 0 0 1-3.4 0"/></svg>
+          <span>提醒</span>
+        </button>
+        <button class="nav-item" type="button" data-nav="我的">
+          <svg class="nav-ic" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4.5 20.5c1.4-3.6 4.2-5 7.5-5s6.1 1.4 7.5 5"/></svg>
+          <span>我的</span>
+        </button>
+      </div>
+      <div class="home-indicator" aria-hidden="true"></div>
+    </nav>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var createBtn=document.getElementById('createBtn'),
+      createLabel=document.getElementById('createBtnLabel'),
+      panel=document.getElementById('createPanel'),
+      panelClose=document.getElementById('panelCloseBtn'),
+      exampleLink=document.getElementById('exampleLink'),
+      toast=document.getElementById('toast'),
+      opts=panel.querySelectorAll('.opt'),
+      navItems=document.querySelectorAll('.nav-item'),
+      toastTimer=null;
+
+  function showToast(msg){
+    toast.textContent=msg;
+    toast.classList.add('show');
+    if(toastTimer){clearTimeout(toastTimer)}
+    toastTimer=setTimeout(function(){toast.classList.remove('show')},1900);
+  }
+
+  function setPanel(open){
+    panel.hidden=!open;
+    createBtn.setAttribute('aria-expanded',String(open));
+    createLabel.textContent=open?'收起选项':'去创建';
+    if(open){
+      var sel=panel.querySelector('.opt.selected');
+      if(!sel){opts[0].focus()}
+    }
+  }
+
+  createBtn.addEventListener('click',function(){
+    setPanel(panel.hidden);
+    if(!panel.hidden){panel.scrollIntoView({block:'nearest',behavior:'smooth'})}
+  });
+  panelClose.addEventListener('click',function(){setPanel(false);createBtn.focus()});
+
+  opts.forEach(function(opt){
+    opt.addEventListener('click',function(){
+      opts.forEach(function(o){o.classList.remove('selected')});
+      opt.classList.add('selected');
+      showToast('已选择「'+opt.getAttribute('data-name')+'」，即将开始创建');
+    });
+  });
+
+  exampleLink.addEventListener('click',function(){
+    showToast('示例温室整理中，先创建属于你的第一株吧');
+  });
+
+  navItems.forEach(function(item){
+    item.addEventListener('click',function(){
+      navItems.forEach(function(i){i.classList.remove('active')});
+      item.classList.add('active');
+      showToast('「'+item.getAttribute('data-nav')+'」页面演示，当前为空态样张');
+    });
+  });
+})();
+</script>
+</body>
+</html>

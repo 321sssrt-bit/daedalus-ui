@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>雨记 · 编辑发布</title>
+<style>
+:root{
+  --stage-a:#22282f;
+  --stage-b:#3c454e;
+  --frame:#14181d;
+  --screen:#e7e5df;
+  --paper:#f8f6f0;
+  --ink:#2e343a;
+  --soft:#7d838a;
+  --hairline:#d9d6cd;
+  --rain:#5b7d95;
+  --margin:#bf6058;
+  --ok:#4f7d5d;
+  --card-shadow:0 1px 2px rgba(20,24,29,.10),0 12px 28px rgba(20,24,29,.12);
+  --body-size:16px;
+  --body-lh:28px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Segoe UI",sans-serif;
+  color:var(--ink);
+  background:var(--stage-a);
+  overflow:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+button{font-family:inherit;cursor:pointer;border:0;background:none;color:inherit}
+input,textarea{font-family:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--rain);outline-offset:2px}
+
+/* ===== 舞台与手机框 ===== */
+.stage{
+  position:relative;
+  min-height:100vh;
+  min-height:100dvh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:40px 20px;
+  background:
+    radial-gradient(1200px 500px at 70% -10%,rgba(91,125,149,.28),transparent 60%),
+    linear-gradient(165deg,var(--stage-b) 0%,var(--stage-a) 78%);
+}
+.stage::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  opacity:.22;
+  background-image:repeating-linear-gradient(12deg,transparent 0 26px,rgba(231,229,223,.55) 26px 27px,transparent 27px 90px);
+  background-size:200% 200%;
+  animation:rainfall 1.4s linear infinite;
+}
+@keyframes rainfall{
+  from{background-position:0 -120px}
+  to{background-position:-60px 120px}
+}
+.phone{
+  position:relative;
+  width:418px;
+  padding:16px 14px 18px;
+  background:linear-gradient(160deg,#2a3138,var(--frame) 55%);
+  border-radius:52px;
+  box-shadow:0 30px 80px rgba(0,0,0,.55),inset 0 0 0 2px rgba(255,255,255,.06);
+  transform-origin:center center;
+  z-index:1;
+}
+.notch{
+  position:absolute;
+  top:11px;left:50%;
+  width:118px;height:23px;
+  margin-left:-59px;
+  background:var(--frame);
+  border-radius:12px;
+  z-index:9;
+}
+.screen{
+  position:relative;
+  width:390px;
+  height:844px;
+  margin:0 auto;
+  background:var(--screen);
+  border-radius:38px;
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+  box-shadow:inset 0 0 0 1px rgba(20,24,29,.25);
+}
+.homebar{
+  position:absolute;
+  bottom:8px;left:50%;
+  width:134px;height:5px;
+  margin-left:-67px;
+  border-radius:3px;
+  background:rgba(20,24,29,.35);
+  z-index:8;
+}
+
+/* ===== 状态栏 ===== */
+.statusbar{
+  height:52px;
+  flex:none;
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  padding:0 26px 6px 30px;
+  font-size:15px;
+  font-weight:600;
+  letter-spacing:.02em;
+}
+.statusbar .nets{display:flex;align-items:center;gap:6px}
+.statusbar svg{display:block}
+
+/* ===== 顶栏 ===== */
+.topbar{
+  flex:none;
+  height:52px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0 16px;
+}
+.brand{display:flex;align-items:center;gap:8px}
+.brand .drop{width:20px;height:20px;color:var(--rain)}
+.brand .name{font-size:18px;font-weight:700;letter-spacing:.14em;font-family:"Songti SC","STSong","Noto Serif SC",serif}
+.draftpill{
+  display:flex;align-items:center;gap:6px;
+  height:30px;padding:0 12px;
+  border:1px solid var(--hairline);
+  border-radius:15px;
+  background:var(--paper);
+  font-size:12px;color:var(--soft);
+}
+.draftpill b{color:var(--ink);font-weight:600;font-variant-numeric:tabular-nums}
+
+/* ===== 日期行 ===== */
+.metarow{
+  flex:none;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:8px 22px 10px;
+  font-size:12px;color:var(--soft);
+}
+.metarow .date{display:flex;align-items:center;gap:6px}
+.metarow .date svg{width:14px;height:14px;color:var(--rain)}
+.chipbook{
+  height:24px;padding:0 10px;
+  border-radius:12px;
+  background:rgba(91,125,149,.12);
+  color:var(--rain);
+  font-size:12px;
+  display:flex;align-items:center;
+}
+
+/* ===== 便签卡 ===== */
+.memo-card{
+  flex:1 1 auto;
+  min-height:0;
+  margin:2px 16px 0;
+  background:
+    radial-gradient(140px 60px at 88% 0%,rgba(191,96,88,.05),transparent 70%),
+    linear-gradient(180deg,#fbf9f4,var(--paper));
+  border-radius:14px;
+  box-shadow:var(--card-shadow);
+  position:relative;
+  display:flex;
+  flex-direction:column;
+  padding:18px 18px 10px 30px;
+}
+.memo-card::before{
+  content:"";
+  position:absolute;
+  top:0;bottom:0;left:22px;
+  width:1px;
+  background:var(--margin);
+  opacity:.65;
+}
+.tape{
+  position:absolute;
+  top:-12px;left:50%;
+  width:86px;height:24px;
+  margin-left:-43px;
+  background:rgba(91,125,149,.28);
+  border-left:1px dashed rgba(255,255,255,.5);
+  border-right:1px dashed rgba(255,255,255,.5);
+  transform:rotate(-2deg);
+  border-radius:2px;
+}
+.note-title{
+  flex:none;
+  width:100%;
+  border:0;
+  background:transparent;
+  font-family:"Songti SC","STSong","Noto Serif SC",serif;
+  font-size:20px;
+  font-weight:700;
+  line-height:30px;
+  padding:0 2px 8px;
+}
+.note-title::placeholder{color:#a9aeb3;font-weight:400}
+.title-rule{
+  flex:none;
+  height:1px;
+  background:var(--hairline);
+  margin:0 2px 10px;
+}
+.note-body{
+  flex:1 1 auto;
+  min-height:180px;
+  width:100%;
+  border:0;
+  resize:none;
+  background-image:repeating-linear-gradient(to bottom,transparent 0 calc(var(--body-lh) - 1px),var(--hairline) calc(var(--body-lh) - 1px) var(--body-lh));
+  background-attachment:local;
+  font-size:var(--body-size);
+  line-height:var(--body-lh);
+  padding:0 2px;
+  overflow-y:auto;
+}
+.note-body::placeholder{color:#a9aeb3}
+
+/* 卡片底栏：字号步进 + 字数状态 */
+.card-foot{
+  flex:none;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:8px 2px 6px;
+  border-top:1px dashed var(--hairline);
+  margin-top:8px;
+}
+.stepper{display:flex;align-items:center;gap:2px;background:rgba(20,24,29,.05);border-radius:8px;padding:2px}
+.stepper .lab{font-size:11px;color:var(--soft);padding:0 6px 0 8px}
+.stepper button{
+  height:24px;min-width:30px;padding:0 6px;
+  border-radius:6px;
+  font-size:12px;color:var(--soft);
+}
+.stepper button.on{background:var(--paper);color:var(--ink);font-weight:600;box-shadow:0 1px 2px rgba(20,24,29,.12)}
+.wordstat{font-size:12px;color:var(--soft);font-variant-numeric:tabular-nums;display:flex;align-items:center;gap:8px}
+.wordstat .savestate{display:flex;align-items:center;gap:4px}
+.wordstat .savestate.ok{color:var(--ok)}
+.wordstat .dot{width:6px;height:6px;border-radius:50%;background:var(--soft);opacity:.5}
+.wordstat .savestate.ok .dot{background:var(--ok);opacity:1}
+
+/* ===== 提示条 ===== */
+.hintbar{
+  flex:none;
+  height:22px;
+  padding:2px 24px 0;
+  font-size:12px;
+  color:var(--margin);
+  opacity:0;
+  transform:translateY(3px);
+  transition:opacity .18s ease,transform .18s ease;
+}
+.hintbar.show{opacity:1;transform:none}
+
+/* ===== 底部操作栏 ===== */
+.actionbar{
+  flex:none;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:6px 16px 30px;
+}
+.btn-draft{
+  flex:none;
+  height:48px;
+  padding:0 18px;
+  display:flex;align-items:center;gap:8px;
+  border:1px solid var(--hairline);
+  border-radius:24px;
+  background:var(--paper);
+  font-size:15px;
+  color:var(--ink);
+  transition:background .18s ease,transform .12s ease;
+}
+.btn-draft svg{width:16px;height:16px;color:var(--soft)}
+.btn-draft:active{transform:scale(.97)}
+.btn-draft.saved{border-color:rgba(79,125,93,.5);color:var(--ok)}
+.btn-draft.saved svg{color:var(--ok)}
+.btn-publish{
+  flex:1 1 auto;
+  height:48px;
+  border-radius:24px;
+  background:var(--ink);
+  color:#f2f0ea;
+  font-size:16px;
+  font-weight:600;
+  letter-spacing:.12em;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  box-shadow:0 8px 18px rgba(20,24,29,.28);
+  transition:transform .12s ease,opacity .18s ease;
+}
+.btn-publish svg{width:16px;height:16px}
+.btn-publish:active{transform:scale(.98)}
+.btn-publish.loading{opacity:.82;pointer-events:none;letter-spacing:.04em}
+.btn-publish .spinner{
+  display:none;
+  width:16px;height:16px;
+  border-radius:50%;
+  border:2px solid rgba(242,240,234,.35);
+  border-top-color:#f2f0ea;
+  animation:spin .7s linear infinite;
+}
+.btn-publish.loading .spinner{display:block}
+.btn-publish.loading .plane{display:none}
+@keyframes spin{to{transform:rotate(360deg)}}
+.shake{animation:shake .32s ease}
+@keyframes shake{
+  0%,100%{transform:translateX(0)}
+  25%{transform:translateX(-5px)}
+  50%{transform:translateX(5px)}
+  75%{transform:translateX(-3px)}
+}
+
+/* ===== Toast ===== */
+.toast{
+  position:absolute;
+  left:50%;bottom:108px;
+  transform:translate(-50%,10px);
+  max-width:320px;
+  background:rgba(20,24,29,.92);
+  color:#f2f0ea;
+  font-size:13px;
+  line-height:1.5;
+  padding:9px 16px;
+  border-radius:10px;
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .2s ease,transform .2s ease;
+  z-index:30;
+  white-space:nowrap;
+}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+/* ===== 发布成功弹层 ===== */
+.mask{
+  position:absolute;inset:0;
+  background:rgba(20,24,29,.42);
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .25s ease;
+  z-index:40;
+}
+.mask.show{opacity:1;pointer-events:auto}
+.sheet{
+  position:absolute;
+  left:0;right:0;bottom:0;
+  background:var(--paper);
+  border-radius:20px 20px 0 0;
+  padding:22px 24px 34px;
+  transform:translateY(102%);
+  transition:transform .3s cubic-bezier(.32,.72,.35,1);
+  z-index:41;
+  text-align:center;
+}
+.mask.show .sheet{transform:translateY(0)}
+.sheet .check{
+  width:52px;height:52px;
+  margin:0 auto 12px;
+  border-radius:50%;
+  background:rgba(79,125,93,.12);
+  display:flex;align-items:center;justify-content:center;
+}
+.sheet .check svg{width:28px;height:28px;color:var(--ok)}
+.sheet .check path{stroke-dasharray:30;stroke-dashoffset:30}
+.mask.show .sheet .check path{animation:draw .45s .18s ease forwards}
+@keyframes draw{to{stroke-dashoffset:0}}
+.sheet h2{font-size:19px;font-weight:700;letter-spacing:.06em;font-family:"Songti SC","STSong","Noto Serif SC",serif}
+.sheet .pubtitle{
+  margin:8px auto 0;
+  font-size:14px;color:var(--ink);
+  max-width:300px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.sheet .pubtime{margin-top:6px;font-size:12px;color:var(--soft);font-variant-numeric:tabular-nums}
+.sheet .rainline{
+  margin:14px auto 18px;
+  width:120px;height:1px;
+  background:repeating-linear-gradient(90deg,var(--hairline) 0 6px,transparent 6px 12px);
+}
+.sheet-actions{display:flex;gap:12px}
+.sheet-actions button{
+  flex:1;height:46px;border-radius:23px;font-size:15px;
+}
+.btn-again{background:var(--ink);color:#f2f0ea;font-weight:600;letter-spacing:.08em}
+.btn-done{border:1px solid var(--hairline);color:var(--soft)}
+
+/* ===== 响应式：窄屏占满 ===== */
+@media (max-width:560px){
+  body{overflow:auto}
+  .stage{padding:0}
+  .stage::after{display:none}
+  .phone{width:100%;height:100dvh;padding:0;border-radius:0;box-shadow:none;transform:none!important}
+  .notch,.homebar{display:none}
+  .screen{width:100%;height:100%;border-radius:0}
+}
+
+/* ===== 减少动态 ===== */
+@media (prefers-reduced-motion:reduce){
+  .stage::after{animation:none}
+  *,*::before,*::after{
+    animation-duration:.01ms!important;
+    animation-iteration-count:1!important;
+    transition-duration:.01ms!important;
+    scroll-behavior:auto!important;
+  }
+  .btn-publish .spinner{animation-duration:.7s!important;animation-iteration-count:infinite!important}
+}
+</style>
+</head>
+<body>
+<div class="stage" id="stage">
+  <div class="phone" id="phone">
+    <div class="notch"></div>
+    <div class="screen" id="screen">
+
+      <div class="statusbar">
+        <span id="clock">21:47</span>
+        <span class="nets">
+          <svg width="17" height="11" viewBox="0 0 17 11" fill="currentColor" aria-hidden="true"><rect x="0" y="7" width="3" height="4" rx="1"/><rect x="4.5" y="5" width="3" height="6" rx="1"/><rect x="9" y="2.5" width="3" height="8.5" rx="1"/><rect x="13.5" y="0" width="3" height="11" rx="1"/></svg>
+          <svg width="16" height="11" viewBox="0 0 16 12" fill="currentColor" aria-hidden="true"><path d="M8 9.2a1.6 1.6 0 1 1 0 3.2 1.6 1.6 0 0 1 0-3.2zM4.7 7.4a4.7 4.7 0 0 1 6.6 0l-1.4 1.5a2.8 2.8 0 0 0-3.8 0zM1.9 4.4a8.9 8.9 0 0 1 12.2 0l-1.4 1.5a7 7 0 0 0-9.4 0z" transform="translate(0 -1)"/></svg>
+          <svg width="25" height="12" viewBox="0 0 25 12" fill="none" aria-hidden="true"><rect x="0.5" y="0.5" width="21" height="11" rx="3" stroke="currentColor" opacity=".4"/><rect x="2" y="2" width="15" height="8" rx="1.8" fill="currentColor"/><rect x="22.5" y="3.5" width="2" height="5" rx="1" fill="currentColor" opacity=".4"/></svg>
+        </span>
+      </div>
+
+      <header class="topbar">
+        <div class="brand">
+          <svg class="drop" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.7c3.4 4.1 6.2 7.6 6.2 11a6.2 6.2 0 1 1-12.4 0c0-3.4 2.8-6.9 6.2-11z"/></svg>
+          <span class="name">雨记</span>
+        </div>
+        <div class="draftpill">草稿 <b id="hdDraft">0</b></div>
+      </header>
+
+      <div class="metarow">
+        <span class="date">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 3.5c.8 1 .8 2 0 3-.8-1-.8-2 0-3zM8 7.5c.9 1.1.9 2.2 0 3.2-.9-1-.9-2.1 0-3.2zM12 9.5c.9 1.1.9 2.2 0 3.2-.9-1-.9-2.1 0-3.2zM16 7.5c.9 1.1.9 2.2 0 3.2-.9-1-.9-2.1 0-3.2zM6 13.5c1 1.2 1 2.4 0 3.5-1-1.1-1-2.3 0-3.5zM12 14.5c1 1.2 1 2.4 0 3.5-1-1.1-1-2.3 0-3.5zM18 13.5c1 1.2 1 2.4 0 3.5-1-1.1-1-2.3 0-3.5z"/></svg>
+          10月14日 周二 · 小雨
+        </span>
+        <span class="chipbook">随想集</span>
+      </div>
+
+      <section class="memo-card" id="memoCard">
+        <div class="tape" aria-hidden="true"></div>
+        <input class="note-title" id="noteTitle" type="text" maxlength="30" placeholder="给这篇小记起个题目" autocomplete="off">
+        <div class="title-rule"></div>
+        <textarea class="note-body" id="noteBody" placeholder="雨声适合写点什么。今天的念头、没做完的事、突然想起的人，都从第一句开始。"></textarea>
+        <div class="card-foot">
+          <div class="stepper" role="group" aria-label="正文字号">
+            <span class="lab">字号</span>
+            <button type="button" id="stepSmall" data-size="15" data-lh="26">小</button>
+            <button type="button" id="stepMid" class="on" data-size="16" data-lh="28">中</button>
+            <button type="button" id="stepBig" data-size="18" data-lh="32">大</button>
+          </div>
+          <div class="wordstat">
+            <span id="wordStat">字数 0</span>
+            <span class="savestate" id="saveState"><span class="dot"></span><span id="saveText">未保存</span></span>
+          </div>
+        </div>
+      </section>
+
+      <div class="hintbar" id="hintBar"><span id="hintText"></span></div>
+
+      <footer class="actionbar">
+        <button class="btn-draft" id="btnDraft" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path id="draftIconPath" d="M5 3h11l3 3v15H5z"/><path d="M8 3v5h7V3M8 21v-7h8v7"/></svg>
+          <span id="draftLabel">存草稿</span>
+        </button>
+        <button class="btn-publish" id="btnPublish" type="button">
+          <svg class="plane" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3.4 11.3 20.8 3.6c.5-.2 1 .3.8.8l-7.7 17.4c-.2.5-1 .6-1.3.1l-3-5.7-5.7-3c-.5-.3-.4-1 .1-1.2z"/></svg>
+          <span class="spinner" aria-hidden="true"></span>
+          <span id="pubLabel">发布</span>
+        </button>
+      </footer>
+
+      <div class="toast" id="toast" role="status"></div>
+
+      <div class="mask" id="mask">
+        <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+          <div class="check">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.5l5 5L19.5 7"/></svg>
+          </div>
+          <h2 id="sheetTitle">发布成功</h2>
+          <p class="pubtitle" id="sheetSub">《无题小记》</p>
+          <p class="pubtime" id="sheetTime">今天 21:47 · 已收入你的雨记主页</p>
+          <div class="rainline" aria-hidden="true"></div>
+          <div class="sheet-actions">
+            <button class="btn-again" id="btnAgain" type="button">再写一篇</button>
+            <button class="btn-done" id="btnDone" type="button">先这样</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="homebar" aria-hidden="true"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var $=function(id){return document.getElementById(id)};
+  var title=$('noteTitle'),body=$('noteBody'),wordStat=$('wordStat'),
+      saveState=$('saveState'),saveText=$('saveText'),
+      btnDraft=$('btnDraft'),draftLabel=$('draftLabel'),
+      btnPublish=$('btnPublish'),pubLabel=$('pubLabel'),
+      hintBar=$('hintBar'),hintText=$('hintText'),
+      toast=$('toast'),mask=$('mask'),sheetSub=$('sheetSub'),sheetTime=$('sheetTime'),
+      hdDraft=$('hdDraft'),memoCard=$('memoCard'),clock=$('clock');
+  var draftCount=0,toastTimer=null,hintTimer=null,busy=false;
+
+  function fmt(d){
+    function p(n){return (n<10?'0':'')+n}
+    return p(d.getHours())+':'+p(d.getMinutes());
+  }
+  function tick(){clock.textContent=fmt(new Date())}
+  tick();setInterval(tick,15000);
+
+  function countWords(){
+    return (title.value+body.value).replace(/\s/g,'').length;
+  }
+  function refresh(){
+    wordStat.textContent='字数 '+countWords();
+  }
+  function showHint(msg){
+    hintText.textContent=msg;
+    hintBar.classList.add('show');
+    clearTimeout(hintTimer);
+    hintTimer=setTimeout(function(){hintBar.classList.remove('show')},2200);
+  }
+  function showToast(msg){
+    toast.textContent=msg;
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer=setTimeout(function(){toast.classList.remove('show')},2000);
+  }
+  function shake(el){
+    el.classList.remove('shake');
+    void el.offsetWidth;
+    el.classList.add('shake');
+  }
+  function markDirty(){
+    if(saveState.classList.contains('ok')){
+      saveState.classList.remove('ok');
+      saveText.textContent='未保存';
+      btnDraft.classList.remove('saved');
+      draftLabel.textContent='存草稿';
+    }
+  }
+  title.addEventListener('input',function(){refresh();markDirty()});
+  body.addEventListener('input',function(){refresh();markDirty()});
+
+  /* 字号步进 */
+  var steps=[$('stepSmall'),$('stepMid'),$('stepBig')];
+  steps.forEach(function(btn){
+    btn.addEventListener('click',function(){
+      steps.forEach(function(b){b.classList.remove('on')});
+      btn.classList.add('on');
+      memoCard.style.setProperty('--body-size',btn.dataset.size+'px');
+      memoCard.style.setProperty('--body-lh',btn.dataset.lh+'px');
+      body.focus();
+    });
+  });
+
+  /* 存草稿 */
+  btnDraft.addEventListener('click',function(){
+    if(busy)return;
+    if(countWords()===0){
+      showHint('便签还是空的，先写点什么再存');
+      shake(btnDraft);
+      return;
+    }
+    var t=fmt(new Date());
+    draftCount++;
+    hdDraft.textContent=draftCount;
+    saveState.classList.add('ok');
+    saveText.textContent='已存 '+t;
+    btnDraft.classList.add('saved');
+    draftLabel.textContent='已存 '+t;
+    showToast('草稿已存入草稿箱 · '+t);
+  });
+
+  /* 发布 */
+  btnPublish.addEventListener('click',function(){
+    if(busy)return;
+    if(countWords()===0){
+      showHint('先写一点内容，再点发布');
+      shake(btnPublish);
+      body.focus();
+      return;
+    }
+    busy=true;
+    btnPublish.classList.add('loading');
+    pubLabel.textContent='发布中…';
+    var t=fmt(new Date());
+    setTimeout(function(){
+      var name=title.value.trim();
+      sheetSub.textContent='《'+(name?name:'无题小记')+'》已随这场雨发出';
+      sheetTime.textContent='今天 '+t+' · 已收入你的雨记主页';
+      mask.classList.add('show');
+      btnPublish.classList.remove('loading');
+      pubLabel.textContent='发布';
+      busy=false;
+    },900);
+  });
+
+  function closeSheet(){
+    mask.classList.remove('show');
+    title.value='';
+    body.value='';
+    refresh();
+    saveState.classList.remove('ok');
+    saveText.textContent='未保存';
+    btnDraft.classList.remove('saved');
+    draftLabel.textContent='存草稿';
+  }
+  $('btnAgain').addEventListener('click',function(){
+    closeSheet();
+    setTimeout(function(){title.focus()},120);
+  });
+  $('btnDone').addEventListener('click',closeSheet);
+  mask.addEventListener('click',function(e){
+    if(e.target===mask){mask.classList.remove('show')}
+  });
+
+  /* 手机框缩放适配宽屏 */
+  var phone=$('phone');
+  function fit(){
+    if(window.innerWidth<=560){phone.style.transform='';return}
+    var w=phone.offsetWidth,h=phone.offsetHeight;
+    var s=Math.min(1,(window.innerHeight-40)/h,(window.innerWidth-40)/w);
+    phone.style.transform='scale('+s+')';
+  }
+  window.addEventListener('resize',fit);
+  fit();
+  refresh();
+})();
+</script>
+</body>
+</html>

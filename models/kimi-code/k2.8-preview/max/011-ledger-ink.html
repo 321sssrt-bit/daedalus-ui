@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>流水总账 · 栖云茶食铺</title>
+<style>
+  :root{
+    --paper:#f3ecdb;
+    --surface:#fbf7ea;
+    --ink:#2a2822;
+    --ink-soft:#6f695a;
+    --rule:#d9cfb6;
+    --rule-deep:#c6b892;
+    --stripe:#f0e8d2;
+    --zhu:#b03a2e;
+    --zhu-deep:#8f2f24;
+    --shadow:0 2px 6px rgba(42,40,34,.08);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:"Kaiti SC","STKaiti","KaiTi","TW-Kai","BiauKai","Songti SC","SimSun",serif;
+    font-size:14px;
+    line-height:1.6;
+  }
+  .page{max-width:1280px;margin:0 auto;padding:24px}
+  svg{font-family:inherit}
+
+  /* 页眉 */
+  .masthead{
+    display:flex;align-items:center;justify-content:space-between;gap:16px;
+    min-height:64px;margin-bottom:16px;flex-wrap:wrap;
+  }
+  .brand h1{font-size:22px;font-weight:700;letter-spacing:2px}
+  .period{font-size:13px;color:var(--ink-soft);letter-spacing:1px;margin-top:2px}
+  .mast-tools{display:flex;align-items:center;gap:18px}
+  .stamp{
+    width:46px;height:46px;border:2px solid var(--zhu);color:var(--zhu);
+    display:grid;place-items:center;font-size:17px;font-weight:700;
+    letter-spacing:2px;transform:rotate(8deg);opacity:.88;user-select:none;
+  }
+  .grain{display:flex;align-items:center;gap:8px}
+  .grain-label{font-size:13px;color:var(--ink-soft);letter-spacing:2px}
+  .grain-btn{
+    font:inherit;font-size:15px;letter-spacing:2px;cursor:pointer;
+    height:36px;min-width:44px;padding:0 16px;
+    background:var(--surface);color:var(--ink);
+    border:1px solid var(--rule-deep);border-radius:6px;
+    transition:background-color .15s ease,color .15s ease,border-color .15s ease,transform .15s ease,box-shadow .15s ease;
+  }
+  .grain-btn:hover{border-color:var(--zhu);color:var(--zhu)}
+  .grain-btn:focus-visible{outline:2px solid var(--zhu);outline-offset:2px}
+  .grain-btn.is-active{
+    background:var(--zhu);border-color:var(--zhu);color:var(--surface);
+    transform:rotate(-1.5deg);box-shadow:2px 2px 0 rgba(42,40,34,.25);
+  }
+  .grain-btn.is-active:hover{background:var(--zhu-deep)}
+
+  /* 关键数字 */
+  .kpis{
+    display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:16px;
+  }
+  .kpi{
+    background:var(--surface);border:1px solid var(--rule);border-radius:8px;
+    box-shadow:var(--shadow);padding:16px 20px;min-height:108px;
+    display:flex;flex-direction:column;justify-content:space-between;
+  }
+  .kpi-label{font-size:13px;color:var(--ink-soft);letter-spacing:2px}
+  .kpi-num{font-size:30px;line-height:1.25;letter-spacing:1px;font-weight:700}
+  .kpi-sub{font-size:13px;color:var(--ink-soft)}
+  .kpi-num.delta{font-size:24px}
+  .kpi-num.up{color:var(--zhu)}
+  .kpi-num.down{color:var(--ink-soft)}
+  .kpi-sub.up{color:var(--zhu)}
+
+  /* 主区 */
+  .board{display:flex;gap:20px;align-items:stretch}
+  .card{
+    background:var(--surface);border:1px solid var(--rule);border-radius:8px;
+    box-shadow:var(--shadow);padding:20px;min-height:492px;
+  }
+  .chart-card{flex:1 1 720px;min-width:0}
+  .table-card{flex:0 0 396px;display:flex;flex-direction:column}
+  .card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+  .card-head h2{font-size:17px;letter-spacing:2px}
+  .card-note{font-size:12px;color:var(--ink-soft)}
+  .legend{display:flex;align-items:center;gap:16px;font-size:13px;color:var(--ink-soft)}
+  .lg-line{display:inline-flex;align-items:center;gap:8px}
+  .lg-line::before{content:"";width:28px;height:0;border-top:3px solid var(--ink);border-radius:2px}
+  .lg-dot{display:inline-flex;align-items:center;gap:8px}
+  .lg-dot::before{content:"";width:10px;height:10px;border-radius:50%;background:var(--zhu)}
+
+  /* 图表 */
+  .chart-wrap{position:relative}
+  #chartSvg{display:block;width:100%;height:auto}
+  .grid{stroke:var(--rule);stroke-width:1}
+  .axis{stroke:var(--ink);stroke-width:1.5}
+  .area{fill:rgba(42,40,34,.06);stroke:none}
+  .line{fill:none;stroke:var(--ink);stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+  .dot{fill:var(--surface);stroke:var(--ink);stroke-width:2;cursor:pointer}
+  .dot-max{fill:var(--zhu);stroke:var(--surface);stroke-width:2}
+  .peak{fill:var(--zhu);font-size:13px;letter-spacing:1px}
+  .tick,.xlab{fill:var(--ink-soft);font-size:12px}
+  .cross{stroke:var(--zhu);stroke-width:1;stroke-dasharray:4 4}
+  .tip{
+    position:absolute;pointer-events:none;z-index:3;
+    background:var(--surface);border:1px solid var(--ink);border-radius:6px;
+    padding:8px 10px;font-size:12px;line-height:1.7;letter-spacing:.5px;
+    box-shadow:var(--shadow);max-width:190px;width:max-content;
+  }
+  .tip b,.tip span,.tip em{display:block;font-style:normal}
+  .tip em{color:var(--zhu);letter-spacing:2px}
+
+  /* 账目表 */
+  .ledger-scroll{overflow-y:auto;max-height:434px;flex:1;border:1px solid var(--rule);border-radius:6px}
+  .ledger{width:100%;border-collapse:collapse}
+  .ledger th{
+    font-size:13px;color:var(--ink-soft);letter-spacing:2px;text-align:left;
+    padding:10px 8px;border-bottom:2px solid var(--ink);background:var(--surface);
+    position:sticky;top:0;z-index:1;
+  }
+  .ledger td{padding:9px 8px;font-size:14px;border-bottom:1px solid var(--rule)}
+  .ledger th.num,.ledger td.num{text-align:right;font-variant-numeric:tabular-nums}
+  .ledger td.zhu{color:var(--zhu);font-size:13px;letter-spacing:2px}
+  .ledger tbody tr:nth-child(even){background:var(--stripe)}
+  .ledger tbody tr:hover{background:rgba(42,40,34,.05)}
+  .ledger tfoot td{border-top:2px solid var(--ink);border-bottom:none;font-weight:700}
+  .ledger td.peak-row{background:rgba(176,58,46,.08)}
+
+  .foot{margin-top:16px;font-size:13px;color:var(--ink-soft);letter-spacing:1px}
+
+  @media (max-width:900px){
+    .kpis{grid-template-columns:repeat(2,1fr)}
+    .board{flex-direction:column}
+    .table-card{flex:1 1 auto;width:100%}
+    .brand h1{font-size:20px}
+    .card{min-height:0}
+    .ledger-scroll{max-height:320px}
+  }
+  @media (prefers-reduced-motion:reduce){
+    *,*::before,*::after{animation-duration:.01ms !important;transition-duration:.01ms !important;scroll-behavior:auto !important}
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="masthead">
+    <div class="brand">
+      <h1>栖云茶食铺 · 流水总账</h1>
+      <p class="period" id="periodText">账期：2026年6月8日–6月14日 · 按日结账</p>
+    </div>
+    <div class="mast-tools">
+      <span class="stamp" aria-hidden="true">核讫</span>
+      <div class="grain" role="group" aria-label="切换统计粒度">
+        <span class="grain-label" id="grainLabel">粒度</span>
+        <button type="button" class="grain-btn is-active" id="seg-day" data-grain="day" aria-pressed="true" aria-describedby="grainLabel">日</button>
+        <button type="button" class="grain-btn" id="seg-week" data-grain="week" aria-pressed="false" aria-describedby="grainLabel">周</button>
+        <button type="button" class="grain-btn" id="seg-month" data-grain="month" aria-pressed="false" aria-describedby="grainLabel">月</button>
+      </div>
+    </div>
+  </header>
+
+  <section class="kpis" id="kpiStrip" aria-label="关键数字">
+    <article class="kpi">
+      <span class="kpi-label" id="kpiTotalLabel">七日流水</span>
+      <span class="kpi-num" id="kpiTotalVal">¥0</span>
+      <span class="kpi-sub" id="kpiTotalSub">按日结账户期合计</span>
+    </article>
+    <article class="kpi">
+      <span class="kpi-label">成交笔数</span>
+      <span class="kpi-num" id="kpiOrdersVal">0 笔</span>
+      <span class="kpi-sub">全域柜台与外卖</span>
+    </article>
+    <article class="kpi">
+      <span class="kpi-label">客单价</span>
+      <span class="kpi-num" id="kpiAvgVal">¥0</span>
+      <span class="kpi-sub">流水 ÷ 笔数</span>
+    </article>
+    <article class="kpi">
+      <span class="kpi-label">环比上周期</span>
+      <span class="kpi-num delta" id="kpiDeltaVal">▲ 0.0%</span>
+      <span class="kpi-sub" id="kpiDeltaSub">较上一账期 · 朱批记进</span>
+    </article>
+  </section>
+
+  <main class="board">
+    <section class="card chart-card" id="chartCard" aria-label="流水走势">
+      <div class="card-head">
+        <h2>流水走势</h2>
+        <div class="legend">
+          <span class="lg-line">墨线记流水</span>
+          <span class="lg-dot">朱点记峰值</span>
+        </div>
+      </div>
+      <div class="chart-wrap" id="chartWrap">
+        <svg id="chartSvg" viewBox="0 0 720 400" role="img" aria-label="流水走势手绘折线图">
+          <defs>
+            <filter id="rough-ink" x="-6%" y="-6%" width="112%" height="112%">
+              <feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="2" seed="8" result="noise"/>
+              <feDisplacementMap in="SourceGraphic" in2="noise" scale="3.2"/>
+            </filter>
+          </defs>
+          <g id="plotRough" filter="url(#rough-ink)"></g>
+          <line id="crosshair" class="cross" x1="0" y1="26" x2="0" y2="356" hidden/>
+          <g id="plotTop"></g>
+        </svg>
+        <div class="tip" id="chartTip" hidden></div>
+      </div>
+    </section>
+
+    <section class="card table-card" id="tableCard" aria-label="账目明细">
+      <div class="card-head">
+        <h2>账目明细</h2>
+        <span class="card-note" id="tableNote">共 7 账期 · 墨笔记账</span>
+      </div>
+      <div class="ledger-scroll">
+        <table class="ledger" id="ledgerTable">
+          <thead>
+            <tr>
+              <th>账期</th>
+              <th class="num">笔数</th>
+              <th class="num">流水（元）</th>
+              <th class="num">朱批</th>
+            </tr>
+          </thead>
+          <tbody id="ledgerBody"></tbody>
+          <tfoot>
+            <tr>
+              <td>合计</td>
+              <td class="num" id="ledgerFootOrders">0笔</td>
+              <td class="num" id="ledgerFootTotal">¥0</td>
+              <td class="num">—</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot">账房先生注：每日打烊后对账一次，朱笔只批峰值与异常，墨笔不涂改。</footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var $ = function(s){ return document.querySelector(s); };
+  var REDUCED = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  var BOOK = {
+    day: {
+      title: "按日结账",
+      period: "账期：2026年6月8日–6月14日",
+      kpiTotalLabel: "七日流水",
+      labels: ["06-08","06-09","06-10","06-11","06-12","06-13","06-14"],
+      sub: ["周一","周二","周三","周四","周五","周六","周日"],
+      values: [3260,4120,3890,4650,4380,5890,5120],
+      orders: [98,124,117,139,131,176,153],
+      notes: ["平常","平常","偏淡","平常","平常","旺","大旺"],
+      prev: 28940
+    },
+    week: {
+      title: "按周结账",
+      period: "账期：2026年4月20日–6月14日 · 共八周",
+      kpiTotalLabel: "八周流水",
+      labels: ["04-20","04-27","05-04","05-11","05-18","05-25","06-01","06-08"],
+      sub: ["第16周","第17周","第18周","第19周","第20周","第21周","第22周","第23周"],
+      values: [24800,27100,23900,28600,31200,29800,33400,36100],
+      orders: [742,812,718,861,940,895,1003,1084],
+      notes: ["平常","平常","偏淡","平常","旺","平常","旺","大旺"],
+      prev: 219800
+    },
+    month: {
+      title: "按月结账",
+      period: "账期：2025年7月–2026年6月 · 共十二月",
+      kpiTotalLabel: "十二月流水",
+      labels: ["07月","08月","09月","10月","11月","12月","01月","02月","03月","04月","05月","06月"],
+      sub: ["乙巳","乙巳","乙巳","乙巳","乙巳","乙巳","丙午","丙午","丙午","丙午","丙午","丙午"],
+      values: [86200,79400,94100,102300,98100,116200,109400,123100,117800,132400,126100,141200],
+      orders: [2560,2358,2796,3037,2913,3451,3246,3652,3494,3921,3735,4180],
+      notes: ["平常","偏淡","平常","平常","平常","旺","平常","旺","平常","旺","平常","大旺"],
+      prev: 1215600
+    }
+  };
+
+  var CW = 720, CH = 400, PL = 58, PR = 26, PT = 26, PB = 44;
+  var state = { grain: "day", points: [], maxIdx: 0 };
+
+  function fmt(n){ return n.toLocaleString("zh-CN"); }
+  function yfmt(v){
+    if (v >= 10000) { return (v/10000).toFixed(1) + "万"; }
+    return String(Math.round(v));
+  }
+  function totals(d){
+    var total = 0, orders = 0, i;
+    for (i = 0; i < d.values.length; i++){ total += d.values[i]; orders += d.orders[i]; }
+    return { total: total, orders: orders, avg: Math.round(total/orders) };
+  }
+  function animateNumber(el, from, to, fmtFn){
+    if (REDUCED || from === to){ el.textContent = fmtFn(to); return; }
+    var dur = 550, t0 = performance.now();
+    function tick(t){
+      var p = Math.min(1, (t - t0)/dur), e = 1 - Math.pow(1 - p, 3);
+      el.textContent = fmtFn(Math.round(from + (to - from)*e));
+      if (p < 1){ requestAnimationFrame(tick); }
+    }
+    requestAnimationFrame(tick);
+  }
+  function setKpi(sel, to, fmtFn){
+    var el = $(sel);
+    var from = (el.dataset.v === undefined) ? 0 : Number(el.dataset.v);
+    el.dataset.v = String(to);
+    animateNumber(el, from, to, fmtFn);
+  }
+
+  function renderKpis(key){
+    var d = BOOK[key], t = totals(d);
+    $("#kpiTotalLabel").textContent = d.kpiTotalLabel;
+    $("#kpiTotalSub").textContent = d.title + "账期合计";
+    setKpi("#kpiTotalVal", t.total, function(v){ return "¥" + fmt(v); });
+    setKpi("#kpiOrdersVal", t.orders, function(v){ return fmt(v) + " 笔"; });
+    setKpi("#kpiAvgVal", t.avg, function(v){ return "¥" + fmt(v); });
+    var delta = (t.total - d.prev)/d.prev*100;
+    var up = delta >= 0;
+    var de = $("#kpiDeltaVal");
+    de.className = "kpi-num delta " + (up ? "up" : "down");
+    de.textContent = (up ? "▲ " : "▼ ") + Math.abs(delta).toFixed(1) + "%";
+    var ds = $("#kpiDeltaSub");
+    ds.className = "kpi-sub" + (up ? " up" : "");
+    ds.textContent = up ? "较上一账期 · 朱批记进" : "较上一账期 · 墨笔记退";
+  }
+
+  function renderChart(key){
+    var d = BOOK[key], n = d.values.length;
+    var maxV = Math.max.apply(null, d.values);
+    var yMax = Math.ceil(maxV*1.12/500)*500;
+    function x(i){ return PL + (CW - PL - PR)*i/(n - 1); }
+    function y(v){ return PT + (CH - PT - PB)*(1 - v/yMax); }
+
+    var g = "", k, gy, val;
+    for (k = 1; k <= 4; k++){
+      gy = PT + (CH - PT - PB)*k/4;
+      val = yMax*(1 - k/4);
+      g += '<line class="grid" x1="' + PL + '" y1="' + gy + '" x2="' + (CW - PR) + '" y2="' + gy + '"/>';
+      g += '<text class="tick" x="' + (PL - 10) + '" y="' + (gy + 4) + '" text-anchor="end">' + yfmt(val) + "</text>";
+    }
+    var pts = d.values.map(function(v, i){ return [x(i), y(v)]; });
+    state.points = pts;
+    var line = "M " + pts.map(function(p){ return p[0].toFixed(1) + " " + p[1].toFixed(1); }).join(" L ");
+    var area = line + " L " + pts[n-1][0].toFixed(1) + " " + (CH - PB) + " L " + pts[0][0].toFixed(1) + " " + (CH - PB) + " Z";
+    var dots = "";
+    pts.forEach(function(p, i){
+      var isMax = (i === state.maxIdx);
+      dots += '<circle class="dot' + (isMax ? " dot-max" : "") + '" cx="' + p[0].toFixed(1) + '" cy="' + p[1].toFixed(1) + '" r="' + (isMax ? 5 : 3.4) + '"/>';
+    });
+    g += '<line class="axis" x1="' + PL + '" y1="' + (CH - PB) + '" x2="' + (CW - PR) + '" y2="' + (CH - PB) + '"/>';
+    g += '<path class="area" d="' + area + '"/>';
+    g += '<path class="line" d="' + line + '"/>';
+    g += dots;
+    $("#plotRough").innerHTML = g;
+
+    var mp = pts[state.maxIdx];
+    var top = "";
+    if (mp[1] - 30 < PT) {
+      top += '<text class="peak" x="' + mp[0] + '" y="' + (mp[1] + 26) + '" text-anchor="middle">峰值 ' + yfmt(d.values[state.maxIdx]) + "</text>";
+    } else {
+      top += '<text class="peak" x="' + mp[0] + '" y="' + (mp[1] - 14) + '" text-anchor="middle">峰值 ' + yfmt(d.values[state.maxIdx]) + "</text>";
+    }
+    pts.forEach(function(p, i){
+      top += '<text class="xlab" x="' + p[0].toFixed(1) + '" y="' + (CH - PB + 24) + '" text-anchor="middle">' + d.labels[i] + "</text>";
+    });
+    $("#plotTop").innerHTML = top;
+
+    var path = document.querySelector("#plotRough .line");
+    if (path && !REDUCED){
+      var L = path.getTotalLength();
+      path.style.strokeDasharray = String(L);
+      path.style.strokeDashoffset = String(L);
+      path.getBoundingClientRect();
+      path.style.transition = "stroke-dashoffset 620ms cubic-bezier(.33,.1,.2,1)";
+      path.style.strokeDashoffset = "0";
+    }
+  }
+
+  function renderTable(key){
+    var d = BOOK[key], t = totals(d), i;
+    var rows = "";
+    for (i = 0; i < d.values.length; i++){
+      var isMax = (i === state.maxIdx);
+      rows += "<tr" + (isMax ? ' class="peak-row"' : "") + "><td>" + d.labels[i] + "</td>" +
+        '<td class="num">' + fmt(d.orders[i]) + "</td>" +
+        '<td class="num">' + fmt(d.values[i]) + "</td>" +
+        '<td class="num zhu">' + d.notes[i] + "</td></tr>";
+    }
+    $("#ledgerBody").innerHTML = rows;
+    $("#ledgerFootOrders").textContent = fmt(t.orders) + "笔";
+    $("#ledgerFootTotal").textContent = "¥" + fmt(t.total);
+    $("#tableNote").textContent = "共 " + d.values.length + " 账期 · 墨笔记账";
+  }
+
+  function applyGrain(key){
+    var d = BOOK[key];
+    state.grain = key;
+    state.maxIdx = d.values.indexOf(Math.max.apply(null, d.values));
+    $("#periodText").textContent = d.period + " · " + d.title;
+    renderKpis(key);
+    renderChart(key);
+    renderTable(key);
+  }
+
+  var btns = document.querySelectorAll(".grain-btn");
+  btns.forEach(function(btn){
+    btn.addEventListener("click", function(){
+      var g = btn.getAttribute("data-grain");
+      if (g === state.grain){ return; }
+      btns.forEach(function(b){
+        var on = (b === btn);
+        b.classList.toggle("is-active", on);
+        b.setAttribute("aria-pressed", String(on));
+      });
+      applyGrain(g);
+    });
+  });
+
+  var wrap = $("#chartWrap"), svg = $("#chartSvg"), tip = $("#chartTip");
+  wrap.addEventListener("mousemove", function(e){
+    if (!state.points.length){ return; }
+    var r = svg.getBoundingClientRect();
+    var sx = (e.clientX - r.left)/r.width*CW;
+    var best = 0, bd = 1e9, i;
+    for (i = 0; i < state.points.length; i++){
+      var dd = Math.abs(state.points[i][0] - sx);
+      if (dd < bd){ bd = dd; best = i; }
+    }
+    var p = state.points[best], d = BOOK[state.grain];
+    var ch = $("#crosshair");
+    ch.setAttribute("x1", p[0].toFixed(1));
+    ch.setAttribute("x2", p[0].toFixed(1));
+    ch.removeAttribute("hidden");
+    tip.innerHTML = "<b>" + d.labels[best] + " · " + (d.sub ? d.sub[best] : "") + "</b>" +
+      "<span>流水 ¥" + fmt(d.values[best]) + " · " + d.orders[best] + "笔</span>" +
+      "<em>朱批：" + d.notes[best] + "</em>";
+    tip.removeAttribute("hidden");
+    var px = p[0]/CW*r.width, py = p[1]/CH*r.height;
+    tip.style.left = Math.min(Math.max(px + 14, 8), r.width - 200) + "px";
+    tip.style.top = Math.max(py - 66, 4) + "px";
+  });
+  wrap.addEventListener("mouseleave", function(){
+    tip.setAttribute("hidden", "");
+    $("#crosshair").setAttribute("hidden", "");
+  });
+
+  applyGrain("day");
+})();
+</script>
+</body>
+</html>

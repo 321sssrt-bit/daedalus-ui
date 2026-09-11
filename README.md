@@ -33,21 +33,28 @@ Daedalus 是一套面向 UI Agent 与模型的公开产品设计评测，也是�
 
 ## 当前公开答卷
 
-十一份完整答卷现已发布。点击下方入口进入各自的专属展厅，或打开 **[综合展厅](https://321sssrt-bit.github.io/daedalus-ui/)** 统一浏览。
+十二份完整答卷现已发布。点击下方入口进入各自的专属展厅，或打开 **[综合展厅](https://321sssrt-bit.github.io/daedalus-ui/)** 统一浏览。
 
 | Harness | Model | 思考档位 | 完成度 | 状态 | 专属展厅 |
 | --- | --- | --- | --- | --- | --- |
+| Kimi Code | K2.8 Preview | `max` | 50 / 50 | Complete | [进入展厅 →](https://321sssrt-bit.github.io/daedalus-ui/submissions/kimi-code--k2.8-preview--max/) |
+| DeepSeek Harness | DeepSeek V4.1 Flash expires-on-0910 | `max` | 50 / 50 | Complete | [进入展厅 →](https://321sssrt-bit.github.io/daedalus-ui/submissions/deepseek-harness--deepseek-v4.1-flash-expires-on-0910--max/) |
+| Cursor | Composer 2.5 Fast | `default` | 50 / 50 | Complete | [进入展厅 →](https://321sssrt-bit.github.io/daedalus-ui/submissions/cursor--composer-2.5-fast--default/) |
+| Kimi Code | Qwen3.8 Flash Next | `xhigh` | 50 / 50 | Complete | [进入展厅 →](https://321sssrt-bit.github.io/daedalus-ui/submissions/kimi-code--qwen3.8-flash-next--xhigh/) |
+| Codex | GPT-6 Astra | `max` | 50 / 50 | Complete | [进入展厅 →](https://321sssrt-bit.github.io/daedalus-ui/submissions/codex--gpt-6-astra--max/) |
+| Kimi Code | DeepSeek V4 Flash vision-exp | `max` | 50 / 50 | Complete | [进入展厅 →](https://321sssrt-bit.github.io/daedalus-ui/submissions/kimi-code--deepseek-v4-flash-vision-exp--max/) |
+| Qoder | 3.8 Flash | `xhigh` | 50 / 50 | Complete | [进入展厅 →](https://321sssrt-bit.github.io/daedalus-ui/submissions/qoder--3.8flash--xhigh/) |
 | Codex | GPT-5.6 Sol | `xhigh` | 50 / 50 | Complete | [进入展厅 →](https://321sssrt-bit.github.io/daedalus-ui/submissions/codex--gpt-5.6-sol--xhigh/) |
 | DeepSeek Harness | deepseek-v4-pro | `max` | 50 / 50 | Complete | [进入展厅 →](https://321sssrt-bit.github.io/daedalus-ui/submissions/deepseek-harness--deepseek-v4-pro--max/) |
 | Kimi Code | K3 | `max` | 50 / 50 | Complete | [进入展厅 →](https://321sssrt-bit.github.io/daedalus-ui/submissions/kimi-code--k3--max/) |
-| Kimi Code | DeepSeek V4 Flash vision-exp | `max` | 50 / 50 | Complete | [进入展厅 →](https://321sssrt-bit.github.io/daedalus-ui/submissions/kimi-code--deepseek-v4-flash-vision-exp--max/) |
 | Grok Build | Grok 4.6 | `xhigh` | 50 / 50 | Complete | [进入展厅 →](https://321sssrt-bit.github.io/daedalus-ui/submissions/grok-build--grok-4.6--xhigh/) |
 | Qoder | Qwen3.8 | `max` | 50 / 50 | Complete | [进入展厅 →](https://321sssrt-bit.github.io/daedalus-ui/submissions/qoder--qwen3.8--max/) |
-| Qoder | 3.8 Flash | `xhigh` | 50 / 50 | Complete | [进入展厅 →](https://321sssrt-bit.github.io/daedalus-ui/submissions/qoder--3.8flash--xhigh/) |
-| Codex | GPT-6 Astra | `max` | 50 / 50 | Complete | [进入展厅 →](https://321sssrt-bit.github.io/daedalus-ui/submissions/codex--gpt-6-astra--max/) |
-| Kimi Code | Qwen3.8 Flash Next | `xhigh` | 50 / 50 | Complete | [进入展厅 →](https://321sssrt-bit.github.io/daedalus-ui/submissions/kimi-code--qwen3.8-flash-next--xhigh/) |
-| Cursor | Composer 2.5 Fast | `default` | 50 / 50 | Complete | [进入展厅 →](https://321sssrt-bit.github.io/daedalus-ui/submissions/cursor--composer-2.5-fast--default/) |
-| DeepSeek Harness | DeepSeek V4.1 Flash expires-on-0910 | `max` | 50 / 50 | Complete | [进入展厅 →](https://321sssrt-bit.github.io/daedalus-ui/submissions/deepseek-harness--deepseek-v4.1-flash-expires-on-0910--max/) |
+
+## K2.8 Preview · max · 2026.09.11
+
+**50 / 50 完成。** 每题均附离线 HTML、复现规范与设计意图；10 个连续产品原型在同一页面内走通正常闭环、异常触发与恢复。项目验证与展厅构建均通过；全程由 6 批并行子代理完成，途中遭遇配额中断，部分题目由主代理亲自补完并复核。
+
+[进入本次展厅 →](https://321sssrt-bit.github.io/daedalus-ui/submissions/kimi-code--k2.8-preview--max/) · [查看答卷源码](models/kimi-code/k2.8-preview/max) · [运行回执](models/kimi-code/k2.8-preview/max/run-receipt.json)
 
 ## DeepSeek V4.1 Flash · max · 2026.09.08
 

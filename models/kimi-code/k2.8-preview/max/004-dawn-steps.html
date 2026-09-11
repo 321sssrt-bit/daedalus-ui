@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>拾光集 · 新手指引</title>
+<style>
+  :root{
+    --dawn-top:#F96A2C;
+    --dawn-mid:#FFA25E;
+    --dawn-low:#FFE3A9;
+    --card:#FFFCF5;
+    --ink:#38271A;
+    --ink-soft:#8A7360;
+    --accent:#E8590C;
+    --accent-deep:#C94A08;
+    --ghost-line:#E3CFB6;
+    --ghost-text:#7A5C40;
+    --hairline:#EFE0CC;
+    --soft-fill:#F7EDDE;
+    --switch-off:#D9C1A4;
+    --switch-bg:#FBF3E6;
+    --hill-back:#F4A45F;
+    --hill-front:#E07B36;
+    --sun-core:#F9B84C;
+    --art:#E8863F;
+    --art-deep:#C96A2A;
+    --on-sky:#FFFDF8;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{height:100%}
+  body{
+    min-height:100vh;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans SC",sans-serif;
+    color:var(--ink);
+    background:linear-gradient(180deg,var(--dawn-top) 0%,var(--dawn-mid) 46%,var(--dawn-low) 100%);
+    overflow-x:hidden;
+  }
+  button{font-family:inherit}
+
+  /* 背景：晨光、日轮、远山 */
+  .sky{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+  .sun{
+    position:absolute;left:50%;top:13%;width:440px;height:440px;margin-left:-220px;border-radius:50%;
+    background:radial-gradient(circle,rgba(255,244,214,.95) 0%,rgba(255,214,140,.55) 40%,rgba(255,214,140,0) 72%);
+    animation:breathe 9s ease-in-out infinite alternate;
+  }
+  @keyframes breathe{from{transform:translateY(0) scale(1)}to{transform:translateY(-16px) scale(1.045)}}
+  .hills{position:absolute;left:0;right:0;bottom:0;width:100%;height:190px}
+
+  /* 顶栏：品牌 + 跳过 */
+  .topbar{position:relative;z-index:2;display:flex;justify-content:space-between;align-items:center;padding:28px 48px 0}
+  .brand{display:flex;align-items:center;gap:10px;color:var(--on-sky);font-size:17px;font-weight:600;letter-spacing:.06em}
+  .brand-mark{width:26px;height:26px;flex:none}
+  .skip{
+    padding:8px 18px;border-radius:999px;font-size:14px;cursor:pointer;
+    color:var(--on-sky);background:rgba(255,253,248,.16);border:1px solid rgba(255,253,248,.55);
+    transition:background .2s ease;
+  }
+  .skip:hover{background:rgba(255,253,248,.34)}
+  .skip:focus-visible{outline:2px solid var(--on-sky);outline-offset:3px}
+
+  /* 中央舞台 */
+  .stage{position:relative;z-index:1;max-width:760px;margin:24px auto 0;padding:0 24px 48px;display:flex;flex-direction:column;align-items:center}
+  .stepper{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;justify-content:center}
+  .tab{
+    display:flex;align-items:center;gap:7px;padding:7px 14px;border-radius:999px;font-size:13px;cursor:pointer;
+    color:var(--on-sky);background:rgba(255,253,248,.18);border:1px solid rgba(255,253,248,.5);
+    transition:background .25s ease,color .25s ease,border-color .25s ease;
+  }
+  .tab .num{
+    width:18px;height:18px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;
+    font-size:11px;background:rgba(255,253,248,.35);
+  }
+  .tab:hover{background:rgba(255,253,248,.34)}
+  .tab[aria-selected="true"]{background:var(--card);color:var(--ink);border-color:var(--card);font-weight:600}
+  .tab[aria-selected="true"] .num{background:var(--accent);color:var(--on-sky)}
+  .tab:focus-visible{outline:2px solid var(--on-sky);outline-offset:3px}
+  .meter{display:flex;align-items:center;gap:10px;margin-bottom:22px}
+  .prog{width:200px;height:4px;border-radius:2px;background:rgba(255,253,248,.35);overflow:hidden}
+  .prog i{display:block;height:100%;width:25%;background:var(--on-sky);border-radius:2px;transition:width .45s cubic-bezier(.22,.8,.3,1)}
+  #counter{font-size:13px;color:var(--on-sky);letter-spacing:.08em;min-width:44px}
+
+  /* 大卡 */
+  .card{
+    width:100%;background:var(--card);border-radius:24px;position:relative;
+    box-shadow:0 24px 60px rgba(150,60,10,.28),0 4px 14px rgba(150,60,10,.18);
+    padding:42px 52px 34px;
+  }
+  .panels{display:grid;min-height:300px}
+  .panel{
+    grid-area:1/1;display:flex;flex-direction:column;align-items:center;text-align:center;
+    opacity:0;pointer-events:none;transition:opacity .38s ease,transform .38s ease;
+  }
+  .panel.from-right{transform:translateX(40px)}
+  .panel.from-left{transform:translateX(-40px)}
+  .panel.active{opacity:1;transform:none;pointer-events:auto}
+  .panel .art{width:220px;height:150px;margin:2px auto 18px;flex:none}
+  .panel h1{font-size:30px;line-height:1.25;font-weight:700;letter-spacing:.01em;margin-bottom:12px}
+  .panel p{max-width:460px;font-size:16px;line-height:1.9;color:var(--ink-soft)}
+  .switch-row{
+    display:flex;align-items:center;gap:12px;margin-top:20px;background:var(--switch-bg);
+    border:1px solid var(--hairline);border-radius:14px;padding:12px 16px;max-width:320px;width:100%;
+  }
+  .switch-row .txt{flex:1;text-align:left}
+  .switch-row .txt b{display:block;font-size:14px;font-weight:600;color:var(--ink)}
+  .switch-row .txt span{font-size:12.5px;color:var(--ink-soft)}
+  .switch{position:relative;width:44px;height:24px;border-radius:12px;background:var(--switch-off);border:none;cursor:pointer;flex:none;transition:background .25s ease}
+  .switch::after{
+    content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;
+    background:var(--card);box-shadow:0 1px 3px rgba(56,39,26,.35);transition:left .25s ease;
+  }
+  .switch[aria-checked="true"]{background:var(--accent)}
+  .switch[aria-checked="true"]::after{left:23px}
+  .switch:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+
+  /* 底部操作 */
+  .actions{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:24px;padding-top:22px;border-top:1px solid var(--hairline)}
+  .btn{font-size:15px;border-radius:14px;padding:13px 30px;cursor:pointer;border:1px solid transparent;transition:background .2s ease,transform .15s ease,border-color .2s ease}
+  .btn.ghost{background:transparent;border-color:var(--ghost-line);color:var(--ghost-text)}
+  .btn.ghost:hover{background:var(--soft-fill);border-color:#D9C1A4}
+  .btn.primary{background:var(--accent);color:var(--on-sky);font-weight:600;box-shadow:0 8px 18px rgba(232,89,12,.32)}
+  .btn.primary:hover{background:var(--accent-deep);transform:translateY(-1px)}
+  .btn.primary:active{transform:translateY(0)}
+  .btn:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+  .btn.prev-hidden{visibility:hidden}
+  .hint{margin-top:18px;font-size:12.5px;color:rgba(255,253,248,.85);letter-spacing:.05em}
+
+  /* 完成态 */
+  .finish{
+    position:fixed;inset:0;z-index:5;display:none;align-items:center;justify-content:center;padding:24px;
+    background:linear-gradient(180deg,var(--dawn-top) 0%,var(--dawn-mid) 46%,var(--dawn-low) 100%);
+  }
+  .finish.show{display:flex}
+  .finish-card{
+    width:100%;max-width:480px;background:var(--card);border-radius:24px;text-align:center;
+    padding:46px 44px 40px;box-shadow:0 24px 60px rgba(150,60,10,.28);
+  }
+  .finish-card .art{width:120px;height:96px;margin:0 auto 20px}
+  .finish-card h2{font-size:26px;font-weight:700;margin-bottom:12px}
+  .finish-card p{font-size:15px;line-height:1.9;color:var(--ink-soft);max-width:340px;margin:0 auto 26px}
+
+  @media (max-width:768px){
+    .topbar{padding:20px 20px 0}
+    .stage{margin-top:18px;padding:0 16px 36px}
+    .card{padding:30px 24px 26px;border-radius:20px}
+    .panels{min-height:280px}
+    .panel h1{font-size:24px}
+    .panel p{font-size:14.5px;line-height:1.85}
+    .panel .art{width:180px;height:124px}
+    .btn{padding:12px 18px;flex:1;font-size:14.5px}
+    .tab{padding:6px 11px;font-size:12.5px}
+    .prog{width:150px}
+    .hint{display:none}
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .sun{animation:none}
+    .panel,.prog i,.tab,.switch,.switch::after,.btn,.skip{transition-duration:.01ms}
+  }
+</style>
+</head>
+<body>
+  <div class="sky" aria-hidden="true">
+    <div class="sun"></div>
+    <svg class="hills" viewBox="0 0 1440 190" preserveAspectRatio="none">
+      <path d="M0,118 C240,58 480,142 720,102 C960,62 1200,132 1440,92 L1440,190 L0,190 Z" fill="#F4A45F" opacity=".7"/>
+      <path d="M0,158 C260,108 520,182 780,142 C1040,102 1240,172 1440,142 L1440,190 L0,190 Z" fill="#E07B36" opacity=".85"/>
+    </svg>
+  </div>
+
+  <header class="topbar">
+    <div class="brand">
+      <svg class="brand-mark" viewBox="0 0 26 26" aria-hidden="true">
+        <circle cx="13" cy="13" r="6" fill="#FFFDF8"/>
+        <g stroke="#FFFDF8" stroke-width="2" stroke-linecap="round">
+          <line x1="13" y1="1" x2="13" y2="4"/><line x1="13" y1="22" x2="13" y2="25"/>
+          <line x1="1" y1="13" x2="4" y2="13"/><line x1="22" y1="13" x2="25" y2="13"/>
+          <line x1="4.5" y1="4.5" x2="6.6" y2="6.6"/><line x1="19.4" y1="19.4" x2="21.5" y2="21.5"/>
+          <line x1="21.5" y1="4.5" x2="19.4" y2="6.6"/><line x1="6.6" y1="19.4" x2="4.5" y2="21.5"/>
+        </g>
+      </svg>
+      <span>拾光集</span>
+    </div>
+    <button type="button" class="skip" id="btnSkip">跳过</button>
+  </header>
+
+  <main class="stage" id="stage">
+    <div class="stepper" id="stepper" role="tablist" aria-label="新手引导步骤">
+      <button type="button" class="tab" role="tab" data-step="0" aria-selected="true"><span class="num">1</span>欢迎</button>
+      <button type="button" class="tab" role="tab" data-step="1" aria-selected="false"><span class="num">2</span>记法</button>
+      <button type="button" class="tab" role="tab" data-step="2" aria-selected="false"><span class="num">3</span>隐私</button>
+      <button type="button" class="tab" role="tab" data-step="3" aria-selected="false"><span class="num">4</span>开始</button>
+    </div>
+    <div class="meter">
+      <div class="prog" aria-hidden="true"><i id="fill"></i></div>
+      <span id="counter">第 1 步 / 共 4 步</span>
+    </div>
+
+    <section class="card" id="card">
+      <div class="panels" id="panels">
+        <div class="panel active" role="tabpanel" data-panel="0">
+          <svg class="art" viewBox="0 0 220 150" aria-hidden="true">
+            <circle cx="110" cy="66" r="48" fill="#F9B84C" opacity=".22"/>
+            <circle cx="110" cy="66" r="32" fill="#F9B84C"/>
+            <g stroke="#F9B84C" stroke-width="3" stroke-linecap="round">
+              <line x1="110" y1="18" x2="110" y2="8"/><line x1="72" y1="32" x2="64" y2="24"/><line x1="148" y1="32" x2="156" y2="24"/>
+            </g>
+            <path d="M8,116 C58,84 100,124 150,98 C186,80 206,106 216,100 L216,150 L8,150 Z" fill="#E8863F"/>
+            <g transform="rotate(-6 62 104)">
+              <rect x="36" y="76" width="54" height="66" rx="4" fill="#FFFCF5" stroke="#EFE0CC" stroke-width="1.5"/>
+              <rect x="42" y="82" width="42" height="40" rx="2" fill="#FBD9A8"/>
+              <path d="M42,116 L56,100 L66,110 L74,102 L84,116 L84,122 L42,122 Z" fill="#E8863F"/>
+              <circle cx="74" cy="91" r="5" fill="#F9B84C"/>
+            </g>
+          </svg>
+          <h1>把每一天收进口袋</h1>
+          <p>拾光集是一本「一天一页」的相册日记。每天傍晚拍一张照片、写一句话，把今天收好；一年下来，就是三百六十五个还泛着光的日常。</p>
+        </div>
+
+        <div class="panel from-right" role="tabpanel" data-panel="1">
+          <svg class="art" viewBox="0 0 220 150" aria-hidden="true">
+            <rect x="50" y="48" width="120" height="84" rx="16" fill="#E8863F"/>
+            <rect x="86" y="36" width="48" height="16" rx="8" fill="#C96A2A"/>
+            <circle cx="110" cy="90" r="26" fill="#FFFCF5"/>
+            <circle cx="110" cy="90" r="15" fill="#38271A" opacity=".85"/>
+            <circle cx="104" cy="84" r="4.5" fill="#FFFCF5" opacity=".9"/>
+            <circle cx="146" cy="60" r="4" fill="#FFFCF5"/>
+            <path d="M170,44 c-3,-6 -12,-6 -12,2 c0,6 7,9 12,13 c5,-4 12,-7 12,-13 c0,-8 -9,-8 -12,-2 Z" fill="#E8590C"/>
+          </svg>
+          <h1>三秒钟，记完今天</h1>
+          <p>不排版、不滤镜、不纠结。打开、拍一张、写一句、收好，全程不过三秒——地铁上、电梯里、睡前被窝里，都来得及。</p>
+        </div>
+
+        <div class="panel from-right" role="tabpanel" data-panel="2">
+          <svg class="art" viewBox="0 0 220 150" aria-hidden="true">
+            <path d="M86,68 L86,52 A24,24 0 0 1 134,52 L134,68" fill="none" stroke="#E8863F" stroke-width="10" stroke-linecap="round"/>
+            <rect x="70" y="66" width="80" height="62" rx="12" fill="#E8863F"/>
+            <circle cx="110" cy="90" r="9" fill="#FFFCF5"/>
+            <rect x="105" y="94" width="10" height="16" rx="4" fill="#FFFCF5"/>
+            <g fill="#F9B84C">
+              <circle cx="52" cy="40" r="4"/><circle cx="164" cy="32" r="5"/><circle cx="176" cy="66" r="3"/>
+            </g>
+            <g stroke="#F9B84C" stroke-width="2.5" stroke-linecap="round">
+              <line x1="160" y1="96" x2="172" y2="96"/><line x1="166" y1="90" x2="166" y2="102"/>
+            </g>
+          </svg>
+          <h1>这本日记只属于你</h1>
+          <p>照片和文字只存在这台设备上，不上传、不公开，没有点赞和访客。这是你和今天之间的私事，我们不旁听。</p>
+        </div>
+
+        <div class="panel from-right" role="tabpanel" data-panel="3">
+          <svg class="art" viewBox="0 0 220 150" aria-hidden="true">
+            <path d="M158,26 a26,26 0 1 0 14,44 a21,21 0 1 1 -14,-44 Z" fill="#F9B84C"/>
+            <g fill="#E8863F">
+              <circle cx="52" cy="34" r="3.5"/><circle cx="84" cy="18" r="2.5"/><circle cx="30" cy="66" r="2.5"/>
+            </g>
+            <path d="M86,102 L86,84 A24,24 0 0 1 134,84 L134,102 L142,112 L78,112 Z" fill="#E8863F"/>
+            <circle cx="110" cy="120" r="7" fill="#E8590C"/>
+            <line x1="110" y1="60" x2="110" y2="50" stroke="#E8863F" stroke-width="5" stroke-linecap="round"/>
+          </svg>
+          <h1>准备好留住今天了吗</h1>
+          <p>从今晚开始，日落后我们会轻轻提醒你一次——只提醒一次，不催不闹。现在就去拍下第一张，也可以先去首页逛逛。</p>
+          <div class="switch-row">
+            <div class="txt">
+              <b>日落提醒</b>
+              <span id="remindState">每天 20:00 · 已开启</span>
+            </div>
+            <button type="button" class="switch" id="remindSwitch" role="switch" aria-checked="true" aria-label="日落提醒开关"></button>
+          </div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button type="button" class="btn ghost prev-hidden" id="btnPrev">上一步</button>
+        <button type="button" class="btn primary" id="btnNext">下一步</button>
+      </div>
+    </section>
+
+    <p class="hint">也可以用键盘 ← → 切换步骤</p>
+  </main>
+
+  <div class="finish" id="finish" role="dialog" aria-modal="true" aria-labelledby="finishTitle">
+    <div class="finish-card">
+      <svg class="art" viewBox="0 0 120 96" aria-hidden="true">
+        <circle cx="60" cy="48" r="34" fill="#F9B84C" opacity=".25"/>
+        <circle cx="60" cy="48" r="24" fill="#E8590C"/>
+        <path d="M49,48 l8,9 l15,-17" fill="none" stroke="#FFFCF5" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <h2 id="finishTitle">好的，今晚见</h2>
+      <p id="finishDesc">第一天已经开始了，格子已经空好，随时回来拍下第一张。</p>
+      <button type="button" class="btn ghost" id="btnReplay">回到第一步</button>
+    </div>
+  </div>
+
+<script>
+(function(){
+  var panels = Array.prototype.slice.call(document.querySelectorAll('.panel'));
+  var tabs = Array.prototype.slice.call(document.querySelectorAll('.tab'));
+  var fill = document.getElementById('fill');
+  var counter = document.getElementById('counter');
+  var btnPrev = document.getElementById('btnPrev');
+  var btnNext = document.getElementById('btnNext');
+  var btnSkip = document.getElementById('btnSkip');
+  var finish = document.getElementById('finish');
+  var finishTitle = document.getElementById('finishTitle');
+  var finishDesc = document.getElementById('finishDesc');
+  var btnReplay = document.getElementById('btnReplay');
+  var remindSwitch = document.getElementById('remindSwitch');
+  var remindState = document.getElementById('remindState');
+  var cur = 0;
+  var total = panels.length;
+
+  function updateChrome(){
+    tabs.forEach(function(t,i){
+      t.setAttribute('aria-selected', i === cur ? 'true' : 'false');
+    });
+    fill.style.width = ((cur + 1) / total * 100) + '%';
+    counter.textContent = '第 ' + (cur + 1) + ' 步 / 共 ' + total + ' 步';
+    btnPrev.classList.toggle('prev-hidden', cur === 0);
+    btnNext.textContent = (cur === total - 1) ? '开始用' : '下一步';
+  }
+
+  function show(i, dir){
+    if(i === cur || i < 0 || i > total - 1){ return; }
+    var out = panels[cur];
+    out.classList.remove('active');
+    out.classList.toggle('from-left', dir === 'fwd');
+    out.classList.toggle('from-right', dir === 'back');
+    var inn = panels[i];
+    inn.classList.remove('from-left','from-right');
+    if(dir === 'fwd'){ inn.classList.add('from-right'); }
+    else { inn.classList.add('from-left'); }
+    void inn.offsetWidth;
+    inn.classList.add('active');
+    cur = i;
+    updateChrome();
+  }
+
+  function openFinish(skipped){
+    if(skipped){
+      finishTitle.textContent = '已跳过引导';
+      finishDesc.textContent = '没问题，随时可以在「我的 → 新手引导」再看一遍。第一天已经开始了。';
+    } else {
+      finishTitle.textContent = '好的，今晚见';
+      finishDesc.textContent = '第一天已经开始了，格子已经空好，随时回来拍下第一张。';
+    }
+    finish.classList.add('show');
+  }
+
+  btnPrev.addEventListener('click', function(){ show(cur - 1, 'back'); });
+  btnNext.addEventListener('click', function(){
+    if(cur === total - 1){ openFinish(false); }
+    else { show(cur + 1, 'fwd'); }
+  });
+  btnSkip.addEventListener('click', function(){ openFinish(true); });
+  btnReplay.addEventListener('click', function(){
+    finish.classList.remove('show');
+    show(0, 'back');
+  });
+  tabs.forEach(function(t){
+    t.addEventListener('click', function(){
+      var i = parseInt(t.getAttribute('data-step'), 10);
+      show(i, i > cur ? 'fwd' : 'back');
+    });
+  });
+  document.addEventListener('keydown', function(e){
+    if(finish.classList.contains('show')){ return; }
+    if(e.key === 'ArrowRight'){ show(cur + 1, 'fwd'); }
+    else if(e.key === 'ArrowLeft'){ show(cur - 1, 'back'); }
+  });
+  remindSwitch.addEventListener('click', function(){
+    var on = remindSwitch.getAttribute('aria-checked') === 'true';
+    remindSwitch.setAttribute('aria-checked', on ? 'false' : 'true');
+    remindState.textContent = on ? '每天 20:00 · 已关闭' : '每天 20:00 · 已开启';
+  });
+
+  updateChrome();
+})();
+</script>
+</body>
+</html>

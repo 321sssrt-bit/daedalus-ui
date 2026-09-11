@@ -1,0 +1,866 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>板房协作 · 滨江天地二期任务台</title>
+<style>
+:root{
+  --blueprint:#16324F;
+  --blueprint-deep:#10253B;
+  --blueprint-line:#2A5178;
+  --paper:#F6F1E3;
+  --card:#FFFDF6;
+  --ink:#20303E;
+  --muted:#63758A;
+  --safety:#F26F21;
+  --safety-deep:#C9570F;
+  --stamp:#BE3A2B;
+  --stamp-blue:#2C6DA3;
+  --tape:#E8C766;
+  --amber-deep:#C98612;
+  --line:#D8CDB4;
+  --font-sans:system-ui,"Segoe UI","Microsoft YaHei","PingFang SC",sans-serif;
+  --font-mono:ui-monospace,"Cascadia Mono",Consolas,"Courier New",monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:var(--font-sans);
+  color:var(--ink);
+  background-color:var(--blueprint);
+  background-image:
+    linear-gradient(rgba(255,255,255,.06) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.06) 1px,transparent 1px),
+    linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px);
+  background-size:120px 120px,120px 120px,24px 24px,24px 24px;
+  padding:20px 24px;
+  overflow-x:hidden;
+}
+button{font-family:inherit;cursor:pointer}
+.shell{
+  max-width:1240px;margin:0 auto;
+  background:var(--blueprint-deep);
+  border:1px solid var(--blueprint-line);
+  box-shadow:0 24px 64px rgba(6,16,28,.55);
+  display:flex;flex-direction:column;
+  min-height:calc(100vh - 40px);
+}
+
+/* 顶栏 */
+.topbar{
+  height:56px;flex:0 0 56px;
+  display:flex;align-items:center;gap:18px;
+  padding:0 16px;
+  background:var(--blueprint);
+  border-bottom:2px solid var(--safety);
+  color:#fff;
+}
+.brand{display:flex;align-items:center;gap:10px;min-width:0}
+.brand-mark{
+  width:32px;height:32px;flex:0 0 32px;
+  background:var(--safety);color:#fff;
+  display:grid;place-items:center;
+  font-weight:800;font-size:15px;border-radius:4px;
+  box-shadow:2px 2px 0 rgba(0,0,0,.35);
+}
+.brand-name{font-size:16px;font-weight:800;letter-spacing:2px;white-space:nowrap}
+.brand-sub{font-family:var(--font-mono);font-size:10px;letter-spacing:1.5px;color:#9FB4C9;white-space:nowrap}
+.topbar-meta{
+  display:flex;align-items:center;gap:10px;flex:1;min-width:0;flex-wrap:wrap;
+  font-size:12px;color:#C7D4E0;
+}
+.topbar-meta .proj{font-size:13px;font-weight:700;color:#fff;letter-spacing:1px}
+.topbar-meta .sep{color:var(--blueprint-line)}
+.user-chip{
+  margin-left:auto;flex:0 0 auto;
+  display:flex;align-items:center;gap:8px;
+  background:rgba(255,255,255,.08);
+  border:1px solid var(--blueprint-line);
+  border-radius:999px;padding:4px 12px 4px 4px;
+}
+.avatar{
+  width:24px;height:24px;border-radius:50%;
+  background:var(--stamp-blue);color:#fff;
+  display:inline-grid;place-items:center;
+  font-size:12px;font-weight:700;flex:0 0 auto;
+}
+.avatar.sm{width:20px;height:20px;font-size:11px}
+.avatar.me{background:var(--safety)}
+.user-chip .u-name{font-size:12px;font-weight:700}
+.user-chip .u-role{font-size:11px;color:#9FB4C9;font-family:var(--font-mono)}
+
+/* 工作区 */
+.workspace{
+  flex:1;display:flex;gap:16px;
+  padding:16px;min-height:0;
+}
+.board{flex:1;min-width:0;display:flex;flex-direction:column;gap:12px}
+.board-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.board-head h2{
+  color:#fff;font-size:18px;font-weight:800;letter-spacing:3px;
+}
+.board-head .total{
+  font-family:var(--font-mono);font-size:11px;color:#9FB4C9;
+  border:1px solid var(--blueprint-line);border-radius:999px;padding:2px 10px;
+}
+.board-head .hint{
+  font-size:12px;color:#E8C766;letter-spacing:.5px;
+  display:flex;align-items:center;gap:6px;
+}
+.board-head .spacer{flex:1}
+.columns{
+  flex:1;display:flex;gap:14px;min-height:0;align-items:stretch;
+}
+.col{
+  flex:1;min-width:0;display:flex;flex-direction:column;
+  background:rgba(255,255,255,.05);
+  border:1px solid var(--blueprint-line);
+  border-radius:8px;
+  min-height:420px;
+}
+.col-head{
+  display:flex;align-items:center;gap:8px;
+  padding:10px 12px;
+  border-bottom:1px dashed var(--blueprint-line);
+}
+.col-head .col-code{font-family:var(--font-mono);font-size:10px;color:#7E97AD;letter-spacing:1px}
+.col-head .col-name{color:#fff;font-size:13px;font-weight:700;letter-spacing:2px}
+.col-head .count{
+  margin-left:auto;font-family:var(--font-mono);font-size:11px;
+  background:var(--blueprint-line);color:#fff;border-radius:999px;padding:1px 8px;
+}
+.col-body{padding:10px;display:flex;flex-direction:column;gap:10px;overflow-y:auto}
+
+/* 任务卡片 */
+.card{
+  position:relative;
+  background:var(--card);
+  border:1px solid var(--line);
+  border-left:4px solid var(--stamp-blue);
+  border-radius:6px;
+  padding:10px 12px 10px;
+  box-shadow:0 2px 0 rgba(6,16,28,.35);
+  display:flex;flex-direction:column;gap:8px;
+}
+.card.is-urgent{border-left-color:var(--safety)}
+.card.is-locked{border-left-color:var(--stamp)}
+.card.fresh{animation:freshIn .5s ease-out}
+@keyframes freshIn{from{transform:translateY(-8px);opacity:0}to{transform:none;opacity:1}}
+.card-top{display:flex;align-items:center;gap:8px}
+.card-top .code{font-family:var(--font-mono);font-size:11px;color:var(--muted);letter-spacing:.5px}
+.tag{font-size:10px;font-weight:700;letter-spacing:1px;border-radius:3px;padding:2px 6px;line-height:1.4}
+.tag-urgent{background:var(--safety);color:#fff}
+.tag-fast{background:var(--tape);color:var(--ink)}
+.tag-normal{border:1px solid var(--line);color:var(--muted)}
+.tag-lock{
+  margin-left:auto;
+  border:1px solid var(--stamp);color:var(--stamp);
+  display:inline-flex;align-items:center;gap:4px;
+  background:#FDF1EF;
+}
+.card-title{font-size:14px;font-weight:700;line-height:1.45;color:var(--ink)}
+.card-meta{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--muted);flex-wrap:wrap}
+.card-meta .lockline{display:inline-flex;align-items:center;gap:4px;color:var(--stamp);font-weight:700}
+.card-foot{display:flex;align-items:center;gap:8px;border-top:1px dashed var(--line);padding-top:8px}
+.assignee{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--ink);min-width:0}
+.assignee .who{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.assignee .none{color:var(--muted);font-size:11px;border:1px dashed var(--line);border-radius:999px;padding:2px 8px}
+.card-actions{margin-left:auto;display:flex;gap:6px}
+.btn{
+  border-radius:4px;font-size:12px;font-weight:700;letter-spacing:1px;
+  padding:6px 12px;border:1px solid transparent;
+  transition:transform .12s ease,box-shadow .12s ease,background .12s ease;
+  display:inline-flex;align-items:center;gap:6px;
+}
+.btn:active{transform:translate(1px,1px)}
+.btn-xs{padding:4px 10px;font-size:11px}
+.btn-primary{background:var(--safety);color:#fff;box-shadow:2px 2px 0 rgba(6,16,28,.4)}
+.btn-primary:hover{background:var(--safety-deep)}
+.btn-ghost{background:transparent;border-color:var(--line);color:var(--ink)}
+.btn-ghost:hover{border-color:var(--stamp-blue);color:var(--stamp-blue)}
+.btn-ghost.on-dark{border-color:var(--blueprint-line);color:#C7D4E0}
+.btn-ghost.on-dark:hover{border-color:#fff;color:#fff}
+.btn[disabled]{opacity:.45;cursor:not-allowed;box-shadow:none}
+
+/* 图章 */
+.stamp{
+  position:absolute;top:-12px;right:8px;
+  width:52px;height:52px;border-radius:50%;
+  display:grid;place-items:center;
+  font-size:12px;font-weight:800;letter-spacing:2px;
+  transform:rotate(-8deg);opacity:.9;
+  pointer-events:none;user-select:none;
+  animation:stampIn .32s cubic-bezier(.2,1.4,.4,1);
+}
+.stamp::before{content:"";position:absolute;inset:4px;border-radius:50%;border:1px solid currentColor}
+.stamp-blue{color:var(--stamp-blue);border:2px solid var(--stamp-blue);background:rgba(44,109,163,.06)}
+.stamp-red{color:var(--stamp);border:2px solid var(--stamp);background:rgba(190,58,43,.06)}
+@keyframes stampIn{
+  from{transform:rotate(-8deg) scale(1.7);opacity:0}
+  to{transform:rotate(-8deg) scale(1);opacity:.9}
+}
+
+/* 活动记录面板 */
+.activity{
+  flex:0 0 336px;width:336px;
+  background:var(--paper);
+  border:1px solid var(--line);
+  border-radius:8px;
+  display:flex;flex-direction:column;
+  box-shadow:0 2px 0 rgba(6,16,28,.35);
+  min-height:0;
+}
+.activity-head{
+  padding:12px 14px;border-bottom:2px solid var(--ink);
+  display:flex;align-items:center;gap:10px;
+}
+.activity-head h2{font-size:15px;font-weight:800;letter-spacing:3px}
+.activity-head .stamp-mini{
+  width:34px;height:34px;border-radius:50%;
+  border:2px solid var(--stamp);color:var(--stamp);
+  display:grid;place-items:center;font-size:10px;font-weight:800;letter-spacing:1px;
+  transform:rotate(-8deg);opacity:.85;
+}
+.activity-head .sub{margin-left:auto;font-family:var(--font-mono);font-size:10px;color:var(--muted)}
+.activity-list{
+  list-style:none;overflow-y:auto;flex:1;
+  padding:10px 14px;display:flex;flex-direction:column;gap:2px;
+  background-image:repeating-linear-gradient(transparent 0 27px,rgba(32,48,62,.06) 27px 28px);
+}
+.activity-item{
+  display:flex;gap:10px;align-items:flex-start;
+  padding:6px 0;border-bottom:1px dashed var(--line);
+  animation:freshIn .35s ease-out;
+}
+.activity-item .time{
+  font-family:var(--font-mono);font-size:11px;color:var(--amber-deep);
+  flex:0 0 36px;padding-top:2px;font-weight:700;
+}
+.activity-item .dot{flex:0 0 8px;width:8px;height:8px;border-radius:50%;margin-top:6px}
+.dot-create{background:var(--stamp-blue)}
+.dot-assign{background:var(--amber-deep)}
+.dot-advance{background:var(--safety)}
+.dot-review{background:var(--ink)}
+.activity-item .txt{font-size:12px;line-height:1.6;color:var(--ink)}
+.activity-item .txt b{font-weight:800}
+.activity-empty{padding:24px;text-align:center;color:var(--muted);font-size:12px}
+
+/* 图签栏（图纸标题栏） */
+.titleblock{
+  flex:0 0 40px;
+  display:flex;align-items:stretch;
+  border-top:2px solid var(--safety);
+  background:var(--paper);
+  font-family:var(--font-mono);font-size:11px;color:var(--ink);
+}
+.titleblock .cell{
+  display:flex;align-items:center;gap:6px;padding:0 14px;
+  border-right:1px solid var(--line);white-space:nowrap;
+}
+.titleblock .cell b{font-weight:800;letter-spacing:1px}
+.titleblock .cell.grow{flex:1;border-right:none;justify-content:flex-end;color:var(--muted)}
+
+/* 抽屉：新建任务 */
+.overlay{
+  position:fixed;inset:0;background:rgba(9,20,33,.55);
+  opacity:0;pointer-events:none;transition:opacity .2s ease;
+}
+.overlay.show{opacity:1;pointer-events:auto}
+.drawer{
+  position:fixed;top:0;right:0;bottom:0;width:400px;max-width:92vw;
+  background:var(--paper);
+  border-left:4px solid var(--safety);
+  box-shadow:-16px 0 40px rgba(6,16,28,.4);
+  transform:translateX(105%);transition:transform .25s ease;
+  display:flex;flex-direction:column;
+  z-index:40;
+}
+.drawer.show{transform:translateX(0)}
+.drawer-head{
+  padding:16px 20px;border-bottom:2px solid var(--ink);
+  display:flex;align-items:center;gap:10px;
+}
+.drawer-head h2{font-size:16px;font-weight:800;letter-spacing:3px}
+.drawer-head .code-tag{font-family:var(--font-mono);font-size:10px;color:var(--muted);border:1px solid var(--line);border-radius:3px;padding:2px 6px}
+.drawer-body{padding:18px 20px;overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:16px}
+.field label{display:block;font-size:12px;font-weight:800;letter-spacing:1px;margin-bottom:6px}
+.field label .req{color:var(--stamp)}
+.field input,.field select,.field textarea{
+  width:100%;font-family:inherit;font-size:13px;color:var(--ink);
+  background:var(--card);border:1px solid var(--line);border-radius:4px;
+  padding:8px 10px;outline:none;
+  transition:border-color .12s ease,box-shadow .12s ease;
+}
+.field textarea{resize:vertical;min-height:64px}
+.field input:focus,.field select:focus,.field textarea:focus{
+  border-color:var(--stamp-blue);box-shadow:0 0 0 3px rgba(44,109,163,.15);
+}
+.field.has-error input{border-color:var(--stamp);box-shadow:0 0 0 3px rgba(190,58,43,.12)}
+.field .err-msg{display:none;font-size:11px;color:var(--stamp);margin-top:4px;font-weight:700}
+.field.has-error .err-msg{display:block}
+.chips{display:flex;gap:8px}
+.chip{position:relative}
+.chip input{position:absolute;opacity:0;pointer-events:none}
+.chip span{
+  display:inline-block;font-size:12px;font-weight:700;letter-spacing:1px;
+  border:1px solid var(--line);border-radius:999px;padding:5px 14px;
+  background:var(--card);color:var(--muted);cursor:pointer;
+  transition:all .12s ease;
+}
+.chip input:checked+span{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+.chip input:focus-visible+span{outline:2px solid var(--stamp-blue);outline-offset:2px}
+.drawer-foot{
+  padding:14px 20px;border-top:1px solid var(--line);
+  display:flex;gap:10px;justify-content:flex-end;
+}
+
+/* 分派弹层 */
+.assign-pop{
+  position:fixed;z-index:50;width:240px;
+  background:var(--card);border:1px solid var(--line);border-radius:6px;
+  box-shadow:0 12px 32px rgba(6,16,28,.35);
+  padding:6px;display:none;
+}
+.assign-pop.show{display:block;animation:popIn .16s ease-out}
+@keyframes popIn{from{transform:translateY(4px);opacity:0}to{transform:none;opacity:1}}
+.assign-pop .pop-title{font-size:11px;font-weight:800;letter-spacing:1px;color:var(--muted);padding:6px 8px 8px}
+.member-item{
+  width:100%;display:flex;align-items:center;gap:8px;
+  background:transparent;border:none;border-radius:4px;
+  padding:7px 8px;text-align:left;font-size:13px;color:var(--ink);
+  transition:background .12s ease;
+}
+.member-item:hover{background:var(--paper)}
+.member-item .m-role{margin-left:auto;font-size:10px;font-family:var(--font-mono);color:var(--muted)}
+.member-item.is-self .m-role{color:var(--safety)}
+
+/* 异常弹窗：退件单 */
+.modal{
+  position:fixed;inset:0;z-index:60;display:none;
+  align-items:center;justify-content:center;padding:24px;
+}
+.modal.show{display:flex}
+.modal-card{
+  position:relative;width:460px;max-width:100%;
+  background:var(--paper);
+  border:1px solid var(--line);
+  box-shadow:0 24px 64px rgba(6,16,28,.5);
+  padding:26px 26px 22px;
+  animation:popIn .2s ease-out;
+}
+.modal-card::before{
+  content:"";position:absolute;top:-10px;left:50%;transform:translateX(-50%) rotate(-2deg);
+  width:120px;height:24px;background:var(--tape);opacity:.85;
+}
+.modal-kicker{font-family:var(--font-mono);font-size:10px;letter-spacing:2px;color:var(--stamp);font-weight:700}
+.modal-card h3{font-size:17px;font-weight:800;letter-spacing:2px;margin:6px 0 14px;padding-right:110px}
+.deny-lines{list-style:none;display:flex;flex-direction:column;gap:8px;font-size:13px}
+.deny-lines li{display:flex;gap:8px;line-height:1.6}
+.deny-lines .k{flex:0 0 76px;color:var(--muted);font-size:12px;padding-top:1px}
+.deny-lines .v{color:var(--ink);font-weight:600}
+.deny-lines .v.warn{color:var(--stamp);font-weight:800}
+.deny-stamp{
+  position:absolute;top:16px;right:16px;
+  width:96px;height:96px;border-radius:50%;
+  border:3px solid var(--stamp);color:var(--stamp);
+  display:grid;place-items:center;text-align:center;
+  font-size:19px;font-weight:800;letter-spacing:4px;line-height:1.3;
+  transform:rotate(-12deg);opacity:.88;background:rgba(190,58,43,.05);
+  animation:stampIn .35s cubic-bezier(.2,1.4,.4,1);
+  pointer-events:none;
+}
+.deny-stamp::before{content:"";position:absolute;inset:6px;border-radius:50%;border:1px solid currentColor}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:20px}
+.permit-ok{display:none;text-align:left}
+.permit-ok .ok-stamp{
+  width:88px;height:88px;border-radius:50%;
+  border:3px solid var(--stamp-blue);color:var(--stamp-blue);
+  display:grid;place-items:center;font-size:16px;font-weight:800;letter-spacing:3px;
+  transform:rotate(-10deg);opacity:.9;margin:4px 0 14px auto;
+  background:rgba(44,109,163,.06);
+  animation:stampIn .35s cubic-bezier(.2,1.4,.4,1);
+}
+.permit-ok .ok-stamp::before{content:"";position:absolute;inset:6px;border-radius:50%;border:1px solid currentColor}
+.permit-ok p{font-size:13px;line-height:1.8;color:var(--ink)}
+.permit-ok .sq{font-family:var(--font-mono);font-weight:800;color:var(--stamp-blue)}
+.modal-card.is-ok .deny-view{display:none}
+.modal-card.is-ok .permit-ok{display:block}
+
+/* 轻提示 */
+.toast{
+  position:fixed;left:50%;bottom:28px;transform:translate(-50%,16px);
+  background:var(--ink);color:var(--paper);
+  font-size:13px;font-weight:700;letter-spacing:1px;
+  border-radius:4px;padding:10px 18px;
+  box-shadow:0 10px 28px rgba(6,16,28,.45);
+  opacity:0;pointer-events:none;transition:all .22s ease;
+  z-index:70;display:flex;align-items:center;gap:8px;
+}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.toast .dot-advance{width:8px;height:8px;border-radius:50%;background:var(--safety)}
+
+/* 响应式 */
+@media (max-width:1020px){
+  body{padding:12px}
+  .shell{min-height:calc(100vh - 24px)}
+  .workspace{flex-direction:column}
+  .columns{overflow-x:auto;padding-bottom:6px}
+  .col{flex:0 0 236px;min-height:380px}
+  .activity{flex:none;width:100%;max-height:300px}
+  .topbar{flex-wrap:wrap;height:auto;min-height:56px;padding:10px 12px;gap:10px}
+  .brand-sub{display:none}
+}
+@media (max-width:560px){
+  .drawer{width:100%;max-width:100%}
+  .user-chip .u-role{display:none}
+}
+
+/* 减少动态 */
+@media (prefers-reduced-motion: reduce){
+  *{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+  .stamp,.deny-stamp,.ok-stamp{opacity:.9}
+}
+</style>
+</head>
+<body>
+<div class="shell" id="appShell">
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark">板</span>
+      <div>
+        <div class="brand-name">板房协作</div>
+        <div class="brand-sub">SITE OFFICE · 任务台</div>
+      </div>
+    </div>
+    <div class="topbar-meta">
+      <span class="proj">滨江天地 · 二期三标段</span>
+      <span class="sep">|</span>
+      <span>3号楼主体施工</span>
+      <span class="sep">|</span>
+      <span>2026-05-20 周三 · 晴 26℃</span>
+    </div>
+    <div class="user-chip">
+      <span class="avatar me">韩</span>
+      <span class="u-name">韩江</span>
+      <span class="u-role">施工员 · 当前身份</span>
+    </div>
+  </header>
+
+  <main class="workspace">
+    <section class="board" aria-label="任务看板">
+      <div class="board-head">
+        <h2>任务看板</h2>
+        <span class="total" id="taskTotal">共 6 项</span>
+        <span class="hint">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><rect x="4" y="10" width="16" height="10" rx="1.5"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+          结算类任务仅限财务角色操作
+        </span>
+        <span class="spacer"></span>
+        <button class="btn btn-primary" id="btnNewTask" type="button">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+          新建任务
+        </button>
+      </div>
+      <div class="columns" id="columns">
+        <div class="col" id="colTodo">
+          <div class="col-head"><span class="col-code">ST-01</span><span class="col-name">待处理</span><span class="count" id="count-todo">0</span></div>
+          <div class="col-body" data-stage="todo"></div>
+        </div>
+        <div class="col" id="colDoing">
+          <div class="col-head"><span class="col-code">ST-02</span><span class="col-name">进行中</span><span class="count" id="count-doing">0</span></div>
+          <div class="col-body" data-stage="doing"></div>
+        </div>
+        <div class="col" id="colReview">
+          <div class="col-head"><span class="col-code">ST-03</span><span class="col-name">待验收</span><span class="count" id="count-review">0</span></div>
+          <div class="col-body" data-stage="review"></div>
+        </div>
+        <div class="col" id="colDone">
+          <div class="col-head"><span class="col-code">ST-04</span><span class="col-name">已归档</span><span class="count" id="count-done">0</span></div>
+          <div class="col-body" data-stage="done"></div>
+        </div>
+      </div>
+    </section>
+
+    <aside class="activity" id="activityPanel" aria-label="活动记录">
+      <div class="activity-head">
+        <span class="stamp-mini">记录</span>
+        <h2>活动记录</h2>
+        <span class="sub">现场时序</span>
+      </div>
+      <ol class="activity-list" id="activityList"></ol>
+    </aside>
+  </main>
+
+  <footer class="titleblock">
+    <div class="cell"><b>项目</b> 滨江天地·二期三标段</div>
+    <div class="cell"><b>图号</b> 板房-046</div>
+    <div class="cell"><b>阶段</b> 主体施工</div>
+    <div class="cell"><b>现场时间</b> <span id="titleClock">10:26</span></div>
+    <div class="cell grow"><b>制图</b> 韩江 · 比例 1:1 · 第 1 张 共 1 张</div>
+  </footer>
+</div>
+
+<!-- 新建任务抽屉 -->
+<div class="overlay" id="drawerOverlay"></div>
+<aside class="drawer" id="taskDrawer" role="dialog" aria-modal="true" aria-labelledby="drawerTitle">
+  <div class="drawer-head">
+    <h2 id="drawerTitle">新建任务</h2>
+    <span class="code-tag">FORM-A / 任务登记单</span>
+  </div>
+  <form class="drawer-body" id="taskForm" novalidate>
+    <div class="field" id="fieldName">
+      <label for="inTaskName">任务名称 <span class="req">*</span></label>
+      <input id="inTaskName" type="text" maxlength="24" placeholder="如：四层脚手架连墙件检查" autocomplete="off">
+      <div class="err-msg" id="errName">任务名称不能为空</div>
+    </div>
+    <div class="field">
+      <label for="selZone">所属区域</label>
+      <select id="selZone">
+        <option>3号楼·首层</option>
+        <option>3号楼·二层</option>
+        <option>3号楼·三层</option>
+        <option>场地·东侧</option>
+        <option>项目部·资料室</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="selType">任务类型</label>
+      <select id="selType">
+        <option value="施工">施工 · A 类</option>
+        <option value="安全">安全 · B 类</option>
+        <option value="资料">资料 · C 类</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>优先级</label>
+      <div class="chips" id="prioChips">
+        <label class="chip"><input type="radio" name="prio" value="常规" checked><span>常规</span></label>
+        <label class="chip"><input type="radio" name="prio" value="加急"><span>加急</span></label>
+        <label class="chip"><input type="radio" name="prio" value="紧急"><span>紧急</span></label>
+      </div>
+    </div>
+    <div class="field">
+      <label for="selAssignee">负责人（可分派）</label>
+      <select id="selAssignee">
+        <option value="">暂不指派</option>
+        <option>韩江</option>
+        <option>阿岚</option>
+        <option>老周</option>
+        <option>何婧</option>
+        <option>钱敏</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="inNote">备注</label>
+      <textarea id="inNote" placeholder="验收标准、旁站要求、需携带的表单等（选填）"></textarea>
+    </div>
+  </form>
+  <div class="drawer-foot">
+    <button class="btn btn-ghost" id="btnCloseDrawer" type="button">取消</button>
+    <button class="btn btn-primary" id="btnSubmitTask" type="submit" form="taskForm">登记任务</button>
+  </div>
+</aside>
+
+<!-- 分派弹层 -->
+<div class="assign-pop" id="assignPop" role="menu" aria-label="选择成员"></div>
+
+<!-- 异常弹窗：权限不足退件单 -->
+<div class="modal" id="denyModal" role="dialog" aria-modal="true" aria-labelledby="denyTitle">
+  <div class="modal-card" id="denyCard">
+    <div class="deny-view">
+      <div class="deny-stamp">无权<br>操作</div>
+      <div class="modal-kicker">RETURN SLIP / 退件单</div>
+      <h3 id="denyTitle">操作被退回 · 权限不足</h3>
+      <ul class="deny-lines">
+        <li><span class="k">任务</span><span class="v">J-01 结算书归档（待验收）</span></li>
+        <li><span class="k">所需权限</span><span class="v">财务结算 · 归档专用</span></li>
+        <li><span class="k">当前身份</span><span class="v">韩江 · 施工员</span></li>
+        <li><span class="k">处理结果</span><span class="v warn">本次操作未写入变更，活动记录未新增条目</span></li>
+      </ul>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" id="btnBackBoard" type="button">返回任务板</button>
+        <button class="btn btn-primary" id="btnApplyPerm" type="button">申请财务结算权限</button>
+      </div>
+    </div>
+    <div class="permit-ok">
+      <div class="ok-stamp">申请<br>已登记</div>
+      <div class="modal-kicker">PERMIT REQUEST / 权限申请</div>
+      <h3>申请已登记</h3>
+      <p>申请单号 <span class="sq" id="applyNo">SQ-20260520-011</span><br>
+      已提交给 项目财务 · 钱敏，预计 1 个工作日内批复。批复前该任务保持只读，可先处理其他任务。</p>
+      <div class="modal-actions">
+        <button class="btn btn-primary" id="btnBackBoard2" type="button">返回任务板</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"><span class="dot-advance"></span><span id="toastText"></span></div>
+
+<script>
+(function(){
+  "use strict";
+  var MEMBERS = [
+    {name:"韩江", role:"施工员", me:true},
+    {name:"阿岚", role:"资料员"},
+    {name:"老周", role:"安全员"},
+    {name:"何婧", role:"预算员"},
+    {name:"钱敏", role:"项目财务"}
+  ];
+  var STAGES = [
+    {key:"todo", label:"待处理"},
+    {key:"doing", label:"进行中"},
+    {key:"review", label:"待验收"},
+    {key:"done", label:"已归档"}
+  ];
+  var TYPE_PREFIX = {施工:"A", 安全:"B", 资料:"C", 结算:"J"};
+
+  var tasks = [
+    {code:"A-09", title:"钢筋进场验收", zone:"3号楼·首层", type:"施工", prio:"加急", assignee:"韩江", stage:"doing"},
+    {code:"A-11", title:"三层模板拆除", zone:"3号楼·三层", type:"施工", prio:"常规", assignee:"阿岚", stage:"doing"},
+    {code:"B-04", title:"临电箱巡检", zone:"场地·东侧", type:"安全", prio:"常规", assignee:"", stage:"todo"},
+    {code:"A-06", title:"混凝土浇筑旁站", zone:"3号楼·二层", type:"施工", prio:"紧急", assignee:"老周", stage:"review"},
+    {code:"J-01", title:"结算书归档", zone:"项目部·资料室", type:"结算", prio:"加急", assignee:"钱敏", stage:"review", locked:true},
+    {code:"C-03", title:"安全晨会纪要归档", zone:"项目部", type:"资料", prio:"常规", assignee:"阿岚", stage:"done"}
+  ];
+  var activities = [
+    {time:"10:26", kind:"review", text:"<b>钱敏</b> 完成 <b>J-01</b>『结算书归档』归档前核对，等待财务复核"},
+    {time:"09:58", kind:"advance", text:"<b>阿岚</b> 将 <b>A-11</b>『三层模板拆除』推进至 <b>进行中</b>"},
+    {time:"09:41", kind:"create", text:"<b>韩江</b> 登记任务 <b>B-04</b>『临电箱巡检』至 <b>待处理</b>"},
+    {time:"09:12", kind:"assign", text:"<b>杜工</b> 将 <b>A-09</b>『钢筋进场验收』分派给 <b>韩江</b>"}
+  ];
+  var clock = 10*60 + 26;
+  var applyCounter = 10;
+  var freshCode = "";
+  var toastTimer = null;
+
+  var $ = function(id){ return document.getElementById(id); };
+  var columnsEl = $("columns");
+  var activityListEl = $("activityList");
+
+  function pad(n){ return (n < 10 ? "0" : "") + n; }
+  function fmt(min){ return pad(Math.floor(min/60)) + ":" + pad(min % 60); }
+  function tick(min){ clock += min; $("titleClock").textContent = fmt(clock); }
+  function ab(name){ return name ? name.charAt(0) : "?"; }
+
+  function nextCode(type){
+    var prefix = TYPE_PREFIX[type] || "A";
+    var max = 0;
+    tasks.forEach(function(t){
+      if(t.code.charAt(0) === prefix){
+        var n = parseInt(t.code.slice(2), 10);
+        if(n > max){ max = n; }
+      }
+    });
+    return prefix + "-" + pad(max + 1);
+  }
+
+  function prioTag(p){
+    if(p === "紧急"){ return '<span class="tag tag-urgent">紧急</span>'; }
+    if(p === "加急"){ return '<span class="tag tag-fast">加急</span>'; }
+    return '<span class="tag tag-normal">常规</span>';
+  }
+
+  function advLabel(stage){
+    if(stage === "todo"){ return "开工推进"; }
+    if(stage === "doing"){ return "报验推进"; }
+    if(stage === "review"){ return "验收归档"; }
+    return "已归档";
+  }
+
+  function cardHTML(t){
+    var stamp = "";
+    if(t.stage === "review"){ stamp = '<span class="stamp stamp-blue">报验</span>'; }
+    if(t.stage === "done"){ stamp = '<span class="stamp stamp-red">已归档</span>'; }
+    var lockLine = t.locked
+      ? '<span class="lockline"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><rect x="4" y="10" width="16" height="10" rx="1.5"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>财务专用 · 只读</span>'
+      : "";
+    var assignee = t.assignee
+      ? '<span class="assignee"><span class="avatar sm' + (t.assignee === "韩江" ? " me" : "") + '">' + ab(t.assignee) + '</span><span class="who">' + t.assignee + '</span></span>'
+      : '<span class="assignee"><span class="none">待指派</span></span>';
+    var actions = "";
+    if(t.stage === "done"){
+      actions = '<button class="btn btn-ghost btn-xs" type="button" disabled>已归档</button>';
+    } else {
+      actions = '<button class="btn btn-ghost btn-xs" type="button" data-act="assign">分派</button>'
+        + '<button class="btn btn-primary btn-xs" type="button" data-act="advance">' + advLabel(t.stage) + '</button>';
+    }
+    var cls = "card" + (t.prio === "紧急" ? " is-urgent" : "") + (t.locked ? " is-locked" : "") + (t.code === freshCode ? " fresh" : "");
+    return '<article class="' + cls + '" data-code="' + t.code + '">'
+      + stamp
+      + '<div class="card-top"><span class="code">' + t.code + '</span>' + prioTag(t.prio) + (t.locked ? '<span class="tag tag-lock"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><rect x="4" y="10" width="16" height="10" rx="1.5"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>财务专用</span>' : '') + '</div>'
+      + '<h3 class="card-title">' + t.title + '</h3>'
+      + '<div class="card-meta"><span>' + t.zone + '</span><span>' + t.type + '类</span>' + lockLine + '</div>'
+      + '<div class="card-foot">' + assignee + '<span class="card-actions">' + actions + '</span></div>'
+      + '</article>';
+  }
+
+  function renderBoard(){
+    STAGES.forEach(function(s){
+      var body = columnsEl.querySelector('.col-body[data-stage="' + s.key + '"]');
+      var list = tasks.filter(function(t){ return t.stage === s.key; });
+      body.innerHTML = list.map(cardHTML).join("");
+      $("count-" + s.key).textContent = list.length;
+    });
+    $("taskTotal").textContent = "共 " + tasks.length + " 项";
+  }
+
+  function renderActivity(){
+    if(!activities.length){
+      activityListEl.innerHTML = '<li class="activity-empty">暂无活动记录</li>';
+      return;
+    }
+    activityListEl.innerHTML = activities.map(function(a){
+      return '<li class="activity-item"><span class="time">' + a.time + '</span><span class="dot dot-' + a.kind + '"></span><span class="txt">' + a.text + '</span></li>';
+    }).join("");
+  }
+
+  function pushActivity(kind, text){
+    activities.unshift({time:fmt(clock), kind:kind, text:text});
+    renderActivity();
+  }
+
+  function toast(msg){
+    var el = $("toast");
+    $("toastText").textContent = msg;
+    el.classList.add("show");
+    if(toastTimer){ clearTimeout(toastTimer); }
+    toastTimer = setTimeout(function(){ el.classList.remove("show"); }, 2600);
+  }
+
+  /* 新建任务抽屉 */
+  var drawer = $("taskDrawer"), drawerOverlay = $("drawerOverlay");
+  function openDrawer(){
+    drawer.classList.add("show");
+    drawerOverlay.classList.add("show");
+    $("fieldName").classList.remove("has-error");
+    setTimeout(function(){ $("inTaskName").focus(); }, 60);
+  }
+  function closeDrawer(){
+    drawer.classList.remove("show");
+    drawerOverlay.classList.remove("show");
+  }
+  $("btnNewTask").addEventListener("click", openDrawer);
+  $("btnCloseDrawer").addEventListener("click", closeDrawer);
+  drawerOverlay.addEventListener("click", closeDrawer);
+
+  $("taskForm").addEventListener("submit", function(e){
+    e.preventDefault();
+    var name = $("inTaskName").value.trim();
+    if(!name){
+      $("fieldName").classList.add("has-error");
+      $("inTaskName").focus();
+      return;
+    }
+    var type = $("selType").value;
+    var prio = document.querySelector('input[name="prio"]:checked').value;
+    var assignee = $("selAssignee").value;
+    var zone = $("selZone").value;
+    var t = {code:nextCode(type), title:name, zone:zone, type:type, prio:prio, assignee:assignee, stage:"todo"};
+    tasks.unshift(t);
+    freshCode = t.code;
+    tick(9);
+    pushActivity("create", "<b>韩江</b> 登记任务 <b>" + t.code + "</b>『" + t.title + "』至 <b>待处理</b>" + (assignee ? "，分派给 <b>" + assignee + "</b>" : ""));
+    renderBoard();
+    toast("任务 " + t.code + " 已登记到待处理");
+    e.target.reset();
+    closeDrawer();
+    setTimeout(function(){ freshCode = ""; }, 600);
+  });
+  $("inTaskName").addEventListener("input", function(){ $("fieldName").classList.remove("has-error"); });
+
+  /* 分派弹层 */
+  var pop = $("assignPop");
+  var popTaskCode = "";
+  function openAssign(anchorBtn, task){
+    popTaskCode = task.code;
+    pop.innerHTML = '<div class="pop-title">分派「' + task.code + ' ' + task.title + '」</div>'
+      + MEMBERS.map(function(m){
+        return '<button class="member-item' + (m.me ? " is-self" : "") + '" type="button" data-name="' + m.name + '"><span class="avatar sm' + (m.me ? " me" : "") + '">' + ab(m.name) + '</span><span>' + m.name + '</span><span class="m-role">' + m.role + '</span></button>';
+      }).join("");
+    pop.classList.add("show");
+    var r = anchorBtn.getBoundingClientRect();
+    var top = r.bottom + 6;
+    if(top + 240 > window.innerHeight){ top = Math.max(8, r.top - 240); }
+    pop.style.top = top + "px";
+    pop.style.left = Math.max(8, Math.min(r.left, window.innerWidth - 248)) + "px";
+  }
+  function closeAssign(){ pop.classList.remove("show"); popTaskCode = ""; }
+  pop.addEventListener("click", function(e){
+    var btn = e.target.closest(".member-item");
+    if(!btn){ return; }
+    var task = tasks.filter(function(t){ return t.code === popTaskCode; })[0];
+    if(!task){ closeAssign(); return; }
+    task.assignee = btn.getAttribute("data-name");
+    tick(5);
+    pushActivity("assign", "<b>韩江</b> 将 <b>" + task.code + "</b>『" + task.title + "』分派给 <b>" + task.assignee + "</b>");
+    renderBoard();
+    toast("已分派给 " + task.assignee);
+    closeAssign();
+  });
+  document.addEventListener("click", function(e){
+    if(pop.classList.contains("show") && !e.target.closest("#assignPop") && !e.target.closest('[data-act="assign"]')){
+      closeAssign();
+    }
+  });
+
+  /* 异常：权限不足 */
+  var denyModal = $("denyModal"), denyCard = $("denyCard");
+  function openDeny(){
+    denyCard.classList.remove("is-ok");
+    denyModal.classList.add("show");
+  }
+  function closeDeny(){
+    denyModal.classList.remove("show");
+    denyCard.classList.remove("is-ok");
+  }
+  $("btnApplyPerm").addEventListener("click", function(){
+    applyCounter += 1;
+    $("applyNo").textContent = "SQ-20260520-" + String(applyCounter).padStart(3, "0");
+    denyCard.classList.add("is-ok");
+  });
+  $("btnBackBoard").addEventListener("click", closeDeny);
+  $("btnBackBoard2").addEventListener("click", closeDeny);
+  denyModal.addEventListener("click", function(e){ if(e.target === denyModal){ closeDeny(); } });
+
+  /* 推进 */
+  columnsEl.addEventListener("click", function(e){
+    var btn = e.target.closest("button[data-act]");
+    if(!btn || btn.disabled){ return; }
+    var card = btn.closest(".card");
+    var task = tasks.filter(function(t){ return t.code === card.getAttribute("data-code"); })[0];
+    if(!task){ return; }
+    if(btn.getAttribute("data-act") === "assign"){
+      openAssign(btn, task);
+      return;
+    }
+    if(task.locked){
+      openDeny();
+      return;
+    }
+    var idx = STAGES.findIndex(function(s){ return s.key === task.stage; });
+    if(idx < 0 || idx >= STAGES.length - 1){ return; }
+    var from = STAGES[idx].label, to = STAGES[idx + 1].label;
+    task.stage = STAGES[idx + 1].key;
+    tick(7);
+    pushActivity("advance", "<b>韩江</b> 将 <b>" + task.code + "</b>『" + task.title + "』从 <b>" + from + "</b> 推进至 <b>" + to + "</b>");
+    renderBoard();
+    toast("已推进至「" + to + "」");
+  });
+
+  document.addEventListener("keydown", function(e){
+    if(e.key !== "Escape"){ return; }
+    closeAssign();
+    if(denyModal.classList.contains("show")){ closeDeny(); return; }
+    if(drawer.classList.contains("show")){ closeDrawer(); }
+  });
+
+  $("titleClock").textContent = fmt(clock);
+  renderBoard();
+  renderActivity();
+})();
+</script>
+</body>
+</html>
