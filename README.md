@@ -31,57 +31,9 @@ Daedalus 是一套面向 UI Agent 与模型的公开产品设计评测，也是�
 | `001–040` | 登录、编辑器、仪表盘、结账、错误页等独立页面 | 视觉广度、信息组织、页面职责 |
 | `041–050` | 购物、支付、聊天、社交、媒体、协作、创作、旅行、健康、学习 | 核心操作闭环、结果状态、异常恢复 |
 
-## 当前公开答卷
+## 浏览展厅
 
-十三份完整答卷现已发布。点击下方入口进入各自的专属展厅，或打开 **[综合展厅](https://321sssrt-bit.github.io/daedalus-ui/)** 统一浏览。
-
-| Harness | Model | 思考档位 | 完成度 | 状态 | 专属展厅 |
-| --- | --- | --- | --- | --- | --- |
-| Grok | Grok 4.7 | `xhigh` | 50 / 50 | Complete | [进入展厅 →](https://321sssrt-bit.github.io/daedalus-ui/submissions/grok--grok-4.7--xhigh/) |
-| Kimi Code | K2.8 Preview | `max` | 50 / 50 | Complete | [进入展厅 →](https://321sssrt-bit.github.io/daedalus-ui/submissions/kimi-code--k2.8-preview--max/) |
-| DeepSeek Harness | DeepSeek V4.1 Flash expires-on-0910 | `max` | 50 / 50 | Complete | [进入展厅 →](https://321sssrt-bit.github.io/daedalus-ui/submissions/deepseek-harness--deepseek-v4.1-flash-expires-on-0910--max/) |
-| Cursor | Composer 2.5 Fast | `default` | 50 / 50 | Complete | [进入展厅 →](https://321sssrt-bit.github.io/daedalus-ui/submissions/cursor--composer-2.5-fast--default/) |
-| Kimi Code | Qwen3.8 Flash Next | `xhigh` | 50 / 50 | Complete | [进入展厅 →](https://321sssrt-bit.github.io/daedalus-ui/submissions/kimi-code--qwen3.8-flash-next--xhigh/) |
-| Codex | GPT-6 Astra | `max` | 50 / 50 | Complete | [进入展厅 →](https://321sssrt-bit.github.io/daedalus-ui/submissions/codex--gpt-6-astra--max/) |
-| Kimi Code | DeepSeek V4 Flash vision-exp | `max` | 50 / 50 | Complete | [进入展厅 →](https://321sssrt-bit.github.io/daedalus-ui/submissions/kimi-code--deepseek-v4-flash-vision-exp--max/) |
-| Qoder | 3.8 Flash | `xhigh` | 50 / 50 | Complete | [进入展厅 →](https://321sssrt-bit.github.io/daedalus-ui/submissions/qoder--3.8flash--xhigh/) |
-| Codex | GPT-5.6 Sol | `xhigh` | 50 / 50 | Complete | [进入展厅 →](https://321sssrt-bit.github.io/daedalus-ui/submissions/codex--gpt-5.6-sol--xhigh/) |
-| DeepSeek Harness | deepseek-v4-pro | `max` | 50 / 50 | Complete | [进入展厅 →](https://321sssrt-bit.github.io/daedalus-ui/submissions/deepseek-harness--deepseek-v4-pro--max/) |
-| Kimi Code | K3 | `max` | 50 / 50 | Complete | [进入展厅 →](https://321sssrt-bit.github.io/daedalus-ui/submissions/kimi-code--k3--max/) |
-| Grok Build | Grok 4.6 | `xhigh` | 50 / 50 | Complete | [进入展厅 →](https://321sssrt-bit.github.io/daedalus-ui/submissions/grok-build--grok-4.6--xhigh/) |
-| Qoder | Qwen3.8 | `max` | 50 / 50 | Complete | [进入展厅 →](https://321sssrt-bit.github.io/daedalus-ui/submissions/qoder--qwen3.8--max/) |
-
-## Grok 4.7 · xhigh · 2026.09.22
-
-**50 / 50 完成。** 每题均附离线 HTML、复现规范与设计意图；10 个连续产品原型在同一页面内包含正常闭环，以及可主动触发的异常和恢复。项目验证与展厅构建均通过。全程由主代理独立完成，未使用子代理。抽看了登录、看板、钱包、购物车、删除、菜场、放映和课程等页面；没有在浏览器里逐题点完所有按钮。
-
-[进入本次展厅 →](https://321sssrt-bit.github.io/daedalus-ui/submissions/grok--grok-4.7--xhigh/) · [查看答卷源码](models/grok/grok-4.7/xhigh) · [运行回执](models/grok/grok-4.7/xhigh/run-receipt.json)
-
-## K2.8 Preview · max · 2026.09.11
-
-**50 / 50 完成。** 每题均附离线 HTML、复现规范与设计意图；10 个连续产品原型在同一页面内走通正常闭环、异常触发与恢复。项目验证与展厅构建均通过；全程由 6 批并行子代理完成，途中遭遇配额中断，部分题目由主代理亲自补完并复核。
-
-[进入本次展厅 →](https://321sssrt-bit.github.io/daedalus-ui/submissions/kimi-code--k2.8-preview--max/) · [查看答卷源码](models/kimi-code/k2.8-preview/max) · [运行回执](models/kimi-code/k2.8-preview/max/run-receipt.json)
-
-## DeepSeek V4.1 Flash · max · 2026.09.08
-
-[![DeepSeek V4.1 Flash max 答卷的六个真实页面预览](docs/assets/deepseek-v41-flash-max-preview.png)](https://321sssrt-bit.github.io/daedalus-ui/submissions/deepseek-harness--deepseek-v4.1-flash-expires-on-0910--max/)
-
-**50 / 50 已登记完成。** 每题均附离线 HTML、复现规范和设计意图。上图为登录、概览、商店、播放器、购物原型和旅行原型的真实页面截图。提交时项目校验与展厅构建通过；截图展示不代表全部交互流程已经验收。
-
-[进入本次展厅 →](https://321sssrt-bit.github.io/daedalus-ui/submissions/deepseek-harness--deepseek-v4.1-flash-expires-on-0910--max/) · [查看答卷源码](models/deepseek-harness/deepseek-v4.1-flash-expires-on-0910/max) · [运行回执](models/deepseek-harness/deepseek-v4.1-flash-expires-on-0910/max/run-receipt.json)
-
-## GPT-6 Astra · max · 2026.09.05
-
-[![Codex GPT-6 Astra max 答卷的六个真实页面预览](docs/assets/codex-gpt-6-astra-max-preview.png)](https://321sssrt-bit.github.io/daedalus-ui/submissions/codex--gpt-6-astra--max/)
-
-**50 / 50 完成。** 每题均附离线 HTML、复现规范和设计意图；后 10 题包含正常闭环与异常恢复。项目验证、展厅构建均通过，3 个独立新会话完成 QA 并复核返修。
-
-[进入本次展厅 →](https://321sssrt-bit.github.io/daedalus-ui/submissions/codex--gpt-6-astra--max/) · [查看答卷源码](models/codex/gpt-6-astra/max) · [QA 范围与结果](models/codex/gpt-6-astra/max/qa-report.md) · [运行回执](models/codex/gpt-6-astra/max/run-receipt.json)
-
-## 浏览与复用
-
-展厅可以按答卷或题目浏览。每件作品都能独立打开，并可查看对应的复现规范和设计意图；个人收藏只保存在当前浏览器，不会上传。
+在[在线展厅](https://321sssrt-bit.github.io/daedalus-ui/)可按答卷或题目浏览，每件作品都能独立打开并查看对应的复现规范和设计意图；个人收藏只保存在当前浏览器，不会上传。
 
 <details>
 <summary>在本地运行</summary>
