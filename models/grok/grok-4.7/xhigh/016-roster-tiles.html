@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>名册</title>
+<style>
+
+* { box-sizing: border-box; }
+body { margin: 0; min-height: 100vh; background: #efe7dc; color: #2a2420; font: 15px/1.4 "Songti SC","SimSun","PMingLiU",serif; padding: 32px; }
+h1 { font-size: 36px; margin: 0 0 16px; }
+.filters { display: flex; gap: 8px; }
+.filters button { height: 36px; border-radius: 999px; border: 1px solid #2a2420; background: transparent; color: #2a2420; padding: 0 14px; cursor: pointer; font: 14px "Songti SC","SimSun","PMingLiU",serif; }
+.filters button[aria-pressed="true"] { background: #2a2420; color: #fffaf4; }
+.grid { margin-top: 16px; display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; }
+.person { height: 148px; border-radius: 16px; border: 1px solid #d9cbb8; background: #fffaf4; text-align: left; padding: 16px; cursor: pointer; color: #2a2420; font: 15px "Songti SC","SimSun","PMingLiU",serif; }
+.person:hover { border-color: #9c4a2b; }
+.person b { display: block; font-size: 18px; margin-bottom: 8px; }
+.person span { color: #7b7168; }
+.bio { margin-top: 16px; background: #9c4a2b; color: #fffaf4; border-radius: 16px; padding: 16px 18px; }
+@media (max-width: 800px) {
+  body { padding: 16px; }
+  .grid { grid-template-columns: 1fr 1fr; }
+}
+
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}
+
+</style>
+</head>
+<body>
+
+<main>
+  <h1>名册</h1>
+  <div class="filters" id="t016-filters">
+    <button type="button" data-role="all" aria-pressed="true">全部</button>
+    <button type="button" data-role="设计" aria-pressed="false">设计</button>
+    <button type="button" data-role="船务" aria-pressed="false">船务</button>
+  </div>
+  <div class="grid" id="t016-grid"></div>
+  <p class="bio" id="t016-bio">点开一个人，看他现在负责什么。</p>
+</main>
+
+<script>
+
+(function () {
+  var people = [
+    ["林夏", "设计", "负责器物的口沿和名字。"],
+    ["周北", "船务", "守夜航的帖子和栈桥名单。"],
+    ["许棠", "设计", "管釉色试片。"],
+    ["江晚", "船务", "记泊位和延误。"],
+    ["陈禾", "设计", "排版节气历的月页。"],
+    ["宋桥", "船务", "对接引航员。"]
+  ];
+  var grid = document.getElementById("t016-grid");
+  people.forEach(function (person) {
+    var button = document.createElement("button");
+    button.className = "person";
+    button.type = "button";
+    button.setAttribute("data-role", person[1]);
+    button.innerHTML = "<b>" + person[0] + "</b><span>" + person[1] + "</span>";
+    button.addEventListener("click", function () {
+      document.getElementById("t016-bio").textContent = person[0] + " · " + person[2];
+    });
+    grid.appendChild(button);
+  });
+  document.getElementById("t016-filters").addEventListener("click", function (event) {
+    var button = event.target.closest("button");
+    if (!button) return;
+    var role = button.getAttribute("data-role");
+    document.querySelectorAll("#t016-filters button").forEach(function (item) {
+      item.setAttribute("aria-pressed", item === button ? "true" : "false");
+    });
+    document.querySelectorAll(".person").forEach(function (card) {
+      card.hidden = role !== "all" && card.getAttribute("data-role") !== role;
+    });
+  });
+})();
+
+</script>
+</body>
+</html>

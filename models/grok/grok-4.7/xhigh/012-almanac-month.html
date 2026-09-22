@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>节气历</title>
+<style>
+
+* { box-sizing: border-box; }
+body { margin: 0; min-height: 100vh; background: #f7f1e4; color: #1f1a17; font: 14px/1.4 "Songti SC","SimSun","PMingLiU",serif; }
+.wrap { min-height: 100vh; display: grid; grid-template-columns: 1fr 320px; }
+.cal { padding: 28px; }
+h1 { font-size: 42px; line-height: 1; margin: 0 0 16px; }
+.week, .grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.week span { color: #6b645b; font-size: 12px; padding: 4px 8px; }
+.week span:first-child { color: #a33b32; }
+.day { min-height: 88px; border: 1px solid #e4d8c4; background: #efe6d2; text-align: left; padding: 8px; cursor: pointer; color: #1f1a17; font: 14px "Songti SC","SimSun","PMingLiU",serif; }
+.day.today { background: #1f1a17; color: #f7f1e4; }
+.day small { display: block; color: #2f5d50; font-size: 12px; }
+.side { background: #a33b32; color: #f7f1e4; padding: 28px; }
+.side h2 { font-size: 28px; margin: 40px 0 8px; }
+@media (max-width: 800px) {
+  .wrap { grid-template-columns: 1fr; }
+  .day { min-height: 64px; }
+}
+
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}
+
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <section class="cal">
+    <p>丙午年</p>
+    <h1>2026 年 9 月</h1>
+    <div class="week"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div>
+    <div class="grid" id="t012-grid"></div>
+  </section>
+  <aside class="side" id="t012-detail">
+    <p>详情</p>
+    <h2>还没点开</h2>
+    <p>这个月有三件已经写下的事。点日期查看。</p>
+  </aside>
+</div>
+
+<script>
+
+(function () {
+  var events = {
+    8: ["白露", "晨起记温度，茶按凉性换。"],
+    22: ["秋分夜谈", "入夜后在北窗对时，席位留给六人。"],
+    27: ["交霜", "把未干的纸移进里屋。"]
+  };
+  var grid = document.getElementById("t012-grid");
+  var start = 2;
+  for (var blank = 0; blank < start; blank += 1) {
+    var pad = document.createElement("div");
+    grid.appendChild(pad);
+  }
+  for (var day = 1; day <= 30; day += 1) {
+    var button = document.createElement("button");
+    button.className = "day" + (day === 22 ? " today" : "");
+    button.type = "button";
+    button.textContent = String(day);
+    if (events[day]) {
+      var mark = document.createElement("small");
+      mark.textContent = events[day][0];
+      button.appendChild(mark);
+    }
+    button.addEventListener("click", (function (date) {
+      return function () {
+        var side = document.getElementById("t012-detail");
+        if (!events[date]) {
+          side.innerHTML = "<p>详情</p><h2>" + date + " 日</h2><p>这一天没有写下的事。</p>";
+          return;
+        }
+        side.innerHTML = "<p>9 月 " + date + " 日</p><h2>" + events[date][0] + "</h2><p>" + events[date][1] + "</p>";
+      };
+    })(day));
+    grid.appendChild(button);
+  }
+})();
+
+</script>
+</body>
+</html>

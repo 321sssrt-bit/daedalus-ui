@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>货井</title>
+<style>
+
+* { box-sizing: border-box; }
+body { margin: 0; min-height: 100vh; background: #10161c; color: #e7eef5; font: 15px/1.5 system-ui,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif; padding: 36px 16px; }
+.well { width: 760px; max-width: 100%; margin: 0 auto; }
+h1 { font-size: 32px; margin: 0 0 16px; }
+.drop { height: 180px; border-radius: 14px; border: 2px dashed #7d93a8; display: grid; place-items: center; cursor: pointer; background: transparent; color: #e7eef5; width: 100%; font: 16px system-ui,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif; }
+.drop:hover { border-color: #8fd0c6; }
+.file { margin-top: 12px; min-height: 68px; border-radius: 10px; background: #1a2430; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; gap: 12px; }
+.file small { color: #7d93a8; }
+.del { border: 0; background: transparent; color: #e07a68; cursor: pointer; }
+.start { margin-top: 16px; height: 44px; border: 0; border-radius: 10px; background: #8fd0c6; color: #10161c; padding: 0 16px; cursor: pointer; }
+.start:disabled { opacity: 0.4; cursor: not-allowed; }
+@media (max-width: 800px) { body { padding: 16px; } }
+
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}
+
+</style>
+</head>
+<body>
+
+<main class="well">
+  <h1>货井</h1>
+  <button class="drop" id="t029-drop" type="button">把文件拖到这里，或点此选择</button>
+  <div id="t029-list"></div>
+  <button class="start" id="t029-start" type="button">开始处理</button>
+</main>
+
+<script>
+
+(function () {
+  var files = [
+    { name: "舱单.pdf", size: "240KB", state: "待处理" },
+    { name: "潮位表.csv", size: "18KB", state: "待处理" }
+  ];
+  var serial = 2;
+  var list = document.getElementById("t029-list");
+  function paint() {
+    list.innerHTML = "";
+    files.forEach(function (file, index) {
+      var row = document.createElement("div");
+      row.className = "file";
+      row.innerHTML = "<div><b>" + file.name + "</b><small> " + file.size + " · " + file.state + "</small></div>";
+      var del = document.createElement("button");
+      del.className = "del";
+      del.type = "button";
+      del.textContent = "删除";
+      del.addEventListener("click", function () { files.splice(index, 1); paint(); });
+      row.appendChild(del);
+      list.appendChild(row);
+    });
+    document.getElementById("t029-start").disabled = files.length === 0;
+  }
+  document.getElementById("t029-drop").addEventListener("click", function () {
+    serial += 1;
+    files.push({ name: "补充-" + serial + ".txt", size: "4KB", state: "待处理" });
+    paint();
+  });
+  document.getElementById("t029-start").addEventListener("click", function () {
+    files.forEach(function (file) { file.state = "处理中"; });
+    paint();
+  });
+  paint();
+})();
+
+</script>
+</body>
+</html>

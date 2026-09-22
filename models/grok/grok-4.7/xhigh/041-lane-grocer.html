@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>巷口菜场</title>
+<style>
+
+* { box-sizing: border-box; }
+body { margin: 0; min-height: 100vh; background: #f3f6f1; color: #1c2418; font: 15px/1.5 system-ui,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif; }
+.shop { min-height: 100vh; display: grid; grid-template-columns: 1fr 360px; }
+.aisle { padding: 28px; }
+h1 { margin: 0 0 16px; font-size: 32px; }
+.good { background: #ffffff; border: 1px solid #d5e0d4; border-radius: 12px; padding: 16px; margin-bottom: 12px; }
+.specs button, .qty button { height: 36px; margin-right: 8px; border-radius: 8px; border: 1px solid #1f3d2a; background: #ffffff; cursor: pointer; }
+.specs button[aria-pressed="true"] { background: #1f3d2a; color: #f3f6f1; }
+.add { height: 40px; border: 0; border-radius: 8px; background: #1f3d2a; color: #f3f6f1; padding: 0 12px; cursor: pointer; }
+.cart { background: #1f3d2a; color: #f3f6f1; padding: 20px; }
+.cart .price, .sum b { color: #c4552a; }
+.line { border-bottom: 1px solid rgba(243,246,241,0.2); padding: 10px 0; }
+.submit { width: 100%; height: 48px; border: 0; background: #c4552a; color: #ffffff; cursor: pointer; }
+.warn { background: #ffd0c8; color: #1c2418; padding: 10px; border-radius: 8px; }
+.receipt { background: #ffffff; color: #1c2418; padding: 16px; border-radius: 12px; }
+@media (max-width: 800px) { .shop { grid-template-columns: 1fr; } }
+
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}
+
+</style>
+</head>
+<body>
+
+<div class="shop">
+  <section class="aisle">
+    <h1>巷口菜场</h1>
+    <div id="t041-goods"></div>
+  </section>
+  <aside class="cart">
+    <h2>购物车</h2>
+    <div id="t041-lines"></div>
+    <p class="sum">合计 <b id="t041-total">0</b> 元</p>
+    <p class="warn" id="t041-warn" hidden></p>
+    <button class="submit" id="t041-submit" type="button">提交订单</button>
+    <div class="receipt" id="t041-receipt" hidden></div>
+  </aside>
+</div>
+
+<script>
+
+(function () {
+  var goods = [
+    { name: "春笋", specs: [{ name: "整根", price: 18, stock: 8 }, { name: "切段", price: 16, stock: 0, probe: true }] },
+    { name: "新茶", specs: [{ name: "一两", price: 46, stock: 5 }] },
+    { name: "蛋", specs: [{ name: "一盒", price: 15, stock: 6 }] }
+  ];
+  var picked = goods.map(function () { return { spec: 0, qty: 1 }; });
+  var cart = [];
+  var serial = 1044;
+  var goodsRoot = document.getElementById("t041-goods");
+  function total() { return cart.reduce(function (sum, line) { return sum + line.price * line.qty; }, 0); }
+  function paintGoods() {
+    goodsRoot.innerHTML = "";
+    goods.forEach(function (good, index) {
+      var card = document.createElement("article");
+      card.className = "good";
+      var title = document.createElement("b");
+      title.textContent = good.name;
+      card.appendChild(title);
+      var specs = document.createElement("div");
+      specs.className = "specs";
+      good.specs.forEach(function (spec, specIndex) {
+        var button = document.createElement("button");
+        button.type = "button";
+        button.textContent = spec.probe ? spec.name + " · 缺货试探" : spec.name + " " + spec.price + "元";
+        button.setAttribute("aria-pressed", picked[index].spec === specIndex ? "true" : "false");
+        button.addEventListener("click", function () { picked[index].spec = specIndex; paintGoods(); });
+        specs.appendChild(button);
+      });
+      var qty = document.createElement("div");
+      qty.className = "qty";
+      var minus = document.createElement("button");
+      minus.type = "button";
+      minus.textContent = "−";
+      var count = document.createElement("span");
+      count.textContent = " " + picked[index].qty + " ";
+      var plus = document.createElement("button");
+      plus.type = "button";
+      plus.textContent = "+";
+      minus.addEventListener("click", function () { if (picked[index].qty > 1) { picked[index].qty -= 1; paintGoods(); } });
+      plus.addEventListener("click", function () { picked[index].qty += 1; paintGoods(); });
+      var add = document.createElement("button");
+      add.className = "add";
+      add.type = "button";
+      add.textContent = "加入购物车";
+      add.addEventListener("click", function () {
+        var spec = good.specs[picked[index].spec];
+        var found = cart.filter(function (line) { return line.name === good.name && line.spec === spec.name; })[0];
+        if (found) found.qty += picked[index].qty;
+        else cart.push({ name: good.name, spec: spec.name, price: spec.price, qty: picked[index].qty, stock: spec.stock });
+        document.getElementById("t041-receipt").hidden = true;
+        document.getElementById("t041-warn").hidden = true;
+        paintCart();
+      });
+      qty.appendChild(minus); qty.appendChild(count); qty.appendChild(plus);
+      card.appendChild(specs); card.appendChild(qty); card.appendChild(add);
+      goodsRoot.appendChild(card);
+    });
+  }
+  function paintCart() {
+    var root = document.getElementById("t041-lines");
+    root.innerHTML = "";
+    cart.forEach(function (line, index) {
+      var row = document.createElement("div");
+      row.className = "line";
+      row.innerHTML = "<div>" + line.name + " / " + line.spec + " × " + line.qty + "</div><div class='price'>" + (line.price * line.qty) + " 元</div>";
+      var del = document.createElement("button");
+      del.type = "button";
+      del.textContent = "删除";
+      del.addEventListener("click", function () { cart.splice(index, 1); paintCart(); });
+      var fix = document.createElement("button");
+      fix.type = "button";
+      fix.textContent = "改成整根";
+      fix.addEventListener("click", function () {
+        line.spec = "整根"; line.price = 18; line.stock = 8;
+        paintCart();
+      });
+      row.appendChild(fix); row.appendChild(del);
+      root.appendChild(row);
+    });
+    document.getElementById("t041-total").textContent = String(total());
+  }
+  document.getElementById("t041-submit").addEventListener("click", function () {
+    var warn = document.getElementById("t041-warn");
+    var receipt = document.getElementById("t041-receipt");
+    if (!cart.length) { warn.hidden = false; warn.textContent = "购物车还是空的。"; receipt.hidden = true; return; }
+    var blocked = cart.filter(function (line) { return line.stock < 1 || line.qty > line.stock; });
+    if (blocked.length) {
+      warn.hidden = false;
+      warn.textContent = blocked.map(function (line) { return line.name + " / " + line.spec; }).join("、") + " 现在缺货，这笔不能提交。";
+      receipt.hidden = true;
+      return;
+    }
+    warn.hidden = true;
+    receipt.hidden = false;
+    receipt.textContent = "订单回执 巷-" + serial + "，合计 " + total() + " 元。";
+    serial += 1;
+    cart = [];
+    paintCart();
+  });
+  paintGoods();
+  paintCart();
+})();
+
+</script>
+</body>
+</html>

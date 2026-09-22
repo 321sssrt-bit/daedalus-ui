@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>纸条</title>
+<style>
+
+* { box-sizing: border-box; }
+body { margin: 0; min-height: 100vh; background: #f7f3ea; color: #222222; font: 16px/1.4 ui-monospace,"Cascadia Mono","Consolas",monospace; padding: 32px 16px; }
+.tape { width: 720px; max-width: 100%; margin: 0 auto; }
+h1 { font-size: 28px; margin: 0 0 8px; }
+.line { min-height: 84px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px dashed #c8bba8; gap: 12px; }
+.name small { display: block; color: #5c564e; }
+.qty { display: flex; align-items: center; gap: 8px; }
+.qty button, .del { height: 32px; min-width: 32px; border: 1px solid #222222; background: #ffffff; cursor: pointer; font: 16px ui-monospace,"Cascadia Mono","Consolas",monospace; }
+.del { border: 0; background: transparent; color: #5c564e; min-width: 48px; }
+.total { height: 88px; display: flex; align-items: center; justify-content: space-between; }
+.total b { color: #e25b2a; font-size: 32px; }
+.checkout { height: 48px; min-width: 140px; border: 0; background: #e25b2a; color: #ffffff; cursor: pointer; font: 16px ui-monospace,"Cascadia Mono","Consolas",monospace; }
+.checkout:disabled { background: #c8bba8; cursor: not-allowed; }
+@media (max-width: 800px) {
+  body { padding: 16px; }
+}
+
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}
+
+</style>
+</head>
+<body>
+
+<main class="tape">
+  <h1>纸条</h1>
+  <div id="t019-lines"></div>
+  <div class="total">
+    <div>合计 <b id="t019-total">0</b></div>
+    <button class="checkout" id="t019-checkout" type="button">去结算</button>
+  </div>
+  <p id="t019-note"></p>
+</main>
+
+<script>
+
+(function () {
+  var items = [
+    { name: "春笋", price: 18, qty: 1 },
+    { name: "新茶", price: 46, qty: 1 },
+    { name: "蛋", price: 15, qty: 1 }
+  ];
+  var root = document.getElementById("t019-lines");
+  function money() {
+    return items.reduce(function (sum, item) { return sum + item.price * item.qty; }, 0);
+  }
+  function paint() {
+    root.innerHTML = "";
+    items.forEach(function (item, index) {
+      var row = document.createElement("div");
+      row.className = "line";
+      row.innerHTML = "<div class='name'><b>" + item.name + "</b><small>" + item.price + " 元</small></div>";
+      var qty = document.createElement("div");
+      qty.className = "qty";
+      var minus = document.createElement("button");
+      minus.type = "button";
+      minus.textContent = "−";
+      var count = document.createElement("span");
+      count.textContent = String(item.qty);
+      var plus = document.createElement("button");
+      plus.type = "button";
+      plus.textContent = "+";
+      var del = document.createElement("button");
+      del.className = "del";
+      del.type = "button";
+      del.textContent = "删除";
+      minus.addEventListener("click", function () { if (item.qty > 1) { item.qty -= 1; paint(); } });
+      plus.addEventListener("click", function () { item.qty += 1; paint(); });
+      del.addEventListener("click", function () { items.splice(index, 1); paint(); });
+      qty.appendChild(minus); qty.appendChild(count); qty.appendChild(plus); qty.appendChild(del);
+      row.appendChild(qty);
+      root.appendChild(row);
+    });
+    document.getElementById("t019-total").textContent = String(money());
+    document.getElementById("t019-checkout").disabled = items.length === 0;
+  }
+  document.getElementById("t019-checkout").addEventListener("click", function () {
+    document.getElementById("t019-note").textContent = "合计 " + money() + " 元，去收银台。";
+  });
+  paint();
+})();
+
+</script>
+</body>
+</html>

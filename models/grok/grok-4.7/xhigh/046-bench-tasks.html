@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>工作台</title>
+<style>
+
+* { box-sizing: border-box; }
+body { margin: 0; min-height: 100vh; background: #f4efe6; color: #2a2622; font: 15px/1.5 system-ui,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif; }
+.bench { min-height: 100vh; display: grid; grid-template-columns: 1fr 340px; }
+.main { padding: 28px; }
+form { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+input, select { height: 44px; border: 1px solid #e6dcc8; background: #fffaf3; padding: 0 8px; }
+.create { height: 44px; border: 0; background: #2a2622; color: #f4efe6; padding: 0 12px; cursor: pointer; }
+.task { background: #fffaf3; border: 1px solid #e6dcc8; border-radius: 12px; padding: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; gap: 8px; }
+.push { height: 36px; border: 0; border-radius: 8px; background: #c4552a; color: #fffaf3; cursor: pointer; }
+.lock { height: 36px; border: 1px solid #2a2622; background: transparent; cursor: pointer; }
+.log { background: #2a2622; color: #f4efe6; padding: 20px; }
+.warn { background: #ffd0c8; color: #2a2622; padding: 10px; border-radius: 8px; }
+@media (max-width: 800px) { .bench { grid-template-columns: 1fr; } form { flex-direction: column; } }
+
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}
+
+</style>
+</head>
+<body>
+
+<div class="bench">
+  <section class="main">
+    <h1>工作台</h1>
+    <form id="t046-form">
+      <input id="t046-name" placeholder="任务">
+      <select id="t046-who"><option>林夏</option><option>周北</option></select>
+      <button class="create" id="t046-save" type="submit">创建任务</button>
+      <button class="lock" id="t046-lock" type="button">封存归档库</button>
+    </form>
+    <p class="warn" id="t046-warn" hidden></p>
+    <button id="t046-ask" type="button" hidden>申请归档权限</button>
+    <button id="t046-back" type="button" hidden>返回任务</button>
+    <div id="t046-tasks"></div>
+  </section>
+  <aside class="log"><h2>活动记录</h2><div id="t046-log"></div></aside>
+</div>
+
+<script>
+
+(function () {
+  var tasks = [];
+  var logs = [];
+  var states = ["待办", "进行中", "完成"];
+  function paint() {
+    document.getElementById("t046-tasks").innerHTML = "";
+    tasks.forEach(function (task) {
+      var row = document.createElement("article");
+      row.className = "task";
+      row.innerHTML = "<div><b>" + task.name + "</b><div>" + task.who + " · " + task.state + "</div></div>";
+      var push = document.createElement("button");
+      push.className = "push";
+      push.type = "button";
+      push.textContent = "推进状态";
+      push.addEventListener("click", function () {
+        var index = states.indexOf(task.state);
+        if (index < states.length - 1) task.state = states[index + 1];
+        logs.push(task.name + " 改为 " + task.state);
+        paint();
+      });
+      row.appendChild(push);
+      document.getElementById("t046-tasks").appendChild(row);
+    });
+    document.getElementById("t046-log").innerHTML = logs.map(function (line) { return "<p>" + line + "</p>"; }).join("");
+  }
+  document.getElementById("t046-form").addEventListener("submit", function (event) {
+    event.preventDefault();
+    var name = document.getElementById("t046-name").value.trim();
+    if (!name) return;
+    var who = document.getElementById("t046-who").value;
+    tasks.push({ name: name, who: who, state: "待办" });
+    logs.push("创建 " + name + "，分派给 " + who);
+    document.getElementById("t046-name").value = "";
+    paint();
+  });
+  document.getElementById("t046-lock").addEventListener("click", function () {
+    var before = logs.length;
+    document.getElementById("t046-warn").hidden = false;
+    document.getElementById("t046-warn").textContent = "缺少归档权限，封存没有写入。记录仍是 " + before + " 条。";
+    document.getElementById("t046-ask").hidden = false;
+    document.getElementById("t046-back").hidden = false;
+    paint();
+  });
+  document.getElementById("t046-ask").addEventListener("click", function () {
+    document.getElementById("t046-warn").textContent = "已向账房申请归档权限。任务区仍可操作。";
+  });
+  document.getElementById("t046-back").addEventListener("click", function () {
+    document.getElementById("t046-warn").textContent = "已回到任务区。";
+    document.getElementById("t046-name").focus();
+  });
+  paint();
+})();
+
+</script>
+</body>
+</html>

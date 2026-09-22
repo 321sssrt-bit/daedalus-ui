@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>筛子</title>
+<style>
+
+* { box-sizing: border-box; }
+body { margin: 0; min-height: 100vh; background: #f8f1df; color: #1f1a14; font: 15px/1.5 "Songti SC","SimSun","PMingLiU",serif; }
+.bar { min-height: 72px; background: #1f1a14; color: #fffaf0; display: flex; align-items: center; gap: 12px; padding: 12px 20px; flex-wrap: wrap; }
+.bar strong { color: #8a7d68; }
+.bar label { height: 40px; display: flex; align-items: center; gap: 6px; background: #fffaf0; color: #1f1a14; border-radius: 8px; padding: 0 10px; border: 1px solid transparent; }
+.bar label.on { border-color: #c9852a; }
+.count { color: #c9852a; font-size: 20px; margin-left: auto; }
+.clear { height: 40px; border: 0; background: transparent; color: #fffaf0; cursor: pointer; font: 15px "Songti SC","SimSun","PMingLiU",serif; }
+.results { width: 800px; max-width: 100%; padding: 8px 20px 32px; }
+.hit { height: 64px; display: flex; align-items: center; border-bottom: 1px solid #e6dcc4; }
+@media (max-width: 800px) { .results { width: 100%; } }
+
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}
+
+</style>
+</head>
+<body>
+
+<header class="bar">
+  <strong>筛子</strong>
+  <label><input type="checkbox" value="在港">在港</label>
+  <label><input type="checkbox" value="茶货">茶货</label>
+  <label><input type="checkbox" value="夜航">夜航</label>
+  <label><input type="checkbox" value="延误">延误</label>
+  <button class="clear" id="t030-clear" type="button">清除</button>
+  <span class="count" id="t030-count"></span>
+</header>
+<div class="results" id="t030-results"></div>
+
+<script>
+
+(function () {
+  var rows = [
+    ["青岚", ["在港", "茶货"]],
+    ["北桁", ["延误", "夜航"]],
+    ["晚潮", ["在港"]],
+    ["春茶驳", ["茶货", "夜航"]],
+    ["霜航", ["延误", "茶货"]]
+  ];
+  function selected() {
+    return Array.prototype.map.call(document.querySelectorAll(".bar input:checked"), function (box) { return box.value; });
+  }
+  function paint() {
+    var want = selected();
+    var shown = rows.filter(function (row) {
+      return want.every(function (tag) { return row[1].indexOf(tag) >= 0; });
+    });
+    document.getElementById("t030-count").textContent = shown.length + " 条";
+    document.getElementById("t030-results").innerHTML = shown.map(function (row) {
+      return "<div class='hit'><b>" + row[0] + "</b>&nbsp;" + row[1].join(" · ") + "</div>";
+    }).join("");
+    document.querySelectorAll(".bar label").forEach(function (label) {
+      var box = label.querySelector("input");
+      label.classList.toggle("on", box.checked);
+    });
+  }
+  document.querySelector(".bar").addEventListener("change", paint);
+  document.getElementById("t030-clear").addEventListener("click", function () {
+    document.querySelectorAll(".bar input").forEach(function (box) { box.checked = false; });
+    paint();
+  });
+  paint();
+})();
+
+</script>
+</body>
+</html>

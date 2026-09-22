@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>站台</title>
+<style>
+
+* { box-sizing: border-box; }
+body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: #d5dde8; font-family: system-ui,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif; }
+.phone { width: 390px; height: 844px; overflow: auto; position: relative; }
+@media (max-width: 800px) {
+  body { display: block; background: #d5dde8; }
+  .phone { width: 100%; min-height: 100vh; height: auto; }
+}
+
+.phone { background: #f5f7fb; color: #172033; padding: 16px; }
+input { width: 48%; height: 44px; border: 1px solid #d5dde8; border-radius: 8px; padding: 0 8px; }
+.search, .confirm { width: 100%; height: 44px; border: 0; border-radius: 10px; background: #1f4e79; color: #ffffff; margin-top: 8px; cursor: pointer; }
+.trip, .seat { display: block; width: 100%; text-align: left; min-height: 56px; margin-top: 8px; border-radius: 12px; border: 1px solid #d5dde8; background: #ffffff; padding: 8px 12px; cursor: pointer; }
+.trip[aria-pressed="true"], .seat[aria-pressed="true"] { border-color: #1f4e79; }
+.sold { color: #a33b32; }
+.bad { color: #a33b32; }
+.pass { background: #172033; color: #ffffff; padding: 12px; border-radius: 12px; margin-top: 8px; }
+
+
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}
+
+</style>
+</head>
+<body>
+
+<div class="phone">
+  <h1>站台</h1>
+  <input id="t048-from" value="杭州">
+  <input id="t048-to" value="苏州">
+  <button class="search" id="t048-search" type="button">搜索路线</button>
+  <div id="t048-trips" hidden>
+    <button class="trip sold" type="button" data-trip="早班" data-sold="1">早班 · 售罄检查</button>
+    <button class="trip" type="button" data-trip="午班" data-sold="0">午班 · 有座</button>
+  </div>
+  <div id="t048-seats" hidden>
+    <button class="seat" type="button" data-seat="1A" data-sold="0">1A</button>
+    <button class="seat sold" type="button" data-seat="1C" data-sold="1">1C · 售罄检查</button>
+  </div>
+  <button class="confirm" id="t048-confirm" type="button" hidden>确认订单</button>
+  <p class="bad" id="t048-bad" hidden></p>
+  <div class="pass" id="t048-pass" hidden></div>
+</div>
+
+<script>
+
+(function () {
+  var trip = "";
+  var tripSold = false;
+  var seat = "";
+  var seatSold = false;
+  document.getElementById("t048-search").addEventListener("click", function () {
+    document.getElementById("t048-trips").hidden = false;
+    document.getElementById("t048-pass").hidden = true;
+    document.getElementById("t048-bad").hidden = true;
+  });
+  document.getElementById("t048-trips").addEventListener("click", function (event) {
+    var button = event.target.closest("button");
+    if (!button) return;
+    trip = button.getAttribute("data-trip");
+    tripSold = button.getAttribute("data-sold") === "1";
+    document.querySelectorAll(".trip").forEach(function (item) { item.setAttribute("aria-pressed", item === button ? "true" : "false"); });
+    document.getElementById("t048-seats").hidden = false;
+    document.getElementById("t048-confirm").hidden = false;
+  });
+  document.getElementById("t048-seats").addEventListener("click", function (event) {
+    var button = event.target.closest("button");
+    if (!button) return;
+    seat = button.getAttribute("data-seat");
+    seatSold = button.getAttribute("data-sold") === "1";
+    document.querySelectorAll(".seat").forEach(function (item) { item.setAttribute("aria-pressed", item === button ? "true" : "false"); });
+  });
+  document.getElementById("t048-confirm").addEventListener("click", function () {
+    var from = document.getElementById("t048-from").value;
+    var to = document.getElementById("t048-to").value;
+    var bad = document.getElementById("t048-bad");
+    var pass = document.getElementById("t048-pass");
+    if (!seat) { bad.hidden = false; bad.textContent = "还没选座位。路线仍是 " + from + " → " + to + "。"; pass.hidden = true; return; }
+    if (tripSold || seatSold) {
+      bad.hidden = false;
+      bad.textContent = (tripSold ? trip : seat) + " 已售罄。路线仍是 " + from + " → " + to + "。";
+      pass.hidden = true;
+      return;
+    }
+    bad.hidden = true;
+    pass.hidden = false;
+    pass.textContent = "行程凭证 " + from + " → " + to + " · " + trip + " · " + seat;
+  });
+})();
+
+</script>
+</body>
+</html>

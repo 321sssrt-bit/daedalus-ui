@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>庭院</title>
+<style>
+
+* { box-sizing: border-box; }
+body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: #eadfce; font-family: system-ui,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif; }
+.phone { width: 390px; height: 844px; overflow: auto; position: relative; }
+@media (max-width: 800px) {
+  body { display: block; background: #eadfce; }
+  .phone { width: 100%; min-height: 100vh; height: auto; }
+}
+
+.phone { background: #f7f1e6; color: #2a2118; font-family: "Songti SC","SimSun","PMingLiU",serif; padding: 12px; }
+.editor { background: #fffaf4; border-radius: 14px; padding: 12px; border: 1px solid #eadfce; }
+textarea { width: 100%; height: 72px; border: 0; resize: none; font: 15px "Songti SC","SimSun","PMingLiU",serif; background: transparent; }
+.ranges button { height: 32px; margin-right: 6px; border-radius: 999px; border: 1px solid #2a2118; background: transparent; cursor: pointer; }
+.ranges button[aria-pressed="true"] { background: #2a2118; color: #fffaf4; }
+.row { display: flex; gap: 8px; margin-top: 8px; }
+.publish { height: 40px; border: 0; border-radius: 10px; background: #8a4b2f; color: #fffaf4; cursor: pointer; }
+.boom { height: 40px; border-radius: 10px; border: 1px solid #8f2d2d; background: transparent; color: #8f2d2d; cursor: pointer; }
+.boom[aria-pressed="true"] { background: #8f2d2d; color: #fffaf4; }
+.post { background: #fffaf4; border-radius: 14px; padding: 12px; margin-top: 8px; }
+.bad { color: #8f2d2d; }
+
+
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}
+
+</style>
+</head>
+<body>
+
+<div class="phone">
+  <h1>庭院</h1>
+  <div class="editor">
+    <textarea id="t044-text" placeholder="今天窑里怎样"></textarea>
+    <div class="ranges" id="t044-range">
+      <button type="button" data-range="公开" aria-pressed="true">公开</button>
+      <button type="button" data-range="仅好友" aria-pressed="false">仅好友</button>
+      <button type="button" data-range="仅自己" aria-pressed="false">仅自己</button>
+    </div>
+    <div class="row">
+      <button class="boom" id="t044-fail" type="button" aria-pressed="false">这次发布失败</button>
+      <button class="publish" id="t044-publish" type="button">发布</button>
+    </div>
+    <p class="bad" id="t044-bad" hidden>发布未完成，草稿和可见范围都还在。</p>
+  </div>
+  <div id="t044-feed"></div>
+</div>
+
+<script>
+
+(function () {
+  var posts = [
+    { text: "北窗灯还在架上。", range: "公开" },
+    { text: "秋分夜谈留了六个席。", range: "仅好友" }
+  ];
+  var range = "公开";
+  function paint() {
+    document.getElementById("t044-feed").innerHTML = posts.map(function (post) {
+      return "<article class='post'><b>" + post.range + "</b><p>" + post.text + "</p></article>";
+    }).join("");
+  }
+  document.getElementById("t044-range").addEventListener("click", function (event) {
+    var button = event.target.closest("button");
+    if (!button) return;
+    range = button.getAttribute("data-range");
+    document.querySelectorAll("#t044-range button").forEach(function (item) {
+      item.setAttribute("aria-pressed", item === button ? "true" : "false");
+    });
+  });
+  document.getElementById("t044-fail").addEventListener("click", function () {
+    var on = this.getAttribute("aria-pressed") !== "true";
+    this.setAttribute("aria-pressed", on ? "true" : "false");
+  });
+  document.getElementById("t044-publish").addEventListener("click", function () {
+    var text = document.getElementById("t044-text").value;
+    var bad = document.getElementById("t044-bad");
+    if (!text.trim()) { bad.hidden = false; bad.textContent = "先写一点内容。"; return; }
+    var publish = document.getElementById("t044-publish");
+    if (document.getElementById("t044-fail").getAttribute("aria-pressed") === "true") {
+      bad.hidden = false;
+      bad.textContent = "发布未完成，草稿和可见范围都还在。";
+      document.getElementById("t044-fail").setAttribute("aria-pressed", "false");
+      publish.textContent = "重试发布";
+      return;
+    }
+    posts.unshift({ text: text, range: range });
+    document.getElementById("t044-text").value = "";
+    bad.hidden = true;
+    publish.textContent = "发布";
+    paint();
+  });
+  paint();
+})();
+
+</script>
+</body>
+</html>

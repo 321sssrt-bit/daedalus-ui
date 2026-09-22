@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>印厂</title>
+<style>
+
+* { box-sizing: border-box; }
+body { margin: 0; min-height: 100vh; background: #ece7dc; color: #1d1a16; font: 15px/1.5 system-ui,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif; }
+.press { min-height: 100vh; display: grid; grid-template-columns: 280px 1fr 280px; }
+.pane { background: #f7f4ee; padding: 20px; }
+label { display: block; margin: 12px 0; }
+input[type="text"] { width: 100%; height: 40px; }
+.stage { background: #d9d3c6; display: grid; place-items: center; }
+.poster { background: #f7f4ee; display: grid; place-items: center; }
+.poster.glow { background: #d6ff4a; }
+.formats button { display: block; width: 100%; height: 40px; margin-bottom: 8px; border: 1px solid #204e78; background: #f7f4ee; cursor: pointer; }
+.formats button[aria-pressed="true"] { background: #204e78; color: #f7f4ee; }
+.export { width: 100%; height: 48px; border: 0; background: #204e78; color: #f7f4ee; cursor: pointer; }
+.bad { color: #8f2d2d; }
+@media (max-width: 800px) { .press { grid-template-columns: 1fr; } .stage { min-height: 240px; } }
+
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}
+
+</style>
+</head>
+<body>
+
+<div class="press">
+  <section class="pane">
+    <h1>印厂</h1>
+    <label>标题<input id="t047-title" type="text" value="北窗"></label>
+    <label>色块大小 <input id="t047-size" type="range" min="40" max="180" value="80"></label>
+    <label>底纹
+      <select id="t047-texture"><option>素纸</option><option>荧光</option></select>
+    </label>
+  </section>
+  <section class="stage"><div class="poster" id="t047-poster"><b id="t047-preview">北窗</b></div></section>
+  <section class="pane">
+    <div class="formats" id="t047-formats">
+      <button type="button" data-format="PNG" aria-pressed="true">PNG</button>
+      <button type="button" data-format="JPG" aria-pressed="false">JPG</button>
+      <button type="button" data-format="印刷 PDF" aria-pressed="false">印刷 PDF</button>
+    </div>
+    <button class="export" id="t047-export" type="button">导出</button>
+    <p class="bad" id="t047-bad" hidden></p>
+    <p id="t047-result"></p>
+  </section>
+</div>
+
+<script>
+
+(function () {
+  var format = "PNG";
+  var title = document.getElementById("t047-title");
+  var size = document.getElementById("t047-size");
+  var texture = document.getElementById("t047-texture");
+  var poster = document.getElementById("t047-poster");
+  function preview() {
+    document.getElementById("t047-preview").textContent = title.value || "未命名";
+    poster.style.width = size.value + "px";
+    poster.style.height = size.value + "px";
+    poster.classList.toggle("glow", texture.value === "荧光");
+  }
+  title.addEventListener("input", preview);
+  size.addEventListener("input", preview);
+  texture.addEventListener("change", preview);
+  document.getElementById("t047-formats").addEventListener("click", function (event) {
+    var button = event.target.closest("button");
+    if (!button) return;
+    format = button.getAttribute("data-format");
+    document.querySelectorAll("#t047-formats button").forEach(function (item) {
+      item.setAttribute("aria-pressed", item === button ? "true" : "false");
+    });
+  });
+  document.getElementById("t047-export").addEventListener("click", function () {
+    var bad = document.getElementById("t047-bad");
+    var result = document.getElementById("t047-result");
+    if (format === "印刷 PDF" && texture.value === "荧光") {
+      bad.hidden = false;
+      bad.textContent = "印刷 PDF 与荧光底纹冲突，没有导出。";
+      result.textContent = "";
+      return;
+    }
+    bad.hidden = true;
+    result.textContent = "已导出 " + (title.value || "未命名") + "." + format + " · 边长 " + size.value;
+  });
+  preview();
+})();
+
+</script>
+</body>
+</html>

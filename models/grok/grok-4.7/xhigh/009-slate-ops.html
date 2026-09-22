@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>石板调度</title>
+<style>
+
+* { box-sizing: border-box; }
+body { margin: 0; min-height: 100vh; background: #eef2f4; color: #1c242b; font: 15px/1.5 system-ui,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif; }
+.shell { min-height: 100vh; display: grid; grid-template-columns: 232px 1fr; }
+nav { background: #1b242b; color: #eef2f4; padding: 28px 0; }
+nav strong { display: block; padding: 0 18px 20px; letter-spacing: 0.12em; }
+nav button { display: block; width: 100%; text-align: left; height: 44px; border: 0; background: transparent; color: #eef2f4; padding: 0 18px; cursor: pointer; font: 15px system-ui,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif; }
+nav button[aria-current="page"] { box-shadow: inset 3px 0 0 #3d7a6a; background: rgba(255,255,255,0.08); }
+main { padding: 28px; }
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.stat { background: #ffffff; border-radius: 12px; height: 120px; padding: 18px; }
+.stat span { color: #66727c; font-size: 12px; letter-spacing: 0.08em; }
+.stat b { display: block; font-size: 36px; line-height: 1.1; margin-top: 8px; }
+.stat.bad b { color: #b4533a; }
+.queue { margin-top: 16px; background: #ffffff; border-radius: 12px; }
+.queue button { width: 100%; height: 56px; text-align: left; border: 0; border-bottom: 1px solid #d5dde2; background: #ffffff; padding: 0 18px; cursor: pointer; font: 15px system-ui,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif; color: #1c242b; }
+.detail { padding: 16px 18px; color: #66727c; }
+@media (max-width: 800px) {
+  .shell { grid-template-columns: 1fr; }
+  nav { display: flex; gap: 0; padding: 0; overflow: auto; }
+  nav strong { display: none; }
+  .stats { grid-template-columns: 1fr; }
+  main { padding: 16px; }
+}
+
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}
+
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <nav>
+    <strong>石板调度</strong>
+    <button type="button" id="t009-nav-today" aria-current="page">今日</button>
+    <button type="button" id="t009-nav-ships">船期</button>
+    <button type="button" id="t009-nav-archive">归档</button>
+  </nav>
+  <main id="t009-main">
+    <div class="stats">
+      <article class="stat"><span>在港</span><b>18</b></article>
+      <article class="stat"><span>待卸</span><b>7</b></article>
+      <article class="stat bad"><span>延误</span><b>2</b></article>
+    </div>
+    <div class="queue" id="t009-queue">
+      <button type="button" data-berth="青岚靠在 3 号泊，还有两舱没开。">青岚 · 待卸</button>
+      <button type="button" data-berth="北桁改到午后，引航员还在船上。">北桁 · 延误</button>
+      <button type="button" data-berth="晚潮已结关，只等离泊窗口。">晚潮 · 在港</button>
+    </div>
+    <p class="detail" id="t009-detail">点一艘船看它现在停在哪。</p>
+  </main>
+</div>
+
+<script>
+
+(function () {
+  var main = document.getElementById("t009-main");
+  var today = main.innerHTML;
+  main.addEventListener("click", function (event) {
+    var button = event.target.closest("button");
+    if (!button || !button.getAttribute("data-berth")) return;
+    var detail = document.getElementById("t009-detail");
+    if (detail) detail.textContent = button.getAttribute("data-berth");
+  });
+  function select(id, html) {
+    ["t009-nav-today", "t009-nav-ships", "t009-nav-archive"].forEach(function (item) {
+      document.getElementById(item).setAttribute("aria-current", item === id ? "page" : "false");
+    });
+    main.innerHTML = html;
+  }
+  document.getElementById("t009-nav-today").addEventListener("click", function () { select("t009-nav-today", today); });
+  document.getElementById("t009-nav-ships").addEventListener("click", function () {
+    select("t009-nav-ships", "<h2>船期</h2><p>下一班引航 14:20，从北航道进。</p>");
+  });
+  document.getElementById("t009-nav-archive").addEventListener("click", function () {
+    select("t009-nav-archive", "<h2>归档</h2><p>昨日已离港 11 艘，卷宗在二号柜。</p>");
+  });
+})();
+
+</script>
+</body>
+</html>

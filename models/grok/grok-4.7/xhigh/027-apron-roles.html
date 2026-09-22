@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>围裙</title>
+<style>
+
+* { box-sizing: border-box; }
+body { margin: 0; min-height: 100vh; background: #f3efe7; color: #2a211c; font: 16px/1.5 "Songti SC","SimSun","PMingLiU",serif; padding: 32px; }
+h1 { margin: 0 0 16px; font-size: 32px; }
+.roles { display: flex; gap: 12px; }
+.roles button { width: 180px; height: 96px; border-radius: 16px; border: 1px solid #e2d8cc; background: #fffaf4; cursor: pointer; font: 18px "Songti SC","SimSun","PMingLiU",serif; color: #2a211c; }
+.roles button[aria-pressed="true"] { background: #8c3b2a; color: #fffaf4; border-color: #8c3b2a; }
+.list { max-width: 640px; margin-top: 20px; }
+label { display: flex; align-items: center; gap: 12px; height: 48px; border-bottom: 1px solid #e2d8cc; }
+input { width: 18px; height: 18px; accent-color: #2f6b45; }
+.save { margin-top: 16px; height: 44px; border: 0; background: #2a211c; color: #fffaf4; padding: 0 18px; cursor: pointer; }
+@media (max-width: 800px) {
+  body { padding: 16px; }
+  .roles { flex-direction: column; }
+  .roles button { width: 100%; }
+}
+
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}
+
+</style>
+</head>
+<body>
+
+<main>
+  <h1>围裙</h1>
+  <div class="roles" id="t027-roles">
+    <button type="button" data-role="apprentice" aria-pressed="true">学徒</button>
+    <button type="button" data-role="cook" aria-pressed="false">掌勺</button>
+    <button type="button" data-role="ledger" aria-pressed="false">账房</button>
+  </div>
+  <div class="list" id="t027-list">
+    <label><input type="checkbox" data-key="recipe">看配方</label>
+    <label><input type="checkbox" data-key="fire">改火候</label>
+    <label><input type="checkbox" data-key="pay">结账</label>
+    <label><input type="checkbox" data-key="key">改柜钥</label>
+  </div>
+  <button class="save" id="t027-save" type="button">保存</button>
+  <p id="t027-note"></p>
+</main>
+
+<script>
+
+(function () {
+  var presets = {
+    apprentice: { recipe: true, fire: false, pay: false, key: false },
+    cook: { recipe: true, fire: true, pay: false, key: false },
+    ledger: { recipe: false, fire: false, pay: true, key: true }
+  };
+  var role = "apprentice";
+  function paint() {
+    var preset = presets[role];
+    document.querySelectorAll("#t027-list input").forEach(function (box) {
+      box.checked = !!preset[box.getAttribute("data-key")];
+    });
+  }
+  document.getElementById("t027-roles").addEventListener("click", function (event) {
+    var button = event.target.closest("button");
+    if (!button) return;
+    role = button.getAttribute("data-role");
+    document.querySelectorAll("#t027-roles button").forEach(function (item) {
+      item.setAttribute("aria-pressed", item === button ? "true" : "false");
+    });
+    paint();
+  });
+  document.getElementById("t027-save").addEventListener("click", function () {
+    document.querySelectorAll("#t027-list input").forEach(function (box) {
+      presets[role][box.getAttribute("data-key")] = box.checked;
+    });
+    document.getElementById("t027-note").textContent = "这一版已挂到围裙上。";
+  });
+  paint();
+})();
+
+</script>
+</body>
+</html>

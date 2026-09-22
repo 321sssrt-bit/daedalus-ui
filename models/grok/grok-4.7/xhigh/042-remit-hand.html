@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>手递</title>
+<style>
+
+* { box-sizing: border-box; }
+body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: #d5d0c6; font-family: system-ui,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif; }
+.phone { width: 390px; height: 844px; overflow: auto; position: relative; }
+@media (max-width: 800px) {
+  body { display: block; background: #d5d0c6; }
+  .phone { width: 100%; min-height: 100vh; height: auto; }
+}
+
+.phone { background: #f7f4ee; color: #201c16; font-family: "Songti SC","SimSun","PMingLiU",serif; padding: 20px 16px 0; display: flex; flex-direction: column; }
+h1 { font-size: 32px; margin: 0 0 8px; }
+.people button, .sources button { height: 48px; margin: 0 8px 8px 0; border-radius: 10px; border: 1px solid #201c16; background: #f7f4ee; cursor: pointer; font: 15px "Songti SC","SimSun","PMingLiU",serif; }
+button[aria-pressed="true"] { background: #201c16; color: #f7f4ee; }
+input { width: 100%; height: 88px; border: 0; border-bottom: 1px solid #e4dccd; background: transparent; font-size: 40px; color: #b9832f; font-family: "Songti SC","SimSun","PMingLiU",serif; }
+.dock { margin-top: auto; background: #201c16; margin-left: -16px; margin-right: -16px; padding: 16px; }
+.go { width: 100%; height: 48px; border: 0; background: #b9832f; color: #201c16; cursor: pointer; font: 16px "Songti SC","SimSun","PMingLiU",serif; }
+.bad { color: #8f2d2d; }
+.ok { background: #201c16; color: #f7f4ee; padding: 12px; }
+
+
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}
+
+</style>
+</head>
+<body>
+
+<div class="phone">
+  <p>手递</p>
+  <h1>转一笔</h1>
+  <p id="t042-avail">可用 128.50</p>
+  <div class="sources" id="t042-sources">
+    <button type="button" data-source="cash" aria-pressed="true">零钱</button>
+    <button type="button" data-source="family" aria-pressed="false">亲情卡</button>
+  </div>
+  <div class="people" id="t042-people">
+    <button type="button" data-who="林夏" aria-pressed="true">林夏</button>
+    <button type="button" data-who="周北" aria-pressed="false">周北</button>
+  </div>
+  <input id="t042-amount" inputmode="decimal" placeholder="金额" value="20">
+  <p class="bad" id="t042-bad" hidden></p>
+  <div class="ok" id="t042-slip" hidden></div>
+  <div class="dock"><button class="go" id="t042-go" type="button">确认转出</button></div>
+</div>
+
+<script>
+
+(function () {
+  var balances = { cash: 128.5, family: 600 };
+  var source = "cash";
+  var who = "林夏";
+  var serial = 2281;
+  function showAvail() {
+    document.getElementById("t042-avail").textContent = "可用 " + balances[source].toFixed(2);
+  }
+  document.getElementById("t042-sources").addEventListener("click", function (event) {
+    var button = event.target.closest("button");
+    if (!button) return;
+    source = button.getAttribute("data-source");
+    document.querySelectorAll("#t042-sources button").forEach(function (item) {
+      item.setAttribute("aria-pressed", item === button ? "true" : "false");
+    });
+    showAvail();
+  });
+  document.getElementById("t042-people").addEventListener("click", function (event) {
+    var button = event.target.closest("button");
+    if (!button) return;
+    who = button.getAttribute("data-who");
+    document.querySelectorAll("#t042-people button").forEach(function (item) {
+      item.setAttribute("aria-pressed", item === button ? "true" : "false");
+    });
+  });
+  document.getElementById("t042-go").addEventListener("click", function () {
+    var amount = Number(document.getElementById("t042-amount").value);
+    var bad = document.getElementById("t042-bad");
+    var slip = document.getElementById("t042-slip");
+    if (!amount || amount <= 0) { bad.hidden = false; bad.textContent = "先写金额。"; slip.hidden = true; return; }
+    if (amount > balances[source]) {
+      bad.hidden = false;
+      bad.textContent = "余额不足。可用 " + balances[source].toFixed(2) + "，这笔没有转出。";
+      slip.hidden = true;
+      return;
+    }
+    balances[source] = Math.round((balances[source] - amount) * 100) / 100;
+    bad.hidden = true;
+    slip.hidden = false;
+    slip.textContent = "凭证 汇-" + serial + " · 给" + who + " " + amount.toFixed(2);
+    serial += 1;
+    showAvail();
+  });
+})();
+
+</script>
+</body>
+</html>

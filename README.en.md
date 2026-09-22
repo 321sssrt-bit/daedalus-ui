@@ -33,10 +33,11 @@ The project was initially inspired by [Hall of One Hundred](https://miaai-lab.gi
 
 ## Current public submissions
 
-Twelve complete submissions are now published. Open a dedicated gallery below, or use the **[combined gallery](https://321sssrt-bit.github.io/daedalus-ui/)** to browse them together.
+Thirteen complete submissions are now published. Open a dedicated gallery below, or use the **[combined gallery](https://321sssrt-bit.github.io/daedalus-ui/)** to browse them together.
 
 | Harness | Model | Reasoning effort | Completion | Status | Gallery |
 | --- | --- | --- | --- | --- | --- |
+| Grok | Grok 4.7 | `xhigh` | 50 / 50 | Complete | [Open gallery →](https://321sssrt-bit.github.io/daedalus-ui/submissions/grok--grok-4.7--xhigh/) |
 | Kimi Code | K2.8 Preview | `max` | 50 / 50 | Complete | [Open gallery →](https://321sssrt-bit.github.io/daedalus-ui/submissions/kimi-code--k2.8-preview--max/) |
 | DeepSeek Harness | DeepSeek V4.1 Flash expires-on-0910 | `max` | 50 / 50 | Complete | [Open gallery →](https://321sssrt-bit.github.io/daedalus-ui/submissions/deepseek-harness--deepseek-v4.1-flash-expires-on-0910--max/) |
 | Cursor | Composer 2.5 Fast | `default` | 50 / 50 | Complete | [Open gallery →](https://321sssrt-bit.github.io/daedalus-ui/submissions/cursor--composer-2.5-fast--default/) |
@@ -49,6 +50,12 @@ Twelve complete submissions are now published. Open a dedicated gallery below, o
 | Kimi Code | K3 | `max` | 50 / 50 | Complete | [Open gallery →](https://321sssrt-bit.github.io/daedalus-ui/submissions/kimi-code--k3--max/) |
 | Grok Build | Grok 4.6 | `xhigh` | 50 / 50 | Complete | [Open gallery →](https://321sssrt-bit.github.io/daedalus-ui/submissions/grok-build--grok-4.6--xhigh/) |
 | Qoder | Qwen3.8 | `max` | 50 / 50 | Complete | [Open gallery →](https://321sssrt-bit.github.io/daedalus-ui/submissions/qoder--qwen3.8--max/) |
+
+## Grok 4.7 · xhigh — September 22, 2026
+
+**50 / 50 complete.** Each piece includes an offline HTML page, a reproduction specification, and a design-intent document. The ten product prototypes include a normal completion path plus a failure that can be triggered and then recovered, all inside one page. Repository validation and gallery build passed. The main agent completed every piece alone, with no subagents. Sign-in, board, wallet, cart, delete, grocery, screening, and lesson screens were spot-checked; not every button was clicked in a browser.
+
+[Open this gallery →](https://321sssrt-bit.github.io/daedalus-ui/submissions/grok--grok-4.7--xhigh/) · [Browse the source](models/grok/grok-4.7/xhigh) · [Run receipt](models/grok/grok-4.7/xhigh/run-receipt.json)
 
 ## K2.8 Preview · max — September 11, 2026
 

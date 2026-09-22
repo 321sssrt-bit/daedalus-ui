@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>钉板</title>
+<style>
+
+* { box-sizing: border-box; }
+body { margin: 0; min-height: 100vh; background: #d7e0ea; color: #1e2430; font: 15px/1.5 system-ui,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif; padding: 28px; }
+h1 { margin: 0; font-size: 32px; }
+.tabs { display: flex; gap: 16px; height: 48px; align-items: end; }
+.tabs button { border: 0; background: transparent; height: 48px; color: #667084; cursor: pointer; font: 15px system-ui,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif; border-bottom: 3px solid transparent; }
+.tabs button[aria-pressed="true"] { color: #355c7d; border-bottom-color: #355c7d; }
+.grid { margin-top: 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.note { min-height: 96px; background: #fffdf8; border-radius: 6px; padding: 14px; display: flex; justify-content: space-between; gap: 12px; }
+.note button { border: 0; background: transparent; color: #c4473a; cursor: pointer; }
+@media (max-width: 800px) {
+  body { padding: 16px; }
+  .grid { grid-template-columns: 1fr; }
+}
+
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}
+
+</style>
+</head>
+<body>
+
+<main>
+  <h1>钉板</h1>
+  <p id="t023-count"></p>
+  <div class="tabs" id="t023-tabs">
+    <button type="button" data-cat="all" aria-pressed="true">全部</button>
+    <button type="button" data-cat="器物" aria-pressed="false">器物</button>
+    <button type="button" data-cat="声音" aria-pressed="false">声音</button>
+  </div>
+  <div class="grid" id="t023-grid"></div>
+</main>
+
+<script>
+
+(function () {
+  var notes = [
+    ["青釉试片", "器物"], ["北窗灯", "器物"], ["冷窑笔记", "器物"],
+    ["秋分夜谈", "声音"], ["第二乐章", "声音"], ["潮声样带", "声音"]
+  ];
+  var current = "all";
+  var grid = document.getElementById("t023-grid");
+  function paint() {
+    grid.innerHTML = "";
+    var visible = notes.filter(function (note) { return current === "all" || note[1] === current; });
+    document.getElementById("t023-count").textContent = "还钉着 " + notes.length + " 条";
+    visible.forEach(function (note) {
+      var card = document.createElement("article");
+      card.className = "note";
+      card.innerHTML = "<div><b>" + note[0] + "</b><div>" + note[1] + "</div></div>";
+      var remove = document.createElement("button");
+      remove.type = "button";
+      remove.textContent = "去掉";
+      remove.addEventListener("click", function () {
+        notes.splice(notes.indexOf(note), 1);
+        paint();
+      });
+      card.appendChild(remove);
+      grid.appendChild(card);
+    });
+  }
+  document.getElementById("t023-tabs").addEventListener("click", function (event) {
+    var button = event.target.closest("button");
+    if (!button) return;
+    current = button.getAttribute("data-cat");
+    document.querySelectorAll("#t023-tabs button").forEach(function (item) {
+      item.setAttribute("aria-pressed", item === button ? "true" : "false");
+    });
+    paint();
+  });
+  paint();
+})();
+
+</script>
+</body>
+</html>

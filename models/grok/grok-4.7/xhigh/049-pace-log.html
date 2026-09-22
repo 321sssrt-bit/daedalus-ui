@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>步频</title>
+<style>
+
+* { box-sizing: border-box; }
+body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: #d7ebe4; font-family: system-ui,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif; }
+.phone { width: 390px; height: 844px; overflow: auto; position: relative; }
+@media (max-width: 800px) {
+  body { display: block; background: #d7ebe4; }
+  .phone { width: 100%; min-height: 100vh; height: auto; }
+}
+
+.phone { background: #f4faf7; color: #163028; }
+.hero { height: 140px; background: #12362f; color: #f4faf7; padding: 20px; }
+.hero b { font-size: 40px; color: #8fe3c5; }
+.bars { height: 80px; display: flex; align-items: flex-end; gap: 16px; padding: 16px 20px; }
+.bars i { width: 28px; background: #8fe3c5; display: block; }
+form { padding: 0 20px 20px; }
+input { width: 100%; height: 44px; border-radius: 10px; border: 1px solid #d7ebe4; margin-top: 6px; padding: 0 10px; }
+input.bad { border-color: #a33b32; }
+button { width: 100%; height: 48px; border: 0; border-radius: 10px; background: #12362f; color: #f4faf7; margin-top: 12px; cursor: pointer; }
+.err { color: #a33b32; min-height: 20px; }
+
+
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}
+
+</style>
+</head>
+<body>
+
+<div class="phone">
+  <header class="hero"><div>步频 · 目标 8000</div><b id="t049-progress">4200</b></header>
+  <div class="bars" id="t049-bars"></div>
+  <form id="t049-form">
+    <label>分钟（1–180）<input id="t049-min" value="30"></label>
+    <label>步数（100–30000）<input id="t049-steps" value="2000"></label>
+    <p class="err" id="t049-err"></p>
+    <button id="t049-save" type="submit">保存记录</button>
+  </form>
+</div>
+
+<script>
+
+(function () {
+  var progress = 4200;
+  var days = [2400, 1800, 0];
+  function paint() {
+    document.getElementById("t049-progress").textContent = String(progress);
+    var root = document.getElementById("t049-bars");
+    root.innerHTML = "";
+    days.forEach(function (value) {
+      var bar = document.createElement("i");
+      bar.style.height = Math.max(8, Math.round(value / 80)) + "px";
+      root.appendChild(bar);
+    });
+  }
+  document.getElementById("t049-form").addEventListener("submit", function (event) {
+    event.preventDefault();
+    var minutes = Number(document.getElementById("t049-min").value);
+    var steps = Number(document.getElementById("t049-steps").value);
+    var minBox = document.getElementById("t049-min");
+    var stepBox = document.getElementById("t049-steps");
+    var err = document.getElementById("t049-err");
+    var badMin = !(minutes >= 1 && minutes <= 180);
+    var badSteps = !(steps >= 100 && steps <= 30000);
+    minBox.classList.toggle("bad", badMin);
+    stepBox.classList.toggle("bad", badSteps);
+    if (badMin || badSteps) {
+      err.textContent = (badMin ? "分钟" : "步数") + "超出 1–180 或 100–30000，进度仍是 " + progress + "。";
+      return;
+    }
+    progress += steps;
+    days[2] += steps;
+    err.textContent = "已记入，进度和今日趋势已重算。";
+    paint();
+  });
+  paint();
+})();
+
+</script>
+</body>
+</html>

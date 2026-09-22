@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>线头</title>
+<style>
+
+* { box-sizing: border-box; }
+body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: #e7dcc8; font-family: system-ui,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif; }
+.phone { width: 390px; height: 844px; overflow: auto; position: relative; }
+@media (max-width: 800px) {
+  body { display: block; background: #e7dcc8; }
+  .phone { width: 100%; min-height: 100vh; height: auto; }
+}
+
+.phone { background: #f6f1e7; color: #241c16; display: flex; flex-direction: column; }
+.tabs { height: 52px; display: flex; border-bottom: 1px solid #e4d8c8; background: #fffaf3; }
+.tabs button { flex: 1; border: 0; background: transparent; cursor: pointer; }
+.tabs button[aria-pressed="true"] { box-shadow: inset 0 -3px 0 #2f5d50; }
+.stream { flex: 1; overflow: auto; padding: 12px; }
+.bubble { max-width: 260px; border-radius: 16px; padding: 8px 12px; margin: 8px 0; background: #fffaf3; }
+.bubble.mine { margin-left: auto; background: #2f5d50; color: #fffaf3; }
+.bubble.bad { outline: 2px solid #a33b32; }
+.meta { font-size: 12px; }
+.retry { border: 0; background: transparent; color: #a33b32; cursor: pointer; padding: 0; }
+.composer { display: flex; gap: 8px; padding: 8px; border-top: 1px solid #e4d8c8; background: #fffaf3; }
+input { flex: 1; height: 40px; border: 1px solid #e4d8c8; border-radius: 8px; padding: 0 8px; }
+.send, .fail { height: 40px; border-radius: 8px; cursor: pointer; }
+.send { border: 0; background: #2f5d50; color: #fffaf3; }
+.fail { background: transparent; border: 1px solid #a33b32; color: #a33b32; }
+.fail[aria-pressed="true"] { background: #a33b32; color: #fffaf3; }
+
+
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}
+
+</style>
+</head>
+<body>
+
+<div class="phone">
+  <div class="tabs" id="t043-tabs">
+    <button type="button" data-room="lin" aria-pressed="true">林夏</button>
+    <button type="button" data-room="desk" aria-pressed="false">值班室</button>
+  </div>
+  <div class="stream" id="t043-stream"></div>
+  <div class="composer">
+    <button class="fail" id="t043-fail" type="button" aria-pressed="false">下一则失败</button>
+    <input id="t043-input" placeholder="写一句">
+    <button class="send" id="t043-send" type="button">发送</button>
+  </div>
+</div>
+
+<script>
+
+(function () {
+  var rooms = { lin: [], desk: [] };
+  var room = "lin";
+  var seq = 1;
+  function paint() {
+    var root = document.getElementById("t043-stream");
+    root.innerHTML = "";
+    rooms[room].forEach(function (message) {
+      var node = document.createElement("div");
+      node.className = "bubble mine" + (message.state === "失败" ? " bad" : "");
+      var text = document.createElement("div");
+      text.textContent = message.text;
+      var meta = document.createElement("div");
+      meta.className = "meta";
+      meta.textContent = message.state;
+      node.appendChild(text);
+      node.appendChild(meta);
+      if (message.state === "失败") {
+        var retry = document.createElement("button");
+        retry.className = "retry";
+        retry.type = "button";
+        retry.textContent = "重试";
+        retry.addEventListener("click", function () { message.state = "已送达"; paint(); });
+        node.appendChild(retry);
+      }
+      root.appendChild(node);
+    });
+  }
+  document.getElementById("t043-tabs").addEventListener("click", function (event) {
+    var button = event.target.closest("button");
+    if (!button) return;
+    room = button.getAttribute("data-room");
+    document.querySelectorAll("#t043-tabs button").forEach(function (item) {
+      item.setAttribute("aria-pressed", item === button ? "true" : "false");
+    });
+    paint();
+  });
+  document.getElementById("t043-fail").addEventListener("click", function () {
+    var on = this.getAttribute("aria-pressed") !== "true";
+    this.setAttribute("aria-pressed", on ? "true" : "false");
+  });
+  document.getElementById("t043-send").addEventListener("click", function () {
+    var input = document.getElementById("t043-input");
+    var text = input.value.trim();
+    if (!text) return;
+    var fail = document.getElementById("t043-fail").getAttribute("aria-pressed") === "true";
+    rooms[room].push({ id: seq, text: text, state: fail ? "失败" : "已送达" });
+    seq += 1;
+    input.value = "";
+    if (fail) document.getElementById("t043-fail").setAttribute("aria-pressed", "false");
+    paint();
+  });
+})();
+
+</script>
+</body>
+</html>

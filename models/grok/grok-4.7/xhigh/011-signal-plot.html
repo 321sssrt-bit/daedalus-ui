@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>航迹图</title>
+<style>
+
+* { box-sizing: border-box; }
+body { margin: 0; min-height: 100vh; background: #081018; color: #d7e6f2; font: 15px/1.5 ui-monospace,"Cascadia Mono","Consolas",monospace; padding: 32px 40px; }
+header { display: flex; justify-content: space-between; align-items: end; }
+h1 { margin: 0; font-size: 28px; font-weight: 500; }
+.grains button { height: 36px; border-radius: 999px; border: 1px solid #8aa0b5; background: transparent; color: #d7e6f2; padding: 0 16px; margin-left: 8px; cursor: pointer; font: 14px ui-monospace,"Cascadia Mono","Consolas",monospace; }
+.grains button[aria-pressed="true"] { background: #f2b84b; color: #081018; border-color: #f2b84b; }
+.stats { margin-top: 20px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.stat { height: 92px; border: 1px solid #1c3148; padding: 14px 16px; }
+.stat span { color: #8aa0b5; font-size: 12px; }
+.stat b { display: block; font-size: 40px; line-height: 1; margin-top: 8px; font-weight: 500; }
+.plot { margin-top: 16px; height: 360px; background: #102033; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; }
+.bars { flex: 1; display: flex; align-items: flex-end; gap: 18px; }
+.bar { width: 36px; background: #7fd1c7; }
+.bar.main { background: #f2b84b; }
+.axis { display: flex; justify-content: space-between; color: #8aa0b5; font-size: 12px; margin-top: 8px; }
+@media (max-width: 800px) {
+  body { padding: 16px; }
+  .stats { grid-template-columns: 1fr 1fr; }
+  .plot { height: 240px; }
+}
+
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}
+
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <p style="margin:0;color:#8aa0b5">航迹图</p>
+    <h1>进港趋势</h1>
+  </div>
+  <div class="grains">
+    <button type="button" id="t011-day" aria-pressed="true">日</button>
+    <button type="button" id="t011-week" aria-pressed="false">周</button>
+    <button type="button" id="t011-month" aria-pressed="false">月</button>
+  </div>
+</header>
+<section class="stats">
+  <article class="stat"><span>到港</span><b id="t011-in">42</b></article>
+  <article class="stat"><span>离港</span><b id="t011-out">37</b></article>
+  <article class="stat"><span>平均停时</span><b id="t011-stay">6</b></article>
+  <article class="stat"><span>夜航占比</span><b id="t011-night">28</b></article>
+</section>
+<section class="plot" id="t011-plot">
+  <div class="bars" id="t011-bars"></div>
+  <div class="axis"><span>到港柱为琥珀，离港为浅潮</span><span id="t011-caption">按日</span></div>
+</section>
+
+<script>
+
+(function () {
+  var data = {
+    day: { inn: 42, out: 37, stay: 6, night: 28, bars: [40, 55, 48, 70, 62, 80, 74], caption: "按日" },
+    week: { inn: 286, out: 261, stay: 8, night: 31, bars: [30, 46, 52, 44, 63], caption: "按周" },
+    month: { inn: 1104, out: 1088, stay: 7, night: 22, bars: [24, 38, 41, 36], caption: "按月" }
+  };
+  var bars = document.getElementById("t011-bars");
+  function paint(key) {
+    var item = data[key];
+    document.getElementById("t011-in").textContent = String(item.inn);
+    document.getElementById("t011-out").textContent = String(item.out);
+    document.getElementById("t011-stay").textContent = String(item.stay);
+    document.getElementById("t011-night").textContent = String(item.night);
+    document.getElementById("t011-caption").textContent = item.caption;
+    bars.innerHTML = "";
+    item.bars.forEach(function (value, index) {
+      var node = document.createElement("i");
+      node.className = "bar" + (index === item.bars.length - 1 ? " main" : "");
+      node.style.height = value + "%";
+      bars.appendChild(node);
+    });
+    ["day", "week", "month"].forEach(function (name) {
+      document.getElementById("t011-" + name).setAttribute("aria-pressed", name === key ? "true" : "false");
+    });
+  }
+  ["day", "week", "month"].forEach(function (name) {
+    document.getElementById("t011-" + name).addEventListener("click", function () { paint(name); });
+  });
+  paint("day");
+})();
+
+</script>
+</body>
+</html>

@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>课桌</title>
+<style>
+
+* { box-sizing: border-box; }
+body { margin: 0; min-height: 100vh; background: #efe6c9; color: #2a2418; font: 18px/1.5 "Songti SC","SimSun","PMingLiU",serif; padding: 40px 16px; }
+.desk { width: 760px; max-width: 100%; margin: 0 auto; }
+h1 { font-size: 40px; margin: 0 0 12px; }
+.card { background: #fffaf0; border-radius: 18px; padding: 28px; border: 2px solid #2a2418; }
+.choice { display: block; width: 100%; height: 52px; margin-top: 8px; text-align: left; padding: 0 12px; border-radius: 12px; border: 1px solid #2a2418; background: #fffaf0; cursor: pointer; font: 18px "Songti SC","SimSun","PMingLiU",serif; }
+.choice[aria-pressed="true"] { background: #2a2418; color: #fffaf0; }
+.enter, .submit { height: 48px; border: 0; background: #2a2418; color: #fffaf0; padding: 0 16px; cursor: pointer; font: 16px "Songti SC","SimSun","PMingLiU",serif; }
+.explain { margin-top: 12px; padding: 16px; border-radius: 12px; background: #fffaf0; }
+.explain.bad { border: 2px solid #a33b32; color: #a33b32; }
+.explain.ok { border: 2px solid #2f6b45; color: #2f6b45; }
+.again { height: 40px; border: 0; background: transparent; color: #2a2418; text-decoration: underline; cursor: pointer; }
+@media (max-width: 800px) { h1 { font-size: 32px; } }
+
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}
+
+</style>
+</head>
+<body>
+
+<main class="desk">
+  <p>课桌</p>
+  <h1>潮汐识别</h1>
+  <section id="t050-gate">
+    <p>一题只讲大潮什么时候来。</p>
+    <button class="enter" id="t050-enter" type="button">进入课程</button>
+  </section>
+  <section class="card" id="t050-quiz" hidden>
+    <p>大潮最常出现在什么时候？</p>
+    <button class="choice" type="button" data-right="0">上弦月</button>
+    <button class="choice" type="button" data-right="1">朔望前后</button>
+    <button class="submit" id="t050-submit" type="button">提交答案</button>
+    <div class="explain" id="t050-explain" hidden></div>
+    <button class="again" id="t050-again" type="button" hidden>再答一次</button>
+  </section>
+</main>
+
+<script>
+
+(function () {
+  var picked = "";
+  var triedWrong = false;
+  document.getElementById("t050-enter").addEventListener("click", function () {
+    document.getElementById("t050-gate").hidden = true;
+    document.getElementById("t050-quiz").hidden = false;
+  });
+  document.getElementById("t050-quiz").addEventListener("click", function (event) {
+    var button = event.target.closest(".choice");
+    if (!button) return;
+    picked = button.textContent;
+    document.querySelectorAll(".choice").forEach(function (item) {
+      item.setAttribute("aria-pressed", item === button ? "true" : "false");
+    });
+  });
+  document.getElementById("t050-submit").addEventListener("click", function () {
+    var explain = document.getElementById("t050-explain");
+    if (!picked) return;
+    var right = picked === "朔望前后";
+    explain.hidden = false;
+    explain.className = "explain " + (right ? "ok" : "bad");
+    if (!right) {
+      triedWrong = true;
+      explain.textContent = "答错了。大潮靠近朔和望，不是上弦。可以用这句话订正。";
+      document.getElementById("t050-again").hidden = false;
+      return;
+    }
+    explain.textContent = (triedWrong ? "订正成功。" : "答对了。") + "大潮靠近朔和望。";
+    document.getElementById("t050-again").hidden = true;
+  });
+  document.getElementById("t050-again").addEventListener("click", function () {
+    picked = "";
+    document.querySelectorAll(".choice").forEach(function (item) { item.setAttribute("aria-pressed", "false"); });
+    document.getElementById("t050-explain").hidden = true;
+    this.hidden = true;
+  });
+})();
+
+</script>
+</body>
+</html>

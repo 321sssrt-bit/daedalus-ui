@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>报房</title>
+<style>
+
+* { box-sizing: border-box; }
+body { margin: 0; height: 100vh; background: #e7ebf0; color: #1a2332; font: 16px/1.6 system-ui,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif; }
+.desk { height: 100vh; display: grid; grid-template-columns: 340px 1fr; }
+.list { background: #ffffff; overflow: auto; border-right: 1px solid #e7ebf0; }
+.tools { display: flex; justify-content: space-between; align-items: center; padding: 16px 18px; }
+.tools button { height: 36px; border: 1px solid #1a2332; background: #ffffff; cursor: pointer; padding: 0 12px; }
+.tools button[aria-pressed="true"] { background: #1a2332; color: #ffffff; }
+.letter { width: 100%; height: 72px; border: 0; border-bottom: 1px solid #e7ebf0; background: #ffffff; text-align: left; padding: 0 18px; cursor: pointer; font: 15px system-ui,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif; color: #1a2332; }
+.letter[aria-current="true"] { background: #f4f6f8; }
+.letter.unread b::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 99px; background: #c45c26; margin-right: 8px; }
+.letter span { display: block; color: #5c6b7a; font-size: 13px; }
+.read { background: #f4f6f8; padding: 40px 48px; }
+.read h1 { font-size: 32px; line-height: 1.2; margin: 0 0 8px; }
+.star { width: 32px; height: 32px; border: 0; background: transparent; color: #5c6b7a; cursor: pointer; font-size: 20px; }
+.star.on { color: #c45c26; }
+@media (max-width: 800px) {
+  .desk { grid-template-columns: 1fr; grid-template-rows: 240px 1fr; height: auto; min-height: 100vh; }
+  .read { padding: 20px; }
+}
+
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}
+
+</style>
+</head>
+<body>
+
+<div class="desk">
+  <section class="list">
+    <div class="tools">
+      <strong>报房</strong>
+      <button type="button" id="t013-filter" aria-pressed="false">只看未读</button>
+    </div>
+    <div id="t013-list">
+      <button class="letter unread" type="button" data-id="a"><b>潮声账房</b><span>未读 · 柜 14 还差夜账</span></button>
+      <button class="letter" type="button" data-id="b"><b>窑口</b><span>已读 · 试釉杯可以取了</span></button>
+      <button class="letter unread" type="button" data-id="c"><b>夜航门</b><span>未读 · 帖子改到亥时</span></button>
+    </div>
+  </section>
+  <article class="read" id="t013-read">
+    <button class="star" id="t013-star" type="button" aria-pressed="false">☆</button>
+    <h1 id="t013-subject">先拣一封</h1>
+    <p id="t013-body">左边是今夜送到报房的信。</p>
+  </article>
+</div>
+
+<script>
+
+(function () {
+  var bodies = {
+    a: ["夜账还差两笔", "柜 14 的夜账停在卸货单，补上就能封柜。"],
+    b: ["试釉杯可以取", "你的杯子在北架第三层，今日窑冷之后来拿。"],
+    c: ["帖子改到亥时", "夜航门把核对从戌时改到亥时，旧帖仍然有效。"]
+  };
+  var current = null;
+  var starred = {};
+  function paintStar() {
+    var on = current && starred[current];
+    var star = document.getElementById("t013-star");
+    star.classList.toggle("on", !!on);
+    star.textContent = on ? "★" : "☆";
+    star.setAttribute("aria-pressed", on ? "true" : "false");
+  }
+  document.getElementById("t013-list").addEventListener("click", function (event) {
+    var button = event.target.closest("button");
+    if (!button) return;
+    current = button.getAttribute("data-id");
+    document.querySelectorAll(".letter").forEach(function (item) { item.setAttribute("aria-current", "false"); });
+    button.setAttribute("aria-current", "true");
+    button.classList.remove("unread");
+    document.getElementById("t013-subject").textContent = bodies[current][0];
+    document.getElementById("t013-body").textContent = bodies[current][1];
+    paintStar();
+  });
+  document.getElementById("t013-filter").addEventListener("click", function () {
+    var on = this.getAttribute("aria-pressed") !== "true";
+    this.setAttribute("aria-pressed", on ? "true" : "false");
+    document.querySelectorAll(".letter").forEach(function (item) {
+      item.hidden = on && !item.classList.contains("unread");
+    });
+  });
+  document.getElementById("t013-star").addEventListener("click", function () {
+    if (!current) return;
+    starred[current] = !starred[current];
+    paintStar();
+  });
+})();
+
+</script>
+</body>
+</html>

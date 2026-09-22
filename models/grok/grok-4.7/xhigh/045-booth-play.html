@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>放映间</title>
+<style>
+
+* { box-sizing: border-box; }
+body { margin: 0; min-height: 100vh; background: #120c0a; color: #f6efe6; font: 15px/1.5 system-ui,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif; }
+.booth { min-height: 100vh; display: grid; grid-template-columns: 300px 1fr; }
+.list { background: #1c1411; }
+.list button { display: block; width: 100%; height: 64px; text-align: left; padding: 0 16px; border: 0; border-bottom: 1px solid #3a2c26; background: transparent; color: #f6efe6; cursor: pointer; }
+.list button[aria-current="true"] { color: #e4572e; }
+.stage { padding: 32px; }
+h1 { font-size: 36px; margin: 8px 0; }
+.muted { color: #b5a89a; }
+input { width: 100%; accent-color: #e4572e; }
+.row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+button.act { height: 44px; border: 0; border-radius: 8px; background: #e4572e; color: #120c0a; padding: 0 14px; cursor: pointer; }
+button.ghost { height: 36px; border-radius: 8px; border: 1px solid #ffd0b5; background: transparent; color: #ffd0b5; cursor: pointer; }
+.warn { color: #ffd0b5; }
+@media (max-width: 800px) {
+  .booth { grid-template-columns: 1fr; }
+  .list { max-height: 200px; overflow: auto; }
+  .stage { padding: 16px; }
+}
+
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}
+
+</style>
+</head>
+<body>
+
+<div class="booth">
+  <aside class="list" id="t045-list"></aside>
+  <section class="stage">
+    <p class="muted">放映间</p>
+    <h1 id="t045-title">还没选片</h1>
+    <p id="t045-pos">进度 0</p>
+    <input id="t045-seek" type="range" min="0" max="100" value="0">
+    <div class="row">
+      <button class="act" id="t045-play" type="button">播放</button>
+      <button class="ghost" id="t045-queue" type="button">加入队列</button>
+      <button class="ghost" id="t045-save" type="button">保存状态</button>
+      <button class="ghost" id="t045-net" type="button">模拟断网</button>
+      <button class="ghost" id="t045-retry" type="button">重新连接</button>
+    </div>
+    <p id="t045-queue-line">队列还空着</p>
+    <p id="t045-state">尚未保存</p>
+    <p class="warn" id="t045-warn" hidden>网络中断，停在当前进度。</p>
+  </section>
+</div>
+
+<script>
+
+(function () {
+  var films = [
+    { title: "秋分夜谈", at: 12 },
+    { title: "第二乐章", at: 0 },
+    { title: "潮声", at: 40 }
+  ];
+  var current = 0;
+  var playing = false;
+  var offline = false;
+  var queue = [];
+  var timer = null;
+  var title = document.getElementById("t045-title");
+  var pos = document.getElementById("t045-pos");
+  var seek = document.getElementById("t045-seek");
+  function show() {
+    title.textContent = films[current].title;
+    seek.value = String(films[current].at);
+    pos.textContent = "进度 " + films[current].at;
+    document.querySelectorAll("#t045-list button").forEach(function (button, index) {
+      button.setAttribute("aria-current", index === current ? "true" : "false");
+    });
+  }
+  function stop() { playing = false; document.getElementById("t045-play").textContent = "播放"; clearInterval(timer); }
+  var list = document.getElementById("t045-list");
+  films.forEach(function (film, index) {
+    var button = document.createElement("button");
+    button.type = "button";
+    button.textContent = film.title;
+    button.addEventListener("click", function () { current = index; show(); });
+    list.appendChild(button);
+  });
+  document.getElementById("t045-play").addEventListener("click", function () {
+    if (offline) return;
+    playing = !playing;
+    this.textContent = playing ? "暂停" : "播放";
+    clearInterval(timer);
+    if (playing) {
+      timer = setInterval(function () {
+        if (films[current].at < 100) films[current].at += 1;
+        show();
+      }, 1000);
+    }
+  });
+  seek.addEventListener("input", function () {
+    films[current].at = Number(seek.value);
+    pos.textContent = "进度 " + films[current].at;
+  });
+  document.getElementById("t045-queue").addEventListener("click", function () {
+    var next = films[(current + 1) % films.length].title;
+    queue.push(next);
+    document.getElementById("t045-queue-line").textContent = "队列：" + queue.join("、");
+  });
+  document.getElementById("t045-save").addEventListener("click", function () {
+    document.getElementById("t045-state").textContent = "已保存 " + films[current].title + " · 进度 " + films[current].at;
+  });
+  document.getElementById("t045-net").addEventListener("click", function () {
+    offline = true;
+    stop();
+    document.getElementById("t045-warn").hidden = false;
+    document.getElementById("t045-warn").textContent = "网络中断，停在进度 " + films[current].at + "。";
+  });
+  document.getElementById("t045-retry").addEventListener("click", function () {
+    if (!offline) return;
+    offline = false;
+    document.getElementById("t045-warn").hidden = true;
+    playing = true;
+    document.getElementById("t045-play").textContent = "暂停";
+    clearInterval(timer);
+    timer = setInterval(function () {
+      if (films[current].at < 100) films[current].at += 1;
+      show();
+    }, 1000);
+  });
+  show();
+})();
+
+</script>
+</body>
+</html>
