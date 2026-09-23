@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>诊云 · 找回账户入口</title>
+<style>
+:root{
+  --teal:#0e7f8c;
+  --teal-deep:#0a5f6a;
+  --teal-soft:#e6f4f5;
+  --teal-line:#bfe0e3;
+  --ink:#16323a;
+  --muted:#5f7a80;
+  --line:#dce7ea;
+  --bg:#ffffff;
+  --panel:#f7fafb;
+  --err:#c04b38;
+  --ok:#2e8b6b;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+  background:var(--bg);color:var(--ink);
+  min-height:100vh;display:flex;
+}
+/* ============ 左侧进度轨 ============ */
+.rail{
+  width:300px;flex:none;
+  border-right:1px solid var(--line);
+  padding:34px 30px;
+  display:flex;flex-direction:column;
+  background:linear-gradient(180deg,#fff, #fbfdfd);
+}
+.logo{display:flex;align-items:center;gap:10px}
+.logo .mark{
+  width:32px;height:32px;border-radius:8px;
+  background:var(--teal);color:#fff;
+  display:flex;align-items:center;justify-content:center;
+}
+.logo .name{font-size:17px;font-weight:700;letter-spacing:1px}
+.logo .en{font-size:10px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase}
+.rail-title{margin-top:34px;font-size:11px;letter-spacing:2px;color:var(--muted);text-transform:uppercase}
+.steps{margin-top:14px}
+.sstep{display:flex;gap:12px;position:relative;padding-bottom:26px}
+.sstep:last-child{padding-bottom:0}
+.sstep::before{
+  content:"";position:absolute;left:13px;top:28px;bottom:2px;width:1px;
+  background:var(--line);
+}
+.sstep:last-child::before{display:none}
+.sstep .dot{
+  width:27px;height:27px;flex:none;border-radius:50%;
+  border:1.5px solid var(--line);background:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-size:12px;color:var(--muted);font-weight:600;
+  position:relative;z-index:1;transition:all .25s ease;
+}
+.sstep.on .dot{border-color:var(--teal);background:var(--teal);color:#fff}
+.sstep.done .dot{border-color:var(--teal);background:var(--teal-soft);color:var(--teal)}
+.sstep.done::before{background:var(--teal-line)}
+.sstep .s-name{font-size:13.5px;font-weight:600;color:var(--ink)}
+.sstep .s-desc{font-size:11.5px;color:var(--muted);margin-top:3px;line-height:1.6}
+.sstep:not(.on):not(.done) .s-name{color:var(--muted);font-weight:500}
+.rail-note{
+  margin-top:26px;border:1px solid var(--line);border-radius:8px;
+  padding:12px 14px;font-size:11.5px;line-height:1.8;color:var(--muted);
+  background:var(--panel);
+}
+.rail-note b{color:var(--ink);font-weight:600;display:flex;align-items:center;gap:6px;margin-bottom:4px}
+.rail-foot{
+  margin-top:auto;padding-top:20px;border-top:1px solid var(--line);
+  font-size:11.5px;color:var(--muted);line-height:2;
+}
+.rail-foot b{color:var(--ink);font-weight:600}
+/* ============ 右侧内容 ============ */
+.main{flex:1;display:flex;flex-direction:column;min-width:0}
+.topbar{
+  height:56px;border-bottom:1px solid var(--line);
+  display:flex;align-items:center;justify-content:flex-end;gap:22px;
+  padding:0 40px;font-size:12.5px;color:var(--muted);
+}
+.topbar button{
+  appearance:none;border:none;background:none;cursor:pointer;font-family:inherit;
+  font-size:12.5px;color:var(--muted);
+}
+.topbar button:hover{color:var(--teal)}
+.content{
+  flex:1;display:flex;align-items:center;justify-content:center;
+  padding:40px 32px;
+}
+.col{width:min(460px,100%)}
+.crumb{font-size:12px;color:var(--muted);letter-spacing:.5px}
+.crumb b{color:var(--teal);font-weight:600}
+h1{font-size:24px;font-weight:700;letter-spacing:.5px;margin-top:10px}
+.lead{font-size:13px;color:var(--muted);line-height:1.9;margin-top:8px}
+.seg{
+  margin-top:26px;display:flex;
+  border:1px solid var(--line);border-radius:8px;overflow:hidden;
+}
+.seg button{
+  flex:1;appearance:none;border:none;cursor:pointer;font-family:inherit;
+  background:#fff;padding:9px 0;font-size:13px;color:var(--muted);
+  border-right:1px solid var(--line);transition:all .2s ease;
+}
+.seg button:last-child{border-right:none}
+.seg button.on{background:var(--teal-soft);color:var(--teal-deep);font-weight:600}
+.field{margin-top:18px}
+.field label{
+  display:block;font-size:12px;font-weight:600;letter-spacing:.5px;
+  margin-bottom:7px;color:var(--ink);
+}
+.wrap{
+  display:flex;align-items:center;background:#fff;
+  border:1px solid var(--line);border-radius:8px;
+  transition:border-color .2s ease,box-shadow .2s ease;
+}
+.wrap:focus-within{border-color:var(--teal);box-shadow:0 0 0 3px rgba(14,127,140,.12)}
+.wrap.err{border-color:var(--err)}
+.wrap input{
+  flex:1;border:none;background:transparent;outline:none;
+  padding:11px 13px;font-size:13.5px;color:var(--ink);font-family:inherit;
+}
+.wrap input::placeholder{color:#a7b8bc}
+.captcha{
+  flex:none;display:flex;align-items:center;gap:8px;
+  padding-right:6px;
+}
+.captcha svg{border:1px solid var(--line);border-radius:6px;cursor:pointer;background:var(--panel)}
+.captcha .redo{
+  appearance:none;border:none;background:none;cursor:pointer;
+  color:var(--muted);padding:4px;display:flex;
+}
+.captcha .redo:hover{color:var(--teal)}
+.err-msg{font-size:11.5px;color:var(--err);margin-top:6px;min-height:16px}
+.cta{
+  margin-top:16px;width:100%;appearance:none;border:none;cursor:pointer;
+  background:var(--teal);color:#fff;
+  font-size:14px;font-weight:600;letter-spacing:3px;
+  padding:12px 0;border-radius:8px;font-family:inherit;
+  transition:background .2s ease;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+}
+.cta:hover:not(:disabled){background:var(--teal-deep)}
+.cta:disabled{opacity:.7;cursor:wait}
+.spin{
+  width:13px;height:13px;border-radius:50%;
+  border:2px solid rgba(255,255,255,.35);border-top-color:#fff;
+  animation:rot .7s linear infinite;
+}
+@keyframes rot{to{transform:rotate(360deg)}}
+.meta{
+  margin-top:14px;display:flex;justify-content:space-between;align-items:center;
+  font-size:11.5px;color:var(--muted);
+}
+.meta .lock{display:flex;align-items:center;gap:5px}
+.back{
+  margin-top:22px;padding-top:18px;border-top:1px solid var(--line);
+  display:flex;justify-content:space-between;align-items:center;font-size:12.5px;
+}
+.back button{
+  appearance:none;border:none;background:none;cursor:pointer;font-family:inherit;
+  color:var(--teal);font-size:12.5px;font-weight:600;
+}
+.back button:hover{color:var(--teal-deep)}
+.back .alt{color:var(--muted)}
+/* ============ 已发送等待态 ============ */
+.sent{display:none}
+.sent.on{display:block;animation:fadeUp .35s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.sent-card{
+  margin-top:26px;border:1px solid var(--teal-line);border-radius:10px;
+  background:var(--teal-soft);padding:22px 22px 18px;
+}
+.sent-top{display:flex;gap:14px;align-items:flex-start}
+.sent-icon{
+  width:40px;height:40px;flex:none;border-radius:50%;
+  background:var(--teal);color:#fff;
+  display:flex;align-items:center;justify-content:center;
+}
+.sent-top h2{font-size:15px;font-weight:700}
+.sent-top p{font-size:12.5px;color:#3d6670;line-height:1.9;margin-top:4px}
+.sent-top p b{color:var(--teal-deep)}
+.sent-row{
+  margin-top:14px;padding-top:12px;border-top:1px dashed var(--teal-line);
+  display:flex;justify-content:space-between;align-items:center;
+  font-size:12px;color:#3d6670;
+}
+.resend{
+  appearance:none;border:1px solid var(--teal);background:#fff;cursor:pointer;
+  color:var(--teal);font-size:12px;font-weight:600;font-family:inherit;
+  padding:7px 14px;border-radius:6px;transition:all .2s ease;
+}
+.resend:hover:not(:disabled){background:var(--teal);color:#fff}
+.resend:disabled{border-color:var(--line);color:var(--muted);cursor:not-allowed;background:var(--panel)}
+.tips{
+  margin-top:16px;font-size:12px;color:var(--muted);line-height:2;
+}
+.tips b{color:var(--ink);font-weight:600}
+.change{
+  appearance:none;border:none;background:none;cursor:pointer;font-family:inherit;
+  color:var(--teal);font-size:12.5px;font-weight:600;padding:0;
+}
+.toast{
+  position:fixed;left:50%;top:24px;transform:translate(-50%,-10px);
+  background:var(--ink);color:#fff;border-radius:8px;
+  padding:10px 20px;font-size:12.5px;
+  opacity:0;pointer-events:none;transition:opacity .3s ease,transform .3s ease;z-index:9;
+}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none !important;transition:none !important}
+}
+@media (max-width:840px){
+  body{flex-direction:column}
+  .rail{width:100%;border-right:none;border-bottom:1px solid var(--line);padding:20px 24px}
+  .steps{display:flex;gap:18px}
+  .sstep{padding-bottom:0;flex:1}
+  .sstep::before{display:none}
+  .sstep .s-desc{display:none}
+  .rail-note,.rail-foot,.rail-title{display:none}
+  .topbar{padding:0 20px}
+  .content{padding:28px 20px;align-items:flex-start}
+}
+</style>
+</head>
+<body>
+<div class="toast" id="toast" role="status"></div>
+
+<aside class="rail" aria-label="找回进度">
+  <div class="logo">
+    <span class="mark" aria-hidden="true">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <path d="M12 4v16M4 12h16"/>
+      </svg>
+    </span>
+    <div>
+      <div class="name">诊云</div>
+      <div class="en">Clinic Cloud</div>
+    </div>
+  </div>
+
+  <div class="rail-title">找回流程</div>
+  <div class="steps" id="steps">
+    <div class="sstep on" data-s="0">
+      <span class="dot">1</span>
+      <div><div class="s-name">验证联系方式</div><div class="s-desc">填写注册时使用的邮箱或手机号</div></div>
+    </div>
+    <div class="sstep" data-s="1">
+      <span class="dot">2</span>
+      <div><div class="s-name">查收重置信息</div><div class="s-desc">链接 30 分钟内有效，仅可使用一次</div></div>
+    </div>
+    <div class="sstep" data-s="2">
+      <span class="dot">3</span>
+      <div><div class="s-name">设置新密码</div><div class="s-desc">完成后旧密码立即失效</div></div>
+    </div>
+  </div>
+
+  <div class="rail-note">
+    <b><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>安全提示</b>
+    重置请求仅发送至账号登记的联系方式。诊云客服不会向你索要密码或验证码。
+  </div>
+
+  <div class="rail-foot">
+    <b>机构管理员通道</b><br>
+    院内账号锁定请联系本院信息科<br>
+    平台支持热线 400-820-9166（7×24）
+  </div>
+</aside>
+
+<section class="main">
+  <div class="topbar">
+    <button type="button" data-say="操作手册已发送到工作台。">帮助文档</button>
+    <button type="button" data-say="正在为你转接在线客服…">在线客服</button>
+    <button type="button" data-say="返回登录页。">返回登录</button>
+  </div>
+
+  <div class="content">
+    <div class="col">
+      <div class="crumb">账户服务 / <b>找回密码</b></div>
+      <h1>找回账户入口</h1>
+      <p class="lead">填写注册时登记的联系方式，我们会把重置链接发过去。</p>
+
+      <div id="formView">
+        <div class="seg" role="tablist">
+          <button type="button" class="on" id="segMail" role="tab" aria-selected="true">工作邮箱</button>
+          <button type="button" id="segPhone" role="tab" aria-selected="false">手机号</button>
+        </div>
+
+        <form id="form" novalidate>
+          <div class="field">
+            <label for="contact" id="contactLabel">工作邮箱</label>
+            <div class="wrap" id="wContact">
+              <input id="contact" type="text" autocomplete="email" placeholder="name@clinic.org">
+            </div>
+          </div>
+          <div class="field">
+            <label for="captcha">图形验证码</label>
+            <div class="wrap" id="wCaptcha">
+              <input id="captcha" type="text" maxlength="4" autocomplete="off" placeholder="输入右图 4 位字符">
+              <div class="captcha">
+                <svg id="capImg" width="86" height="34" viewBox="0 0 86 34" role="img" aria-label="图形验证码"></svg>
+                <button type="button" class="redo" id="capRedo" aria-label="换一张验证码">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 11A8 8 0 1 0 18.9 15"/><path d="M20 5v6h-6"/></svg>
+                </button>
+              </div>
+            </div>
+            <div class="err-msg" id="errMsg"></div>
+          </div>
+
+          <button class="cta" id="cta" type="submit">发送重置链接</button>
+          <div class="meta">
+            <span class="lock">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+              全程加密传输
+            </span>
+            <span>链接 30 分钟内有效</span>
+          </div>
+        </form>
+      </div>
+
+      <div class="sent" id="sentView" aria-live="polite">
+        <div class="sent-card">
+          <div class="sent-top">
+            <span class="sent-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>
+            </span>
+            <div>
+              <h2>重置信息已发出</h2>
+              <p>已发送至 <b id="masked"></b><br>请在 30 分钟内完成重置，链接仅可使用一次。</p>
+            </div>
+          </div>
+          <div class="sent-row">
+            <span id="timerTxt">60s 后可重新发送</span>
+            <button class="resend" id="resend" disabled>重新发送</button>
+          </div>
+        </div>
+        <p class="tips">
+          <b>没收到？</b>检查垃圾邮件/拦截短信；仍无音讯可
+          <button class="change" id="changeBtn" type="button">换一个联系方式</button>
+          或联系本院信息科。
+        </p>
+      </div>
+
+      <div class="back">
+        <button type="button" id="backLogin">← 返回登录</button>
+        <span class="alt">没有机构账号？由信息科统一开通</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+(function(){
+  var segMail=document.getElementById('segMail'),
+      segPhone=document.getElementById('segPhone'),
+      contact=document.getElementById('contact'),
+      contactLabel=document.getElementById('contactLabel'),
+      wContact=document.getElementById('wContact'),
+      wCaptcha=document.getElementById('wCaptcha'),
+      captcha=document.getElementById('captcha'),
+      capImg=document.getElementById('capImg'),
+      capRedo=document.getElementById('capRedo'),
+      errMsg=document.getElementById('errMsg'),
+      cta=document.getElementById('cta'),
+      form=document.getElementById('form'),
+      formView=document.getElementById('formView'),
+      sentView=document.getElementById('sentView'),
+      masked=document.getElementById('masked'),
+      resend=document.getElementById('resend'),
+      timerTxt=document.getElementById('timerTxt'),
+      changeBtn=document.getElementById('changeBtn'),
+      backLogin=document.getElementById('backLogin'),
+      steps=document.querySelectorAll('.sstep'),
+      toast=document.getElementById('toast');
+  var mode='mail',capCode='',timer=null;
+  function say(m){toast.textContent=m;toast.classList.add('show');
+    setTimeout(function(){toast.classList.remove('show')},2400)}
+  function drawCaptcha(){
+    var chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    capCode='';
+    var inner='';
+    for(var i=0;i<4;i++){
+      var c=chars[Math.floor(Math.random()*chars.length)];
+      capCode+=c;
+      var x=12+i*19,y=21+Math.random()*3-1.5,r=(Math.random()*30-15).toFixed(0);
+      inner+='<text x="'+x+'" y="'+y+'" font-size="17" font-weight="700" fill="#0a5f6a" transform="rotate('+r+' '+x+' '+y+')" font-family="Georgia,serif">'+c+'</text>';
+    }
+    for(var j=0;j<3;j++){
+      inner+='<path d="M4 '+(8+j*9+Math.random()*4)+' Q 30 '+(Math.random()*30)+' 82 '+(6+Math.random()*24)+'" stroke="#bfe0e3" fill="none" stroke-width="1.2"/>';
+    }
+    capImg.innerHTML=inner;
+  }
+  function setSeg(m){
+    mode=m;
+    segMail.classList.toggle('on',m==='mail');segMail.setAttribute('aria-selected',m==='mail');
+    segPhone.classList.toggle('on',m==='phone');segPhone.setAttribute('aria-selected',m==='phone');
+    contactLabel.textContent=m==='mail'?'工作邮箱':'手机号';
+    contact.placeholder=m==='mail'?'name@clinic.org':'11 位手机号';
+    contact.value='';errMsg.textContent='';
+    wContact.classList.remove('err');
+  }
+  segMail.addEventListener('click',function(){setSeg('mail')});
+  segPhone.addEventListener('click',function(){setSeg('phone')});
+  capRedo.addEventListener('click',function(){drawCaptcha();captcha.value=''});
+  function validContact(v){
+    return mode==='mail'?/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v):/^1\d{10}$/.test(v);
+  }
+  function mask(v){
+    if(mode==='mail'){
+      var at=v.indexOf('@');
+      return v.slice(0,2)+'***'+v.slice(at);
+    }
+    return v.slice(0,3)+'****'+v.slice(7);
+  }
+  function startWait(){
+    var n=60;resend.disabled=true;
+    timerTxt.textContent=n+'s 后可重新发送';
+    timer=setInterval(function(){
+      n--;
+      if(n<=0){clearInterval(timer);resend.disabled=false;timerTxt.textContent='仍未收到可重发'}
+      else timerTxt.textContent=n+'s 后可重新发送';
+    },1000);
+  }
+  function showSent(v){
+    formView.style.display='none';
+    sentView.classList.add('on');
+    masked.textContent=mask(v);
+    steps[0].classList.remove('on');steps[0].classList.add('done');
+    steps[0].querySelector('.dot').innerHTML='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M4 12.5l5 5L20 7"/></svg>';
+    steps[1].classList.add('on');
+    startWait();
+  }
+  form.addEventListener('submit',function(e){
+    e.preventDefault();
+    wContact.classList.remove('err');wCaptcha.classList.remove('err');errMsg.textContent='';
+    var v=contact.value.trim();
+    if(!validContact(v)){
+      wContact.classList.add('err');
+      errMsg.textContent=mode==='mail'?'请输入有效的工作邮箱。':'请输入 11 位手机号。';
+      return;
+    }
+    if(captcha.value.trim().toUpperCase()!==capCode){
+      wCaptcha.classList.add('err');
+      errMsg.textContent='图形验证码不对，已为你换一张。';
+      drawCaptcha();captcha.value='';
+      return;
+    }
+    cta.disabled=true;
+    cta.innerHTML='<span class="spin"></span>发送中…';
+    setTimeout(function(){
+      cta.disabled=false;cta.textContent='发送重置链接';
+      showSent(v);
+      say('重置信息已发出。');
+    },1100);
+  });
+  resend.addEventListener('click',function(){
+    resend.disabled=true;
+    say('已重新发送，请留意查收。');
+    startWait();
+  });
+  changeBtn.addEventListener('click',function(){
+    sentView.classList.remove('on');
+    formView.style.display='block';
+    steps[0].classList.add('on');steps[0].classList.remove('done');
+    steps[0].querySelector('.dot').textContent='1';
+    steps[1].classList.remove('on');
+    clearInterval(timer);
+    contact.focus();
+  });
+  backLogin.addEventListener('click',function(){say('返回登录页。')});
+  document.querySelectorAll('[data-say]').forEach(function(b){
+    b.addEventListener('click',function(){say(b.getAttribute('data-say'))});
+  });
+  drawCaptcha();
+})();
+</script>
+</body>
+</html>

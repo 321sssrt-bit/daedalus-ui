@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>拼单乐 · 购物小票</title>
+<style>
+:root{
+  --bg:#3a3d42;
+  --bg-line:#33363b;
+  --paper:#fffef7;
+  --ink:#23262b;
+  --dim:#8b8f96;
+  --red:#c8391f;
+  --card:#2e3136;
+  --card-line:#4a4e55;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  font-family:-apple-system,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  background:var(--bg);color:#e8e9ea;min-height:100vh;
+  background-image:
+    repeating-linear-gradient(0deg,var(--bg-line) 0 2px,transparent 2px 40px),
+    radial-gradient(1000px 500px at 50% -200px,rgba(255,254,247,.08),transparent 70%);
+}
+.mono{font-family:ui-monospace,"SF Mono","Cascadia Mono",Consolas,"Courier New",monospace}
+.head{max-width:1180px;margin:0 auto;padding:30px 24px 8px;display:flex;align-items:baseline;gap:18px}
+.head h1{font-size:26px;letter-spacing:.24em;font-weight:800}
+.head .no{font-size:12px;color:var(--dim);letter-spacing:.14em}
+.head .hint{margin-left:auto;font-size:12px;color:var(--dim);letter-spacing:.1em}
+.counter{
+  max-width:1180px;margin:0 auto;padding:18px 24px 64px;
+  display:grid;grid-template-columns:1fr 460px 1fr;gap:26px;align-items:start;
+}
+.side{
+  background:var(--card);border:1px solid var(--card-line);border-radius:8px;
+  padding:18px 20px;margin-top:34px;
+}
+.side h2{font-size:12px;letter-spacing:.28em;color:var(--dim);margin-bottom:14px;font-weight:600}
+.side .ptxt{font-size:13px;line-height:2;color:#c9cdd2}
+.bar{height:8px;background:#24262a;border-radius:99px;margin:12px 0 8px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#e2573a,var(--red));border-radius:99px;transition:width .3s ease}
+.bar-txt{font-size:11.5px;color:var(--dim);letter-spacing:.06em}
+.kv{display:flex;justify-content:space-between;font-size:12.5px;padding:7px 0;border-bottom:1px dashed var(--card-line);color:#c9cdd2}
+.kv:last-child{border-bottom:none}
+.kv .v{color:#e8e9ea}
+.receipt{
+  background:var(--paper);color:var(--ink);
+  padding:24px 26px 26px;transform:rotate(-.5deg);
+  box-shadow:0 18px 44px rgba(0,0,0,.4),0 2px 0 rgba(0,0,0,.15);
+  font-size:13px;letter-spacing:.04em;position:relative;
+}
+.teeth{height:12px;width:460px;max-width:460px;margin:0 -2px}
+.t-top{background:conic-gradient(from -45deg at 50% 100%,var(--paper) 90deg,transparent 0) 0 0/20px 12px repeat-x}
+.t-bot{background:conic-gradient(from 135deg at 50% 0,var(--paper) 90deg,transparent 0) 0 0/20px 12px repeat-x}
+.roll{width:460px;max-width:460px;filter:drop-shadow(0 18px 30px rgba(0,0,0,.35))}
+.r-head{text-align:center;padding-bottom:14px;border-bottom:1.5px dashed var(--dim)}
+.r-head .shop{font-size:24px;font-weight:900;letter-spacing:.34em;padding-left:.34em}
+.r-head .sub{font-size:11px;color:#5c6066;letter-spacing:.2em;margin-top:6px}
+.r-meta{padding:10px 0;border-bottom:1.5px dashed var(--dim)}
+.r-meta .m{display:flex;justify-content:space-between;font-size:11.5px;color:#5c6066;padding:2px 0}
+.items{padding:6px 0 2px;border-bottom:1.5px dashed var(--dim)}
+.ih{display:flex;font-size:10.5px;color:#9a9da2;letter-spacing:.14em;padding:4px 0 8px;border-bottom:1px dotted #d8d5c8}
+.ih .c1{flex:1}.ih .c2{width:96px;text-align:center}.ih .c3{width:70px;text-align:right}.ih .c4{width:26px}
+.row{padding:9px 0;border-bottom:1px dotted #d8d5c8}
+.row .l1{display:flex;justify-content:space-between;align-items:center}
+.row .nm{font-size:13.5px;font-weight:600;letter-spacing:.04em}
+.row .del{
+  border:none;background:transparent;color:#b0b3b8;cursor:pointer;font-size:14px;
+  width:22px;height:22px;line-height:1;font-family:inherit;transition:color .15s ease;
+}
+.row .del:hover{color:var(--red)}
+.row .l2{display:flex;align-items:center;margin-top:6px}
+.step{display:flex;align-items:center;border:1px solid #d8d5c8}
+.step button{
+  width:26px;height:24px;border:none;background:transparent;font-size:14px;cursor:pointer;
+  font-family:inherit;color:var(--ink);transition:background .12s ease;
+}
+.step button:hover{background:#efece0}
+.step button:disabled{color:#c9c6ba;cursor:not-allowed}
+.step .qn{width:34px;text-align:center;font-size:13px}
+.row .unit{margin-left:10px;font-size:11px;color:#8b8f96}
+.row .lt{margin-left:auto;font-size:14px;font-weight:700;width:70px;text-align:right}
+.empty{display:none;text-align:center;color:#9a9da2;padding:30px 0;font-size:12.5px;letter-spacing:.24em}
+.empty.show{display:block}
+.sum{padding:12px 0 0}
+.sr{display:flex;justify-content:space-between;padding:4px 0;font-size:12.5px;color:#5c6066}
+.sr b{color:var(--ink)}
+.sr.disc b{color:var(--red)}
+.pay{display:flex;justify-content:space-between;align-items:baseline;padding:10px 0 2px;font-size:15px;font-weight:800}
+.pay .big{font-size:26px}
+.stamp{
+  position:absolute;top:170px;right:22px;width:64px;height:64px;
+  border:2.5px double var(--red);color:var(--red);border-radius:5px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  transform:rotate(9deg);font-weight:800;letter-spacing:.1em;
+  opacity:.85;pointer-events:none;
+}
+.stamp .s1{font-size:20px}.stamp .s2{font-size:9px;margin-top:2px}
+.checkout{
+  width:100%;margin-top:14px;border:none;background:var(--ink);color:var(--paper);
+  padding:14px 0;font-size:15px;letter-spacing:.3em;font-family:inherit;cursor:pointer;
+  transition:opacity .15s ease,letter-spacing .2s ease;
+}
+.checkout:hover:not(:disabled){letter-spacing:.36em}
+.checkout:disabled{background:#b9bcc0;cursor:not-allowed;letter-spacing:.3em}
+.checkout.done{background:var(--red)}
+.barcode{margin-top:14px;text-align:center}
+.barcode svg{height:40px;width:200px}
+.barcode .bc{font-size:10px;letter-spacing:.34em;color:#8b8f96;margin-top:4px}
+@media (max-width:1024px){
+  .counter{grid-template-columns:1fr;justify-items:center}
+  .side{margin-top:0;width:min(460px,100%)}
+}
+@media (max-width:520px){
+  .counter{padding:12px 10px 48px}
+  .teeth,.roll{width:100%;max-width:100%}
+  .receipt{padding:20px 16px}
+  .head{flex-wrap:wrap}
+}
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+  .checkout:hover:not(:disabled){letter-spacing:.3em}
+}
+</style>
+</head>
+<body>
+<header class="head">
+  <h1>拼单乐</h1>
+  <span class="no mono">KIOSK-04 · 零食拼购自提柜</span>
+  <span class="hint">小票实时重打 · 改数量立即生效</span>
+</header>
+
+<div class="counter">
+  <aside class="side">
+    <h2>拼单进展</h2>
+    <div class="ptxt" id="progTxt">本单 ¥0.00，距免柜费还差 ¥50.00</div>
+    <div class="bar"><i id="progBar"></i></div>
+    <div class="bar-txt">规则：商品合计满 ¥50.00 免 ¥3.00 柜机服务费；同一小区可拼至 8 人。</div>
+    <div class="kv"><span>柜机服务费</span><span class="v mono" id="feeTxt">¥3.00</span></div>
+    <div class="kv"><span>会员折扣</span><span class="v mono">9 折</span></div>
+  </aside>
+
+  <div class="roll">
+    <div class="teeth t-top"></div>
+    <div class="receipt">
+      <div class="stamp" id="stamp"><span class="s1">惠</span><span class="s2">会员 9 折</span></div>
+      <div class="r-head">
+        <div class="shop">拼 单 乐</div>
+        <div class="sub">PIN DAN LE · 自助拼单柜 04 号</div>
+      </div>
+      <div class="r-meta">
+        <div class="m"><span>单号</span><span class="mono">NO.20260923-045</span></div>
+        <div class="m"><span>时间</span><span class="mono">2026-09-23 20:41</span></div>
+        <div class="m"><span>收银</span><span>柜机 04 / 自助</span></div>
+      </div>
+      <div class="items" id="items">
+        <div class="ih"><span class="c1">品名</span><span class="c2">数量</span><span class="c3">小计</span><span class="c4"></span></div>
+      </div>
+      <div class="empty" id="empty">— — 小票已撕空 — —</div>
+      <div class="sum">
+        <div class="sr"><span>件数合计</span><b class="mono" id="cntT">0 件</b></div>
+        <div class="sr"><span>商品合计</span><b class="mono" id="sumG">¥0.00</b></div>
+        <div class="sr disc"><span>会员 9 折</span><b class="mono" id="sumD">−¥0.00</b></div>
+        <div class="sr"><span>柜机服务费</span><b class="mono" id="sumF">¥3.00</b></div>
+        <div class="pay"><span>应付</span><span class="big mono" id="sumP">¥0.00</span></div>
+      </div>
+      <button class="checkout" id="pay">去结算 ¥0.00</button>
+      <div class="barcode">
+        <svg viewBox="0 0 200 40" aria-hidden="true" id="bars"></svg>
+        <div class="bc" id="bcTxt">PICK-UP · 0842</div>
+      </div>
+    </div>
+    <div class="teeth t-bot"></div>
+  </div>
+
+  <aside class="side">
+    <h2>柜机 04</h2>
+    <div class="kv"><span>状态</span><span class="v">营业中 · 冷藏正常</span></div>
+    <div class="kv"><span>本柜拼单</span><span class="v mono">3 / 8 人</span></div>
+    <div class="kv"><span>截单时间</span><span class="v mono">今日 22:00</span></div>
+    <div class="kv"><span>取件方式</span><span class="v">取件码 / 扫码开门</span></div>
+    <div class="kv"><span>支付</span><span class="v">余额 · 扫码 · 人脸</span></div>
+  </aside>
+</div>
+
+<script>
+var CART=[
+  {name:"香辣手工锅巴 200g",price:6.50,qty:2},
+  {name:"茉莉奶绿 450ml",price:12.00,qty:1},
+  {name:"分享装原切薯片",price:9.90,qty:2},
+  {name:"黑巧克力 70%",price:15.00,qty:1}
+];
+var FEE=3.00,FREE=50.00,paid=false;
+function fmt(n){return "¥"+n.toFixed(2)}
+function drawBars(){
+  var s="",x=2,w;
+  while(x<192){w=(x*7%3)+1;s+='<rect x="'+x+'" y="0" width="'+w+'" height="36" fill="#23262b"/>';x+=w+((x*5%4)+2);}
+  document.getElementById("bars").innerHTML=s;
+}
+function render(){
+  var box=document.getElementById("items");
+  var rows=box.querySelectorAll(".row");
+  rows.forEach(function(r){r.remove()});
+  var totalQty=0,goods=0,i,p;
+  for(i=0;i<CART.length;i++){
+    p=CART[i];totalQty+=p.qty;goods+=p.price*p.qty;
+    var row=document.createElement("div");row.className="row";
+    row.innerHTML='<div class="l1"><span class="nm">'+p.name+'</span>'
+      +'<button class="del" data-i="'+i+'" aria-label="删除 '+p.name+'">×</button></div>'
+      +'<div class="l2"><span class="step">'
+      +'<button class="minus" data-i="'+i+'" aria-label="减少数量" '+(p.qty<=1?"disabled":"")+'>−</button>'
+      +'<span class="qn mono">'+p.qty+'</span>'
+      +'<button class="plus" data-i="'+i+'" aria-label="增加数量">＋</button></span>'
+      +'<span class="unit mono">'+fmt(p.price)+' / 件</span>'
+      +'<span class="lt mono">'+fmt(p.price*p.qty)+'</span></div>';
+    box.appendChild(row);
+  }
+  var empty=CART.length===0;
+  document.getElementById("empty").className=empty?"empty show":"empty";
+  var disc=goods*0.1,fee=(empty||goods>=FREE)?0:FEE,pay=goods-disc+fee;
+  document.getElementById("cntT").textContent=totalQty+" 件";
+  document.getElementById("sumG").textContent=fmt(goods);
+  document.getElementById("sumD").textContent="−"+fmt(disc);
+  document.getElementById("sumF").textContent=empty?fmt(0):fmt(fee);
+  document.getElementById("sumP").textContent=fmt(empty?0:pay);
+  document.getElementById("progBar").style.width=Math.min(100,goods/FREE*100)+"%";
+  document.getElementById("progTxt").textContent=goods>=FREE
+    ? "本单 "+fmt(goods)+"，已免 ¥3.00 柜机服务费"
+    : "本单 "+fmt(goods)+"，距免柜费还差 "+fmt(FREE-goods);
+  document.getElementById("feeTxt").textContent=fmt(empty?0:fee);
+  var btn=document.getElementById("pay");
+  btn.disabled=empty||paid;
+  btn.textContent=paid?"已打印 · 请取走小票":"去结算 "+fmt(empty?0:pay);
+}
+document.getElementById("items").addEventListener("click",function(e){
+  var b=e.target.closest("button");if(!b)return;
+  var i=parseInt(b.dataset.i,10);
+  if(b.classList.contains("plus"))CART[i].qty++;
+  else if(b.classList.contains("minus")&&CART[i].qty>1)CART[i].qty--;
+  else if(b.classList.contains("del"))CART.splice(i,1);
+  else return;
+  paid=false;render();
+});
+document.getElementById("pay").addEventListener("click",function(){
+  if(this.disabled)return;
+  paid=true;render();
+  document.getElementById("bcTxt").textContent="PICK-UP · 0842 · 已支付";
+});
+drawBars();render();
+</script>
+</body>
+</html>

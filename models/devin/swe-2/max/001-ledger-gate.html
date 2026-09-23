@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>衡账 · 登录账房</title>
+<style>
+:root{
+  --ink:#0c2620;
+  --pine:#12352b;
+  --moss:#1a4a3b;
+  --fern:#2a6350;
+  --paper:#f7f1e3;
+  --paper-deep:#efe7d2;
+  --gold:#c2a356;
+  --gold-soft:#e2cd8d;
+  --text:#22312a;
+  --muted:#6d7568;
+  --hairline:#d9d0b8;
+  --red:#a3402f;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+  background:var(--ink);
+  color:var(--text);
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:40px 24px;
+  background-image:
+    radial-gradient(1200px 620px at 12% -12%, rgba(42,99,80,.55), transparent 60%),
+    radial-gradient(900px 520px at 112% 112%, rgba(26,74,59,.6), transparent 55%);
+}
+.frame{
+  width:min(1120px,100%);
+  display:grid;
+  grid-template-columns:5fr 6fr;
+  border:1px solid rgba(194,163,86,.42);
+  box-shadow:0 32px 90px rgba(0,0,0,.55);
+}
+/* ============ 左栏：品牌叙事 ============ */
+.brand{
+  background:linear-gradient(158deg,var(--pine) 0%,var(--ink) 78%);
+  color:var(--paper);
+  padding:54px 52px 40px;
+  position:relative;
+  display:flex;
+  flex-direction:column;
+  min-height:640px;
+}
+.brand::after{
+  content:"";
+  position:absolute;
+  top:26px;bottom:26px;right:0;
+  width:1px;
+  background:linear-gradient(to bottom,transparent,var(--gold) 18%,var(--gold) 82%,transparent);
+}
+.brand-top{display:flex;align-items:center;gap:14px}
+.brand-seal{
+  width:46px;height:46px;flex:none;
+  border:1px solid var(--gold);
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  color:var(--gold-soft);
+}
+.brand-name{
+  font-family:"Songti SC","STSong",Georgia,"Times New Roman",serif;
+  font-size:30px;letter-spacing:10px;font-weight:700;
+}
+.brand-sub{font-size:11px;letter-spacing:3.5px;color:var(--gold-soft);margin-top:4px;text-transform:uppercase}
+.brand-rule{height:1px;background:linear-gradient(to right,var(--gold),transparent);margin:38px 0 30px}
+.brand-head{
+  font-family:"Songti SC","STSong",Georgia,"Times New Roman",serif;
+  font-size:38px;line-height:1.42;font-weight:700;letter-spacing:2px;
+}
+.brand-head em{font-style:normal;color:var(--gold-soft)}
+.brand-desc{margin-top:18px;font-size:14px;line-height:1.9;color:rgba(247,241,227,.72);max-width:340px}
+.ledger{
+  margin-top:34px;
+  border-top:1px solid rgba(194,163,86,.5);
+  border-bottom:1px solid rgba(194,163,86,.5);
+  font-size:12.5px;
+}
+.ledger-row{
+  display:grid;
+  grid-template-columns:64px 1fr auto;
+  gap:12px;
+  padding:9px 2px;
+  border-bottom:1px dashed rgba(194,163,86,.28);
+  align-items:baseline;
+}
+.ledger-row:last-child{border-bottom:none}
+.ledger-date{color:rgba(247,241,227,.5);font-variant-numeric:tabular-nums}
+.ledger-item{color:rgba(247,241,227,.86)}
+.ledger-amt{
+  font-family:Georgia,"Times New Roman",serif;
+  font-variant-numeric:tabular-nums;
+  color:var(--gold-soft);
+}
+.ledger-amt.out{color:rgba(247,241,227,.6)}
+.brand-quote{
+  margin-top:auto;padding-top:34px;
+  font-family:"Songti SC","STSong",Georgia,serif;
+  font-size:14px;line-height:1.9;color:rgba(247,241,227,.66);
+}
+.brand-quote strong{display:block;margin-top:10px;font-size:12px;letter-spacing:2px;color:var(--gold-soft);font-weight:400}
+/* ============ 右栏：表单 ============ */
+.panel{
+  background:var(--paper);
+  padding:52px 56px 34px;
+  display:flex;flex-direction:column;
+  position:relative;
+}
+.panel::before{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:
+    linear-gradient(rgba(34,49,42,.02),rgba(34,49,42,.02)),
+    repeating-linear-gradient(0deg,transparent 0 30px,rgba(34,49,42,.014) 30px 31px);
+}
+.panel>*{position:relative}
+.panel-head{display:flex;align-items:baseline;justify-content:space-between;gap:16px}
+.panel-title{
+  font-family:"Songti SC","STSong",Georgia,serif;
+  font-size:26px;font-weight:700;letter-spacing:4px;color:var(--text);
+}
+.panel-note{font-size:12px;color:var(--muted);letter-spacing:1px}
+.panel-lead{margin-top:10px;font-size:13.5px;color:var(--muted);line-height:1.8}
+.tabs{
+  margin-top:26px;
+  display:flex;gap:28px;
+  border-bottom:1px solid var(--hairline);
+}
+.tab{
+  appearance:none;background:none;border:none;cursor:pointer;
+  font-size:14.5px;letter-spacing:1px;color:var(--muted);
+  padding:0 2px 12px;position:relative;
+  font-family:inherit;
+}
+.tab.on{color:var(--text);font-weight:600}
+.tab::after{
+  content:"";position:absolute;left:0;right:0;bottom:-1px;height:2px;
+  background:var(--gold);transform:scaleX(0);transition:transform .25s ease;
+}
+.tab.on::after{transform:scaleX(1)}
+.field{margin-top:22px}
+.field-row{display:flex;justify-content:space-between;align-items:baseline}
+.field label{font-size:13px;font-weight:600;color:var(--text);letter-spacing:.5px}
+.link{
+  appearance:none;background:none;border:none;cursor:pointer;
+  font-size:12.5px;color:var(--moss);text-decoration:none;
+  border-bottom:1px solid transparent;padding:0;font-family:inherit;
+}
+.link:hover{color:var(--fern);border-bottom-color:var(--fern)}
+.input-wrap{
+  margin-top:8px;position:relative;
+  display:flex;align-items:center;
+  background:#fffdf7;
+  border:1px solid var(--hairline);
+  transition:border-color .2s ease,box-shadow .2s ease;
+}
+.input-wrap:focus-within{border-color:var(--gold);box-shadow:0 0 0 3px rgba(194,163,86,.18)}
+.input-wrap.err{border-color:var(--red);animation:shake .3s ease}
+@keyframes shake{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+.input-wrap input{
+  flex:1;border:none;background:transparent;outline:none;
+  font-size:14.5px;color:var(--text);padding:13px 14px;font-family:inherit;
+}
+.input-wrap input::placeholder{color:#a99f86}
+.eye,.send{
+  appearance:none;border:none;background:none;cursor:pointer;flex:none;
+  color:var(--muted);padding:0 14px;height:100%;display:flex;align-items:center;font-family:inherit;
+}
+.send{font-size:13px;color:var(--moss);border-left:1px solid var(--hairline);min-width:96px;justify-content:center}
+.send:hover:not(:disabled){color:var(--fern)}
+.send:disabled{color:#a99f86;cursor:not-allowed}
+.hint{font-size:12px;color:var(--red);margin-top:6px;min-height:16px}
+.aux{display:flex;justify-content:space-between;align-items:center;margin-top:14px}
+.check{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--muted);cursor:pointer;user-select:none}
+.check input{accent-color:var(--moss);width:14px;height:14px;cursor:pointer}
+.cta{
+  margin-top:20px;width:100%;
+  appearance:none;border:none;cursor:pointer;
+  background:var(--moss);color:var(--paper);
+  font-size:15.5px;letter-spacing:8px;font-weight:600;
+  padding:15px 0;font-family:"Songti SC","STSong",Georgia,serif;
+  transition:background .2s ease,transform .15s ease;
+  display:flex;align-items:center;justify-content:center;gap:10px;
+}
+.cta:hover:not(:disabled){background:var(--fern)}
+.cta:active:not(:disabled){transform:translateY(1px)}
+.cta:disabled{opacity:.75;cursor:wait}
+.cta.done{background:var(--fern);letter-spacing:4px}
+.spin{
+  width:14px;height:14px;border:2px solid rgba(247,241,227,.35);border-top-color:var(--paper);
+  border-radius:50%;animation:rot .7s linear infinite;
+}
+@keyframes rot{to{transform:rotate(360deg)}}
+.recover{
+  margin-top:18px;
+  border:1px solid var(--hairline);
+  background:var(--paper-deep);
+  overflow:hidden;
+}
+.recover-head{
+  width:100%;appearance:none;border:none;background:none;cursor:pointer;
+  display:flex;justify-content:space-between;align-items:center;
+  padding:11px 14px;font-size:12.5px;color:var(--text);font-family:inherit;letter-spacing:.5px;
+}
+.recover-head .caret{transition:transform .25s ease;color:var(--muted)}
+.recover.open .caret{transform:rotate(180deg)}
+.recover-body{
+  max-height:0;transition:max-height .3s ease;
+  font-size:12.5px;color:var(--muted);line-height:1.9;
+}
+.recover.open .recover-body{max-height:200px}
+.recover-inner{padding:0 14px 13px}
+.recover-inner b{color:var(--text);font-weight:600}
+.recover-inner .link{margin-left:6px}
+.divider{
+  margin-top:22px;display:flex;align-items:center;gap:14px;
+  font-size:11px;color:var(--muted);letter-spacing:2px;
+}
+.divider::before,.divider::after{content:"";flex:1;height:1px;background:var(--hairline)}
+.sso{display:flex;gap:12px;margin-top:14px}
+.sso button{
+  flex:1;appearance:none;cursor:pointer;font-family:inherit;
+  background:#fffdf7;border:1px solid var(--hairline);
+  font-size:12.5px;color:var(--text);padding:10px 0;letter-spacing:1px;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  transition:border-color .2s ease;
+}
+.sso button:hover{border-color:var(--gold)}
+.foot{margin-top:auto;padding-top:26px;display:flex;justify-content:space-between;align-items:center;font-size:12.5px}
+.foot .fine{color:#a99f86;font-size:11px;margin-top:14px;line-height:1.7;letter-spacing:.3px}
+.toast{
+  position:fixed;left:50%;top:28px;transform:translate(-50%,-12px);
+  background:var(--ink);color:var(--paper);border:1px solid var(--gold);
+  padding:11px 22px;font-size:13px;letter-spacing:1px;
+  opacity:0;pointer-events:none;transition:opacity .3s ease,transform .3s ease;
+  z-index:10;
+}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none !important;transition:none !important}
+}
+@media (max-width:900px){
+  body{padding:24px 14px}
+  .frame{grid-template-columns:1fr;max-width:560px}
+  .brand{min-height:auto;padding:40px 32px 30px}
+  .brand::after{display:none}
+  .brand-rule{margin:24px 0 20px}
+  .brand-head{font-size:29px}
+  .ledger{display:none}
+  .panel{padding:36px 28px 26px}
+}
+@media (max-width:520px){
+  .panel{padding:30px 20px 20px}
+  .cta{letter-spacing:4px}
+}
+</style>
+</head>
+<body>
+<div class="toast" id="toast" role="status"></div>
+<main class="frame">
+  <section class="brand" aria-label="品牌介绍">
+    <div class="brand-top">
+      <span class="brand-seal" aria-hidden="true">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3">
+          <path d="M12 3v18M8 21h8M12 6l-6 2 6-2 6 2-6-2z"/>
+          <path d="M6 8l-2.4 5a2.7 2.7 0 0 0 4.8 0L6 8zM18 8l-2.4 5a2.7 2.7 0 0 0 4.8 0L18 8z"/>
+        </svg>
+      </span>
+      <div>
+        <div class="brand-name">衡账</div>
+        <div class="brand-sub">Hengzhang Ledger</div>
+      </div>
+    </div>
+    <div class="brand-rule"></div>
+    <h1 class="brand-head">每笔出入，<br>皆有<em>回响</em>。</h1>
+    <p class="brand-desc">衡账为小微商户与自由职业者记账、对账、归档。十五年账房逻辑，只为你留一本经得起核对的账。</p>
+    <div class="ledger" aria-hidden="true">
+      <div class="ledger-row"><span class="ledger-date">09-18</span><span class="ledger-item">印刷厂尾款</span><span class="ledger-amt">+12,800.00</span></div>
+      <div class="ledger-row"><span class="ledger-date">09-19</span><span class="ledger-item">库房九月租金</span><span class="ledger-amt out">−4,200.00</span></div>
+      <div class="ledger-row"><span class="ledger-date">09-21</span><span class="ledger-item">线上渠道结算</span><span class="ledger-amt">+31,540.20</span></div>
+      <div class="ledger-row"><span class="ledger-date">09-22</span><span class="ledger-item">差旅报销 · 陈</span><span class="ledger-amt out">−1,876.50</span></div>
+      <div class="ledger-row"><span class="ledger-date">09-23</span><span class="ledger-item">咨询费 · 刘宅</span><span class="ledger-amt">+6,000.00</span></div>
+    </div>
+    <p class="brand-quote">「账不怕细，就怕对不上。衡账替你把每一笔记到来路去路。」
+      <strong>—— 杭州 · 云栖茶行 掌柜 沈其澜</strong>
+    </p>
+  </section>
+
+  <section class="panel" aria-label="登录表单">
+    <div class="panel-head">
+      <h2 class="panel-title">登录账房</h2>
+      <span class="panel-note">今日账期 09·23</span>
+    </div>
+    <p class="panel-lead">欢迎回来。核验身份后，接着对上昨夜未平的那笔账。</p>
+
+    <div class="tabs" role="tablist">
+      <button class="tab on" id="tabPwd" role="tab" aria-selected="true">密码登录</button>
+      <button class="tab" id="tabCode" role="tab" aria-selected="false">验证码登录</button>
+    </div>
+
+    <form id="form" novalidate>
+      <div class="field">
+        <div class="field-row"><label for="acct">账号</label></div>
+        <div class="input-wrap" id="wAcct">
+          <input id="acct" type="text" autocomplete="username" placeholder="手机号 / 邮箱 / 账房编号">
+        </div>
+      </div>
+
+      <div class="field" id="fPwd">
+        <div class="field-row">
+          <label for="pwd">密码</label>
+          <button type="button" class="link" id="forgotLink">找不到密码？</button>
+        </div>
+        <div class="input-wrap" id="wPwd">
+          <input id="pwd" type="password" autocomplete="current-password" placeholder="请输入登录密码">
+          <button type="button" class="eye" id="eyeBtn" aria-label="显示密码">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+              <path d="M2 12s3.5-6.5 10-6.5S22 12 22 12s-3.5 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="2.8"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="field" id="fCode" hidden>
+        <div class="field-row"><label for="code">短信验证码</label></div>
+        <div class="input-wrap" id="wCode">
+          <input id="code" type="text" inputmode="numeric" maxlength="6" placeholder="6 位验证码">
+          <button type="button" class="send" id="sendBtn">获取验证码</button>
+        </div>
+      </div>
+      <div class="hint" id="hint"></div>
+
+      <div class="recover" id="recover">
+        <button type="button" class="recover-head" id="recoverHead" aria-expanded="false">
+          <span>找回入口 · 三条路都能回到账房</span>
+          <svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+        </button>
+        <div class="recover-body">
+          <div class="recover-inner">
+            <b>一、邮箱重置：</b>向绑定邮箱寄一封重置信，十分钟内有效。<button type="button" class="link" data-go="mail">去发信</button><br>
+            <b>二、账房管家：</b>工作日 9:00–18:00，拨 0571-8888-2166 人工核验。<br>
+            <b>三、老账本：</b>凭纸质印鉴照片线下找回，约一个工作日。
+          </div>
+        </div>
+      </div>
+
+      <div class="aux">
+        <label class="check"><input type="checkbox" id="keep" checked>三十天内免核验</label>
+        <span style="font-size:12px;color:var(--muted)">本机为常用设备</span>
+      </div>
+
+      <button class="cta" id="cta" type="submit">进入账房</button>
+    </form>
+
+    <div class="divider">或以册名进入</div>
+    <div class="sso">
+      <button type="button" data-go="wx">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="8.5" cy="9.5" r="5.5"/><path d="M14 6.8a5.6 5.6 0 0 1 8 5.1c0 3.1-2.5 5.6-5.6 5.6-.4 0-.9 0-1.3-.1l-2.1 1.3.5-2.2"/></svg>
+        微信册
+      </button>
+      <button type="button" data-go="qr">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3h-3zM20 14h1M14 20h2M19 19h2v2h-2z"/></svg>
+        掌柜扫码
+      </button>
+    </div>
+
+    <div class="foot">
+      <span style="color:var(--muted)">尚未开户？</span>
+      <button type="button" class="link" data-go="open">申请开户，立等可取 →</button>
+    </div>
+    <p class="fine">登录即表示同意《衡账账房规约》与《隐私记账守则》。衡账不会以短信或电话向你索要密码与验证码。</p>
+  </section>
+</main>
+
+<script>
+(function(){
+  var tabPwd=document.getElementById('tabPwd'),
+      tabCode=document.getElementById('tabCode'),
+      fPwd=document.getElementById('fPwd'),
+      fCode=document.getElementById('fCode'),
+      sendBtn=document.getElementById('sendBtn'),
+      eyeBtn=document.getElementById('eyeBtn'),
+      pwd=document.getElementById('pwd'),
+      acct=document.getElementById('acct'),
+      code=document.getElementById('code'),
+      hint=document.getElementById('hint'),
+      cta=document.getElementById('cta'),
+      form=document.getElementById('form'),
+      toast=document.getElementById('toast'),
+      recover=document.getElementById('recover'),
+      recoverHead=document.getElementById('recoverHead'),
+      forgotLink=document.getElementById('forgotLink'),
+      mode='pwd',timer=null;
+
+  function say(msg){toast.textContent=msg;toast.classList.add('show');
+    setTimeout(function(){toast.classList.remove('show')},2400);}
+  function setMode(m){
+    mode=m;
+    tabPwd.classList.toggle('on',m==='pwd');tabPwd.setAttribute('aria-selected',m==='pwd');
+    tabCode.classList.toggle('on',m==='code');tabCode.setAttribute('aria-selected',m==='code');
+    fPwd.hidden=m!=='pwd';fCode.hidden=m!=='code';hint.textContent='';
+    clearErr();
+  }
+  function clearErr(){['wAcct','wPwd','wCode'].forEach(function(i){document.getElementById(i).classList.remove('err')})}
+  tabPwd.addEventListener('click',function(){setMode('pwd')});
+  tabCode.addEventListener('click',function(){setMode('code')});
+  eyeBtn.addEventListener('click',function(){
+    var show=pwd.type==='password';
+    pwd.type=show?'text':'password';
+    eyeBtn.style.color=show?'var(--moss)':'var(--muted)';
+    eyeBtn.setAttribute('aria-label',show?'隐藏密码':'显示密码');
+  });
+  sendBtn.addEventListener('click',function(){
+    if(!acct.value.trim()){document.getElementById('wAcct').classList.add('err');hint.textContent='请先填写账号，再取验证码。';return}
+    clearErr();hint.textContent='';
+    var n=60;sendBtn.disabled=true;sendBtn.textContent=n+'s 后重发';
+    say('验证码已寄往 '+acct.value.trim());
+    timer=setInterval(function(){
+      n--;
+      if(n<=0){clearInterval(timer);sendBtn.disabled=false;sendBtn.textContent='重新获取'}
+      else{sendBtn.textContent=n+'s 后重发'}
+    },1000);
+  });
+  recoverHead.addEventListener('click',function(){
+    var open=recover.classList.toggle('open');
+    recoverHead.setAttribute('aria-expanded',open);
+  });
+  forgotLink.addEventListener('click',function(){
+    recover.classList.add('open');
+    recoverHead.setAttribute('aria-expanded','true');
+    recover.scrollIntoView({block:'nearest'});
+  });
+  form.addEventListener('submit',function(e){
+    e.preventDefault();clearErr();hint.textContent='';
+    if(!acct.value.trim()){document.getElementById('wAcct').classList.add('err');hint.textContent='账号一栏还空着。';return}
+    if(mode==='pwd'&&!pwd.value){document.getElementById('wPwd').classList.add('err');hint.textContent='请填登录密码；找不到可展开下方找回入口。';return}
+    if(mode==='code'&&code.value.trim().length<6){document.getElementById('wCode').classList.add('err');hint.textContent='验证码为 6 位数字。';return}
+    cta.disabled=true;
+    cta.innerHTML='<span class="spin"></span>核验中…';
+    setTimeout(function(){
+      cta.classList.add('done');
+      cta.innerHTML='核验通过 · 入账房';
+      say('身份核验通过，正在为你翻开今日账页…');
+    },1400);
+  });
+  document.querySelectorAll('[data-go]').forEach(function(b){
+    b.addEventListener('click',function(){
+      var map={mail:'重置信已排队，请留意绑定邮箱。',wx:'正在唤起微信册授权…',qr:'请用掌柜端扫码进入。',open:'开户册已备好，先去填商号。'};
+      say(map[b.getAttribute('data-go')]||'已收到。');
+    });
+  });
+})();
+</script>
+</body>
+</html>
