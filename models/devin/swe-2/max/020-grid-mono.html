@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>墨衡 API · 定价</title>
+<style>
+:root{
+  --black:#000000;
+  --ink:#1a1a1a;
+  --gray:#7a7a7a;
+  --hairline:#d4d4d4;
+  --wash:#f5f5f5;
+  --white:#ffffff;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  font-family:-apple-system,"Helvetica Neue",Helvetica,Arial,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  background:var(--white);color:var(--black);min-height:100vh;
+}
+.mono{font-family:ui-monospace,"SF Mono","Cascadia Mono",Consolas,"Courier New",monospace}
+.wrap{max-width:1180px;margin:0 auto;padding:0 28px}
+.top{border-bottom:3px solid var(--black);padding:26px 0 20px;display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap}
+.brand{display:flex;align-items:baseline;gap:16px}
+.brand .sq{width:22px;height:22px;background:var(--black);flex:none;align-self:center}
+.brand .cn{font-size:30px;font-weight:900;letter-spacing:.18em}
+.brand .en{font-size:12px;letter-spacing:.4em;color:var(--gray)}
+.top .meta{font-size:11.5px;letter-spacing:.18em;color:var(--gray);text-align:right;line-height:1.9}
+.top .meta b{color:var(--black)}
+.masthead{padding:44px 0 30px;display:grid;grid-template-columns:1fr 320px;gap:40px;align-items:end;border-bottom:1px solid var(--hairline)}
+h1{font-size:56px;line-height:1.05;font-weight:900;letter-spacing:-.01em}
+h1 .thin{font-weight:300}
+.masthead .desc{font-size:13px;line-height:2;color:var(--gray);letter-spacing:.06em}
+.masthead .desc b{color:var(--black)}
+.bill-row{display:flex;align-items:center;gap:0;margin:26px 0 0}
+.bill-lbl{font-size:11px;letter-spacing:.3em;color:var(--gray);margin-right:16px}
+.period{display:flex;border:2px solid var(--black)}
+.period button{
+  border:none;background:var(--white);color:var(--black);font-family:inherit;
+  font-size:13px;letter-spacing:.16em;padding:9px 22px;cursor:pointer;
+  transition:background .15s ease,color .15s ease;
+}
+.period button+button{border-left:2px solid var(--black)}
+.period button[aria-pressed="true"]{background:var(--black);color:var(--white)}
+.save-note{margin-left:14px;font-size:11px;letter-spacing:.14em;color:var(--gray)}
+.ptable{width:100%;border-collapse:collapse;margin-top:22px;table-layout:fixed}
+.ptable col.lbl{width:170px}
+.ptable th,.ptable td{border:none;padding:14px 16px;text-align:left;vertical-align:top}
+.ptable thead th{border-top:3px solid var(--black);border-bottom:2px solid var(--black);padding:18px 16px}
+.ptable tbody td{border-bottom:1px solid var(--hairline);font-size:13.5px}
+.ptable .rl{font-size:11px;letter-spacing:.24em;color:var(--gray);padding-top:18px}
+.plan{cursor:pointer;position:relative;transition:background .15s ease}
+.plan .idx{font-size:11px;letter-spacing:.2em;color:var(--gray);display:block}
+.plan .nm{font-size:20px;font-weight:800;letter-spacing:.1em;display:block;margin-top:6px}
+.plan .aud{font-size:11px;color:var(--gray);margin-top:6px;letter-spacing:.08em}
+.plan.rec{background:var(--black);color:var(--white)}
+.plan.rec .idx,.plan.rec .aud{color:var(--hairline)}
+.plan.rec .idx .tag{
+  display:inline-block;background:var(--white);color:var(--black);
+  font-size:10px;letter-spacing:.2em;padding:2px 8px;margin-left:8px;font-weight:700;
+}
+tbody td.c-price{font-size:13px}
+.c-price .pv{font-size:24px;font-weight:900;letter-spacing:-.01em}
+.c-price .per{font-size:11px;color:var(--gray);margin-left:4px}
+.c-price .alt{display:block;font-size:10.5px;color:var(--gray);margin-top:5px;letter-spacing:.06em}
+td.rec{background:var(--wash)}
+td.rec.hl{background:var(--black);color:var(--white)}
+td.rec.hl .pv{color:var(--white)}
+td.rec.hl .per,td.rec.hl .alt{color:var(--hairline)}
+.choose{
+  width:100%;border:2px solid var(--black);background:var(--white);color:var(--black);
+  font-family:inherit;font-size:12.5px;letter-spacing:.24em;padding:11px 0;cursor:pointer;
+  transition:background .15s ease,color .15s ease;font-weight:700;
+}
+.choose:hover{background:var(--ink);color:var(--white);border-color:var(--ink)}
+.choose.sel{background:var(--black);color:var(--white)}
+.plan.sel{box-shadow:inset 0 0 0 3px var(--black)}
+td.sel{box-shadow:inset 3px 0 0 var(--black),inset -3px 0 0 var(--black)}
+td.sel.bottom{box-shadow:inset 3px 0 0 var(--black),inset -3px 0 0 var(--black),inset 0 -3px 0 var(--black)}
+.fnote{display:flex;gap:34px;flex-wrap:wrap;padding:20px 0 90px;font-size:11.5px;line-height:2;color:var(--gray)}
+.fnote b{color:var(--black)}
+.sticky{
+  position:fixed;left:0;right:0;bottom:0;background:var(--black);color:var(--white);
+  transform:translateY(100%);transition:transform .25s ease;z-index:40;
+}
+.sticky.show{transform:translateY(0)}
+.sticky-in{max-width:1180px;margin:0 auto;padding:16px 28px;display:flex;align-items:center;gap:18px}
+.sticky .what{font-size:14px;letter-spacing:.08em}
+.sticky .what b{font-size:16px}
+.sticky .act{
+  margin-left:auto;border:2px solid var(--white);background:var(--black);color:var(--white);
+  padding:10px 28px;font-size:13px;letter-spacing:.24em;cursor:pointer;font-family:inherit;
+  transition:background .15s ease,color .15s ease;font-weight:700;
+}
+.sticky .act:hover{background:var(--white);color:var(--black)}
+.sticky .act.done{border-color:var(--white);background:var(--white);color:var(--black)}
+.sticky .close{
+  background:none;border:none;color:var(--gray);font-size:18px;cursor:pointer;padding:4px 8px;
+}
+@media (max-width:960px){
+  .masthead{grid-template-columns:1fr;gap:18px}
+  h1{font-size:40px}
+  .ptable{display:block;overflow-x:auto}
+  .ptable table{min-width:760px}
+}
+@media (max-width:640px){
+  .top{flex-direction:column;align-items:flex-start}
+  .top .meta{text-align:left}
+  .sticky-in{flex-wrap:wrap;gap:10px}
+}
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+  .sticky{transition:none!important}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand"><span class="sq"></span><span class="cn">墨衡</span><span class="en">MOHENG API</span></div>
+    <div class="meta">
+      REST / 计量计费<br>
+      版本 <b>v4.2</b> · 状态 <b>SLA 99.9% 起</b>
+    </div>
+  </header>
+
+  <section class="masthead">
+    <h1>按量计费<span class="thin">，超量即停</span><br>的朴素定价</h1>
+    <p class="desc">四档方案覆盖个人开发到机构专线。所有价格含税，<b>不支持隐藏阶梯</b>；月度请求量用尽即返回 <b>429</b>，次月重置，无突击账单。</p>
+  </section>
+
+  <div class="bill-row">
+    <span class="bill-lbl">计费周期</span>
+    <div class="period" role="group" aria-label="计费周期">
+      <button data-per="m" aria-pressed="true">按 月</button>
+      <button data-per="y" aria-pressed="false">按 年 · 省 20%</button>
+    </div>
+    <span class="save-note" id="saveNote">月付随时退订 · 年付一次开 12 期发票</span>
+  </div>
+
+  <table class="ptable" id="pt">
+    <colgroup><col class="lbl"><col><col><col><col></colgroup>
+    <thead>
+      <tr>
+        <th></th>
+        <th class="plan" data-p="0"><span class="idx">01</span><span class="nm">开发者</span><span class="aud">个人项目 / 学习调试</span></th>
+        <th class="plan rec" data-p="1"><span class="idx">02<span class="tag">推荐</span></span><span class="nm">工作室</span><span class="aud">小团队 / 正式上线</span></th>
+        <th class="plan" data-p="2"><span class="idx">03</span><span class="nm">机构</span><span class="aud">多业务线 / 合规采购</span></th>
+        <th class="plan" data-p="3"><span class="idx">04</span><span class="nm">定制</span><span class="aud">私有化 / 专线接入</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="rl">价格</td>
+        <td class="c-price"><span class="pv mono" data-m="0" data-y="0">¥0</span><span class="per">/ 月</span><span class="alt" data-alt="0">永久免费</span></td>
+        <td class="c-price rec"><span class="pv mono" data-m="399" data-y="319">¥399</span><span class="per">/ 月</span><span class="alt" data-alt="1">年付折合 · 已省 ¥960</span></td>
+        <td class="c-price"><span class="pv mono" data-m="2499" data-y="1999">¥2,499</span><span class="per">/ 月</span><span class="alt" data-alt="2">年付折合 · 已省 ¥6,000</span></td>
+        <td class="c-price"><span class="pv">面议</span><span class="per"></span><span class="alt" data-alt="3">按部署规模报价</span></td>
+      </tr>
+      <tr>
+        <td class="rl">月度请求量</td>
+        <td class="mono">10,000 次</td>
+        <td class="rec mono">500,000 次</td>
+        <td class="mono">5,000,000 次</td>
+        <td class="mono">不限量</td>
+      </tr>
+      <tr>
+        <td class="rl">峰值 QPS</td>
+        <td class="mono">3</td>
+        <td class="rec mono">20</td>
+        <td class="mono">100</td>
+        <td class="mono">专线保障</td>
+      </tr>
+      <tr>
+        <td class="rl">项目数</td>
+        <td class="mono">1</td>
+        <td class="rec mono">5</td>
+        <td class="mono">不限</td>
+        <td class="mono">不限</td>
+      </tr>
+      <tr>
+        <td class="rl">支持</td>
+        <td>社区文档</td>
+        <td class="rec">工单 · 24h 响应</td>
+        <td>专属客服 · 4h 响应</td>
+        <td>专席架构师</td>
+      </tr>
+      <tr>
+        <td class="rl">数据驻留</td>
+        <td>—</td>
+        <td class="rec">—</td>
+        <td>可选华东 / 华南</td>
+        <td>任意区域</td>
+      </tr>
+      <tr>
+        <td class="rl">SLA</td>
+        <td class="mono">99.0%</td>
+        <td class="rec mono">99.9%</td>
+        <td class="mono">99.95%</td>
+        <td>合同约定</td>
+      </tr>
+      <tr class="btns">
+        <td></td>
+        <td><button class="choose" data-p="0">选择开发者</button></td>
+        <td class="rec"><button class="choose" data-p="1">选择工作室</button></td>
+        <td><button class="choose" data-p="2">选择机构</button></td>
+        <td><button class="choose" data-p="3">联系销售</button></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="fnote">
+    <span><b>*</b> 请求量按自然月统计，跨档升级当天生效、按剩余天数折算。</span>
+    <span><b>**</b> 机构版含增票与采购合同；定制版交付周期 4–6 周。</span>
+    <span><b>***</b> 对公账户：墨衡科技 · 支持线下打款验证。</span>
+  </div>
+</div>
+
+<div class="sticky" id="sticky">
+  <div class="sticky-in">
+    <span class="what" id="what"></span>
+    <button class="act" id="act">立即开通</button>
+    <button class="close" id="cls" aria-label="关闭">×</button>
+  </div>
+</div>
+
+<script>
+var PLANS=[
+  {nm:"开发者",cta:"开通免费版"},
+  {nm:"工作室",cta:"购买工作室版"},
+  {nm:"机构",cta:"购买机构版"},
+  {nm:"定制",cta:"预约方案讲解"}
+];
+var per="m",sel=-1;
+function fmt(n){return "¥"+Number(n).toLocaleString("en-US")}
+document.querySelector(".period").addEventListener("click",function(e){
+  var b=e.target.closest("button");if(!b)return;
+  per=b.dataset.per;
+  this.querySelectorAll("button").forEach(function(x){x.setAttribute("aria-pressed",x===b?"true":"false")});
+  document.getElementById("saveNote").textContent=per==="m"
+    ?"月付随时退订 · 年付一次开 12 期发票"
+    :"按年价已生效 · 折合每月再省 20%";
+  document.querySelectorAll(".pv[data-m]").forEach(function(el){
+    el.textContent=fmt(per==="m"?el.dataset.m:el.dataset.y);
+  });
+  updateWhat();
+});
+function updateWhat(){
+  if(sel<0)return;
+  var pvs=document.querySelectorAll(".pv");
+  var priceTxt=pvs[sel]?pvs[sel].textContent:"";
+  var suffix=sel<3?"<span class='mono'>/月·"+(per==="m"?"按月":"按年")+"</span>":" · 定制报价";
+  document.getElementById("what").innerHTML="已选：<b>"+PLANS[sel].nm+"</b> · "+priceTxt+suffix;
+  document.getElementById("act").textContent=PLANS[sel].cta;
+}
+function selectPlan(p){
+  sel=p;
+  document.querySelectorAll("th.plan").forEach(function(th){
+    th.classList.toggle("sel",th.dataset.p==String(p));
+  });
+  document.querySelectorAll("tbody td.sel").forEach(function(td){td.classList.remove("sel","bottom")});
+  document.querySelectorAll("tbody tr").forEach(function(tr){
+    var tds=tr.children;
+    if(tds.length>p+1)tds[p+1].classList.add("sel");
+  });
+  var btns=document.querySelector("tr.btns");
+  btns.children[p+1].classList.add("bottom");
+  document.querySelectorAll(".choose").forEach(function(b){
+    var bp=parseInt(b.dataset.p,10),on=bp===p;
+    b.classList.toggle("sel",on);
+    b.textContent=on?"已选 "+PLANS[bp].nm:(bp===3?"联系销售":"选择"+PLANS[bp].nm);
+    if(on&&bp===3)b.textContent="销售对接中";
+  });
+  document.getElementById("sticky").classList.add("show");
+  var act=document.getElementById("act");
+  act.classList.remove("done");
+  updateWhat();
+}
+document.getElementById("pt").addEventListener("click",function(e){
+  var th=e.target.closest("th.plan");
+  if(th){selectPlan(parseInt(th.dataset.p,10));return}
+  var b=e.target.closest(".choose");
+  if(b)selectPlan(parseInt(b.dataset.p,10));
+});
+document.getElementById("act").addEventListener("click",function(){
+  this.classList.add("done");
+  this.textContent=sel===3?"已登记 · 销售 1 日内回电":"已下单 · 即刻生效";
+});
+document.getElementById("cls").addEventListener("click",function(){
+  document.getElementById("sticky").classList.remove("show");
+});
+</script>
+</body>
+</html>
