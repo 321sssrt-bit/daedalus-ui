@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>院儿 · 一堵墙装下所有事</title>
+<style>
+:root{
+  --brick:#8e3b2c;
+  --brick-deep:#6e2a1e;
+  --mortar:#57211a;
+  --chalk:#f3ead8;
+  --chalk-dim:#d8c8ab;
+  --paper:#f7eeda;
+  --paper-2:#efe1c2;
+  --ink:#38312a;
+  --ink-soft:#6b5d4c;
+  --stamp:#b3402a;
+  --mustard:#f0bd4e;
+  --sky:#7fa8c9;
+  --leaf:#8fb573;
+  --rose:#e08e79;
+  --tape:#e9d8a8;
+  --night:#241512;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",system-ui,sans-serif;
+  background:var(--night);
+}
+.stage{min-height:100%;display:flex;align-items:center;justify-content:center;padding:24px}
+.phone{
+  width:390px;height:844px;max-height:calc(100vh - 40px);flex:none;
+  background:#150d0b;border-radius:44px;padding:10px;
+  box-shadow:0 30px 80px rgba(0,0,0,.65),0 0 0 2px #3c1e16;
+}
+.screen{
+  width:100%;height:100%;border-radius:36px;overflow:hidden;position:relative;
+  background-color:var(--brick);
+  background-image:
+    repeating-linear-gradient(0deg,rgba(0,0,0,.22) 0 2px,transparent 2px 34px),
+    repeating-linear-gradient(90deg,rgba(0,0,0,.16) 0 2px,transparent 2px 70px),
+    linear-gradient(160deg,#96402f,var(--brick-deep));
+  display:flex;flex-direction:column;
+}
+@media (max-width:520px){
+  .stage{padding:0}
+  .phone{width:100%;height:100vh;height:100dvh;max-height:none;border-radius:0;padding:0;box-shadow:none}
+  .screen{border-radius:0}
+}
+.wall-head{
+  flex:none;padding:22px 20px 10px;color:var(--chalk);position:relative;
+}
+.wall-head h1{
+  font-size:32px;letter-spacing:10px;font-weight:800;
+  text-shadow:0 0 2px rgba(243,234,216,.7),1.5px 2px 0 rgba(0,0,0,.28),-1px 0 1px rgba(243,234,216,.4);
+}
+.wall-head p{font-size:12px;color:var(--chalk-dim);letter-spacing:3px;margin-top:6px}
+.chalk-line{
+  position:absolute;left:20px;right:20px;bottom:0;height:6px;opacity:.75;
+  background:repeating-linear-gradient(90deg,var(--chalk) 0 14px,transparent 14px 20px);
+  border-radius:3px;transform:rotate(-.4deg);
+}
+.feed{flex:1;overflow-y:auto;padding:16px 16px 14px;display:flex;flex-direction:column;gap:16px}
+.entry-card{
+  border:2px dashed rgba(243,234,216,.65);border-radius:14px;color:var(--chalk);
+  background:rgba(0,0,0,.12);padding:15px 16px;display:flex;align-items:center;gap:11px;
+  cursor:pointer;font-size:14.5px;letter-spacing:1px;transition:background .2s ease,transform .18s ease;
+  text-align:left;width:100%;font-family:inherit;
+}
+.entry-card:hover{background:rgba(0,0,0,.2)}
+.entry-card:active{transform:scale(.985)}
+.entry-card svg{flex:none}
+.draft-bar{
+  border-radius:14px;background:var(--mustard);color:#5a3a10;padding:11px 14px;
+  display:flex;align-items:center;justify-content:space-between;gap:10px;cursor:pointer;
+  font-size:13px;box-shadow:3px 4px 0 rgba(0,0,0,.25);transform:rotate(-.5deg);
+  border:0;width:100%;font-family:inherit;text-align:left;
+}
+.draft-bar b{font-weight:700}
+.draft-bar span{font-size:11px;opacity:.75;flex:none}
+.card{
+  background:linear-gradient(165deg,var(--paper),var(--paper-2));
+  border-radius:8px 16px 10px 18px;padding:15px 15px 11px;position:relative;
+  transform:rotate(var(--rot,0deg));
+  box-shadow:4px 6px 0 rgba(0,0,0,.28),0 0 0 1px rgba(56,49,42,.08);
+  color:var(--ink);
+}
+.card::before{
+  content:"";position:absolute;top:-10px;left:50%;width:92px;height:22px;
+  transform:translateX(-50%) rotate(-2.5deg);
+  background:rgba(233,216,168,.9);border-left:1px dashed rgba(107,93,76,.4);border-right:1px dashed rgba(107,93,76,.4);
+  box-shadow:0 2px 4px rgba(0,0,0,.18);
+}
+.card-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.cat{
+  font-size:11px;color:#fff8ec;background:var(--stamp);border-radius:4px;padding:3px 8px;
+  letter-spacing:2px;transform:rotate(-1deg);display:inline-block;
+}
+.stamp{
+  font-size:10.5px;color:var(--stamp);border:1.6px solid var(--stamp);border-radius:5px;
+  padding:2.5px 7px;letter-spacing:3px;transform:rotate(3deg);font-weight:700;
+  background:rgba(179,64,42,.06);
+}
+.stamp.nb{color:#4a6d8f;border-color:#4a6d8f;background:rgba(127,168,201,.12)}
+.stamp.sf{color:#5a7d43;border-color:#5a7d43;background:rgba(143,181,115,.14)}
+.author{display:flex;align-items:baseline;gap:8px}
+.who{font-size:13.5px;font-weight:700}
+.when{font-size:11px;color:var(--ink-soft)}
+.body-text{font-size:15px;line-height:1.65;margin:8px 0 10px;color:var(--ink)}
+.acts{display:flex;gap:8px;border-top:1px dashed rgba(107,93,76,.35);padding-top:9px}
+.act{
+  border:1px solid rgba(107,93,76,.4);background:rgba(255,255,255,.4);color:var(--ink-soft);
+  border-radius:999px;padding:5px 12px;font-size:12px;cursor:pointer;font-family:inherit;
+  display:flex;align-items:center;gap:5px;transition:all .18s ease;
+}
+.act:active{transform:scale(.94)}
+.act.liked{background:rgba(179,64,42,.12);border-color:var(--stamp);color:var(--stamp);font-weight:700}
+.cmts{margin-top:10px;border-top:1px dashed rgba(107,93,76,.3);padding-top:9px;display:flex;flex-direction:column;gap:7px}
+.cmt{font-size:12.5px;color:var(--ink);line-height:1.5}
+.cmt b{color:var(--stamp);font-weight:700;margin-right:5px}
+.cmt-row{display:flex;gap:7px;margin-top:3px}
+.cmt-row input{
+  flex:1;border:1px solid rgba(107,93,76,.45);border-radius:999px;background:rgba(255,255,255,.55);
+  padding:7px 12px;font-size:12.5px;font-family:inherit;color:var(--ink);outline:none;
+}
+.cmt-row input:focus{border-color:var(--stamp)}
+.cmt-row button{
+  border:0;background:var(--stamp);color:#fff8ec;border-radius:999px;padding:0 14px;
+  font-size:12px;cursor:pointer;font-family:inherit;
+}
+.tabbar{
+  flex:none;display:flex;border-top:2px dashed rgba(243,234,216,.4);
+  background:rgba(87,33,26,.9);padding:6px 8px calc(8px + env(safe-area-inset-bottom));
+}
+.tabbar button{
+  flex:1;background:none;border:0;color:var(--chalk-dim);font-size:11px;padding:8px 0 6px;
+  display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;font-family:inherit;
+}
+.tabbar button.on{color:var(--chalk)}
+.tabbar svg{width:22px;height:22px}
+.overlay{
+  position:absolute;inset:0;background:rgba(20,10,8,.55);z-index:20;
+  opacity:0;transition:opacity .28s ease;pointer-events:none;
+}
+.overlay.show{opacity:1;pointer-events:auto}
+.sheet{
+  position:absolute;left:0;right:0;bottom:0;z-index:21;
+  background:linear-gradient(170deg,var(--paper),var(--paper-2));
+  border-radius:20px 20px 0 0;padding:16px 16px calc(14px + env(safe-area-inset-bottom));
+  transform:translateY(105%);transition:transform .34s cubic-bezier(.32,.72,.24,1);
+  color:var(--ink);box-shadow:0 -8px 30px rgba(0,0,0,.4);
+}
+.sheet.show{transform:translateY(0)}
+.sheet::before{
+  content:"";position:absolute;top:-9px;left:50%;width:80px;height:20px;
+  transform:translateX(-50%) rotate(1.5deg);background:rgba(233,216,168,.92);
+  border-left:1px dashed rgba(107,93,76,.4);border-right:1px dashed rgba(107,93,76,.4);
+}
+.sheet-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.sheet-head h3{font-size:16.5px;font-weight:800;letter-spacing:1px}
+.sheet-head button{
+  border:0;background:none;color:var(--ink-soft);font-size:12.5px;cursor:pointer;
+  font-family:inherit;text-decoration:underline dashed;
+}
+#draftText{
+  width:100%;border:1.5px dashed rgba(107,93,76,.5);border-radius:12px;resize:none;
+  background:rgba(255,255,255,.55);padding:12px;font-size:15px;line-height:1.6;
+  font-family:inherit;color:var(--ink);outline:none;min-height:96px;
+}
+#draftText:focus{border-color:var(--stamp);border-style:solid}
+.wc{text-align:right;font-size:11px;color:var(--ink-soft);margin:4px 2px 8px}
+.scope-row{display:flex;gap:8px;margin-bottom:10px}
+.chip{
+  flex:1;border:1.5px solid rgba(107,93,76,.45);background:rgba(255,255,255,.4);color:var(--ink-soft);
+  border-radius:10px;padding:9px 4px;font-size:12.5px;cursor:pointer;font-family:inherit;
+  transition:all .18s ease;
+}
+.chip.on{border-color:var(--stamp);color:var(--stamp);background:rgba(179,64,42,.1);font-weight:700}
+.fail-banner{
+  border:1.5px dashed var(--stamp);background:rgba(179,64,42,.1);color:#7d2d1c;
+  border-radius:12px;padding:10px 12px;font-size:12.5px;line-height:1.55;margin-bottom:10px;
+  display:flex;flex-direction:column;gap:8px;
+}
+.fail-banner button{
+  align-self:flex-start;border:0;background:var(--stamp);color:#fff8ec;
+  border-radius:999px;padding:6px 16px;font-size:12.5px;cursor:pointer;font-family:inherit;
+}
+.weak{
+  display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--ink-soft);
+  margin-bottom:12px;cursor:pointer;
+}
+.weak input{width:16px;height:16px;accent-color:var(--stamp)}
+.weak span{font-size:11px;opacity:.75}
+.pub-btn{
+  width:100%;border:0;border-radius:12px;padding:13px;font-size:15.5px;font-weight:700;
+  letter-spacing:4px;cursor:pointer;font-family:inherit;
+  background:var(--stamp);color:#fff8ec;box-shadow:0 4px 0 #7d2d1c;
+  transition:transform .15s ease,opacity .2s ease;
+}
+.pub-btn:disabled{opacity:.4;box-shadow:none;cursor:default}
+.pub-btn:not(:disabled):active{transform:translateY(3px);box-shadow:none}
+.toast{
+  position:absolute;left:50%;bottom:88px;transform:translateX(-50%) translateY(20px);
+  background:rgba(20,10,8,.94);border:1px dashed rgba(243,234,216,.5);color:var(--chalk);
+  font-size:12.5px;padding:9px 18px;border-radius:999px;opacity:0;pointer-events:none;
+  transition:opacity .25s ease,transform .25s ease;white-space:nowrap;z-index:40;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.card.new{animation:pasted .45s ease both}
+@keyframes pasted{0%{opacity:0;transform:rotate(var(--rot,0deg)) scale(.92) translateY(-14px)}60%{opacity:1;transform:rotate(var(--rot,0deg)) scale(1.02)}100%{opacity:1;transform:rotate(var(--rot,0deg)) scale(1)}}
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+}
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="phone">
+    <div class="screen">
+
+      <header class="wall-head">
+        <h1>院儿</h1>
+        <p>西巷三号院 · 一堵墙装下所有事</p>
+        <div class="chalk-line"></div>
+      </header>
+
+      <div class="feed" id="feed">
+        <button class="entry-card" id="openSheet">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20 L4.8 16.5 L15.9 5.4 Q16.9 4.4 18.1 5.4 L18.6 5.9 Q19.6 6.9 18.6 7.9 L7.5 19 L4 20 Z"/><path d="M14.5 6.8 L17.2 9.5"/></svg>
+          有事儿？写一笔贴上墙
+        </button>
+        <button class="draft-bar" id="draftBar" hidden>
+          <b>1 条草稿没贴上去</b><span>点开接着写 ›</span>
+        </button>
+        <div id="cards"></div>
+      </div>
+
+      <nav class="tabbar">
+        <button class="on" id="tabWall">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5 L20 5 L20 19 L4 19 Z"/><path d="M4 10 L20 10 M4 15 L20 15 M9.5 5 L9.5 10 M14.5 10 L14.5 15 M9.5 15 L9.5 19"/></svg>
+          院墙
+        </button>
+        <button id="tabVisit">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 11 Q4 5 12 5 Q20 5 20 11 L20 19 L16 19 L16 14 L8 14 L8 19 L4 19 Z"/></svg>
+          串门
+        </button>
+        <button id="tabMe">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4.5 20 Q5 14 12 14 Q19 14 19.5 20"/></svg>
+          我的
+        </button>
+      </nav>
+
+      <div class="overlay" id="overlay"></div>
+      <section class="sheet" id="sheet" aria-label="发布新内容">
+        <div class="sheet-head">
+          <h3>写一笔，贴上墙</h3>
+          <button id="sheetClose">先收起来</button>
+        </div>
+        <textarea id="draftText" placeholder="写点院里的事儿，邻里都看得见…" maxlength="200"></textarea>
+        <div class="wc"><span id="wcNum">0</span> / 200</div>
+        <div class="scope-row" id="scopeRow">
+          <button class="chip on" data-s="open" type="button">全院可见</button>
+          <button class="chip" data-s="neighbors" type="button">仅本单元</button>
+          <button class="chip" data-s="self" type="button">仅自己</button>
+        </div>
+        <div class="fail-banner" id="failBanner" hidden>
+          <div>墙皮太潮，这条没贴上去。草稿和可见范围都原样给你留着。</div>
+          <button id="retryPub" type="button">重试发布</button>
+        </div>
+        <label class="weak">
+          <input type="checkbox" id="weakSw">
+          弱网演练 <span>开启后，本次「贴上墙」将会失败</span>
+        </label>
+        <button class="pub-btn" id="pubBtn" disabled>贴上墙</button>
+      </section>
+
+      <div class="toast" id="toast"></div>
+    </div>
+  </div>
+</div>
+<script>
+var SCOPE={open:{stamp:'全 院',cls:'',label:'全院可见'},neighbors:{stamp:'邻 里',cls:'nb',label:'仅本单元'},self:{stamp:'自 留',cls:'sf',label:'仅自己'}};
+var POSTS=[
+ {id:'p1',cat:'寻物',scope:'open',author:'三单元 · 秦姨',time:'18:42',hue:'#f0bd4e',rot:-1.2,
+  text:'谁家见着一只橘猫了吗？耳朵尖缺一撮毛，晌午常在车棚顶上晒太阳。见着请在楼下喊我一声。',
+  likes:6,liked:false,cmts:[{a:'二单元 · 小满',t:'下午在南墙根见过，往车棚去了'}]},
+ {id:'p2',cat:'喊一嗓子',scope:'neighbors',author:'门房 · 老赵',time:'17:15',hue:'#7fa8c9',rot:.8,
+  text:'今晚九点后院里水管检修，东楼停水约半小时，各家提前存点水。',
+  likes:11,liked:false,cmts:[{a:'401 · 豆豆妈',t:'收到，已接满两盆'}]},
+ {id:'p3',cat:'闲置',scope:'open',author:'五单元 · 阿灿',time:'15:03',hue:'#8fb573',rot:-.6,
+  text:'搬家出一张竹躺椅，七成新，凉快不夹肉。要的楼下自取，先到先得。',
+  likes:3,liked:false,cmts:[]},
+ {id:'p4',cat:'约局',scope:'open',author:'葡萄架下',time:'昨天',hue:'#e08e79',rot:1.1,
+  text:'周六晚院子放露天电影《城南旧事》，自带马扎和瓜子，八点开场，下雨顺延。',
+  likes:18,liked:false,cmts:[{a:'门房 · 老赵',t:'幕布我出'},{a:'三单元 · 秦姨',t:'我带蒲扇'}]},
+ {id:'p5',cat:'随手记',scope:'self',author:'我',time:'周一',hue:'#f0bd4e',rot:-.9,
+  text:'墙角那丛薄荷蹿得快，下周掐一把泡凉茶。',
+  likes:1,liked:true,cmts:[]}
+];
+var state={scope:'open',draft:null,seq:0,openCmts:{}};
+var $=function(id){return document.getElementById(id)};
+
+function toast(t){
+  var el=$('toast');el.textContent=t;el.classList.add('show');
+  clearTimeout(el._t);el._t=setTimeout(function(){el.classList.remove('show')},1900);
+}
+function esc(s){var d=document.createElement('div');d.textContent=s;return d.innerHTML}
+function renderCards(){
+  var box=$('cards');box.innerHTML='';
+  POSTS.forEach(function(p){
+    var sc=SCOPE[p.scope];
+    var card=document.createElement('article');card.className='card'+(p.isNew?' new':'');
+    card.style.setProperty('--rot',p.rot+'deg');
+    var cmtsHtml='';
+    if(state.openCmts[p.id]){
+      cmtsHtml='<div class="cmts">'+p.cmts.map(function(c){
+        return '<div class="cmt"><b>'+esc(c.a)+'</b>'+esc(c.t)+'</div>'
+      }).join('')+
+      '<div class="cmt-row"><input type="text" maxlength="80" placeholder="写句搭话…"><button type="button">递上去</button></div></div>';
+    }
+    card.innerHTML=
+      '<div class="card-top"><span class="cat"></span><span class="stamp '+sc.cls+'">'+sc.stamp+'</span></div>'+
+      '<div class="author"><span class="who"></span><span class="when"></span></div>'+
+      '<p class="body-text"></p>'+
+      '<div class="acts">'+
+        '<button type="button" class="act like'+(p.liked?' liked':'')+'">照应 <b>'+p.likes+'</b></button>'+
+        '<button type="button" class="act cm">搭话 '+p.cmts.length+'</button>'+
+      '</div>'+cmtsHtml;
+    card.querySelector('.cat').textContent=p.cat;
+    card.querySelector('.cat').style.background=p.hue==='#f0bd4e'?'#c8962e':p.hue;
+    card.querySelector('.who').textContent=p.author;
+    card.querySelector('.when').textContent=p.time;
+    card.querySelector('.body-text').textContent=p.text;
+    card.querySelector('.like').addEventListener('click',function(){
+      p.liked=!p.liked;p.likes+=p.liked?1:-1;renderCards();
+    });
+    card.querySelector('.cm').addEventListener('click',function(){
+      state.openCmts[p.id]=!state.openCmts[p.id];renderCards();
+    });
+    var cinput=card.querySelector('.cmt-row input');
+    if(cinput){
+      var push=function(){
+        var t=cinput.value.trim();if(!t)return;
+        p.cmts.push({a:'我',t:t});renderCards();toast('搭话递上去了');
+      };
+      card.querySelector('.cmt-row button').addEventListener('click',push);
+      cinput.addEventListener('keydown',function(e){if(e.key==='Enter')push()});
+    }
+    box.appendChild(card);
+  });
+}
+function openSheet(){
+  if(state.draft){
+    $('draftText').value=state.draft.text;setScope(state.draft.scope);
+  }
+  syncPub();$('overlay').classList.add('show');$('sheet').classList.add('show');
+}
+function closeSheet(){
+  $('sheet').classList.remove('show');$('overlay').classList.remove('show');
+  $('failBanner').hidden=true;
+  syncDraftBar();
+}
+function syncDraftBar(){
+  $('draftBar').hidden=!state.draft;
+}
+function setScope(s){
+  state.scope=s;
+  var chips=$('scopeRow').querySelectorAll('.chip');
+  chips.forEach(function(ch){ch.classList.toggle('on',ch.getAttribute('data-s')===s)});
+}
+function syncPub(){
+  var t=$('draftText').value.trim();
+  $('wcNum').textContent=$('draftText').value.length;
+  $('pubBtn').disabled=!t;
+}
+function publish(){
+  var text=$('draftText').value.trim();
+  if(!text)return;
+  var scope=state.scope;
+  if($('weakSw').checked){
+    $('weakSw').checked=false;
+    state.draft={text:text,scope:scope};
+    $('failBanner').hidden=false;
+    toast('演练结束：这次没贴上去');
+    return;
+  }
+  doPost(text,scope);
+}
+function doPost(text,scope){
+  POSTS.unshift({
+    id:'p_new_'+(++state.seq),cat:'新帖',scope:scope,author:'我',time:'刚刚',
+    hue:'#f0bd4e',rot:(state.seq%2? -1.4:1.3),text:text,likes:0,liked:false,cmts:[],isNew:true
+  });
+  state.draft=null;
+  $('draftText').value='';syncPub();
+  $('failBanner').hidden=true;
+  closeSheet();syncDraftBar();renderCards();
+  toast('贴出去了 · '+SCOPE[scope].label);
+}
+$('openSheet').addEventListener('click',openSheet);
+$('draftBar').addEventListener('click',openSheet);
+$('sheetClose').addEventListener('click',closeSheet);
+$('overlay').addEventListener('click',closeSheet);
+$('draftText').addEventListener('input',syncPub);
+$('scopeRow').addEventListener('click',function(e){
+  var ch=e.target.closest('.chip');if(ch)setScope(ch.getAttribute('data-s'));
+});
+$('pubBtn').addEventListener('click',publish);
+$('retryPub').addEventListener('click',publish);
+$('tabVisit').addEventListener('click',function(){toast('「串门」在原型范围之外')});
+$('tabMe').addEventListener('click',function(){toast('「我的」在原型范围之外')});
+$('tabWall').addEventListener('click',function(){toast('已经在院墙上')});
+renderCards();
+</script>
+</body>
+</html>
