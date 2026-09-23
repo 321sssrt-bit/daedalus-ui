@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>仓廪集市 · 有机粮仓</title>
+<style>
+:root{
+  --paper:#f6efe0;
+  --paper-card:#fdf9ef;
+  --paper-deep:#efe5cd;
+  --wood:#8a5a2e;
+  --wood-deep:#5e3d1e;
+  --leaf:#2e5d3a;
+  --leaf-deep:#21452b;
+  --grain:#c9a227;
+  --ink:#36301f;
+  --muted:#8a7d5c;
+  --warn:#b04a2e;
+  --warn-bg:#f9e9e0;
+  --line:#e2d6b8;
+  --ok:#3d7a4a;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{background:var(--paper)}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Segoe UI",sans-serif;
+  color:var(--ink);
+  background:
+    repeating-linear-gradient(90deg,rgba(138,90,46,.028) 0 2px,transparent 2px 56px),
+    var(--paper);
+  min-height:100vh;
+}
+.serif{font-family:"Songti SC","STSong","SimSun",Georgia,serif}
+.topbar{
+  background:var(--wood-deep);
+  color:#f3e9d2;
+  padding:0 40px;
+  height:64px;
+  display:flex;align-items:center;gap:24px;
+  position:sticky;top:0;z-index:30;
+  border-bottom:3px solid var(--grain);
+}
+.brand{display:flex;align-items:baseline;gap:10px}
+.brand .logo{
+  font-size:26px;font-weight:700;letter-spacing:4px;
+}
+.brand .sub{font-size:12px;letter-spacing:2px;opacity:.75}
+.topbar .spacer{flex:1}
+.cartlink{
+  display:flex;align-items:center;gap:10px;
+  background:var(--leaf);color:#eef6ee;border:none;cursor:pointer;
+  padding:9px 18px;border-radius:24px;font-size:14px;
+  border:1px solid rgba(255,255,255,.18);
+  transition:background .18s ease;
+}
+.cartlink:hover{background:var(--leaf-deep)}
+.cartlink .cnt{
+  background:var(--grain);color:#3a2c05;font-weight:700;
+  min-width:22px;height:22px;border-radius:11px;
+  display:inline-flex;align-items:center;justify-content:center;font-size:12px;padding:0 6px;
+}
+.notice{
+  background:var(--leaf-deep);color:#cfe4cf;
+  text-align:center;font-size:12.5px;letter-spacing:1.5px;padding:8px 16px;
+}
+.notice b{color:#ffd968;font-weight:600}
+.layout{
+  max-width:1280px;margin:0 auto;padding:24px 40px 56px;
+  display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:28px;align-items:start;
+}
+.market-head{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:14px}
+.market-head h1{font-size:30px;letter-spacing:6px;font-weight:700}
+.market-head .hint{font-size:13px;color:var(--muted)}
+.tabs{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap}
+.tab{
+  border:1px solid var(--line);background:var(--paper-card);
+  padding:8px 18px;border-radius:20px;font-size:14px;cursor:pointer;color:var(--ink);
+  transition:all .16s ease;
+}
+.tab:hover{border-color:var(--wood)}
+.tab.on{background:var(--wood);border-color:var(--wood);color:#fdf6e6;font-weight:600}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.card{
+  background:var(--paper-card);
+  border:1px solid var(--line);
+  border-radius:10px;
+  padding:16px 16px 14px;
+  position:relative;
+  box-shadow:0 1px 0 rgba(94,61,30,.06),0 6px 18px -12px rgba(94,61,30,.35);
+  transition:transform .18s ease,box-shadow .18s ease;
+}
+.card:hover{transform:translateY(-2px);box-shadow:0 2px 0 rgba(94,61,30,.06),0 14px 26px -14px rgba(94,61,30,.45)}
+.pricetag{
+  position:absolute;top:-11px;right:14px;
+  background:var(--leaf);color:#f2f7ef;
+  font-size:14px;font-weight:700;
+  padding:5px 12px 5px 20px;
+  border-radius:4px 14px 14px 4px;
+  transform:rotate(-3deg);
+  box-shadow:0 3px 8px -3px rgba(33,69,43,.6);
+}
+.pricetag::before{
+  content:"";position:absolute;left:7px;top:50%;width:6px;height:6px;
+  border-radius:50%;background:var(--paper-card);transform:translateY(-50%);
+}
+.crop{
+  width:44px;height:44px;border-radius:8px;
+  background:var(--paper-deep);
+  display:flex;align-items:center;justify-content:center;
+  margin-bottom:10px;
+}
+.card h3{font-size:17px;letter-spacing:1px;margin-bottom:2px}
+.card .origin{font-size:12px;color:var(--muted);margin-bottom:10px}
+.badge{
+  display:inline-block;font-size:11px;padding:2px 8px;border-radius:10px;margin-bottom:8px;
+}
+.badge.low{background:#f7ecd0;color:#8a6310;border:1px solid #e6cf94}
+.badge.soldout{background:var(--warn-bg);color:var(--warn);border:1px solid #e5bda6}
+.badge.fresh{background:#e6efe4;color:var(--leaf-deep);border:1px solid #c3d8c3}
+.specs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.specchip{
+  font-size:12px;padding:4px 10px;border-radius:6px;cursor:pointer;
+  border:1px solid var(--line);background:#fffdf6;color:var(--ink);
+  transition:all .15s ease;
+}
+.specchip:hover{border-color:var(--wood)}
+.specchip.on{background:var(--leaf);border-color:var(--leaf);color:#f0f6ef;font-weight:600}
+.specchip.out{color:var(--warn);border-style:dashed;text-decoration:line-through}
+.cardrow{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.stepper{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:7px;overflow:hidden;background:#fff}
+.stepper button{
+  width:26px;height:28px;border:none;background:var(--paper-deep);color:var(--wood-deep);
+  font-size:15px;cursor:pointer;
+}
+.stepper button:hover{background:#e6d8b6}
+.stepper .qv{width:34px;text-align:center;font-size:14px;font-weight:600}
+.addbtn{
+  border:none;cursor:pointer;
+  background:var(--wood);color:#fdf3df;
+  font-size:13px;font-weight:600;padding:8px 14px;border-radius:7px;
+  transition:background .16s ease;
+}
+.addbtn:hover{background:var(--wood-deep)}
+.carderr{
+  margin-top:8px;font-size:12px;color:var(--warn);background:var(--warn-bg);
+  border:1px solid #e5bda6;border-radius:6px;padding:6px 9px;
+}
+.cart{
+  background:
+    linear-gradient(180deg,rgba(138,90,46,.05),rgba(138,90,46,.02)),
+    var(--paper-card);
+  border:1px solid var(--line);border-radius:12px;
+  position:sticky;top:88px;
+  overflow:hidden;
+}
+.cart-head{
+  background:var(--wood);color:#f8ecd2;padding:13px 18px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.cart-head h2{font-size:17px;letter-spacing:3px}
+.cart-head .n{font-size:12px;opacity:.85}
+.cart-body{padding:14px 16px;max-height:430px;overflow-y:auto}
+.cart-empty{
+  text-align:center;color:var(--muted);padding:34px 10px;font-size:13.5px;line-height:1.8;
+}
+.cline{
+  border-bottom:1px dashed var(--line);padding:10px 2px 12px;
+}
+.cline:last-child{border-bottom:none}
+.cline .nm{font-size:14px;font-weight:600;display:flex;justify-content:space-between;align-items:center}
+.cline .rm{border:none;background:none;color:var(--muted);cursor:pointer;font-size:15px;padding:2px 4px}
+.cline .rm:hover{color:var(--warn)}
+.cline .unit{font-size:11.5px;color:var(--muted);margin:2px 0 6px}
+.cline .specs{margin-bottom:8px}
+.cline .specchip{font-size:11px;padding:3px 8px}
+.cline-foot{display:flex;align-items:center;justify-content:space-between}
+.cline .amt{font-size:14.5px;font-weight:700;color:var(--leaf-deep)}
+.stockwarn{
+  margin-top:6px;font-size:11.5px;color:var(--warn);
+  background:var(--warn-bg);border-radius:5px;padding:4px 8px;
+}
+.cline.blocked{background:linear-gradient(90deg,rgba(176,74,46,.07),transparent 70%);border-radius:6px}
+.cart-block{
+  margin:0 16px 10px;background:var(--warn-bg);border:1px solid #e5bda6;
+  color:var(--warn);font-size:12.5px;border-radius:8px;padding:9px 12px;line-height:1.6;
+}
+.cart-foot{padding:12px 16px 16px;border-top:2px solid var(--wood)}
+.sumrow{display:flex;justify-content:space-between;font-size:13px;color:var(--ink);padding:3px 0}
+.sumrow .k{color:var(--muted)}
+.sumrow.total{border-top:1px dashed var(--line);margin-top:7px;padding-top:9px;font-size:16px;font-weight:700}
+.sumrow.total .v{color:var(--leaf-deep);font-size:20px}
+.free{color:var(--ok);font-size:12px}
+.submitbtn{
+  width:100%;margin-top:12px;border:none;cursor:pointer;
+  background:var(--leaf);color:#eef6ee;font-size:15px;font-weight:700;letter-spacing:2px;
+  padding:13px 0;border-radius:9px;
+  transition:background .18s ease,transform .12s ease;
+}
+.submitbtn:hover{background:var(--leaf-deep)}
+.submitbtn:active{transform:scale(.985)}
+.submitbtn:disabled{background:#b8ad92;cursor:not-allowed}
+.overlay{
+  position:fixed;inset:0;background:rgba(54,48,31,.5);
+  display:none;align-items:center;justify-content:center;z-index:60;padding:24px;
+}
+.overlay.show{display:flex}
+.receipt{
+  width:420px;max-width:100%;background:#fffdf4;color:var(--ink);
+  padding:26px 26px 30px;position:relative;
+  box-shadow:0 24px 60px -18px rgba(0,0,0,.5);
+  animation:slip .34s ease;
+}
+.receipt::after{
+  content:"";position:absolute;left:0;right:0;bottom:-12px;height:12px;
+  background:linear-gradient(-45deg,transparent 8px,#fffdf4 0) 0 0/16px 16px repeat-x,
+             linear-gradient(45deg,transparent 8px,#fffdf4 0) 8px 0/16px 16px repeat-x;
+}
+@keyframes slip{from{transform:translateY(-18px);opacity:0}to{transform:none;opacity:1}}
+.receipt .rhead{text-align:center;border-bottom:2px solid var(--ink);padding-bottom:12px;margin-bottom:12px}
+.receipt .rhead .t1{font-size:20px;letter-spacing:6px;font-weight:700}
+.receipt .rhead .t2{font-size:12px;color:var(--muted);margin-top:4px;letter-spacing:2px}
+.receipt .ordno{font-size:12.5px;text-align:center;margin-bottom:4px;color:var(--muted)}
+.receipt .stamp{
+  width:84px;height:84px;border:2px solid var(--warn);border-radius:50%;
+  color:var(--warn);font-weight:700;font-size:15px;letter-spacing:2px;
+  display:flex;align-items:center;justify-content:center;text-align:center;
+  position:absolute;top:22px;right:20px;transform:rotate(12deg);opacity:.85;line-height:1.3;
+}
+.rline{display:flex;justify-content:space-between;font-size:13px;padding:5px 0;border-bottom:1px dotted var(--line)}
+.rline .l{color:var(--muted);font-size:12px}
+.rtotal{display:flex;justify-content:space-between;font-size:17px;font-weight:700;padding:12px 0 4px}
+.rtotal .v{color:var(--leaf-deep)}
+.rbtns{display:flex;gap:10px;margin-top:18px}
+.rbtns button{flex:1;padding:11px 0;border-radius:8px;font-size:14px;cursor:pointer}
+.rbtns .back{background:var(--leaf);color:#eef6ee;border:none;font-weight:600}
+.rbtns .again{background:none;border:1px solid var(--line);color:var(--ink)}
+.toast{
+  position:fixed;left:50%;bottom:34px;transform:translateX(-50%) translateY(80px);
+  background:var(--ink);color:#f4ecd8;padding:11px 22px;border-radius:24px;font-size:13.5px;
+  opacity:0;transition:all .25s ease;z-index:80;pointer-events:none;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+@media (max-width:1080px){
+  .layout{grid-template-columns:1fr;padding:20px 24px 48px}
+  .cart{position:static}
+  .grid{grid-template-columns:repeat(3,1fr)}
+}
+@media (max-width:900px){
+  .grid{grid-template-columns:repeat(2,1fr)}
+  .topbar{padding:0 20px}
+}
+@media (prefers-reduced-motion: reduce){
+  *{animation:none !important;transition:none !important;scroll-behavior:auto !important}
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <span class="logo serif">仓廪集市</span>
+    <span class="sub">有机粮仓 · 产地直发</span>
+  </div>
+  <div class="spacer"></div>
+  <button class="cartlink" id="cartlink" type="button">
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6h15l-1.5 9h-12z"/><path d="M6 6L5 3H2"/><circle cx="9" cy="20" r="1.6"/><circle cx="18" cy="20" r="1.6"/></svg>
+    <span>粮篓</span><span class="cnt" id="cartcnt">0</span><span id="cartsum">¥0.00</span>
+  </button>
+</header>
+<div class="notice">今日粮仓直发 · 单笔满 <b>¥59</b> 免运费 · 满 <b>¥100</b> 自动抵谷香券 <b>¥8</b></div>
+
+<main class="layout">
+  <section>
+    <div class="market-head">
+      <h1 class="serif">当日粮架</h1>
+      <span class="hint">全部石磨现碾 · 48 小时内发出</span>
+    </div>
+    <nav class="tabs" id="tabs"></nav>
+    <div class="grid" id="grid"></div>
+  </section>
+
+  <aside class="cart" id="cartbox">
+    <div class="cart-head">
+      <h2 class="serif">今日粮篓</h2>
+      <span class="n" id="cartn">共 0 件</span>
+    </div>
+    <div class="cart-body" id="cartbody"></div>
+    <div id="blockzone"></div>
+    <div class="cart-foot">
+      <div class="sumrow"><span class="k">商品合计</span><span id="sumGoods">¥0.00</span></div>
+      <div class="sumrow"><span class="k">运费（满 ¥59 免）</span><span id="sumShip">¥6.00</span></div>
+      <div class="sumrow"><span class="k">谷香券（满 ¥100）</span><span id="sumCoupon" class="free">未达门槛</span></div>
+      <div class="sumrow total"><span>应付合计</span><span class="v" id="sumTotal">¥0.00</span></div>
+      <button class="submitbtn" id="submitBtn" type="button">提交订单</button>
+    </div>
+  </aside>
+</main>
+
+<div class="overlay" id="overlay">
+  <div class="receipt" role="dialog" aria-label="订单回执">
+    <div class="stamp serif">已付<br>讫</div>
+    <div class="rhead">
+      <div class="t1 serif">仓廪集市</div>
+      <div class="t2">出 货 单 · ORDER RECEIPT</div>
+    </div>
+    <div class="ordno" id="ordNo">单号 —</div>
+    <div class="ordno" id="ordTime">时间 —</div>
+    <div id="receiptLines"></div>
+    <div class="rline"><span>运费</span><span id="rShip">—</span></div>
+    <div class="rline"><span>谷香券抵扣</span><span id="rCoupon">—</span></div>
+    <div class="rtotal"><span>实付合计</span><span class="v" id="rTotal">—</span></div>
+    <div class="rline"><span>收货仓点</span><span class="l">杭州·良渚自提仓 3 号架</span></div>
+    <div class="rline"><span>支付方式</span><span class="l">仓廪余额支付</span></div>
+    <div class="rbtns">
+      <button class="back" id="backBtn" type="button">返回集市</button>
+      <button class="again" id="againBtn" type="button">再下一单</button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+"use strict";
+var CATS=["全部","米粮","杂粮","豆类","磨粉"];
+var PRODUCTS=[
+ {id:"p1",name:"秋田小町米",origin:"吉林·延边火山岩田",cat:"米粮",icon:"rice",
+  specs:[{s:"1kg 纸袋",price:15.8,stock:12},{s:"2.5kg 布袋",price:36.0,stock:6},{s:"5kg 囤粮装",price:68.0,stock:2}]},
+ {id:"p2",name:"有机红小豆",origin:"黑龙江·宝清黑土",cat:"豆类",icon:"bean",
+  specs:[{s:"500g 纸袋",price:9.9,stock:20},{s:"1kg 布袋",price:18.5,stock:8},{s:"2.5kg 囤粮装",price:42.0,stock:0}]},
+ {id:"p3",name:"石磨全麦粉",origin:"内蒙古·河套麦区",cat:"磨粉",icon:"flour",
+  specs:[{s:"1kg 纸袋",price:12.0,stock:9},{s:"2.5kg 布袋",price:27.5,stock:5}]},
+ {id:"p4",name:"黑珍珠血糯米",origin:"云南·墨江梯田",cat:"米粮",icon:"rice",
+  specs:[{s:"1kg 纸袋",price:22.0,stock:7},{s:"5kg 囤粮装",price:98.0,stock:3}]},
+ {id:"p5",name:"高山燕麦片",origin:"青海·门源高寒草甸",cat:"杂粮",icon:"oat",
+  specs:[{s:"500g 纸袋",price:8.8,stock:15},{s:"1kg 布袋",price:16.0,stock:10}]},
+ {id:"p6",name:"五色糙米拼配",origin:"湖南·紫鹊界梯田",cat:"米粮",icon:"rice",
+  specs:[{s:"1kg 纸袋",price:13.5,stock:11},{s:"2.5kg 布袋",price:31.0,stock:4}]},
+ {id:"p7",name:"老种黄小米",origin:"山西·沁州旱塬",cat:"杂粮",icon:"oat",
+  specs:[{s:"500g 纸袋",price:7.5,stock:18},{s:"2kg 布袋",price:28.0,stock:9}]},
+ {id:"p8",name:"手工玉米糁",origin:"陕西·关中旱地",cat:"磨粉",icon:"flour",
+  specs:[{s:"500g 纸袋",price:6.8,stock:0},{s:"1kg 布袋",price:12.5,stock:14}]}
+];
+var state={cat:"全部",sel:{},qty:{},cart:[],orderSeq:1042,errors:{},blocked:[]};
+PRODUCTS.forEach(function(p){
+  var i=0;
+  for(var k=0;k<p.specs.length;k++){if(p.specs[k].stock>0){i=k;break}}
+  state.sel[p.id]=i;state.qty[p.id]=1;
+});
+function fmt(n){return "¥"+n.toFixed(2)}
+function $(id){return document.getElementById(id)}
+function esc(t){return t}
+function grainIcon(kind){
+  if(kind==="bean")return '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#8a5a2e" stroke-width="1.8" stroke-linecap="round"><ellipse cx="12" cy="12" rx="6" ry="9" transform="rotate(28 12 12)"/><path d="M9 6.5c2 2.4 4.6 3.4 7.4 3.4"/></svg>';
+  if(kind==="flour")return '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#8a5a2e" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 8h10l1 12H6z"/><path d="M8 8c0-3 1.5-4.5 4-4.5S16 5 16 8"/><path d="M10 13h4"/></svg>';
+  if(kind==="oat")return '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#8a5a2e" stroke-width="1.8" stroke-linecap="round"><path d="M12 21V8"/><path d="M12 8c-3 0-5-2-5-5 3 0 5 2 5 5z"/><path d="M12 8c3 0 5-2 5-5-3 0-5 2-5 5z"/><path d="M8 14l4 2 4-2"/></svg>';
+  return '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#8a5a2e" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21V9"/><path d="M12 9C9 9 7 7 7 4c3 0 5 2 5 5z"/><path d="M12 9c3 0 5-2 5-5-3 0-5 2-5 5z"/><path d="M9 13c-2 0-3.4-1-4-3 2.2 0 3.4 1 4 3z"/><path d="M15 13c2 0 3.4-1 4-3-2.2 0-3.4 1-4 3z"/></svg>';
+}
+function toast(msg){
+  var t=$("toast");t.textContent=msg;t.classList.add("show");
+  clearTimeout(t._tm);t._tm=setTimeout(function(){t.classList.remove("show")},2200);
+}
+function stockOf(pid,si){return PRODUCTS.filter(function(p){return p.id===pid})[0].specs[si].stock}
+function priceOf(pid,si){return PRODUCTS.filter(function(p){return p.id===pid})[0].specs[si].price}
+
+function renderTabs(){
+  $("tabs").innerHTML=CATS.map(function(c){
+    return '<button type="button" class="tab'+(state.cat===c?" on":"")+'" data-cat="'+c+'">'+c+'</button>';
+  }).join("");
+}
+function renderGrid(){
+  var html="";
+  PRODUCTS.forEach(function(p){
+    if(state.cat!=="全部"&&p.cat!==state.cat)return;
+    var sel=state.sel[p.id],sp=p.specs[sel];
+    var minStock=Math.min.apply(null,p.specs.map(function(x){return x.stock}));
+    var badge="";
+    if(sp.stock===0)badge='<span class="badge soldout">本批已售罄</span>';
+    else if(sp.stock<=3)badge='<span class="badge low">本批仅剩 '+sp.stock+' 件</span>';
+    else badge='<span class="badge fresh">新碾上架</span>';
+    var chips=p.specs.map(function(x,i){
+      var cls="specchip"+(i===sel?" on":"")+(x.stock===0?" out":"");
+      var label=x.s+(x.stock===0?" · 售罄":"");
+      return '<button type="button" class="'+cls+'" data-p="'+p.id+'" data-s="'+i+'">'+label+'</button>';
+    }).join("");
+    var err=state.errors[p.id]?'<div class="carderr">'+state.errors[p.id]+'</div>':"";
+    html+='<article class="card">'+
+      '<span class="pricetag">'+fmt(sp.price)+'</span>'+
+      '<div class="crop">'+grainIcon(p.icon)+'</div>'+
+      '<h3 class="serif">'+p.name+'</h3>'+
+      '<div class="origin">'+p.origin+'</div>'+badge+
+      '<div class="specs">'+chips+'</div>'+
+      '<div class="cardrow">'+
+        '<span class="stepper"><button type="button" data-dq="-1" data-p="'+p.id+'">−</button><span class="qv" id="qv-'+p.id+'">'+state.qty[p.id]+'</span><button type="button" data-dq="1" data-p="'+p.id+'">+</button></span>'+
+        '<button type="button" class="addbtn" data-add="'+p.id+'">加入粮篓</button>'+
+      '</div>'+err+
+    '</article>';
+  });
+  $("grid").innerHTML=html;
+}
+function cartCount(){var n=0;state.cart.forEach(function(l){n+=l.qty});return n}
+function goodsTotal(){var s=0;state.cart.forEach(function(l){s+=priceOf(l.p,l.si)*l.qty});return s}
+function renderCart(){
+  var n=cartCount();
+  $("cartcnt").textContent=n;
+  $("cartn").textContent="共 "+n+" 件";
+  if(state.cart.length===0){
+    $("cartbody").innerHTML='<div class="cart-empty">粮篓还是空的。<br>从左侧当日粮架挑几样，<br>规格数量都能在篓里再改。</div>';
+  }else{
+    $("cartbody").innerHTML=state.cart.map(function(l,idx){
+      var p=PRODUCTS.filter(function(x){return x.id===l.p})[0];
+      var sp=p.specs[l.si];
+      var chips=p.specs.map(function(x,i){
+        var cls="specchip"+(i===l.si?" on":"")+(x.stock===0?" out":"");
+        var label=x.s.replace(/ .*/,"")+(x.stock===0?"·罄":"");
+        return '<button type="button" class="'+cls+'" data-cls="'+idx+':'+i+'">'+label+'</button>';
+      }).join("");
+      var warn="";
+      if(l.qty>sp.stock){
+        warn='<div class="stockwarn">'+(sp.stock===0?"该规格本批已售罄":"库存仅 "+sp.stock+" 件，请减量或换规格")+'</div>';
+      }
+      var blocked=state.blocked.indexOf(idx)>=0?" blocked":"";
+      return '<div class="cline'+blocked+'">'+
+        '<div class="nm"><span>'+p.name+'</span><button type="button" class="rm" data-rm="'+idx+'" title="移除">×</button></div>'+
+        '<div class="unit">'+sp.s+' · 单价 '+fmt(sp.price)+'</div>'+
+        '<div class="specs">'+chips+'</div>'+
+        '<div class="cline-foot">'+
+          '<span class="stepper"><button type="button" data-cq="'+idx+':-1">−</button><span class="qv">'+l.qty+'</span><button type="button" data-cq="'+idx+':1">+</button></span>'+
+          '<span class="amt">'+fmt(sp.price*l.qty)+'</span>'+
+        '</div>'+warn+
+      '</div>';
+    }).join("");
+  }
+  var g=goodsTotal();
+  var ship=g===0?0:(g>=59?0:6);
+  var coupon=g>=100?8:0;
+  var total=Math.max(0,g+ship-coupon);
+  $("sumGoods").textContent=fmt(g);
+  $("sumShip").innerHTML=g===0?"—":(ship===0?'<span class="free">免运费</span>':fmt(ship));
+  $("sumCoupon").innerHTML=coupon>0?'<span class="free">−'+fmt(coupon)+'</span>':"未达门槛";
+  $("sumTotal").textContent=fmt(total);
+  $("cartsum").textContent=fmt(total);
+  $("submitBtn").disabled=state.cart.length===0;
+  var bad=[];
+  state.cart.forEach(function(l,idx){if(l.qty>stockOf(l.p,l.si))bad.push(idx)});
+  if(bad.length>0&&state.blocked.length>0){
+    $("blockzone").innerHTML='<div class="cart-block">提交被拦截：'+bad.length+' 项商品库存不足，请减量或改选有货规格后重新提交。</div>';
+  }else if(bad.length>0){
+    $("blockzone").innerHTML='<div class="cart-block">提示：'+bad.length+' 项已超出现有库存，提交前请核对。</div>';
+  }else{
+    $("blockzone").innerHTML="";
+  }
+}
+function selectSpec(pid,si){
+  state.sel[pid]=si;state.errors[pid]="";
+  var st=stockOf(pid,si);
+  if(st>0&&state.qty[pid]>st)state.qty[pid]=st;
+  renderGrid();
+}
+function addToCart(pid){
+  var si=state.sel[pid],st=stockOf(pid,si);
+  if(st===0){
+    state.errors[pid]="该规格本批已售罄，请改选有货规格（可点上方其他规格）。";
+    renderGrid();
+    toast("「"+PRODUCTS.filter(function(p){return p.id===pid})[0].name+"」所选规格缺货");
+    return;
+  }
+  var qty=state.qty[pid];
+  var found=null;
+  state.cart.forEach(function(l){if(l.p===pid&&l.si===si)found=l});
+  if(found)found.qty+=qty;else state.cart.push({p:pid,si:si,qty:qty});
+  state.blocked=[];
+  renderCart();
+  toast("已加入粮篓 · "+PRODUCTS.filter(function(p){return p.id===pid})[0].name);
+}
+function submitOrder(){
+  var bad=[];
+  state.cart.forEach(function(l,idx){if(l.qty>stockOf(l.p,l.si))bad.push(idx)});
+  if(bad.length>0){
+    state.blocked=bad;
+    renderCart();
+    toast("订单被拦截：库存不足");
+    var box=$("cartbox");
+    if(box&&box.scrollIntoView)box.scrollIntoView({block:"nearest"});
+    return;
+  }
+  var g=goodsTotal(),ship=g>=59?0:6,coupon=g>=100?8:0,total=g+ship-coupon;
+  state.orderSeq+=1;
+  var no="GM20260923-"+state.orderSeq;
+  var now=new Date();
+  var ts="2026-09-23 "+("0"+now.getHours()).slice(-2)+":"+("0"+now.getMinutes()).slice(-2)+":"+("0"+now.getSeconds()).slice(-2);
+  $("ordNo").textContent="单号 "+no;
+  $("ordTime").textContent="下单时间 "+ts;
+  $("receiptLines").innerHTML=state.cart.map(function(l){
+    var p=PRODUCTS.filter(function(x){return x.id===l.p})[0];
+    var sp=p.specs[l.si];
+    return '<div class="rline"><span>'+p.name+' · '+sp.s+' ×'+l.qty+'</span><span>'+fmt(sp.price*l.qty)+'</span></div>';
+  }).join("");
+  $("rShip").textContent=ship===0?"免运费":fmt(ship);
+  $("rCoupon").textContent=coupon>0?"−"+fmt(coupon):"无";
+  $("rTotal").textContent=fmt(total);
+  $("overlay").classList.add("show");
+}
+function closeReceipt(keep){
+  $("overlay").classList.remove("show");
+  state.cart=[];state.blocked=[];state.errors={};
+  renderCart();
+  if(!keep)window.scrollTo({top:0,behavior:"smooth"});
+}
+document.addEventListener("click",function(e){
+  var t=e.target;
+  var dc=t.getAttribute("data-cat");
+  if(dc){state.cat=dc;renderTabs();renderGrid();return}
+  var ds=t.getAttribute("data-s");
+  if(ds!==null&&t.getAttribute("data-p")){selectSpec(t.getAttribute("data-p"),parseInt(ds,10));return}
+  var dq=t.getAttribute("data-dq");
+  if(dq){var pid=t.getAttribute("data-p");var v=state.qty[pid]+parseInt(dq,10);if(v<1)v=1;if(v>99)v=99;state.qty[pid]=v;$("qv-"+pid).textContent=v;return}
+  var add=t.getAttribute("data-add");
+  if(add){addToCart(add);return}
+  var rm=t.getAttribute("data-rm");
+  if(rm!==null){state.cart.splice(parseInt(rm,10),1);state.blocked=[];renderCart();return}
+  var cq=t.getAttribute("data-cq");
+  if(cq){
+    var parts=cq.split(":"),i=parseInt(parts[0],10),d=parseInt(parts[1],10);
+    var line=state.cart[i];if(!line)return;
+    line.qty+=d;if(line.qty<1)line.qty=1;if(line.qty>99)line.qty=99;
+    state.blocked=[];renderCart();return;
+  }
+  var cls=t.getAttribute("data-cls");
+  if(cls){
+    var pp=cls.split(":"),li=parseInt(pp[0],10),nsi=parseInt(pp[1],10);
+    var ln=state.cart[li];if(!ln)return;
+    ln.si=nsi;
+    var st2=stockOf(ln.p,nsi);
+    if(st2>0&&ln.qty>st2)ln.qty=st2;
+    state.blocked=[];renderCart();return;
+  }
+});
+$("submitBtn").addEventListener("click",submitOrder);
+$("backBtn").addEventListener("click",function(){closeReceipt(false)});
+$("againBtn").addEventListener("click",function(){closeReceipt(true)});
+$("cartlink").addEventListener("click",function(){
+  var box=$("cartbox");if(box&&box.scrollIntoView)box.scrollIntoView({behavior:"smooth",block:"start"});
+});
+renderTabs();renderGrid();renderCart();
+})();
+</script>
+</body>
+</html>
