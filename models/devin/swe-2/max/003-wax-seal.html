@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>圈内 · 凭帖入席</title>
+<style>
+:root{
+  --bg:#0b0a0d;
+  --card:#161217;
+  --card2:#1d171d;
+  --wax:#8e1f2f;
+  --wax-hi:#b3273a;
+  --wax-deep:#5e1420;
+  --gold:#d4af6a;
+  --gold-hi:#f0d9a0;
+  --gold-deep:#9a7b3f;
+  --text:#e8ddc9;
+  --muted:#8f8478;
+  --line:#2a2126;
+  --err:#c0392f;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  min-height:100vh;
+  display:flex;align-items:center;justify-content:center;
+  padding:56px 20px;
+  background-image:radial-gradient(700px 420px at 50% 18%,rgba(142,31,47,.16),transparent 65%);
+}
+.stage{width:min(430px,100%);text-align:center}
+.brand-top{margin-bottom:34px}
+.brand-glyph{
+  font-family:"Songti SC","STSong",Georgia,"Times New Roman",serif;
+  font-size:30px;letter-spacing:14px;font-weight:700;
+  background:linear-gradient(175deg,var(--gold-hi),var(--gold) 55%,var(--gold-deep));
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.brand-en{font-size:10.5px;letter-spacing:5px;color:var(--muted);margin-top:8px;text-transform:uppercase}
+.env{
+  position:relative;
+  background:linear-gradient(180deg,var(--card2),var(--card) 40%);
+  border:1px solid rgba(212,175,106,.32);
+  border-radius:4px;
+  padding:0 38px 34px;
+  box-shadow:0 34px 80px rgba(0,0,0,.6),inset 0 1px 0 rgba(212,175,106,.12);
+}
+.flap{
+  height:96px;margin:0 -38px;position:relative;
+  background:linear-gradient(180deg,#1e1820,#16121a);
+  clip-path:polygon(0 0,100% 0,50% 96%);
+  border-radius:4px 4px 0 0;
+  transform-origin:top center;
+  transition:transform .8s cubic-bezier(.55,-0.2,.3,1.3),opacity .5s ease;
+}
+.env.open .flap{transform:rotateX(168deg);opacity:.4;transform-origin:top center;perspective:600px}
+.flap::after{
+  content:"";position:absolute;left:0;right:0;top:0;height:1px;
+  background:linear-gradient(to right,transparent,var(--gold),transparent);opacity:.5;
+}
+.seal{
+  width:88px;height:88px;border-radius:50%;
+  margin:-44px auto 0;position:relative;z-index:2;
+  background:radial-gradient(circle at 34% 30%,var(--wax-hi),var(--wax) 55%,var(--wax-deep));
+  box-shadow:0 6px 18px rgba(0,0,0,.55),inset 0 2px 5px rgba(255,255,255,.12),inset 0 -3px 6px rgba(0,0,0,.4);
+  display:flex;align-items:center;justify-content:center;
+  transition:transform .5s ease,opacity .5s ease;
+}
+.env.open .seal{transform:scale(1.12) rotate(8deg);opacity:0}
+.seal::before{
+  content:"";position:absolute;inset:-6px;border-radius:50%;
+  border:1px dashed rgba(179,39,58,.55);
+}
+.env-title{
+  margin-top:22px;
+  font-family:"Songti SC","STSong",Georgia,serif;
+  font-size:22px;letter-spacing:6px;font-weight:700;
+  color:var(--gold);
+}
+.env-sub{margin-top:10px;font-size:12.5px;line-height:2;color:var(--muted);letter-spacing:1px}
+.code-field{margin-top:26px}
+.code-field label{display:block;font-size:12px;letter-spacing:3px;color:var(--muted);margin-bottom:12px}
+.code-wrap{
+  display:flex;align-items:center;
+  background:#0f0c11;
+  border:1px solid var(--line);
+  border-bottom-color:rgba(212,175,106,.4);
+  transition:border-color .2s ease,box-shadow .2s ease;
+}
+.code-wrap:focus-within{border-color:var(--gold);box-shadow:0 0 0 3px rgba(212,175,106,.12)}
+.code-wrap.err{border-color:var(--err);animation:shake .35s ease}
+@keyframes shake{20%{transform:translateX(-5px)}50%{transform:translateX(5px)}80%{transform:translateX(-2px)}}
+.code-wrap input{
+  flex:1;border:none;background:transparent;outline:none;
+  padding:14px 16px;font-size:15px;color:var(--gold-hi);
+  font-family:Georgia,"Times New Roman",serif;
+  letter-spacing:3px;text-transform:uppercase;
+}
+.code-wrap input::placeholder{color:#57503f;letter-spacing:2px;text-transform:none}
+.err-msg{
+  font-size:12px;color:var(--err);margin-top:10px;min-height:18px;line-height:1.8;
+}
+.cta{
+  margin-top:14px;width:100%;appearance:none;cursor:pointer;
+  border:1px solid var(--gold-deep);
+  background:linear-gradient(180deg,#2a1f22,#191319);
+  color:var(--gold);font-size:14px;letter-spacing:6px;font-weight:600;
+  font-family:"Songti SC","STSong",Georgia,serif;
+  padding:14px 0;
+  transition:border-color .25s ease,color .25s ease,box-shadow .25s ease;
+  display:flex;align-items:center;justify-content:center;gap:10px;
+}
+.cta:hover:not(:disabled){border-color:var(--gold);color:var(--gold-hi);box-shadow:0 0 22px rgba(212,175,106,.14)}
+.cta:disabled{opacity:.6;cursor:wait}
+.spin{
+  width:13px;height:13px;border-radius:50%;
+  border:1.5px solid rgba(212,175,106,.3);border-top-color:var(--gold);
+  animation:rot .8s linear infinite;
+}
+@keyframes rot{to{transform:rotate(360deg)}}
+.wait-line{
+  margin-top:16px;font-size:11.5px;color:var(--muted);letter-spacing:1px;
+  display:flex;align-items:center;justify-content:center;gap:10px;
+}
+.wait-line::before,.wait-line::after{content:"";width:38px;height:1px;background:var(--line)}
+.guest{margin-top:20px}
+.guest>button{
+  appearance:none;background:none;border:none;cursor:pointer;font-family:inherit;
+  font-size:12px;color:var(--muted);letter-spacing:1.5px;
+  border-bottom:1px solid var(--line);padding-bottom:2px;
+  transition:color .2s ease,border-color .2s ease;
+}
+.guest>button:hover{color:var(--gold)}
+.guest-panel{
+  max-height:0;overflow:hidden;transition:max-height .35s ease;
+  text-align:left;
+}
+.guest.open .guest-panel{max-height:230px}
+.guest-inner{padding-top:14px;font-size:12px;line-height:2;color:var(--muted)}
+.guest-inner b{color:var(--text);font-weight:600}
+.guest-inner code{
+  font-family:Georgia,serif;color:var(--gold-hi);
+  border:1px dashed rgba(212,175,106,.45);padding:1px 8px;letter-spacing:2px;
+}
+.wait-row{display:flex;margin-top:12px;gap:8px}
+.wait-row input{
+  flex:1;border:1px solid var(--line);background:#0f0c11;outline:none;
+  padding:10px 12px;font-size:12.5px;color:var(--text);font-family:inherit;
+}
+.wait-row input:focus{border-color:var(--gold)}
+.wait-row button{
+  appearance:none;cursor:pointer;font-family:inherit;flex:none;
+  background:none;border:1px solid var(--gold-deep);color:var(--gold);
+  font-size:12px;letter-spacing:2px;padding:0 14px;
+}
+.wait-row button:hover{color:var(--gold-hi);border-color:var(--gold)}
+.welcome{display:none}
+.env.open .welcome{display:block;animation:rise .6s ease .15s both}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.env.open .gate{display:none}
+.welcome .mark{
+  width:54px;height:54px;margin:6px auto 0;border-radius:50%;
+  border:1px solid var(--gold);display:flex;align-items:center;justify-content:center;
+  color:var(--gold);
+}
+.welcome h2{
+  margin-top:16px;font-family:"Songti SC","STSong",Georgia,serif;
+  font-size:20px;letter-spacing:4px;color:var(--gold-hi);
+}
+.welcome p{margin-top:12px;font-size:12.5px;line-height:2.1;color:var(--muted)}
+.welcome p b{color:var(--text);font-weight:600;letter-spacing:1px}
+.enter-btn{
+  margin-top:22px;width:100%;appearance:none;cursor:pointer;
+  border:none;background:var(--wax);
+  color:#f5e9d0;font-size:14px;letter-spacing:6px;font-weight:600;
+  font-family:"Songti SC","STSong",Georgia,serif;padding:14px 0;
+  transition:background .2s ease;
+}
+.enter-btn:hover{background:var(--wax-hi)}
+.toast{
+  position:fixed;left:50%;top:26px;transform:translate(-50%,-10px);
+  background:#1a141a;border:1px solid rgba(212,175,106,.4);color:var(--text);
+  padding:10px 22px;font-size:12.5px;letter-spacing:1px;
+  opacity:0;pointer-events:none;transition:opacity .3s ease,transform .3s ease;z-index:9;
+}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.foot-note{margin-top:30px;font-size:11px;color:#5d544c;letter-spacing:1.5px;line-height:2}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none !important;transition:none !important}
+}
+@media (max-width:520px){
+  body{padding:40px 14px}
+  .env{padding:0 24px 28px}
+  .flap{margin:0 -24px}
+  .brand-glyph{letter-spacing:10px}
+}
+</style>
+</head>
+<body>
+<div class="toast" id="toast" role="status"></div>
+<main class="stage">
+  <header class="brand-top">
+    <div class="brand-glyph">圈 内</div>
+    <div class="brand-en">Quannei Circle</div>
+  </header>
+
+  <section class="env" id="env" aria-label="邀请核验">
+    <div class="flap" aria-hidden="true"></div>
+    <div class="seal" aria-hidden="true">
+      <svg width="46" height="46" viewBox="0 0 48 48" fill="none" stroke="#e8ddc9" stroke-width="1.4">
+        <circle cx="24" cy="24" r="20" stroke-dasharray="2 3" opacity=".7"/>
+        <path d="M24 10l3.2 6.6 7.3.9-5.4 5 1.4 7.2L24 26.2l-6.5 3.5 1.4-7.2-5.4-5 7.3-.9L24 10z" fill="#e8ddc9" stroke="none" opacity=".9"/>
+        <path d="M15 33.5l-3 4M33 33.5l3 4" opacity=".7"/>
+      </svg>
+    </div>
+
+    <div class="gate">
+      <h1 class="env-title">凭帖入席</h1>
+      <p class="env-sub">圈内不公开招募。<br>每位成员每季只有两封请帖可寄出。</p>
+
+      <div class="code-field">
+        <label for="code">请帖编号</label>
+        <div class="code-wrap" id="wCode">
+          <input id="code" type="text" autocomplete="off" spellcheck="false" maxlength="14" placeholder="NQ-0000-XX">
+        </div>
+        <div class="err-msg" id="errMsg"></div>
+      </div>
+
+      <button class="cta" id="cta" type="button">核 验</button>
+      <div class="wait-line">核验只在堂口进行 · 不截屏不外传</div>
+
+      <div class="guest" id="guest">
+        <button type="button" id="guestBtn" aria-expanded="false">没有请帖？</button>
+        <div class="guest-panel">
+          <div class="guest-inner">
+            <b>圈内只认引荐。</b>请帖由在席成员亲笔签发，编号形如 <code>NQ-8421-YT</code>。<br>
+            若无人为你作保，可留下邮箱候补；每季末堂口统一过目。
+            <div class="wait-row">
+              <input id="mail" type="email" placeholder="name@example.com" aria-label="候补邮箱">
+              <button type="button" id="waitBtn">候补</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="welcome" aria-live="polite">
+      <div class="mark">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
+      </div>
+      <h2>帖有效，请进</h2>
+      <p>引荐人 <b>顾九爷</b> 已在堂口为你留座。<br>席次 <b>乙字七号</b>，本月话事：城中旧事。<br>入席后请把手机调到缄默。</p>
+      <button class="enter-btn" id="enterBtn" type="button">入 席</button>
+    </div>
+  </section>
+
+  <p class="foot-note">圈内 · 始于民国三十八年沪上一间书房<br>核验行为将被记录，冒充者永不再邀</p>
+</main>
+
+<script>
+(function(){
+  var env=document.getElementById('env'),
+      code=document.getElementById('code'),
+      wCode=document.getElementById('wCode'),
+      errMsg=document.getElementById('errMsg'),
+      cta=document.getElementById('cta'),
+      guest=document.getElementById('guest'),
+      guestBtn=document.getElementById('guestBtn'),
+      waitBtn=document.getElementById('waitBtn'),
+      mail=document.getElementById('mail'),
+      toast=document.getElementById('toast'),
+      enterBtn=document.getElementById('enterBtn');
+  var VALID=['NQ-8421-YT','NQ-0000-XX'];
+  function say(m){toast.textContent=m;toast.classList.add('show');
+    setTimeout(function(){toast.classList.remove('show')},2400)}
+  guestBtn.addEventListener('click',function(){
+    var open=guest.classList.toggle('open');
+    guestBtn.setAttribute('aria-expanded',open);
+  });
+  waitBtn.addEventListener('click',function(){
+    var v=mail.value.trim();
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)){say('邮箱写法不对，再核一遍。');return}
+    say('已记下 '+v+'，季末若有空席会来信。');
+    mail.value='';
+  });
+  cta.addEventListener('click',function(){
+    var v=code.value.trim().toUpperCase();
+    errMsg.textContent='';wCode.classList.remove('err');
+    if(!v){wCode.classList.add('err');errMsg.textContent='请帖编号一栏还空着。';return}
+    cta.disabled=true;
+    cta.innerHTML='<span class="spin"></span>核验中…';
+    setTimeout(function(){
+      cta.disabled=false;cta.textContent='核 验';
+      if(VALID.indexOf(v)>=0){
+        env.classList.add('open');
+        say('火漆完好，帖是真的。');
+      }else{
+        wCode.classList.add('err');
+        errMsg.textContent='此帖无效、已被用过，或过了赴约期限。可向引荐人再核一遍编号。';
+      }
+    },1200);
+  });
+  code.addEventListener('keydown',function(e){if(e.key==='Enter')cta.click()});
+  enterBtn.addEventListener('click',function(){say('乙字七号已亮灯，慢请。')});
+})();
+</script>
+</body>
+</html>
