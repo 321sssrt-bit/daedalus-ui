@@ -35,6 +35,8 @@ The project was initially inspired by [Hall of One Hundred](https://miaai-lab.gi
 
 The unified [live gallery](https://321sssrt-bit.github.io/daedalus-ui/) can be browsed by submission or brief; each piece opens independently with its reproduction specification and design intent, while personal favorites remain in the current browser and are never uploaded.
 
+Latest submission: [Codex · GPT-6 Luna · max (50/50)](https://321sssrt-bit.github.io/daedalus-ui/submissions/codex--gpt-6-luna--max/) · [Source and run receipt](models/codex/gpt-6-luna/max)
+
 <details>
 <summary>Run locally</summary>
 

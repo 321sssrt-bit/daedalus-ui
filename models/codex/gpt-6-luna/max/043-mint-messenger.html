@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>043 即时通讯产品</title><style>:root{--page:#EDF5F1;--surface:#FFFFFF;--ink:#193B33;--muted:#718A80;--accent:#2B9A79;--line:#D6E6DE}*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--page);color:var(--ink);font-family:Arial, 'Microsoft YaHei', sans-serif;}button,input,select,textarea{font:inherit}button{cursor:pointer;transition:background-color .15s ease,color .15s ease,transform .15s ease}button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:3px}button:disabled{opacity:.45;cursor:not-allowed}.preview{min-height:100vh;display:grid;place-items:center;padding:24px;background:radial-gradient(ellipse at 50% 0%,var(--surface),var(--page) 72%)}.phone{width:390px;height:844px;overflow:hidden;border:8px solid #262522;border-radius:40px;background:var(--page);box-shadow:0 28px 100px #0003;display:flex;flex-direction:column}.screen{flex:1;min-height:0;overflow:auto;padding:18px 20px}.desk{width:100%}@media(max-width:430px){.preview{padding:0;background:var(--page)}.phone{width:100vw;height:100dvh;min-height:100dvh;border:0;border-radius:0;box-shadow:none}}@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}.top{height:58px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--line)}.back{background:none;color:var(--muted);font-size:20px}.avatar{width:38px;height:38px;border-radius:50%;background:#cbe4d6;display:grid;place-items:center;color:#28765f}.who{font-size:14px;font-weight:700}.who small{display:block;font-weight:400;color:var(--accent);font-size:11px;margin-top:3px}.screen{display:flex;flex-direction:column;padding:12px 16px}.chatlist{display:flex;gap:8px;padding-bottom:10px;border-bottom:1px solid var(--line)}.chatlist button{background:transparent;padding:8px 12px;border-radius:18px;color:var(--muted);font-size:12px}.chatlist button.active{background:#dbece4;color:#276950}.date{text-align:center;font-size:10px;color:var(--muted);padding:14px}.messages{flex:1;display:flex;flex-direction:column;gap:10px;overflow:auto}.bubble{max-width:80%;padding:11px 13px;border-radius:16px;background:#e8f1ec;font-size:14px;line-height:1.5;align-self:flex-start;position:relative}.bubble.mine{align-self:flex-end;background:#267b61;color:white;border-bottom-right-radius:5px}.meta{display:block;margin-top:6px;font-size:10px;opacity:.75;text-align:right}.bubble.fail{outline:1px solid #d94f4a;color:#793733;background:#fff3f0}.retry{display:block;margin-top:8px;border:1px solid #d94f4a;border-radius:9px;background:white;color:#b9403c;padding:6px 10px;font-size:11px}.composer{height:72px;display:flex;align-items:center;gap:8px;border-top:1px solid var(--line);padding:8px 16px}.composer textarea{flex:1;min-width:0;height:48px;resize:none;border:1px solid var(--line);border-radius:14px;padding:13px;background:white;color:var(--ink);font-size:13px}.send{height:44px;padding:0 14px;border-radius:13px;background:var(--accent);color:white}.arm{margin:8px 16px 10px;height:35px;border:1px dashed var(--accent);border-radius:10px;background:transparent;color:var(--accent);font-size:11px}.bottom{height:50px;border-top:1px solid var(--line);display:flex;justify-content:space-around;align-items:center;color:var(--muted);font-size:11px}</style></head><body><div class="preview"><main class="phone"><header class="top"><button class="back">‹</button><div class="avatar">岚</div><div class="who"><span id="who">阿岚</span><small>在线</small></div><span style="margin-left:auto;color:var(--muted)">⌕　⋯</span></header><section class="screen"><div class="chatlist"><button class="active" data-chat="阿岚">阿岚</button><button data-chat="周川">周川</button></div><div class="date">今天 10:34</div><div id="messages" class="messages"><div class="bubble">下班后去新开的书店吗？<span class="meta">10:32</span></div><div class="bubble mine">好呀，我六点左右到。<span class="meta">已送达 ✓✓</span></div></div></section><button id="arm" class="arm">模拟下一条发送失败</button><div class="composer"><textarea id="draft" placeholder="写条消息…"></textarea><button id="send" class="send" disabled>发送</button></div><footer class="bottom"><span>◉ 会话</span><span>◎ 联系人</span><span>◷ 动态</span></footer></main></div><script>
+const input=document.querySelector('#draft'),messages=document.querySelector('#messages');
+let failNext=false,current='阿岚',serial=3;
+const history={
+  '阿岚':[
+    {id:0,text:'下班后去新开的书店吗？',mine:false,time:'10:32',status:'received'},
+    {id:2,text:'好呀，我六点左右到。',mine:true,time:'10:34',status:'delivered'}
+  ],
+  '周川':[{id:1,text:'文件我已经发到群里了。',mine:false,time:'10:32',status:'received'}]
+};
+function stamp(){return new Date().toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit',hour12:false})}
+function draw(){
+  messages.replaceChildren();
+  history[current].forEach(function(item){
+    const bubble=document.createElement('div');bubble.className='bubble'+(item.mine?' mine':'')+(item.status==='failed'?' fail':'');bubble.dataset.messageId=String(item.id);bubble.append(document.createTextNode(item.text));
+    const meta=document.createElement('span');meta.className='meta';const state=item.status==='received'?'':item.status==='failed'?'未送达':'已送达 ✓✓';meta.textContent=[item.time,state].filter(Boolean).join(' · ');bubble.append(meta);
+    if(item.status==='failed'){const retry=document.createElement('button');retry.className='retry';retry.type='button';retry.textContent='重试发送';retry.onclick=function(){item.status='delivered';draw()};bubble.append(retry)}
+    messages.append(bubble);
+  });
+  messages.scrollTop=messages.scrollHeight;
+}
+input.oninput=function(){document.querySelector('#send').disabled=!input.value.trim()};
+document.querySelector('#arm').onclick=function(event){failNext=true;event.currentTarget.textContent='已开启：下一条将发送失败';event.currentTarget.style.background='#fff0ee'};
+document.querySelector('#send').onclick=function(){
+  const text=input.value.trim();if(!text)return;
+  history[current].push({id:serial++,text:text,mine:true,time:stamp(),status:failNext?'failed':'delivered'});
+  failNext=false;const arm=document.querySelector('#arm');arm.textContent='模拟下一条发送失败';arm.style.background='';input.value='';input.oninput();draw();
+};
+document.querySelectorAll('.chatlist button').forEach(function(button){button.onclick=function(){
+  document.querySelectorAll('.chatlist button').forEach(function(item){item.classList.remove('active')});
+  button.classList.add('active');current=button.dataset.chat;document.querySelector('#who').textContent=current;draw();
+}});
+draw();
+</script></body></html>
+
+

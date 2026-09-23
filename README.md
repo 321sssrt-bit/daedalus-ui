@@ -35,6 +35,8 @@ Daedalus 是一套面向 UI Agent 与模型的公开产品设计评测，也是�
 
 在[在线展厅](https://321sssrt-bit.github.io/daedalus-ui/)可按答卷或题目浏览，每件作品都能独立打开并查看对应的复现规范和设计意图；个人收藏只保存在当前浏览器，不会上传。
 
+最新答卷：[Codex · GPT-6 Luna · max（50/50）](https://321sssrt-bit.github.io/daedalus-ui/submissions/codex--gpt-6-luna--max/) · [源码与运行回执](models/codex/gpt-6-luna/max)
+
 <details>
 <summary>在本地运行</summary>
 
