@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>渡运 · 等候审核</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#1c2732;font-family:-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:28px 16px}
+.phone{width:390px;height:844px;background:#8fa8bc;border-radius:40px;overflow:hidden;position:relative;box-shadow:0 30px 80px rgba(0,0,0,.6),0 0 0 10px #121a22;display:flex;flex-direction:column;color:#22313e}
+.phone::before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(240,246,250,.55),rgba(143,168,188,0) 40%,rgba(120,140,160,.35));pointer-events:none}
+.statusbar{height:34px;display:flex;justify-content:space-between;align-items:center;padding:0 26px;font-size:12px;color:#4a6072;flex:none;position:relative}
+.topbar{padding:8px 22px;flex:none;position:relative}
+.topbar .tt{font-size:16px;letter-spacing:5px;font-weight:700}
+.topbar .line{margin-top:6px;font-family:"Courier New",monospace;font-size:11px;color:#4a6072;letter-spacing:1px}
+.mid{flex:1;display:flex;flex-direction:column;align-items:center;padding:10px 26px 0;position:relative}
+.flap{background:#22313e;border-radius:12px;padding:20px 26px 18px;text-align:center;box-shadow:0 12px 30px rgba(30,45,60,.35);min-width:250px;position:relative}
+.flap::before{content:"";position:absolute;left:12px;right:12px;top:50%;height:1.5px;background:rgba(255,255,255,.14)}
+.flap .lab{font-size:10.5px;letter-spacing:4px;color:#8fb4cc}
+.flap .num{margin-top:6px;font-family:"Courier New",monospace;font-size:44px;font-weight:700;letter-spacing:6px;color:#eef4f8}
+.flap .sub{margin-top:8px;font-size:11px;color:#8fb4cc;letter-spacing:2px}
+.steps{margin-top:34px;width:100%;max-width:310px}
+.step{display:flex;gap:14px;align-items:flex-start;position:relative;padding-bottom:26px}
+.step::before{content:"";position:absolute;left:8px;top:18px;bottom:0;width:2px;background:#a9c0d1}
+.step:last-child::before{display:none}
+.dot{flex:none;width:18px;height:18px;border-radius:50%;border:2.5px solid #a9c0d1;background:#8fa8bc;position:relative}
+.step.done .dot{background:#2e4a5e;border-color:#2e4a5e}
+.step.done .dot::after{content:"✓";position:absolute;inset:0;display:grid;place-items:center;font-size:10px;color:#eef4f8;font-weight:700}
+.step.now .dot{background:#eef4f8;border-color:#2e4a5e}
+.step.now .dot::after{content:"";position:absolute;inset:4px;border-radius:50%;background:#2e4a5e;animation:pulse 1.2s ease infinite}
+@keyframes pulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(.6);opacity:.6}}
+.sinfo .t{font-size:14px;font-weight:700;color:#22313e}
+.sinfo .s{font-size:11.5px;color:#4a6072;margin-top:2px}
+.step.dim .t,.step.dim .s{color:#6d8296}
+.eta{margin-top:6px;background:rgba(255,255,255,.5);border-radius:10px;padding:12px 20px;font-size:13px;color:#2e4a5e;letter-spacing:1px;display:flex;gap:10px;align-items:center}
+.eta b{font-family:"Courier New",monospace;font-size:15px}
+.actions{margin-top:auto;width:100%;padding:18px 0 20px;display:flex;gap:12px}
+.btn{flex:1;border:0;border-radius:10px;padding:14px;font-size:13.5px;font-weight:700;letter-spacing:2px;cursor:pointer;transition:transform .12s}
+.btn:active{transform:scale(.97)}
+.b-away{background:#2e4a5e;color:#eef4f8}
+.b-cancel{background:transparent;color:#4a6072;border:1.5px solid #a9c0d1}
+.mini{display:none;margin:10px auto 0;background:#22313e;color:#eef4f8;border-radius:26px;padding:10px 22px;font-size:12.5px;letter-spacing:1px;align-items:center;gap:10px}
+.mini.show{display:flex}
+.mini .bell{animation:pulse 1.6s infinite}
+.away .mainview{display:none}
+.away .mini{display:flex}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+@media (max-width:430px){body{padding:0}.phone{width:100%;height:100vh;border-radius:0;box-shadow:none}}
+</style>
+</head>
+<body>
+<div class="phone" id="ph">
+  <div class="statusbar"><span>16:44</span><span>渡运 · FERRY</span></div>
+  <div class="topbar"><span class="tt">候渡大厅</span><div class="line">九号码头 → 离岛 · 候船审核</div></div>
+  <div class="mid mainview" id="mv">
+    <div class="flap">
+      <div class="lab">排 队 号 码</div>
+      <div class="num">A-092</div>
+      <div class="sub">前面还有 14 位 · 本班可载 60 人</div>
+    </div>
+    <div class="steps" id="steps">
+      <div class="step done"><span class="dot"></span><div class="sinfo"><div class="t">提交登记</div><div class="s">16:40 · 身份与同行人已录入</div></div></div>
+      <div class="step now"><span class="dot"></span><div class="sinfo"><div class="t">安全审核</div><div class="s">正在核验证件与载重配额</div></div></div>
+      <div class="step dim"><span class="dot"></span><div class="sinfo"><div class="t">分配舱位</div><div class="s">审核通过后按号码叫位</div></div></div>
+      <div class="step dim"><span class="dot"></span><div class="sinfo"><div class="t">登船放行</div><div class="s">闸机扫码上船</div></div></div>
+    </div>
+    <div class="eta">⏱ 预计还需 <b id="eta">约 8 分钟</b> · 审核到号会响铃</div>
+    <div class="actions">
+      <button class="btn b-cancel" id="cancel">取消登记</button>
+      <button class="btn b-away" id="away">放到一边等通知</button>
+    </div>
+  </div>
+  <div class="mini" id="mini"><span class="bell">🔔</span> A-092 · 审核中，到号会提醒你 <u id="back" style="cursor:pointer">回去看看</u></div>
+</div>
+<script>
+const ph=document.getElementById('ph'),steps=document.getElementById('steps'),eta=document.getElementById('eta');
+document.getElementById('away').addEventListener('click',()=>{ph.classList.add('away');});
+document.getElementById('back').addEventListener('click',()=>{ph.classList.remove('away');});
+document.getElementById('cancel').addEventListener('click',()=>{
+ eta.innerHTML='已取消登记 · 名额已放回队列';
+ steps.querySelectorAll('.step').forEach(s=>s.className='step dim');});
+let left=8;
+setInterval(()=>{if(left>1){left--;eta.innerHTML='⏱ 预计还需 <b>约 '+left+' 分钟</b> · 审核到号会响铃';}},15000);
+</script>
+</body>
+</html>

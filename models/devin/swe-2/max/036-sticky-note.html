@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>碎念 · 写一条</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#3b3421;font-family:-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:28px 16px}
+.phone{width:390px;height:844px;background:#e8c832;border-radius:40px;overflow:hidden;position:relative;box-shadow:0 30px 80px rgba(0,0,0,.6),0 0 0 10px #141108;display:flex;flex-direction:column}
+.phone::before{content:"";position:absolute;inset:0;background:radial-gradient(80% 40% at 50% -10%,rgba(255,255,255,.25),transparent 60%);pointer-events:none}
+.statusbar{height:34px;display:flex;justify-content:space-between;align-items:center;padding:0 26px;font-size:12px;color:#6b5b12;flex:none}
+.topbar{padding:8px 20px;display:flex;justify-content:space-between;align-items:center;flex:none}
+.topbar .tt{font-size:15px;letter-spacing:4px;color:#5a4a0c;font-weight:700}
+.topbar .drafttag{font-size:11px;padding:4px 10px;border-radius:10px;background:rgba(255,255,255,.4);color:#6b5b12;letter-spacing:1px}
+.wall{flex:1;position:relative;overflow:hidden}
+.note{position:absolute;width:150px;min-height:110px;padding:14px 12px;background:#fff8cf;box-shadow:0 6px 14px rgba(90,74,12,.28);font-size:12px;color:#5a4a0c;line-height:1.7}
+.note::before{content:"";position:absolute;top:-9px;left:50%;width:56px;height:18px;margin-left:-28px;background:rgba(255,255,255,.55);transform:rotate(-2deg);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.note .pin{position:absolute;top:-5px;left:50%;margin-left:-5px;width:10px;height:10px;border-radius:50%;background:#d94f3d;box-shadow:0 2px 3px rgba(0,0,0,.3)}
+.editor{position:absolute;left:22px;right:22px;bottom:24px;background:#fffdf0;border-radius:4px;transform:rotate(-1.2deg);box-shadow:0 18px 44px rgba(60,45,0,.35);padding:20px 18px 16px}
+.editor::before{content:"";position:absolute;top:-10px;left:50%;width:70px;height:20px;margin-left:-35px;background:rgba(233,120,60,.85);transform:rotate(2deg)}
+.editor input,.editor textarea{display:block;width:100%;border:0;outline:none;background:transparent;font-family:"Kaiti SC","STKaiti","KaiTi",cursive;font-family:-apple-system,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;font-weight:600;color:#3d3110}
+.editor input{font-size:19px;letter-spacing:1px;border-bottom:1.5px dashed #c9b95e;padding-bottom:8px;margin-bottom:10px}
+.editor input::placeholder,.editor textarea::placeholder{color:#b8a856;font-weight:400}
+.editor textarea{font-size:14.5px;line-height:1.9;min-height:110px;resize:none;background-image:repeating-linear-gradient(180deg,transparent 0 27px,#eee4a8 27px 28px)}
+.meta{display:flex;justify-content:space-between;align-items:center;margin-top:8px}
+.meta .cnt{font-size:11.5px;color:#9a8a3c;letter-spacing:1px}
+.meta .st{font-size:11px;color:#d94f3d;font-weight:600;letter-spacing:1px}
+.actions{display:flex;gap:10px;margin-top:12px}
+.btn{border:0;cursor:pointer;font-weight:700;letter-spacing:3px;border-radius:4px;transition:transform .12s}
+.btn:active{transform:scale(.96)}
+.b-pub{flex:1.6;background:#3d3110;color:#fff8cf;padding:13px;font-size:14.5px}
+.b-save{flex:1;background:transparent;color:#3d3110;border:1.5px dashed #9a8a3c;padding:13px;font-size:13px}
+.toast{position:absolute;top:60px;left:50%;transform:translateX(-50%) rotate(-1deg);background:#fffdf0;color:#3d3110;padding:9px 20px;font-size:13px;font-weight:700;box-shadow:0 8px 20px rgba(60,45,0,.3);opacity:0;transition:opacity .3s;letter-spacing:2px;z-index:9}
+.toast.show{opacity:1}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+@media (max-width:430px){body{padding:0}.phone{width:100%;height:100vh;border-radius:0;box-shadow:none}}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="statusbar"><span>09:41</span><span>碎念 · 便签墙</span></div>
+  <div class="topbar"><span class="tt">写一条碎念</span><span class="drafttag" id="dtag">未保存</span></div>
+  <div class="wall" id="wall">
+    <div class="note" style="left:18px;top:26px;transform:rotate(-3deg)"><span class="pin"></span>记得给绿萝浇水，上次是周二。</div>
+    <div class="note" style="right:16px;top:60px;transform:rotate(2.5deg);background:#ffe9b8"><span class="pin"></span>灵感：把书架横过来放。</div>
+    <div class="note" style="left:40px;top:170px;transform:rotate(1.5deg);background:#f4ffc8">周末去海边，带帽子。</div>
+  </div>
+  <div class="editor">
+    <input id="ttl" type="text" maxlength="20" placeholder="标题（可不写）">
+    <textarea id="body" maxlength="140" placeholder="此刻在想什么…"></textarea>
+    <div class="meta"><span class="cnt" id="cnt">0 / 140 字</span><span class="st" id="st">● 编辑中</span></div>
+    <div class="actions">
+      <button class="btn b-save" id="save">存草稿</button>
+      <button class="btn b-pub" id="pub">发布上墙</button>
+    </div>
+  </div>
+  <div class="toast" id="toast">已贴上墙</div>
+</div>
+<script>
+const body=document.getElementById('body'),cnt=document.getElementById('cnt'),st=document.getElementById('st'),dtag=document.getElementById('dtag'),ttl=document.getElementById('ttl'),wall=document.getElementById('wall'),toast=document.getElementById('toast');
+body.addEventListener('input',()=>{cnt.textContent=body.value.length+' / 140 字';st.textContent='● 编辑中';dtag.textContent='未保存';});
+document.getElementById('save').addEventListener('click',()=>{st.textContent='◌ 草稿已存';dtag.textContent='草稿 09:41';flash('草稿已存进抽屉');});
+document.getElementById('pub').addEventListener('click',()=>{
+ if(!body.value.trim()&&!ttl.value.trim()){flash('写点什么再发');return;}
+ const n=document.createElement('div');n.className='note';
+ const tops=[20,90,160,230],lefts=[20,200,40,180];
+ n.style.left=lefts[Math.floor(Math.random()*4)]+'px';n.style.top=tops[Math.floor(Math.random()*4)]+'px';
+ n.style.transform='rotate('+((Math.random()*6-3).toFixed(1))+'deg)';
+ n.innerHTML='<span class="pin"></span>'+(ttl.value?'<b>'+ttl.value+'</b><br>':'')+body.value.replace(/</g,'&lt;');
+ wall.appendChild(n);ttl.value='';body.value='';cnt.textContent='0 / 140 字';st.textContent='✓ 已发布';dtag.textContent='已发布';flash('已贴上墙');});
+function flash(t){toast.textContent=t;toast.classList.add('show');setTimeout(()=>toast.classList.remove('show'),1600);}
+</script>
+</body>
+</html>

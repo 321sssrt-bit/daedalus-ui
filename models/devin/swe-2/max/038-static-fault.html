@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>链路 · 暂时走不通</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#1e2329;font-family:-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:28px 16px}
+.phone{width:390px;height:844px;background:#4a5563;border-radius:40px;overflow:hidden;position:relative;box-shadow:0 30px 80px rgba(0,0,0,.6),0 0 0 10px #14171b;display:flex;flex-direction:column;color:#dfe6ee}
+.noise{position:absolute;inset:0;opacity:.10;pointer-events:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='0.9'/%3E%3C/svg%3E")}
+.statusbar{height:34px;display:flex;justify-content:space-between;align-items:center;padding:0 26px;font-size:12px;color:#9aa7b6;flex:none;position:relative}
+.topbar{padding:8px 22px;flex:none;position:relative;display:flex;justify-content:space-between;align-items:center}
+.topbar .tt{font-size:15px;letter-spacing:4px;color:#c6d2de;font-weight:600}
+.topbar .sig{font-family:"Courier New",monospace;font-size:11px;color:#7f8ea0;letter-spacing:1px}
+.mid{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 36px;position:relative}
+.glyph{width:120px;height:120px;position:relative;margin-bottom:30px}
+.glyph .ring{position:absolute;inset:0;border:3px solid #7f8ea0;border-radius:50%;opacity:.25}
+.glyph .bar{position:absolute;left:50%;background:#e8b04a;border-radius:4px;width:10px}
+.glyph .b1{height:26px;top:30px;margin-left:-5px}
+.glyph .b2{height:26px;top:64px;margin-left:-5px}
+.glyph .dot{position:absolute;left:50%;bottom:-16px;width:10px;height:10px;margin-left:-5px;border-radius:50%;background:#e8b04a}
+.mid h1{font-size:24px;letter-spacing:4px;font-weight:700;color:#eef3f8}
+.mid .hum{margin-top:14px;font-size:14px;line-height:2;color:#aebccb;text-align:center}
+.code{margin-top:20px;font-family:"Courier New",monospace;font-size:12.5px;letter-spacing:2px;color:#e8b04a;background:rgba(0,0,0,.25);padding:9px 18px;border-radius:4px;border:1px dashed #6b7a8c}
+.code .tk{color:#9aa7b6;font-size:11px;display:block;margin-top:4px;letter-spacing:1px}
+.actions{margin-top:34px;width:100%;display:flex;flex-direction:column;gap:12px}
+.btn{border:0;border-radius:6px;padding:15px;font-size:14.5px;font-weight:700;letter-spacing:3px;cursor:pointer;transition:transform .12s}
+.btn:active{transform:scale(.97)}
+.b-retry{background:#e8b04a;color:#22272e}
+.b-retry:disabled{background:#6b7a8c;color:#3d4650;cursor:wait}
+.b-home{background:transparent;color:#c6d2de;border:1.5px solid #6b7a8c}
+.b-home:hover{border-color:#c6d2de}
+.foot{position:absolute;bottom:22px;left:0;right:0;text-align:center;font-size:10.5px;letter-spacing:3px;color:#6b7a8c}
+.spin{display:inline-block;width:14px;height:14px;border:2px solid #22272e;border-top-color:transparent;border-radius:50%;animation:sp .7s linear infinite;vertical-align:-2px;margin-right:8px}
+@keyframes sp{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+@media (max-width:430px){body{padding:0}.phone{width:100%;height:100vh;border-radius:0;box-shadow:none}}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="noise"></div>
+  <div class="statusbar"><span>03:17</span><span>信号 ░░░░</span></div>
+  <div class="topbar"><span class="tt">链路中转台</span><span class="sig">NODE-CN-EAST-7</span></div>
+  <div class="mid">
+    <div class="glyph"><span class="ring"></span><span class="bar b1"></span><span class="bar b2"></span><span class="dot"></span></div>
+    <h1>这条路暂时走不通</h1>
+    <p class="hum">别慌，不是你的问题——<br>中转节点正在抢修，你的数据在本地一样不少。</p>
+    <div class="code">ERR-LINK-0409<span class="tk" id="tk">工单：待生成</span></div>
+    <div class="actions">
+      <button class="btn b-retry" id="retry">重试连接</button>
+      <button class="btn b-home" id="home">回首页</button>
+    </div>
+  </div>
+  <div class="foot">链路 · LINK DESK</div>
+</div>
+<script>
+const retry=document.getElementById('retry'),tk=document.getElementById('tk'),home=document.getElementById('home');
+let tries=0;
+retry.addEventListener('click',()=>{
+ tries++;retry.disabled=true;
+ retry.innerHTML='<span class="spin"></span>重连中…';
+ setTimeout(()=>{
+  retry.disabled=false;
+  if(tries<2){retry.textContent='重试连接';tk.textContent='工单：待生成 · 上次重试不通';}
+  else{retry.textContent='再试一次';tk.textContent='工单 LK-88412 已生成，抢通即通知';}
+ },1400);});
+home.addEventListener('click',()=>{tk.textContent='工单：待生成';retry.textContent='重试连接';tries=0;
+ retry.insertAdjacentText('beforeend','');tk.textContent='已回首页（演示复位）';});
+</script>
+</body>
+</html>
