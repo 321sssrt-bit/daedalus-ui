@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>驿行 · 铁路行程服务</title>
+<style>
+:root{
+  --ink0:#0b1130;
+  --ink1:#131c4d;
+  --ink2:#1d2a6b;
+  --ink3:#27398c;
+  --line:#2b3a86;
+  --paper:#101838;
+  --amber:#ffb32e;
+  --amber-hi:#ffc44d;
+  --text:#e9edff;
+  --muted:#8b9cc9;
+  --dim:#5c6da3;
+  --ok:#35d07f;
+  --bad:#ff6b6b;
+  --seat-free:#2c3d8f;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{min-height:100%}
+body{
+  font-family:"PingFang SC","Microsoft YaHei","Noto Sans SC",-apple-system,"Segoe UI",sans-serif;
+  background:radial-gradient(circle at 50% 0%, #1a2456 0%, var(--ink0) 60%);
+  color:var(--text);
+  display:flex;align-items:center;justify-content:center;
+  min-height:100vh;padding:24px 0;
+}
+/* ---------- 手机壳 ---------- */
+.phone{
+  width:390px;height:844px;max-height:94vh;
+  background:var(--ink1);border-radius:42px;overflow:hidden;position:relative;
+  border:6px solid #05091f;box-shadow:0 30px 90px rgba(0,0,0,.65),0 0 0 1px var(--line);
+}
+.app{position:relative;height:100%;display:flex;flex-direction:column}
+.statusbar{
+  height:30px;display:flex;align-items:center;justify-content:space-between;
+  padding:0 18px;font-size:11px;color:var(--muted);flex-shrink:0;
+  font-variant-numeric:tabular-nums;
+}
+.screen{display:none;flex:1;flex-direction:column;min-height:0}
+.screen.active{display:flex}
+.appbar{
+  height:48px;display:flex;align-items:center;gap:8px;padding:0 12px;flex-shrink:0;
+  border-bottom:1px solid var(--line);background:var(--ink1);
+}
+.appbar .back{
+  width:30px;height:30px;border:1px solid var(--line);background:var(--ink2);
+  color:var(--text);border-radius:8px;font-size:16px;line-height:1;
+}
+.appbar h1{font-size:15px;font-weight:600;flex:1;letter-spacing:1px}
+.scroll{flex:1;overflow-y:auto;min-height:0}
+/* ---------- 首页 ---------- */
+.hero{
+  padding:22px 20px 18px;
+  background:
+    radial-gradient(circle at 85% 15%, rgba(255,179,46,.16), transparent 42%),
+    linear-gradient(160deg, var(--ink2), var(--ink1) 70%);
+  border-bottom:1px solid var(--line);
+}
+.hero .mark{display:flex;align-items:center;gap:10px}
+.hero .mark .logo{
+  width:38px;height:38px;border-radius:10px;background:var(--amber);
+  display:flex;align-items:center;justify-content:center;color:var(--ink0);
+  font-weight:800;font-size:20px;box-shadow:0 4px 14px rgba(255,179,46,.35);
+}
+.hero h1{font-size:24px;letter-spacing:6px;font-weight:800}
+.hero .sub{font-size:10px;color:var(--muted);letter-spacing:3px;margin-top:2px}
+.ticker{
+  margin-top:14px;border:1px solid var(--line);background:var(--paper);
+  border-radius:6px;padding:7px 10px;font-size:11px;color:var(--amber);
+  letter-spacing:1px;overflow:hidden;white-space:nowrap;
+}
+.ticker span{display:inline-block;animation:tick 18s linear infinite}
+@keyframes tick{0%{transform:translateX(100%)}100%{transform:translateX(-100%)}}
+.search-card{
+  margin:14px 16px;background:var(--ink2);border:1px solid var(--line);
+  border-radius:14px;padding:16px;
+}
+.od{display:flex;align-items:center;gap:10px}
+.od .city{flex:1}
+.od .city label{font-size:10px;color:var(--muted);letter-spacing:2px}
+.od .city .val{font-size:20px;font-weight:700;margin-top:3px;letter-spacing:1px}
+.od .swap{
+  width:36px;height:36px;border-radius:50%;border:1px solid var(--amber);
+  background:transparent;color:var(--amber);font-size:16px;flex-shrink:0;
+}
+.od .swap:active{transform:rotate(180deg)}
+.od .swap{transition:transform .35s}
+.dates{display:flex;gap:8px;margin-top:14px}
+.date-chip{
+  flex:1;border:1px solid var(--line);background:var(--ink1);color:var(--muted);
+  border-radius:8px;padding:8px 0;text-align:center;font-size:12px;line-height:1.5;
+}
+.date-chip b{display:block;font-size:13px;color:var(--text);font-weight:600}
+.date-chip.on{border-color:var(--amber);color:var(--amber)}
+.date-chip.on b{color:var(--amber)}
+.search-btn{
+  width:100%;margin-top:14px;padding:14px 0;border:none;border-radius:10px;
+  background:linear-gradient(90deg,var(--amber),var(--amber-hi));
+  color:#241a02;font-size:16px;font-weight:800;letter-spacing:4px;
+  box-shadow:0 6px 18px rgba(255,179,46,.3);
+}
+.search-btn:active{transform:scale(.98)}
+.recent{padding:2px 16px 16px}
+.recent h3{font-size:11px;color:var(--muted);letter-spacing:2px;margin-bottom:8px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{
+  border:1px solid var(--line);background:var(--ink2);color:var(--text);
+  font-size:12px;padding:7px 12px;border-radius:16px;
+}
+.services{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:0 16px 20px}
+.svc{
+  background:var(--ink2);border:1px solid var(--line);border-radius:10px;
+  padding:10px 0;text-align:center;font-size:11px;color:var(--muted);
+}
+.svc svg{display:block;margin:0 auto 5px}
+/* ---------- 班次大屏 ---------- */
+.route-bar{
+  padding:10px 16px;font-size:12px;color:var(--muted);letter-spacing:1px;
+  border-bottom:1px solid var(--line);display:flex;justify-content:space-between;
+}
+.route-bar b{color:var(--amber);font-weight:600}
+.train{
+  margin:10px 14px;border:1px solid var(--line);border-radius:12px;
+  background:linear-gradient(180deg,var(--ink2),var(--ink1));overflow:hidden;
+}
+.train-head{display:flex;align-items:baseline;gap:10px;padding:12px 14px 6px}
+.tno{
+  font-size:19px;font-weight:800;color:var(--amber);letter-spacing:2px;
+  font-variant-numeric:tabular-nums;text-shadow:0 0 8px rgba(255,179,46,.45);
+}
+.ttag{font-size:10px;border:1px solid var(--line);color:var(--muted);border-radius:4px;padding:1px 6px}
+.ttag.check{border-color:var(--amber);color:var(--amber);background:rgba(255,179,46,.12)}
+.ttime{margin-left:auto;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.train-mid{display:flex;align-items:center;gap:8px;padding:0 14px 10px}
+.tstop{font-size:15px;font-weight:700}
+.tstop small{display:block;font-size:10px;color:var(--muted);font-weight:400;margin-top:2px}
+.tline{flex:1;height:1px;background:repeating-linear-gradient(90deg,var(--dim) 0 6px,transparent 6px 10px);position:relative}
+.tline::after{content:"▸";position:absolute;right:-2px;top:-9px;color:var(--dim);font-size:10px}
+.tdur{text-align:center;font-size:10px;color:var(--dim)}
+.tdur b{display:block;font-size:11px;color:var(--muted)}
+.train-foot{display:flex;align-items:center;gap:8px;padding:9px 14px;border-top:1px dashed var(--line);background:rgba(11,17,48,.5)}
+.price{color:var(--amber);font-weight:800;font-size:15px}
+.price small{font-size:10px;font-weight:400;color:var(--muted)}
+.stock{margin-left:auto;display:flex;gap:6px}
+.stk{
+  font-size:10px;padding:3px 8px;border-radius:4px;border:1px solid var(--line);
+  color:var(--muted);background:var(--ink1);
+}
+.stk.has{color:var(--ok);border-color:rgba(53,208,127,.4)}
+.stk.low{color:var(--amber);border-color:rgba(255,179,46,.4)}
+.stk.check{
+  color:var(--ink0);border:none;font-weight:700;
+  background:repeating-linear-gradient(135deg,var(--amber) 0 6px,#c98714 6px 12px);
+}
+.train:active{border-color:var(--amber-hi)}
+.footnote{padding:4px 18px 18px;font-size:10px;color:var(--dim);line-height:1.8}
+/* ---------- 座位 ---------- */
+.classtabs{display:flex;gap:8px;padding:10px 16px 0}
+.ctab{
+  flex:1;border:1px solid var(--line);background:var(--ink2);color:var(--muted);
+  border-radius:8px;padding:9px 0;font-size:13px;text-align:center;
+}
+.ctab small{display:block;font-size:10px;margin-top:2px}
+.ctab.on{border-color:var(--amber);color:var(--amber)}
+.ctab.on small{color:var(--amber)}
+.coach-tip{padding:10px 16px 4px;font-size:11px;color:var(--muted)}
+.seatmap{
+  margin:8px 16px;background:var(--ink2);border:1px solid var(--line);
+  border-radius:12px;padding:14px 12px;
+}
+.seatgrid{display:grid;grid-template-columns:34px 34px 34px 22px 34px 34px;gap:7px;justify-content:center}
+.seat{
+  width:34px;height:30px;border-radius:6px;border:1px solid var(--seat-free);
+  background:var(--ink1);color:var(--muted);font-size:10px;font-weight:600;
+}
+.seat.free:hover{border-color:var(--amber)}
+.seat.sel{background:var(--amber);border-color:var(--amber);color:#241a02;font-weight:800}
+.seat.taken{background:#252c52;border-color:#252c52;color:#4a5685;cursor:not-allowed}
+.seat.taken::after{content:"×"}
+.seat.taken span{display:none}
+.seat.check{
+  background:repeating-linear-gradient(135deg,var(--amber) 0 5px,#7a5a0e 5px 10px);
+  border-color:var(--amber);color:#241a02;font-weight:800;
+}
+.aisle{height:30px;display:flex;align-items:center;justify-content:center;color:var(--dim);font-size:9px}
+.rowlab{grid-column:1/-1;text-align:left;font-size:9px;color:var(--dim);padding:2px 0 0;letter-spacing:2px}
+.legend{display:flex;flex-wrap:wrap;gap:10px;padding:10px 18px 0;font-size:10px;color:var(--muted)}
+.legend i{width:12px;height:12px;border-radius:3px;display:inline-block;vertical-align:-2px;margin-right:4px}
+.warnline{
+  margin:10px 16px 0;padding:9px 12px;border:1px dashed var(--amber);border-radius:8px;
+  font-size:11px;color:var(--amber);line-height:1.6;
+}
+.seatbar{
+  display:flex;align-items:center;gap:10px;padding:12px 16px;
+  border-top:1px solid var(--line);background:var(--ink1);flex-shrink:0;
+}
+.seatbar .info{flex:1;font-size:12px;color:var(--muted)}
+.seatbar .info b{color:var(--text)}
+.seatbar .info .p{color:var(--amber);font-weight:800;font-size:15px}
+.go{
+  border:none;background:linear-gradient(90deg,var(--amber),var(--amber-hi));
+  color:#241a02;font-weight:800;font-size:14px;padding:11px 22px;border-radius:9px;
+}
+.go[disabled]{background:var(--ink3);color:var(--dim);box-shadow:none}
+/* ---------- 订单 ---------- */
+.card{
+  margin:12px 16px 0;background:var(--ink2);border:1px solid var(--line);
+  border-radius:12px;padding:14px;
+}
+.card h3{font-size:11px;color:var(--muted);letter-spacing:2px;margin-bottom:10px}
+.oline{display:flex;justify-content:space-between;font-size:13px;padding:5px 0}
+.oline span{color:var(--muted)}
+.oline b{color:var(--text);font-weight:500;font-variant-numeric:tabular-nums}
+.oline b.amber{color:var(--amber);font-weight:700}
+.fee{border-top:1px dashed var(--line);margin-top:8px;padding-top:8px}
+.total{display:flex;justify-content:space-between;padding:12px 16px 0;font-size:13px}
+.total b{color:var(--amber);font-size:18px;font-weight:800}
+.orderbar{
+  display:flex;align-items:center;gap:10px;padding:12px 16px;
+  border-top:1px solid var(--line);background:var(--ink1);
+}
+/* ---------- 失败页 ---------- */
+.fail-hero{
+  margin:16px;padding:16px;border-radius:12px;text-align:center;
+  border:1px solid var(--bad);background:rgba(255,107,107,.08);
+}
+.fail-hero .ic{
+  width:46px;height:46px;margin:0 auto 10px;border-radius:50%;
+  border:2px solid var(--bad);color:var(--bad);font-size:24px;line-height:42px;
+}
+.fail-hero h2{color:var(--bad);font-size:16px;letter-spacing:2px}
+.fail-hero p{font-size:12px;color:#ffb9c0;margin-top:8px;line-height:1.7}
+.keep-card{margin:0 16px;border:1px dashed var(--amber);border-radius:12px;padding:12px 14px}
+.keep-card h4{font-size:10px;color:var(--amber);letter-spacing:2px;margin-bottom:8px}
+.keep-card .krow{display:flex;gap:8px;flex-wrap:wrap}
+.keep-card .kchip{font-size:11px;border:1px solid var(--line);border-radius:14px;padding:5px 10px;color:var(--text)}
+.fail-actions{padding:16px;display:flex;flex-direction:column;gap:10px}
+.btn-line{
+  border:1px solid var(--line);background:var(--ink2);color:var(--text);
+  padding:12px;border-radius:10px;font-size:14px;
+}
+.btn-line.primary{background:linear-gradient(90deg,var(--amber),var(--amber-hi));color:#241a02;border:none;font-weight:800}
+/* ---------- 车票 ---------- */
+.ticket-wrap{padding:18px 16px}
+.ticket{
+  position:relative;background:linear-gradient(170deg,#22348a,#16225c 65%);
+  border:1px solid var(--line);border-radius:16px;overflow:hidden;
+  box-shadow:0 14px 40px rgba(0,0,0,.5);
+}
+.ticket::before,.ticket::after{
+  content:"";position:absolute;width:22px;height:22px;border-radius:50%;
+  background:var(--ink1);border:1px solid var(--line);top:50%;margin-top:-11px;
+}
+.ticket::before{left:-12px}
+.ticket::after{right:-12px}
+.t-head{display:flex;align-items:center;justify-content:space-between;padding:14px 18px 10px}
+.t-head .tt{font-size:12px;color:var(--muted);letter-spacing:3px}
+.t-head .no{font-size:11px;color:var(--dim)}
+.t-route{display:flex;align-items:center;gap:10px;padding:4px 18px 12px}
+.t-route .st{font-size:22px;font-weight:800}
+.t-route .st small{display:block;font-size:10px;color:var(--muted);font-weight:400;margin-top:3px;letter-spacing:1px}
+.t-route .arr{flex:1;text-align:center;color:var(--amber);font-size:12px;letter-spacing:2px}
+.t-route .arr::before{content:"";display:block;height:1px;background:var(--amber);opacity:.5;margin-bottom:4px}
+.t-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px 14px;padding:0 18px 14px;font-size:11px}
+.t-grid span{color:var(--muted)}
+.t-grid b{color:var(--text);font-weight:600;font-variant-numeric:tabular-nums}
+.t-perf{border-top:2px dashed var(--line);margin:0 8px;position:relative}
+.t-perf::after{
+  content:"";position:absolute;left:50%;top:-8px;margin-left:-8px;width:16px;height:16px;
+  border-radius:50%;background:var(--ink1);border:1px solid var(--line);
+}
+.t-foot{display:flex;align-items:center;gap:14px;padding:14px 18px}
+.barcode{
+  flex:1;height:44px;
+  background:repeating-linear-gradient(90deg,#e9edff 0 2px,transparent 2px 4px,#e9edff 4px 5px,transparent 5px 9px,#e9edff 9px 12px,transparent 12px 14px);
+  opacity:.85;
+}
+.qr{width:52px;height:52px;background:#e9edff;border-radius:4px;padding:4px;flex-shrink:0}
+.t-status{
+  margin:0 16px;padding:10px 14px;border-radius:10px;font-size:12px;text-align:center;
+  border:1px solid rgba(53,208,127,.5);color:var(--ok);background:rgba(53,208,127,.08);
+  letter-spacing:2px;
+}
+.t-actions{display:flex;gap:10px;padding:14px 16px 20px}
+.t-actions .btn-line{flex:1}
+/* 处理中遮罩 */
+.proc{
+  position:absolute;inset:0;background:rgba(11,17,48,.8);display:none;
+  align-items:center;justify-content:center;flex-direction:column;gap:12px;z-index:20;
+}
+.proc.on{display:flex}
+.proc .dots{display:flex;gap:6px}
+.proc .dots i{width:8px;height:8px;border-radius:50%;background:var(--amber);animation:blink 1s infinite}
+.proc .dots i:nth-child(2){animation-delay:.2s}
+.proc .dots i:nth-child(3){animation-delay:.4s}
+.proc p{font-size:12px;color:var(--muted);letter-spacing:2px}
+@keyframes blink{0%,100%{opacity:.25}50%{opacity:1}}
+@keyframes fadeup{0%{opacity:0;transform:translateY(10px)}100%{opacity:1;transform:none}}
+.screen.active .scroll>*{animation:fadeup .3s ease both}
+@media (prefers-reduced-motion: reduce){
+  *{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+}
+@media (max-width:480px){
+  body{padding:0}
+  .phone{width:100%;height:100vh;max-height:none;border:none;border-radius:0}
+}
+</style>
+</head>
+<body>
+<div class="phone">
+<div class="app">
+  <div class="statusbar"><span>14:32</span><span>驿行 · 5G ▰▰▰▰</span></div>
+
+  <!-- 搜索页 -->
+  <section class="screen active" data-s="search">
+    <div class="scroll">
+      <div class="hero">
+        <div class="mark">
+          <div class="logo">驿</div>
+          <div><h1>驿 行</h1><div class="sub">YI XING · RAIL</div></div>
+        </div>
+        <div class="ticker"><span>· 公告 · 9月23日 沪宁城际加开临客 4 列 · 站内取票机 24 小时开放 · 大雨天气请预留进站时间 ·</span></div>
+      </div>
+      <div class="search-card">
+        <div class="od">
+          <div class="city"><label>出发站</label><div class="val" id="fromCity">杭州东</div></div>
+          <button class="swap" id="swapBtn" aria-label="交换出发到达">⇄</button>
+          <div class="city" style="text-align:right"><label>到达站</label><div class="val" id="toCity">南京南</div></div>
+        </div>
+        <div class="dates" id="dateRow">
+          <button class="date-chip on" data-d="9月23日 周二"><b>9-23</b>今天</button>
+          <button class="date-chip" data-d="9月24日 周三"><b>9-24</b>明天</button>
+          <button class="date-chip" data-d="9月25日 周四"><b>9-25</b>后天</button>
+        </div>
+        <button class="search-btn" id="btnSearch">查 询 班 次</button>
+      </div>
+      <div class="recent">
+        <h3>最近路线</h3>
+        <div class="chips">
+          <button class="chip" data-od="杭州东|上海虹桥">杭州东 → 上海虹桥</button>
+          <button class="chip" data-od="南京南|合肥南">南京南 → 合肥南</button>
+          <button class="chip" data-od="杭州东|南京南">杭州东 → 南京南</button>
+        </div>
+      </div>
+      <div class="services">
+        <div class="svc"><svg width="18" height="18" viewBox="0 0 18 18"><rect x="2" y="3" width="14" height="9" rx="2" fill="none" stroke="#8b9cc9" stroke-width="1.4"/><rect x="5" y="6" width="3" height="3" fill="#ffb32e"/><rect x="10" y="6" width="3" height="3" fill="#8b9cc9"/><rect x="4" y="14" width="10" height="1.6" fill="#8b9cc9"/></svg>车票预订</div>
+        <div class="svc"><svg width="18" height="18" viewBox="0 0 18 18"><circle cx="9" cy="9" r="7" fill="none" stroke="#8b9cc9" stroke-width="1.4"/><rect x="8" y="4" width="2" height="6" fill="#ffb32e"/><rect x="9" y="9" width="4" height="2" fill="#8b9cc9"/></svg>时刻大屏</div>
+        <div class="svc"><svg width="18" height="18" viewBox="0 0 18 18"><rect x="4" y="2" width="10" height="14" rx="1.5" fill="none" stroke="#8b9cc9" stroke-width="1.4"/><rect x="6" y="5" width="6" height="1.6" fill="#ffb32e"/><rect x="6" y="8" width="6" height="1.4" fill="#8b9cc9"/><rect x="6" y="11" width="4" height="1.4" fill="#8b9cc9"/></svg>行程单</div>
+        <div class="svc"><svg width="18" height="18" viewBox="0 0 18 18"><circle cx="9" cy="9" r="7" fill="none" stroke="#8b9cc9" stroke-width="1.4"/><rect x="5" y="7" width="8" height="1.6" fill="#8b9cc9" transform="rotate(-45 9 9)"/><rect x="5" y="7" width="8" height="1.6" fill="#ffb32e" transform="rotate(45 9 9)"/></svg>退改服务</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 班次列表 -->
+  <section class="screen" data-s="list">
+    <div class="appbar"><button class="back" data-goto="search">‹</button><h1>班次列表</h1><span style="font-size:10px;color:var(--dim)">实时余票</span></div>
+    <div class="route-bar"><span id="routeSum">杭州东 → 南京南 · 9月23日 周二</span><b id="trainCount">5 班</b></div>
+    <div class="scroll" id="trainList"></div>
+  </section>
+
+  <!-- 选座 -->
+  <section class="screen" data-s="seat">
+    <div class="appbar"><button class="back" data-goto="list">‹</button><h1 id="seatTitle">选择座位</h1></div>
+    <div class="scroll">
+      <div class="classtabs" id="classTabs"></div>
+      <div class="coach-tip" id="coachTip">3车 · 顺向行驶方向 →</div>
+      <div class="warnline" id="seatWarn" hidden>斜纹格为「售罄校验」位：选中并提交订单将反馈该席位已售罄，用于演示异常流程。</div>
+      <div class="seatmap"><div class="seatgrid" id="seatGrid"></div></div>
+      <div class="legend">
+        <span><i style="background:#131c4d;border:1px solid #2c3d8f"></i>可售</span>
+        <span><i style="background:#252c52"></i>已售</span>
+        <span><i style="background:#ffb32e"></i>已选</span>
+        <span><i style="background:repeating-linear-gradient(135deg,#ffb32e 0 3px,#7a5a0e 3px 6px)"></i>售罄校验位</span>
+      </div>
+      <div style="height:12px"></div>
+    </div>
+    <div class="seatbar">
+      <div class="info" id="seatInfo">未选座位</div>
+      <button class="go" id="btnSeatOk" disabled>确认选座</button>
+    </div>
+  </section>
+
+  <!-- 订单确认 -->
+  <section class="screen" data-s="order">
+    <div class="appbar"><button class="back" data-goto="seat">‹</button><h1>确认订单</h1></div>
+    <div class="scroll">
+      <div class="card">
+        <h3>行程信息</h3>
+        <div class="oline"><span>车次</span><b id="oTrain">G32</b></div>
+        <div class="oline"><span>发到站</span><b id="oRoute">杭州东 → 南京南</b></div>
+        <div class="oline"><span>日期</span><b id="oDate">9月23日 周二</b></div>
+        <div class="oline"><span>发到时刻</span><b id="oTime">08:12 → 10:05</b></div>
+        <div class="oline"><span>席别 / 座位</span><b class="amber" id="oSeat">二等座 · 3车12F</b></div>
+      </div>
+      <div class="card">
+        <h3>乘车人</h3>
+        <div class="oline"><span>姓名</span><b>张伟</b></div>
+        <div class="oline"><span>证件</span><b>身份证 ··· 4821</b></div>
+      </div>
+      <div class="card">
+        <h3>费用明细</h3>
+        <div class="oline"><span>票价</span><b id="oPrice">¥156.00</b></div>
+        <div class="oline"><span>平台服务费</span><b>¥5.00</b></div>
+        <div class="oline fee"><span>合计</span><b class="amber" id="oTotal">¥161.00</b></div>
+      </div>
+      <div class="warnline" id="orderWarn" hidden>提示：所选席位为「售罄校验」位，提交后将反馈售罄结果。</div>
+      <div style="height:10px"></div>
+    </div>
+    <div class="orderbar">
+      <div class="info" style="flex:1;font-size:11px;color:var(--dim)">提交即同意《驿行出票协议》</div>
+      <button class="go" id="btnSubmit">提交订单</button>
+    </div>
+  </section>
+
+  <!-- 售罄反馈 -->
+  <section class="screen" data-s="fail">
+    <div class="appbar"><button class="back" data-goto="list">‹</button><h1>出票结果</h1></div>
+    <div class="scroll">
+      <div class="fail-hero">
+        <div class="ic">✕</div>
+        <h2>席位已售罄</h2>
+        <p id="failMsg">G7618次 二等座 3车12F 已售罄，未扣款。</p>
+      </div>
+      <div class="keep-card">
+        <h4>已为你保留查询条件</h4>
+        <div class="krow">
+          <span class="kchip" id="kRoute">杭州东 → 南京南</span>
+          <span class="kchip" id="kDate">9月23日 周二</span>
+        </div>
+      </div>
+      <div class="fail-actions">
+        <button class="btn-line primary" id="btnBackList">返回班次列表改选</button>
+        <button class="btn-line" id="btnBackSeat">同班次重新选座</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 行程凭证 -->
+  <section class="screen" data-s="ticket">
+    <div class="appbar"><button class="back" data-goto="search">‹</button><h1>行程凭证</h1></div>
+    <div class="scroll">
+      <div class="ticket-wrap">
+        <div class="ticket">
+          <div class="t-head"><span class="tt">驿行 · 电子客票</span><span class="no" id="tOrderNo">YX260923-8417</span></div>
+          <div class="t-route">
+            <div class="st" id="tFrom">杭州东<small>08:12 开</small></div>
+            <div class="arr" id="tTrain">G32</div>
+            <div class="st" style="text-align:right" id="tTo">南京南<small>10:05 到</small></div>
+          </div>
+          <div class="t-grid">
+            <span>乘车日期 <b id="tDate">9月23日 周二</b></span>
+            <span>检票口 <b>12A</b></span>
+            <span>席位 <b id="tSeat">二等座 · 3车08C</b></span>
+            <span>乘车人 <b>张伟 ··· 4821</b></span>
+            <span>实付 <b id="tPrice">¥161.00</b></span>
+            <span>状态 <b style="color:var(--ok)">已出票</b></span>
+          </div>
+          <div class="t-perf"></div>
+          <div class="t-foot">
+            <div class="barcode"></div>
+            <div class="qr" id="qrBox"></div>
+          </div>
+        </div>
+      </div>
+      <div class="t-status">✓ 已出票 · 进站请刷身份证或出示本凭证</div>
+      <div class="t-actions">
+        <button class="btn-line" data-goto="search">返回首页</button>
+        <button class="btn-line" id="btnAgain">再订一程</button>
+      </div>
+    </div>
+  </section>
+
+  <div class="proc" id="proc"><div class="dots"><i></i><i></i><i></i></div><p>正在向调度席提交…</p></div>
+</div>
+</div>
+
+<script>
+/* ================= 数据 ================= */
+var TRAINS = [
+  { no: "G32",   dep: "08:12", arr: "10:05", dur: "1小时53分", price2: 156, price1: 249, s2: "余 12", s1: "余 4", check: false },
+  { no: "G7580", dep: "08:47", arr: "10:38", dur: "1小时51分", price2: 149, price1: 238, s2: "余 27", s1: "余 9", check: false },
+  { no: "G7618", dep: "09:05", arr: "11:20", dur: "2小时15分", price2: 156, price1: 249, s2: "售罄校验", s1: "余 2", check: true },
+  { no: "D2282", dep: "09:31", arr: "11:46", dur: "2小时15分", price2: 132, price1: 211, s2: "余 41", s1: "余 15", check: false },
+  { no: "G44",   dep: "10:06", arr: "11:52", dur: "1小时46分", price2: 166, price1: 265, s2: "余 8",  s1: "余 2", check: false }
+];
+var TAKEN = { G32: ["2A","5C","7D","9F","11B"], G7580: ["3A","4F","8C"], G7618: [], D2282: ["1D","6B","12C"], G44: ["2F","5A","10D"] };
+var CHECK_SEAT = "12F";
+var state = {
+  from: "杭州东", to: "南京南", date: "9月23日 周二",
+  train: null, cls: "二等座", seat: null, orderNo: ""
+};
+var screens = document.querySelectorAll(".screen");
+function go(id){
+  for (var i = 0; i < screens.length; i++){
+    screens[i].classList.toggle("active", screens[i].getAttribute("data-s") === id);
+  }
+}
+var navBtns = document.querySelectorAll("[data-goto]");
+for (var i = 0; i < navBtns.length; i++){
+  navBtns[i].onclick = function(){ go(this.getAttribute("data-goto")); };
+}
+/* ================= 搜索 ================= */
+document.getElementById("swapBtn").onclick = function(){
+  var t = state.from; state.from = state.to; state.to = t;
+  document.getElementById("fromCity").textContent = state.from;
+  document.getElementById("toCity").textContent = state.to;
+};
+var dateChips = document.querySelectorAll(".date-chip");
+for (var i = 0; i < dateChips.length; i++){
+  dateChips[i].onclick = function(){
+    for (var j = 0; j < dateChips.length; j++){ dateChips[j].classList.remove("on"); }
+    this.classList.add("on");
+    state.date = this.getAttribute("data-d");
+  };
+}
+var odChips = document.querySelectorAll(".chip[data-od]");
+for (var i = 0; i < odChips.length; i++){
+  odChips[i].onclick = function(){
+    var p = this.getAttribute("data-od").split("|");
+    state.from = p[0]; state.to = p[1];
+    document.getElementById("fromCity").textContent = state.from;
+    document.getElementById("toCity").textContent = state.to;
+    document.getElementById("btnSearch").click();
+  };
+}
+document.getElementById("btnSearch").onclick = function(){
+  document.getElementById("routeSum").textContent = state.from + " → " + state.to + " · " + state.date;
+  renderTrains();
+  go("list");
+};
+/* ================= 班次列表 ================= */
+function renderTrains(){
+  var wrap = document.getElementById("trainList");
+  wrap.innerHTML = "";
+  for (var i = 0; i < TRAINS.length; i++){
+    (function(T){
+      var card = document.createElement("div");
+      card.className = "train";
+      var tag = T.check ? '<span class="ttag check">售罄校验班次</span>' : '<span class="ttag">复兴号</span>';
+      var stk2 = T.check
+        ? '<span class="stk check">二等 · ' + T.s2 + '</span>'
+        : '<span class="stk ' + (T.s2.indexOf("余 8") >= 0 || T.s2.indexOf("余 12") >= 0 ? "low" : "has") + '">二等 ' + T.s2 + '</span>';
+      card.innerHTML =
+        '<div class="train-head"><span class="tno">' + T.no + '</span>' + tag +
+        '<span class="ttime">' + T.dur + '</span></div>' +
+        '<div class="train-mid"><div class="tstop">' + T.dep + '<small>' + state.from + '</small></div>' +
+        '<div class="tdur"><b>— 高铁 —</b></div><div class="tline"></div>' +
+        '<div class="tstop" style="text-align:right">' + T.arr + '<small>' + state.to + '</small></div></div>' +
+        '<div class="train-foot"><span class="price">¥' + T.price2 + '<small> 起</small></span>' +
+        '<span class="stock">' + stk2 + '<span class="stk has">一等 ' + T.s1 + '</span></span></div>';
+      card.onclick = function(){ pickTrain(T); };
+      wrap.appendChild(card);
+    })(TRAINS[i]);
+  }
+  var note = document.createElement("div");
+  note.className = "footnote";
+  note.textContent = "带「售罄校验」标记的班次或座位，提交订单时将反馈已售罄。";
+  wrap.appendChild(note);
+}
+/* ================= 座位 ================= */
+var COLS2 = ["A", "B", "C", "", "D", "F"];
+var COLS1 = ["A", "C", "", "D", "F"];
+function pickTrain(T){
+  state.train = T; state.cls = "二等座"; state.seat = null;
+  renderClassTabs();
+  renderSeats();
+  document.getElementById("seatTitle").textContent = T.no + " 次 · 选择座位";
+  go("seat");
+}
+function renderClassTabs(){
+  var wrap = document.getElementById("classTabs");
+  var T = state.train;
+  wrap.innerHTML =
+    '<button class="ctab ' + (state.cls === "二等座" ? "on" : "") + '" data-c="二等座">二等座<small>¥' + T.price2 + '.00</small></button>' +
+    '<button class="ctab ' + (state.cls === "一等座" ? "on" : "") + '" data-c="一等座">一等座<small>¥' + T.price1 + '.00</small></button>';
+  var tabs = wrap.querySelectorAll(".ctab");
+  for (var i = 0; i < tabs.length; i++){
+    tabs[i].onclick = function(){
+      state.cls = this.getAttribute("data-c");
+      state.seat = null;
+      renderClassTabs();
+      renderSeats();
+    };
+  }
+}
+function renderSeats(){
+  var grid = document.getElementById("seatGrid");
+  grid.innerHTML = "";
+  var cols = state.cls === "二等座" ? COLS2 : COLS1;
+  grid.style.gridTemplateColumns = state.cls === "二等座"
+    ? "34px 34px 34px 22px 34px 34px"
+    : "34px 34px 22px 34px 34px 34px";
+  var T = state.train;
+  var rows = 14;
+  for (var r = 1; r <= rows; r++){
+    for (var c = 0; c < cols.length; c++){
+      var col = cols[c];
+      if (!col){
+        var aisle = document.createElement("div");
+        aisle.className = "aisle";
+        aisle.textContent = r;
+        grid.appendChild(aisle);
+        continue;
+      }
+      var code = r + col;
+      var seat = document.createElement("button");
+      seat.className = "seat free";
+      seat.innerHTML = "<span>" + code + "</span>";
+      if (T.check){
+        seat.className = "seat check";
+      } else if (TAKEN[T.no] && TAKEN[T.no].indexOf(code) >= 0){
+        seat.className = "seat taken";
+      } else if (state.cls === "二等座" && code === CHECK_SEAT){
+        seat.className = "seat check";
+      }
+      seat.setAttribute("data-seat", code);
+      seat.onclick = function(){ pickSeat(this); };
+      grid.appendChild(seat);
+    }
+  }
+  var warn = document.getElementById("seatWarn");
+  warn.hidden = !(T.check);
+  if (T.check){
+    warn.hidden = false;
+    warn.textContent = "本班次为「售罄校验班次」：任选座位提交订单将反馈班次已售罄，用于演示异常流程。";
+  } else {
+    warn.hidden = true;
+  }
+  updateSeatBar();
+}
+function pickSeat(el){
+  if (el.classList.contains("taken")){ return; }
+  state.seat = el.getAttribute("data-seat");
+  var all = document.querySelectorAll("#seatGrid .seat");
+  for (var i = 0; i < all.length; i++){ all[i].classList.remove("sel"); }
+  el.classList.add("sel");
+  updateSeatBar();
+}
+function updateSeatBar(){
+  var info = document.getElementById("seatInfo");
+  var btn = document.getElementById("btnSeatOk");
+  var price = state.cls === "二等座" ? state.train.price2 : state.train.price1;
+  if (state.seat){
+    info.innerHTML = "已选 <b>3车" + state.seat + "</b> · " + state.cls + " <span class='p'>¥" + price + ".00</span>";
+    btn.disabled = false;
+  } else {
+    info.textContent = "未选座位";
+    btn.disabled = true;
+  }
+}
+document.getElementById("btnSeatOk").onclick = function(){
+  var T = state.train;
+  var price = state.cls === "二等座" ? T.price2 : T.price1;
+  document.getElementById("oTrain").textContent = T.no;
+  document.getElementById("oRoute").textContent = state.from + " → " + state.to;
+  document.getElementById("oDate").textContent = state.date;
+  document.getElementById("oTime").textContent = T.dep + " → " + T.arr;
+  document.getElementById("oSeat").textContent = state.cls + " · 3车" + state.seat;
+  document.getElementById("oPrice").textContent = "¥" + price + ".00";
+  document.getElementById("oTotal").textContent = "¥" + (price + 5) + ".00";
+  var isCheck = T.check || (state.cls === "二等座" && state.seat === CHECK_SEAT);
+  document.getElementById("orderWarn").hidden = !isCheck;
+  go("order");
+};
+/* ================= 提交与结果 ================= */
+document.getElementById("btnSubmit").onclick = function(){
+  var proc = document.getElementById("proc");
+  proc.classList.add("on");
+  setTimeout(function(){
+    proc.classList.remove("on");
+    var isCheck = state.train.check || (state.cls === "二等座" && state.seat === CHECK_SEAT);
+    if (isCheck){
+      document.getElementById("failMsg").textContent =
+        state.train.no + "次 " + state.cls + " 3车" + state.seat + " 已售罄，未扣款。";
+      document.getElementById("kRoute").textContent = state.from + " → " + state.to;
+      document.getElementById("kDate").textContent = state.date;
+      go("fail");
+    } else {
+      state.orderNo = "YX260923-" + (1000 + Math.floor(Math.random() * 9000));
+      renderTicket();
+      go("ticket");
+    }
+  }, 900);
+};
+document.getElementById("btnBackList").onclick = function(){ state.seat = null; go("list"); };
+document.getElementById("btnBackSeat").onclick = function(){ state.seat = null; renderSeats(); go("seat"); };
+/* ================= 凭证 ================= */
+function renderTicket(){
+  var T = state.train;
+  var price = state.cls === "二等座" ? T.price2 : T.price1;
+  document.getElementById("tFrom").innerHTML = state.from + "<small>" + T.dep + " 开</small>";
+  document.getElementById("tTo").innerHTML = state.to + "<small>" + T.arr + " 到</small>";
+  document.getElementById("tTrain").textContent = T.no;
+  document.getElementById("tDate").textContent = state.date;
+  document.getElementById("tSeat").textContent = state.cls + " · 3车" + state.seat;
+  document.getElementById("tPrice").textContent = "¥" + (price + 5) + ".00";
+  document.getElementById("tOrderNo").textContent = state.orderNo;
+  /* 伪二维码：确定性点阵 */
+  var qr = document.getElementById("qrBox");
+  qr.innerHTML = "";
+  var svgns = "http" + ":" + "//" + "www.w3.org/2000/svg";
+  var svg = document.createElementNS(svgns, "svg");
+  svg.setAttribute("viewBox", "0 0 21 21");
+  svg.setAttribute("width", "44");
+  svg.setAttribute("height", "44");
+  var seedNum = 7;
+  for (var y = 0; y < 21; y++){
+    for (var x = 0; x < 21; x++){
+      seedNum = (seedNum * 1103515245 + 12345) % 2147483648;
+      var on = (seedNum % 100) < 42;
+      var finder = (x < 7 && y < 7) || (x > 13 && y < 7) || (x < 7 && y > 13);
+      if (finder){
+        on = (x === 0 || x === 6 || y === 0 || y === 6 || (x > 1 && x < 5 && y > 1 && y < 5)) && x < 7 && y < 7
+          || (x > 13 && (x === 14 || x === 20 || y === 0 || y === 6 || (x > 15 && x < 19 && y > 1 && y < 5)))
+          || (y > 13 && x < 7 && (x === 0 || x === 6 || y === 14 || y === 20 || (x > 1 && x < 5 && y > 15 && y < 19)));
+      }
+      if (on){
+        var rect = document.createElementNS(svgns, "rect");
+        rect.setAttribute("x", x); rect.setAttribute("y", y);
+        rect.setAttribute("width", "1"); rect.setAttribute("height", "1");
+        rect.setAttribute("fill", "#101838");
+        svg.appendChild(rect);
+      }
+    }
+  }
+  qr.appendChild(svg);
+}
+document.getElementById("btnAgain").onclick = function(){
+  state.train = null; state.seat = null;
+  go("search");
+};
+renderTrains();
+</script>
+</body>
+</html>
