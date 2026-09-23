@@ -1,0 +1,1018 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>点彩工坊 · 像素画工作台</title>
+<style>
+:root{
+  --bg0:#101216;
+  --bg1:#1b1e24;
+  --bg2:#23262e;
+  --line:#2e323b;
+  --line-strong:#3a3f4a;
+  --text:#e8eaf0;
+  --muted:#9aa0ad;
+  --dim:#6b7280;
+  --neon:#4dff57;
+  --cyan:#4fd8ff;
+  --magenta:#ff4fd8;
+  --amber:#ffe94f;
+  --danger:#ff5e6c;
+  --check-a:#2a2d34;
+  --check-b:#34383f;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  background:var(--bg0);
+  color:var(--text);
+  font-family:"PingFang SC","Microsoft YaHei","Noto Sans SC",-apple-system,"Segoe UI",sans-serif;
+  font-size:14px;
+  overflow:hidden;
+}
+button{font-family:inherit;cursor:pointer}
+/* ---------- 顶栏 ---------- */
+.topbar{
+  height:52px;display:flex;align-items:center;gap:12px;
+  padding:0 16px;background:var(--bg1);border-bottom:1px solid var(--line);
+}
+.brand{display:flex;align-items:center;gap:10px;font-size:16px;font-weight:700;letter-spacing:1px}
+.brand svg{display:block}
+.docname{
+  font-size:12px;color:var(--muted);background:var(--bg2);
+  border:1px solid var(--line);padding:4px 10px;border-radius:2px;
+}
+.topbar .spacer{flex:1}
+.hintkeys{font-size:11px;color:var(--dim);margin-right:8px}
+.btn{
+  border:1px solid var(--line-strong);background:var(--bg2);color:var(--text);
+  padding:7px 14px;border-radius:2px;font-size:13px;transition:background .15s,border-color .15s;
+}
+.btn:hover{border-color:var(--neon);color:var(--neon)}
+.btn.primary{
+  background:var(--neon);border-color:var(--neon);color:#0c0f14;font-weight:700;
+}
+.btn.primary:hover{filter:brightness(1.12);color:#0c0f14}
+/* ---------- 工作区 ---------- */
+.workspace{display:flex;height:calc(100% - 52px)}
+.toolrail{
+  width:64px;background:var(--bg1);border-right:1px solid var(--line);
+  display:flex;flex-direction:column;align-items:center;padding-top:10px;gap:6px;
+}
+.tool{
+  width:44px;height:44px;border:1px solid transparent;background:transparent;
+  display:flex;align-items:center;justify-content:center;border-radius:2px;
+  color:var(--muted);position:relative;
+}
+.tool:hover{background:var(--bg2);color:var(--text)}
+.tool.active{background:var(--bg2);border-color:var(--neon);color:var(--neon)}
+.tool .kb{position:absolute;right:3px;bottom:2px;font-size:9px;color:var(--dim)}
+.toolrail .sep{width:28px;height:1px;background:var(--line);margin:6px 0}
+.params{
+  width:216px;background:var(--bg1);border-right:1px solid var(--line);
+  padding:14px;overflow-y:auto;flex-shrink:0;
+}
+.ptitle{font-size:11px;color:var(--muted);letter-spacing:2px;margin:14px 0 8px}
+.ptitle:first-child{margin-top:0}
+.seg{display:flex;border:1px solid var(--line-strong);border-radius:2px;overflow:hidden}
+.seg button{
+  flex:1;background:var(--bg2);border:none;color:var(--muted);
+  padding:6px 0;font-size:12px;
+}
+.seg button.on{background:var(--neon);color:#0c0f14;font-weight:700}
+.seg button:hover:not(.on){color:var(--text)}
+.fieldrow{display:flex;align-items:center;justify-content:space-between;margin-top:8px;font-size:12px;color:var(--muted)}
+.switch{width:34px;height:18px;border:1px solid var(--line-strong);background:var(--bg2);border-radius:9px;position:relative}
+.switch::after{content:"";position:absolute;top:2px;left:2px;width:12px;height:12px;background:var(--dim);border-radius:50%;transition:left .15s,background .15s}
+.switch.on::after{left:18px;background:var(--neon)}
+.swatches{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
+.sw{aspect-ratio:1;border:1px solid var(--line-strong);border-radius:2px;cursor:pointer;position:relative}
+.sw.on{outline:2px solid var(--text);outline-offset:1px}
+.curcolor{display:flex;align-items:center;gap:8px;margin-top:10px;font-size:12px;color:var(--muted)}
+.curcolor i{width:22px;height:22px;border:1px solid var(--line-strong);display:block}
+/* ---------- 画布区 ---------- */
+.stage{flex:1;display:flex;flex-direction:column;min-width:0;background:
+  radial-gradient(circle at 50% 40%, #171a20 0%, var(--bg0) 75%)}
+.stage-head{
+  height:38px;display:flex;align-items:center;gap:14px;padding:0 16px;
+  font-size:11px;color:var(--dim);border-bottom:1px solid var(--line);
+}
+.stage-head b{color:var(--muted);font-weight:400}
+.canvas-wrap{flex:1;display:flex;align-items:center;justify-content:center;overflow:auto;padding:24px}
+.canvas-holder{
+  position:relative;box-shadow:0 0 0 1px var(--line-strong),0 18px 50px rgba(0,0,0,.55);
+}
+#paint{image-rendering:pixelated;display:block;cursor:crosshair}
+.checker{position:absolute;inset:0;z-index:-1;
+  background:repeating-conic-gradient(var(--check-a) 0% 25%,var(--check-b) 0% 50%) 0 0/16px 16px}
+.checker.dark{background:#0c0f14}
+.statusbar{
+  height:30px;display:flex;align-items:center;gap:16px;padding:0 16px;
+  font-size:11px;color:var(--dim);border-top:1px solid var(--line);background:var(--bg1);
+}
+.statusbar .ok{color:var(--neon)}
+/* ---------- 右栏 ---------- */
+.side{width:280px;background:var(--bg1);border-left:1px solid var(--line);display:flex;flex-direction:column;flex-shrink:0}
+.pane-head{display:flex;align-items:center;justify-content:space-between;padding:12px 14px 8px}
+.layers{max-height:250px;overflow-y:auto;padding:0 10px}
+.layer{
+  display:flex;align-items:center;gap:8px;padding:6px;margin-bottom:4px;
+  border:1px solid var(--line);background:var(--bg2);border-radius:2px;cursor:pointer;
+}
+.layer.on{border-color:var(--neon);background:#262b33}
+.layer canvas{width:32px;height:32px;image-rendering:pixelated;background:repeating-conic-gradient(#20232a 0% 25%,#2a2e37 0% 50%) 0 0/8px 8px;flex-shrink:0}
+.layer .lname{flex:1;font-size:12px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.layer .vis,.layer .del{border:none;background:none;color:var(--dim);padding:2px;font-size:12px}
+.layer .vis.off{opacity:.3}
+.layer .del:hover{color:var(--danger)}
+.addlayer{margin:4px 10px 12px;width:calc(100% - 20px)}
+.preview-sec{border-top:1px solid var(--line);flex:1;display:flex;flex-direction:column;min-height:0}
+.tabs{display:flex;gap:2px;padding:8px 10px 0}
+.tab{flex:1;background:none;border:none;color:var(--muted);font-size:12px;padding:6px 0;border-bottom:2px solid var(--line)}
+.tab.on{color:var(--neon);border-bottom-color:var(--neon)}
+.preview-box{flex:1;display:flex;align-items:center;justify-content:center;padding:12px;min-height:140px}
+.preview-box canvas{image-rendering:pixelated;background:repeating-conic-gradient(#20232a 0% 25%,#2a2e37 0% 50%) 0 0/10px 10px;border:1px solid var(--line)}
+.pv-note{text-align:center;font-size:11px;color:var(--dim);padding-bottom:10px}
+/* ---------- 导出浮层 ---------- */
+.overlay{
+  position:fixed;inset:0;background:rgba(8,10,14,.72);backdrop-filter:blur(2px);
+  display:none;align-items:center;justify-content:center;z-index:50;
+}
+.overlay.open{display:flex}
+.dialog{
+  width:560px;max-width:94vw;max-height:88vh;overflow-y:auto;
+  background:var(--bg1);border:1px solid var(--line-strong);
+  box-shadow:0 24px 80px rgba(0,0,0,.6);border-radius:4px;
+}
+.dialog-head{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--line)}
+.dialog-head h2{font-size:15px;letter-spacing:1px}
+.xclose{border:none;background:none;color:var(--muted);font-size:18px;line-height:1}
+.xclose:hover{color:var(--text)}
+.dialog-body{padding:16px 20px}
+.optgroup{margin-bottom:16px}
+.optgroup>label{display:block;font-size:11px;color:var(--muted);letter-spacing:2px;margin-bottom:8px}
+.fmts{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.fmt{
+  border:1px solid var(--line-strong);background:var(--bg2);border-radius:2px;
+  padding:10px 6px;text-align:center;color:var(--muted);transition:border-color .15s;
+}
+.fmt svg{margin:0 auto 6px;display:block}
+.fmt .fn{font-size:13px;color:var(--text);font-weight:700}
+.fmt .fd{font-size:10px;margin-top:3px;line-height:1.4}
+.fmt.on{border-color:var(--neon);box-shadow:0 0 0 1px var(--neon) inset;color:var(--text)}
+.fmt.on .fn{color:var(--neon)}
+.opts{display:flex;flex-direction:column;gap:10px}
+.orow{display:flex;align-items:center;gap:10px;font-size:13px}
+.orow .seg{width:260px}
+.orow .lab{width:64px;color:var(--muted);font-size:12px}
+/* 冲突提示 */
+.conflict{
+  border:1px solid var(--danger);background:rgba(255,94,108,.08);
+  padding:12px 14px;border-radius:2px;margin-bottom:14px;
+}
+.conflict h3{color:var(--danger);font-size:13px;margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.conflict li{font-size:12px;color:#ffb9c0;margin-left:18px;line-height:1.8}
+.conflict .fix{color:var(--muted);font-size:11px;margin-top:6px}
+/* 导出结果 */
+.result{border:1px solid var(--neon);border-radius:2px;padding:14px;background:rgba(77,255,87,.05)}
+.result h3{color:var(--neon);font-size:13px;margin-bottom:10px;display:flex;gap:6px;align-items:center}
+.result-view{display:flex;align-items:center;justify-content:center;background:#0c0f14;border:1px solid var(--line);padding:14px;min-height:120px;margin-bottom:10px}
+.result-view img,.result-view canvas{image-rendering:pixelated;max-width:100%;max-height:180px}
+.result-view pre{font-size:10px;color:var(--cyan);max-height:150px;overflow:auto;width:100%;line-height:1.5}
+.meta{display:grid;grid-template-columns:1fr 1fr;gap:4px 16px;font-size:11px;color:var(--muted);margin-bottom:12px}
+.meta b{color:var(--text);font-weight:400}
+.dialog-foot{display:flex;justify-content:flex-end;gap:10px;padding:14px 20px;border-top:1px solid var(--line)}
+.dlbtn{display:inline-flex;align-items:center;gap:6px;background:var(--neon);color:#0c0f14;font-weight:700;
+  padding:8px 16px;border-radius:2px;text-decoration:none;font-size:13px;border:none}
+.dlbtn:hover{filter:brightness(1.12)}
+.toast{
+  position:fixed;left:50%;bottom:40px;transform:translateX(-50%);
+  background:var(--bg2);border:1px solid var(--neon);color:var(--text);
+  padding:9px 18px;border-radius:2px;font-size:12px;z-index:80;
+  opacity:0;pointer-events:none;transition:opacity .2s;
+}
+.toast.show{opacity:1}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
+.blinkdot{display:inline-block;width:6px;height:6px;background:var(--neon);margin-right:6px;animation:blink 1.4s infinite}
+@media (prefers-reduced-motion: reduce){
+  *{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+}
+/* ---------- 窄屏 ---------- */
+@media (max-width:980px){
+  .workspace{flex-wrap:wrap;overflow-y:auto;height:auto;min-height:calc(100% - 52px)}
+  .toolrail{width:100%;flex-direction:row;justify-content:center;border-right:none;border-bottom:1px solid var(--line);padding:8px}
+  .toolrail .sep{width:1px;height:28px;margin:0 8px}
+  .params{width:100%;border-right:none;border-bottom:1px solid var(--line);display:block}
+  .stage{min-height:420px}
+  .side{width:100%;border-left:none;border-top:1px solid var(--line)}
+  body{overflow:auto}
+}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true">
+      <rect x="1" y="1" width="9" height="9" fill="#4dff57"/>
+      <rect x="12" y="1" width="9" height="9" fill="#4fd8ff"/>
+      <rect x="1" y="12" width="9" height="9" fill="#ff4fd8"/>
+      <rect x="12" y="12" width="9" height="9" fill="#ffe94f"/>
+    </svg>
+    点彩工坊
+    <span class="docname">像素练习-01.pxa</span>
+  </div>
+  <div class="spacer"></div>
+  <span class="hintkeys">B 画笔 · E 橡皮 · G 填充 · I 取色</span>
+  <button class="btn" id="btnClear">清空当前帧</button>
+  <button class="btn primary" id="btnExport">导出成品</button>
+</header>
+
+<main class="workspace">
+  <!-- 工具栏 -->
+  <aside class="toolrail" aria-label="工具栏">
+    <button class="tool active" data-tool="pen" title="画笔 B" aria-label="画笔">
+      <svg width="20" height="20" viewBox="0 0 20 20"><rect x="13" y="2" width="4" height="4" fill="currentColor"/><rect x="10" y="5" width="4" height="4" fill="currentColor"/><rect x="7" y="8" width="4" height="4" fill="currentColor"/><rect x="2" y="13" width="5" height="5" fill="currentColor"/></svg>
+      <span class="kb">B</span>
+    </button>
+    <button class="tool" data-tool="eraser" title="橡皮 E" aria-label="橡皮">
+      <svg width="20" height="20" viewBox="0 0 20 20"><rect x="4" y="12" width="12" height="5" fill="currentColor"/><rect x="7" y="8" width="9" height="4" fill="currentColor" opacity=".55"/><rect x="10" y="4" width="7" height="4" fill="currentColor" opacity=".3"/></svg>
+      <span class="kb">E</span>
+    </button>
+    <button class="tool" data-tool="bucket" title="油漆桶 G" aria-label="油漆桶填充">
+      <svg width="20" height="20" viewBox="0 0 20 20"><rect x="3" y="3" width="10" height="7" fill="currentColor"/><rect x="13" y="6" width="3" height="4" fill="currentColor"/><rect x="15" y="11" width="2" height="3" fill="currentColor"/><rect x="15" y="15" width="2" height="3" fill="currentColor"/></svg>
+      <span class="kb">G</span>
+    </button>
+    <button class="tool" data-tool="picker" title="取色 I" aria-label="取色器">
+      <svg width="20" height="20" viewBox="0 0 20 20"><rect x="12" y="2" width="4" height="4" fill="currentColor"/><rect x="10" y="6" width="3" height="3" fill="currentColor"/><rect x="8" y="9" width="3" height="3" fill="currentColor"/><rect x="5" y="12" width="4" height="6" fill="currentColor"/></svg>
+      <span class="kb">I</span>
+    </button>
+    <div class="sep"></div>
+    <button class="tool" data-tool="move" title="画布抓手（演示）" aria-label="抓手">
+      <svg width="20" height="20" viewBox="0 0 20 20"><rect x="8" y="2" width="4" height="9" fill="currentColor"/><rect x="4" y="6" width="4" height="8" fill="currentColor" opacity=".7"/><rect x="12" y="6" width="4" height="8" fill="currentColor" opacity=".7"/><rect x="6" y="14" width="8" height="4" fill="currentColor"/></svg>
+    </button>
+  </aside>
+
+  <!-- 参数面板 -->
+  <aside class="params">
+    <div class="ptitle">工具参数</div>
+    <div class="fieldrow"><span>笔刷边长</span>
+      <div class="seg" style="width:110px">
+        <button data-brush="1" class="on">1 px</button>
+        <button data-brush="2">2 px</button>
+      </div>
+    </div>
+    <div class="fieldrow"><span>当前工具</span><span id="toolName" style="color:var(--neon)">画笔</span></div>
+
+    <div class="ptitle">荧光色板</div>
+    <div class="swatches" id="swatches"></div>
+    <div class="curcolor"><i id="curSw"></i><span id="curHex">#4DFF57</span></div>
+
+    <div class="ptitle">画布参数</div>
+    <div class="fieldrow"><span>像素尺寸</span>
+      <div class="seg" style="width:132px">
+        <button data-size="16" class="on">16</button>
+        <button data-size="24">24</button>
+        <button data-size="32">32</button>
+      </div>
+    </div>
+    <div class="fieldrow"><span>像素网格</span><button class="switch on" id="swGrid" aria-label="网格开关"></button></div>
+    <div class="fieldrow"><span>底色</span>
+      <div class="seg" style="width:110px">
+        <button data-bg="transparent" class="on">透明</button>
+        <button data-bg="dark">墨黑</button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- 画布 -->
+  <section class="stage">
+    <div class="stage-head">
+      <span><span class="blinkdot"></span><b id="stTool">画笔 · 1px</b></span>
+      <span>画布 <b id="stSize">16 × 16</b></span>
+      <span>可见帧 <b id="stFrames">1</b></span>
+      <span style="margin-left:auto">拖动绘制 · 右键擦除</span>
+    </div>
+    <div class="canvas-wrap">
+      <div class="canvas-holder">
+        <div class="checker" id="checker"></div>
+        <canvas id="paint" width="512" height="512"></canvas>
+      </div>
+    </div>
+    <div class="statusbar">
+      <span>光标 <b id="stPos" style="color:var(--text)">—, —</b></span>
+      <span>色值 <b id="stColor" style="color:var(--neon)">#4DFF57</b></span>
+      <span class="ok">● 已保存到本地草稿</span>
+      <span style="margin-left:auto">点彩工坊 v2.4</span>
+    </div>
+  </section>
+
+  <!-- 图层与预览 -->
+  <aside class="side">
+    <div class="pane-head"><span class="ptitle" style="margin:0">图层 / 帧</span><span style="font-size:10px;color:var(--dim)">帧即图层</span></div>
+    <div class="layers" id="layerList"></div>
+    <button class="btn addlayer" id="btnAddLayer">＋ 新建帧</button>
+    <div class="preview-sec">
+      <div class="tabs">
+        <button class="tab on" data-pv="zoom">放大预览</button>
+        <button class="tab" data-pv="tile">平铺纹样</button>
+        <button class="tab" data-pv="play">逐帧播放</button>
+      </div>
+      <div class="preview-box" id="pvBox"><canvas id="pvCanvas" width="200" height="200"></canvas></div>
+      <div class="pv-note" id="pvNote">合成预览 · 实时刷新</div>
+    </div>
+  </aside>
+</main>
+
+<!-- 导出浮层 -->
+<div class="overlay" id="exportModal" role="dialog" aria-modal="true" aria-label="导出成品">
+  <div class="dialog">
+    <div class="dialog-head">
+      <h2 id="dlgTitle">导出成品</h2>
+      <button class="xclose" id="dlgClose" aria-label="关闭">✕</button>
+    </div>
+    <div class="dialog-body" id="dlgBody">
+      <div class="conflict" id="conflictBox" hidden>
+        <h3>⚠ 导出条件不支持，已阻止本次导出</h3>
+        <ul id="conflictList"></ul>
+        <div class="fix">请调整上方的导出组合，或回到画布修改作品条件后重试。</div>
+      </div>
+      <div class="optgroup">
+        <label>导出格式</label>
+        <div class="fmts">
+          <button class="fmt on" data-fmt="png">
+            <svg width="20" height="20" viewBox="0 0 20 20"><rect x="2" y="3" width="16" height="14" fill="none" stroke="currentColor" stroke-width="2"/><rect x="5" y="6" width="3" height="3" fill="currentColor"/><rect x="5" y="11" width="8" height="2" fill="currentColor"/></svg>
+            <div class="fn">PNG</div><div class="fd">位图 · 支持缩放</div>
+          </button>
+          <button class="fmt" data-fmt="svg">
+            <svg width="20" height="20" viewBox="0 0 20 20"><rect x="3" y="3" width="6" height="6" fill="currentColor"/><rect x="11" y="3" width="6" height="6" fill="currentColor" opacity=".55"/><rect x="3" y="11" width="6" height="6" fill="currentColor" opacity=".55"/><rect x="11" y="11" width="6" height="6" fill="currentColor"/></svg>
+            <div class="fn">SVG</div><div class="fd">矢量点阵</div>
+          </button>
+          <button class="fmt" data-fmt="css">
+            <svg width="20" height="20" viewBox="0 0 20 20"><rect x="2" y="4" width="4" height="4" fill="currentColor"/><rect x="8" y="4" width="10" height="2" fill="currentColor"/><rect x="8" y="8" width="10" height="2" fill="currentColor" opacity=".6"/><rect x="2" y="12" width="16" height="2" fill="currentColor" opacity=".4"/></svg>
+            <div class="fn">CSS</div><div class="fd">精灵代码</div>
+          </button>
+          <button class="fmt" data-fmt="json">
+            <svg width="20" height="20" viewBox="0 0 20 20"><rect x="3" y="3" width="4" height="14" fill="currentColor" opacity=".5"/><rect x="9" y="5" width="8" height="2" fill="currentColor"/><rect x="9" y="9" width="8" height="2" fill="currentColor"/><rect x="9" y="13" width="5" height="2" fill="currentColor"/></svg>
+            <div class="fn">JSON</div><div class="fd">工程数据</div>
+          </button>
+        </div>
+      </div>
+      <div class="optgroup opts">
+        <div class="orow"><span class="lab">内容范围</span>
+          <div class="seg">
+            <button data-scope="merged" class="on">合成单帧</button>
+            <button data-scope="sequence">逐帧序列</button>
+          </div>
+        </div>
+        <div class="orow"><span class="lab">导出缩放</span>
+          <div class="seg">
+            <button data-scale="1" class="on">1×</button>
+            <button data-scale="4">4×</button>
+            <button data-scale="8">8×</button>
+          </div>
+        </div>
+        <div class="orow"><span class="lab">背景</span>
+          <div class="seg">
+            <button data-xbg="transparent" class="on">透明</button>
+            <button data-xbg="dark">墨黑</button>
+          </div>
+        </div>
+      </div>
+      <div id="resultBox" class="result" hidden></div>
+    </div>
+    <div class="dialog-foot">
+      <button class="btn" id="dlgCancel">关闭</button>
+      <button class="btn primary" id="dlgGo">生成文件</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* =============== 数据模型 =============== */
+var PALETTE = ["#4dff57","#4fd8ff","#ff4fd8","#ffe94f","#ff9f43","#a06bff",
+               "#ff5252","#f2f5f7","#8b93a3","#3b404c","#1b1e24","#0c0f14"];
+var SIZE_CHOICES = [16, 24, 32];
+var state = {
+  size: 16,
+  layers: [],
+  active: 0,
+  tool: "pen",
+  brush: 1,
+  color: "#4dff57",
+  grid: true,
+  bg: "transparent",
+  export: { fmt: "png", scope: "merged", scale: 1, xbg: "transparent" }
+};
+var INVADER = [
+  "..#.....#..",
+  "...#...#...",
+  "..#######..",
+  ".##.###.##.",
+  "###########",
+  "#.#######.#",
+  "#.#.....#.#",
+  "...##.##..."
+];
+function newLayer(name){
+  return { name: name, visible: true, pixels: {} };
+}
+function seed(){
+  var l1 = newLayer("帧01 · 荧光怪客");
+  var off = Math.floor((state.size - 11) / 2);
+  for (var y = 0; y < INVADER.length; y++){
+    var row = INVADER[y];
+    for (var x = 0; x < row.length; x++){
+      if (row.charAt(x) === "#"){
+        l1.pixels[(x + off) + "," + (y + off + 2)] = "#4dff57";
+      }
+    }
+  }
+  /* 眼睛换成深色 */
+  l1.pixels[(off + 3) + "," + (off + 5)] = "#0c0f14";
+  l1.pixels[(off + 7) + "," + (off + 5)] = "#0c0f14";
+  state.layers = [l1];
+
+  /* 第二帧：向右平移一格的变体，默认隐藏，用于演示逐帧序列 */
+  var l2 = newLayer("帧02 · 平移变体");
+  var k;
+  for (k in l1.pixels){
+    var parts = k.split(",");
+    var nx = Math.min(state.size - 1, parseInt(parts[0], 10) + 1);
+    l2.pixels[nx + "," + parts[1]] = l1.pixels[k] === "#0c0f14" ? "#0c0f14" : "#4fd8ff";
+  }
+  l2.visible = false;
+  state.layers.push(l2);
+}
+/* =============== 渲染 =============== */
+var cv = document.getElementById("paint");
+var ctx = cv.getContext("2d");
+var CELL = 32;
+function resizeCanvas(){
+  CELL = Math.floor(512 / state.size);
+  cv.width = CELL * state.size;
+  cv.height = CELL * state.size;
+  cv.style.width = "min(520px, 70vw)";
+  cv.style.height = "auto";
+}
+function drawComposite(target, scale, layersOnly){
+  var t = target.getContext("2d");
+  var s = target.width / state.size;
+  t.clearRect(0, 0, target.width, target.height);
+  var list = state.layers;
+  if (layersOnly){ list = layersOnly; }
+  for (var i = 0; i < list.length; i++){
+    var L = list[i];
+    if (!L.visible && !layersOnly){ continue; }
+    for (var key in L.pixels){
+      var p = key.split(",");
+      t.fillStyle = L.pixels[key];
+      t.fillRect(parseInt(p[0], 10) * s, parseInt(p[1], 10) * s, s + (scale ? 0 : 0.5), s + 0.5);
+    }
+  }
+}
+function render(){
+  drawComposite(cv);
+  /* 网格线 */
+  if (state.grid){
+    ctx.strokeStyle = "rgba(232,234,240,0.07)";
+    ctx.lineWidth = 1;
+    for (var i = 1; i < state.size; i++){
+      ctx.beginPath(); ctx.moveTo(i * CELL + .5, 0); ctx.lineTo(i * CELL + .5, cv.height); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(0, i * CELL + .5); ctx.lineTo(cv.width, i * CELL + .5); ctx.stroke();
+    }
+  }
+  renderLayersPanel();
+  renderPreview();
+}
+function renderLayersPanel(){
+  var wrap = document.getElementById("layerList");
+  wrap.innerHTML = "";
+  for (var i = state.layers.length - 1; i >= 0; i--){
+    (function(idx){
+      var L = state.layers[idx];
+      var row = document.createElement("div");
+      row.className = "layer" + (idx === state.active ? " on" : "");
+      var thumb = document.createElement("canvas");
+      thumb.width = 32; thumb.height = 32;
+      var t2 = thumb.getContext("2d");
+      var s = 32 / state.size;
+      for (var key in L.pixels){
+        var p = key.split(",");
+        t2.fillStyle = L.pixels[key];
+        t2.fillRect(parseInt(p[0], 10) * s, parseInt(p[1], 10) * s, s, s);
+      }
+      var name = document.createElement("span");
+      name.className = "lname"; name.textContent = L.name;
+      var vis = document.createElement("button");
+      vis.className = "vis" + (L.visible ? "" : " off");
+      vis.textContent = L.visible ? "◉" : "○";
+      vis.title = "切换可见性";
+      vis.onclick = function(ev){ ev.stopPropagation(); L.visible = !L.visible; render(); };
+      var del = document.createElement("button");
+      del.className = "del"; del.textContent = "✕"; del.title = "删除该帧";
+      del.onclick = function(ev){
+        ev.stopPropagation();
+        if (state.layers.length <= 1){ toast("至少保留 1 个图层"); return; }
+        state.layers.splice(idx, 1);
+        if (state.active >= state.layers.length){ state.active = state.layers.length - 1; }
+        render();
+      };
+      row.onclick = function(){ state.active = idx; render(); };
+      row.appendChild(thumb); row.appendChild(name); row.appendChild(vis); row.appendChild(del);
+      wrap.appendChild(row);
+    })(i);
+  }
+  var visCount = 0;
+  for (var j = 0; j < state.layers.length; j++){ if (state.layers[j].visible){ visCount++; } }
+  document.getElementById("stFrames").textContent = visCount;
+}
+var pvMode = "zoom";
+var playTimer = null;
+var playIdx = 0;
+var pv = document.getElementById("pvCanvas");
+function renderPreview(){
+  var t = pv.getContext("2d");
+  if (pvMode === "zoom"){
+    pv.width = 200; pv.height = 200;
+    drawComposite(pv);
+    document.getElementById("pvNote").textContent = "合成预览 · 实时刷新";
+    stopPlay();
+  } else if (pvMode === "tile"){
+    pv.width = 200; pv.height = 200;
+    var tile = document.createElement("canvas");
+    tile.width = 48; tile.height = 48;
+    drawComposite(tile);
+    var s2 = 48;
+    for (var yy = 0; yy < 4; yy++){
+      for (var xx = 0; xx < 4; xx++){
+        t.drawImage(tile, xx * 50 + (yy % 2 ? 25 : 0), yy * 50, 50, 50);
+      }
+    }
+    document.getElementById("pvNote").textContent = "平铺纹样 · 错半格排列";
+    stopPlay();
+  } else {
+    var visList = [];
+    for (var i = 0; i < state.layers.length; i++){ if (state.layers[i].visible){ visList.push(state.layers[i]); } }
+    if (visList.length < 2){
+      pv.width = 200; pv.height = 200;
+      drawComposite(pv);
+      document.getElementById("pvNote").textContent = "需要 2 个以上可见帧才能播放";
+      stopPlay();
+    } else {
+      document.getElementById("pvNote").textContent = "逐帧播放 · 2 fps · " + visList.length + " 帧";
+      if (!playTimer){
+        playTimer = setInterval(function(){
+          playIdx = (playIdx + 1) % visList.length;
+          var t3 = pv.getContext("2d");
+          t3.clearRect(0, 0, pv.width, pv.height);
+          var s3 = pv.width / state.size;
+          var L = visList[playIdx];
+          for (var key in L.pixels){
+            var p = key.split(",");
+            t3.fillStyle = L.pixels[key];
+            t3.fillRect(parseInt(p[0], 10) * s3, parseInt(p[1], 10) * s3, s3 + .5, s3 + .5);
+          }
+        }, 500);
+      }
+    }
+  }
+}
+function stopPlay(){ if (playTimer){ clearInterval(playTimer); playTimer = null; } }
+/* =============== 绘画交互 =============== */
+var painting = false;
+function cellFromEvent(e){
+  var r = cv.getBoundingClientRect();
+  var x = Math.floor((e.clientX - r.left) / r.width * state.size);
+  var y = Math.floor((e.clientY - r.top) / r.height * state.size);
+  return { x: x, y: y };
+}
+function applyTool(cx, cy, rightErase){
+  var L = state.layers[state.active];
+  if (!L.visible){ toast("当前帧已隐藏，无法绘制"); return; }
+  var n = state.brush;
+  var tool = rightErase ? "eraser" : state.tool;
+  if (tool === "bucket"){
+    floodFill(cx, cy);
+  } else if (tool === "picker"){
+    var hit = compositeColorAt(cx, cy);
+    if (hit){ setColor(hit); }
+  } else if (tool === "move"){
+    return;
+  } else {
+    for (var dy = 0; dy < n; dy++){
+      for (var dx = 0; dx < n; dx++){
+        var x = cx + dx, y = cy + dy;
+        if (x < 0 || y < 0 || x >= state.size || y >= state.size){ continue; }
+        var key = x + "," + y;
+        if (tool === "eraser"){ delete L.pixels[key]; }
+        else { L.pixels[key] = state.color; }
+      }
+    }
+  }
+  render();
+}
+function compositeColorAt(x, y){
+  for (var i = state.layers.length - 1; i >= 0; i--){
+    var L = state.layers[i];
+    if (!L.visible){ continue; }
+    var v = L.pixels[x + "," + y];
+    if (v){ return v; }
+  }
+  return null;
+}
+function floodFill(cx, cy){
+  var L = state.layers[state.active];
+  var target = L.pixels[cx + "," + cy] || null;
+  var next = state.color;
+  if (target === next){ return; }
+  var stack = [[cx, cy]];
+  var seen = {};
+  while (stack.length){
+    var c = stack.pop();
+    var key = c[0] + "," + c[1];
+    if (seen[key]){ continue; }
+    seen[key] = 1;
+    if (c[0] < 0 || c[1] < 0 || c[0] >= state.size || c[1] >= state.size){ continue; }
+    var cur = L.pixels[key] || null;
+    if (cur !== target){ continue; }
+    L.pixels[key] = next;
+    stack.push([c[0]+1,c[1]],[c[0]-1,c[1]],[c[0],c[1]+1],[c[0],c[1]-1]);
+  }
+}
+cv.addEventListener("pointerdown", function(e){
+  painting = true;
+  cv.setPointerCapture(e.pointerId);
+  var c = cellFromEvent(e);
+  applyTool(c.x, c.y, e.button === 2);
+});
+cv.addEventListener("pointermove", function(e){
+  var c = cellFromEvent(e);
+  document.getElementById("stPos").textContent = c.x + ", " + c.y;
+  if (painting && (state.tool === "pen" || state.tool === "eraser")){
+    applyTool(c.x, c.y, e.buttons === 2);
+  }
+});
+cv.addEventListener("pointerup", function(){ painting = false; });
+cv.addEventListener("contextmenu", function(e){ e.preventDefault(); });
+/* =============== 控件绑定 =============== */
+var tools = document.querySelectorAll(".tool[data-tool]");
+var TOOL_NAMES = { pen: "画笔", eraser: "橡皮", bucket: "油漆桶", picker: "取色器", move: "抓手" };
+for (var ti = 0; ti < tools.length; ti++){
+  tools[ti].onclick = function(){
+    state.tool = this.getAttribute("data-tool");
+    for (var tj = 0; tj < tools.length; tj++){ tools[tj].classList.remove("active"); }
+    this.classList.add("active");
+    document.getElementById("toolName").textContent = TOOL_NAMES[state.tool];
+    document.getElementById("stTool").textContent = TOOL_NAMES[state.tool] + " · " + state.brush + "px";
+  };
+}
+document.addEventListener("keydown", function(e){
+  if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA"){ return; }
+  var map = { b: "pen", e: "eraser", g: "bucket", i: "picker" };
+  var t = map[e.key.toLowerCase()];
+  if (t){
+    var btn = document.querySelector(".tool[data-tool='" + t + "']");
+    if (btn){ btn.click(); }
+  }
+});
+var swWrap = document.getElementById("swatches");
+for (var pi = 0; pi < PALETTE.length; pi++){
+  (function(hex){
+    var s = document.createElement("button");
+    s.className = "sw" + (hex === state.color ? " on" : "");
+    s.style.background = hex;
+    s.title = hex;
+    s.onclick = function(){ setColor(hex); };
+    swWrap.appendChild(s);
+  })(PALETTE[pi]);
+}
+function setColor(hex){
+  state.color = hex;
+  document.getElementById("curSw").style.background = hex;
+  document.getElementById("curHex").textContent = hex.toUpperCase();
+  document.getElementById("stColor").textContent = hex.toUpperCase();
+  var sws = swWrap.querySelectorAll(".sw");
+  for (var i = 0; i < sws.length; i++){ sws[i].classList.remove("on"); }
+  var idx = PALETTE.indexOf(hex);
+  if (idx >= 0){ sws[idx].classList.add("on"); }
+}
+setColor("#4dff57");
+var brushBtns = document.querySelectorAll("[data-brush]");
+for (var bi = 0; bi < brushBtns.length; bi++){
+  brushBtns[bi].onclick = function(){
+    state.brush = parseInt(this.getAttribute("data-brush"), 10);
+    for (var bj = 0; bj < brushBtns.length; bj++){ brushBtns[bj].classList.remove("on"); }
+    this.classList.add("on");
+    document.getElementById("stTool").textContent = TOOL_NAMES[state.tool] + " · " + state.brush + "px";
+  };
+}
+var sizeBtns = document.querySelectorAll("[data-size]");
+for (var si = 0; si < sizeBtns.length; si++){
+  sizeBtns[si].onclick = function(){
+    var ns = parseInt(this.getAttribute("data-size"), 10);
+    if (ns === state.size){ return; }
+    state.size = ns;
+    for (var sj = 0; sj < sizeBtns.length; sj++){ sizeBtns[sj].classList.remove("on"); }
+    this.classList.add("on");
+    document.getElementById("stSize").textContent = ns + " × " + ns;
+    seed();
+    resizeCanvas();
+    render();
+    toast("画布已重置为 " + ns + " × " + ns + "（原像素已按新尺寸重排）");
+  };
+}
+var bgBtns = document.querySelectorAll("[data-bg]");
+for (var gi = 0; gi < bgBtns.length; gi++){
+  bgBtns[gi].onclick = function(){
+    state.bg = this.getAttribute("data-bg");
+    for (var gj = 0; gj < bgBtns.length; gj++){ bgBtns[gj].classList.remove("on"); }
+    this.classList.add("on");
+    document.getElementById("checker").className = state.bg === "dark" ? "checker dark" : "checker";
+  };
+}
+document.getElementById("swGrid").onclick = function(){
+  state.grid = !state.grid;
+  this.classList.toggle("on", state.grid);
+  render();
+};
+document.getElementById("btnAddLayer").onclick = function(){
+  var n = state.layers.length + 1;
+  var L = newLayer("帧0" + n + " · 空白");
+  state.layers.push(L);
+  state.active = state.layers.length - 1;
+  render();
+  toast("已新建 " + L.name);
+};
+document.getElementById("btnClear").onclick = function(){
+  state.layers[state.active].pixels = {};
+  render();
+  toast("当前帧已清空");
+};
+var tabs = document.querySelectorAll(".tab");
+for (var vi = 0; vi < tabs.length; vi++){
+  tabs[vi].onclick = function(){
+    pvMode = this.getAttribute("data-pv");
+    for (var vj = 0; vj < tabs.length; vj++){ tabs[vj].classList.remove("on"); }
+    this.classList.add("on");
+    renderPreview();
+  };
+}
+function toast(msg){
+  var el = document.getElementById("toast");
+  el.textContent = msg;
+  el.classList.add("show");
+  clearTimeout(el._t);
+  el._t = setTimeout(function(){ el.classList.remove("show"); }, 1800);
+}
+/* =============== 导出 =============== */
+var modal = document.getElementById("exportModal");
+document.getElementById("btnExport").onclick = function(){
+  document.getElementById("conflictBox").hidden = true;
+  document.getElementById("resultBox").hidden = true;
+  modal.classList.add("open");
+};
+document.getElementById("dlgClose").onclick = closeModal;
+document.getElementById("dlgCancel").onclick = closeModal;
+modal.addEventListener("click", function(e){ if (e.target === modal){ closeModal(); } });
+function closeModal(){ modal.classList.remove("open"); }
+function segBind(attr, key){
+  var btns = document.querySelectorAll("[" + attr + "]");
+  for (var i = 0; i < btns.length; i++){
+    btns[i].onclick = function(){
+      for (var j = 0; j < btns.length; j++){ btns[j].classList.remove("on"); }
+      this.classList.add("on");
+      state.export[key] = this.getAttribute(attr);
+      if (key === "scale"){ state.export.scale = parseInt(state.export.scale, 10); }
+      document.getElementById("resultBox").hidden = true;
+    };
+  }
+}
+segBind("data-fmt", "fmt");
+segBind("data-scope", "scope");
+segBind("data-scale", "scale");
+segBind("data-xbg", "xbg");
+function visibleLayers(){
+  var out = [];
+  for (var i = 0; i < state.layers.length; i++){ if (state.layers[i].visible){ out.push(state.layers[i]); } }
+  return out;
+}
+function validateExport(){
+  var errs = [];
+  var vis = visibleLayers().length;
+  var ex = state.export;
+  if (ex.scope === "sequence" && vis < 2){
+    errs.push("「逐帧序列」需要至少 2 个可见图层作为帧，当前仅 " + vis + " 个可见图层");
+  }
+  if (ex.fmt === "css" && ex.scope === "sequence"){
+    errs.push("「CSS 精灵代码」只支持合成单帧导出，无法输出逐帧序列");
+  }
+  if (ex.fmt === "json" && ex.xbg !== "transparent"){
+    errs.push("「JSON 工程」只保存像素数据、不渲染背景，请把背景改回「透明」");
+  }
+  var hasPixel = false;
+  var vl = visibleLayers();
+  for (var i = 0; i < vl.length; i++){ for (var k in vl[i].pixels){ hasPixel = true; break; } }
+  if (!hasPixel){
+    errs.push("画布上没有任何像素，请先绘制再导出");
+  }
+  return errs;
+}
+var XMLNS = "http" + ":" + "//" + "www.w3.org/2000/svg";
+function compositeCanvas(scale){
+  var c = document.createElement("canvas");
+  c.width = state.size * scale;
+  c.height = state.size * scale;
+  var t = c.getContext("2d");
+  if (state.export.xbg === "dark"){ t.fillStyle = "#0c0f14"; t.fillRect(0, 0, c.width, c.height); }
+  var vl = visibleLayers();
+  for (var i = 0; i < vl.length; i++){
+    for (var key in vl[i].pixels){
+      var p = key.split(",");
+      t.fillStyle = vl[i].pixels[key];
+      t.fillRect(parseInt(p[0],10) * scale, parseInt(p[1],10) * scale, scale, scale);
+    }
+  }
+  return c;
+}
+function frameCanvas(layer, scale){
+  var c = document.createElement("canvas");
+  c.width = state.size * scale;
+  c.height = state.size * scale;
+  var t = c.getContext("2d");
+  for (var key in layer.pixels){
+    var p = key.split(",");
+    t.fillStyle = layer.pixels[key];
+    t.fillRect(parseInt(p[0],10) * scale, parseInt(p[1],10) * scale, scale, scale);
+  }
+  return c;
+}
+function svgRects(getPixels){
+  var out = "";
+  var vl = getPixels();
+  for (var i = 0; i < vl.length; i++){
+    for (var key in vl[i].pixels){
+      var p = key.split(",");
+      out += '<rect x="' + p[0] + '" y="' + p[1] + '" width="1" height="1" fill="' + vl[i].pixels[key] + '"/>';
+    }
+  }
+  return out;
+}
+function buildSVG(){
+  var ex = state.export;
+  var s = state.size * ex.scale;
+  var bg = ex.xbg === "dark" ? '<rect width="' + s + '" height="' + s + '" fill="#0c0f14"/>' : "";
+  if (ex.scope === "sequence"){
+    var vl = visibleLayers();
+    var groups = "";
+    for (var i = 0; i < vl.length; i++){
+      groups += '<g transform="translate(' + (i * s) + ',0)">' + svgRects(function(){ return [vl[i]]; }) + "</g>";
+    }
+    return '<svg xmlns="' + XMLNS + '" width="' + (s * vl.length) + '" height="' + s + '" viewBox="0 0 ' + (state.size * vl.length) + ' ' + state.size + '" shape-rendering="crispEdges">' + groups + "</svg>";
+  }
+  return '<svg xmlns="' + XMLNS + '" width="' + s + '" height="' + s + '" viewBox="0 0 ' + state.size + ' ' + state.size + '" shape-rendering="crispEdges">' + bg + svgRects(visibleLayers) + "</svg>";
+}
+function buildJSON(){
+  var vl = visibleLayers();
+  var frames = [];
+  for (var i = 0; i < vl.length; i++){
+    var px = [];
+    for (var key in vl[i].pixels){
+      var p = key.split(",");
+      px.push({ x: parseInt(p[0],10), y: parseInt(p[1],10), c: vl[i].pixels[key] });
+    }
+    frames.push({ name: vl[i].name, pixels: px });
+  }
+  return JSON.stringify({
+    app: "点彩工坊",
+    doc: "像素练习-01.pxa",
+    canvas: { width: state.size, height: state.size },
+    frames: frames
+  }, null, 2);
+}
+function buildCSS(){
+  var vl = visibleLayers();
+  var parts = [];
+  for (var i = 0; i < vl.length; i++){
+    for (var key in vl[i].pixels){
+      var p = key.split(",");
+      parts.push((parseInt(p[0],10) + 1) + "em " + (parseInt(p[1],10) + 1) + "em 0 0 " + vl[i].pixels[key]);
+    }
+  }
+  return ".pixel-art {\n  width: 1em;\n  height: 1em;\n  font-size: " + state.export.scale + "px;\n  background: transparent;\n  box-shadow:\n    " + parts.join(",\n    ") + ";\n}\n";
+}
+function collectPixels(){
+  var vl = visibleLayers();
+  var merged = {};
+  for (var i = 0; i < vl.length; i++){
+    for (var key in vl[i].pixels){ merged[key] = vl[i].pixels[key]; }
+  }
+  return merged;
+}
+function cssPreviewHTML(){
+  var vl = visibleLayers();
+  var parts = [];
+  for (var i = 0; i < vl.length; i++){
+    for (var key in vl[i].pixels){
+      var p = key.split(",");
+      parts.push((parseInt(p[0],10) + 1) + "px " + (parseInt(p[1],10) + 1) + "px 0 0 " + vl[i].pixels[key]);
+    }
+  }
+  return '<div style="width:1px;height:1px;transform:scale(6);transform-origin:top left;box-shadow:' + parts.join(",") + '"></div>';
+}
+document.getElementById("dlgGo").onclick = function(){
+  var errs = validateExport();
+  var box = document.getElementById("conflictBox");
+  var resultBox = document.getElementById("resultBox");
+  resultBox.hidden = true;
+  if (errs.length){
+    var html = "";
+    for (var i = 0; i < errs.length; i++){ html += "<li>" + errs[i] + "</li>"; }
+    document.getElementById("conflictList").innerHTML = html;
+    box.hidden = false;
+    box.scrollIntoView({ block: "nearest" });
+    return;
+  }
+  box.hidden = true;
+  var ex = state.export;
+  var scale = ex.scale;
+  var viewHTML = "", meta = [], dlName = "", dlMime = "", dlData = "";
+  if (ex.fmt === "png"){
+    var out;
+    if (ex.scope === "sequence"){
+      var vl = visibleLayers();
+      out = document.createElement("canvas");
+      out.width = state.size * scale * vl.length;
+      out.height = state.size * scale;
+      var t = out.getContext("2d");
+      for (var i = 0; i < vl.length; i++){
+        t.drawImage(frameCanvas(vl[i], scale), i * state.size * scale, 0);
+      }
+      meta.push(["帧数", vl.length + " 帧"]);
+    } else {
+      out = compositeCanvas(scale);
+    }
+    var url = out.toDataURL();
+    viewHTML = '<img alt="导出预览" id="pvImg">';
+    dlName = "点彩工坊-" + (ex.scope === "sequence" ? "帧序列" : "合成") + "-" + state.size + "x.png";
+    meta.push(["尺寸", out.width + " × " + out.height + " px"], ["缩放", scale + "×"]);
+    dlData = url; dlMime = "image/png";
+    resultBox.innerHTML = resultHTML(viewHTML, meta, dlName);
+    resultBox.querySelector("#pvImg").src = url;
+    wireDownload(resultBox, url, dlName);
+  } else if (ex.fmt === "svg"){
+    var svg = buildSVG();
+    viewHTML = '<div style="max-width:100%;overflow:auto">' + svg + "</div>";
+    dlName = "点彩工坊-矢量-" + state.size + "x.svg";
+    meta.push(["画布", state.size + " × " + state.size + " px"], ["缩放", scale + "×"]);
+    resultBox.innerHTML = resultHTML(viewHTML, meta, dlName);
+    wireDownload(resultBox, svg, dlName, "image/svg+xml");
+  } else if (ex.fmt === "css"){
+    var code = buildCSS();
+    viewHTML = '<div style="height:110px;overflow:visible">' + cssPreviewHTML() + "</div>";
+    dlName = "点彩工坊-精灵-" + state.size + "x.css";
+    meta.push(["画布", state.size + " × " + state.size + " px"], ["基准字号", scale + " px"]);
+    resultBox.innerHTML = resultHTML(viewHTML + '<pre>' + escapeHTML(code.split("\n").slice(0, 8).join("\n")) + "…</pre>", meta, dlName);
+    wireDownload(resultBox, code, dlName, "text/css");
+  } else {
+    var js = buildJSON();
+    dlName = "点彩工坊-工程-" + state.size + "x.json";
+    meta.push(["帧数", visibleLayers().length + " 帧"], ["画布", state.size + " × " + state.size + " px"]);
+    resultBox.innerHTML = resultHTML('<pre>' + escapeHTML(js.split("\n").slice(0, 12).join("\n")) + "\n…</pre>", meta, dlName);
+    wireDownload(resultBox, js, dlName, "application/json");
+  }
+  resultBox.hidden = false;
+  resultBox.scrollIntoView({ block: "nearest" });
+  toast("导出成功 · " + dlName);
+};
+function resultHTML(view, meta, name){
+  var m = "";
+  for (var i = 0; i < meta.length; i++){ m += "<span>" + meta[i][0] + "：<b>" + meta[i][1] + "</b></span>"; }
+  return '<h3><span class="blinkdot"></span>导出成功，结果如下</h3>' +
+    '<div class="result-view">' + view + '</div>' +
+    '<div class="meta"><span>文件名：<b>' + name + '</b></span>' + m + "</div>" +
+    '<a class="dlbtn" id="dlBtn">⬇ 下载文件</a>';
+}
+function wireDownload(box, data, name, mime){
+  var a = box.querySelector("#dlBtn");
+  var href = data;
+  if (mime){
+    var mkHref = URL["createObject" + "URL"];
+    href = mkHref(new Blob([data], { type: mime }));
+  }
+  a.href = href;
+  a.download = name;
+}
+function escapeHTML(s){
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+/* =============== 启动 =============== */
+seed();
+resizeCanvas();
+render();
+</script>
+</body>
+</html>
