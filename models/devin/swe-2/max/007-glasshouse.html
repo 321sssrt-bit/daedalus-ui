@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>圃园 · 欢迎回来</title>
+<style>
+  :root{
+    --bg:#edf3ea;
+    --surface:#ffffff;
+    --surface-soft:#f6faf3;
+    --leaf:#3f7d4e;
+    --leaf-deep:#2c5a38;
+    --leaf-pale:#dcebdd;
+    --terra:#c4734e;
+    --terra-soft:#f2ded2;
+    --ink:#2e3b30;
+    --muted:#78897b;
+    --line:#dce6d9;
+    --sun:#e8b34b;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    font-family:-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    background:var(--bg);color:var(--ink);min-height:100vh;
+  }
+  .nav{max-width:1080px;margin:0 auto;padding:22px 32px;display:flex;align-items:center;justify-content:space-between}
+  .brand{display:flex;align-items:center;gap:9px;font-size:17px;font-weight:700;color:var(--leaf-deep);letter-spacing:2px}
+  .navlinks{display:flex;gap:26px;font-size:13px;color:var(--muted)}
+  .navlinks a{color:inherit;text-decoration:none;padding:4px 2px;border-bottom:2px solid transparent}
+  .navlinks a.on{color:var(--leaf-deep);border-bottom-color:var(--terra)}
+  .navlinks a:hover{color:var(--leaf-deep)}
+  main{max-width:960px;margin:0 auto;padding:8px 32px 80px;text-align:center}
+  .hero{margin:18px auto 6px;width:440px;max-width:92%}
+  h1{font-size:30px;font-weight:700;letter-spacing:1px;color:var(--leaf-deep);margin-top:10px}
+  .sub{margin:14px auto 0;max-width:520px;font-size:15px;line-height:1.9;color:var(--muted)}
+  .sub b{color:var(--terra);font-weight:600}
+  .cta-row{margin-top:30px;display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+  .btn-primary{
+    height:50px;padding:0 34px;border:none;border-radius:999px;cursor:pointer;
+    background:var(--leaf);color:#fff;font-size:15px;font-weight:600;letter-spacing:2px;font-family:inherit;
+    box-shadow:0 8px 20px rgba(63,125,78,.28);transition:background .15s,transform .15s;
+  }
+  .btn-primary:hover{background:var(--leaf-deep);transform:translateY(-1px)}
+  .btn-primary:disabled{background:#a9bca9;cursor:not-allowed;box-shadow:none;transform:none}
+  .btn-ghost{
+    height:50px;padding:0 28px;border-radius:999px;cursor:pointer;
+    background:transparent;color:var(--leaf-deep);font-size:15px;font-weight:500;letter-spacing:1px;font-family:inherit;
+    border:1.5px solid var(--line);transition:border-color .15s,background .15s;
+  }
+  .btn-ghost:hover{border-color:var(--leaf);background:rgba(63,125,78,.06)}
+  .hint{margin-top:16px;font-size:12px;color:var(--muted)}
+  .picker{
+    display:none;margin:34px auto 0;max-width:720px;text-align:left;
+    background:var(--surface);border:1px solid var(--line);border-radius:20px;
+    padding:26px 28px 24px;box-shadow:0 14px 34px rgba(62,90,66,.10);
+  }
+  .picker.show{display:block;animation:rise .35s ease-out}
+  @keyframes rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+  .picker h2{font-size:16px;color:var(--leaf-deep);letter-spacing:1px}
+  .picker .tip{font-size:13px;color:var(--muted);margin-top:6px}
+  .plants{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:18px}
+  .plant{
+    border:1.5px solid var(--line);border-radius:16px;padding:18px 14px 14px;cursor:pointer;
+    background:var(--surface-soft);text-align:center;transition:border-color .15s,box-shadow .15s,transform .15s;
+  }
+  .plant:hover{border-color:var(--leaf);transform:translateY(-2px)}
+  .plant.sel{border-color:var(--leaf);box-shadow:0 0 0 3px var(--leaf-pale);background:#fff}
+  .plant .pv{width:64px;height:64px;margin:0 auto}
+  .plant h3{font-size:14px;margin-top:10px;color:var(--ink)}
+  .plant p{font-size:12px;color:var(--muted);margin-top:5px;line-height:1.6}
+  .plant .days{display:inline-block;margin-top:8px;font-size:11px;color:var(--terra);background:var(--terra-soft);border-radius:999px;padding:3px 10px}
+  .picker-foot{margin-top:20px;display:flex;align-items:center;justify-content:space-between}
+  .picker-foot .note{font-size:12px;color:var(--muted)}
+  .btn-sow{
+    height:44px;padding:0 26px;border:none;border-radius:999px;cursor:pointer;
+    background:var(--terra);color:#fff;font-size:14px;font-weight:600;letter-spacing:2px;font-family:inherit;
+    transition:background .15s;
+  }
+  .btn-sow:hover:not(:disabled){background:#a95f3d}
+  .btn-sow:disabled{background:#dcc9bd;cursor:not-allowed}
+  .examples{display:none;margin:30px auto 0;max-width:760px;text-align:left}
+  .examples.show{display:block;animation:rise .35s ease-out}
+  .examples h2{font-size:14px;color:var(--leaf-deep);letter-spacing:1px;margin-bottom:12px}
+  .exgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  .excard{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px}
+  .excard .ttl{font-size:13px;font-weight:600;color:var(--ink)}
+  .excard .meta{font-size:12px;color:var(--muted);margin-top:6px;line-height:1.6}
+  .excard .bar{margin-top:10px;height:6px;border-radius:3px;background:var(--leaf-pale);overflow:hidden}
+  .excard .bar i{display:block;height:100%;border-radius:3px;background:var(--leaf)}
+  .result{
+    display:none;margin:34px auto 0;max-width:560px;
+    background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:28px;
+    box-shadow:0 14px 34px rgba(62,90,66,.10);text-align:center;
+  }
+  .result.show{display:block;animation:rise .35s ease-out}
+  .result h2{font-size:17px;color:var(--leaf-deep)}
+  .result p{font-size:13px;color:var(--muted);margin-top:8px;line-height:1.8}
+  .result .again{margin-top:16px;background:none;border:none;color:var(--terra);font-size:13px;cursor:pointer;text-decoration:underline;text-underline-offset:3px;font-family:inherit}
+  .toast{
+    position:fixed;left:50%;bottom:28px;transform:translate(-50%,20px);
+    background:var(--leaf-deep);color:#fff;font-size:13px;padding:12px 22px;border-radius:999px;
+    opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;letter-spacing:1px;
+  }
+  .toast.show{opacity:1;transform:translate(-50%,0)}
+  @media (max-width:768px){
+    .nav{padding:18px 20px}
+    .navlinks{gap:14px;font-size:12px}
+    main{padding:8px 20px 60px}
+    h1{font-size:24px}
+    .plants,.exgrid{grid-template-columns:1fr}
+    .hero{width:300px}
+  }
+  @media (prefers-reduced-motion: reduce){
+    *,*::before,*::after{animation:none !important;transition:none !important}
+    .picker.show,.examples.show,.result.show{animation:none}
+  }
+</style>
+</head>
+<body>
+<nav class="nav">
+  <div class="brand">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M12 21V11" stroke="#2c5a38" stroke-width="1.8" stroke-linecap="round"/>
+      <path d="M12 11C12 6.5 8.5 4 4 4c0 5 3.5 7.5 8 7" fill="#3f7d4e"/>
+      <path d="M12 13c0-4.5 3.5-7 8-7 0 5-3.5 7.5-8 7" fill="#63a06f"/>
+    </svg>
+    圃园
+  </div>
+  <div class="navlinks">
+    <a class="on" href="#garden">我的园子</a>
+    <a href="#explore">探索</a>
+    <a href="#care">养护手册</a>
+    <a href="#me">我的</a>
+  </div>
+</nav>
+<main id="garden">
+  <svg class="hero" viewBox="0 0 440 300" aria-hidden="true">
+    <circle cx="356" cy="52" r="26" fill="#e8b34b" opacity=".85"/>
+    <path d="M60 270V150C60 84 142 40 220 40s160 44 160 110v120" fill="none" stroke="#3f7d4e" stroke-width="4" stroke-linecap="round"/>
+    <path d="M84 270V156c0-52 62-88 136-88s136 36 136 88v114" fill="none" stroke="#a8c8ab" stroke-width="2"/>
+    <line x1="220" y1="40" x2="220" y2="270" stroke="#a8c8ab" stroke-width="2"/>
+    <line x1="60" y1="176" x2="380" y2="176" stroke="#a8c8ab" stroke-width="2"/>
+    <line x1="60" y1="232" x2="380" y2="232" stroke="#a8c8ab" stroke-width="2"/>
+    <line x1="118" y1="76" x2="118" y2="270" stroke="#c9decb" stroke-width="1.5"/>
+    <line x1="322" y1="76" x2="322" y2="270" stroke="#c9decb" stroke-width="1.5"/>
+    <g>
+      <rect x="96" y="222" width="44" height="34" rx="5" fill="#c4734e"/>
+      <rect x="92" y="216" width="52" height="10" rx="4" fill="#a95f3d"/>
+      <path d="M118 216c0-22-14-30-14-30s-2 16 4 24" fill="#3f7d4e"/>
+      <path d="M118 216c0-26 16-34 16-34s3 18-5 27" fill="#63a06f"/>
+      <path d="M118 216c0-18-8-24-8-24" stroke="#2c5a38" stroke-width="2" fill="none"/>
+    </g>
+    <g>
+      <rect x="198" y="216" width="50" height="40" rx="5" fill="#c4734e"/>
+      <rect x="194" y="209" width="58" height="11" rx="4" fill="#a95f3d"/>
+      <circle cx="223" cy="188" r="17" fill="#63a06f"/>
+      <circle cx="209" cy="196" r="11" fill="#3f7d4e"/>
+      <circle cx="237" cy="196" r="11" fill="#3f7d4e"/>
+      <rect x="220" y="200" width="6" height="16" fill="#8a6a4a"/>
+    </g>
+    <g>
+      <rect x="306" y="228" width="40" height="28" rx="5" fill="#c4734e"/>
+      <rect x="302" y="222" width="48" height="9" rx="4" fill="#a95f3d"/>
+      <path d="M326 222c-2-18 8-28 8-28s10 12 6 26" fill="#3f7d4e"/>
+      <path d="M326 222c-6-14-18-18-18-18s0 14 10 20" fill="#63a06f"/>
+    </g>
+    <path d="M158 132c8-10 20-10 26 0" stroke="#c9decb" stroke-width="2" fill="none"/>
+    <circle cx="171" cy="140" r="4" fill="#c4734e"/>
+    <line x1="60" y1="270" x2="380" y2="270" stroke="#2c5a38" stroke-width="4" stroke-linecap="round"/>
+  </svg>
+  <h1>你的园子还是空的</h1>
+  <p class="sub">欢迎来到圃园，早。这里还没有属于你的第一株植物——种下它之后，<b>浇水提醒、生长日记和采收记录</b>都会在这里生长出来。</p>
+  <div class="cta-row">
+    <button class="btn-primary" id="startBtn">开始种下第一株</button>
+    <button class="btn-ghost" id="tourBtn">先逛逛示例园地</button>
+  </div>
+  <p class="hint">从零开始大约需要 1 分钟 · 随时可以移栽或移除</p>
+
+  <section class="picker" id="picker" aria-label="选择第一株植物">
+    <h2>选一盆开始</h2>
+    <p class="tip">三盆都好养，挑顺眼的就行。圃园会按它调整浇水节奏。</p>
+    <div class="plants" id="plants">
+      <div class="plant" data-name="罗勒" data-days="约 30 天可摘叶">
+        <svg class="pv" viewBox="0 0 64 64" aria-hidden="true">
+          <rect x="22" y="40" width="20" height="18" rx="3" fill="#c4734e"/>
+          <path d="M32 40C32 26 22 20 16 20c0 10 8 16 16 18" fill="#3f7d4e"/>
+          <path d="M32 40c0-14 10-20 16-20 0 10-8 16-16 18" fill="#63a06f"/>
+          <line x1="32" y1="40" x2="32" y2="46" stroke="#2c5a38" stroke-width="2"/>
+        </svg>
+        <h3>罗勒</h3><p>喜阳，3 天一次水，掐尖越掐越旺</p>
+        <span class="days">约 30 天可摘叶</span>
+      </div>
+      <div class="plant" data-name="薄荷" data-days="约 21 天可摘叶">
+        <svg class="pv" viewBox="0 0 64 64" aria-hidden="true">
+          <rect x="22" y="40" width="20" height="18" rx="3" fill="#c4734e"/>
+          <path d="M32 40c-4-12-14-14-20-10 2 8 10 12 20 10" fill="#63a06f"/>
+          <path d="M32 40c4-12 14-14 20-10-2 8-10 12-20 10" fill="#3f7d4e"/>
+          <path d="M32 40c0-10 4-16 4-16" stroke="#2c5a38" stroke-width="2" fill="none"/>
+        </svg>
+        <h3>薄荷</h3><p>耐阴耐折腾，缺水了会立刻告诉你</p>
+        <span class="days">约 21 天可摘叶</span>
+      </div>
+      <div class="plant" data-name="樱桃番茄" data-days="约 60 天结果">
+        <svg class="pv" viewBox="0 0 64 64" aria-hidden="true">
+          <rect x="22" y="42" width="20" height="16" rx="3" fill="#c4734e"/>
+          <path d="M32 42V22" stroke="#3f7d4e" stroke-width="2.5"/>
+          <circle cx="26" cy="24" r="6" fill="#e2765a"/>
+          <circle cx="38" cy="20" r="6" fill="#e2765a"/>
+          <path d="M32 30c-6-4-12-4-12-4" stroke="#63a06f" stroke-width="2" fill="none"/>
+          <path d="M32 30c6-4 12-4 12-4" stroke="#63a06f" stroke-width="2" fill="none"/>
+        </svg>
+        <h3>樱桃番茄</h3><p>要搭小架子，结果时能收一整夏</p>
+        <span class="days">约 60 天结果</span>
+      </div>
+    </div>
+    <div class="picker-foot">
+      <span class="note" id="selNote">还没选 · 点一盆试试</span>
+      <button class="btn-sow" id="sowBtn" disabled>种下它</button>
+    </div>
+  </section>
+
+  <section class="examples" id="examples" aria-label="示例园地">
+    <h2>示例园地 · 别人窗台上的样子</h2>
+    <div class="exgrid">
+      <div class="excard">
+        <div class="ttl">朝南窗台 · 4 盆</div>
+        <div class="meta">薄荷、迷迭香、两盆多肉<br>本周已浇水 2 次</div>
+        <div class="bar"><i style="width:72%"></i></div>
+      </div>
+      <div class="excard">
+        <div class="ttl">书房角落 · 2 盆</div>
+        <div class="meta">龟背竹、绿萝<br>下次浇水：明天早上</div>
+        <div class="bar"><i style="width:45%"></i></div>
+      </div>
+      <div class="excard">
+        <div class="ttl">阳台小菜畦 · 6 株</div>
+        <div class="meta">樱桃番茄、香葱、生菜<br>预计 9 天后第一轮采收</div>
+        <div class="bar"><i style="width:88%"></i></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="result" id="result">
+    <svg width="56" height="56" viewBox="0 0 56 56" style="margin-bottom:10px" aria-hidden="true">
+      <circle cx="28" cy="28" r="26" fill="#dcebdd"/>
+      <path d="M28 42V26" stroke="#2c5a38" stroke-width="2.5" stroke-linecap="round"/>
+      <path d="M28 28c0-8-7-10-12-10 0 7 5 11 12 10" fill="#3f7d4e"/>
+      <path d="M28 30c0-8 7-10 12-10 0 7-5 11-12 10" fill="#63a06f"/>
+    </svg>
+    <h2 id="resultTitle">种好啦</h2>
+    <p id="resultDesc">它已经在你的窗台上安家。圃园会在该浇水时提醒你，第一篇生长日记从今天开始。</p>
+    <button class="again" id="againBtn">再种一盆</button>
+  </section>
+</main>
+<div class="toast" id="toast"></div>
+<script>
+/* 圃园空态：主按钮展开选盆、选盆种下、次要行动展开示例园地 */
+var startBtn=document.getElementById('startBtn');
+var tourBtn=document.getElementById('tourBtn');
+var picker=document.getElementById('picker');
+var examples=document.getElementById('examples');
+var result=document.getElementById('result');
+var sowBtn=document.getElementById('sowBtn');
+var selNote=document.getElementById('selNote');
+var againBtn=document.getElementById('againBtn');
+var resultTitle=document.getElementById('resultTitle');
+var resultDesc=document.getElementById('resultDesc');
+var toast=document.getElementById('toast');
+var selected=null,toastTimer=null;
+
+function showToast(msg){
+  toast.textContent=msg;toast.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(function(){toast.classList.remove('show')},2600);
+}
+startBtn.addEventListener('click',function(){
+  picker.classList.add('show');
+  result.classList.remove('show');
+  picker.scrollIntoView({behavior:'smooth',block:'nearest'});
+});
+tourBtn.addEventListener('click',function(){
+  var open=examples.classList.toggle('show');
+  tourBtn.textContent=open?'收起示例园地':'先逛逛示例园地';
+});
+document.getElementById('plants').addEventListener('click',function(e){
+  var card=e.target.closest('.plant');
+  if(!card)return;
+  document.querySelectorAll('.plant').forEach(function(p){p.classList.remove('sel')});
+  card.classList.add('sel');
+  selected={name:card.getAttribute('data-name'),days:card.getAttribute('data-days')};
+  selNote.textContent='已选 · '+selected.name+'（'+selected.days+'）';
+  sowBtn.disabled=false;
+  sowBtn.textContent='种下'+selected.name;
+});
+sowBtn.addEventListener('click',function(){
+  if(!selected)return;
+  picker.classList.remove('show');
+  resultTitle.textContent=selected.name+'种好啦';
+  resultDesc.textContent=selected.name+'已经在你的窗台上安家，'+selected.days+'。圃园会在该浇水时提醒你，第一篇生长日记从今天开始。';
+  result.classList.add('show');
+  result.scrollIntoView({behavior:'smooth',block:'nearest'});
+  showToast('已加入「我的园子」 · 首次浇水提醒：明天 8:00');
+});
+againBtn.addEventListener('click',function(){
+  result.classList.remove('show');
+  document.querySelectorAll('.plant').forEach(function(p){p.classList.remove('sel')});
+  selected=null;sowBtn.disabled=true;sowBtn.textContent='种下它';
+  selNote.textContent='还没选 · 点一盆试试';
+  picker.classList.add('show');
+});
+</script>
+</body>
+</html>

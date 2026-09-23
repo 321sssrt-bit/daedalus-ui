@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>印前 · 制版签样确认</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#f3f0ea;font-family:-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;color:#1b1b1b;min-height:100vh;padding:48px 24px;display:flex;justify-content:center}
+.sheet{max-width:680px;width:100%;background:#fdfbf7;border:1px solid #ddd5c8;box-shadow:0 1px 0 #fff inset,0 14px 34px rgba(60,50,35,.12);position:relative;padding:0 46px 44px}
+.holes{display:flex;justify-content:space-between;padding:18px 90px 0}
+.hole{width:18px;height:18px;border-radius:50%;background:radial-gradient(circle at 50% 40%,#e7e0d2 0 55%,#b9ad99 56% 100%);box-shadow:inset 0 1px 3px rgba(0,0,0,.35),0 1px 0 #fff;position:relative}
+.hole::after{content:"";position:absolute;left:50%;top:-26px;width:5px;height:30px;margin-left:-2.5px;border-radius:3px;background:linear-gradient(180deg,#b4322b,#8c231d);box-shadow:0 1px 1px rgba(0,0,0,.2)}
+.regrow{height:26px;display:flex;align-items:center;gap:18px;margin:6px 0 4px}
+.reg{width:22px;height:22px;flex:none;position:relative}
+.reg::before{content:"";position:absolute;inset:0;border:1.5px solid #1b1b1b;border-radius:50%}
+.reg::after{content:"";position:absolute;left:50%;top:-4px;bottom:-4px;width:1.5px;background:#1b1b1b}
+.reg i{position:absolute;top:50%;left:-4px;right:-4px;height:1.5px;background:#1b1b1b}
+.regrow .ln{flex:1;height:1px;background:repeating-linear-gradient(90deg,#1b1b1b 0 8px,transparent 8px 14px)}
+.head{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:3px double #1b1b1b;padding-bottom:16px;margin-top:10px}
+.head h1{font-size:27px;letter-spacing:8px;font-weight:700}
+.head .no{font-family:"Courier New",monospace;font-size:12.5px;color:#6d6558;text-align:right;line-height:1.7}
+.head .no b{color:#b4322b;font-size:14px}
+.table{margin-top:18px;border:1px solid #1b1b1b}
+.tr{display:grid;grid-template-columns:120px 1fr 120px 1fr;border-bottom:1px solid #c9c0b0}
+.tr:last-child{border-bottom:0}
+.td{padding:11px 14px;font-size:13px;border-right:1px solid #c9c0b0}
+.td:nth-child(4n){border-right:0}
+.td.k{background:#f3efe5;font-weight:600;letter-spacing:2px;color:#4a4136}
+.td.v{font-family:"Courier New",monospace}
+.warn{margin-top:22px;border:2px solid #b4322b;background:#fdf1ef;padding:16px 18px;display:flex;gap:14px;align-items:flex-start}
+.warn .mk{flex:none;width:26px;height:26px;border:2px solid #b4322b;color:#b4322b;border-radius:50%;font-weight:800;display:grid;place-items:center;font-size:15px}
+.warn p{font-size:13.5px;line-height:1.8}
+.warn p b{color:#b4322b}
+.confirm{margin-top:22px;display:flex;flex-direction:column;gap:12px}
+.chk{display:flex;align-items:center;gap:10px;font-size:13.5px;cursor:pointer;user-select:none}
+.chk input{width:17px;height:17px;accent-color:#b4322b;cursor:pointer}
+.typein{display:flex;align-items:center;gap:12px}
+.typein label{font-size:13.5px;color:#4a4136;white-space:nowrap}
+.typein label b{color:#b4322b}
+.typein input{flex:1;max-width:260px;padding:10px 12px;border:1.5px solid #1b1b1b;background:#fdfbf7;font-size:14px;letter-spacing:4px;font-family:"Courier New",monospace;outline:none}
+.typein input:focus{border-color:#b4322b;box-shadow:0 0 0 3px rgba(180,50,43,.15)}
+.actions{margin-top:26px;display:flex;gap:16px;align-items:center}
+.btn{font-size:15px;letter-spacing:6px;padding:15px 34px;border-radius:2px;cursor:pointer;border:2px solid #1b1b1b;font-weight:700;transition:transform .15s ease,background .15s,color .15s}
+.btn-back{background:#fdfbf7;color:#1b1b1b}
+.btn-back:hover{background:#f3efe5}
+.btn-go{background:#b4322b;border-color:#b4322b;color:#fdfbf7}
+.btn-go:disabled{background:#c9c0b0;border-color:#c9c0b0;color:#8a8175;cursor:not-allowed;letter-spacing:6px}
+.btn-go:not(:disabled):hover{transform:translateY(-2px);background:#96271f}
+.hint{font-size:12px;color:#6d6558;margin-top:10px}
+.stamp{position:absolute;right:38px;bottom:110px;width:120px;height:120px;border:3.5px solid #b4322b;border-radius:50%;display:none;place-items:center;transform:rotate(-14deg);color:#b4322b;text-align:center;font-weight:800;letter-spacing:4px;font-size:20px;line-height:1.5;opacity:.85;background:rgba(253,241,239,.55)}
+.stamp small{display:block;font-size:10.5px;letter-spacing:2px;font-weight:600}
+.done .stamp{display:grid}
+.done .btn-go{display:none}
+.mask{display:none;position:absolute;inset:0;background:rgba(253,251,247,.6)}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+@media (max-width:720px){body{padding:20px 12px}.sheet{padding:0 20px 34px}.tr{grid-template-columns:90px 1fr}.td:nth-child(4n){border-right:1px solid #c9c0b0}.td:nth-child(2n){border-right:0}.stamp{right:14px;bottom:150px;width:96px;height:96px;font-size:16px}}
+</style>
+</head>
+<body>
+<div class="sheet" id="sheet">
+  <div class="holes"><span class="hole"></span><span class="hole"></span></div>
+  <div class="regrow"><span class="reg"><i></i></span><span class="ln"></span><span class="reg"><i></i></span><span class="ln"></span><span class="reg"><i></i></span></div>
+  <div class="head">
+    <h1>制版签样确认单</h1>
+    <div class="no">单据编号 <b>PS-2026-0918</b><br>印厂：北桥制印 · 三车间</div>
+  </div>
+  <div class="table">
+    <div class="tr"><div class="td k">品名</div><div class="td v">《晚潮文集》第二辑 · 内封</div><div class="td k">版次</div><div class="td v">第 3 版（终版）</div></div>
+    <div class="tr"><div class="td k">色数</div><div class="td v">黑 + 专色红 032C</div><div class="td k">印数</div><div class="td v">8,000 册</div></div>
+    <div class="tr"><div class="td k">纸张</div><div class="td v">157g 哑粉纸</div><div class="td k">交期</div><div class="td v">09-30 17:00 前</div></div>
+    <div class="tr"><div class="td k">打样</div><div class="td v">数码样已核 · 蓝纸样已签</div><div class="td k">文件</div><div class="td v">feng_v3_final.pdf</div></div>
+  </div>
+  <div class="warn">
+    <span class="mk">!</span>
+    <p><b>付印后不可追回：</b>确认即下达机台，本单 8,000 册将全部按此版印刷；此后修改须重新出片、重新签样，已印部分费用由本社承担。<b>这不是删除，但同样收不回来。</b></p>
+  </div>
+  <div class="confirm">
+    <label class="chk"><input type="checkbox" id="ck"><span>我已逐项核对打样：图文无缺、专色正确、裁切线无误。</span></label>
+    <div class="typein">
+      <label for="word">在框内输入 <b>付印</b> 二字放行确认钮</label>
+      <input id="word" type="text" placeholder="付印" autocomplete="off">
+    </div>
+  </div>
+  <div class="actions">
+    <button class="btn btn-back" id="backBtn">返回修改</button>
+    <button class="btn btn-go" id="goBtn" disabled>确认付印</button>
+    <span class="hint" id="hint">需勾选核对声明并输入确认词后，确认钮才会放行。</span>
+  </div>
+  <div class="stamp" id="stamp">已付印<small>2026-09-23 · 三车间</small></div>
+  <div class="mask"></div>
+</div>
+<script>
+const ck=document.getElementById('ck'),word=document.getElementById('word'),go=document.getElementById('goBtn'),hint=document.getElementById('hint'),sheet=document.getElementById('sheet');
+function gate(){go.disabled=!(ck.checked&&word.value.trim()==='付印');if(!go.disabled)hint.textContent='条件满足，确认钮已放行——再想想也可以。';else hint.textContent='需勾选核对声明并输入确认词后，确认钮才会放行。';}
+ck.addEventListener('change',gate);word.addEventListener('input',gate);
+document.getElementById('backBtn').addEventListener('click',()=>{hint.textContent='已退回打样组：本单状态改为「待改」，不进入机台队列。';word.value='';ck.checked=false;gate();});
+go.addEventListener('click',()=>{sheet.classList.add('done');document.querySelector('.mask').style.display='block';hint.textContent='机台已接单：印刷队列 03 号位，预计 09-25 上机。';});
+</script>
+</body>
+</html>

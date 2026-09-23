@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>机房面板 · 账号设置</title>
+<style>
+  :root{
+    --bg:#16181c; --rack:#1e2126; --rack-2:#23272e; --rail:#2c313a;
+    --green:#4ade80; --amber:#f5b942; --red:#f0604d; --cyan:#56c8dc;
+    --txt:#d7dce3; --dim:#7d8590; --mono:"SFMono-Regular","JetBrains Mono","Cascadia Mono","Courier New",monospace;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--bg);color:var(--txt);font-family:var(--mono);min-height:100vh;font-size:14px}
+  .page{max-width:1060px;margin:0 auto;padding:40px 28px 72px}
+  .statusbar{
+    display:flex;gap:22px;align-items:center;background:var(--rack);
+    border:1px solid var(--rail);border-radius:8px;padding:12px 20px;font-size:12px;color:var(--dim);
+  }
+  .lamp{display:inline-flex;align-items:center;gap:7px}
+  .lamp i{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green)}
+  .lamp.warn i{background:var(--amber);box-shadow:0 0 8px var(--amber)}
+  .statusbar .right{margin-left:auto;color:var(--dim)}
+  .identity{
+    display:grid;grid-template-columns:64px 1fr auto;gap:18px;align-items:center;
+    background:linear-gradient(90deg,var(--rack-2),var(--rack));
+    border:1px solid var(--rail);border-radius:8px;padding:20px 24px;margin:22px 0 8px;
+  }
+  .ident-led{width:52px;height:52px;border-radius:10px;background:#101216;border:1px solid var(--rail);
+    display:flex;align-items:center;justify-content:center;font-size:22px;color:var(--green)}
+  .identity .who{font-size:17px;font-weight:600}
+  .identity .who b{color:var(--cyan)}
+  .identity .uid{font-size:12px;color:var(--dim);margin-top:5px}
+  .badge{font-size:11px;color:var(--amber);border:1px solid var(--amber);padding:4px 10px;border-radius:4px;letter-spacing:2px}
+  section{margin-top:26px}
+  section>h2{
+    font-size:12px;letter-spacing:4px;color:var(--dim);margin-bottom:12px;display:flex;gap:10px;align-items:center;
+  }
+  section>h2::before{content:"▣";color:var(--green)}
+  .rack-group{border:1px solid var(--rail);border-radius:8px;overflow:hidden}
+  .row{
+    display:grid;grid-template-columns:1fr auto 20px;gap:14px;align-items:center;
+    padding:16px 20px;background:var(--rack);border-bottom:1px solid var(--rail);
+    cursor:pointer;transition:background .15s ease;
+  }
+  .row:last-child{border-bottom:none}
+  .row:hover{background:var(--rack-2)}
+  .row .k{font-size:14px}
+  .row .v{font-size:12.5px;color:var(--dim)}
+  .row .v.ok{color:var(--green)} .row .v.warn{color:var(--amber)}
+  .row .car{color:var(--dim);transition:transform .2s ease;font-size:11px}
+  .row.open .car{transform:rotate(90deg);color:var(--green)}
+  .detail{
+    display:none;background:#101216;border-bottom:1px solid var(--rail);
+    padding:18px 24px;font-size:12.5px;line-height:2;color:#aab3bd;
+  }
+  .detail.show{display:block}
+  .detail code{color:var(--cyan);background:#0a0c0f;padding:1px 6px;border-radius:4px}
+  .detail .ops{margin-top:10px;display:flex;gap:10px}
+  .mini{
+    font-family:var(--mono);font-size:12px;cursor:pointer;padding:7px 14px;border-radius:5px;
+    border:1px solid var(--rail);background:var(--rack-2);color:var(--txt);transition:all .15s;
+  }
+  .mini:hover{border-color:var(--green);color:var(--green)}
+  .mini.danger:hover{border-color:var(--red);color:var(--red)}
+  .saved{
+    position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);
+    background:var(--green);color:#0d2013;font-size:13px;font-weight:600;padding:10px 22px;border-radius:6px;
+    transition:transform .3s ease;letter-spacing:1px;
+  }
+  .saved.show{transform:translateX(-50%) translateY(0)}
+  @media (max-width:760px){
+    .identity{grid-template-columns:1fr;gap:10px}
+    .statusbar{flex-wrap:wrap;gap:10px}
+    .page{padding:24px 14px 56px}
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{transition:none!important;animation:none!important}
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="statusbar">
+    <span class="lamp"><i></i>AUTH-01 正常</span>
+    <span class="lamp"><i></i>SESSION 同步</span>
+    <span class="lamp warn"><i></i>证书 38 天后到期</span>
+    <span class="right">ops@rack:~$ whoami → lin_admin</span>
+  </div>
+
+  <div class="identity">
+    <div class="ident-led">▟</div>
+    <div>
+      <div class="who">林晚舟 <b>lin_admin</b></div>
+      <div class="uid">UID 10042 · 角色 ROOT-OPERATOR · 最近登录 2026-09-23 13:58 · 上海 POP</div>
+    </div>
+    <span class="badge">2FA 已启用</span>
+  </div>
+
+  <section>
+    <h2>账户资料</h2>
+    <div class="rack-group">
+      <div class="row" data-d="d1"><span class="k">显示名称</span><span class="v">林晚舟</span><span class="car">▶</span></div>
+      <div class="detail" id="d1">对外可见的名称，出现在工单与变更记录署名中。<br>当前值：<code>林晚舟</code> · 本月还可修改 2 次
+        <div class="ops"><button class="mini">重命名</button><button class="mini">查看署名历史</button></div></div>
+      <div class="row" data-d="d2"><span class="k">联系邮箱</span><span class="v">lin***@ops.example.cn</span><span class="car">▶</span></div>
+      <div class="detail" id="d2">告警与账单的主要投递地址，换绑需验证旧邮箱。<br>备用通道：<code>SMS ·· 尾号 8821</code>
+        <div class="ops"><button class="mini">换绑邮箱</button><button class="mini">发送验证</button></div></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>安全与登录</h2>
+    <div class="rack-group">
+      <div class="row" data-d="d3"><span class="k">双因子认证</span><span class="v ok">已启用 · TOTP</span><span class="car">▶</span></div>
+      <div class="detail" id="d3">当前使用基于时间的一次性口令（TOTP）。重新绑定会使旧设备立即失效。<br>恢复码剩余：<code>7 / 10</code>
+        <div class="ops"><button class="mini">重新绑定</button><button class="mini">生成恢复码</button></div></div>
+      <div class="row" data-d="d4"><span class="k">登录会话</span><span class="v">3 个活跃</span><span class="car">▶</span></div>
+      <div class="detail" id="d4"><code>web · 上海 · Chrome · 当前</code><br><code>cli · 上海 · tty · 2 小时前</code><br><code>web · 杭州 · Safari · 昨天 22:14</code>
+        <div class="ops"><button class="mini">刷新</button><button class="mini danger">踢出其他会话</button></div></div>
+      <div class="row" data-d="d5"><span class="k">API 密钥</span><span class="v warn">1 把 90 天未轮换</span><span class="car">▶</span></div>
+      <div class="detail" id="d5">密钥 <code>rk_live_…4f2e</code> 创建于 2026-06-25，最后使用 9 月 21 日。建议 90 天轮换一次。
+        <div class="ops"><button class="mini">立即轮换</button><button class="mini">查看权限</button></div></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>通知偏好</h2>
+    <div class="rack-group">
+      <div class="row" data-d="d6"><span class="k">告警通知</span><span class="v ok">P1 电话 · P2 短信 · P3 邮件</span><span class="car">▶</span></div>
+      <div class="detail" id="d6">按告警级别路由：P1 直接电话，P2 短信，P3 进每日邮件汇总。<br>免打扰时段：<code>01:00–06:30</code>（P1 不受限）
+        <div class="ops"><button class="mini">调整路由</button><button class="mini">修改免打扰</button></div></div>
+      <div class="row" data-d="d7"><span class="k">账单与余额提醒</span><span class="v">余额低于 ¥500 时提醒</span><span class="car">▶</span></div>
+      <div class="detail" id="d7">余额低于阈值时邮件+短信各发一次，24 小时内不重复。<br>当前余额：<code>¥812.40</code>
+        <div class="ops"><button class="mini" id="saveBtn">保存阈值</button></div></div>
+    </div>
+  </section>
+</div>
+<div class="saved" id="saved">✓ 已保存到本机</div>
+
+<script>
+document.querySelectorAll('.row').forEach(r=>{
+  r.addEventListener('click',()=>{
+    const d=document.getElementById(r.dataset.d);
+    const open=r.classList.toggle('open');
+    d.classList.toggle('show',open);
+  });
+});
+document.getElementById('saveBtn')?.addEventListener('click',e=>{
+  e.stopPropagation();
+  const s=document.getElementById('saved');
+  s.classList.add('show');setTimeout(()=>s.classList.remove('show'),2200);
+});
+</script>
+</body>
+</html>

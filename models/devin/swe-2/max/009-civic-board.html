@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>城运台 · 今日总览</title>
+<style>
+  :root{
+    --bg:#ece9e3;
+    --nav:#24272c;
+    --nav-hi:#31353c;
+    --nav-text:#c8ccd2;
+    --nav-dim:#7d828a;
+    --surface:#ffffff;
+    --ink:#26282c;
+    --muted:#8a8578;
+    --line:#ddd8cf;
+    --red:#d5483f;
+    --red-bg:#fbe9e7;
+    --amber:#e0a325;
+    --amber-bg:#faf0d7;
+    --green:#3f9d58;
+    --green-bg:#e2f0e5;
+    --accent:#33789e;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    font-family:-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    background:var(--bg);color:var(--ink);min-height:100vh;
+  }
+  .app{display:flex;min-height:100vh}
+  aside{
+    width:224px;flex:none;background:var(--nav);color:var(--nav-text);
+    display:flex;flex-direction:column;padding:20px 0;
+    position:sticky;top:0;height:100vh;
+  }
+  .brand{padding:0 22px 18px;border-bottom:1px solid #34383f;margin-bottom:14px}
+  .brand .name{font-size:18px;font-weight:700;letter-spacing:4px;color:#f0f1f3}
+  .brand .en{font-size:10px;letter-spacing:3px;color:var(--nav-dim);margin-top:4px}
+  .navitem{
+    display:flex;align-items:center;gap:12px;padding:11px 22px;font-size:13.5px;
+    color:var(--nav-text);cursor:pointer;border-left:3px solid transparent;user-select:none;
+    transition:background .15s,border-color .15s;
+  }
+  .navitem svg{flex:none;opacity:.85}
+  .navitem:hover{background:var(--nav-hi)}
+  .navitem.on{background:var(--nav-hi);border-left-color:var(--amber);color:#fff}
+  .navitem .cnt{margin-left:auto;font-size:11px;background:#3a3f47;border-radius:9px;padding:1px 8px;color:var(--nav-text)}
+  .navitem.on .cnt{background:var(--amber);color:#24272c}
+  .duty{margin-top:auto;padding:16px 22px 0;border-top:1px solid #34383f;font-size:12px;color:var(--nav-dim);line-height:1.9}
+  .duty b{color:var(--nav-text);font-weight:500}
+  main{flex:1;min-width:0;padding:20px 28px 40px}
+  .topbar{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px}
+  .topbar h1{font-size:20px;font-weight:700;letter-spacing:1px}
+  .topbar .sub{font-size:12px;color:var(--muted);margin-top:4px}
+  .topbar .meta{font-size:12px;color:var(--muted);text-align:right;line-height:1.9}
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:16px}
+  .kpi{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px 12px}
+  .kpi .lab{font-size:12px;color:var(--muted);display:flex;justify-content:space-between;align-items:center}
+  .kpi .num{font-size:30px;font-weight:700;margin-top:6px;font-variant-numeric:tabular-nums;letter-spacing:.5px}
+  .kpi .num small{font-size:13px;font-weight:400;color:var(--muted);margin-left:2px}
+  .kpi .delta{font-size:11px;margin-top:4px}
+  .kpi .delta.up{color:var(--red)}.kpi .delta.down{color:var(--green)}
+  .kpi svg{margin-top:8px;display:block}
+  .grid{display:grid;grid-template-columns:2.2fr 1fr;gap:16px;align-items:start}
+  .panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  .panel-head{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--line)}
+  .panel-head h2{font-size:14px;font-weight:600;letter-spacing:1px}
+  .panel-head .sub{font-size:11.5px;color:var(--muted)}
+  .chips{display:flex;gap:8px;padding:10px 16px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+  .chip{
+    font-size:12px;padding:4px 12px;border-radius:999px;border:1px solid var(--line);
+    background:#faf8f4;color:var(--muted);cursor:pointer;font-family:inherit;
+    display:flex;align-items:center;gap:6px;transition:all .15s;
+  }
+  .chip:hover{border-color:var(--accent);color:var(--accent)}
+  .chip.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .chip .d{width:7px;height:7px;border-radius:50%}
+  .queue{max-height:560px;overflow-y:auto}
+  .row{border-bottom:1px solid #efece5;cursor:pointer;transition:background .12s}
+  .row:hover{background:#faf7f1}
+  .row .main{
+    display:grid;grid-template-columns:14px 92px 1fr 84px 76px 88px;
+    align-items:center;gap:10px;padding:10px 16px;font-size:13px;
+  }
+  .dot{width:9px;height:9px;border-radius:50%;box-shadow:0 0 0 3px rgba(0,0,0,.04)}
+  .dot.red{background:var(--red)}.dot.amber{background:var(--amber)}.dot.green{background:var(--green)}
+  .eid{font-family:"SF Mono","Consolas",monospace;font-size:12px;color:var(--muted)}
+  .sum{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .dist,.own{font-size:12px;color:var(--muted)}
+  .due{font-size:12px;text-align:right;font-variant-numeric:tabular-nums}
+  .due.late{color:var(--red);font-weight:600}
+  .detail{display:none;padding:0 16px 14px 40px;font-size:12.5px;color:var(--muted);line-height:1.8}
+  .row.open .detail{display:block}
+  .row.open{background:#fbf8f2}
+  .detail .bar{display:flex;gap:10px;margin-top:8px;align-items:center}
+  .mini-btn{
+    font-size:12px;padding:5px 14px;border-radius:6px;border:1px solid var(--line);
+    background:#fff;color:var(--ink);cursor:pointer;font-family:inherit;
+  }
+  .mini-btn:hover{border-color:var(--accent);color:var(--accent)}
+  .mini-btn.done{border-color:var(--green);color:var(--green)}
+  .tagchip{display:inline-block;font-size:11px;padding:1px 8px;border-radius:4px;margin-left:6px}
+  .tagchip.red{background:var(--red-bg);color:var(--red)}
+  .tagchip.amber{background:var(--amber-bg);color:#9a7015}
+  .tagchip.green{background:var(--green-bg);color:var(--green)}
+  .empty{padding:30px;text-align:center;font-size:13px;color:var(--muted);display:none}
+  .ring-wrap{display:flex;align-items:center;gap:18px;padding:18px 16px}
+  .ring-txt .big{font-size:26px;font-weight:700;font-variant-numeric:tabular-nums}
+  .ring-txt .sm{font-size:12px;color:var(--muted);margin-top:4px;line-height:1.7}
+  .dist-row{display:flex;align-items:center;gap:10px;padding:9px 16px;font-size:12.5px;border-top:1px solid #efece5}
+  .dist-row .nm{width:64px;color:var(--ink)}
+  .dist-row .bar2{flex:1;height:8px;background:#f0ede6;border-radius:4px;overflow:hidden}
+  .dist-row .bar2 i{display:block;height:100%;border-radius:4px}
+  .dist-row .v{width:36px;text-align:right;color:var(--muted);font-variant-numeric:tabular-nums}
+  .notice{padding:12px 16px;font-size:12.5px;line-height:1.8;color:var(--muted)}
+  .notice li{margin-left:16px;margin-bottom:6px}
+  .notice b{color:var(--ink);font-weight:600}
+  @media (max-width:1024px){
+    .kpis{grid-template-columns:repeat(2,1fr)}
+    .grid{grid-template-columns:1fr}
+  }
+  @media (max-width:768px){
+    aside{width:64px;padding:14px 0}
+    .brand .name,.brand .en,.navitem span,.navitem .cnt,.duty{display:none}
+    .navitem{justify-content:center;padding:14px 0}
+    main{padding:14px 12px 30px}
+    .row .main{grid-template-columns:14px 74px 1fr 70px;font-size:12px}
+    .own,.due{display:none}
+    .kpis{grid-template-columns:repeat(2,1fr)}
+    .kpi .num{font-size:24px}
+  }
+  @media (prefers-reduced-motion: reduce){
+    *,*::before,*::after{animation:none !important;transition:none !important}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside>
+    <div class="brand"><div class="name">城运台</div><div class="en">CIVIC OPS · 02</div></div>
+    <div class="navitem on" data-v="今日总览">
+      <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><rect x="1" y="1" width="5.5" height="5.5" rx="1" stroke="#c8ccd2"/><rect x="8.5" y="1" width="5.5" height="5.5" rx="1" stroke="#c8ccd2"/><rect x="1" y="8.5" width="5.5" height="5.5" rx="1" stroke="#c8ccd2"/><rect x="8.5" y="8.5" width="5.5" height="5.5" rx="1" stroke="#c8ccd2"/></svg>
+      <span>今日总览</span><span class="cnt">128</span>
+    </div>
+    <div class="navitem" data-v="事件队列">
+      <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><path d="M1.5 4h12M1.5 7.5h12M1.5 11h8" stroke="#c8ccd2" stroke-width="1.4" stroke-linecap="round"/></svg>
+      <span>事件队列</span><span class="cnt">37</span>
+    </div>
+    <div class="navitem" data-v="设施台账">
+      <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><path d="M2 13V6l5.5-4L13 6v7" stroke="#c8ccd2" stroke-width="1.4" stroke-linejoin="round"/><rect x="6" y="9" width="3" height="4" stroke="#c8ccd2"/></svg>
+      <span>设施台账</span>
+    </div>
+    <div class="navitem" data-v="值班排班">
+      <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><rect x="1.5" y="2.5" width="12" height="11" rx="1.5" stroke="#c8ccd2"/><path d="M1.5 6h12M5 1.5v2M10 1.5v2" stroke="#c8ccd2" stroke-width="1.4"/></svg>
+      <span>值班排班</span>
+    </div>
+    <div class="navitem" data-v="报表中心">
+      <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><path d="M2 13V9M6 13V5M10 13V8M13.5 13V3" stroke="#c8ccd2" stroke-width="1.6" stroke-linecap="round"/></svg>
+      <span>报表中心</span>
+    </div>
+    <div class="duty">甲班 · 带班 <b>周敏</b><br>接班 <b>20:00</b> · 气象 <b>多云 24°C</b></div>
+  </aside>
+  <main>
+    <div class="topbar">
+      <div>
+        <h1>今日总览 <span style="font-size:12px;color:var(--muted);font-weight:400;letter-spacing:0" id="navEcho">· 事件处置指挥席</span></h1>
+        <div class="sub">2026 年 9 月 23 日 周三 · 数据每 5 分钟同步 · 上次同步 14:15</div>
+      </div>
+      <div class="meta">在办事件 <b id="openCnt" style="color:var(--ink)">49</b> 件 · 超时预警 <b style="color:var(--red)">3</b> 件<br>指挥长热线已接通 · 应急联动待命</div>
+    </div>
+    <div class="kpis">
+      <div class="kpi">
+        <div class="lab">今日接入事件<span>较昨日</span></div>
+        <div class="num" id="kpiIn">128</div>
+        <div class="delta up">▲ 12 件（+10.3%）</div>
+        <svg width="100%" height="26" viewBox="0 0 120 26" preserveAspectRatio="none"><polyline points="0,20 15,18 30,19 45,14 60,15 75,10 90,12 105,7 120,9" fill="none" stroke="#33789e" stroke-width="1.6"/></svg>
+      </div>
+      <div class="kpi">
+        <div class="lab">待处置<span>含超时 3 件</span></div>
+        <div class="num" id="kpiTodo">37</div>
+        <div class="delta up">▲ 5 件</div>
+        <svg width="100%" height="26" viewBox="0 0 120 26" preserveAspectRatio="none"><polyline points="0,12 15,14 30,10 45,15 60,13 75,16 90,14 105,18 120,16" fill="none" stroke="#e0a325" stroke-width="1.6"/></svg>
+      </div>
+      <div class="kpi">
+        <div class="lab">处置中<span>12 支队伍在场</span></div>
+        <div class="num" id="kpiDoing">12</div>
+        <div class="delta down">▼ 3 件</div>
+        <svg width="100%" height="26" viewBox="0 0 120 26" preserveAspectRatio="none"><polyline points="0,16 15,12 30,14 45,10 60,12 75,9 90,11 105,8 120,10" fill="none" stroke="#d5483f" stroke-width="1.6"/></svg>
+      </div>
+      <div class="kpi">
+        <div class="lab">今日办结率<span>目标 ≥ 70%</span></div>
+        <div class="num"><span id="kpiRate">71</span><small>%</small></div>
+        <div class="delta down">平均响应 18 分钟</div>
+        <svg width="100%" height="26" viewBox="0 0 120 26" preserveAspectRatio="none"><polyline points="0,18 15,16 30,17 45,13 60,14 75,11 90,10 105,8 120,6" fill="none" stroke="#3f9d58" stroke-width="1.6"/></svg>
+      </div>
+    </div>
+    <div class="grid">
+      <section class="panel">
+        <div class="panel-head"><h2>事件处置队列</h2><span class="sub" id="qCount">队列 10 条 · 按录入时间倒序</span></div>
+        <div class="chips" id="chips">
+          <button class="chip on" data-f="all">全部</button>
+          <button class="chip" data-f="red"><i class="d" style="background:var(--red)"></i>紧急</button>
+          <button class="chip" data-f="amber"><i class="d" style="background:var(--amber)"></i>跟进中</button>
+          <button class="chip" data-f="green"><i class="d" style="background:var(--green)"></i>已办结</button>
+        </div>
+        <div class="queue" id="queue">
+          <div class="row" data-s="red">
+            <div class="main"><span class="dot red"></span><span class="eid">EVT-0918</span><span class="sum">中山路口积水超警戒线，晚高峰需封东侧车道<span class="tagchip red">市政排水</span></span><span class="dist">城东街道</span><span class="own">排水三队</span><span class="due late">剩 22 分</span></div>
+            <div class="detail">14:02 网格员上报水位 32cm，已联动泵站加大抽排。需交警协助封路牌面。<div class="bar"><button class="mini-btn act-done">标记办结</button><button class="mini-btn act-assign">转派</button><span>跟进人：值班调度 02 席</span></div></div>
+          </div>
+          <div class="row" data-s="red">
+            <div class="main"><span class="dot red"></span><span class="eid">EVT-0916</span><span class="sum">人民路配电房异响报警，伴随焦糊味<span class="tagchip red">供电</span></span><span class="dist">老城片区</span><span class="own">供电抢修</span><span class="due late">已超 15 分</span></div>
+            <div class="detail">13:47 烟感联动报警，抢修车已出发，预计 8 分钟到场。周边 200 户可能临时停电。<div class="bar"><button class="mini-btn act-done">标记办结</button><button class="mini-btn act-assign">转派</button><span>跟进人：值班调度 01 席</span></div></div>
+          </div>
+          <div class="row" data-s="amber">
+            <div class="main"><span class="dot amber"></span><span class="eid">EVT-0914</span><span class="sum">文化广场夜间施工噪声投诉（第 3 次）<span class="tagchip amber">城管</span></span><span class="dist">中心街道</span><span class="own">城管二队</span><span class="due">剩 2 小时</span></div>
+            <div class="detail">已核实施工方持有夜间许可但超出约定时段，约谈项目负责人，要求 22:00 后停止高噪声工序。<div class="bar"><button class="mini-btn act-done">标记办结</button><button class="mini-btn act-assign">转派</button><span>跟进人：值班调度 03 席</span></div></div>
+          </div>
+          <div class="row" data-s="amber">
+            <div class="main"><span class="dot amber"></span><span class="eid">EVT-0911</span><span class="sum">滨江步道护栏松动两处，已临时围挡<span class="tagchip amber">园林市政</span></span><span class="dist">滨江片区</span><span class="own">市政养护</span><span class="due">剩 4 小时</span></div>
+            <div class="detail">11:20 巡查发现，焊缝老化。材料明日到场，今夜维持围挡与警示灯。<div class="bar"><button class="mini-btn act-done">标记办结</button><button class="mini-btn act-assign">转派</button><span>跟进人：值班调度 02 席</span></div></div>
+          </div>
+          <div class="row" data-s="amber">
+            <div class="main"><span class="dot amber"></span><span class="eid">EVT-0909</span><span class="sum">老旧小区加装电梯施工占绿纠纷<span class="tagchip amber">住建</span></span><span class="dist">城南街道</span><span class="own">住建联络员</span><span class="due">明日 12:00</span></div>
+            <div class="detail">居民对补偿方案分歧，已约明日 10:00 三方协调会。现场已暂停施工，无冲突风险。<div class="bar"><button class="mini-btn act-done">标记办结</button><button class="mini-btn act-assign">转派</button><span>跟进人：值班调度 05 席</span></div></div>
+          </div>
+          <div class="row" data-s="green">
+            <div class="main"><span class="dot green"></span><span class="eid">EVT-0905</span><span class="sum">解放路口信号灯配时优化已实施<span class="tagchip green">交通</span></span><span class="dist">中心街道</span><span class="own">交通信号组</span><span class="due">13:40 办结</span></div>
+            <div class="detail">早高峰配时由 90s 调整为 120s 周期，排队长度下降约 35%。观察期 3 天。<div class="bar"><button class="mini-btn act-done" disabled style="opacity:.4;cursor:not-allowed">已办结</button><span>跟进人：值班调度 01 席</span></div></div>
+          </div>
+          <div class="row" data-s="green">
+            <div class="main"><span class="dot green"></span><span class="eid">EVT-0902</span><span class="sum">河东农贸市场占道经营集中整治完成<span class="tagchip green">城管</span></span><span class="dist">河东街道</span><span class="own">城管一队</span><span class="due">12:05 办结</span></div>
+            <div class="detail">劝离流动摊贩 14 处，划定临时疏导区。回访投诉为零。<div class="bar"><button class="mini-btn act-done" disabled style="opacity:.4;cursor:not-allowed">已办结</button><span>跟进人：值班调度 04 席</span></div></div>
+          </div>
+          <div class="row" data-s="red">
+            <div class="main"><span class="dot red"></span><span class="eid">EVT-0899</span><span class="sum">地铁 2 号线工地扬尘在线监测超标<span class="tagchip red">环保</span></span><span class="dist">滨江片区</span><span class="own">环保执法</span><span class="due late">剩 40 分</span></div>
+            <div class="detail">PM10 读数 214μg/m³ 持续 40 分钟，已要求开启雾炮并覆盖裸土，复测中。<div class="bar"><button class="mini-btn act-done">标记办结</button><button class="mini-btn act-assign">转派</button><span>跟进人：值班调度 03 席</span></div></div>
+          </div>
+          <div class="row" data-s="amber">
+            <div class="main"><span class="dot amber"></span><span class="eid">EVT-0896</span><span class="sum">三中学生接送区车辆违停致拥堵<span class="tagchip amber">交通</span></span><span class="dist">城东街道</span><span class="own">交警四分队</span><span class="due">剩 6 小时</span></div>
+            <div class="detail">拟增设即停即走泊位 8 个，放学时段增派 2 名警力。方案待校方确认。<div class="bar"><button class="mini-btn act-done">标记办结</button><button class="mini-btn act-assign">转派</button><span>跟进人：值班调度 02 席</span></div></div>
+          </div>
+          <div class="row" data-s="green">
+            <div class="main"><span class="dot green"></span><span class="eid">EVT-0891</span><span class="sum">梧桐路行道树倒伏已清理复植<span class="tagchip green">园林</span></span><span class="dist">老城片区</span><span class="own">园林养护</span><span class="due">09:50 办结</span></div>
+            <div class="detail">昨夜大风致一株法桐倒伏，无人员车辆损伤，今晨完成复植与支撑加固。<div class="bar"><button class="mini-btn act-done" disabled style="opacity:.4;cursor:not-allowed">已办结</button><span>跟进人：值班调度 05 席</span></div></div>
+          </div>
+          <div class="empty" id="emptyTip">该状态下暂无事件。</div>
+        </div>
+      </section>
+      <div>
+        <section class="panel" style="margin-bottom:16px">
+          <div class="panel-head"><h2>办结率</h2><span class="sub">今日</span></div>
+          <div class="ring-wrap">
+            <svg width="92" height="92" viewBox="0 0 92 92">
+              <circle cx="46" cy="46" r="38" fill="none" stroke="#f0ede6" stroke-width="10"/>
+              <circle id="ring" cx="46" cy="46" r="38" fill="none" stroke="#3f9d58" stroke-width="10" stroke-linecap="round" stroke-dasharray="238.76" stroke-dashoffset="69.2" transform="rotate(-90 46 46)"/>
+            </svg>
+            <div class="ring-txt"><div class="big"><span id="ringNum">71</span>%</div><div class="sm">已办结 91 件<br>待处置 <span id="ringTodo">37</span> 件 · 处置中 12 件</div></div>
+          </div>
+        </section>
+        <section class="panel" style="margin-bottom:16px">
+          <div class="panel-head"><h2>各片区热度</h2><span class="sub">在办</span></div>
+          <div class="dist-row"><span class="nm">中心街道</span><span class="bar2"><i style="width:82%;background:var(--red)"></i></span><span class="v">14</span></div>
+          <div class="dist-row"><span class="nm">滨江片区</span><span class="bar2"><i style="width:64%;background:var(--amber)"></i></span><span class="v">11</span></div>
+          <div class="dist-row"><span class="nm">城东街道</span><span class="bar2"><i style="width:52%;background:var(--amber)"></i></span><span class="v">9</span></div>
+          <div class="dist-row"><span class="nm">老城片区</span><span class="bar2"><i style="width:35%;background:var(--green)"></i></span><span class="v">6</span></div>
+          <div class="dist-row"><span class="nm">城南街道</span><span class="bar2"><i style="width:29%;background:var(--green)"></i></span><span class="v">5</span></div>
+          <div class="dist-row"><span class="nm">河东街道</span><span class="bar2"><i style="width:17%;background:var(--green)"></i></span><span class="v">4</span></div>
+        </section>
+        <section class="panel">
+          <div class="panel-head"><h2>值班公告</h2><span class="sub">置顶</span></div>
+          <ul class="notice">
+            <li><b>20:00 交接班</b>：晚班调度接管 02/03 席，请提前完成事件移交。</li>
+            <li><b>台风「桦加沙」外围影响</b>：今晚起阵风 6–7 级，户外广告牌与行道树巡查加频。</li>
+            <li>事件归档截止 23:30，逾期单据自动上报市平台。</li>
+          </ul>
+        </section>
+      </div>
+    </div>
+  </main>
+</div>
+<script>
+/* 城运台：导航高亮、队列状态过滤、行展开、标记办结联动数字 */
+var chips=document.querySelectorAll('.chip');
+var rows=document.querySelectorAll('.row');
+var emptyTip=document.getElementById('emptyTip');
+var qCount=document.getElementById('qCount');
+var navEcho=document.getElementById('navEcho');
+var FILTER_LABEL={all:'全部',red:'紧急',amber:'跟进中',green:'已办结'};
+
+document.querySelectorAll('.navitem').forEach(function(n){
+  n.addEventListener('click',function(){
+    document.querySelectorAll('.navitem').forEach(function(x){x.classList.remove('on')});
+    n.classList.add('on');
+    navEcho.textContent='· '+n.getAttribute('data-v')+'（演示页固定在今日总览）';
+  });
+});
+
+document.getElementById('chips').addEventListener('click',function(e){
+  var c=e.target.closest('.chip');
+  if(!c)return;
+  chips.forEach(function(x){x.classList.remove('on')});
+  c.classList.add('on');
+  var f=c.getAttribute('data-f'),shown=0;
+  rows.forEach(function(r){
+    var hit=(f==='all'||r.getAttribute('data-s')===f);
+    r.style.display=hit?'':'none';
+    if(hit)shown++;
+  });
+  emptyTip.style.display=shown?'none':'block';
+  qCount.textContent='队列 '+shown+' 条 · 筛选：'+FILTER_LABEL[f];
+});
+
+document.getElementById('queue').addEventListener('click',function(e){
+  if(e.target.closest('.mini-btn'))return;
+  var r=e.target.closest('.row');
+  if(!r)return;
+  rows.forEach(function(x){if(x!==r)x.classList.remove('open')});
+  r.classList.toggle('open');
+});
+
+document.getElementById('queue').addEventListener('click',function(e){
+  var btn=e.target.closest('.act-done');
+  if(!btn||btn.disabled)return;
+  var row=btn.closest('.row');
+  row.setAttribute('data-s','green');
+  var dot=row.querySelector('.dot');
+  dot.className='dot green';
+  var chip=row.querySelector('.tagchip');
+  chip.className='tagchip green';
+  var due=row.querySelector('.due');
+  due.textContent='刚刚办结';due.classList.remove('late');
+  btn.textContent='已办结';btn.disabled=true;btn.classList.add('done');btn.style.opacity='.4';
+  var todo=parseInt(document.getElementById('kpiTodo').textContent,10)-1;
+  document.getElementById('kpiTodo').textContent=todo;
+  document.getElementById('ringTodo').textContent=todo;
+  var open=parseInt(document.getElementById('openCnt').textContent,10)-1;
+  document.getElementById('openCnt').textContent=open;
+  var total=128;
+  var rate=Math.round((total-todo-12)*100/total);
+  document.getElementById('kpiRate').textContent=rate;
+  document.getElementById('ringNum').textContent=rate;
+  document.getElementById('ring').setAttribute('stroke-dashoffset',(238.76*(1-rate/100)).toFixed(1));
+});
+</script>
+</body>
+</html>

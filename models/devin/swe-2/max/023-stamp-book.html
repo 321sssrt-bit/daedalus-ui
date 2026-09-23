@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>集页 · 我的邮票收藏</title>
+<style>
+  :root{
+    --felt:#234336; --felt-deep:#1a3328; --felt-line:#35604d;
+    --paper:#f7f2e4; --paper-dim:#e8dfc9; --gold:#c9a45c; --gold-soft:#e4cf9d;
+    --ink:#3b3020; --ink-dim:#8a7d5f; --red:#a8412f;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    background:var(--felt-deep);color:var(--ink);
+    font-family:"Songti SC","STSong","Noto Serif CJK SC",Georgia,serif;
+    min-height:100vh;
+  }
+  .page{max-width:1120px;margin:0 auto;padding:48px 36px 80px}
+  .album{
+    background:var(--felt);border-radius:6px;padding:38px 40px 44px;
+    box-shadow:inset 0 0 0 1px var(--felt-line),0 30px 60px #00000055;
+  }
+  header{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:1px solid var(--felt-line);padding-bottom:22px}
+  header h1{font-size:38px;color:var(--gold-soft);letter-spacing:12px;font-weight:600}
+  header .sub{font-size:12px;color:var(--gold);letter-spacing:4px;margin-top:8px}
+  .count{font-size:13px;color:var(--gold-soft);text-align:right;line-height:1.8}
+  .tabs{display:flex;gap:10px;margin:26px 0 30px;flex-wrap:wrap}
+  .tab{
+    font-family:inherit;font-size:14px;letter-spacing:3px;cursor:pointer;
+    padding:9px 22px;border-radius:999px;border:1px solid var(--felt-line);
+    background:transparent;color:var(--gold-soft);transition:all .2s ease;
+  }
+  .tab:hover{border-color:var(--gold)}
+  .tab.active{background:var(--gold);color:var(--felt-deep);border-color:var(--gold);font-weight:600}
+  .tab:focus-visible{outline:2px solid var(--gold-soft);outline-offset:2px}
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:26px}
+  .stamp{
+    background:var(--paper);padding:10px;position:relative;
+    -webkit-mask:radial-gradient(circle 6px at 6px 6px,transparent 97%,#000) -6px -6px/24px 24px;
+    mask:radial-gradient(circle 6px at 6px 6px,transparent 97%,#000) -6px -6px/24px 24px;
+    transition:transform .2s ease,opacity .3s ease;
+  }
+  .stamp:hover{transform:translateY(-4px) rotate(-.6deg)}
+  .stamp-inner{border:1.5px solid var(--gold);padding:14px 16px 16px;min-height:172px;display:flex;flex-direction:column}
+  .stamp .art{
+    height:74px;border:1px solid var(--paper-dim);margin-bottom:12px;
+    display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative;
+  }
+  .stamp .art svg{width:100%;height:100%}
+  .stamp h3{font-size:16px;letter-spacing:2px}
+  .stamp .meta{font-size:11.5px;color:var(--ink-dim);margin-top:5px;letter-spacing:1px}
+  .stamp .foot{display:flex;justify-content:space-between;align-items:flex-end;margin-top:auto;padding-top:10px}
+  .stamp .val{font-size:13px;color:var(--red);letter-spacing:1px}
+  .stamp .rm{
+    font-family:inherit;font-size:11px;cursor:pointer;color:var(--ink-dim);
+    background:none;border:1px solid var(--paper-dim);padding:4px 10px;letter-spacing:2px;transition:all .2s ease;
+  }
+  .stamp .rm:hover{color:var(--red);border-color:var(--red)}
+  .stamp .rm:focus-visible{outline:2px solid var(--red);outline-offset:2px}
+  .stamp.removing{opacity:0;transform:scale(.9)}
+  .empty{
+    display:none;text-align:center;padding:60px 0;color:var(--gold-soft);
+    font-size:15px;letter-spacing:4px;
+  }
+  .empty.show{display:block}
+  footer{margin-top:28px;display:flex;justify-content:space-between;font-size:12px;color:var(--gold);letter-spacing:3px}
+  @media (max-width:900px){.grid{grid-template-columns:repeat(2,1fr)}}
+  @media (max-width:640px){.grid{grid-template-columns:1fr}.album{padding:24px 18px}header h1{font-size:28px;letter-spacing:6px}}
+  @media (prefers-reduced-motion: reduce){
+    *{transition:none!important;animation:none!important}
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="album">
+    <header>
+      <div>
+        <h1>集页</h1>
+        <div class="sub">PHILATELY ALBUM · 第三册 风物志</div>
+      </div>
+      <div class="count" id="count"></div>
+    </header>
+    <nav class="tabs" id="tabs" aria-label="收藏分类"></nav>
+    <div class="grid" id="grid"></div>
+    <div class="empty" id="empty">此页已空 —— 邮票都收进别的册页了</div>
+    <footer>
+      <span>藏票护袋已装</span>
+      <span>集页 · 私人藏册</span>
+    </footer>
+  </div>
+</div>
+
+<script>
+const cats=["全部","山川","花鸟","人物","纪事"];
+const stamps=[
+  {t:"黄山云海",y:"1987 · 山川",v:"面值 8 分",c:"山川",h:"#8fb6d9,#d9e6f2",m:"云雾系列第一枚，齿孔完好"},
+  {t:"漓江渔火",y:"1991 · 山川",v:"面值 20 分",c:"山川",h:"#3d6b8e,#a8c6d8",m:"夜航题材，带边纸"},
+  {t:"雪线牦牛",y:"1994 · 山川",v:"面值 50 分",c:"山川",h:"#b9c8d4,#eef1f4",m:"高原组外品"},
+  {t:"海棠未雨",y:"1985 · 花鸟",v:"面值 4 分",c:"花鸟",h:"#e7b7c2,#f7e8ec",m:"工笔花卉组之一"},
+  {t:"翠鸟点荷",y:"1989 · 花鸟",v:"面值 10 分",c:"花鸟",h:"#7fbfae,#dcefe8",m:"水禽专题"},
+  {t:"雪候鸟",y:"2003 · 花鸟",v:"面值 80 分",c:"花鸟",h:"#c4d7ea,#eff4fa",m:"迁徙系列"},
+  {t:"老艄公",y:"1978 · 人物",v:"面值 2 分",c:"人物",h:"#d8b48c,#f2e4cf",m:"劳动人物谱"},
+  {t:"邮递员之母",y:"1982 · 人物",v:"面值 8 分",c:"人物",h:"#a8b89a,#e3ead9",m:"邮政史专题"},
+  {t:"女排夺金",y:"1981 · 纪事",v:"面值 8 分",c:"纪事",h:"#e8a0a0,#f6dede",m:"体育纪事，盖销票"},
+  {t:"大桥合龙",y:"1996 · 纪事",v:"面值 30 分",c:"纪事",h:"#9db2c8,#e2e9f0",m:"建设纪事系列"}
+];
+let cur="全部";
+const grid=document.getElementById('grid'),tabs=document.getElementById('tabs'),
+      empty=document.getElementById('empty'),count=document.getElementById('count');
+cats.forEach(c=>{
+  const b=document.createElement('button');
+  b.className='tab'+(c===cur?' active':'');b.textContent=c;
+  b.addEventListener('click',()=>{cur=c;document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.textContent===c));render();});
+  tabs.appendChild(b);
+});
+function render(){
+  grid.innerHTML='';
+  const list=stamps.filter(s=>!s.gone&&(cur==="全部"||s.c===cur));
+  list.forEach(s=>{
+    const d=document.createElement('div');d.className='stamp';
+    d.innerHTML=`<div class="stamp-inner">
+      <div class="art" style="background:linear-gradient(160deg,${s.h})">
+        <svg viewBox="0 0 200 74" preserveAspectRatio="none"><path d="M0 56 L40 22 L70 50 L105 14 L140 48 L170 30 L200 52 V74 H0 Z" fill="rgba(255,255,255,.45)"/><circle cx="160" cy="16" r="9" fill="rgba(255,255,255,.55)"/></svg>
+      </div>
+      <h3>${s.t}</h3><div class="meta">${s.y} · ${s.m}</div>
+      <div class="foot"><span class="val">${s.v}</span><button class="rm">移出本册</button></div>
+    </div>`;
+    d.querySelector('.rm').addEventListener('click',()=>{
+      d.classList.add('removing');s.gone=true;
+      setTimeout(render,280);
+    });
+    grid.appendChild(d);
+  });
+  empty.classList.toggle('show',list.length===0);
+  const left=stamps.filter(s=>!s.gone).length;
+  count.innerHTML=`在册 ${left} 枚<br>本页 ${list.length} 枚`;
+}
+render();
+</script>
+</body>
+</html>

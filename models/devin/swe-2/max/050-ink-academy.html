@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>塾课 · Python 入门班晚自习</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --wall:#c9bda9;
+  --wood:#7a4e2c;
+  --wood-l:#a4713e;
+  --wood-d:#5c3a1e;
+  --board:#2b4a3e;
+  --board-d:#224034;
+  --chalk:#f2efe2;
+  --chalk-dim:rgba(242,239,226,.62);
+  --chalk-faint:rgba(242,239,226,.34);
+  --chalk-y:#f0d47a;
+  --chalk-p:#e78a82;
+  --chalk-b:#9fc3e0;
+  --f-chalk:"Kaiti SC","STKaiti","KaiTi","TW-Kai","楷体","Noto Serif SC",serif;
+  --f-note:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+}
+body{
+  min-height:100vh;padding:30px 24px;
+  background:radial-gradient(120% 130% at 50% 18%,#d4c8b4 0%,#bdb098 55%,#a3927a 100%);
+  font-family:var(--f-chalk);color:var(--chalk);
+  display:flex;justify-content:center;align-items:flex-start;
+}
+.frame{
+  width:100%;max-width:1180px;border-radius:8px;padding:20px;
+  background:
+    repeating-linear-gradient(90deg,rgba(0,0,0,.07) 0 2px,rgba(0,0,0,0) 2px 11px),
+    repeating-linear-gradient(0deg,rgba(255,255,255,.03) 0 1px,rgba(255,255,255,0) 1px 7px),
+    linear-gradient(180deg,#8d5d34 0%,#6e4424 52%,#7c4f2a 100%);
+  box-shadow:0 34px 70px rgba(46,30,12,.5),inset 0 0 0 1px rgba(0,0,0,.35),inset 0 2px 0 rgba(255,255,255,.18);
+}
+.board{
+  position:relative;border-radius:3px;min-height:660px;overflow:hidden;
+  background:
+    radial-gradient(420px 170px at 28% 112%,rgba(255,255,255,.045),rgba(255,255,255,0) 70%),
+    radial-gradient(320px 130px at 82% -8%,rgba(255,255,255,.05),rgba(255,255,255,0) 70%),
+    linear-gradient(160deg,#2f4f43 0%,var(--board) 45%,var(--board-d) 100%);
+  box-shadow:inset 0 0 0 2px rgba(0,0,0,.28),inset 0 0 90px rgba(0,0,0,.4);
+  padding:22px 28px 26px;
+}
+.board-hd{
+  display:flex;align-items:center;justify-content:space-between;gap:16px;
+  padding-bottom:16px;border-bottom:1px dashed var(--chalk-faint);
+}
+.logo{display:flex;align-items:center;gap:14px}
+.logo .mark{position:relative;padding:2px 10px}
+.logo .mark b{font-size:30px;letter-spacing:.1em;color:var(--chalk);text-shadow:0 0 2px rgba(242,239,226,.4)}
+.logo .mark svg{position:absolute;inset:-8px -14px;width:calc(100% + 28px);height:calc(100% + 16px);pointer-events:none}
+.logo .sub{font-size:12px;color:var(--chalk-dim);line-height:1.7;font-family:var(--f-note)}
+.hd-r{text-align:right;font-size:13px;color:var(--chalk-dim);line-height:1.8}
+.hd-r b{color:var(--chalk-y);font-weight:600}
+.board-body{display:flex;gap:28px;margin-top:20px}
+.rail-l{width:224px;flex:none}
+.rail-r{width:216px;flex:none}
+.main{flex:1;min-width:0}
+.rail-t{
+  font-size:13px;color:var(--chalk-dim);letter-spacing:.24em;font-family:var(--f-note);
+  padding-bottom:8px;border-bottom:1px dashed var(--chalk-faint);margin-bottom:12px;
+}
+.lsn{display:flex;align-items:center;gap:11px;padding:10px 8px;border-radius:8px;font-size:15px;color:var(--chalk-dim)}
+.lsn .num{
+  width:24px;height:24px;flex:none;border:1.6px solid var(--chalk-faint);border-radius:50%;
+  display:flex;align-items:center;justify-content:center;font-size:12.5px;
+}
+.lsn .st{margin-left:auto;font-size:11px;font-family:var(--f-note);color:var(--chalk-faint);white-space:nowrap}
+.lsn.done{color:var(--chalk-dim)}
+.lsn.done .num{border-color:var(--chalk-dim)}
+.lsn.done .st{color:var(--chalk-b)}
+.lsn.now{
+  color:var(--chalk);background:rgba(255,255,255,.06);cursor:pointer;
+  border:1px dashed var(--chalk-faint);
+}
+.lsn.now .num{border-color:var(--chalk-y);color:var(--chalk-y)}
+.lsn.now .st{color:var(--chalk-y);font-weight:600}
+.lsn.lock{opacity:.5}
+.prog{margin-top:16px;font-size:12px;color:var(--chalk-dim);font-family:var(--f-note);line-height:1.8}
+.prog .pbar{height:6px;border-radius:3px;background:rgba(0,0,0,.3);margin-top:6px;overflow:hidden}
+.prog .pbar i{display:block;height:100%;width:50%;background:var(--chalk-y);border-radius:3px;transition:width .7s ease}
+.w-title{font-size:30px;letter-spacing:.05em;color:var(--chalk);line-height:1.25}
+.w-title small{display:block;font-size:13px;color:var(--chalk-dim);letter-spacing:.3em;font-family:var(--f-note);margin-top:8px}
+.doodle-line{margin-top:8px;display:block}
+.notice{
+  margin-top:18px;font-size:14px;color:var(--chalk-dim);line-height:2;font-family:var(--f-note);
+}
+.lesson-list{margin-top:18px;display:flex;flex-direction:column;gap:12px}
+.lcard{
+  display:flex;align-items:center;gap:16px;padding:15px 18px;
+  border:2px solid var(--chalk-faint);
+  border-radius:255px 15px 225px 15px/15px 225px 15px 255px;
+}
+.lcard .n{font-size:20px;color:var(--chalk-dim);width:30px;flex:none;font-variant-numeric:tabular-nums}
+.lcard .nm{flex:1;min-width:0}
+.lcard .nm b{font-size:17px;color:var(--chalk);display:block}
+.lcard .nm span{font-size:12px;color:var(--chalk-dim);font-family:var(--f-note)}
+.lcard .tag{flex:none;font-size:11.5px;font-family:var(--f-note);padding:4px 10px;border-radius:999px;white-space:nowrap}
+.lcard.done{opacity:.55}
+.lcard.done .tag{color:var(--chalk-b);border:1px solid rgba(159,195,224,.5)}
+.lcard.now{border-color:rgba(240,212,122,.75);box-shadow:0 0 0 1px rgba(240,212,122,.15),0 0 26px rgba(240,212,122,.06)}
+.lcard.now .tag{color:var(--chalk-y);border:1px solid rgba(240,212,122,.6)}
+.lcard.lock{opacity:.45}
+.lcard.lock .tag{color:var(--chalk-faint);border:1px dashed var(--chalk-faint)}
+.cbtn{
+  font-family:var(--f-chalk);font-size:16px;letter-spacing:.14em;cursor:pointer;
+  color:var(--chalk);background:transparent;padding:11px 26px;
+  border:2px solid var(--chalk);
+  border-radius:255px 15px 225px 15px/15px 225px 15px 255px;
+  transition:background .15s,color .15s,transform .12s;
+}
+.cbtn:hover{background:rgba(242,239,226,.12)}
+.cbtn:active{transform:scale(.97)}
+.cbtn.solid{background:var(--chalk);color:var(--board);font-weight:700}
+.cbtn.solid:hover{background:#fff}
+.cbtn.ghost{border-color:var(--chalk-faint);color:var(--chalk-dim)}
+.cbtn[disabled]{opacity:.38;cursor:not-allowed}
+.cbtn.yellow{border-color:var(--chalk-y);color:var(--chalk-y)}
+.cbtn.yellow:hover{background:rgba(240,212,122,.12)}
+.cbtn.sm{padding:7px 16px;font-size:14px}
+.intro-card{
+  margin-top:16px;padding:20px 22px;
+  border:2px solid var(--chalk-faint);
+  border-radius:15px 255px 15px 225px/225px 15px 255px 15px;
+}
+.intro-card h3{font-size:19px;color:var(--chalk-y);letter-spacing:.08em}
+.points{list-style:none;margin-top:12px}
+.points li{
+  position:relative;padding:7px 0 7px 26px;font-size:15px;color:var(--chalk);line-height:1.7;
+}
+.points li::before{
+  content:"";position:absolute;left:4px;top:15px;width:8px;height:8px;border-radius:50%;
+  border:2px solid var(--chalk-y);
+}
+.points li span{color:var(--chalk-dim);font-size:13px}
+.t-note{
+  margin-top:16px;padding:12px 16px;border-left:3px solid var(--chalk-b);
+  font-size:13.5px;color:var(--chalk-dim);font-family:var(--f-note);line-height:1.9;
+}
+.q-meta{font-size:12px;color:var(--chalk-dim);font-family:var(--f-note);letter-spacing:.2em;margin-bottom:10px}
+.q-title{font-size:21px;line-height:1.7;color:var(--chalk)}
+.code{
+  margin-top:14px;background:rgba(0,0,0,.32);border:1px dashed var(--chalk-faint);
+  border-radius:8px;padding:14px 18px;font-size:14.5px;line-height:1.9;
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Courier New",monospace;
+  color:var(--chalk);overflow-x:auto;white-space:pre;
+}
+.code .k{color:var(--chalk-y)}
+.code .c{color:var(--chalk-dim)}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:18px}
+.opt{
+  display:flex;align-items:center;gap:12px;padding:14px 18px;cursor:pointer;
+  border:2px solid var(--chalk-dim);background:transparent;text-align:left;
+  border-radius:255px 15px 225px 15px/15px 225px 15px 255px;
+  font-family:var(--f-chalk);font-size:16px;color:var(--chalk);transition:all .15s;
+}
+.opt:hover{background:rgba(255,255,255,.07)}
+.opt .ab{
+  width:26px;height:26px;flex:none;border:1.6px solid currentColor;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;font-size:13.5px;
+}
+.opt.sel{background:rgba(242,239,226,.94);color:var(--board);border-color:var(--chalk);font-weight:700}
+.opt.wrong{border-color:var(--chalk-p);color:var(--chalk-p);text-decoration:line-through wavy rgba(231,138,130,.8)}
+.opt.wrong .ab{border-color:var(--chalk-p)}
+.opt.right-mark{border-color:var(--chalk-y);color:var(--chalk-y)}
+.q-actions{display:flex;align-items:center;gap:16px;margin-top:20px}
+.q-hint{font-size:12.5px;color:var(--chalk-dim);font-family:var(--f-note)}
+.banner{
+  display:flex;align-items:center;gap:16px;padding:18px 22px;margin-top:6px;
+  border:2px dashed;border-radius:15px 255px 15px 225px/225px 15px 255px 15px;
+}
+.banner .mark{flex:none;width:52px;height:52px}
+.banner h3{font-size:23px;letter-spacing:.06em}
+.banner p{font-size:13.5px;margin-top:4px;font-family:var(--f-note);line-height:1.7}
+.banner.bad{border-color:var(--chalk-p)}
+.banner.bad h3{color:var(--chalk-p)}
+.banner.bad p{color:var(--chalk-dim)}
+.banner.good{border-color:var(--chalk-y)}
+.banner.good h3{color:var(--chalk-y)}
+.banner.good p{color:var(--chalk-dim)}
+.explain{
+  margin-top:18px;padding:18px 20px;border:1px dashed var(--chalk-faint);
+  border-radius:12px;background:rgba(0,0,0,.18);
+}
+.explain h4{font-size:14px;color:var(--chalk-b);letter-spacing:.2em;font-family:var(--f-note);font-weight:600}
+.explain p{margin-top:10px;font-size:15px;line-height:2;color:var(--chalk)}
+.explain .hl{color:var(--chalk-y);border-bottom:1px solid rgba(240,212,122,.5)}
+.res-opts{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+.res-opt{
+  padding:8px 14px;border:1.6px solid var(--chalk-faint);border-radius:999px;
+  font-size:13.5px;color:var(--chalk-dim);font-family:var(--f-chalk);
+}
+.res-opt.wrong{border-color:var(--chalk-p);color:var(--chalk-p);text-decoration:line-through wavy rgba(231,138,130,.8)}
+.res-opt.right-mark{border-color:var(--chalk-y);color:var(--chalk-y)}
+.res-actions{display:flex;gap:14px;margin-top:20px}
+.log{list-style:none}
+.log li{
+  display:flex;gap:8px;align-items:baseline;font-size:12.5px;color:var(--chalk-dim);
+  font-family:var(--f-note);padding:8px 0;border-bottom:1px dashed rgba(242,239,226,.15);line-height:1.6;
+}
+.log li b{color:var(--chalk)}
+.log li .bad{color:var(--chalk-p)}
+.log li .ok{color:var(--chalk-y)}
+.log .none{border:none;color:var(--chalk-faint);text-align:center;padding:14px 0}
+.st-chip{
+  display:inline-block;font-size:11.5px;font-family:var(--f-note);padding:4px 10px;
+  border-radius:999px;border:1px solid var(--chalk-faint);color:var(--chalk-dim);margin-bottom:10px;
+}
+.st-chip.warn{border-color:rgba(231,138,130,.6);color:var(--chalk-p)}
+.st-chip.ok{border-color:rgba(240,212,122,.6);color:var(--chalk-y)}
+.cheat{
+  margin-top:16px;font-size:12px;color:var(--chalk-faint);font-family:var(--f-note);line-height:1.9;
+  border-top:1px dashed var(--chalk-faint);padding-top:12px;
+}
+.done-strip{
+  margin-top:14px;display:none;align-items:center;gap:10px;
+  padding:11px 16px;border:1.6px dashed rgba(240,212,122,.6);border-radius:10px;
+  color:var(--chalk-y);font-size:13px;font-family:var(--f-note);
+}
+.done-strip.show{display:flex}
+.tray{
+  height:24px;margin:12px 6px 0;position:relative;border-radius:3px;
+  background:linear-gradient(180deg,#9a6a3d,var(--wood) 70%);
+  box-shadow:inset 0 2px 0 rgba(255,255,255,.12),0 4px 8px rgba(0,0,0,.3);
+}
+.tray i{position:absolute;top:7px;height:7px;border-radius:4px;display:block}
+.eraser{
+  position:absolute;right:60px;top:-12px;width:78px;height:22px;border-radius:3px;
+  background:linear-gradient(180deg,var(--wood-l) 0 55%,#3a3a38 55% 100%);
+  box-shadow:0 3px 6px rgba(0,0,0,.35);
+}
+.ctoast{
+  position:absolute;left:50%;top:16px;transform:translate(-50%,-180%);z-index:5;
+  background:rgba(34,64,52,.96);border:1.6px dashed var(--chalk-y);color:var(--chalk-y);
+  padding:9px 20px;border-radius:10px;font-size:14px;letter-spacing:.06em;
+  transition:transform .4s cubic-bezier(.2,.9,.3,1.2);pointer-events:none;white-space:nowrap;
+}
+.ctoast.show{transform:translate(-50%,0)}
+[hidden]{display:none!important}
+@media (max-width:1000px){
+  .rail-r{display:none}
+}
+@media (max-width:760px){
+  body{padding:12px}
+  .frame{padding:10px}
+  .board{padding:16px}
+  .board-body{flex-direction:column;gap:18px}
+  .rail-l{width:100%}
+  .rail-l .lsn{padding:8px 6px}
+  .opts{grid-template-columns:1fr}
+  .w-title{font-size:24px}
+}
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+}
+</style>
+</head>
+<body>
+<div class="frame">
+  <div class="board">
+    <div class="ctoast" id="ctoast"></div>
+    <header class="board-hd">
+      <div class="logo">
+        <span class="mark"><b>塾课</b>
+          <svg viewBox="0 0 120 60" fill="none"><ellipse cx="60" cy="30" rx="56" ry="24" stroke="#f0d47a" stroke-width="2" stroke-linecap="round" stroke-dasharray="330 60" transform="rotate(-3 60 30)"/></svg>
+        </span>
+        <span class="sub">晚自习板书系统<br>INK ACADEMY</span>
+      </div>
+      <div class="hd-r">Python 入门班 · 基础篇<br><b>9月23日 周三 · 晚自习</b></div>
+    </header>
+    <div class="board-body">
+      <aside class="rail-l">
+        <div class="rail-t">本单元课程</div>
+        <div class="lsn done"><span class="num">1</span>变量与赋值<span class="st">已结课</span></div>
+        <div class="lsn done"><span class="num">2</span>列表与循环<span class="st">已结课</span></div>
+        <div class="lsn now" id="lsnNow"><span class="num">3</span>字典与映射<span class="st" id="lsnNowSt">本讲</span></div>
+        <div class="lsn lock"><span class="num">4</span>文件与异常<span class="st">未开讲</span></div>
+        <div class="prog">单元进度 <b id="progText" style="color:var(--chalk-y)">2 / 4 讲</b><div class="pbar"><i id="pbarFill"></i></div></div>
+        <div class="cheat">小抄：len() 数的是「键」的个数，与值无关；同键赋值是覆盖不是新增。</div>
+      </aside>
+      <main class="main">
+        <section id="v-index">
+          <h2 class="w-title">今晚的板书<small>WEDNESDAY · EVENING SESSION</small></h2>
+          <svg class="doodle-line" width="220" height="10" viewBox="0 0 220 10" fill="none"><path d="M2 6 Q 30 1 60 5 T 118 6 T 176 4 T 218 6" stroke="#f2efe2" stroke-width="2" stroke-linecap="round" opacity=".6"/></svg>
+          <p class="notice">本周进度已过半。今晚讲「字典与映射」，听完板书有一道随堂练习，答错可以看讲解再订正，直到做对为止。</p>
+          <div class="lesson-list">
+            <div class="lcard done"><span class="n">1</span><div class="nm"><b>变量与赋值</b><span>周一 · 已结课</span></div><span class="tag">已结课</span></div>
+            <div class="lcard done"><span class="n">2</span><div class="nm"><b>列表与循环</b><span>周二 · 已结课</span></div><span class="tag">已结课</span></div>
+            <div class="lcard now" id="lcardNow"><span class="n">3</span><div class="nm"><b>字典与映射</b><span>今晚 · 随堂练习 1 题</span></div><span class="tag" id="lcardNowTag">正在进行</span></div>
+            <div class="lcard lock"><span class="n">4</span><div class="nm"><b>文件与异常</b><span>下周三 19:30 开讲</span></div><span class="tag">未开讲</span></div>
+          </div>
+          <div class="done-strip" id="doneStrip">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8.6 6.4 12 13 4.4" stroke="#f0d47a" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span id="doneStripText"></span>
+          </div>
+          <div style="margin-top:22px">
+            <button class="cbtn solid" id="enterBtn">进入第三讲课堂</button>
+          </div>
+        </section>
+        <section id="v-intro" hidden>
+          <h2 class="w-title">第三讲 · 字典与映射<small>LESSON 03 · DICT AND MAPPING</small></h2>
+          <div class="intro-card">
+            <h3>本讲要点</h3>
+            <ul class="points">
+              <li>字典用花括号存「键 → 值」对，键唯一<span>（同键再赋值会覆盖旧值）</span></li>
+              <li>len(d) 统计键的个数，新增一个键就 +1</li>
+              <li>d[新键]=值 是写入；d.get(键, 默认) 是安全读取</li>
+            </ul>
+            <div class="t-note">先生板书：练习只有一道精选题，提交后能看到对错与讲解；答错不丢人，订正成功同样记为完成。</div>
+          </div>
+          <div style="margin-top:22px;display:flex;gap:14px">
+            <button class="cbtn solid" id="startQuizBtn">开始随堂练习</button>
+            <button class="cbtn ghost" id="backIdxBtn">返回课表</button>
+          </div>
+        </section>
+        <section id="v-quiz" hidden>
+          <div class="q-meta" id="quizMeta">随堂练习 · 第 1 / 1 题 · 第 1 次作答</div>
+          <h2 class="q-title">运行下面这段板书代码，输出结果是什么？</h2>
+          <div class="code"><span class="c"># 第三讲随堂练习</span>
+scores = {<span class="k">"语文"</span>: 82, <span class="k">"数学"</span>: 91}
+scores[<span class="k">"英语"</span>] = 77
+print(len(scores))</div>
+          <div class="opts" id="opts">
+            <button class="opt" data-v="A"><span class="ab">A</span>输出 2</button>
+            <button class="opt" data-v="B"><span class="ab">B</span>输出 3</button>
+            <button class="opt" data-v="C"><span class="ab">C</span>输出 4</button>
+            <button class="opt" data-v="D"><span class="ab">D</span>报 KeyError</button>
+          </div>
+          <div class="q-actions">
+            <button class="cbtn solid" id="submitBtn" disabled>提交答案</button>
+            <span class="q-hint" id="quizHint">先在黑板上点选一个选项</span>
+          </div>
+        </section>
+        <section id="v-result" hidden>
+          <div class="banner bad" id="banBad" hidden>
+            <svg class="mark" viewBox="0 0 52 52" fill="none"><circle cx="26" cy="26" r="22" stroke="#e78a82" stroke-width="2.4" stroke-dasharray="120 18" transform="rotate(-8 26 26)"/><path d="M18 18 34 34M34 18 18 34" stroke="#e78a82" stroke-width="3" stroke-linecap="round"/></svg>
+            <div><h3>答错了，这一题还差一点</h3><p id="banBadText">你选了 C · 别急着看答案，先读下面这段板书讲解。</p></div>
+          </div>
+          <div class="banner good" id="banGood" hidden>
+            <svg class="mark" viewBox="0 0 52 52" fill="none"><path d="M26 6l5.2 11 12.1 1.6-8.9 8.3 2.2 12L26 32.9 15.4 38.9l2.2-12-8.9-8.3 12.1-1.6Z" stroke="#f0d47a" stroke-width="2.2" stroke-linejoin="round"/><circle cx="26" cy="26" r="23" stroke="#f0d47a" stroke-width="1.6" stroke-dasharray="128 16" transform="rotate(6 26 26)"/></svg>
+            <div><h3 id="banGoodTitle">回答正确</h3><p id="banGoodText"></p></div>
+          </div>
+          <div class="res-opts" id="resOpts"></div>
+          <div class="explain">
+            <h4>板书讲解 · 为什么是 B</h4>
+            <p>字典 len() 数的是<span class="hl">键的个数</span>。初始 scores 里有「语文」「数学」两个键；scores["英语"]=77 是<span class="hl">新增一个键</span>——键原本不存在，所以不是覆盖。最终共 3 个键，输出 3。</p>
+            <p style="margin-top:8px;font-size:13.5px;color:var(--chalk-dim)">对比一下：如果写的是 scores["数学"]=95，才是覆盖，len 仍为 2。</p>
+          </div>
+          <div class="res-actions">
+            <button class="cbtn yellow" id="retryBtn" hidden>回到题目再答一次</button>
+            <button class="cbtn solid" id="finishBtn" hidden>完成本课</button>
+          </div>
+        </section>
+      </main>
+      <aside class="rail-r">
+        <div class="rail-t">板书记录</div>
+        <span class="st-chip" id="stChip">本讲状态 · 未开始</span>
+        <ul class="log" id="logList"><li class="none">尚无作答记录</li></ul>
+      </aside>
+    </div>
+  </div>
+  <div class="tray">
+    <i style="left:26px;width:52px;background:#f2efe2"></i>
+    <i style="left:92px;width:38px;background:#f0d47a"></i>
+    <i style="left:144px;width:44px;background:#e78a82"></i>
+    <span class="eraser"></span>
+  </div>
+</div>
+<script>
+(function(){
+  var CORRECT='B';
+  var selected=null;
+  var attempts=[];
+  var finished=false;
+  var els={
+    index:document.getElementById('v-index'),
+    intro:document.getElementById('v-intro'),
+    quiz:document.getElementById('v-quiz'),
+    result:document.getElementById('v-result')
+  };
+  function go(name){
+    for(var k in els){els[k].hidden=(k!==name)}
+    window.scrollTo(0,0);
+  }
+  var ctoast=document.getElementById('ctoast');
+  var ctTimer=null;
+  function toast(msg){
+    ctoast.textContent=msg;
+    ctoast.classList.add('show');
+    clearTimeout(ctTimer);
+    ctTimer=setTimeout(function(){ctoast.classList.remove('show')},2400);
+  }
+  var stChip=document.getElementById('stChip');
+  var logList=document.getElementById('logList');
+  function renderLog(){
+    if(attempts.length===0){
+      logList.innerHTML='<li class="none">尚无作答记录</li>';
+      stChip.className='st-chip';
+      stChip.textContent='本讲状态 · 未开始';
+      return;
+    }
+    var html='';
+    attempts.forEach(function(a,i){
+      html+='<li><b>第 '+(i+1)+' 次</b> 选 '+a.pick+' <span class="'+(a.ok?'ok':'bad')+'">'+(a.ok?'订正成功':'答错')+'</span></li>';
+    });
+    logList.innerHTML=html;
+    var lastOk=attempts[attempts.length-1].ok;
+    if(lastOk){
+      stChip.className='st-chip ok';
+      stChip.textContent='本讲状态 · 已完成';
+    }else{
+      stChip.className='st-chip warn';
+      stChip.textContent='本讲状态 · 订正中';
+    }
+  }
+  var submitBtn=document.getElementById('submitBtn');
+  var quizHint=document.getElementById('quizHint');
+  var opts=document.getElementById('opts');
+  function resetQuiz(){
+    selected=null;
+    submitBtn.disabled=true;
+    quizHint.textContent='先在黑板上点选一个选项';
+    opts.querySelectorAll('.opt').forEach(function(o){o.classList.remove('sel','wrong','right-mark')});
+    document.getElementById('quizMeta').textContent='随堂练习 · 第 1 / 1 题 · 第 '+(attempts.length+1)+' 次作答';
+  }
+  opts.addEventListener('click',function(e){
+    var b=e.target.closest('.opt');
+    if(!b)return;
+    opts.querySelectorAll('.opt').forEach(function(o){o.classList.remove('sel')});
+    b.classList.add('sel');
+    selected=b.getAttribute('data-v');
+    submitBtn.disabled=false;
+    quizHint.textContent='已选 '+selected+'，确认后点「提交答案」';
+  });
+  var banBad=document.getElementById('banBad');
+  var banGood=document.getElementById('banGood');
+  var resOpts=document.getElementById('resOpts');
+  var retryBtn=document.getElementById('retryBtn');
+  var finishBtn=document.getElementById('finishBtn');
+  function showResult(ok){
+    resOpts.innerHTML='';
+    ['A','B','C','D'].forEach(function(v){
+      var s=document.createElement('span');
+      s.className='res-opt';
+      if(!ok&&v===attempts[attempts.length-1].pick){s.classList.add('wrong')}
+      if(ok&&v===CORRECT){s.classList.add('right-mark')}
+      s.textContent=v+(ok&&v===CORRECT?' · 你的答案':'');
+      if(!ok&&v===attempts[attempts.length-1].pick){s.textContent=v+' · 你的选择'}
+      resOpts.appendChild(s);
+    });
+    if(ok){
+      banBad.hidden=true;banGood.hidden=false;
+      var retried=attempts.length>1;
+      document.getElementById('banGoodTitle').textContent=retried?'订正成功，这回对了':'一次答对，很稳';
+      document.getElementById('banGoodText').textContent=retried?
+        '订正完成 · 本题记为通过，用时 '+(attempts.length)+' 次作答。':
+        '第一次就选对，本题记为通过。';
+      retryBtn.hidden=true;finishBtn.hidden=false;
+    }else{
+      banBad.hidden=false;banGood.hidden=true;
+      document.getElementById('banBadText').textContent='你选了 '+selected+' · 别急着看答案，先读下面这段板书讲解。';
+      retryBtn.hidden=false;finishBtn.hidden=true;
+    }
+    go('result');
+  }
+  submitBtn.addEventListener('click',function(){
+    if(!selected)return;
+    var ok=(selected===CORRECT);
+    attempts.push({pick:selected,ok:ok});
+    renderLog();
+    showResult(ok);
+  });
+  retryBtn.addEventListener('click',function(){
+    resetQuiz();
+    go('quiz');
+    toast('回到题目 · 第 '+attempts.length+' 次作答已记录');
+  });
+  finishBtn.addEventListener('click',function(){
+    finished=true;
+    var st=document.getElementById('lsnNowSt');
+    st.textContent='已完成';
+    document.getElementById('lsnNow').classList.remove('now');
+    document.getElementById('lsnNow').classList.add('done');
+    var card=document.getElementById('lcardNow');
+    card.classList.remove('now');card.classList.add('done');
+    document.getElementById('lcardNowTag').textContent='已完成';
+    document.getElementById('progText').textContent='3 / 4 讲';
+    document.getElementById('pbarFill').style.width='75%';
+    var strip=document.getElementById('doneStrip');
+    strip.classList.add('show');
+    strip.querySelector('#doneStripText').textContent='第三讲已完成 · 共作答 '+attempts.length+' 次 · 订正 '+(attempts.length-1)+' 次';
+    go('index');
+    toast('第三讲「字典与映射」已完成');
+  });
+  document.getElementById('enterBtn').addEventListener('click',function(){go('intro')});
+  document.getElementById('lcardNow').addEventListener('click',function(){if(!finished)go('intro')});
+  document.getElementById('lsnNow').addEventListener('click',function(){if(!finished)go('intro')});
+  document.getElementById('startQuizBtn').addEventListener('click',function(){resetQuiz();go('quiz')});
+  document.getElementById('backIdxBtn').addEventListener('click',function(){go('index')});
+  resetQuiz();
+})();
+</script>
+</body>
+</html>

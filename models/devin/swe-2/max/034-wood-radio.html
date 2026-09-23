@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>匣声 · 正在播放</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#211a14;font-family:-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:28px 16px}
+.phone{width:390px;height:844px;border-radius:40px;overflow:hidden;position:relative;box-shadow:0 30px 80px rgba(0,0,0,.65),0 0 0 10px #14100c;display:flex;flex-direction:column;
+background:linear-gradient(90deg,#4a3120 0%,#5a3d27 8%,#4e3421 20%,#5d3f28 34%,#4a3120 48%,#573a25 62%,#4e3421 78%,#5a3d27 90%,#4a3120 100%)}
+.phone::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(90deg,rgba(0,0,0,.05) 0 2px,transparent 2px 7px);pointer-events:none}
+.grille{position:absolute;left:0;right:0;top:0;height:190px;background:radial-gradient(circle at 50% 30%,#6b4a2e 0%,#3a2617 75%);border-bottom:3px solid #2a1c11}
+.grille::before{content:"";position:absolute;inset:14px 26px;background-image:radial-gradient(#1d1309 1.6px,transparent 1.7px);background-size:11px 11px;border-radius:8px;opacity:.8}
+.mid{position:absolute;top:190px;left:0;right:0;bottom:0;padding:22px 26px 20px;display:flex;flex-direction:column;color:#f0e2cc}
+.brand{display:flex;justify-content:space-between;align-items:center}
+.brand b{font-size:13px;letter-spacing:6px;color:#d9a85c;font-weight:700}
+.brand .fm{font-family:"Courier New",monospace;font-size:11px;color:#a98d64;letter-spacing:2px}
+.title{margin-top:18px;text-align:center}
+.title .k{font-size:11px;letter-spacing:4px;color:#a98d64}
+.title h1{margin-top:8px;font-size:22px;color:#f6ead2;letter-spacing:2px;font-weight:700}
+.title .who{margin-top:6px;font-size:12.5px;color:#c9a778}
+.dial{margin-top:20px;background:linear-gradient(180deg,#efe0bd,#d9c491);border-radius:10px;border:2px solid #2a1c11;padding:12px 14px 14px;position:relative;box-shadow:inset 0 2px 6px rgba(60,40,15,.35)}
+.scale{position:relative;height:64px}
+.tick{position:absolute;top:0;width:1.5px;height:9px;background:#5a4326}
+.tick.big{height:15px;width:2px}
+.ticklbl{position:absolute;top:16px;font-family:"Courier New",monospace;font-size:9.5px;color:#5a4326;transform:translateX(-50%)}
+.needle{position:absolute;top:0;bottom:8px;width:3px;background:#b03018;left:50%;margin-left:-1.5px;transition:left .8s cubic-bezier(.3,1.4,.4,1);box-shadow:0 0 4px rgba(176,48,24,.6)}
+.lamp{position:absolute;right:10px;top:8px;width:9px;height:9px;border-radius:50%;background:#5a4326}
+.playing .lamp{background:#e8a33d;box-shadow:0 0 8px #e8a33d}
+.prog{margin-top:16px}
+.prog .trow{display:flex;justify-content:space-between;font-family:"Courier New",monospace;font-size:10.5px;color:#a98d64;margin-bottom:6px}
+.track{height:5px;background:#2a1c11;border-radius:3px;overflow:hidden}
+.track i{display:block;height:100%;width:0%;background:linear-gradient(90deg,#d9a85c,#e8a33d);transition:width .5s linear}
+.ctrl{margin-top:auto;display:flex;align-items:center;justify-content:center;gap:34px;padding-bottom:14px}
+.knob{width:52px;height:52px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#e8c07a,#a5753a 60%,#6e4c22);border:2px solid #2a1c11;cursor:pointer;position:relative;box-shadow:0 4px 10px rgba(0,0,0,.5);display:grid;place-items:center;font-size:19px;color:#2a1c11;transition:transform .15s}
+.knob:active{transform:scale(.93)}
+.knob.big{width:82px;height:82px;font-size:28px;background:radial-gradient(circle at 35% 30%,#f0cf8e,#b58647 60%,#7a5527)}
+.knob::after{content:"";position:absolute;top:6px;left:50%;width:3px;height:12px;margin-left:-1.5px;border-radius:2px;background:#3a2812}
+.hint{position:absolute;bottom:8px;left:0;right:0;text-align:center;font-size:10px;letter-spacing:3px;color:#8a6f4a}
+.toast{position:absolute;top:120px;left:50%;transform:translateX(-50%);background:#efe0bd;color:#4a3120;padding:8px 18px;border-radius:20px;font-size:12.5px;font-weight:600;opacity:0;transition:opacity .3s;pointer-events:none;letter-spacing:2px}
+.toast.show{opacity:1}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+@media (max-width:430px){body{padding:0}.phone{width:100%;height:100vh;border-radius:0;box-shadow:none}}
+</style>
+</head>
+<body>
+<div class="phone" id="ph">
+  <div class="grille"></div>
+  <div class="mid">
+    <div class="brand"><b>匣 声</b><span class="fm">FM 87–108 MHz</span></div>
+    <div class="title">
+      <div class="k">NOW PLAYING · 正在播放</div>
+      <h1 id="tname">夜航西飞 · 第三章</h1>
+      <div class="who" id="twho">有声书 · 主播 陈慢</div>
+    </div>
+    <div class="dial">
+      <div class="scale" id="scale">
+        <div class="needle" id="needle"></div>
+        <div class="lamp"></div>
+      </div>
+    </div>
+    <div class="prog">
+      <div class="trow"><span id="cur">00:00</span><span id="dur">42:10</span></div>
+      <div class="track"><i id="bar"></i></div>
+    </div>
+    <div class="ctrl">
+      <button class="knob" id="prev" title="上一段">‹</button>
+      <button class="knob big" id="play" title="播放/暂停">▶</button>
+      <button class="knob" id="next" title="下一段">›</button>
+    </div>
+  </div>
+  <div class="toast" id="toast">已切到下一段</div>
+  <div class="hint">匣声 · 木匣广播</div>
+</div>
+<script>
+const tracks=[
+ ['夜航西飞 · 第三章','有声书 · 主播 陈慢','42:10','98.4'],
+ ['雨巷木樨 · 散文集','广播剧 · 匣声剧场','28:36','95.8'],
+ ['旧厂钟声','纪录声景 · 城市系列','35:02','103.7']];
+let i=0,sec=0,total=42*60+10,on=false,timer=null;
+const nm=document.getElementById('tname'),wh=document.getElementById('twho'),dur=document.getElementById('dur'),cur=document.getElementById('cur'),bar=document.getElementById('bar'),nd=document.getElementById('needle'),sc=document.getElementById('scale'),pb=document.getElementById('play'),ph=document.getElementById('ph'),toast=document.getElementById('toast');
+for(let f=87;f<=108;f+=3){const x=(f-87)/21*100;
+ const t=document.createElement('div');t.className='tick'+(f%6===0?' big':'');t.style.left=x+'%';sc.appendChild(t);
+ const l=document.createElement('div');l.className='ticklbl';l.style.left=x+'%';l.textContent=f;sc.appendChild(l);}
+function fmt(s){return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');}
+function apply(){nm.textContent=tracks[i][0];wh.textContent=tracks[i][1];dur.textContent=tracks[i][2];
+ const p=tracks[i][2].split(':');total=+p[0]*60+ +p[1];sec=0;paint();}
+function paint(){cur.textContent=fmt(sec);bar.style.width=(sec/total*100)+'%';
+ const f=parseFloat(tracks[i][3]);nd.style.left=((f-87)/21*100)+'%';}
+function setOn(v){on=v;pb.textContent=on?'❚❚':'▶';ph.classList.toggle('playing',on);
+ clearInterval(timer);if(on)timer=setInterval(()=>{sec=Math.min(sec+1,total);paint();if(sec>=total)setOn(false)},1000);}
+pb.addEventListener('click',()=>setOn(!on));
+document.getElementById('next').addEventListener('click',()=>{i=(i+1)%tracks.length;apply();flash('已切到下一段 · FM '+tracks[i][3]);});
+document.getElementById('prev').addEventListener('click',()=>{i=(i-1+tracks.length)%tracks.length;apply();flash('回到上一段 · FM '+tracks[i][3]);});
+function flash(t){toast.textContent=t;toast.classList.add('show');setTimeout(()=>toast.classList.remove('show'),1600);}
+apply();
+</script>
+</body>
+</html>

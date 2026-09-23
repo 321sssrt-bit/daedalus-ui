@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>筛样 · 样本检索台</title>
+<style>
+  :root{
+    --bg:#f6f8f7; --panel:#ffffff; --line:#d8e0dd; --ink:#1f2a26; --ink-soft:#5d6f68;
+    --hl:#d9f566; --hl-2:#ffe873; --tag:#e8f0ec; --accent:#0e8a5f; --danger:#d14a3a;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    background:var(--bg);color:var(--ink);
+    font-family:-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;min-height:100vh;
+  }
+  .page{max-width:1180px;margin:0 auto;padding:40px 30px 80px}
+  header{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:26px}
+  header h1{font-size:24px;letter-spacing:4px}
+  header h1 em{font-style:normal;background:linear-gradient(transparent 55%,var(--hl) 55%);padding:0 4px}
+  header .lab{font-size:12px;color:var(--ink-soft);letter-spacing:2px}
+  .layout{display:grid;grid-template-columns:280px 1fr;gap:26px;align-items:start}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:22px}
+  .filters h2,.results h2{font-size:12px;letter-spacing:4px;color:var(--ink-soft);margin-bottom:16px;display:flex;justify-content:space-between;align-items:center}
+  .clear{
+    font-family:inherit;font-size:12px;cursor:pointer;color:var(--danger);
+    background:none;border:none;letter-spacing:2px;padding:2px 4px;
+  }
+  .clear:hover{text-decoration:underline}
+  .fgroup{padding:14px 0;border-top:1px dashed var(--line)}
+  .fgroup:first-of-type{border-top:none;padding-top:0}
+  .fgroup h3{font-size:13px;font-weight:600;margin-bottom:10px;letter-spacing:1px}
+  .opts{display:flex;flex-wrap:wrap;gap:8px}
+  .opt{
+    font-family:inherit;font-size:12.5px;cursor:pointer;padding:6px 13px;border-radius:5px;
+    border:1px solid var(--line);background:var(--bg);color:var(--ink-soft);transition:all .15s;
+  }
+  .opt:hover{border-color:var(--accent)}
+  .opt.on{background:var(--hl);color:var(--ink);border-color:#b8d444;font-weight:600}
+  .opt:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  .countline{
+    font-size:13px;color:var(--ink-soft);margin-bottom:14px;letter-spacing:1px;
+  }
+  .countline b{
+    color:var(--ink);font-size:17px;background:linear-gradient(transparent 60%,var(--hl-2) 60%);padding:0 3px;
+  }
+  .res{display:flex;flex-direction:column;gap:12px}
+  .tube{
+    display:grid;grid-template-columns:30px 1fr auto;gap:14px;align-items:center;
+    border:1px solid var(--line);border-radius:8px;padding:14px 16px;background:var(--bg);
+    transition:all .18s ease;
+  }
+  .tube:hover{border-color:var(--accent);transform:translateX(3px)}
+  .tube .cap{width:14px;height:36px;border-radius:4px 4px 0 0}
+  .tube .no{font-family:"Courier New",monospace;font-size:12px;color:var(--ink-soft);letter-spacing:1px}
+  .tube .name{font-size:14.5px;font-weight:600;margin-top:2px}
+  .tube .meta{font-size:12px;color:var(--ink-soft);margin-top:5px}
+  .tube .badge{
+    font-size:11px;padding:4px 10px;border-radius:4px;letter-spacing:1px;white-space:nowrap;
+  }
+  .b-ok{background:#ddf0e6;color:var(--accent)} .b-rush{background:#ffe9d6;color:#a15c06} .b-wait{background:#e5eaeb;color:#61707a}
+  .noresult{display:none;text-align:center;padding:48px 0;color:var(--ink-soft);font-size:14px}
+  .noresult.show{display:block}
+  @media (max-width:860px){
+    .layout{grid-template-columns:1fr}
+    .page{padding:28px 16px 60px}
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{transition:none!important;animation:none!important}
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <header>
+    <h1>筛样 <em>样本检索台</em></h1>
+    <span class="lab">三号实验台 · 本批样本库 S-2026Q3</span>
+  </header>
+  <div class="layout">
+    <aside class="panel filters">
+      <h2>筛 选 条 件 <button class="clear" id="clear">全部清除 ✕</button></h2>
+      <div class="fgroup"><h3>样本类型</h3><div class="opts" data-k="type">
+        <button class="opt" data-v="土壤">土壤</button><button class="opt" data-v="水体">水体</button><button class="opt" data-v="大气">大气</button><button class="opt" data-v="生物">生物</button>
+      </div></div>
+      <div class="fgroup"><h3>采集区域</h3><div class="opts" data-k="zone">
+        <button class="opt" data-v="东区">东区</button><button class="opt" data-v="西区">西区</button><button class="opt" data-v="北岸">北岸</button>
+      </div></div>
+      <div class="fgroup"><h3>检测状态</h3><div class="opts" data-k="st">
+        <button class="opt" data-v="已检">已检</button><button class="opt" data-v="加急">加急</button><button class="opt" data-v="待检">待检</button>
+      </div></div>
+      <div class="fgroup"><h3>风险标记</h3><div class="opts" data-k="risk">
+        <button class="opt" data-v="含标记">含标记</button><button class="opt" data-v="无标记">无标记</button>
+      </div></div>
+    </aside>
+    <section class="panel results">
+      <h2>样 本 管 位</h2>
+      <div class="countline">命中 <b id="cnt">0</b> 支样本管 · 检索条件即时生效</div>
+      <div class="res" id="res"></div>
+      <div class="noresult" id="noresult">本批无匹配样本 —— 试试放宽条件或「全部清除」</div>
+    </section>
+  </div>
+</div>
+
+<script>
+const samples=[
+  {no:"S-0142",n:"河岸表土层",z:"东区",t:"土壤",st:"已检",r:0,c:"#8a6b4f"},
+  {no:"S-0157",n:"排污口水样",z:"北岸",t:"水体",st:"加急",r:1,c:"#4f86a8"},
+  {no:"S-0201",n:"厂区下风向沉降",z:"西区",t:"大气",st:"待检",r:0,c:"#9aa8a0"},
+  {no:"S-0218",n:"湿地底泥",z:"东区",t:"土壤",st:"已检",r:1,c:"#6b5b45"},
+  {no:"S-0233",n:"浮游生物网采",z:"北岸",t:"生物",st:"已检",r:0,c:"#5d9c72"},
+  {no:"S-0246",n:"雨水口初雨",z:"西区",t:"水体",st:"待检",r:1,c:"#7d99b8"},
+  {no:"S-0261",n:"罐区扬尘点",z:"西区",t:"大气",st:"加急",r:1,c:"#b09a72"},
+  {no:"S-0279",n:"林地对照土芯",z:"东区",t:"土壤",st:"已检",r:0,c:"#7c6b50"}
+];
+const sel={type:new Set(),zone:new Set(),st:new Set(),risk:new Set()};
+const res=document.getElementById('res'),cnt=document.getElementById('cnt'),nr=document.getElementById('noresult');
+document.querySelectorAll('.opt').forEach(b=>b.addEventListener('click',()=>{
+  const k=b.parentElement.dataset.k,v=b.dataset.v;
+  sel[k].has(v)?sel[k].delete(v):sel[k].add(v);
+  b.classList.toggle('on');render();
+}));
+document.getElementById('clear').addEventListener('click',()=>{
+  Object.values(sel).forEach(s=>s.clear());
+  document.querySelectorAll('.opt.on').forEach(b=>b.classList.remove('on'));
+  render();
+});
+function render(){
+  const list=samples.filter(s=>
+    (!sel.type.size||sel.type.has(s.t))&&
+    (!sel.zone.size||sel.zone.has(s.z))&&
+    (!sel.st.size||sel.st.has(s.st))&&
+    (!sel.risk.size||sel.risk.has(s.r?"含标记":"无标记"))
+  );
+  res.innerHTML='';
+  list.forEach(s=>{
+    const el=document.createElement('div');el.className='tube';
+    el.innerHTML=`<div class="cap" style="background:${s.c}"></div>
+      <div><div class="no">${s.no}</div><div class="name">${s.n}</div>
+      <div class="meta">${s.z} · ${s.t} · ${s.r?'⚑ 含风险标记':'常规'}</div></div>
+      <span class="badge ${s.st==='已检'?'b-ok':s.st==='加急'?'b-rush':'b-wait'}">${s.st}</span>`;
+    res.appendChild(el);
+  });
+  cnt.textContent=list.length;
+  nr.classList.toggle('show',list.length===0);
+}
+render();
+</script>
+</body>
+</html>

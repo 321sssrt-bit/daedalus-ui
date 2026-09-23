@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>现钞 · 清爽移动支付</title>
+<style>
+:root{
+  --mint:#2fbf94;
+  --mint-deep:#149a73;
+  --mint-soft:#e6f8f1;
+  --mint-line:#c8ecdd;
+  --ink:#0f3d33;
+  --ink-soft:#3d665c;
+  --muted:#7fa89b;
+  --paper:#f2faf6;
+  --card:#ffffff;
+  --warn:#e2574c;
+  --warn-bg:#fdecea;
+  --gold:#f0b64c;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Segoe UI",sans-serif;
+  background:linear-gradient(160deg,#d8f2e7 0%,#eef9f3 45%,#d9efe6 100%);
+  color:var(--ink);
+  display:flex;align-items:center;justify-content:center;
+  min-height:100vh;padding:24px;
+}
+.phone{
+  width:390px;height:min(844px,calc(100vh - 32px));
+  background:var(--paper);
+  border-radius:44px;
+  border:10px solid #123f35;
+  box-shadow:0 30px 70px -24px rgba(15,61,51,.5),inset 0 0 0 2px rgba(255,255,255,.15);
+  overflow:hidden;position:relative;
+  display:flex;flex-direction:column;
+}
+.statusbar{
+  height:44px;flex:none;display:flex;align-items:center;justify-content:space-between;
+  padding:0 26px;font-size:13px;font-weight:600;color:var(--ink);
+}
+.statusbar .r{display:flex;gap:6px;align-items:center}
+.screen{flex:1;overflow-y:auto;overflow-x:hidden;display:none;flex-direction:column}
+.screen.on{display:flex}
+.pad{padding:0 20px 20px}
+.apphead{display:flex;align-items:center;justify-content:space-between;padding:6px 20px 14px}
+.apphead .name{font-size:22px;font-weight:800;letter-spacing:2px}
+.apphead .bell{
+  width:36px;height:36px;border-radius:12px;background:var(--card);
+  display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px -3px rgba(15,61,51,.2);
+}
+.balance{
+  margin:0 20px;border-radius:22px;padding:22px 22px 18px;color:#fff;
+  background:linear-gradient(135deg,#25b98d 0%,#149a73 60%,#0d8062 100%);
+  box-shadow:0 14px 30px -14px rgba(20,154,115,.7);
+  position:relative;overflow:hidden;
+}
+.balance::after{
+  content:"";position:absolute;right:-46px;top:-46px;width:170px;height:170px;border-radius:50%;
+  background:radial-gradient(circle,rgba(255,255,255,.22),transparent 68%);
+}
+.balance .lbl{font-size:12.5px;opacity:.85;letter-spacing:1px}
+.balance .amt{font-size:38px;font-weight:800;margin:6px 0 2px;font-variant-numeric:tabular-nums;letter-spacing:.5px}
+.balance .amt small{font-size:19px;font-weight:700}
+.balance .foot{font-size:12px;opacity:.8;display:flex;gap:14px}
+.balance .foot b{font-weight:600}
+.secttl{font-size:14px;font-weight:700;margin:20px 20px 10px;display:flex;justify-content:space-between;align-items:center}
+.secttl .more{font-size:12px;color:var(--muted);font-weight:400}
+.srcrow{
+  margin:0 20px;background:var(--card);border-radius:18px;padding:6px 16px;
+  box-shadow:0 4px 16px -8px rgba(15,61,51,.14);
+}
+.src{
+  display:flex;align-items:center;gap:12px;padding:13px 0;
+  border-bottom:1px solid #eef6f1;
+}
+.src:last-child{border-bottom:none}
+.src .ic{
+  width:38px;height:38px;border-radius:12px;flex:none;
+  display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:800;
+}
+.src .ic.cash{background:var(--mint-soft);color:var(--mint-deep)}
+.src .ic.bank{background:#eaf3fd;color:#3a7bc2}
+.src .tx{flex:1}
+.src .tx .t{font-size:14px;font-weight:600}
+.src .tx .s{font-size:11.5px;color:var(--muted);margin-top:2px}
+.src .v{font-size:15px;font-weight:700;font-variant-numeric:tabular-nums}
+.payees{display:flex;gap:14px;padding:4px 20px 6px;overflow-x:auto;flex:none}
+.payee{flex:none;text-align:center;cursor:pointer;width:60px}
+.payee .av{
+  width:54px;height:54px;border-radius:20px;margin:0 auto 6px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:19px;font-weight:700;color:#fff;
+  transition:transform .15s ease,box-shadow .15s ease;
+  border:3px solid transparent;
+}
+.payee:hover .av{transform:translateY(-2px)}
+.payee.on .av{border-color:var(--mint);box-shadow:0 6px 14px -6px rgba(47,191,148,.6)}
+.payee .nm{font-size:12px;color:var(--ink)}
+.records{margin:0 20px 24px;background:var(--card);border-radius:18px;padding:4px 16px;box-shadow:0 4px 16px -8px rgba(15,61,51,.14)}
+.rec{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid #eef6f1;font-size:13.5px}
+.rec:last-child{border-bottom:none}
+.rec .dot{width:8px;height:8px;border-radius:50%;flex:none}
+.rec .dot.out{background:var(--warn)}
+.rec .dot.in{background:var(--mint)}
+.rec .tx{flex:1}
+.rec .tx .s{font-size:11px;color:var(--muted);margin-top:2px}
+.rec .v{font-weight:700;font-variant-numeric:tabular-nums}
+.nav{
+  flex:none;height:64px;background:var(--card);display:flex;
+  border-top:1px solid #e5f1ea;padding-bottom:6px;
+}
+.nav button{
+  flex:1;border:none;background:none;font-size:11px;color:var(--muted);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;
+}
+.nav button.on{color:var(--mint-deep);font-weight:700}
+.nav svg{display:block}
+.subhead{
+  flex:none;display:flex;align-items:center;gap:12px;padding:8px 16px 12px;
+}
+.backbtn{
+  width:34px;height:34px;border-radius:12px;border:none;background:var(--card);
+  color:var(--ink);font-size:17px;cursor:pointer;box-shadow:0 2px 8px -3px rgba(15,61,51,.2);
+}
+.subhead .who{flex:1;display:flex;align-items:center;gap:10px}
+.subhead .who .av{width:38px;height:38px;border-radius:14px;color:#fff;font-weight:700;display:flex;align-items:center;justify-content:center;font-size:15px}
+.subhead .who .t1{font-size:15px;font-weight:700}
+.subhead .who .t2{font-size:11px;color:var(--muted)}
+.amtbox{padding:8px 20px 4px;text-align:center}
+.amtbox .cap{font-size:12px;color:var(--muted)}
+.amtbox .num{
+  font-size:52px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:1px;
+  padding:6px 0 2px;line-height:1.15;
+}
+.amtbox .num .cur{font-size:26px;vertical-align:8px;margin-right:2px}
+.srcchip{
+  margin:2px auto 0;display:inline-flex;align-items:center;gap:8px;
+  background:var(--card);border-radius:16px;padding:7px 14px;font-size:12.5px;
+  box-shadow:0 2px 8px -4px rgba(15,61,51,.18);
+}
+.srcchip b{color:var(--mint-deep)}
+.srcchip .sw{color:var(--mint-deep);font-weight:700;cursor:pointer;border:none;background:none;font-size:12.5px;text-decoration:underline;text-underline-offset:3px}
+.quick{display:flex;gap:8px;justify-content:center;padding:12px 20px 4px}
+.qchip{
+  border:1px solid var(--mint-line);background:var(--card);color:var(--ink);
+  font-size:13px;padding:7px 14px;border-radius:16px;cursor:pointer;
+}
+.qchip:hover{border-color:var(--mint);color:var(--mint-deep)}
+.keys{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:10px;
+  padding:14px 22px 10px;flex:none;
+}
+.key{
+  height:58px;border:none;border-radius:16px;background:var(--card);
+  font-size:24px;font-weight:700;color:var(--ink);cursor:pointer;
+  box-shadow:0 2px 6px -3px rgba(15,61,51,.18);
+  transition:transform .08s ease,background .12s ease;
+}
+.key:active{transform:scale(.96);background:var(--mint-soft)}
+.key.ghost{background:transparent;box-shadow:none;font-size:20px;color:var(--ink-soft)}
+.cta{
+  margin:8px 22px 20px;flex:none;
+}
+.cta button{
+  width:100%;height:52px;border:none;border-radius:16px;
+  background:linear-gradient(135deg,#35c99d,#149a73);
+  color:#fff;font-size:16px;font-weight:700;letter-spacing:3px;cursor:pointer;
+  box-shadow:0 12px 24px -10px rgba(20,154,115,.7);
+}
+.cta button:disabled{background:#bcd8cd;box-shadow:none;cursor:not-allowed}
+.sheet{
+  margin:10px 20px;background:var(--card);border-radius:22px;padding:20px;
+  box-shadow:0 8px 24px -10px rgba(15,61,51,.2);
+}
+.sheet .cap{text-align:center;font-size:12.5px;color:var(--muted);margin-bottom:4px}
+.sheet .big{text-align:center;font-size:40px;font-weight:800;font-variant-numeric:tabular-nums;margin-bottom:14px}
+.kv{display:flex;justify-content:space-between;align-items:center;font-size:13.5px;padding:9px 0;border-bottom:1px solid #eef6f1}
+.kv:last-child{border-bottom:none}
+.kv .k{color:var(--muted)}
+.kv .v{font-weight:600;display:flex;align-items:center;gap:6px}
+.radios{display:flex;flex-direction:column;gap:8px;margin-top:6px}
+.radio{
+  display:flex;align-items:center;gap:10px;border:1.5px solid #e0efe8;border-radius:14px;
+  padding:11px 13px;cursor:pointer;font-size:13.5px;background:#fbfefd;
+}
+.radio.on{border-color:var(--mint);background:var(--mint-soft)}
+.radio .rb{
+  width:16px;height:16px;border-radius:50%;border:2px solid #b7d9cb;flex:none;position:relative;
+}
+.radio.on .rb{border-color:var(--mint-deep)}
+.radio.on .rb::after{
+  content:"";position:absolute;inset:3px;border-radius:50%;background:var(--mint-deep);
+}
+.radio .tx{flex:1}
+.radio .tx .s{font-size:11px;color:var(--muted);margin-top:1px}
+.radio .v{font-weight:700;font-variant-numeric:tabular-nums}
+.note{
+  margin-top:10px;display:flex;gap:8px;align-items:center;
+  background:#fbfefd;border:1px solid #e0efe8;border-radius:12px;padding:10px 12px;font-size:13px;
+}
+.note input{flex:1;border:none;background:none;font-size:13.5px;outline:none;color:var(--ink)}
+.result{
+  flex:1;display:flex;flex-direction:column;align-items:center;padding:18px 24px 20px;text-align:center;
+}
+.stamp-ok,.stamp-bad{
+  width:88px;height:88px;border-radius:50%;margin:8px 0 14px;
+  display:flex;align-items:center;justify-content:center;flex:none;
+}
+.stamp-ok{background:var(--mint);box-shadow:0 14px 30px -12px rgba(47,191,148,.8)}
+.stamp-bad{background:var(--warn);box-shadow:0 14px 30px -12px rgba(226,87,76,.8)}
+.result h2{font-size:21px;letter-spacing:2px;margin-bottom:6px}
+.result .dsc{font-size:12.5px;color:var(--muted);line-height:1.7}
+.result .big-amt{font-size:40px;font-weight:800;font-variant-numeric:tabular-nums;margin:10px 0 2px}
+.voucher{
+  width:100%;background:var(--card);border-radius:20px;padding:16px 18px;margin:14px 0;
+  box-shadow:0 8px 22px -12px rgba(15,61,51,.22);text-align:left;
+}
+.voucher .kv{padding:8px 0}
+.btnrow{display:flex;flex-direction:column;gap:10px;width:100%;margin-top:auto;padding-top:8px}
+.btnrow .pri{
+  height:50px;border:none;border-radius:15px;font-size:15.5px;font-weight:700;letter-spacing:2px;cursor:pointer;
+  background:linear-gradient(135deg,#35c99d,#149a73);color:#fff;
+  box-shadow:0 10px 20px -8px rgba(20,154,115,.6);
+}
+.btnrow .sec{
+  height:48px;border-radius:15px;font-size:14.5px;cursor:pointer;
+  border:1.5px solid var(--mint-line);background:var(--card);color:var(--mint-deep);font-weight:600;
+}
+.btnrow .sec.warnline{border-color:#f2c4bf;color:var(--warn)}
+.av1{background:linear-gradient(135deg,#5cc9a7,#2fbf94)}
+.av2{background:linear-gradient(135deg,#f0b64c,#e08a2e)}
+.av3{background:linear-gradient(135deg,#7fa8e0,#4a6fc0)}
+.av4{background:linear-gradient(135deg,#e08fb0,#c05a86)}
+.av5{background:linear-gradient(135deg,#9b8fe0,#6a5fc0)}
+.fadeup{animation:fadeup .3s ease}
+@keyframes fadeup{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@media (max-width:460px){
+  body{padding:0;background:var(--paper)}
+  .phone{width:100%;height:100vh;border:none;border-radius:0;box-shadow:none}
+}
+@media (prefers-reduced-motion: reduce){
+  *{animation:none !important;transition:none !important;scroll-behavior:auto !important}
+}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="statusbar">
+    <span>9:41</span>
+    <span class="r">
+      <svg width="16" height="12" viewBox="0 0 16 12" fill="currentColor"><rect x="0" y="7" width="3" height="5" rx="1"/><rect x="4.5" y="5" width="3" height="7" rx="1"/><rect x="9" y="2.5" width="3" height="9.5" rx="1"/><rect x="13" y="0" width="3" height="12" rx="1"/></svg>
+      <svg width="22" height="12" viewBox="0 0 24 12" fill="none" stroke="currentColor"><rect x="0.5" y="0.5" width="20" height="11" rx="3"/><rect x="2.5" y="2.5" width="13" height="7" rx="1.5" fill="currentColor" stroke="none"/><rect x="22" y="3.5" width="2" height="5" rx="1" fill="currentColor" stroke="none"/></svg>
+    </span>
+  </div>
+
+  <section class="screen on" id="s-home">
+    <div class="apphead">
+      <span class="name">现钞</span>
+      <span class="bell">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#0f3d33" stroke-width="2" stroke-linecap="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 8-3 8h18s-3-1-3-8"/><path d="M10 21a2 2 0 0 0 4 0"/></svg>
+      </span>
+    </div>
+    <div class="balance">
+      <div class="lbl">现钞余额（可用）</div>
+      <div class="amt"><small>¥</small><span id="balMain">386.50</span></div>
+      <div class="foot"><span>今日转出 <b id="balToday">¥0.00</b></span><span>储蓄卡备付 <b>¥2,480.00</b></span></div>
+    </div>
+    <div class="secttl"><span>资金账户</span><span class="more">转账时可选来源</span></div>
+    <div class="srcrow">
+      <div class="src">
+        <span class="ic cash">钞</span>
+        <span class="tx"><span class="t">现钞余额</span><br><span class="s">即时到账 · 单日限额 ¥2,000</span></span>
+        <span class="v" id="srcCashV">¥386.50</span>
+      </div>
+      <div class="src">
+        <span class="ic bank">蓄</span>
+        <span class="tx"><span class="t">青柠储蓄卡 ·· 6688</span><br><span class="s">招商银行 · 实时扣款</span></span>
+        <span class="v" id="srcBankV">¥2,480.00</span>
+      </div>
+    </div>
+    <div class="secttl"><span>常用收款人</span><span class="more">点选后开始转账</span></div>
+    <div class="payees" id="payees"></div>
+    <div class="secttl"><span>最近记录</span><span class="more" id="recCount">本月 3 笔</span></div>
+    <div class="records" id="records"></div>
+    <div style="flex:1"></div>
+    <nav class="nav">
+      <button type="button" class="on">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="6" width="18" height="14" rx="3"/><path d="M3 10h18"/><circle cx="17" cy="15" r="1.4" fill="currentColor"/></svg>
+        钱包
+      </button>
+      <button type="button">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19V9l8-5 8 5v10"/><path d="M9 19v-6h6v6"/></svg>
+        账单
+      </button>
+      <button type="button">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>
+        我的
+      </button>
+    </nav>
+  </section>
+
+  <section class="screen" id="s-pad">
+    <div class="subhead">
+      <button class="backbtn" type="button" data-go="s-home">‹</button>
+      <div class="who">
+        <span class="av" id="padAv">阿</span>
+        <span><span class="t1" id="padName">阿May</span><br><span class="t2">现钞好友 · 实时到账</span></span>
+      </div>
+    </div>
+    <div class="amtbox">
+      <div class="cap">转账金额</div>
+      <div class="num"><span class="cur">¥</span><span id="amtView">0</span></div>
+      <div class="srcchip" id="padSrcChip">来源：<b id="padSrcName">现钞余额</b> · 可用 <b id="padSrcBal">¥386.50</b><button class="sw" id="padSwitch" type="button">切换来源</button></div>
+    </div>
+    <div class="quick">
+      <button type="button" class="qchip" data-q="50">¥50</button>
+      <button type="button" class="qchip" data-q="100">¥100</button>
+      <button type="button" class="qchip" data-q="200">¥200</button>
+      <button type="button" class="qchip" data-q="500">¥500</button>
+    </div>
+    <div class="keys" id="keys"></div>
+    <div class="cta"><button type="button" id="padGo" disabled>确认转账</button></div>
+  </section>
+
+  <section class="screen" id="s-confirm">
+    <div class="subhead">
+      <button class="backbtn" type="button" data-go="s-pad">‹</button>
+      <div class="who"><span class="t1" style="font-size:16px">核对转账</span></div>
+    </div>
+    <div class="sheet fadeup">
+      <div class="cap">转账给</div>
+      <div style="text-align:center;font-size:16px;font-weight:700" id="cfName">阿May</div>
+      <div class="big" id="cfAmt">¥0.00</div>
+      <div class="kv"><span class="k">到账方式</span><span class="v">实时到账</span></div>
+      <div class="kv"><span class="k">手续费</span><span class="v">免手续费</span></div>
+    </div>
+    <div class="secttl" style="margin-top:14px"><span>资金来源</span><span class="more">点选切换</span></div>
+    <div class="pad" style="padding-top:0">
+      <div class="radios" id="srcRadios"></div>
+      <div class="note">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#7fa89b" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>
+        <input id="memo" maxlength="20" placeholder="添加备注（选填）">
+      </div>
+    </div>
+    <div style="flex:1"></div>
+    <div class="cta"><button type="button" id="cfGo">确认转账</button></div>
+  </section>
+
+  <section class="screen" id="s-insufficient">
+    <div class="subhead">
+      <button class="backbtn" type="button" data-go="s-pad">‹</button>
+      <div class="who"><span class="t1" style="font-size:16px">余额不足</span></div>
+    </div>
+    <div class="result">
+      <div class="stamp-bad">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"><path d="M12 7v6"/><circle cx="12" cy="16.6" r=".6" fill="#fff"/><path d="M10.3 3.8 2.6 17a2 2 0 0 0 1.7 3h15.4a2 2 0 0 0 1.7-3L13.7 3.8a2 2 0 0 0-3.4 0z"/></svg>
+      </div>
+      <h2>余额不足，转账未发起</h2>
+      <div class="dsc">本次转账 <b id="insNeed" style="color:#e2574c">¥0.00</b>，已超出所选来源可用余额。</div>
+      <div class="voucher">
+        <div class="kv"><span class="k">本次需付</span><span class="v" style="color:#e2574c" id="insNeed2">—</span></div>
+        <div class="kv"><span class="k" id="insSrcName">现钞余额 · 可用</span><span class="v" id="insAvail">—</span></div>
+        <div class="kv"><span class="k">另一来源</span><span class="v" id="insOther">青柠储蓄卡 · ¥2,480.00</span></div>
+      </div>
+      <div class="dsc" style="margin-bottom:4px">金额与备注已保留，可任选一法后继续：</div>
+      <div class="btnrow">
+        <button class="pri" type="button" id="insSwitch">改用青柠储蓄卡支付</button>
+        <button class="sec" type="button" id="insBack">返回修改金额</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="screen" id="s-receipt">
+    <div class="subhead">
+      <div class="who"><span class="t1" style="font-size:16px">转账凭证</span></div>
+    </div>
+    <div class="result">
+      <div class="stamp-ok">
+        <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12.5l5 5 10-11"/></svg>
+      </div>
+      <h2>转账成功</h2>
+      <div class="big-amt" id="rcAmt">¥0.00</div>
+      <div class="dsc" id="rcTo">已转至 阿May</div>
+      <div class="voucher">
+        <div class="kv"><span class="k">凭证号</span><span class="v" id="rcNo">—</span></div>
+        <div class="kv"><span class="k">转账时间</span><span class="v" id="rcTime">—</span></div>
+        <div class="kv"><span class="k">资金来源</span><span class="v" id="rcSrc">—</span></div>
+        <div class="kv"><span class="k">备注</span><span class="v" id="rcMemo">无</span></div>
+      </div>
+      <div class="btnrow">
+        <button class="pri" type="button" id="rcDone">完成</button>
+        <button class="sec" type="button" id="rcAgain">再转一笔</button>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+(function(){
+"use strict";
+var SOURCES={
+  cash:{name:"现钞余额",bal:386.50,short:"现钞余额"},
+  bank:{name:"青柠储蓄卡 ·· 6688",bal:2480.00,short:"青柠储蓄卡"}
+};
+var PAYEES=[
+  {n:"阿May",av:"av1",tag:"阿"},
+  {n:"老周",av:"av2",tag:"周"},
+  {n:"房东陈姐",av:"av3",tag:"陈"},
+  {n:"楼下便利店",av:"av4",tag:"店"},
+  {n:"表弟",av:"av5",tag:"弟"}
+];
+var state={screen:"s-home",payee:PAYEES[0],amt:"",src:"cash",memo:"",today:0,recSeq:8806};
+var RECORDS=[
+  {t:"转入 · 工资到账",s:"09-21 10:02",v:"+ ¥6,800.00",inb:true},
+  {t:"转出 · 楼下便利店",s:"09-22 08:47",v:"− ¥32.50",inb:false},
+  {t:"转出 · 老周",s:"09-22 21:15",v:"− ¥120.00",inb:false}
+];
+function $(id){return document.getElementById(id)}
+function fmt(n){return n.toLocaleString("zh-CN",{minimumFractionDigits:2,maximumFractionDigits:2})}
+function amtNum(){var v=parseFloat(state.amt);return isNaN(v)?0:v}
+function show(id){
+  document.querySelectorAll(".screen").forEach(function(s){s.classList.remove("on")});
+  $(id).classList.add("on");
+  if(id==="s-pad"||id==="s-confirm"){$(id).classList.remove("fadeup");void $(id).offsetWidth;$(id).classList.add("fadeup")}
+  state.screen=id;
+}
+function renderHome(){
+  $("balMain").textContent=fmt(SOURCES.cash.bal);
+  $("srcCashV").textContent="¥"+fmt(SOURCES.cash.bal);
+  $("srcBankV").textContent="¥"+fmt(SOURCES.bank.bal);
+  $("balToday").textContent="¥"+fmt(state.today);
+  $("payees").innerHTML=PAYEES.map(function(p,i){
+    return '<div class="payee" data-payee="'+i+'"><div class="av '+p.av+'">'+p.tag+'</div><div class="nm">'+p.n+'</div></div>';
+  }).join("");
+  $("records").innerHTML=RECORDS.slice(0,5).map(function(r){
+    return '<div class="rec"><span class="dot '+(r.inb?"in":"out")+'"></span><span class="tx"><span class="t">'+r.t+'</span><br><span class="s">'+r.s+'</span></span><span class="v">'+r.v+'</span></div>';
+  }).join("");
+  $("recCount").textContent="本月 "+RECORDS.length+" 笔";
+}
+function renderPad(){
+  $("padAv").textContent=state.payee.tag;
+  $("padAv").className="av "+state.payee.av;
+  $("padName").textContent=state.payee.n;
+  var s=SOURCES[state.fund];
+  $("padSrcName").textContent=s.short;
+  $("padSrcBal").textContent="¥"+fmt(s.bal);
+  $("amtView").textContent=state.amt===""?"0":state.amt;
+  $("padGo").disabled=amtNum()<=0;
+}
+function renderConfirm(){
+  $("cfName").textContent=state.payee.n;
+  $("cfAmt").textContent="¥"+fmt(amtNum());
+  $("srcRadios").innerHTML=["cash","bank"].map(function(k){
+    var s=SOURCES[k];
+    var lack=s.bal<amtNum();
+    return '<div class="radio'+(state.fund===k?" on":"")+'" data-fund="'+k+'">'+
+      '<span class="rb"></span>'+
+      '<span class="tx"><span class="t">'+s.name+'</span><br><span class="s">'+(lack?"可用不足":"可用 ¥"+fmt(s.bal))+'</span></span>'+
+      '<span class="v">¥'+fmt(s.bal)+'</span></div>';
+  }).join("");
+  $("memo").value=state.memo;
+}
+function startTransfer(i){
+  state.payee=PAYEES[i];state.amt="";state.fund="cash";state.memo="";
+  renderPad();show("s-pad");
+}
+function keyTap(k){
+  if(k==="back"){state.amt=state.amt.slice(0,-1)}
+  else if(k==="."){
+    if(state.amt.indexOf(".")<0)state.amt=state.amt===""?"0.":state.amt+".";
+  }else{
+    var next=state.amt+k;
+    var parts=next.split(".");
+    if(parts[1]&&parts[1].length>2)return;
+    if(parts[0].length>7)return;
+    if(state.amt==="0")next=k;
+    state.amt=next;
+  }
+  renderPad();
+}
+function goConfirm(){
+  var need=amtNum(),s=SOURCES[state.fund];
+  if(need<=0)return;
+  if(need>s.bal){
+    $("insNeed").textContent="¥"+fmt(need);
+    $("insNeed2").textContent="¥"+fmt(need);
+    $("insSrcName").textContent=s.name+" · 可用";
+    $("insAvail").textContent="¥"+fmt(s.bal);
+    var other=state.fund==="cash"?SOURCES.bank:SOURCES.cash;
+    $("insOther").textContent=other.name+" · ¥"+fmt(other.bal);
+    $("insSwitch").textContent=state.fund==="cash"?"改用青柠储蓄卡支付":"改用现钞余额支付";
+    show("s-insufficient");
+    return;
+  }
+  renderConfirm();show("s-confirm");
+}
+function doPay(){
+  var need=amtNum(),s=SOURCES[state.fund];
+  if(need<=0||need>s.bal){goConfirm();return}
+  s.bal=Math.round((s.bal-need)*100)/100;
+  state.today=Math.round((state.today+need)*100)/100;
+  state.recSeq+=1;
+  var no="XJ20260923"+state.recSeq;
+  var now=new Date();
+  var ts="2026-09-23 "+("0"+now.getHours()).slice(-2)+":"+("0"+now.getMinutes()).slice(-2);
+  RECORDS.unshift({t:"转出 · "+state.payee.n,s:"刚刚",v:"− ¥"+fmt(need),inb:false});
+  $("rcAmt").textContent="¥"+fmt(need);
+  $("rcTo").textContent="已转至 "+state.payee.n;
+  $("rcNo").textContent=no;
+  $("rcTime").textContent=ts;
+  $("rcSrc").textContent=s.name;
+  $("rcMemo").textContent=state.memo||"无";
+  renderHome();
+  show("s-receipt");
+}
+var kb=["1","2","3","4","5","6","7","8","9",".","0","back"];
+$("keys").innerHTML=kb.map(function(k){
+  var label=k==="back"?"⌫":k;
+  var cls=k==="back"?"key ghost":"key";
+  return '<button type="button" class="'+cls+'" data-k="'+k+'">'+label+'</button>';
+}).join("");
+document.addEventListener("click",function(e){
+  var t=e.target;
+  var go=t.getAttribute("data-go");
+  if(go){show(go);return}
+  var pe=t.closest?t.closest("[data-payee]"):null;
+  if(pe){startTransfer(parseInt(pe.getAttribute("data-payee"),10));return}
+  var k=t.getAttribute("data-k");
+  if(k){keyTap(k);return}
+  var q=t.getAttribute("data-q");
+  if(q){state.amt=q;renderPad();return}
+  var rs=t.closest?t.closest("[data-fund]"):null;
+  if(rs){state.fund=rs.getAttribute("data-fund");renderConfirm();return}
+});
+$("padGo").addEventListener("click",goConfirm);
+$("cfGo").addEventListener("click",doPay);
+$("padSwitch").addEventListener("click",function(){
+  state.fund=state.fund==="cash"?"bank":"cash";renderPad();
+});
+$("insSwitch").addEventListener("click",function(){
+  state.fund=state.fund==="cash"?"bank":"cash";
+  renderConfirm();show("s-confirm");
+});
+$("insBack").addEventListener("click",function(){renderPad();show("s-pad")});
+$("rcDone").addEventListener("click",function(){show("s-home")});
+$("rcAgain").addEventListener("click",function(){show("s-home")});
+$("memo").addEventListener("input",function(){state.memo=this.value});
+renderHome();
+})();
+</script>
+</body>
+</html>
