@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>班社 · 角色与行当权限</title>
+<style>
+  :root{
+    --velvet:#6e1420; --velvet-deep:#500d18; --velvet-soft:#8a2333;
+    --gold:#d4af6a; --gold-soft:#ecd9ac; --cream:#f7f0e2; --ink:#33241a; --ink-soft:#7c6a55;
+    --line:#e3d5b8; --curtain:#42101a;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    background:var(--curtain);color:var(--ink);
+    font-family:"Songti SC","STSong","Noto Serif CJK SC",Georgia,serif;min-height:100vh;
+  }
+  .stage{max-width:1140px;margin:0 auto;padding:46px 30px 80px}
+  header{text-align:center;color:var(--gold-soft);margin-bottom:34px}
+  header .frame{font-size:12px;letter-spacing:8px;color:var(--gold)}
+  header h1{font-size:38px;letter-spacing:16px;margin:10px 0 12px;font-weight:600}
+  header .tagline{font-size:13.5px;color:var(--gold);letter-spacing:3px}
+  .curtain-bar{height:10px;background:repeating-linear-gradient(90deg,var(--velvet) 0 60px,var(--velvet-deep) 60px 120px);border-radius:0 0 8px 8px;margin-bottom:38px}
+  .cols{display:grid;grid-template-columns:250px 1fr;gap:30px;align-items:start}
+  .roles{display:flex;flex-direction:column;gap:14px}
+  .role{
+    background:var(--velvet);border:1.5px solid var(--velvet-soft);border-radius:8px;
+    padding:18px 20px;cursor:pointer;color:var(--gold-soft);transition:all .25s ease;
+    display:flex;justify-content:space-between;align-items:center;
+  }
+  .role .rname{font-size:18px;letter-spacing:4px}
+  .role .rcount{font-size:11.5px;color:var(--gold);letter-spacing:1px}
+  .role:hover{border-color:var(--gold)}
+  .role.active{background:var(--gold);color:var(--velvet-deep);border-color:var(--gold)}
+  .role.active .rcount{color:var(--velvet)}
+  .role:focus-visible{outline:2px solid var(--gold-soft);outline-offset:2px}
+  .board{
+    background:var(--cream);border-radius:10px;padding:30px 34px 26px;
+    box-shadow:0 0 0 6px var(--velvet-deep),0 0 0 8px var(--gold);
+  }
+  .board .bhead{display:flex;justify-content:space-between;align-items:baseline;border-bottom:2px solid var(--ink);padding-bottom:14px;margin-bottom:8px}
+  .board .bhead h2{font-size:24px;letter-spacing:6px}
+  .board .bhead .who{font-size:12.5px;color:var(--ink-soft);letter-spacing:2px}
+  .perm-group{padding:16px 0;border-bottom:1px solid var(--line)}
+  .perm-group:last-of-type{border-bottom:none}
+  .perm-group h3{font-size:12px;letter-spacing:4px;color:var(--ink-soft);margin-bottom:12px}
+  .chips{display:flex;flex-wrap:wrap;gap:10px}
+  .chip{font-size:13px;padding:7px 16px;border-radius:999px;border:1px solid var(--line);letter-spacing:1.5px}
+  .chip.on{background:var(--velvet);color:var(--gold-soft);border-color:var(--velvet)}
+  .chip.off{background:transparent;color:var(--ink-soft);text-decoration:line-through}
+  .bfoot{display:flex;justify-content:space-between;align-items:center;margin-top:22px;padding-top:18px;border-top:1px solid var(--line)}
+  .bfoot .hint{font-size:12.5px;color:var(--ink-soft)}
+  .save{
+    font-family:inherit;font-size:15px;letter-spacing:4px;cursor:pointer;
+    background:var(--velvet);color:var(--gold-soft);border:none;padding:13px 34px;border-radius:6px;
+    transition:all .2s ease;
+  }
+  .save:hover{background:var(--velvet-deep);transform:translateY(-1px)}
+  .save.saved{background:var(--ink)}
+  .save:focus-visible{outline:2px solid var(--velvet);outline-offset:3px}
+  @media (max-width:860px){
+    .cols{grid-template-columns:1fr}
+    .roles{flex-direction:row;overflow-x:auto}
+    .role{min-width:130px}
+    .stage{padding:32px 18px 60px}
+    header h1{font-size:28px;letter-spacing:8px}
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{transition:none!important;animation:none!important}
+  }
+</style>
+</head>
+<body>
+<div class="stage">
+  <header>
+    <div class="frame">和 春 班 社 规 矩 单</div>
+    <h1>行当权限</h1>
+    <div class="tagline">不同行当，各司其权限 · 共四角</div>
+  </header>
+  <div class="curtain-bar"></div>
+
+  <div class="cols">
+    <nav class="roles" id="roles" aria-label="角色列表"></nav>
+    <section class="board">
+      <div class="bhead">
+        <h2 id="rTitle">班主</h2>
+        <span class="who" id="rWho"></span>
+      </div>
+      <div id="permBody"></div>
+      <div class="bfoot">
+        <span class="hint" id="hint"></span>
+        <button class="save" id="saveBtn">存下规矩</button>
+      </div>
+    </section>
+  </div>
+</div>
+
+<script>
+const roles=[
+  {n:"班主",c:"1 人",d:"总揽班社人事、账簿与戏码排定",g:{"戏码":["定戏码","撤戏码","改场次","调票价"],"人事":["请角","辞角","派活","赏罚"],"账簿":["看总账","分红","提款","支银子"]}},
+  {n:"头牌",c:"2 人",d:"挑梁主演，可应戏码、推戏份",g:{"戏码":["应戏码","推戏份","看全册"],"人事":[],"账簿":["看自己戏份"]}},
+  {n:"衣箱",c:"3 人",d:"管行头盔箱，支配穿戴调度",g:{"戏码":["看戏单"],"箱笼":["领行头","还行头","修行头","记损耗"],"账簿":["看箱账"]}},
+  {n:"场面",c:"5 人",d:"乐队场面，管锣鼓经与伴奏谱",g:{"戏码":["看戏单","领谱"],"场面":["定锣鼓","校曲牌"],"账簿":[]}}
+];
+let cur=0;
+const nav=document.getElementById('roles');
+roles.forEach((r,i)=>{
+  const el=document.createElement('div');
+  el.className='role'+(i===0?' active':'');el.tabIndex=0;
+  el.innerHTML=`<span class="rname">${r.n}</span><span class="rcount">${r.c}</span>`;
+  const pick=()=>{cur=i;document.querySelectorAll('.role').forEach((x,j)=>x.classList.toggle('active',j===i));render();};
+  el.addEventListener('click',pick);
+  el.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();pick();}});
+  nav.appendChild(el);
+});
+function render(){
+  const r=roles[cur];
+  document.getElementById('rTitle').textContent=r.n;
+  document.getElementById('rWho').textContent=r.d+' · 在册 '+r.c;
+  const body=document.getElementById('permBody');body.innerHTML='';
+  const allGroups=["戏码","人事","箱笼","场面","账簿"];
+  allGroups.forEach(g=>{
+    if(!(g in r.g))return;
+    const grp=document.createElement('div');grp.className='perm-group';
+    const ons=r.g[g];
+    const allPerms={戏码:["定戏码","撤戏码","改场次","调票价","应戏码","推戏份","看全册","看戏单","领谱"],人事:["请角","辞角","派活","赏罚"],箱笼:["领行头","还行头","修行头","记损耗"],场面:["定锣鼓","校曲牌"],账簿:["看总账","分红","提款","支银子","看自己戏份","看箱账"]}[g];
+    grp.innerHTML=`<h3>${g}</h3>`;
+    const chips=document.createElement('div');chips.className='chips';
+    allPerms.forEach(p=>{
+      const on=ons.includes(p);
+      chips.innerHTML+=`<span class="chip ${on?'on':'off'}">${p}</span>`;
+    });
+    grp.appendChild(chips);body.appendChild(grp);
+  });
+  document.getElementById('hint').textContent='预览 '+r.n+' 的权限 · 改动在保存前不影响现行规矩';
+}
+render();
+const sb=document.getElementById('saveBtn');
+sb.addEventListener('click',()=>{
+  sb.textContent='规矩已存 · 通班照行';sb.classList.add('saved');
+  setTimeout(()=>{sb.textContent='存下规矩';sb.classList.remove('saved');},2600);
+});
+</script>
+</body>
+</html>

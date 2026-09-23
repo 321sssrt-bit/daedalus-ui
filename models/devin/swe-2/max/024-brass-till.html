@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>汇通收银 · 订单结算</title>
+<style>
+  :root{
+    --cream:#f5f0e6; --panel:#fbf8f0; --line:#d8cdb4; --brass:#a8842e; --brass-deep:#7d621c;
+    --ink:#2e2a22; --ink-soft:#6d6450; --leather:#4a3b2e; --good:#3d6b3d;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    background:var(--cream);color:var(--ink);
+    font-family:-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    min-height:100vh;
+    background-image:linear-gradient(var(--cream),#ece4d2);
+  }
+  .page{max-width:1120px;margin:0 auto;padding:44px 32px 72px}
+  .top{display:flex;align-items:center;gap:16px;margin-bottom:8px}
+  .seal{
+    width:46px;height:46px;border:2px solid var(--brass);border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    font-family:"Songti SC",serif;color:var(--brass-deep);font-size:19px;font-weight:700;
+  }
+  .top h1{font-size:26px;letter-spacing:6px;font-weight:600}
+  .top .order-no{font-size:13px;color:var(--ink-soft);margin-left:auto;letter-spacing:1px}
+  .divider{border:none;border-top:1px solid var(--line);margin:20px 0 34px}
+  .cols{display:grid;grid-template-columns:1.25fr .9fr;gap:36px;align-items:start}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:28px 30px}
+  .panel h2{font-size:14px;letter-spacing:5px;color:var(--brass-deep);margin-bottom:20px;display:flex;align-items:center;gap:12px}
+  .panel h2::after{content:"";flex:1;height:1px;background:var(--line)}
+  .item{display:grid;grid-template-columns:44px 1fr auto;gap:14px;align-items:center;padding:12px 0;border-bottom:1px dashed var(--line)}
+  .item:last-of-type{border-bottom:none}
+  .item .thumb{width:44px;height:44px;border-radius:8px;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:20px;background:#fff}
+  .item .name{font-size:15px;font-weight:500}
+  .item .qty{font-size:12px;color:var(--ink-soft);margin-top:3px}
+  .item .amt{font-size:15px;font-weight:600;font-variant-numeric:tabular-nums}
+  .sumrow{display:flex;justify-content:space-between;font-size:14px;color:var(--ink-soft);padding:7px 0}
+  .total{
+    display:flex;justify-content:space-between;align-items:baseline;
+    border-top:2px solid var(--ink);margin-top:14px;padding-top:16px;
+  }
+  .total .label{font-size:15px;font-weight:600;letter-spacing:2px}
+  .total .big{font-size:34px;font-weight:700;color:var(--brass-deep);font-variant-numeric:tabular-nums;letter-spacing:1px}
+  .total .big .unit{font-size:15px;font-weight:500}
+  .pay{display:flex;flex-direction:column;gap:12px}
+  .pay-opt{
+    display:grid;grid-template-columns:20px 40px 1fr auto;gap:14px;align-items:center;
+    border:1.5px solid var(--line);border-radius:10px;padding:15px 18px;cursor:pointer;
+    transition:border-color .2s ease,background .2s ease;background:#fff;
+  }
+  .pay-opt:hover{border-color:var(--brass)}
+  .pay-opt.sel{border-color:var(--brass);background:#f7f1e0;box-shadow:inset 0 0 0 1px var(--brass)}
+  .pay-opt .radio{width:18px;height:18px;border:2px solid var(--line);border-radius:50%;position:relative}
+  .pay-opt.sel .radio{border-color:var(--brass)}
+  .pay-opt.sel .radio::after{content:"";position:absolute;inset:3px;background:var(--brass);border-radius:50%}
+  .pay-opt .picon{font-size:22px;text-align:center}
+  .pay-opt .pname{font-size:15px;font-weight:600}
+  .pay-opt .pname small{display:block;font-size:12px;color:var(--ink-soft);font-weight:400;margin-top:3px}
+  .pay-opt .ptag{font-size:11px;color:var(--brass-deep);border:1px solid var(--brass);padding:3px 8px;border-radius:4px}
+  .secure{font-size:12.5px;color:var(--ink-soft);margin:18px 0;display:flex;gap:8px;align-items:center;line-height:1.7}
+  .confirm{
+    width:100%;border:none;cursor:pointer;border-radius:10px;padding:18px;
+    font-size:17px;font-weight:700;letter-spacing:4px;color:#fff;
+    background:linear-gradient(180deg,var(--leather),#3a2d22);
+    transition:transform .18s ease,box-shadow .18s ease,opacity .2s;
+  }
+  .confirm:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 10px 26px #4a3b2e55}
+  .confirm:disabled{opacity:.55;cursor:not-allowed}
+  .confirm:focus-visible{outline:2px solid var(--brass-deep);outline-offset:3px}
+  .agree{display:flex;gap:10px;align-items:flex-start;font-size:13px;color:var(--ink-soft);margin:16px 0;line-height:1.6}
+  .agree input{margin-top:3px;accent-color:var(--brass-deep)}
+  .done{
+    display:none;text-align:center;padding:60px 20px;
+  }
+  .done.show{display:block}
+  .done .tick{
+    width:78px;height:78px;margin:0 auto 24px;border-radius:50%;border:3px solid var(--good);
+    display:flex;align-items:center;justify-content:center;font-size:38px;color:var(--good);
+  }
+  .done h2{font-size:26px;letter-spacing:4px;margin-bottom:12px}
+  .done p{font-size:14px;color:var(--ink-soft);line-height:2}
+  .done .no{font-size:20px;color:var(--brass-deep);font-weight:700;letter-spacing:2px}
+  @media (max-width:900px){
+    .cols{grid-template-columns:1fr}
+    .page{padding:32px 18px 60px}
+    .top h1{font-size:21px}
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{transition:none!important;animation:none!important}
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="top">
+    <div class="seal">汇</div>
+    <h1>汇通收银</h1>
+    <span class="order-no">订单 HT-20260923-0517 · 请于 30 分钟内完成支付</span>
+  </div>
+  <hr class="divider">
+
+  <div class="cols" id="checkoutView">
+    <section class="panel" aria-label="订单摘要">
+      <h2>订单摘要</h2>
+      <div class="item"><div class="thumb">📖</div><div><div class="name">《营造法式》重刊函装</div><div class="qty">× 1 · 古籍部</div></div><div class="amt">¥368.00</div></div>
+      <div class="item"><div class="thumb">🖋️</div><div><div class="name">狼毫小楷笔 · 三支装</div><div class="qty">× 2 · 文房部</div></div><div class="amt">¥176.00</div></div>
+      <div class="item"><div class="thumb">🪵</div><div><div class="name">楠木书镇一对</div><div class="qty">× 1 · 器物部</div></div><div class="amt">¥129.00</div></div>
+      <div class="sumrow" style="margin-top:16px"><span>商品合计</span><span>¥673.00</span></div>
+      <div class="sumrow"><span>运费（保价陆运）</span><span>¥12.00</span></div>
+      <div class="sumrow"><span>会员折扣（金卡 95 折）</span><span>−¥33.65</span></div>
+      <div class="total"><span class="label">应付合计</span><span class="big"><span class="unit">¥</span>651.35</span></div>
+    </section>
+
+    <section class="panel" aria-label="支付方式">
+      <h2>支付方式</h2>
+      <div class="pay" id="payList">
+        <div class="pay-opt sel" data-p="余额账户">
+          <span class="radio"></span><span class="picon">🏦</span>
+          <span class="pname">汇通余额<small>可用 ¥1,240.60</small></span><span class="ptag">推荐</span>
+        </div>
+        <div class="pay-opt" data-p="储蓄卡">
+          <span class="radio"></span><span class="picon">💳</span>
+          <span class="pname">储蓄卡<small>中原银行 ·· 6308</small></span>
+        </div>
+        <div class="pay-opt" data-p="汇票">
+          <span class="radio"></span><span class="picon">📜</span>
+          <span class="pname">对公汇票<small>3–5 个工作日到账</small></span>
+        </div>
+      </div>
+      <label class="agree"><input type="checkbox" id="agree"> 我已核对书目与金额，同意《汇通收银结算章程》与古籍特殊包装条款。</label>
+      <div class="secure">🔒 本次结算由汇通收银台加密处理；古籍函装默认加固木匣，破损包赔。</div>
+      <button class="confirm" id="payBtn" disabled>确认支付 ¥651.35</button>
+    </section>
+  </div>
+
+  <div class="done" id="doneView">
+    <div class="tick">✓</div>
+    <h2>支付成功</h2>
+    <p>凭单号 <span class="no">PZ-880214</span><br><span id="doneMethod"></span> · 2026-09-23 14:07<br>回执已送往账房，可在「我的凭单」中随时调阅。</p>
+  </div>
+</div>
+
+<script>
+const opts=document.querySelectorAll('.pay-opt');
+let method='余额账户';
+opts.forEach(o=>o.addEventListener('click',()=>{
+  opts.forEach(x=>x.classList.remove('sel'));o.classList.add('sel');method=o.dataset.p;
+}));
+const agree=document.getElementById('agree'),pay=document.getElementById('payBtn');
+agree.addEventListener('change',()=>{pay.disabled=!agree.checked;});
+pay.addEventListener('click',()=>{
+  document.getElementById('checkoutView').style.display='none';
+  document.getElementById('doneMethod').textContent='已通过'+method+'扣款 ¥651.35';
+  document.getElementById('doneView').classList.add('show');
+  window.scrollTo({top:0});
+});
+</script>
+</body>
+</html>

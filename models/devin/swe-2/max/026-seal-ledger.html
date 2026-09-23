@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>票号 · 账目与凭票</title>
+<style>
+  :root{
+    --paper:#f3ecdb; --paper-2:#ece2cc; --ink:#33291c; --ink-soft:#6f6047;
+    --faded:#9a8b6e; --line:#cbbfa0; --seal:#b03a26; --seal-soft:#c98070; --deep:#2c2416;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    background:var(--paper);color:var(--ink);
+    font-family:"Songti SC","STSong","Noto Serif CJK SC",Georgia,serif;
+    min-height:100vh;
+    background-image:repeating-linear-gradient(0deg,transparent 0 34px,#00000004 34px 35px);
+  }
+  .page{max-width:1080px;margin:0 auto;padding:52px 36px 80px}
+  header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:30px}
+  .brand{display:flex;gap:18px;align-items:center}
+  .brand .mark{
+    width:56px;height:56px;background:var(--seal);color:#f7ecd8;border-radius:6px;
+    display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:700;
+    box-shadow:2px 2px 0 var(--ink);transform:rotate(-3deg);
+  }
+  .brand h1{font-size:32px;letter-spacing:10px}
+  .brand .sub{font-size:12px;color:var(--faded);letter-spacing:3px;margin-top:6px}
+  .plan-tag{text-align:right}
+  .plan-tag .name{font-size:15px;letter-spacing:3px;color:var(--seal);border:2px solid var(--seal);padding:7px 16px;display:inline-block;transform:rotate(2deg)}
+  .plan-tag .since{font-size:12px;color:var(--faded);margin-top:10px;letter-spacing:1px}
+  .ledger{
+    display:grid;grid-template-columns:300px 1fr;gap:34px;align-items:start;
+  }
+  .current{
+    background:var(--paper-2);border:1.5px solid var(--line);padding:26px;position:relative;
+  }
+  .current::after{
+    content:"在册";position:absolute;top:18px;right:18px;width:52px;height:52px;
+    border:2.5px solid var(--seal-soft);border-radius:50%;color:var(--seal);
+    display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;
+    transform:rotate(14deg);opacity:.85;
+  }
+  .current h2{font-size:13px;letter-spacing:4px;color:var(--faded);margin-bottom:16px}
+  .current .plan{font-size:24px;font-weight:700;letter-spacing:3px}
+  .current .price{font-size:30px;color:var(--seal);font-weight:700;margin:12px 0 4px;font-variant-numeric:tabular-nums}
+  .current .price small{font-size:13px;color:var(--ink-soft);font-weight:400}
+  .current ul{list-style:none;margin:18px 0;font-size:13px;color:var(--ink-soft);line-height:2.1}
+  .current ul li::before{content:"◆ ";color:var(--seal);font-size:9px;vertical-align:2px}
+  .current .pay-method{font-size:12.5px;color:var(--ink-soft);border-top:1px dashed var(--line);padding-top:14px;display:flex;justify-content:space-between;align-items:center}
+  .swap{
+    font-family:inherit;font-size:12px;cursor:pointer;color:var(--seal);
+    border:1px solid var(--seal);background:none;padding:5px 12px;letter-spacing:2px;transition:all .2s;
+  }
+  .swap:hover{background:var(--seal);color:#f7ecd8}
+  .records h2{font-size:13px;letter-spacing:4px;color:var(--faded);margin-bottom:16px;display:flex;justify-content:space-between;align-items:center}
+  .records h2 button{
+    font-family:inherit;font-size:12px;letter-spacing:2px;cursor:pointer;
+    background:var(--ink);color:var(--paper);border:none;padding:8px 18px;transition:opacity .2s;
+  }
+  .records h2 button:hover{opacity:.85}
+  table{width:100%;border-collapse:collapse;font-size:13.5px}
+  thead th{
+    text-align:left;font-weight:600;font-size:12px;letter-spacing:3px;color:var(--ink-soft);
+    border-top:2px solid var(--ink);border-bottom:1px solid var(--ink);padding:10px 8px;
+  }
+  tbody td{padding:13px 8px;border-bottom:1px solid var(--line);vertical-align:middle}
+  tbody tr:hover{background:var(--paper-2)}
+  td .rno{font-variant-numeric:tabular-nums;color:var(--ink-soft);font-size:12.5px}
+  td .amt{font-variant-numeric:tabular-nums;font-weight:600}
+  td .st{font-size:12px;letter-spacing:2px}
+  td .st.ok{color:var(--seal)} td .st.wait{color:var(--faded)}
+  td .dl{font-size:12px;color:var(--seal);cursor:pointer;text-decoration:underline dotted}
+  td .dl:hover{color:var(--deep)}
+  .note{margin-top:22px;font-size:12px;color:var(--faded);line-height:1.9;letter-spacing:1px}
+  @media (max-width:880px){
+    .ledger{grid-template-columns:1fr}
+    .page{padding:36px 20px 60px}
+    .records{overflow-x:auto}
+    table{min-width:560px}
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{transition:none!important;animation:none!important}
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <header>
+    <div class="brand">
+      <div class="mark">票</div>
+      <div>
+        <h1>票号</h1>
+        <div class="sub">PIAO HAO · 账房支出与凭票存根</div>
+      </div>
+    </div>
+    <div class="plan-tag">
+      <div class="name">掌柜版 · 年付</div>
+      <div class="since">自 2025-10-01 起在册</div>
+    </div>
+  </header>
+
+  <div class="ledger">
+    <aside class="current">
+      <h2>当前方案</h2>
+      <div class="plan">掌柜版</div>
+      <div class="price">¥1,280<small> / 年</small></div>
+      <ul>
+        <li>分号账目 · 不限账簿</li>
+        <li>双人复核流水</li>
+        <li>凭票存根导出</li>
+        <li>账房先生优先坐席</li>
+      </ul>
+      <div class="pay-method">
+        <span>扣款走：山西总号 ·· 7788</span>
+        <button class="swap" id="swapBtn">更换</button>
+      </div>
+    </aside>
+
+    <section class="records">
+      <h2>近年流水 <button id="dlAll">下载全年凭票</button></h2>
+      <table>
+        <thead><tr><th>日期</th><th>字号</th><th>摘由</th><th>金额</th><th>结讫</th><th>凭票</th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+      <p class="note">※ 凭票为 PDF 存根，含朱印与骑缝编号；金额为人民币，含税。有疑问请持字号到账房查询。</p>
+    </section>
+  </div>
+</div>
+
+<script>
+const rows=[
+  {d:"2026-09-01",n:"丙字 1147",w:"掌柜版年费 · 第四期",a:"¥1,280.00",s:"结讫",ok:1},
+  {d:"2026-08-01",n:"丙字 1093",w:"加购账簿 ×2",a:"¥96.00",s:"结讫",ok:1},
+  {d:"2026-07-12",n:"丙字 1051",w:"双人复核坐席升级",a:"¥240.00",s:"结讫",ok:1},
+  {d:"2026-06-01",n:"丙字 0988",w:"存根导出包 · 半年",a:"¥48.00",s:"结讫",ok:1},
+  {d:"2026-05-19",n:"丙字 0912",w:"掌柜版年费 · 第三期",a:"¥1,280.00",s:"结讫",ok:1},
+  {d:"2026-09-21",n:"丙字 1168",w:"对账人工加急",a:"¥60.00",s:"挂账",ok:0}
+];
+const tb=document.getElementById('rows');
+rows.forEach(r=>{
+  const tr=document.createElement('tr');
+  tr.innerHTML=`<td class="rno">${r.d}</td><td class="rno">${r.n}</td><td>${r.w}</td>
+    <td class="amt">${r.a}</td><td class="st ${r.ok?'ok':'wait'}">${r.s}</td>
+    <td>${r.ok?'<span class="dl">取票</span>':'<span style="color:#9a8b6e">待开</span>'}</td>`;
+  tb.appendChild(tr);
+});
+document.querySelectorAll('.dl').forEach(x=>x.addEventListener('click',()=>{
+  x.textContent='已下载';x.style.color='#6f6047';
+}));
+document.getElementById('dlAll').addEventListener('click',e=>{
+  e.target.textContent='打包中…';setTimeout(()=>e.target.textContent='已下载 · 6 张',900);
+});
+document.getElementById('swapBtn').addEventListener('click',()=>{
+  const s=document.querySelector('.pay-method span');
+  const alt=s.textContent.includes('山西')?'上海分号 ·· 3301':'山西总号 ·· 7788';
+  s.textContent='扣款走：'+alt;
+});
+</script>
+</body>
+</html>
