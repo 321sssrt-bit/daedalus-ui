@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>库盾 · 身份二次核验</title>
+<style>
+  :root{
+    --bg:#14161a;
+    --bg-deep:#0e1013;
+    --panel:#1e2126;
+    --steel:#2a2e35;
+    --steel-edge:#3a4048;
+    --silver:#c9d0d8;
+    --silver-dim:#9aa3ad;
+    --amber:#f0a832;
+    --amber-deep:#6b4d12;
+    --red:#e15a4f;
+    --green:#63b36a;
+    --text:#e8eaed;
+    --muted:#8b929c;
+    --line:#33383f;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    font-family:-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    background:radial-gradient(1200px 700px at 50% 30%,#23262c 0%,var(--bg) 55%,var(--bg-deep) 100%);
+    color:var(--text);
+    display:flex;align-items:center;justify-content:center;
+    min-height:100vh;padding:40px 16px;
+  }
+  .vault{
+    width:600px;max-width:100%;
+    background:linear-gradient(160deg,#2b2f36 0%,#20242a 45%,#1b1e23 100%);
+    border:1px solid var(--steel-edge);
+    border-radius:20px;
+    box-shadow:0 30px 80px rgba(0,0,0,.6),0 2px 0 rgba(255,255,255,.05) inset,0 -2px 0 rgba(0,0,0,.5) inset;
+    padding:34px 44px 30px;
+    position:relative;
+  }
+  .rivet{position:absolute;width:12px;height:12px;border-radius:50%;
+    background:radial-gradient(circle at 35% 30%,#6a727d 0%,#2c3138 70%);
+    box-shadow:0 1px 1px rgba(255,255,255,.15) inset,0 1px 2px rgba(0,0,0,.6);}
+  .rivet.tl{top:14px;left:14px}.rivet.tr{top:14px;right:14px}
+  .rivet.bl{bottom:14px;left:14px}.rivet.br{bottom:14px;right:14px}
+  .brandbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px}
+  .brand{display:flex;align-items:center;gap:10px;font-size:15px;letter-spacing:6px;color:var(--silver);font-weight:700}
+  .brand svg{flex:none}
+  .serial{font-family:"SF Mono","Consolas","Courier New",monospace;font-size:11px;color:var(--muted);letter-spacing:2px}
+  .dial-wrap{display:flex;flex-direction:column;align-items:center;margin-bottom:8px}
+  .dial{width:132px;height:132px;transition:transform 900ms cubic-bezier(.34,1.3,.44,1)}
+  .dial.open{transform:rotate(96deg)}
+  .title{text-align:center;margin-top:14px}
+  .title h1{font-size:20px;font-weight:600;letter-spacing:2px}
+  .title p{margin-top:8px;font-size:13px;color:var(--muted);line-height:1.7}
+  .title b{color:var(--silver-dim);font-weight:600;letter-spacing:1px}
+  .cells{display:flex;gap:12px;justify-content:center;margin:26px 0 10px}
+  .cell{
+    width:64px;height:80px;text-align:center;
+    font-size:34px;font-weight:700;font-family:"SF Mono","Consolas","Courier New",monospace;
+    color:var(--text);
+    background:linear-gradient(180deg,#16191d 0%,#101317 100%);
+    border:1px solid #454b54;border-radius:10px;
+    box-shadow:0 3px 8px rgba(0,0,0,.55) inset,0 1px 0 rgba(255,255,255,.06);
+    outline:none;caret-color:var(--amber);
+    transition:border-color .18s,box-shadow .18s,transform .18s;
+  }
+  .cell:focus{border-color:var(--amber);box-shadow:0 0 0 3px rgba(240,168,50,.18),0 3px 8px rgba(0,0,0,.55) inset}
+  .cell.filled{border-color:var(--silver-dim);color:#fff}
+  .cell:disabled{opacity:.38;cursor:not-allowed}
+  .cells.error .cell{border-color:var(--red);color:var(--red);animation:shake .42s}
+  .cells.ok .cell{border-color:var(--green);color:var(--green)}
+  @keyframes shake{
+    0%,100%{transform:translateX(0)}
+    20%{transform:translateX(-7px)}40%{transform:translateX(6px)}
+    60%{transform:translateX(-4px)}80%{transform:translateX(3px)}
+  }
+  .statusline{display:flex;align-items:center;justify-content:space-between;margin-top:14px;font-size:13px;color:var(--muted);min-height:22px}
+  .resend{background:none;border:none;color:var(--amber);font-size:13px;cursor:pointer;padding:2px 4px;border-radius:4px;font-family:inherit}
+  .resend:hover:not(:disabled){background:rgba(240,168,50,.12)}
+  .resend:disabled{color:var(--muted);cursor:not-allowed}
+  .warn{
+    display:none;margin-top:14px;padding:10px 14px;border-radius:8px;
+    background:linear-gradient(90deg,rgba(240,168,50,.16),rgba(240,168,50,.06));
+    border:1px solid var(--amber-deep);
+    color:var(--amber);font-size:13px;line-height:1.6;
+  }
+  .warn.show{display:block}
+  .errline{display:none;margin-top:12px;text-align:center;font-size:13px;color:var(--red)}
+  .errline.show{display:block}
+  .actions{margin-top:22px;display:flex;flex-direction:column;gap:14px;align-items:center}
+  .confirm{
+    width:100%;height:52px;border:none;border-radius:10px;cursor:pointer;
+    font-size:15px;font-weight:600;letter-spacing:4px;color:#14161a;font-family:inherit;
+    background:linear-gradient(180deg,#d7dde4 0%,#aeb6bf 50%,#969fa9 100%);
+    box-shadow:0 4px 14px rgba(0,0,0,.45),0 1px 0 rgba(255,255,255,.5) inset;
+    transition:filter .15s,transform .1s;
+  }
+  .confirm:hover:not(:disabled){filter:brightness(1.08)}
+  .confirm:active:not(:disabled){transform:translateY(1px)}
+  .confirm:disabled{background:linear-gradient(180deg,#4a505a,#3a4048);color:#7b838d;cursor:not-allowed;box-shadow:none}
+  .confirm.done{background:linear-gradient(180deg,#7fc98a,#5aa263);color:#0f2013}
+  .attempts{display:flex;gap:8px;align-items:center;font-size:12px;color:var(--muted)}
+  .pip{width:8px;height:8px;border-radius:50%;background:var(--silver-dim);box-shadow:0 1px 0 rgba(255,255,255,.15) inset}
+  .pip.spent{background:#4a2f2c;box-shadow:none}
+  .pip.warnpip{background:var(--amber)}
+  .alt{background:none;border:none;color:var(--muted);font-size:12px;cursor:pointer;text-decoration:underline;text-underline-offset:3px;font-family:inherit}
+  .alt:hover{color:var(--silver)}
+  .footnote{margin-top:20px;text-align:center;font-size:11px;color:#5d646d;letter-spacing:1px}
+  .success-banner{
+    display:none;text-align:center;color:var(--green);font-size:14px;margin-top:14px;letter-spacing:2px;
+  }
+  .success-banner.show{display:block}
+  @media (max-width:768px){
+    .vault{padding:26px 20px 22px}
+    .cells{gap:8px}
+    .cell{width:46px;height:62px;font-size:26px}
+    .dial{width:104px;height:104px}
+    .title h1{font-size:17px}
+  }
+  @media (prefers-reduced-motion: reduce){
+    *,*::before,*::after{animation:none !important;transition:none !important}
+    .cells.error .cell{animation:none}
+    .dial.open{transform:none}
+  }
+</style>
+</head>
+<body>
+<div class="vault" role="main">
+  <span class="rivet tl"></span><span class="rivet tr"></span><span class="rivet bl"></span><span class="rivet br"></span>
+  <div class="brandbar">
+    <div class="brand">
+      <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
+        <rect x="2" y="8" width="18" height="12" rx="2.5" stroke="#c9d0d8" stroke-width="1.6"/>
+        <path d="M6.5 8V6a4.5 4.5 0 0 1 9 0v2" stroke="#c9d0d8" stroke-width="1.6"/>
+        <circle cx="11" cy="14" r="2" fill="#f0a832"/>
+      </svg>
+      库盾
+    </div>
+    <div class="serial">VAULT-KD · NO.04217</div>
+  </div>
+  <div class="dial-wrap">
+    <svg class="dial" id="dial" viewBox="0 0 132 132" aria-hidden="true">
+      <circle cx="66" cy="66" r="62" fill="#1a1d22" stroke="#454b54" stroke-width="2"/>
+      <circle cx="66" cy="66" r="52" fill="none" stroke="#31363d" stroke-width="1"/>
+      <g stroke="#8b929c" stroke-width="1.4">
+        <line x1="66" y1="6" x2="66" y2="14"/><line x1="96" y1="14" x2="92" y2="21"/>
+        <line x1="118" y1="36" x2="111" y2="40"/><line x1="126" y1="66" x2="118" y2="66"/>
+        <line x1="118" y1="96" x2="111" y2="92"/><line x1="96" y1="118" x2="92" y2="111"/>
+        <line x1="66" y1="126" x2="66" y2="118"/><line x1="36" y1="118" x2="40" y2="111"/>
+        <line x1="14" y1="96" x2="21" y2="92"/><line x1="6" y1="66" x2="14" y2="66"/>
+        <line x1="14" y1="36" x2="21" y2="40"/><line x1="36" y1="14" x2="40" y2="21"/>
+      </g>
+      <circle cx="66" cy="66" r="30" fill="#22262c" stroke="#454b54" stroke-width="1.5"/>
+      <line x1="66" y1="66" x2="66" y2="22" stroke="#f0a832" stroke-width="3" stroke-linecap="round"/>
+      <circle cx="66" cy="66" r="5" fill="#f0a832"/>
+    </svg>
+    <div class="title">
+      <h1>身份二次核验</h1>
+      <p>密码校验已通过。请输入发送到 <b>138****2468</b> 的六位动态验证码，<br>确认本次操作为本人。</p>
+    </div>
+  </div>
+  <div class="cells" id="cells">
+    <input class="cell" type="text" inputmode="numeric" maxlength="1" autocomplete="one-time-code" aria-label="验证码第1位">
+    <input class="cell" type="text" inputmode="numeric" maxlength="1" aria-label="验证码第2位">
+    <input class="cell" type="text" inputmode="numeric" maxlength="1" aria-label="验证码第3位">
+    <input class="cell" type="text" inputmode="numeric" maxlength="1" aria-label="验证码第4位">
+    <input class="cell" type="text" inputmode="numeric" maxlength="1" aria-label="验证码第5位">
+    <input class="cell" type="text" inputmode="numeric" maxlength="1" aria-label="验证码第6位">
+  </div>
+  <div class="errline" id="errline">验证码不正确，请核对后重试。</div>
+  <div class="warn" id="warn">连续错误次数过多，保险库已临时锁定。请等待 <b id="lockLeft">30</b> 秒后重试，或联系安全专员。</div>
+  <div class="statusline">
+    <span id="sentInfo">验证码有效时长 10 分钟</span>
+    <button class="resend" id="resend" disabled>重新发送（60s）</button>
+  </div>
+  <div class="actions">
+    <button class="confirm" id="confirm" disabled>确认核验</button>
+    <div class="attempts"><span>剩余尝试次数</span><span class="pip" id="pip1"></span><span class="pip" id="pip2"></span><span class="pip" id="pip3"></span></div>
+    <button class="alt" id="altBtn">收不到验证码？换个方式验证</button>
+  </div>
+  <div class="success-banner" id="okBanner">核验通过 · 保险库已解锁</div>
+  <div class="footnote">演示环境 · 输入 842061 可查看通过状态</div>
+</div>
+<script>
+/* 库盾 OTP 交互：输入流转、倒计时重发、三次失败锁定、成功解锁 */
+var CODE='842061';
+var cells=Array.prototype.slice.call(document.querySelectorAll('.cell'));
+var cellsBox=document.getElementById('cells');
+var confirmBtn=document.getElementById('confirm');
+var resendBtn=document.getElementById('resend');
+var errline=document.getElementById('errline');
+var warn=document.getElementById('warn');
+var lockLeft=document.getElementById('lockLeft');
+var sentInfo=document.getElementById('sentInfo');
+var dial=document.getElementById('dial');
+var okBanner=document.getElementById('okBanner');
+var pips=[document.getElementById('pip1'),document.getElementById('pip2'),document.getElementById('pip3')];
+var attempts=3,locked=false,done=false,resendLeft=60,resendTimer=null,lockTimer=null;
+
+function currentCode(){return cells.map(function(c){return c.value}).join('')}
+function refreshConfirm(){
+  confirmBtn.disabled=locked||done||currentCode().length<6;
+}
+function refreshPips(){
+  pips.forEach(function(p,i){
+    p.className='pip'+(i<attempts?'':' spent')+(locked?' warnpip':'');
+  });
+}
+function startResend(){
+  resendLeft=60;resendBtn.disabled=true;
+  resendBtn.textContent='重新发送（'+resendLeft+'s）';
+  clearInterval(resendTimer);
+  resendTimer=setInterval(function(){
+    resendLeft--;
+    if(resendLeft<=0){clearInterval(resendTimer);resendBtn.disabled=false;resendBtn.textContent='重新发送';}
+    else resendBtn.textContent='重新发送（'+resendLeft+'s）';
+  },1000);
+}
+function clearCells(){
+  cells.forEach(function(c){c.value='';c.classList.remove('filled')});
+  cellsBox.classList.remove('error','ok');
+  refreshConfirm();
+}
+function lockdown(){
+  locked=true;refreshPips();refreshConfirm();
+  cells.forEach(function(c){c.disabled=true});
+  warn.classList.add('show');errline.classList.remove('show');
+  var left=30;lockLeft.textContent=left;
+  lockTimer=setInterval(function(){
+    left--;lockLeft.textContent=left;
+    if(left<=0){
+      clearInterval(lockTimer);
+      locked=false;attempts=3;
+      cells.forEach(function(c){c.disabled=false});
+      warn.classList.remove('show');
+      refreshPips();clearCells();cells[0].focus();
+      sentInfo.textContent='已解除锁定，请重新输入验证码';
+    }
+  },1000);
+}
+function verify(){
+  if(locked||done)return;
+  var val=currentCode();
+  if(val.length<6)return;
+  if(val===CODE){
+    done=true;cellsBox.classList.remove('error');cellsBox.classList.add('ok');
+    errline.classList.remove('show');
+    confirmBtn.textContent='已进入';confirmBtn.classList.add('done');
+    cells.forEach(function(c){c.disabled=true});
+    dial.classList.add('open');
+    okBanner.classList.add('show');
+    sentInfo.textContent='会话已加固 · 有效期至本次退出';
+    resendBtn.disabled=true;
+  }else{
+    attempts--;refreshPips();
+    cellsBox.classList.add('error');
+    setTimeout(function(){cellsBox.classList.remove('error')},450);
+    if(attempts<=0){
+      lockdown();
+    }else{
+      errline.textContent='验证码不正确，还可尝试 '+attempts+' 次。';
+      errline.classList.add('show');
+      setTimeout(function(){clearCells();cells[0].focus()},450);
+    }
+  }
+}
+cells.forEach(function(cell,i){
+  cell.addEventListener('input',function(){
+    cell.value=cell.value.replace(/[^0-9]/g,'').slice(0,1);
+    cell.classList.toggle('filled',!!cell.value);
+    if(cell.value&&i<5)cells[i+1].focus();
+    refreshConfirm();
+    if(currentCode().length===6)verify();
+  });
+  cell.addEventListener('keydown',function(e){
+    if(e.key==='Backspace'&&!cell.value&&i>0){cells[i-1].focus();cells[i-1].value='';cells[i-1].classList.remove('filled');refreshConfirm();}
+    if(e.key==='Enter')verify();
+  });
+  cell.addEventListener('paste',function(e){
+    var t=(e.clipboardData.getData('text')||'').replace(/[^0-9]/g,'').slice(0,6);
+    if(!t)return;
+    e.preventDefault();
+    for(var k=0;k<6;k++){cells[k].value=t[k]||'';cells[k].classList.toggle('filled',!!t[k]);}
+    cells[Math.min(t.length,5)].focus();
+    refreshConfirm();
+    if(t.length===6)verify();
+  });
+});
+resendBtn.addEventListener('click',function(){
+  if(resendBtn.disabled)return;
+  startResend();
+  sentInfo.textContent='新的验证码已发送至 138****2468';
+  errline.classList.remove('show');
+});
+confirmBtn.addEventListener('click',verify);
+document.getElementById('altBtn').addEventListener('click',function(){
+  sentInfo.textContent='演示环境：硬件密钥与人工核验通道暂以验证码代替';
+});
+startResend();refreshPips();cells[0].focus();
+</script>
+</body>
+</html>
