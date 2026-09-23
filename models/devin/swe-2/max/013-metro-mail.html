@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>驿邮 · METRO MAIL</title>
+<style>
+:root{
+  --bg:#ffffff;--ink:#111111;--ink-2:#3d3d3d;--muted:#8a8a8a;--line:#e3e3e3;
+  --red:#e2231a;--blue:#006cb8;--green:#009758;--yellow:#f9d616;
+  --sel:#f2f7fc;--radius:3px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{font-family:-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+  background:var(--bg);color:var(--ink);font-size:14px;line-height:1.55}
+.app{display:flex;flex-direction:column;height:100vh;overflow:hidden}
+
+/* 线路带 */
+.routes{display:flex;height:22px}
+.routes span{flex:1;display:flex;align-items:center;justify-content:center;
+  color:#fff;font-size:10px;letter-spacing:2px;font-weight:600}
+.routes .r1{background:var(--green)}.routes .r2{background:var(--red)}.routes .r3{background:var(--blue)}
+.routes .r4{flex:0 0 90px;background:var(--yellow);color:#111}
+
+/* 顶栏 */
+.topbar{display:flex;align-items:center;gap:20px;padding:14px 26px;border-bottom:3px solid var(--ink)}
+.wordmark{display:flex;align-items:baseline;gap:12px}
+.wordmark h1{font-size:34px;font-weight:800;letter-spacing:4px;line-height:1}
+.wordmark .en{font-size:12px;letter-spacing:4px;color:var(--ink-2);font-weight:600}
+.topbar .hint{color:var(--muted);font-size:12px;margin-left:auto;letter-spacing:1px}
+
+.cols{display:grid;grid-template-columns:230px 330px minmax(0,1fr);flex:1;min-height:0}
+
+/* 左:文件夹 */
+.folders{border-right:2px solid var(--ink);padding:14px 0;overflow-y:auto}
+.folders .sec{padding:0 18px 10px;font-size:11px;color:var(--muted);letter-spacing:3px}
+.f-item{display:flex;align-items:center;gap:10px;padding:11px 18px;cursor:pointer;
+  font-size:14px;font-weight:600;border-left:5px solid transparent;color:var(--ink-2)}
+.f-item svg{width:15px;height:15px;flex:0 0 auto}
+.f-item .cnt{margin-left:auto;font-size:11px;min-width:22px;height:18px;padding:0 5px;
+  display:inline-flex;align-items:center;justify-content:center;background:var(--ink);color:#fff;border-radius:2px}
+.f-item .arr{opacity:0;transition:opacity .15s}
+.f-item:hover{background:#f6f6f6}
+.f-item:hover .arr{opacity:1}
+.f-item.on{background:var(--sel);border-left-color:var(--blue);color:var(--ink)}
+.f-item.on .arr{opacity:1;color:var(--blue)}
+.f-note{margin:18px 18px 0;padding:12px;border:2px dashed var(--line);font-size:11px;
+  color:var(--muted);line-height:1.7;letter-spacing:1px}
+
+/* 中:邮件列表 */
+.list{display:flex;flex-direction:column;border-right:1px solid var(--line);min-height:0}
+.list-head{padding:12px 16px;border-bottom:2px solid var(--ink);display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.list-head h2{font-size:16px;font-weight:800;letter-spacing:2px}
+.chips{display:flex;gap:6px;margin-left:auto}
+.chip{border:2px solid var(--ink);background:#fff;color:var(--ink);padding:3px 10px;
+  font-size:12px;font-weight:700;cursor:pointer;border-radius:2px;letter-spacing:1px;font-family:inherit}
+.chip:hover{background:#f0f0f0}
+.chip.on{background:var(--ink);color:#fff}
+.mails{overflow-y:auto;flex:1}
+.mail{display:flex;gap:10px;padding:13px 16px;border-bottom:1px solid var(--line);
+  cursor:pointer;position:relative;align-items:flex-start}
+.mail::before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--line)}
+.mail.l-red::before{background:var(--red)}.mail.l-blue::before{background:var(--blue)}
+.mail.l-green::before{background:var(--green)}.mail.l-yellow::before{background:var(--yellow)}
+.mail:hover{background:#fafafa}
+.mail.on{background:var(--sel)}
+.mail .body{min-width:0;flex:1}
+.mail .r1{display:flex;align-items:baseline;gap:8px}
+.mail .from{font-weight:700;font-size:13px;white-space:nowrap}
+.mail .time{margin-left:auto;font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums;flex:0 0 auto}
+.mail .subj{font-size:13px;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ink-2)}
+.mail .prev{font-size:12px;color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mail .tag{display:inline-block;font-size:10px;font-weight:700;color:#fff;padding:1px 6px;border-radius:2px;letter-spacing:1px;vertical-align:1px;margin-right:6px}
+.mail .star{flex:0 0 auto;border:0;background:transparent;font-size:17px;cursor:pointer;color:#cfcfcf;padding:0 2px;line-height:1.2}
+.mail .star.on{color:var(--yellow);text-shadow:0 0 1px #b8860b}
+.mail.unread .from{color:var(--ink)}
+.mail.unread .subj{color:var(--ink);font-weight:700}
+.mail.unread::after{content:"";position:absolute;right:14px;bottom:14px;width:8px;height:8px;background:var(--red)}
+.mail-empty{padding:40px 20px;text-align:center;color:var(--muted);font-size:13px}
+
+/* 右:阅读区 */
+.reader{overflow-y:auto;min-width:0}
+.reader-empty{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:var(--muted)}
+.reader-empty .arrow{font-size:42px;font-weight:800;color:var(--line)}
+.reader-empty p{font-size:15px;letter-spacing:3px}
+.reader-head{border-bottom:3px solid var(--ink)}
+.reader-band{height:10px}
+.reader-title{padding:22px 30px 18px}
+.reader-title .tag{display:inline-block;font-size:11px;font-weight:700;color:#fff;padding:2px 8px;border-radius:2px;letter-spacing:2px;margin-bottom:10px}
+.reader-title h2{font-size:26px;font-weight:800;letter-spacing:1px;line-height:1.3}
+.reader-meta{display:flex;gap:18px;flex-wrap:wrap;padding:0 30px 16px;font-size:12px;color:var(--muted)}
+.reader-meta b{color:var(--ink-2);font-weight:600}
+.reader-acts{display:flex;gap:10px;padding:14px 30px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.act{border:2px solid var(--ink);background:#fff;color:var(--ink);padding:7px 16px;font-size:13px;
+  font-weight:700;cursor:pointer;border-radius:2px;letter-spacing:1px;display:inline-flex;gap:7px;align-items:center;font-family:inherit}
+.act:hover{background:#f0f0f0}
+.act.primary{background:var(--ink);color:#fff}
+.act.done{border-color:var(--green);color:var(--green)}
+.reader-body{padding:26px 30px 50px;max-width:720px;font-size:14px;color:var(--ink-2);line-height:1.9}
+.reader-body p{margin-bottom:14px}
+.reader-body .sig{margin-top:26px;padding-top:14px;border-top:1px dashed var(--line);color:var(--muted);font-size:13px}
+
+.toast{position:fixed;left:50%;bottom:26px;transform:translate(-50%,80px);background:var(--ink);color:#fff;
+  padding:10px 22px;font-size:13px;letter-spacing:1px;border-radius:2px;transition:transform .3s;z-index:50;
+  box-shadow:0 6px 20px rgba(0,0,0,.25)}
+.toast.show{transform:translate(-50%,0)}
+
+@media (max-width:980px){
+  .cols{grid-template-columns:60px 280px minmax(0,1fr)}
+  .f-item span,.f-item .cnt,.folders .sec,.f-note{display:none}
+  .f-item{justify-content:center;padding:12px 0}
+  .f-item .arr{display:none}
+}
+@media (max-width:780px){
+  .cols{grid-template-columns:52px minmax(0,1fr) 0}
+  .reader{position:fixed;top:0;right:0;bottom:0;width:min(540px,96vw);background:#fff;z-index:30;
+    box-shadow:-10px 0 30px rgba(0,0,0,.15);transform:translateX(105%);transition:transform .3s}
+  .reader.open{transform:translateX(0)}
+}
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="routes">
+    <span class="r1">观塘线 KWUN TONG LINE</span>
+    <span class="r2">荃湾线 TSUEN WAN LINE</span>
+    <span class="r3">港岛线 ISLAND LINE</span>
+    <span class="r4">驿邮专线</span>
+  </div>
+  <header class="topbar">
+    <div class="wordmark"><h1>驿邮</h1><span class="en">METRO&nbsp;MAIL</span></div>
+    <span class="hint">请小心月台空隙 · 邮件均已安检</span>
+  </header>
+
+  <div class="cols">
+    <aside class="folders" id="folders">
+      <div class="sec">邮箱站台</div>
+    </aside>
+
+    <section class="list">
+      <div class="list-head">
+        <h2 id="listTitle">收件箱</h2>
+        <div class="chips">
+          <button class="chip on" data-f="all">全部</button>
+          <button class="chip" data-f="unread">未读</button>
+          <button class="chip" data-f="star">已加星</button>
+        </div>
+      </div>
+      <div class="mails" id="mails"></div>
+    </section>
+
+    <section class="reader" id="reader">
+      <div class="reader-empty" id="readerEmpty">
+        <div class="arrow">←</div>
+        <p>请在左侧选择一封信件</p>
+      </div>
+      <div id="readerPane" style="display:none">
+        <div class="reader-head">
+          <div class="reader-band" id="rBand"></div>
+          <div class="reader-title">
+            <span class="tag" id="rTag"></span>
+            <h2 id="rSubj"></h2>
+          </div>
+          <div class="reader-meta">
+            <span>发件人 <b id="rFrom"></b></span>
+            <span>时间 <b id="rTime"></b></span>
+            <span>站台 <b id="rLine"></b></span>
+          </div>
+        </div>
+        <div class="reader-acts">
+          <button class="act primary" id="aStar">☆ 加星</button>
+          <button class="act" id="aArch">归档</button>
+          <button class="act" id="aUnread">标为未读</button>
+        </div>
+        <div class="reader-body" id="rBody"></div>
+      </div>
+    </section>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  var LINES={blue:{n:"蓝线·工作",c:"#006cb8"},green:{n:"绿线·财务服务",c:"#009758"},
+    red:{n:"红线·通告",c:"#e2231a"},yellow:{n:"黄线·系统",c:"#c9a200"}};
+  var MAILS=[
+    {id:1,folder:"inbox",line:"blue",from:"广告部 · 陈玮",subj:"Q4 站台灯箱排期确认",time:"09:42",unread:true,star:false,
+      body:["各站 Q4 灯箱画面排期表已更新至共享盘,请相关同事在本周五前确认本站点位与上画日期。","中环站本月新增 4 号出口旁两个 12 封灯箱,刊例价已同步;如有客户改签请直接回复本邮。","确认无误后无需回复,逾期系统将默认排期生效。"]},
+    {id:2,folder:"inbox",line:"green",from:"财务部",subj:"9 月差旅报销单已退回,请补充凭证",time:"09:15",unread:true,star:false,
+      body:["你 9 月 18 日提交的差旅报销单缺少往返车票原件影像,已被退回。","请在 9 月 30 日前于报销系统补传凭证,逾期将顺延至 10 月批次发放。","如有疑问请联系财务共享中心分机 8123。"]},
+    {id:3,folder:"inbox",line:"red",from:"站长室",subj:"周五 14:00 全员消防演练",time:"昨天 18:20",unread:true,star:false,
+      body:["定于本周五 14:00–15:00 进行全站消防疏散演练,期间闸机将处于常开状态。","各岗位请按疏散路线图引导乘客,客服岗备好广播词。","演练结束后各班组长到站长室签到并回收对讲机。"]},
+    {id:4,folder:"inbox",line:"blue",from:"设计组 · Momo",subj:"新版导视字体试印稿已到店",time:"昨天 16:05",unread:false,star:true,
+      body:["新版站名牌的字体试印稿已到文印店,共三种字重各两张。","我下午先送一份到车控室,麻烦你在灯箱下比对一下远距离辨识度,意见直接写在稿上即可。"]},
+    {id:5,folder:"inbox",line:"green",from:"客服中心",subj:"本周乘客意见汇总(38 条)",time:"周二 11:30",unread:false,star:false,
+      body:["本周共收到乘客意见 38 条:表扬 12 条,建议 19 条,投诉 7 条。","投诉集中在早高峰 3 号扶梯排队与站内空调温度两项,已附原始记录。","请在周四例会前提交本组回复口径。"]},
+    {id:6,folder:"inbox",line:"yellow",from:"IT 运维",subj:"闸机固件升级窗口:周六 02:00–04:00",time:"周二 09:02",unread:true,star:false,
+      body:["全线闸机将于周六凌晨 02:00–04:00 分批升级固件,单台停机约 8 分钟。","夜班同事如遇到闸机重启请勿手动断电,升级完成后指示灯转绿。","失败机台会自动回滚并登记,早班交班时核对一遍即可。"]},
+    {id:7,folder:"inbox",line:"red",from:"轨道工程部",subj:"太子站 3 号扶梯停运检修",time:"周一 17:44",unread:false,star:false,
+      body:["太子站 3 号扶梯自本周三起停运检修,预计工期 10 天。","请客运组在 B 出口增派引导人手,并更新站内告示与广播。","如需夜间施工配合,请提前一日报备。"]},
+    {id:8,folder:"inbox",line:"green",from:"月台咖啡",subj:"联名款杯套打样确认函",time:"周一 10:12",unread:false,star:false,
+      body:["「站台系列」联名杯套打样已出,红黄蓝三款各 50 套随函寄出。","如颜色与导视色板一致,请回函确认进入量产;数量按门店月销预估。"]},
+    {id:9,folder:"inbox",line:"yellow",from:"人力部",subj:"年假余额提醒:还剩 6.5 天",time:"9/20",unread:false,star:false,
+      body:["截至 9 月 20 日,你的本年度年假余额为 6.5 天,请于 12 月 31 日前使用完毕。","申请入口:人事系统 › 假期 › 年假;超过 3 天请提前两周报批。"]},
+    {id:10,folder:"inbox",line:"blue",from:"广告部 · 陈玮",subj:"灯箱画面 B 版终稿(请今天确认)",time:"9/19",unread:false,star:true,
+      body:["附件为 B 版终稿,按上周意见调小了价格字号、加深了底色对比。","今天 17:00 前没有异议即付印,印刷周期三天,正好赶上月底换装窗口。"]}
+  ];
+  var FOLDERS=[
+    {k:"inbox",n:"收件箱",icon:"M2 4h12v8H2z M2 4l6 4 6-4"},
+    {k:"star",n:"星标邮件",icon:"M8 2l1.8 4.2L14 6.5l-3.2 3 .9 4.5L8 11.5 4.3 14l.9-4.5L2 6.5l4.2-.3z"},
+    {k:"archive",n:"已归档",icon:"M2 5h12v3H2z M3 8h10v5H3z M7 9.5h2"},
+    {k:"sent",n:"已发送",icon:"M2 8l12-5-5 12-2.5-4.5z"},
+    {k:"trash",n:"废纸篓",icon:"M3 5h10 M6 5V3h4v2 M5 5l.7 8h4.6L11 5"}
+  ];
+  var state={folder:"inbox",filter:"all",sel:-1};
+
+  function $(id){return document.getElementById(id);}
+  function visible(){
+    return MAILS.filter(function(m){
+      if(state.folder==="star"&&!m.star)return false;
+      if(state.folder==="inbox"&&m.folder!=="inbox")return false;
+      if(state.folder==="archive"&&m.folder!=="archive")return false;
+      if(state.folder==="sent"||state.folder==="trash")return false;
+      if(state.filter==="unread"&&!m.unread)return false;
+      if(state.filter==="star"&&!m.star)return false;
+      return true;
+    });
+  }
+  function unreadCnt(){return MAILS.filter(function(m){return m.folder==="inbox"&&m.unread;}).length;}
+
+  function renderFolders(){
+    var html='<div class="sec">邮箱站台</div>';
+    FOLDERS.forEach(function(f){
+      var cnt=f.k==="inbox"?unreadCnt():0;
+      html+='<div class="f-item'+(state.folder===f.k?" on":"")+'" data-f="'+f.k+'">'+
+        '<svg viewBox="0 0 16 16" fill="none"><path d="'+f.icon+'" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round"/></svg>'+
+        '<span>'+f.n+'</span><span class="arr">→</span>'+
+        (cnt?'<span class="cnt">'+cnt+'</span>':'')+'</div>';
+    });
+    html+='<div class="f-note">线路标签规则:蓝线=工作协作,绿线=财务与服务,红线=必须周知的通告,黄线=系统与人事。</div>';
+    $("folders").innerHTML=html;
+  }
+
+  function renderList(){
+    var list=visible(),html="";
+    var names={inbox:"收件箱",star:"星标邮件",archive:"已归档",sent:"已发送",trash:"废纸篓"};
+    $("listTitle").textContent=names[state.folder];
+    if(!list.length){html='<div class="mail-empty">此筛选下暂无邮件</div>';}
+    list.forEach(function(m){
+      var L=LINES[m.line];
+      html+='<div class="mail l-'+m.line+(m.unread?" unread":"")+(state.sel===m.id?" on":"")+'" data-id="'+m.id+'">'+
+        '<div class="body"><div class="r1"><span class="from">'+m.from+'</span><span class="time">'+m.time+'</span></div>'+
+        '<div class="subj"><span class="tag" style="background:'+L.c+'">'+L.n+'</span>'+m.subj+'</div>'+
+        '<div class="prev">'+m.body[0]+'</div></div>'+
+        '<button class="star'+(m.star?" on":"")+'" data-star="'+m.id+'" aria-label="加星">'+(m.star?"★":"☆")+'</button></div>';
+    });
+    $("mails").innerHTML=html;
+  }
+
+  function renderReader(){
+    var m=MAILS.filter(function(x){return x.id===state.sel;})[0];
+    if(!m){
+      $("readerEmpty").style.display="flex";$("readerPane").style.display="none";
+      $("reader").classList.remove("open");return;
+    }
+    var L=LINES[m.line];
+    $("readerEmpty").style.display="none";$("readerPane").style.display="block";
+    $("rBand").style.background=L.c;
+    var tag=$("rTag");tag.textContent=L.n;tag.style.background=L.c;
+    $("rSubj").textContent=m.subj;
+    $("rFrom").textContent=m.from;$("rTime").textContent=m.time;$("rLine").textContent=L.n;
+    var st=$("aStar");st.innerHTML=m.star?"★ 已加星":"☆ 加星";
+    st.className="act primary"+(m.star?" done":"");
+    $("aUnread").textContent=m.unread?"标为已读":"标为未读";
+    $("rBody").innerHTML=m.body.map(function(p){return "<p>"+p+"</p>";}).join("")+
+      '<p class="sig">'+m.from+" · 经驿邮系统投递"+"</p>";
+    $("reader").classList.add("open");
+  }
+
+  function renderAll(){renderFolders();renderList();renderReader();}
+
+  var toastT=null;
+  function toast(txt){
+    var t=$("toast");t.textContent=txt;t.classList.add("show");
+    clearTimeout(toastT);toastT=setTimeout(function(){t.classList.remove("show");},2400);
+  }
+
+  $("folders").addEventListener("click",function(e){
+    var it=e.target.closest(".f-item");if(!it)return;
+    state.folder=it.dataset.f;state.sel=-1;renderAll();
+  });
+  document.querySelector(".chips").addEventListener("click",function(e){
+    var c=e.target.closest(".chip");if(!c)return;
+    this.querySelectorAll(".chip").forEach(function(x){x.classList.remove("on");});
+    c.classList.add("on");state.filter=c.dataset.f;renderList();
+  });
+  $("mails").addEventListener("click",function(e){
+    var st=e.target.closest("[data-star]");
+    if(st){
+      var m0=MAILS.filter(function(x){return x.id==st.dataset.star;})[0];
+      m0.star=!m0.star;renderAll();return;
+    }
+    var el=e.target.closest(".mail");if(!el)return;
+    var m=MAILS.filter(function(x){return x.id==el.dataset.id;})[0];
+    state.sel=m.id;m.unread=false;renderAll();
+  });
+  $("aStar").addEventListener("click",function(){
+    var m=MAILS.filter(function(x){return x.id===state.sel;})[0];if(!m)return;
+    m.star=!m.star;toast(m.star?"已加星,可在「星标邮件」查看":"已取消加星");renderAll();
+  });
+  $("aArch").addEventListener("click",function(){
+    var m=MAILS.filter(function(x){return x.id===state.sel;})[0];if(!m)return;
+    m.folder="archive";state.sel=-1;toast("已归档 → 可在「已归档」找回");renderAll();
+  });
+  $("aUnread").addEventListener("click",function(){
+    var m=MAILS.filter(function(x){return x.id===state.sel;})[0];if(!m)return;
+    m.unread=!m.unread;toast(m.unread?"已标为未读":"已标为已读");renderAll();
+  });
+
+  renderAll();
+})();
+</script>
+</body>
+</html>

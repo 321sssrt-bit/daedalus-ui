@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>卷宗库 · 卡片检索台</title>
+<style>
+:root{
+  --bg:#e6dbc5;--bg-2:#d8c9a8;--card:#f4ecda;--card-edge:#d9c9a8;
+  --ink:#3e3123;--muted:#7d6b52;--faint:#a3906f;
+  --brass:#a97e45;--brass-d:#8a6537;--wood:#96754a;--wood-d:#7c5f3a;
+  --stamp:#a03a2a;
+  --serif:"Songti SC","STSong","SimSun","Noto Serif CJK SC",serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  font-family:-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+  min-height:100vh;color:var(--ink);font-size:14px;line-height:1.7;
+  background-color:var(--bg);
+  background-image:
+    radial-gradient(900px 420px at 50% -10%,rgba(255,250,235,.7),transparent 65%),
+    repeating-linear-gradient(90deg,rgba(125,95,50,.025) 0 2px,transparent 2px 7px);
+}
+.page{max-width:640px;margin:0 auto;padding:44px 20px 80px;display:flex;flex-direction:column;align-items:center}
+
+/* 页头 */
+.brand{text-align:center;margin-bottom:30px}
+.brand .seal{width:54px;height:54px;margin:0 auto 14px;border:2px solid var(--stamp);border-radius:50%;
+  display:grid;place-items:center;color:var(--stamp);font-family:var(--serif);font-weight:700;font-size:18px;
+  transform:rotate(-8deg);background:rgba(244,236,218,.6)}
+.brand h1{font-family:var(--serif);font-size:34px;letter-spacing:10px;color:var(--ink)}
+.brand .sub{margin-top:6px;font-size:12px;letter-spacing:3px;color:var(--muted)}
+
+/* 检索条:抽屉标签框 */
+.searchbox{width:100%;background:var(--card);border:1px solid var(--card-edge);border-radius:6px;
+  padding:16px;box-shadow:0 2px 0 rgba(61,49,35,.1),0 10px 26px rgba(61,49,35,.14);margin-bottom:26px}
+.searchbox .lb{display:block;font-size:11px;letter-spacing:3px;color:var(--muted);margin-bottom:8px}
+.searchbox .row{display:flex;gap:10px}
+.searchbox input{flex:1;min-width:0;border:1.5px solid var(--card-edge);background:#fdf8ea;
+  padding:11px 14px;font-size:15px;font-family:var(--serif);color:var(--ink);border-radius:3px;outline:none}
+.searchbox input:focus{border-color:var(--brass);box-shadow:0 0 0 3px rgba(169,126,69,.18)}
+.btn-go{border:1.5px solid var(--ink);background:var(--ink);color:var(--card);padding:0 24px;
+  font-size:14px;letter-spacing:3px;cursor:pointer;border-radius:3px;font-family:inherit;
+  transition:background .2s}
+.btn-go:hover{background:#2c2216}
+.btn-go:disabled{opacity:.6;cursor:wait}
+.searchbox .meta{margin-top:8px;font-size:11px;color:var(--faint);letter-spacing:1px}
+
+/* 空态:抽屉 */
+.drawer{width:300px;margin:8px auto 22px;background:linear-gradient(180deg,var(--wood),var(--wood-d));
+  border-radius:4px 4px 2px 2px;padding:16px 16px 14px;position:relative;
+  box-shadow:inset 0 1px 0 rgba(255,240,210,.35),0 8px 18px rgba(61,49,35,.28)}
+.drawer::before{content:"";position:absolute;inset:5px;border:1px solid rgba(61,49,35,.28);border-radius:3px;pointer-events:none}
+.label-frame{background:var(--card);border:1px solid var(--brass-d);border-radius:3px;
+  padding:7px 10px;text-align:center;font-family:var(--serif);font-size:14px;color:var(--ink);
+  box-shadow:inset 0 1px 3px rgba(61,49,35,.2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.label-frame small{display:block;font-size:10px;color:var(--muted);letter-spacing:2px;font-family:inherit}
+.pull{width:110px;height:26px;margin:14px auto 0;position:relative}
+.pull::before,.pull::after{content:"";position:absolute;top:4px;width:9px;height:9px;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%,#d8b986,var(--brass-d));box-shadow:0 1px 2px rgba(0,0,0,.4)}
+.pull::before{left:6px}.pull::after{right:6px}
+.pull i{position:absolute;left:10px;right:10px;top:9px;height:9px;border-radius:5px;
+  background:linear-gradient(180deg,#c9a05e,var(--brass-d));box-shadow:0 2px 3px rgba(0,0,0,.35)}
+.result-empty{text-align:center;margin-bottom:8px}
+.result-empty h2{font-family:var(--serif);font-size:20px;letter-spacing:1px;color:var(--ink);margin-bottom:8px}
+.result-empty h2 q{quotes:"「" "」";color:var(--stamp)}
+.result-empty p{font-size:13px;color:var(--muted);max-width:430px;margin:0 auto}
+
+/* 建议 */
+.suggest{margin-top:22px;text-align:center}
+.suggest .t{font-size:12px;letter-spacing:3px;color:var(--muted);margin-bottom:10px}
+.sugg{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.sugg button{border:1px solid var(--card-edge);background:var(--card);color:var(--ink);
+  padding:8px 16px;border-radius:20px;font-size:13px;cursor:pointer;font-family:var(--serif);
+  box-shadow:0 1px 0 rgba(61,49,35,.12);transition:transform .15s,box-shadow .2s}
+.sugg button:hover{transform:translateY(-1px);box-shadow:0 3px 8px rgba(61,49,35,.18);border-color:var(--brass)}
+.sugg button i{font-style:normal;color:var(--stamp)}
+
+/* 结果卡 */
+.results{width:100%;display:flex;flex-direction:column;gap:12px}
+.results-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:4px}
+.results-head h2{font-family:var(--serif);font-size:18px;letter-spacing:2px}
+.results-head .n{font-size:12px;color:var(--muted)}
+.rcard{background:var(--card);border:1px solid var(--card-edge);border-radius:4px;
+  padding:14px 18px 12px;position:relative;cursor:pointer;
+  box-shadow:0 1px 0 rgba(61,49,35,.1),0 4px 12px rgba(61,49,35,.1);
+  transition:transform .15s,box-shadow .2s}
+.rcard:hover{transform:translateY(-2px);box-shadow:0 2px 0 rgba(61,49,35,.1),0 10px 22px rgba(61,49,35,.16)}
+.rcard .r1{display:flex;align-items:baseline;gap:10px}
+.rcard .no{font-size:11px;color:var(--muted);border:1px solid var(--card-edge);padding:1px 7px;
+  border-radius:2px;background:#fdf8ea;font-variant-numeric:tabular-nums;flex:0 0 auto}
+.rcard .name{font-family:var(--serif);font-size:16px;font-weight:700;color:var(--ink)}
+.rcard .r2{display:flex;gap:16px;margin-top:6px;font-size:12px;color:var(--muted);flex-wrap:wrap}
+.rcard .r2 b{color:var(--ink-2,#5a4a33);font-weight:600}
+.rcard .stamp{position:absolute;right:14px;top:12px;width:44px;height:44px;border:1.5px solid var(--stamp);
+  border-radius:50%;color:var(--stamp);font-family:var(--serif);font-size:11px;display:grid;place-items:center;
+  transform:rotate(12deg);opacity:.75;letter-spacing:1px}
+.more-tip{text-align:center;font-size:12px;color:var(--muted);margin-top:16px;letter-spacing:1px}
+
+/* 实物屉 */
+.cabinet{width:100%;margin-top:44px}
+.cabinet .cap{text-align:center;font-size:11px;letter-spacing:3px;color:var(--muted);margin-bottom:12px}
+.drawers{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.dwr{background:linear-gradient(180deg,var(--wood),var(--wood-d));border-radius:3px;padding:10px;
+  cursor:pointer;border:0;position:relative;
+  box-shadow:inset 0 1px 0 rgba(255,240,210,.3),0 3px 8px rgba(61,49,35,.2);
+  transition:transform .15s,box-shadow .2s;font-family:inherit}
+.dwr:hover{transform:translateY(-2px)}
+.dwr:active{transform:translateY(1px)}
+.dwr .lf{background:var(--card);border:1px solid var(--brass-d);border-radius:2px;
+  padding:4px 6px;font-size:12px;font-family:var(--serif);color:var(--ink);text-align:center;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dwr .hp{width:34px;height:8px;margin:8px auto 0;border-radius:4px;
+  background:linear-gradient(180deg,#c9a05e,var(--brass-d));box-shadow:0 1px 2px rgba(0,0,0,.4)}
+
+@media (max-width:560px){
+  .page{padding:28px 14px 60px}
+  .brand h1{font-size:26px;letter-spacing:6px}
+  .searchbox .row{flex-direction:column}
+  .btn-go{padding:11px}
+  .drawers{grid-template-columns:1fr}
+}
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="brand">
+    <div class="seal">档</div>
+    <h1>卷宗库</h1>
+    <div class="sub">市档案馆 · 卡片检索台</div>
+  </div>
+
+  <div class="searchbox">
+    <label class="lb" for="q">检索词条</label>
+    <div class="row">
+      <input id="q" type="text" value="飞雨计划" placeholder="输入卷宗题名、档号或年份…" autocomplete="off">
+      <button class="btn-go" id="btnGo">检 索</button>
+    </div>
+    <div class="meta" id="meta">已接入 3,412 张索引卡 · 覆盖 1984–1999 年</div>
+  </div>
+
+  <div id="stage"></div>
+
+  <div class="cabinet">
+    <div class="cap">或直接翻屉——按科室类目浏览</div>
+    <div class="drawers">
+      <button class="dwr" data-q="水利"><div class="lf">水利 · 防汛卷</div><div class="hp"></div></button>
+      <button class="dwr" data-q="城建"><div class="lf">城建 · 桥涵卷</div><div class="hp"></div></button>
+      <button class="dwr" data-q="教育"><div class="lf">教育 · 校舍卷</div><div class="hp"></div></button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var DOCS=[
+    {no:"J-1987-0042",name:"汛期堤防巡查记录汇编",dept:"水利科",year:"1987",term:"长期",keys:"防汛 堤防 水利 巡查 汛期"},
+    {no:"J-1988-0117",name:"城区排水暗渠改造图",dept:"城建科",year:"1988",term:"永久",keys:"城建 排水 暗渠 改造 图纸"},
+    {no:"J-1990-0203",name:"防汛物资储备台账",dept:"水利科",year:"1990",term:"长期",keys:"防汛 物资 台账 水利 储备"},
+    {no:"J-1985-0008",name:"城东石桥勘察报告",dept:"城建科",year:"1985",term:"永久",keys:"城建 石桥 勘察 桥涵"},
+    {no:"J-1992-0156",name:"乡镇校舍普查表",dept:"教育科",year:"1992",term:"长期",keys:"教育 校舍 普查 乡镇"},
+    {no:"J-1995-0031",name:"泵站机电检修簿",dept:"水利科",year:"1995",term:"短期",keys:"泵站 机电 检修 水利"},
+    {no:"J-1989-0074",name:"渡口渡船年检卡",dept:"交通科",year:"1989",term:"短期",keys:"渡口 渡船 年检 交通"},
+    {no:"J-1984-0019",name:"老街门牌底册",dept:"民政科",year:"1984",term:"永久",keys:"老街 门牌 底册 民政"}
+  ];
+  var SUGGEST=[
+    {t:"改搜「防汛」",q:"防汛"},
+    {t:"改搜「堤防」",q:"堤防"},
+    {t:"按科室翻:城建科",q:"城建"}
+  ];
+  var stage=document.getElementById("stage"),q=document.getElementById("q"),
+      btnGo=document.getElementById("btnGo"),meta=document.getElementById("meta");
+  stage.style.width="100%";
+
+  function match(kw){
+    var k=kw.trim().toLowerCase();if(!k)return [];
+    return DOCS.filter(function(d){
+      return (d.name+d.dept+d.year+d.no+d.keys).toLowerCase().indexOf(k)>=0;
+    });
+  }
+
+  function esc(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+
+  function renderEmpty(kw){
+    var html='<div class="drawer"><div class="label-frame"><small>本屉无此词条</small>'+esc(kw)+'</div><div class="pull"><i></i></div></div>'+
+      '<div class="result-empty"><h2>没有找到与<q>'+esc(kw)+'</q>相符的卷宗</h2>'+
+      '<p>检索台已翻查 3,412 张索引卡。可换用更宽的词、改按科室翻屉,或到三楼阅览室请馆员协查。</p></div>'+
+      '<div class="suggest"><div class="t">改 搜 建 议</div><div class="sugg">';
+    SUGGEST.forEach(function(s){html+='<button data-q="'+s.q+'">'+s.t+'</button>';});
+    html+='</div></div>';
+    stage.innerHTML=html;
+    meta.textContent="检索「"+kw+"」· 0 条相符 · 历时 0.18s";
+  }
+
+  function renderResults(kw,list){
+    var html='<div class="results-head"><h2>检索「'+esc(kw)+'」</h2><span class="n">相符 '+list.length+' 卷</span></div><div class="results">';
+    list.forEach(function(d){
+      html+='<div class="rcard"><div class="stamp">已登记</div>'+
+        '<div class="r1"><span class="no">'+d.no+'</span><span class="name">'+d.name+'</span></div>'+
+        '<div class="r2"><span>科室 <b>'+d.dept+'</b></span><span>年度 <b>'+d.year+'</b></span><span>保管期限 <b>'+d.term+'</b></span><span>架位 <b>三楼 '+(d.year.charCodeAt(3)%4+1)+' 柜</b></span></div></div>';
+    });
+    html+='</div><div class="more-tip">调卷请持阅览证至三楼服务台 · 支持整卷复印申请</div>';
+    stage.innerHTML=html;
+    meta.textContent="检索「"+kw+"」· "+list.length+" 条相符 · 历时 0.21s";
+  }
+
+  function search(kw){
+    q.value=kw;
+    btnGo.disabled=true;btnGo.textContent="翻查中…";
+    meta.textContent="正在翻查索引卡…";
+    setTimeout(function(){
+      var list=match(kw);
+      if(list.length)renderResults(kw,list);else renderEmpty(kw);
+      btnGo.disabled=false;btnGo.textContent="检 索";
+    },280);
+  }
+
+  btnGo.addEventListener("click",function(){search(q.value);});
+  q.addEventListener("keydown",function(e){if(e.key==="Enter")search(q.value);});
+  stage.addEventListener("click",function(e){
+    var b=e.target.closest("[data-q]");if(b)search(b.dataset.q);
+  });
+  document.querySelector(".drawers").addEventListener("click",function(e){
+    var b=e.target.closest("[data-q]");if(b)search(b.dataset.q);
+  });
+
+  renderEmpty("飞雨计划");
+})();
+</script>
+</body>
+</html>
