@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>糖坊 · 生产看板</title>
+<style>
+  :root{
+    --bg:#fff6ea;
+    --surface:#fffdf9;
+    --ink:#4a3f35;
+    --muted:#a3938a;
+    --line:#f0e2cf;
+    --pink:#ffd9e4;
+    --pink-deep:#e2608c;
+    --lemon:#fcedaf;
+    --lemon-deep:#b08a14;
+    --mint:#d3efdf;
+    --mint-deep:#3d9e6f;
+    --peach:#ffe0c8;
+    --peach-deep:#d97b4a;
+    --accent:#ff7fa5;
+    --accent-deep:#e2608c;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    font-family:-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    background:var(--bg);color:var(--ink);min-height:100vh;padding:22px 26px 40px;
+  }
+  .topbar{display:flex;align-items:center;gap:18px;max-width:1240px;margin:0 auto 22px;flex-wrap:wrap}
+  .brand{display:flex;align-items:center;gap:10px;font-size:19px;font-weight:700;letter-spacing:3px;color:var(--ink)}
+  .search{
+    flex:1;min-width:180px;max-width:320px;height:38px;border-radius:999px;
+    border:1.5px solid var(--line);background:var(--surface);padding:0 16px 0 36px;
+    font-size:13px;color:var(--ink);font-family:inherit;outline:none;
+  }
+  .search::placeholder{color:var(--muted)}
+  .search:focus{border-color:var(--accent)}
+  .search-wrap{position:relative;flex:1;min-width:180px;max-width:320px}
+  .search-wrap svg{position:absolute;left:14px;top:11px;pointer-events:none}
+  .search-wrap .search{max-width:none;width:100%}
+  .avatars{display:flex;align-items:center}
+  .av{
+    width:32px;height:32px;border-radius:50%;font-size:12px;font-weight:600;color:#fff;
+    display:flex;align-items:center;justify-content:center;margin-left:-8px;
+    border:2px solid var(--bg);cursor:pointer;
+  }
+  .btn-new{
+    height:40px;padding:0 22px;border:none;border-radius:999px;cursor:pointer;
+    background:var(--accent);color:#fff;font-size:14px;font-weight:600;letter-spacing:1px;
+    font-family:inherit;box-shadow:0 6px 16px rgba(255,127,165,.35);transition:transform .15s,background .15s;
+  }
+  .btn-new:hover{background:var(--accent-deep);transform:translateY(-1px)}
+  .board{
+    display:grid;grid-template-columns:repeat(4,minmax(244px,1fr));gap:16px;
+    max-width:1240px;margin:0 auto;align-items:start;
+  }
+  .col{
+    background:rgba(255,253,249,.6);border:1.5px dashed transparent;border-radius:18px;
+    padding:10px;transition:border-color .15s,background .15s;
+  }
+  .col.dragover{border-color:var(--accent);background:#fff;border-style:solid}
+  .col-head{
+    display:flex;align-items:center;gap:8px;border-radius:12px;padding:10px 14px;margin-bottom:10px;
+    font-size:14px;font-weight:600;letter-spacing:1px;
+  }
+  .col.c-pink .col-head{background:var(--pink);color:#8a3054}
+  .col.c-lemon .col-head{background:var(--lemon);color:#7a5f0a}
+  .col.c-mint .col-head{background:var(--mint);color:#27694a}
+  .col.c-peach .col-head{background:var(--peach);color:#9a5228}
+  .col-head .cnt{
+    margin-left:auto;background:rgba(255,255,255,.75);border-radius:999px;
+    font-size:12px;padding:1px 9px;font-weight:700;font-variant-numeric:tabular-nums;
+  }
+  .cards{display:flex;flex-direction:column;gap:10px;min-height:60px}
+  .card{
+    background:var(--surface);border:1px solid var(--line);border-radius:14px;
+    padding:13px 14px;cursor:grab;box-shadow:0 3px 10px rgba(190,150,110,.10);
+    transition:transform .15s,box-shadow .15s,opacity .15s;
+  }
+  .card:hover{transform:translateY(-2px);box-shadow:0 8px 18px rgba(190,150,110,.18)}
+  .card:active{cursor:grabbing}
+  .card.dragging{opacity:.45;transform:rotate(2deg) scale(.98)}
+  .card h3{font-size:14px;font-weight:600;line-height:1.5}
+  .card .desc{font-size:12px;color:var(--muted);margin-top:5px;line-height:1.6;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .tags{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+  .tag{font-size:11px;padding:2px 10px;border-radius:999px;letter-spacing:.5px}
+  .tag.t-pink{background:var(--pink);color:#8a3054}
+  .tag.t-lemon{background:var(--lemon);color:#7a5f0a}
+  .tag.t-mint{background:var(--mint);color:#27694a}
+  .tag.t-peach{background:var(--peach);color:#9a5228}
+  .card .foot{display:flex;align-items:center;justify-content:space-between;margin-top:11px;font-size:11.5px;color:var(--muted)}
+  .card .who{width:22px;height:22px;border-radius:50%;font-size:10px;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:600}
+  .add{
+    margin-top:10px;width:100%;height:40px;border:1.5px dashed var(--line);border-radius:12px;
+    background:transparent;color:var(--muted);font-size:13px;cursor:pointer;font-family:inherit;
+    transition:border-color .15s,color .15s,background .15s;
+  }
+  .add:hover{border-color:var(--accent);color:var(--accent);background:rgba(255,255,255,.5)}
+  .newbox{display:none;margin-top:10px;gap:8px}
+  .newbox.show{display:flex}
+  .newbox input{
+    flex:1;height:40px;border:1.5px solid var(--accent);border-radius:12px;padding:0 12px;
+    font-size:13px;font-family:inherit;outline:none;background:#fff;color:var(--ink);
+  }
+  .newbox button{
+    width:52px;height:40px;border:none;border-radius:12px;background:var(--accent);
+    color:#fff;font-size:13px;cursor:pointer;font-family:inherit;
+  }
+  .mask{position:fixed;inset:0;background:rgba(74,63,53,.35);display:none;align-items:center;justify-content:center;z-index:20}
+  .mask.show{display:flex}
+  .modal{
+    width:380px;max-width:92vw;background:var(--surface);border-radius:20px;padding:24px;
+    box-shadow:0 24px 60px rgba(74,63,53,.3);animation:pop .2s ease-out;
+  }
+  @keyframes pop{from{opacity:0;transform:scale(.94) translateY(8px)}to{opacity:1;transform:none}}
+  .modal h3{font-size:17px}
+  .modal .mcol{font-size:11px;color:var(--muted);margin-top:4px;letter-spacing:1px}
+  .modal .mdesc{font-size:13px;color:var(--muted);line-height:1.8;margin-top:12px}
+  .modal .mtags{margin-top:12px}
+  .modal .mbtns{display:flex;gap:8px;margin-top:20px;flex-wrap:wrap}
+  .mbtn{
+    height:36px;padding:0 14px;border-radius:999px;border:1.5px solid var(--line);
+    background:#fff;font-size:12.5px;cursor:pointer;color:var(--ink);font-family:inherit;
+    transition:border-color .15s,color .15s;
+  }
+  .mbtn:hover{border-color:var(--accent);color:var(--accent)}
+  .mbtn.warn{color:#c94f4f;border-color:#f0c9c9}
+  .mbtn.warn:hover{border-color:#c94f4f;background:#fbf0f0}
+  .mbtn.main{background:var(--accent);border-color:var(--accent);color:#fff}
+  .mbtn.main:hover{background:var(--accent-deep)}
+  .mbtn:disabled{opacity:.35;cursor:not-allowed}
+  .toast{
+    position:fixed;left:50%;bottom:26px;transform:translate(-50%,16px);
+    background:var(--ink);color:#fff6ea;font-size:13px;padding:11px 22px;border-radius:999px;
+    opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;z-index:30;letter-spacing:1px;
+  }
+  .toast.show{opacity:1;transform:translate(-50%,0)}
+  @media (max-width:768px){
+    body{padding:14px 12px 30px}
+    .topbar{gap:10px}
+    .board{grid-template-columns:repeat(4,232px);overflow-x:auto;padding-bottom:10px;max-width:none;margin:0 -12px;padding-left:12px;padding-right:12px}
+    .btn-new{padding:0 16px}
+  }
+  @media (prefers-reduced-motion: reduce){
+    *,*::before,*::after{animation:none !important;transition:none !important}
+    .modal{animation:none}
+    .card.dragging{transform:none}
+  }
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <svg width="26" height="26" viewBox="0 0 26 26" fill="none" aria-hidden="true">
+      <rect x="6" y="6" width="14" height="14" rx="4" transform="rotate(45 13 13)" fill="#ff7fa5"/>
+      <rect x="9.5" y="9.5" width="7" height="7" rx="2" transform="rotate(45 13 13)" fill="#fcedaf"/>
+      <path d="M3 11l3 2-3 2zM23 11l-3 2 3 2z" fill="#e2608c"/>
+    </svg>
+    糖坊
+  </div>
+  <div class="search-wrap">
+    <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><circle cx="6.5" cy="6.5" r="4.5" stroke="#a3938a" stroke-width="1.5"/><path d="M10 10l3.5 3.5" stroke="#a3938a" stroke-width="1.5" stroke-linecap="round"/></svg>
+    <input class="search" id="search" placeholder="搜索糖单名称或标签…">
+  </div>
+  <div class="avatars">
+    <span class="av" style="background:#e2608c">糖</span>
+    <span class="av" style="background:#3d9e6f">栗</span>
+    <span class="av" style="background:#d97b4a">杏</span>
+  </div>
+  <button class="btn-new" id="topNew">＋ 新建糖单</button>
+</header>
+<div class="board" id="board">
+  <section class="col c-pink" data-col="备料中">
+    <div class="col-head">备料中<span class="cnt" data-cnt>3</span></div>
+    <div class="cards" data-cards>
+      <article class="card" draggable="true" data-id="c1">
+        <h3>草莓软糖 · 配方定版</h3>
+        <div class="desc">果胶比例 1.8% 复测，果汁原浆从浓缩改鲜榨，出小样两批对比。</div>
+        <div class="tags"><span class="tag t-pink">草莓</span><span class="tag t-mint">低糖</span></div>
+        <div class="foot"><span>截止 9-26</span><span class="who" style="background:#e2608c">糖</span></div>
+      </article>
+      <article class="card" draggable="true" data-id="c2">
+        <h3>柠檬硬糖 · 酸度校准</h3>
+        <div class="desc">柠檬酸颗粒改液体添加，混料时间延长 40s，测三条曲线。</div>
+        <div class="tags"><span class="tag t-lemon">柠檬</span></div>
+        <div class="foot"><span>截止 9-27</span><span class="who" style="background:#3d9e6f">栗</span></div>
+      </article>
+      <article class="card" draggable="true" data-id="c3">
+        <h3>桂花栗子糕 · 新模具到货验收</h3>
+        <div class="desc">硅胶模 24 连，检查脱模完整度与花纹清晰度。</div>
+        <div class="tags"><span class="tag t-peach">季节限定</span></div>
+        <div class="foot"><span>截止 9-28</span><span class="who" style="background:#d97b4a">杏</span></div>
+      </article>
+    </div>
+    <button class="add" data-add>＋ 新建一条</button>
+    <div class="newbox"><input placeholder="输入糖单标题，回车创建"><button>添加</button></div>
+  </section>
+  <section class="col c-lemon" data-col="熬制中">
+    <div class="col-head">熬制中<span class="cnt" data-cnt>3</span></div>
+    <div class="cards" data-cards>
+      <article class="card" draggable="true" data-id="c4">
+        <h3>焦糖海盐太妃 · 第 4 锅</h3>
+        <div class="desc">终点温度 118°C 保持 90s，海盐在最后 10s 撒入。</div>
+        <div class="tags"><span class="tag t-lemon">焦糖</span><span class="tag t-peach">热卖</span></div>
+        <div class="foot"><span>今日 16:00 起锅</span><span class="who" style="background:#e2608c">糖</span></div>
+      </article>
+      <article class="card" draggable="true" data-id="c5">
+        <h3>抹茶牛轧 · 蛋白霜硬度测试</h3>
+        <div class="desc">湿度 62% 环境下蛋白霜偏软，尝试糖浆 132°C 版本。</div>
+        <div class="tags"><span class="tag t-mint">抹茶</span></div>
+        <div class="foot"><span>今日 17:30 起锅</span><span class="who" style="background:#3d9e6f">栗</span></div>
+      </article>
+      <article class="card" draggable="true" data-id="c6">
+        <h3>山楂棒棒糖 · 小批量熬糖</h3>
+        <div class="desc">山楂酱先浓缩至 Brix 68，再与糖液 3:1 混合。</div>
+        <div class="tags"><span class="tag t-pink">山楂</span></div>
+        <div class="foot"><span>明日 09:00</span><span class="who" style="background:#d97b4a">杏</span></div>
+      </article>
+    </div>
+    <button class="add" data-add>＋ 新建一条</button>
+    <div class="newbox"><input placeholder="输入糖单标题，回车创建"><button>添加</button></div>
+  </section>
+  <section class="col c-mint" data-col="定型中">
+    <div class="col-head">定型中<span class="cnt" data-cnt>2</span></div>
+    <div class="cards" data-cards>
+      <article class="card" draggable="true" data-id="c7">
+        <h3>白桃软糖 · 冷却定型</h3>
+        <div class="desc">淀粉模冷却 4 小时，出模后裹细砂糖防粘。</div>
+        <div class="tags"><span class="tag t-pink">白桃</span></div>
+        <div class="foot"><span>剩 1.5 小时</span><span class="who" style="background:#e2608c">糖</span></div>
+      </article>
+      <article class="card" draggable="true" data-id="c8">
+        <h3>开心果脆片 · 切块分装</h3>
+        <div class="desc">切成 3×4cm 方块，单片独立包糯米纸。</div>
+        <div class="tags"><span class="tag t-mint">坚果</span><span class="tag t-lemon">礼盒</span></div>
+        <div class="foot"><span>剩 3 小时</span><span class="who" style="background:#3d9e6f">栗</span></div>
+      </article>
+    </div>
+    <button class="add" data-add>＋ 新建一条</button>
+    <div class="newbox"><input placeholder="输入糖单标题，回车创建"><button>添加</button></div>
+  </section>
+  <section class="col c-peach" data-col="已出炉">
+    <div class="col-head">已出炉<span class="cnt" data-cnt>2</span></div>
+    <div class="cards" data-cards>
+      <article class="card" draggable="true" data-id="c9">
+        <h3>牛奶软糖 · 批次 N-0912</h3>
+        <div class="desc">出品 420 颗，合格率 97.6%，已送门店上架。</div>
+        <div class="tags"><span class="tag t-peach">已上架</span></div>
+        <div class="foot"><span>9-22 完成</span><span class="who" style="background:#d97b4a">杏</span></div>
+      </article>
+      <article class="card" draggable="true" data-id="c10">
+        <h3>薄荷凉糖 · 夏季收尾批</h3>
+        <div class="desc">最后一批 800 颗入库，夏季系列正式收官。</div>
+        <div class="tags"><span class="tag t-mint">薄荷</span><span class="tag t-lemon">复盘</span></div>
+        <div class="foot"><span>9-21 完成</span><span class="who" style="background:#3d9e6f">栗</span></div>
+      </article>
+    </div>
+    <button class="add" data-add>＋ 新建一条</button>
+    <div class="newbox"><input placeholder="输入糖单标题，回车创建"><button>添加</button></div>
+  </section>
+</div>
+<div class="mask" id="mask">
+  <div class="modal" role="dialog" aria-modal="true">
+    <h3 id="mTitle"></h3>
+    <div class="mcol" id="mCol"></div>
+    <div class="mdesc" id="mDesc"></div>
+    <div class="tags mtags" id="mTags"></div>
+    <div class="mbtns">
+      <button class="mbtn" id="mLeft">← 前移一列</button>
+      <button class="mbtn" id="mRight">后移一列 →</button>
+      <button class="mbtn warn" id="mDel">删除</button>
+      <button class="mbtn main" id="mClose">关闭</button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+/* 糖坊看板：拖拽换列、点击查看详情、列内新建、搜索过滤 */
+var board=document.getElementById('board');
+var mask=document.getElementById('mask');
+var toast=document.getElementById('toast');
+var search=document.getElementById('search');
+var cols=Array.prototype.slice.call(document.querySelectorAll('.col'));
+var dragId=null,curCard=null,toastTimer=null,seq=11;
+
+function showToast(m){
+  toast.textContent=m;toast.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(function(){toast.classList.remove('show')},2400);
+}
+function refreshCounts(){
+  cols.forEach(function(c){
+    var n=c.querySelectorAll('[data-cards] .card:not(.hidden)').length;
+    c.querySelector('[data-cnt]').textContent=n;
+  });
+}
+function colIndex(card){
+  return cols.indexOf(card.closest('.col'));
+}
+function moveCard(card,dir){
+  var i=colIndex(card),j=i+dir;
+  if(j<0||j>=cols.length)return false;
+  cols[j].querySelector('[data-cards]').appendChild(card);
+  refreshCounts();
+  document.getElementById('mCol').textContent='当前列 · '+cols[j].getAttribute('data-col');
+  showToast('「'+card.querySelector('h3').textContent+'」已移到 '+cols[j].getAttribute('data-col'));
+  syncMoveBtns();
+  return true;
+}
+function syncMoveBtns(){
+  if(!curCard)return;
+  var i=colIndex(curCard);
+  document.getElementById('mLeft').disabled=(i===0);
+  document.getElementById('mRight').disabled=(i===cols.length-1);
+}
+board.addEventListener('dragstart',function(e){
+  var card=e.target.closest('.card');
+  if(!card)return;
+  dragId=card.getAttribute('data-id');
+  card.classList.add('dragging');
+  e.dataTransfer.setData('text/plain',dragId);
+  e.dataTransfer.effectAllowed='move';
+});
+board.addEventListener('dragend',function(e){
+  var card=e.target.closest('.card');
+  if(card)card.classList.remove('dragging');
+  cols.forEach(function(c){c.classList.remove('dragover')});
+});
+board.addEventListener('dragover',function(e){
+  var c=e.target.closest('.col');
+  if(!c)return;
+  e.preventDefault();
+  e.dataTransfer.dropEffect='move';
+  cols.forEach(function(x){x.classList.toggle('dragover',x===c)});
+});
+board.addEventListener('drop',function(e){
+  var c=e.target.closest('.col');
+  if(!c)return;
+  e.preventDefault();
+  var card=document.querySelector('.card[data-id="'+dragId+'"]');
+  if(card&&card.closest('.col')!==c){
+    c.querySelector('[data-cards]').appendChild(card);
+    refreshCounts();
+    showToast('「'+card.querySelector('h3').textContent+'」已移到 '+c.getAttribute('data-col'));
+  }
+  cols.forEach(function(x){x.classList.remove('dragover')});
+});
+board.addEventListener('click',function(e){
+  var add=e.target.closest('[data-add]');
+  if(add){
+    var box=add.parentElement.querySelector('.newbox');
+    box.classList.toggle('show');
+    if(box.classList.contains('show'))box.querySelector('input').focus();
+    return;
+  }
+  if(e.target.closest('.newbox'))return;
+  var card=e.target.closest('.card');
+  if(card)openModal(card);
+});
+document.querySelectorAll('.newbox').forEach(function(box){
+  var input=box.querySelector('input'),btn=box.querySelector('button');
+  function create(){
+    var t=input.value.trim();
+    if(!t){input.focus();return;}
+    var card=document.createElement('article');
+    card.className='card';card.setAttribute('draggable','true');
+    card.setAttribute('data-id','c'+(seq++));
+    card.innerHTML='<h3></h3><div class="tags"><span class="tag t-mint">新糖单</span></div><div class="foot"><span>今日创建</span><span class="who" style="background:#e2608c">我</span></div>';
+    card.querySelector('h3').textContent=t;
+    box.parentElement.querySelector('[data-cards]').appendChild(card);
+    input.value='';box.classList.remove('show');
+    refreshCounts();
+    showToast('已创建糖单「'+t+'」');
+  }
+  btn.addEventListener('click',create);
+  input.addEventListener('keydown',function(e){if(e.key==='Enter')create();if(e.key==='Escape')box.classList.remove('show');});
+});
+function openModal(card){
+  curCard=card;
+  document.getElementById('mTitle').textContent=card.querySelector('h3').textContent;
+  var d=card.querySelector('.desc');
+  document.getElementById('mDesc').textContent=d?d.textContent:'（暂无描述，回厂补录）';
+  document.getElementById('mCol').textContent='当前列 · '+card.closest('.col').getAttribute('data-col');
+  var tags=card.querySelector('.tags');
+  document.getElementById('mTags').innerHTML=tags?tags.innerHTML:'';
+  syncMoveBtns();
+  mask.classList.add('show');
+}
+document.getElementById('mClose').addEventListener('click',function(){mask.classList.remove('show')});
+mask.addEventListener('click',function(e){if(e.target===mask)mask.classList.remove('show')});
+document.getElementById('mLeft').addEventListener('click',function(){if(curCard)moveCard(curCard,-1)});
+document.getElementById('mRight').addEventListener('click',function(){if(curCard)moveCard(curCard,1)});
+document.getElementById('mDel').addEventListener('click',function(){
+  if(!curCard)return;
+  var t=curCard.querySelector('h3').textContent;
+  curCard.remove();curCard=null;
+  mask.classList.remove('show');
+  refreshCounts();
+  showToast('糖单「'+t+'」已删除');
+});
+document.getElementById('topNew').addEventListener('click',function(){
+  var box=cols[0].querySelector('.newbox');
+  box.classList.add('show');
+  box.querySelector('input').focus();
+  showToast('在「备料中」列输入新糖单标题');
+});
+search.addEventListener('input',function(){
+  var q=search.value.trim().toLowerCase();
+  document.querySelectorAll('.card').forEach(function(card){
+    var hit=!q||card.textContent.toLowerCase().indexOf(q)>=0;
+    card.classList.toggle('hidden',!hit);
+    card.style.display=hit?'':'none';
+  });
+  refreshCounts();
+});
+refreshCounts();
+</script>
+</body>
+</html>
