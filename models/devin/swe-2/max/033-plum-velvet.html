@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>蚕月 · 我的钱包</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#17111f;font-family:-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:28px 16px;color:#e9e2f2}
+.phone{width:390px;height:844px;background:#241832;border-radius:44px;overflow:hidden;position:relative;box-shadow:0 30px 80px rgba(0,0,0,.6),0 0 0 10px #100b17;display:flex;flex-direction:column}
+.statusbar{height:34px;display:flex;justify-content:space-between;align-items:center;padding:0 26px;font-size:12px;color:#9c8db5;flex:none}
+.topbar{padding:14px 22px 6px;display:flex;justify-content:space-between;align-items:center;flex:none}
+.topbar .name{font-size:17px;letter-spacing:3px;font-weight:600;color:#f0e9f7}
+.topbar .gear{width:32px;height:32px;border-radius:50%;background:#322346;display:grid;place-items:center;color:#b9a8d4;font-size:14px;cursor:pointer}
+.vcard{margin:14px 20px 0;border-radius:22px;padding:26px 24px 24px;background:linear-gradient(135deg,#4b2a63 0%,#38204f 45%,#2b173e 100%);position:relative;overflow:hidden;box-shadow:0 16px 40px rgba(20,8,35,.6)}
+.vcard::before{content:"";position:absolute;inset:0;background:radial-gradient(120% 90% at 20% 0%,rgba(255,220,180,.14),transparent 55%),radial-gradient(80% 60% at 90% 100%,rgba(150,90,200,.18),transparent 60%)}
+.vcard::after{content:"蚕";position:absolute;right:18px;top:14px;width:52px;height:52px;border:1.5px solid rgba(232,201,135,.5);border-radius:50%;display:grid;place-items:center;color:#e8c987;font-size:22px;opacity:.8}
+.vlabel{position:relative;font-size:12px;letter-spacing:3px;color:#c9b4e0;display:flex;align-items:center;gap:8px}
+.eye{cursor:pointer;opacity:.85;font-size:13px;background:none;border:0;color:#c9b4e0;padding:0}
+.balance{position:relative;margin-top:10px;font-size:40px;font-weight:700;letter-spacing:1px;color:#f0d9a8;font-family:Georgia,"Times New Roman",serif}
+.balance small{font-size:15px;color:#c9b4e0;font-family:inherit;margin-right:4px}
+.vsub{position:relative;margin-top:14px;display:flex;justify-content:space-between;font-size:11.5px;color:#a68ec6}
+.vsub b{color:#e8c987;font-weight:600}
+.quick{margin:18px 20px 0;display:grid;grid-template-columns:1fr 1fr;gap:12px;flex:none}
+.qbtn{border:0;border-radius:16px;padding:16px;display:flex;align-items:center;gap:10px;font-size:14.5px;font-weight:600;letter-spacing:2px;cursor:pointer;transition:transform .15s ease}
+.qbtn:active{transform:scale(.97)}
+.q-out{background:#e8c987;color:#3a2450}
+.q-in{background:#342248;color:#e9e2f2;border:1px solid #4a3560}
+.qbtn .ic{width:30px;height:30px;border-radius:10px;display:grid;place-items:center;font-size:15px;flex:none}
+.q-out .ic{background:rgba(58,36,80,.14)}
+.q-in .ic{background:rgba(232,201,135,.14);color:#e8c987}
+.flow{flex:1;margin:20px 20px 0;overflow:hidden;display:flex;flex-direction:column;min-height:0}
+.flow h3{font-size:13px;letter-spacing:3px;color:#9c8db5;font-weight:600;margin-bottom:10px}
+.flist{overflow-y:auto;flex:1;padding-right:2px}
+.frow{display:flex;align-items:center;gap:12px;padding:13px 4px;border-bottom:1px solid #322346}
+.fic{flex:none;width:38px;height:38px;border-radius:14px;display:grid;place-items:center;font-size:16px;background:#322346}
+.fic.in{background:rgba(126,200,150,.14)}
+.finfo{flex:1;min-width:0}
+.finfo .t{font-size:14px;color:#efe9f6}
+.finfo .s{font-size:11.5px;color:#8b7aa8;margin-top:2px}
+.amt{font-size:14.5px;font-weight:700;font-family:Georgia,serif;color:#f0d9a8}
+.amt.neg{color:#cfc4de}
+.navbar{flex:none;height:64px;background:#1d1428;border-top:1px solid #322346;display:grid;grid-template-columns:repeat(4,1fr)}
+.nav{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:10.5px;color:#8b7aa8;cursor:pointer;letter-spacing:1px;border:0;background:none}
+.nav .ni{font-size:18px}
+.nav.on{color:#e8c987}
+.sheet2{position:absolute;left:0;right:0;bottom:0;top:0;background:rgba(16,11,23,.55);display:none;align-items:flex-end;z-index:5}
+.sheet2.show{display:flex}
+.panel{width:100%;background:#2b173e;border-radius:26px 26px 0 0;padding:24px 24px 34px;animation:up .25s ease}
+@keyframes up{from{transform:translateY(40px);opacity:.4}to{transform:none;opacity:1}}
+.panel h4{font-size:16px;letter-spacing:2px;color:#f0e9f7;text-align:center}
+.qr{width:170px;height:170px;margin:20px auto 8px;background:#f0e9f7;border-radius:18px;display:grid;place-items:center}
+.qr svg{width:130px;height:130px}
+.panel .amt2{text-align:center;font-size:22px;color:#f0d9a8;font-family:Georgia,serif;font-weight:700}
+.panel .tip{text-align:center;font-size:12px;color:#a68ec6;margin-top:6px}
+.close{width:100%;margin-top:20px;padding:14px;border:0;border-radius:14px;background:#e8c987;color:#3a2450;font-size:15px;font-weight:700;letter-spacing:3px;cursor:pointer}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+@media (max-width:430px){body{padding:0}.phone{width:100%;height:100vh;border-radius:0;box-shadow:none}}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="statusbar"><span>21:47</span><span>5G · 蚕月</span></div>
+  <div class="topbar"><span class="name">我的钱包</span><span class="gear">⚙</span></div>
+  <div class="vcard">
+    <div class="vlabel">可用余额（元） <button class="eye" id="eye">◉ 隐藏</button></div>
+    <div class="balance"><small>¥</small><span id="bal">12,408.66</span></div>
+    <div class="vsub"><span>本月转出 <b>¥4,220.00</b></span><span>活期+ <b>2.41%</b></span></div>
+  </div>
+  <div class="quick">
+    <button class="qbtn q-out" id="btnOut"><span class="ic">↗</span>转出</button>
+    <button class="qbtn q-in" id="btnIn"><span class="ic">↙</span>收款</button>
+  </div>
+  <div class="flow">
+    <h3>最近进出</h3>
+    <div class="flist" id="flist"></div>
+  </div>
+  <div class="navbar">
+    <button class="nav on"><span class="ni">◈</span>钱包</button>
+    <button class="nav"><span class="ni">◷</span>账单</button>
+    <button class="nav"><span class="ni">✦</span>理财</button>
+    <button class="nav"><span class="ni">☺</span>我的</button>
+  </div>
+  <div class="sheet2" id="sheet2">
+    <div class="panel">
+      <h4 id="ptitle">收款码</h4>
+      <div class="qr"><svg viewBox="0 0 100 100"><rect width="100" height="100" fill="#f0e9f7"/><g fill="#2b173e"><rect x="8" y="8" width="24" height="24"/><rect x="68" y="8" width="24" height="24"/><rect x="8" y="68" width="24" height="24"/><rect x="14" y="14" width="12" height="12" fill="#f0e9f7"/><rect x="74" y="14" width="12" height="12" fill="#f0e9f7"/><rect x="14" y="74" width="12" height="12" fill="#f0e9f7"/><rect x="42" y="10" width="6" height="6"/><rect x="54" y="16" width="6" height="6"/><rect x="42" y="28" width="6" height="6"/><rect x="60" y="42" width="6" height="6"/><rect x="72" y="48" width="6" height="6"/><rect x="44" y="56" width="6" height="6"/><rect x="84" y="60" width="6" height="6"/><rect x="60" y="72" width="6" height="6"/><rect x="76" y="80" width="6" height="6"/><rect x="42" y="84" width="6" height="6"/></g></svg></div>
+      <div class="amt2" id="pamt">向 TA 收款</div>
+      <div class="tip" id="ptip">出示此码，对方扫码即付</div>
+      <button class="close" id="closeBtn">完成</button>
+    </div>
+  </div>
+</div>
+<script>
+const rows=[
+ ['🍵','山前茶馆 · 消费','今天 19:20','-38.00',0],
+ ['🌙','蚕月补贴 · 入账','今天 12:05','+520.00',1],
+ ['🚇','地铁通勤 · 扣款','昨天 08:40','-6.00',0],
+ ['🧵','织物市集 · 退款','09-21 15:33','+128.00',1],
+ ['🍚','职工食堂 · 消费','09-21 12:02','-15.50',0],
+ ['📦','同城寄件 · 运费','09-20 17:44','-12.00',0]];
+document.getElementById('flist').innerHTML=rows.map(r=>`<div class="frow"><div class="fic ${r[4]?'in':''}">${r[0]}</div><div class="finfo"><div class="t">${r[1]}</div><div class="s">${r[2]}</div></div><div class="amt ${r[4]?'':'neg'}">${r[3]}</div></div>`).join('');
+const bal=document.getElementById('bal'),eye=document.getElementById('eye');let hide=false;
+eye.addEventListener('click',()=>{hide=!hide;bal.textContent=hide?'****':'12,408.66';eye.textContent=hide?'◌ 显示':'◉ 隐藏';});
+const sheet=document.getElementById('sheet2'),pt=document.getElementById('ptitle'),pa=document.getElementById('pamt'),tp=document.getElementById('ptip');
+document.getElementById('btnIn').addEventListener('click',()=>{pt.textContent='收款码';pa.textContent='向 TA 收款';tp.textContent='出示此码，对方扫码即付';sheet.classList.add('show');});
+document.getElementById('btnOut').addEventListener('click',()=>{pt.textContent='转出确认';pa.textContent='¥ 500.00 → 工资卡(8821)';tp.textContent='预计 2 小时内到账 · 免手续费';sheet.classList.add('show');});
+document.getElementById('closeBtn').addEventListener('click',()=>sheet.classList.remove('show'));
+sheet.addEventListener('click',e=>{if(e.target===sheet)sheet.classList.remove('show');});
+document.querySelectorAll('.nav').forEach(n=>n.addEventListener('click',()=>{document.querySelectorAll('.nav').forEach(x=>x.classList.remove('on'));n.classList.add('on');}));
+</script>
+</body>
+</html>
