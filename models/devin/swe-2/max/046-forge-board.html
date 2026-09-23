@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>伙作 · 工程协作看板</title>
+<style>
+:root{
+  --page:#f4f6fa;
+  --grid:#e2e8f4;
+  --surface:#ffffff;
+  --panel:#f8fafd;
+  --line:#d9e0ee;
+  --ink:#17233c;
+  --muted:#66708c;
+  --faint:#97a0b8;
+  --accent:#e8480f;
+  --accent-deep:#c23b09;
+  --accent-soft:#fdeee6;
+  --blue:#2057b0;
+  --blue-soft:#e8effa;
+  --green:#1c8c5a;
+  --green-soft:#e4f3ec;
+  --red:#c22f2f;
+  --red-soft:#fbeaea;
+  --amber:#b47b00;
+  --radius:12px;
+  --radius-sm:8px;
+  --mono:ui-monospace,"SF Mono",Consolas,"Courier New",monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:-apple-system,"PingFang SC","Microsoft YaHei","Segoe UI","Noto Sans SC",sans-serif;
+  background:var(--page);color:var(--ink);font-size:14px;line-height:1.5;
+  min-height:100vh;
+}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+button:disabled{cursor:not-allowed;opacity:.5}
+svg{display:block}
+[hidden]{display:none!important}
+select,input{font-family:inherit;font-size:13px;color:var(--ink)}
+
+.app{display:flex;min-height:100vh}
+
+/* ---------- 左栏 ---------- */
+.side{
+  width:252px;flex:none;background:var(--surface);
+  border-right:1px solid var(--line);
+  display:flex;flex-direction:column;
+  position:sticky;top:0;height:100vh;overflow-y:auto;
+}
+.side-logo{
+  display:flex;align-items:center;gap:11px;
+  padding:20px 20px 16px;border-bottom:1px solid var(--line);
+}
+.side-logo .mark{
+  width:34px;height:34px;border-radius:9px;background:var(--accent);
+  display:flex;align-items:center;justify-content:center;flex:none;
+}
+.side-logo b{font-size:17px;letter-spacing:3px;font-weight:800}
+.side-logo small{display:block;color:var(--faint);font-size:10.5px;letter-spacing:1.5px;font-weight:400}
+.side-sec{padding:16px 14px 8px}
+.side-sec h4{
+  font-size:11px;color:var(--faint);letter-spacing:2.5px;font-weight:600;
+  padding:0 8px 8px;
+}
+.tree{list-style:none}
+.tree .p-root>button{
+  width:100%;display:flex;align-items:center;gap:7px;
+  padding:7px 8px;border-radius:var(--radius-sm);
+  font-size:13.5px;font-weight:600;color:var(--ink);
+  transition:background .15s;text-align:left;
+}
+.tree .p-root>button:hover{background:var(--panel)}
+.tree .arrow{transition:transform .18s;color:var(--faint);flex:none}
+.tree .open .arrow{transform:rotate(90deg)}
+.tree .leaf{
+  width:100%;display:flex;align-items:center;gap:8px;
+  padding:6px 8px 6px 26px;border-radius:var(--radius-sm);
+  font-size:13px;color:var(--muted);text-align:left;
+  transition:background .15s,color .15s;
+}
+.tree .leaf:hover{background:var(--panel);color:var(--ink)}
+.tree .leaf.on{background:var(--accent-soft);color:var(--accent-deep);font-weight:600}
+.tree .leaf .cnt{margin-left:auto;font-size:10.5px;color:var(--faint);font-family:var(--mono)}
+.tree .leaf.on .cnt{color:var(--accent)}
+.tree ul{display:none;padding:2px 0 4px}
+.tree .open ul{display:block}
+.members{list-style:none;display:flex;flex-direction:column;gap:2px}
+.members li{display:flex;align-items:center;gap:9px;padding:6px 8px;border-radius:var(--radius-sm);font-size:13px}
+.avatar{
+  width:26px;height:26px;border-radius:50%;flex:none;
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:700;color:#fff;
+}
+.members .nm{flex:1}
+.members .role{font-size:10.5px;color:var(--faint);border:1px solid var(--line);border-radius:4px;padding:1px 6px}
+.members .role.admin{color:var(--blue);border-color:#bcd0ec;background:var(--blue-soft)}
+.dot-online{width:6px;height:6px;border-radius:50%;background:var(--green);flex:none}
+.dot-off{background:var(--faint)}
+.me-card{
+  margin:auto 14px 16px;padding:12px 14px;border-radius:var(--radius);
+  background:var(--panel);border:1px dashed var(--line);
+  font-size:12px;color:var(--muted);line-height:1.6;
+}
+.me-card b{color:var(--ink)}
+.me-card .chip-role{display:inline-block;background:var(--accent-soft);color:var(--accent-deep);font-weight:600;padding:1px 8px;border-radius:5px;margin-left:4px}
+
+/* ---------- 主区 ---------- */
+.main{flex:1;min-width:0;display:flex;flex-direction:column;
+  background-color:var(--page);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:26px 26px;
+}
+.topbar{
+  display:flex;align-items:center;gap:16px;
+  background:var(--surface);border-bottom:1px solid var(--line);
+  padding:0 28px;height:60px;position:sticky;top:0;z-index:30;
+}
+.crumb{font-size:13.5px;color:var(--muted)}
+.crumb b{color:var(--ink);font-weight:600}
+.crumb .sep{color:var(--faint);margin:0 7px}
+.top-right{margin-left:auto;display:flex;align-items:center;gap:12px}
+.role-chip{
+  display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--muted);
+  border:1px solid var(--line);background:var(--panel);border-radius:999px;padding:6px 13px;
+}
+.role-chip b{color:var(--accent-deep);font-weight:600}
+.btn{
+  display:inline-flex;align-items:center;gap:8px;
+  border-radius:var(--radius-sm);font-size:13.5px;font-weight:600;
+  padding:9px 18px;transition:background .16s,box-shadow .16s,transform .12s,border-color .16s,color .16s;
+}
+.btn:active{transform:scale(.97)}
+.btn-accent{background:var(--accent);color:#fff;box-shadow:0 4px 14px rgba(232,72,15,.28)}
+.btn-accent:hover{background:var(--accent-deep)}
+.btn-ghost{border:1px solid var(--line);color:var(--ink);background:var(--surface)}
+.btn-ghost:hover{border-color:var(--faint);background:var(--panel)}
+.btn-sm{padding:6px 12px;font-size:12.5px}
+
+.filters{
+  display:flex;align-items:center;gap:8px;padding:16px 28px 0;
+  font-size:13px;
+}
+.filters .lbl{color:var(--faint);font-size:12px;letter-spacing:1.5px;margin-right:4px}
+.fchip{
+  border:1px solid var(--line);background:var(--surface);color:var(--muted);
+  border-radius:999px;padding:5px 14px;font-size:12.5px;transition:all .15s;
+}
+.fchip:hover{border-color:var(--faint);color:var(--ink)}
+.fchip.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.filters .stats{margin-left:auto;font-size:12px;color:var(--faint);font-family:var(--mono)}
+
+.content{
+  flex:1;display:grid;grid-template-columns:minmax(0,1fr) 296px;
+  gap:20px;padding:16px 28px 40px;align-items:start;
+}
+
+/* 看板 */
+.board{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.col{
+  background:rgba(255,255,255,.72);border:1px solid var(--line);
+  border-radius:var(--radius);padding:12px;min-height:180px;
+  backdrop-filter:blur(2px);
+}
+.col-head{display:flex;align-items:center;gap:8px;padding:2px 4px 12px}
+.col-head .dotc{width:9px;height:9px;border-radius:3px}
+.col-head b{font-size:13px;letter-spacing:1px}
+.col-head .n{margin-left:auto;font-family:var(--mono);font-size:12px;color:var(--faint);background:var(--surface);border:1px solid var(--line);border-radius:5px;padding:1px 7px}
+.col-todo .dotc{background:var(--amber)}
+.col-doing .dotc{background:var(--blue)}
+.col-done .dotc{background:var(--green)}
+.col-empty{
+  border:1.5px dashed var(--line);border-radius:var(--radius-sm);
+  color:var(--faint);font-size:12.5px;text-align:center;padding:26px 10px;
+}
+.tcard{
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-sm);
+  padding:12px 13px;margin-bottom:10px;
+  box-shadow:0 1px 3px rgba(23,35,60,.06);
+  transition:box-shadow .18s,border-color .18s,transform .18s;
+}
+.tcard:hover{box-shadow:0 6px 18px rgba(23,35,60,.12);border-color:#c2cde2;transform:translateY(-2px)}
+.tcard.locked{border-left:3px solid var(--red);background:linear-gradient(90deg,var(--red-soft),var(--surface) 46%)}
+.tcard.done-card{opacity:.78}
+.tcard.done-card .t-title{text-decoration:line-through;text-decoration-color:var(--faint)}
+.t-top{display:flex;align-items:center;gap:8px;margin-bottom:7px}
+.tid{font-family:var(--mono);font-size:11.5px;color:var(--faint);letter-spacing:.5px}
+.ptag{font-size:10.5px;font-weight:700;padding:1px 7px;border-radius:4px;letter-spacing:.5px}
+.ptag.p0{background:var(--red-soft);color:var(--red)}
+.ptag.p1{background:var(--accent-soft);color:var(--accent-deep)}
+.ptag.p2{background:var(--blue-soft);color:var(--blue)}
+.t-lock{display:inline-flex;align-items:center;gap:4px;margin-left:auto;font-size:10.5px;color:var(--red)}
+.t-lock.ok{color:var(--green)}
+.t-title{font-size:13.5px;font-weight:600;line-height:1.45;margin-bottom:10px}
+.t-meta{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.t-meta .who{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
+.t-meta .who .avatar{width:20px;height:20px;font-size:9.5px}
+.t-due{margin-left:auto;font-size:11px;color:var(--faint);font-family:var(--mono)}
+.t-acts{display:flex;gap:8px;align-items:center;border-top:1px dashed var(--line);padding-top:9px}
+.t-acts select{
+  border:1px solid var(--line);border-radius:6px;background:var(--panel);
+  padding:4px 6px;font-size:12px;color:var(--muted);max-width:96px;
+}
+.t-acts select:hover{border-color:var(--faint)}
+.adv-btn{
+  margin-left:auto;display:inline-flex;align-items:center;gap:6px;
+  font-size:12.5px;font-weight:600;color:var(--blue);
+  border:1px solid #bcd0ec;background:var(--blue-soft);
+  border-radius:6px;padding:5px 12px;transition:all .15s;
+}
+.adv-btn:hover{background:#d8e6f8;border-color:#9ab8e0}
+.adv-btn.is-lock{color:var(--red);border-color:#eec6c6;background:var(--red-soft)}
+.adv-btn.is-lock:hover{background:#f6dede}
+.adv-btn.is-open{color:var(--muted);border-color:var(--line);background:var(--panel)}
+.adv-btn.is-open:hover{color:var(--ink)}
+
+/* 活动记录 */
+.act-rail{
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+  position:sticky;top:76px;
+}
+.act-rail h3{
+  font-size:12px;letter-spacing:2.5px;color:var(--muted);font-weight:600;
+  padding:14px 16px 12px;border-bottom:1px solid var(--line);
+  display:flex;align-items:center;gap:8px;
+}
+.act-rail h3::before{content:"";width:4px;height:12px;background:var(--accent);border-radius:2px}
+.act-rail h3 .cnt{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--faint)}
+.act-list{max-height:520px;overflow-y:auto;padding:6px 0}
+.act-item{
+  display:flex;gap:10px;padding:9px 16px;font-size:12.5px;line-height:1.5;
+  animation:actin .35s ease;
+}
+@keyframes actin{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+.act-item .adot{width:8px;height:8px;border-radius:50%;flex:none;margin-top:6px}
+.act-item .adot.c-create{background:var(--accent)}
+.act-item .adot.c-assign{background:var(--blue)}
+.act-item .adot.c-move{background:var(--green)}
+.act-item .adot.c-deny{background:var(--red)}
+.act-item .tx{flex:1;color:var(--muted)}
+.act-item .tx b{color:var(--ink);font-weight:600}
+.act-item .tx code{font-family:var(--mono);font-size:11px;color:var(--accent-deep)}
+.act-item .tm{font-family:var(--mono);font-size:10.5px;color:var(--faint);flex:none;margin-top:2px}
+.act-empty{padding:24px 16px;text-align:center;color:var(--faint);font-size:12.5px}
+
+/* 弹层 */
+.mask{
+  position:fixed;inset:0;background:rgba(23,35,60,.42);
+  display:flex;align-items:center;justify-content:center;z-index:60;
+  backdrop-filter:blur(3px);
+}
+.modal{
+  width:460px;max-width:calc(100vw - 40px);background:var(--surface);
+  border-radius:14px;border:1px solid var(--line);
+  box-shadow:0 24px 64px rgba(23,35,60,.25);
+  overflow:hidden;animation:pop .22s ease;
+}
+@keyframes pop{from{opacity:0;transform:scale(.96) translateY(8px)}to{opacity:1;transform:none}}
+.modal-head{
+  display:flex;align-items:center;gap:10px;
+  padding:16px 20px;border-bottom:1px solid var(--line);
+}
+.modal-head b{font-size:15px;font-weight:700}
+.modal-head .x{margin-left:auto;color:var(--faint);font-size:18px;padding:4px 8px;border-radius:6px}
+.modal-head .x:hover{background:var(--panel);color:var(--ink)}
+.modal-body{padding:18px 20px}
+.modal-foot{display:flex;justify-content:flex-end;gap:10px;padding:14px 20px;border-top:1px solid var(--line);background:var(--panel)}
+.f-item{margin-bottom:13px}
+.f-item label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}
+.f-item input[type=text],.f-item select{
+  width:100%;border:1px solid var(--line);border-radius:var(--radius-sm);
+  padding:9px 12px;background:var(--panel);outline:none;transition:border-color .15s;
+}
+.f-item input:focus,.f-item select:focus{border-color:var(--accent);background:#fff}
+.f-err{color:var(--red);font-size:12px;margin-top:5px;display:none}
+.f-err.show{display:block}
+.pri-pick{display:flex;gap:8px}
+.pri-pick button{
+  flex:1;border:1px solid var(--line);border-radius:var(--radius-sm);
+  padding:8px 0;font-size:12.5px;font-weight:600;color:var(--muted);
+  transition:all .15s;background:var(--panel);
+}
+.pri-pick button.on-p0{background:var(--red-soft);color:var(--red);border-color:#eec6c6}
+.pri-pick button.on-p1{background:var(--accent-soft);color:var(--accent-deep);border-color:#f3c9b6}
+.pri-pick button.on-p2{background:var(--blue-soft);color:var(--blue);border-color:#bcd0ec}
+.deny-icon{
+  width:44px;height:44px;border-radius:50%;background:var(--red-soft);
+  display:flex;align-items:center;justify-content:center;flex:none;
+}
+.deny-line{font-size:13.5px;line-height:1.65;color:var(--ink);margin-bottom:10px}
+.deny-line b{color:var(--red)}
+.perm-need{
+  font-family:var(--mono);font-size:12px;background:var(--panel);
+  border:1px dashed var(--line);border-radius:var(--radius-sm);
+  padding:9px 12px;color:var(--accent-deep);margin-bottom:8px;
+}
+.deny-note{font-size:12.5px;color:var(--muted)}
+.applied-box{display:flex;gap:12px;align-items:flex-start}
+.applied-box .ok-ic{
+  width:40px;height:40px;border-radius:50%;background:var(--green-soft);
+  display:flex;align-items:center;justify-content:center;flex:none;
+}
+.applied-box p{font-size:13px;line-height:1.6;color:var(--muted)}
+.applied-box p b{color:var(--ink)}
+
+/* toast */
+#toast{
+  position:fixed;left:50%;bottom:30px;transform:translate(-50%,16px);
+  background:var(--ink);color:#fff;font-size:13px;padding:11px 20px;
+  border-radius:10px;opacity:0;pointer-events:none;z-index:80;
+  transition:opacity .25s,transform .25s;box-shadow:0 12px 36px rgba(23,35,60,.3);
+  max-width:80vw;
+}
+#toast.show{opacity:1;transform:translate(-50%,0)}
+
+@media (max-width:1080px){
+  .content{grid-template-columns:1fr}
+  .act-rail{position:static}
+  .act-list{max-height:300px}
+}
+@media (max-width:860px){
+  .board{grid-template-columns:1fr}
+}
+@media (max-width:768px){
+  .side{display:none}
+  .topbar{padding:0 16px}
+  .filters,.content{padding-left:16px;padding-right:16px}
+}
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+  .act-item,.modal{animation:none!important}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- 左栏：项目树 + 成员 -->
+  <aside class="side">
+    <div class="side-logo">
+      <span class="mark">
+        <svg width="19" height="19" viewBox="0 0 20 20" fill="none">
+          <path d="M3 17L10 3l7 14" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M6.4 11h7.2" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/>
+        </svg>
+      </span>
+      <span><b>伙作</b><small>FORGE · 工程协作</small></span>
+    </div>
+
+    <div class="side-sec">
+      <h4>项目树</h4>
+      <ul class="tree" id="tree"></ul>
+    </div>
+
+    <div class="side-sec">
+      <h4>成员</h4>
+      <ul class="members" id="memberList"></ul>
+    </div>
+
+    <div class="me-card">
+      <b>演示账号</b> · 你在本工作区的角色为<span class="chip-role">成员</span><br>
+      受限操作将触发权限校验，可在看板中体验。
+    </div>
+  </aside>
+
+  <!-- 主区 -->
+  <div class="main">
+    <div class="topbar">
+      <div class="crumb" id="crumb"></div>
+      <div class="top-right">
+        <span class="role-chip">当前身份 <b>成员 · 你</b></span>
+        <button class="btn btn-accent" id="newTaskBtn">
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M6.5 1.5v10M1.5 6.5h10" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg>
+          新建任务
+        </button>
+      </div>
+    </div>
+
+    <div class="filters">
+      <span class="lbl">筛选</span>
+      <button class="fchip on" data-f="all">全部</button>
+      <button class="fchip" data-f="mine">只看我的</button>
+      <button class="fchip" data-f="none">未分派</button>
+      <span class="stats" id="boardStats"></span>
+    </div>
+
+    <div class="content">
+      <div class="board" id="board"></div>
+
+      <aside class="act-rail">
+        <h3>活动记录<span class="cnt" id="actCnt"></span></h3>
+        <div class="act-list" id="actList"></div>
+      </aside>
+    </div>
+  </div>
+</div>
+
+<!-- 新建任务弹层 -->
+<div class="mask" id="createMask" hidden>
+  <div class="modal">
+    <div class="modal-head">
+      <b>新建任务</b>
+      <button class="x" data-close="createMask">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="f-item">
+        <label>任务标题</label>
+        <input type="text" id="fTitle" placeholder="例如：确认液压支架的进场时间" maxlength="40">
+        <div class="f-err" id="fErr">请填写任务标题</div>
+      </div>
+      <div class="f-item">
+        <label>分派给</label>
+        <select id="fAssign"></select>
+      </div>
+      <div class="f-item">
+        <label>优先级</label>
+        <div class="pri-pick" id="fPri">
+          <button data-p="P0">P0 紧急</button>
+          <button data-p="P1" class="on-p1">P1 常规</button>
+          <button data-p="P2">P2 缓办</button>
+        </div>
+      </div>
+      <div class="f-item">
+        <label>初始状态</label>
+        <select id="fStatus">
+          <option value="0">待办</option>
+          <option value="1">进行中</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" data-close="createMask">取消</button>
+      <button class="btn btn-accent" id="fSubmit">创建任务</button>
+    </div>
+  </div>
+</div>
+
+<!-- 权限不足弹层 -->
+<div class="mask" id="denyMask" hidden>
+  <div class="modal">
+    <div class="modal-head">
+      <span class="deny-icon" id="denyIcon"></span>
+      <b id="denyTitle">权限不足</b>
+      <button class="x" data-close="denyMask">✕</button>
+    </div>
+    <div class="modal-body" id="denyBody"></div>
+    <div class="modal-foot" id="denyFoot"></div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+/* ============== 数据 ============== */
+var MEMBERS = {
+  chen:{name:'陈壑', role:'管理员', color:'#2057b0', online:true},
+  you:{name:'你', role:'成员', color:'#e8480f', online:true},
+  bu:{name:'布珂', role:'成员', color:'#1c8c5a', online:true},
+  shi:{name:'石岚', role:'访客', color:'#66708c', online:false}
+};
+var PROJECTS = [
+  {id:'torch', name:'火炬平台', children:[
+    {id:'iter24', name:'迭代 24 看板'},
+    {id:'hw2', name:'硬件二期'},
+    {id:'cert', name:'认证归档'}]},
+  {id:'tunnel', name:'地下管廊', children:[
+    {id:'tuna', name:'南段巡检'}]},
+  {id:'expo', name:'展厅装置', children:[
+    {id:'exa', name:'灯光联动'}]}
+];
+var STATUS = ['待办','进行中','已完成'];
+var NEXT_LABEL = ['推进','完成','重新打开'];
+var seq = 243;
+var TASKS = {
+  iter24:[
+    {id:'FB-238', title:'联调传感网关与报表服务', pri:'P0', assignee:'bu',  status:1, due:'今天'},
+    {id:'FB-239', title:'整理北区施工日志归档口径', pri:'P2', assignee:'you', status:0, due:'周四'},
+    {id:'FB-240', title:'上线窗口审批（含停机公告）', pri:'P0', assignee:'chen', status:0, due:'今天', locked:true},
+    {id:'FB-236', title:'测绘断面图复核 · 第三标段', pri:'P1', assignee:'you', status:0, due:'周五'},
+    {id:'FB-233', title:'值班表同步到考勤系统', pri:'P2', assignee:'shi', status:2, due:'已完成'},
+    {id:'FB-235', title:'核对支护材料到货批次', pri:'P1', assignee:'bu', status:1, due:'明天'}
+  ],
+  hw2:[
+    {id:'FB-221', title:'二期样机热仿真复测', pri:'P1', assignee:'chen', status:1, due:'周三'},
+    {id:'FB-224', title:'外壳公差链复核', pri:'P2', assignee:null, status:0, due:'下周'}
+  ],
+  cert:[{id:'FB-201', title:'EMC 报告送审', pri:'P1', assignee:'chen', status:2, due:'已完成'}],
+  tuna:[{id:'FB-217', title:'南段渗水位观测点布设', pri:'P1', assignee:'you', status:0, due:'周六'}],
+  exa:[]
+};
+
+var state = {
+  project:'iter24', rootOpen:{torch:true},
+  filter:'all',
+  activity:[],
+  denyTask:null, applied:{}, seqCounter:seq
+};
+
+function $(id){return document.getElementById(id)}
+function tasks(){return TASKS[state.project]}
+function projOf(id){
+  for(var i=0;i<PROJECTS.length;i++){
+    var p = PROJECTS[i];
+    for(var j=0;j<p.children.length;j++) if(p.children[j].id===id) return p;
+  }
+  return PROJECTS[0];
+}
+function leafOf(id){
+  var p = projOf(id);
+  for(var j=0;j<p.children.length;j++) if(p.children[j].id===id) return p.children[j];
+  return p.children[0];
+}
+function now(){
+  var d = new Date();
+  return (d.getHours()<10?'0':'')+d.getHours()+':'+(d.getMinutes()<10?'0':'')+d.getMinutes();
+}
+var toastTimer=null;
+function toast(msg){
+  var t=$('toast'); t.textContent=msg; t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(function(){t.classList.remove('show')},2600);
+}
+function addLog(kind, html){
+  state.activity.unshift({kind:kind, html:html, time:now()});
+  renderActivity();
+}
+
+/* ============== 渲染：项目树 / 成员 ============== */
+function renderTree(){
+  var html='';
+  PROJECTS.forEach(function(p){
+    var open = state.rootOpen[p.id];
+    html += '<li class="p-root'+(open?' open':'')+'">'
+      + '<button data-root="'+p.id+'"><svg class="arrow" width="10" height="10" viewBox="0 0 10 10"><path d="M3.5 2l3 3-3 3" stroke="currentColor" stroke-width="1.5" fill="none"/></svg>'+p.name+'</button>'
+      + '<ul>' + p.children.map(function(c){
+          var n = (TASKS[c.id]||[]).length;
+          return '<li><button class="leaf'+(state.project===c.id?' on':'')+'" data-leaf="'+c.id+'">'+c.name+'<span class="cnt">'+n+'</span></button></li>';
+        }).join('') + '</ul></li>';
+  });
+  $('tree').innerHTML = html;
+}
+function renderMembers(){
+  $('memberList').innerHTML = Object.keys(MEMBERS).map(function(k){
+    var m=MEMBERS[k];
+    return '<li><span class="avatar" style="background:'+m.color+'">'+m.name.charAt(0)+'</span>'
+      + '<span class="nm">'+m.name+'</span>'
+      + '<span class="role'+(m.role==='管理员'?' admin':'')+'">'+m.role+'</span>'
+      + '<span class="dot-online'+(m.online?'':' dot-off')+'"></span></li>';
+  }).join('');
+}
+
+/* ============== 渲染：看板 ============== */
+function visible(t){
+  if(state.filter==='mine') return t.assignee==='you';
+  if(state.filter==='none') return t.assignee===null;
+  return true;
+}
+function assigneeChip(t){
+  if(t.assignee){
+    var m=MEMBERS[t.assignee];
+    return '<span class="who"><span class="avatar" style="background:'+m.color+'">'+m.name.charAt(0)+'</span>'+m.name+'</span>';
+  }
+  return '<span class="who" style="color:var(--faint)">未分派</span>';
+}
+function cardHTML(t){
+  var locked = t.locked && !t.unlocked;
+  var done = t.status===2;
+  var lockBadge = '';
+  if(t.locked){
+    lockBadge = t.unlocked
+      ? '<span class="t-lock ok"><svg width="11" height="11" viewBox="0 0 12 12"><path d="M2.5 6.5l2.4 2.4L9.5 4" stroke="#1c8c5a" stroke-width="1.6" fill="none"/></svg>已获授权</span>'
+      : '<span class="t-lock"><svg width="11" height="11" viewBox="0 0 12 12" fill="none"><rect x="2" y="5" width="8" height="5.4" rx="1.2" stroke="#c22f2f" stroke-width="1.3"/><path d="M4 5V3.6a2 2 0 0 1 4 0V5" stroke="#c22f2f" stroke-width="1.3"/></svg>受限</span>';
+  }
+  var advCls = locked ? 'adv-btn is-lock' : (done ? 'adv-btn is-open' : 'adv-btn');
+  var lockIc = '<svg width="11" height="11" viewBox="0 0 12 12" fill="none"><rect x="2" y="5" width="8" height="5.4" rx="1.2" stroke="#c22f2f" stroke-width="1.3"/><path d="M4 5V3.6a2 2 0 0 1 4 0V5" stroke="#c22f2f" stroke-width="1.3"/></svg>';
+  var advTxt = done ? '重新打开' : (locked ? lockIc+'推进' : NEXT_LABEL[t.status]);
+  var sel = '<select data-assign="'+t.id+'">'
+    + '<option value="">未分派</option>'
+    + Object.keys(MEMBERS).map(function(k){
+        return '<option value="'+k+'"'+(t.assignee===k?' selected':'')+'>'+MEMBERS[k].name+'</option>';
+      }).join('') + '</select>';
+  return '<div class="tcard'+(t.locked?' locked':'')+(done?' done-card':'')+'" data-task="'+t.id+'">'
+    + '<div class="t-top"><span class="tid">'+t.id+'</span><span class="ptag '+t.pri.toLowerCase()+'">'+t.pri+'</span>'+lockBadge+'</div>'
+    + '<div class="t-title">'+t.title+'</div>'
+    + '<div class="t-meta">'+assigneeChip(t)+'<span class="t-due">'+t.due+'</span></div>'
+    + '<div class="t-acts">'+sel+'<button class="'+advCls+'" data-adv="'+t.id+'">'+advTxt+' →</button></div>'
+    + '</div>';
+}
+function renderBoard(){
+  var cols=['col-todo','col-doing','col-done'];
+  var html='';
+  for(var s=0;s<3;s++){
+    var list = tasks().filter(function(t){return t.status===s && visible(t)});
+    html += '<div class="col '+cols[s]+'"><div class="col-head"><span class="dotc"></span><b>'+STATUS[s]+'</b><span class="n">'+list.length+'</span></div>'
+      + (list.length ? list.map(cardHTML).join('') : '<div class="col-empty">暂无任务</div>')
+      + '</div>';
+  }
+  $('board').innerHTML = html;
+  var all = tasks();
+  var dn = all.filter(function(t){return t.status===2}).length;
+  $('boardStats').textContent = all.length+' 项任务 · '+dn+' 已完成';
+  var p = projOf(state.project), l = leafOf(state.project);
+  $('crumb').innerHTML = '伙作<span class="sep">/</span>'+p.name+'<span class="sep">/</span><b>'+l.name+'</b>';
+}
+
+/* ============== 渲染：活动记录 ============== */
+function renderActivity(){
+  $('actCnt').textContent = state.activity.length+' 条';
+  $('actList').innerHTML = state.activity.length
+    ? state.activity.map(function(a){
+        return '<div class="act-item"><span class="adot '+a.kind+'"></span><span class="tx">'+a.html+'</span><span class="tm">'+a.time+'</span></div>';
+      }).join('')
+    : '<div class="act-empty">还没有动态 — 创建、分派或推进任务后会记录在这里</div>';
+}
+function renderAll(){ renderTree(); renderMembers(); renderBoard(); renderActivity(); }
+
+/* ============== 行为 ============== */
+function findTask(id){
+  return tasks().find(function(t){return t.id===id});
+}
+function advance(id){
+  var t = findTask(id);
+  if(!t) return;
+  if(t.locked && !t.unlocked){
+    openDeny(t);
+    return;
+  }
+  if(t.status<2){
+    t.status++;
+    addLog('c-move','<b>你</b> 将 <code>'+t.id+'</code>「'+t.title+'」推进到 <b>'+STATUS[t.status]+'</b>');
+    toast('已推进 '+t.id+' → '+STATUS[t.status]);
+  } else {
+    t.status=1;
+    addLog('c-move','<b>你</b> 重新打开 <code>'+t.id+'</code>「'+t.title+'」至 <b>进行中</b>');
+    toast('已重新打开 '+t.id);
+  }
+  if(t.locked && t.unlocked){
+    t.unlocked=false;
+    addLog('c-move','<code>'+t.id+'</code> 的一次性授权已使用');
+  }
+  renderTree(); renderBoard();
+}
+function openDeny(t){
+  state.denyTask=t;
+  if(state.applied[t.id] && !t.unlocked){ showApplied(t); return; }
+  $('denyMask').hidden=false;
+  $('denyIcon').innerHTML='<svg width="22" height="22" viewBox="0 0 20 20" fill="none"><rect x="4" y="8.5" width="12" height="8" rx="1.8" stroke="#c22f2f" stroke-width="1.6"/><path d="M7 8.5V6a3 3 0 0 1 6 0v2.5" stroke="#c22f2f" stroke-width="1.6"/><circle cx="10" cy="12.5" r="1.2" fill="#c22f2f"/></svg>';
+  $('denyTitle').textContent='权限不足';
+  $('denyBody').innerHTML =
+    '<div class="deny-line">推进 <b>'+t.id+'</b>「'+t.title+'」需要 <b>管理员</b> 角色，你当前身份为 <b>成员</b>。</div>'
+    + '<div class="perm-need">所需权限：task.transition:admin<br>当前角色：role:member</div>'
+    + '<div class="deny-note">本次变更未写入，任务仍停留在「'+STATUS[t.status]+'」。你可以向管理员申请权限，或返回看板继续处理其他任务。</div>';
+  $('denyFoot').innerHTML =
+    '<button class="btn btn-ghost" data-close="denyMask">返回看板</button>'
+    + '<button class="btn btn-accent" id="applyBtn">申请权限</button>';
+  $('applyBtn').onclick = applyPermission;
+}
+function showApplied(t){
+  $('denyMask').hidden=false;
+  $('denyIcon').innerHTML='<svg width="22" height="22" viewBox="0 0 20 20" fill="none"><path d="M4 10.5l4 4 8-9" stroke="#1c8c5a" stroke-width="2"/></svg>';
+  $('denyTitle').textContent='申请已提交';
+  $('denyBody').innerHTML =
+    '<div class="applied-box"><span class="ok-ic"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M4 10.5l4 4 8-9" stroke="#1c8c5a" stroke-width="2"/></svg></span>'
+    + '<p><b>等待陈壑审批中</b><br>审批通过前该任务仍不可推进；你可以先返回看板，处理其他有权限的任务。</p></div>';
+  $('denyFoot').innerHTML = '<button class="btn btn-accent" data-close="denyMask">返回看板</button>';
+}
+function applyPermission(){
+  var t = state.denyTask;
+  if(!t || state.applied[t.id]) return;
+  state.applied[t.id]=true;
+  addLog('c-deny','<b>你</b> 申请 <code>'+t.id+'</code> 的推进权限（待管理员审批）');
+  toast('权限申请已发送给 陈壑（管理员）');
+  showApplied(t);
+  setTimeout(function(){
+    t.unlocked=true;
+    addLog('c-move','<b>陈壑</b>（管理员）批准了你对 <code>'+t.id+'</code> 的推进申请');
+    toast('陈壑 已批准：'+t.id+' 现可推进一次');
+    renderBoard();
+  }, 2800);
+}
+
+/* ============== 事件 ============== */
+document.addEventListener('click', function(e){
+  var root = e.target.closest('[data-root]');
+  if(root){
+    var rid=root.getAttribute('data-root');
+    state.rootOpen[rid]=!state.rootOpen[rid];
+    renderTree(); return;
+  }
+  var leaf = e.target.closest('[data-leaf]');
+  if(leaf){
+    state.project=leaf.getAttribute('data-leaf');
+    var p=projOf(state.project); state.rootOpen[p.id]=true;
+    renderTree(); renderBoard(); return;
+  }
+  var adv = e.target.closest('[data-adv]');
+  if(adv){ advance(adv.getAttribute('data-adv')); return; }
+  var close = e.target.closest('[data-close]');
+  if(close){ $(close.getAttribute('data-close')).hidden=true; return; }
+  var mask = e.target.classList && e.target.classList.contains('mask');
+  if(mask){ e.target.hidden=true; return; }
+});
+document.addEventListener('change', function(e){
+  var sel = e.target.closest('[data-assign]');
+  if(sel){
+    var t=findTask(sel.getAttribute('data-assign'));
+    if(!t) return;
+    var v=sel.value||null;
+    t.assignee=v;
+    var who = v ? MEMBERS[v].name : '未分派';
+    addLog('c-assign','<b>你</b> 将 <code>'+t.id+'</code>「'+t.title+'」分派给 <b>'+who+'</b>');
+    toast('已将 '+t.id+' 分派给 '+who);
+    renderBoard(); return;
+  }
+});
+document.querySelectorAll('.fchip').forEach(function(c){
+  c.addEventListener('click', function(){
+    document.querySelectorAll('.fchip').forEach(function(x){x.classList.remove('on')});
+    c.classList.add('on');
+    state.filter=c.getAttribute('data-f');
+    renderBoard();
+  });
+});
+$('newTaskBtn').onclick=function(){
+  $('fTitle').value=''; $('fErr').classList.remove('show');
+  $('fAssign').innerHTML='<option value="">未分派</option>'
+    +Object.keys(MEMBERS).map(function(k){return '<option value="'+k+'"'+(k==='you'?' selected':'')+'>'+MEMBERS[k].name+'</option>'}).join('');
+  $('createMask').hidden=false;
+  $('fTitle').focus();
+};
+$('fPri').addEventListener('click', function(e){
+  var b=e.target.closest('[data-p]'); if(!b) return;
+  document.querySelectorAll('#fPri button').forEach(function(x){x.className=''});
+  b.classList.add('on-'+b.getAttribute('data-p').toLowerCase());
+});
+$('fSubmit').onclick=function(){
+  var title=$('fTitle').value.trim();
+  if(!title){ $('fErr').classList.add('show'); return; }
+  var id='FB-'+(state.seqCounter++);
+  var pri=document.querySelector('#fPri button[class*="on-"]');
+  var t={
+    id:id, title:title,
+    pri:pri?pri.getAttribute('data-p'):'P1',
+    assignee:$('fAssign').value||null,
+    status:parseInt($('fStatus').value,10),
+    due:'本周'
+  };
+  tasks().unshift(t);
+  $('createMask').hidden=true;
+  addLog('c-create','<b>你</b> 创建了任务 <code>'+t.id+'</code>「'+t.title+'」'+(t.assignee?'，分派给 <b>'+MEMBERS[t.assignee].name+'</b>':''));
+  toast('已创建 '+t.id+'，并写入活动记录');
+  renderTree(); renderBoard();
+};
+document.addEventListener('keydown', function(e){
+  if(e.key==='Escape'){ $('createMask').hidden=true; $('denyMask').hidden=true; }
+});
+
+/* ============== 启动 ============== */
+addLog('c-move','<b>布珂</b> 将 <code>FB-238</code>「联调传感网关与报表服务」推进到 <b>进行中</b>');
+addLog('c-assign','<b>陈壑</b> 将 <code>FB-240</code> 标记为<b>受限任务</b>（仅管理员可推进）');
+renderAll();
+</script>
+</body>
+</html>
