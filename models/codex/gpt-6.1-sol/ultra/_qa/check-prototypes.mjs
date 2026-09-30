@@ -1,0 +1,39 @@
+import assert from 'node:assert/strict';
+import {readdir,writeFile,readFile} from 'node:fs/promises';
+import {dirname,resolve,join} from 'node:path';
+import {fileURLToPath} from 'node:url';
+import {browser} from './browser.mjs';
+
+const root=resolve(dirname(fileURLToPath(import.meta.url)),'..'), b=await browser();
+const files=await readdir(root),evidence=[];
+const click=id=>b.evaluate(`document.getElementById(${JSON.stringify(id)}).click()`);
+const set=(id,value)=>b.evaluate(`(()=>{const el=document.getElementById(${JSON.stringify(id)});el.value=${JSON.stringify(value)};el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}))})()`);
+const text=id=>b.evaluate(`document.getElementById(${JSON.stringify(id)}).textContent`);
+const visible=id=>b.evaluate(`!document.getElementById(${JSON.stringify(id)}).hidden`);
+const open=async id=>{const file=files.find(f=>f.startsWith(id+'-')&&f.endsWith('.html'));await b.open(join(root,file),['042','043','044','048','049'].includes(id)?390:1280,['042','043','044','048','049'].includes(id)?844:800);return file};
+try {
+  const ids=process.env.DAEDALUS_IDS?process.env.DAEDALUS_IDS.split(','):['041','042','043','044','045','046','047','048','049','050'];
+  for(const id of ids) {
+    const file=await open(id);
+    if(process.env.DAEDALUS_SHOTS)await b.shot(join(process.env.DAEDALUS_SHOTS,id+'.png'));
+    if(id==='041'){assert.deepEqual(await b.evaluate(`Array.from(document.getElementById('variant').options,o=>o.value)`),['白','灰']);await click('add');await click('order');assert(await visible('receipt'));await open(id);await click('shortage');await click('add');await click('order');assert.match(await text('feedback'),/库存不足/);assert(!(await visible('receipt')));await click('recover');assert.equal(await b.evaluate(`document.getElementById('variant').value`),'灰');await click('add');await click('order');assert(await visible('receipt'));assert.match(await text('receiptText'),/灰 × 1/);}
+    if(id==='042'){await click('review');await click('send');assert.match(await text('balance'),/560/);await open(id);await click('over');await click('review');await click('send');assert.match(await text('confirmError'),/余额不足/);assert.match(await text('balance'),/680/);await b.evaluate(`document.querySelector('#confirm button:nth-of-type(2)').click()`);await set('amount','120');await click('review');await click('send');assert(await visible('voucher'));}
+    if(id==='043'){await set('message','正常消息');await click('send');assert.match(await text('messages'),/正常消息已送达/);await click('fail');await set('message','失败保留内容');await click('send');assert.match(await text('messages'),/失败保留内容发送失败/);const before=await b.evaluate(`document.querySelectorAll('.outgoing').length`);await b.evaluate(`document.querySelector('.outgoing button').click()`);assert.match(await text('messages'),/失败保留内容已送达/);assert.equal(await b.evaluate(`document.querySelectorAll('.outgoing').length`),before);await click('threadB');await click('threadA');assert.match(await text('messages'),/正常消息/);}
+    if(id==='044'){await set('post','正常街角消息');await set('scope','仅自己');await click('publish');assert.match(await text('feed'),/仅自己正常街角消息/);await set('post','失败草稿全文');await set('scope','仅邻居');await click('fail');await click('publish');assert.equal(await b.evaluate(`document.getElementById('post').value`),'失败草稿全文');assert.equal(await b.evaluate(`document.getElementById('scope').value`),'仅邻居');await click('retry');assert.match(await text('feed'),/仅邻居失败草稿全文/);}
+    if(id==='045'){await click('track1');await click('play');await set('position','35');await click('save');assert.match(await text('saved'),/0:35/);await click('interrupt');assert.match(await text('feedback'),/网络连接中断/);assert.equal(await text('time'),'0:35');await click('play');assert.equal(await text('time'),'0:35');await click('reconnect');assert.match(await text('feedback'),/重新连接成功/);assert.equal(await text('time'),'0:35');await click('play');}
+    if(id==='046'){await set('taskTitle','本次验收任务');await set('assignee','成员乙');await click('create');await b.evaluate(`document.querySelector('#tasks .task:last-child button').click()`);await b.evaluate(`document.querySelector('#tasks .task:last-child button').click()`);assert.match(await text('log'),/本次验收任务.*已完成/);const tasks=await text('tasks');await click('restricted');assert(await visible('permission'));assert.equal(await text('tasks'),tasks);await click('request');assert.match(await text('requestStatus'),/申请已记录/);await b.evaluate(`document.querySelector('#permission button:nth-of-type(2)').click()`);await b.evaluate(`document.querySelector('#tasks .task:nth-child(2) button').click()`);assert.match(await text('log'),/整理作品标签.*已完成/);}
+    if(id==='047'){await set('headline','验收海报');await click('export');await b.evaluate(`new Promise(r=>setTimeout(r,300))`);assert(await visible('download'));const mime=await b.evaluate(`fetch(document.getElementById('download').href).then(r=>r.blob()).then(b=>b.type)`);assert.equal(mime,'image/png');await set('format','jpeg');await click('export');assert.match(await text('feedback'),/JPEG 不支持透明背景/);assert(!(await visible('download')));await set('format','png');await click('export');await b.evaluate(`new Promise(r=>setTimeout(r,300))`);assert(await visible('download'));}
+    if(id==='048'){await click('searchBtn');await click('review');await click('book');assert(await visible('ticket'));await open(id);await click('searchBtn');await click('seatB');await click('review');await click('book');assert.match(await text('feedback'),/1B座已售罄/);assert(!(await visible('ticket')));await b.evaluate(`document.querySelector('#confirm button:nth-of-type(2)').click()`);await click('seatA');await click('review');await click('book');assert(await visible('ticket'));}
+    if(id==='049'){await click('invalid');await click('save');assert.match(await text('feedback'),/活动分钟无效/);assert.match(await text('progress'),/^20/);await set('minutes','25');await click('save');assert.match(await text('progress'),/^45/);assert.match(await text('percent'),/75%/);assert.match(await text('bars'),/^$/);assert.equal(await b.evaluate(`document.getElementById('bars').getAttribute('aria-label')`),'最近七天活动分钟：32、45、20、55、40、30、45');}
+    if(id==='050'){await click('start');await click('answer8');await click('submit');assert(await visible('explanation'));assert.match(await text('courseProgress'),/50%/);await click('retry');assert.equal(await b.evaluate(`document.getElementById('submit').disabled`),true);await click('answer3');await click('submit');assert.match(await text('resultTitle'),/订正成功/);assert.match(await text('courseProgress'),/100%/);await open(id);await click('start');await click('answer3');await click('submit');assert.match(await text('resultTitle'),/练习完成/);}
+    assert.equal(b.errors.length,0,JSON.stringify(b.errors));
+    const widths=['042','043','044','048','049'].includes(id)?[390,1280]:[1280,768];
+    for(const width of widths){await b.call('Emulation.setDeviceMetricsOverride',{width,height:width===390?844:800,deviceScaleFactor:1,mobile:width===390});assert(await b.evaluate(`document.documentElement.scrollWidth<=innerWidth+1`),`${id}: overflow at ${width}`);}
+    evidence.push({id,file,normalFlow:'passed',exceptionRecovery:'passed',viewportWidths:widths,consoleErrors:0});
+    console.log(id+' normal + exception recovery passed');
+  }
+  let previous=[];
+  if(process.env.DAEDALUS_IDS)try{previous=JSON.parse(await readFile(join(root,'prototype-check.json'),'utf8')).results}catch{}
+  const results=[...previous.filter(p=>!ids.includes(p.id)),...evidence].sort((a,b)=>a.id.localeCompare(b.id));
+  await writeFile(join(root,'prototype-check.json'),JSON.stringify({browser:'Chromium Edge headless',checkedAt:new Date().toISOString(),results},null,2)+'\n');
+} finally {await b.close()}
