@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>海报工坊 · 编辑器</title>
+<style>
+:root{--g0:#141416;--g1:#1e1e21;--g2:#2a2a2e;--g3:#3a3a40;--txt:#ececf1;--sub:#9a9aa6;--pink:#ff3d7f;--pink-d:#e02a69;--cyan:#3de0ff;--ok:#37d67a;--warn:#ffb020;--err:#ff5a5a}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--g0);color:var(--txt);font:13px/1.45 "Inter","SF Pro Text","PingFang SC","Microsoft YaHei",system-ui,sans-serif;display:grid;grid-template-rows:44px 1fr;overflow:hidden}
+.top{display:flex;align-items:center;gap:14px;padding:0 14px;background:var(--g1);border-bottom:1px solid var(--g2)}
+.top b{font-size:14px}.top b span{color:var(--pink)}
+.top .fn{color:var(--sub)}
+.top .ex{margin-left:auto;height:30px;padding:0 14px;border-radius:6px;border:0;background:var(--pink);color:#fff;font-family:inherit;font-weight:700;font-size:13px;cursor:pointer}
+.top .ex:hover{background:var(--pink-d)}
+.main{display:grid;grid-template-columns:220px 1fr 300px;min-height:0}
+.pane{background:var(--g1);overflow:auto;min-height:0}
+.pane.l{border-right:1px solid var(--g2)}.pane.r{border-left:1px solid var(--g2)}
+.ph{font-size:11px;font-weight:700;letter-spacing:.12em;color:var(--sub);padding:12px 14px 6px;text-transform:uppercase}
+.layer{display:flex;align-items:center;gap:8px;width:100%;height:34px;padding:0 10px 0 14px;border:0;background:none;color:var(--txt);font:inherit;text-align:left;cursor:pointer}
+.layer:hover{background:var(--g2)}
+.layer[aria-selected="true"]{background:#ff3d7f22;box-shadow:inset 2px 0 0 var(--pink)}
+.layer .ic{width:18px;text-align:center;color:var(--sub)}
+.layer .eye{margin-left:auto;width:26px;height:24px;border:0;border-radius:4px;background:none;color:var(--txt);cursor:pointer}
+.layer .eye[aria-pressed="false"]{color:#5a5a64}
+.layer.off span:not(.eye){opacity:.45}
+.stage{display:grid;place-items:center;background:var(--g0) radial-gradient(#2a2a2e 1px,transparent 1px) 0 0/16px 16px;position:relative;min-height:0;overflow:auto;padding:24px}
+.art{width:360px;height:480px;box-shadow:0 20px 50px -20px #000;background:repeating-conic-gradient(#3a3a40 0 25%,#2a2a2e 0 50%) 0 0/16px 16px}
+.art svg{display:block;width:100%;height:100%}
+.zoom{position:absolute;left:14px;bottom:12px;color:var(--sub);font-size:12px;background:var(--g1);padding:4px 8px;border-radius:4px}
+.live{position:absolute;right:14px;bottom:12px;color:var(--ok);font-size:12px;background:var(--g1);padding:4px 8px;border-radius:4px}
+.grp{padding:4px 14px 12px;border-bottom:1px solid var(--g2)}
+.f{display:grid;grid-template-columns:70px 1fr;align-items:center;gap:8px;margin:7px 0}
+.f label{color:var(--sub)}
+.f input[type=text]{height:28px;border:1px solid var(--g3);border-radius:5px;background:var(--g0);color:var(--txt);font:inherit;padding:0 8px;width:100%}
+.f input[type=text]:focus{outline:none;border-color:var(--pink)}
+.f input[type=range]{width:100%;accent-color:var(--pink)}
+.sw{display:flex;gap:6px}
+.sw button{width:24px;height:24px;border-radius:5px;border:2px solid transparent;cursor:pointer}
+.sw button[aria-pressed="true"]{border-color:#fff}
+.seg{display:grid;grid-auto-flow:column;gap:2px;background:var(--g0);border-radius:6px;padding:2px}
+.seg button{height:26px;border:0;border-radius:4px;background:none;color:var(--sub);font:inherit;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--g3);color:var(--txt);font-weight:600}
+.seg button.bad{box-shadow:inset 0 0 0 1.5px var(--err);color:var(--err)}
+.ck{display:flex;align-items:center;gap:8px;margin:8px 0;cursor:pointer}
+.ck input{accent-color:var(--pink);width:15px;height:15px}
+.ck.bad{color:var(--err)}
+.ck small{color:var(--sub)}
+.msg{margin:10px 14px;padding:10px 12px;border-radius:8px;font-size:12px;display:none}
+.msg.err{display:block;background:#ff5a5a1a;border:1px solid #ff5a5a66;color:#ffb3b3}
+.msg.err b{color:var(--err);display:block;margin-bottom:2px}
+.msg.err button{margin-top:8px;height:26px;padding:0 10px;border-radius:5px;border:1px solid var(--err);background:none;color:var(--err);font:inherit;cursor:pointer;margin-right:6px}
+.msg.ok{display:block;background:#37d67a14;border:1px solid #37d67a55}
+.res{display:flex;gap:10px;align-items:center}
+.res img{width:54px;height:72px;object-fit:cover;border-radius:4px;background:repeating-conic-gradient(#3a3a40 0 25%,#2a2a2e 0 50%) 0 0/8px 8px}
+.res b{display:block;color:var(--ok)}
+.res a{color:var(--cyan);font-weight:600}
+.big{margin:4px 14px 14px;width:calc(100% - 28px);height:38px;border:0;border-radius:8px;background:var(--pink);color:#fff;font-family:inherit;font-weight:700;font-size:14px;cursor:pointer}
+.big:hover{background:var(--pink-d)}
+.big:disabled{background:var(--g3);color:var(--sub);cursor:progress}
+.hist{padding:0 14px 14px;color:var(--sub);font-size:12px}
+.hist div{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px dashed var(--g2)}
+button:focus-visible,input:focus-visible{outline:2px solid var(--cyan);outline-offset:1px}
+@media (max-width:1000px){body{overflow:auto;grid-template-rows:44px auto}.main{grid-template-columns:1fr}.pane.l{display:none}.stage{min-height:540px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="top"><b>海报<span>工坊</span></b><span class="fn">秋季市集_主海报 · 已自动保存</span><button class="ex" type="button" id="topex">导出…</button></div>
+<div class="main">
+  <section class="pane l" aria-label="图层"><div class="ph">图层</div><div id="layers" role="listbox" aria-label="图层列表"></div>
+    <div class="ph" style="margin-top:12px">画板</div><div style="padding:0 14px;color:#9a9aa6">竖版海报 · 1080 × 1440 px<br>3 : 4 · RGB</div></section>
+  <section class="stage" aria-label="实时预览"><div class="art" id="art"><svg id="svg" viewBox="0 0 1080 1440" role="img" aria-label="海报预览"></svg></div><span class="zoom">33% · 预览</span><span class="live" id="live">● 实时预览</span></section>
+  <section class="pane r" aria-label="属性与导出">
+    <div class="ph">文字</div><div class="grp">
+      <div class="f"><label for="t1">主标题</label><input type="text" id="t1" value="秋季市集" maxlength="8"></div>
+      <div class="f"><label for="t2">副标题</label><input type="text" id="t2" value="10.18 – 10.20 · 老船厂" maxlength="24"></div>
+      <div class="f"><label for="fs">字号</label><input type="range" id="fs" min="120" max="260" value="200"></div></div>
+    <div class="ph">背景与图形</div><div class="grp">
+      <div class="f"><label>背景色</label><div class="sw" id="bgs"></div></div>
+      <div class="f"><label>图形</label><div class="seg" id="shape"><button type="button" data-v="sun" aria-pressed="true">太阳</button><button type="button" data-v="grid" aria-pressed="false">网格</button><button type="button" data-v="wave" aria-pressed="false">波浪</button></div></div>
+      <div class="f"><label for="gr">噪点</label><input type="range" id="gr" min="0" max="60" value="25"></div></div>
+    <div class="ph">导出</div><div class="grp">
+      <div class="f"><label>格式</label><div class="seg" id="fmt"><button type="button" data-v="PNG" aria-pressed="true">PNG</button><button type="button" data-v="JPG" aria-pressed="false">JPG</button><button type="button" data-v="SVG" aria-pressed="false">SVG</button></div></div>
+      <div class="f"><label>倍率</label><div class="seg" id="scl"><button type="button" data-v="0.5" aria-pressed="false">0.5×</button><button type="button" data-v="1" aria-pressed="true">1×</button><button type="button" data-v="2" aria-pressed="false">2×</button></div></div>
+      <label class="ck" id="trl"><input type="checkbox" id="tr"> 透明背景 <small>（隐藏背景图层）</small></label>
+      <div style="color:#9a9aa6;font-size:12px" id="sz"></div></div>
+    <div class="msg" id="msg" role="status"></div>
+    <button class="big" type="button" id="ex">导出海报</button>
+    <div class="ph">导出记录</div><div class="hist" id="hist"><div><span>暂无</span></div></div>
+  </section>
+</div>
+<script>
+const $=s=>document.querySelector(s);
+const BG=['#f4e3c7','#1f3b57','#e8553d','#2e5e4e','#111111'];
+let S={t1:'秋季市集',t2:'10.18 – 10.20 · 老船厂',fs:200,bg:0,shape:'sun',gr:25,fmt:'PNG',scl:1,tr:false,vis:{bg:1,shape:1,title:1,grain:1},sel:'title'},H=[],n=0;
+const LY=[['grain','▦','噪点纹理'],['title','T','标题文字'],['shape','◐','主图形'],['bg','▭','背景']];
+function fg(){return [0,].includes(S.bg)?'#1f2a2a':'#fff8ec'}
+function draw(){const c=BG[S.bg],f=fg(),acc=S.bg===2?'#f4e3c7':'#e8553d';let s='';
+ s+='<defs><filter id="nz"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" stitchTiles="stitch"/><feColorMatrix values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 .6 0"/></filter></defs>';
+ if(S.vis.bg&&!S.tr)s+='<rect width="1080" height="1440" fill="'+c+'"/>';
+ if(S.vis.shape){if(S.shape==='sun')s+='<circle cx="540" cy="560" r="300" fill="'+acc+'"/><rect x="0" y="560" width="1080" height="20" fill="'+c+'" opacity="'+(S.tr?0:1)+'"/><rect x="0" y="620" width="1080" height="14" fill="'+c+'" opacity="'+(S.tr?0:1)+'"/>';
+  else if(S.shape==='grid'){for(let i=0;i<6;i++)for(let j=0;j<6;j++)s+='<circle cx="'+(190+i*140)+'" cy="'+(260+j*120)+'" r="'+(18+((i+j)%3)*16)+'" fill="'+acc+'"/>'}
+  else for(let k=0;k<6;k++)s+='<path d="M0 '+(380+k*70)+' Q270 '+(300+k*70)+' 540 '+(380+k*70)+' T1080 '+(380+k*70)+'" stroke="'+acc+'" stroke-width="26" fill="none"/>'}
+ if(S.vis.title)s+='<text x="540" y="1120" text-anchor="middle" font-size="'+S.fs+'" font-weight="900" fill="'+f+'" font-family="PingFang SC,Microsoft YaHei,sans-serif" letter-spacing="8">'+esc(S.t1)+'</text><text x="540" y="1230" text-anchor="middle" font-size="54" fill="'+f+'" font-family="PingFang SC,Microsoft YaHei,sans-serif" letter-spacing="4">'+esc(S.t2)+'</text>';
+ if(S.vis.grain&&S.gr>0)s+='<rect width="1080" height="1440" filter="url(#nz)" opacity="'+(S.gr/100)+'"/>';
+ $('#svg').innerHTML=s;const w=Math.round(1080*S.scl),h=Math.round(1440*S.scl);$('#sz').textContent='输出尺寸 '+w+' × '+h+' px · '+S.fmt+(S.tr?' · 透明':'');
+ $('#live').textContent='● 实时预览 · 已更新';clearTimeout(draw.k);draw.k=setTimeout(()=>$('#live').textContent='● 实时预览',600)}
+const esc=t=>t.replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]);
+function layers(){$('#layers').innerHTML=LY.map(l=>'<div class="layer'+(S.vis[l[0]]?'':' off')+'" role="option" tabindex="0" aria-selected="'+(S.sel===l[0])+'" data-l="'+l[0]+'"><span class="ic">'+l[1]+'</span><span>'+l[2]+'</span><button class="eye" type="button" aria-pressed="'+!!S.vis[l[0]]+'" aria-label="显示或隐藏'+l[2]+'" data-e="'+l[0]+'">'+(S.vis[l[0]]?'👁':'—')+'</button></div>').join('');
+ document.querySelectorAll('.layer').forEach(d=>d.onclick=e=>{if(e.target.dataset.e){S.vis[e.target.dataset.e]=S.vis[e.target.dataset.e]?0:1;if(e.target.dataset.e==='bg')S.tr=!S.vis.bg;sync()}else{S.sel=d.dataset.l;layers()}})}
+$('#bgs').innerHTML=BG.map((c,i)=>'<button type="button" style="background:'+c+'" aria-label="背景色 '+c+'" aria-pressed="'+(i===S.bg)+'" data-i="'+i+'"></button>').join('');
+document.querySelectorAll('#bgs button').forEach(b=>b.onclick=()=>{S.bg=+b.dataset.i;document.querySelectorAll('#bgs button').forEach(x=>x.setAttribute('aria-pressed',x===b));sync()});
+function seg(id,key,num){document.querySelectorAll('#'+id+' button').forEach(b=>b.onclick=()=>{S[key]=num?+b.dataset.v:b.dataset.v;sync()})}
+seg('shape','shape');seg('fmt','fmt');seg('scl','scl',1);
+['t1','t2'].forEach(k=>$('#'+k).oninput=e=>{S[k]=e.target.value;sync()});$('#fs').oninput=e=>{S.fs=+e.target.value;sync()};$('#gr').oninput=e=>{S.gr=+e.target.value;sync()};
+$('#tr').onchange=e=>{S.tr=e.target.checked;S.vis.bg=S.tr?0:1;sync()};
+function conflict(){if(S.fmt==='JPG'&&S.tr)return{why:'JPG 格式不支持透明通道，但当前开启了「透明背景」。',fix:[['改用 PNG',()=>{S.fmt='PNG'}],['关闭透明背景',()=>{S.tr=false;S.vis.bg=1}]],bad:['fmt','tr']};
+ if(S.fmt==='SVG'&&S.vis.grain&&S.gr>0)return{why:'SVG 是矢量格式，无法保留「噪点纹理」位图图层（当前强度 '+S.gr+'）。',fix:[['改用 PNG',()=>{S.fmt='PNG'}],['隐藏噪点图层',()=>{S.vis.grain=0}]],bad:['fmt','grain']};return null}
+function sync(){$('#tr').checked=S.tr;['shape','fmt','scl'].forEach(id=>document.querySelectorAll('#'+id+' button').forEach(b=>{b.setAttribute('aria-pressed',String(S[id])===b.dataset.v);b.classList.remove('bad')}));$('#trl').classList.remove('bad');
+ layers();draw();if($('#msg').classList.contains('err')){const c=conflict();if(!c){$('#msg').className='msg ok';$('#msg').innerHTML='✓ 冲突已解决，可以重新导出'}else mark(c)}}
+function mark(c){if(c.bad.includes('fmt'))document.querySelector('#fmt [aria-pressed="true"]').classList.add('bad');if(c.bad.includes('tr'))$('#trl').classList.add('bad')}
+function exp(){const c=conflict();if(c){$('#msg').className='msg err';$('#msg').innerHTML='<b>无法导出</b>'+c.why+'<br>'+c.fix.map((f,i)=>'<button type="button" data-fx="'+i+'">'+f[0]+'</button>').join('');mark(c);
+  document.querySelectorAll('[data-fx]').forEach(b=>b.onclick=()=>{c.fix[+b.dataset.fx][1]();sync()});return}
+ $('#ex').disabled=true;$('#ex').textContent='正在导出…';const svgStr=new XMLSerializer().serializeToString($('#svg')).replace('viewBox="0 0 1080 1440"','viewBox="0 0 1080 1440" width="'+Math.round(1080*S.scl)+'" height="'+Math.round(1440*S.scl)+'"');
+ const name=(S.t1.trim()||'海报')+'_主海报_'+S.scl+'x.'+S.fmt.toLowerCase(),done=(url,kb)=>{n++;H.unshift([name,kb]);$('#ex').disabled=false;$('#ex').textContent='导出海报';
+  $('#msg').className='msg ok';$('#msg').innerHTML='<div class="res"><div><b>✓ 导出完成</b>'+name+'<br>'+Math.round(1080*S.scl)+' × '+Math.round(1440*S.scl)+' px · 约 '+kb+' KB<br></div></div>';
+  const im=document.createElement('img');im.alt='导出缩略图';im.src=url;$('#msg .res').prepend(im);const a=document.createElement('a');a.textContent='下载文件';a.href=url;a.download=name;$('#msg .res div').append(a);
+  $('#hist').innerHTML=H.map(h=>'<div><span>'+h[0]+'</span><span>'+h[1]+' KB</span></div>').join('')};
+ const blob=new Blob([svgStr],{type:'image/svg+xml'}),su=URL['createObjectURL'](blob);
+ if(S.fmt==='SVG'){setTimeout(()=>done(su,Math.max(1,Math.round(blob.size/1024))),400);return}
+ const img=new Image();img.onload=()=>{try{const cv=document.createElement('canvas');cv.width=Math.round(1080*S.scl);cv.height=Math.round(1440*S.scl);const x=cv.getContext('2d');if(S.fmt==='JPG'){x.fillStyle='#ffffff';x.fillRect(0,0,cv.width,cv.height)}x.drawImage(img,0,0,cv.width,cv.height);const d=cv['toDataURL'](S.fmt==='JPG'?'image/jpeg':'image/png',.9);done(d,Math.round(d.length*.75/1024))}catch(e){done(su,Math.round(blob.size/1024))}};img.onerror=()=>done(su,Math.round(blob.size/1024));img.src=su}
+$('#ex').onclick=exp;$('#topex').onclick=()=>{$('#ex').scrollIntoView({block:'center'});$('#ex').focus()};
+sync();
+</script>
+</body>
+</html>
