@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>我的收藏 · 拾贝</title>
+<style>
+:root{--cork:#c99a63;--cork-d:#a97b45;--frame:#6b4423;--note:#fff8c4;--paper:#fffdf6;--ink:#2e2418;--sub:#6e5d48;--pin-r:#e0453a;--pin-b:#2f6fd6;--pin-g:#2f9e5b}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:#3a2a1b;color:var(--ink);font:14px/1.5 "PingFang SC","Microsoft YaHei",system-ui,sans-serif;padding:24px}
+.board{min-height:calc(100vh - 48px);border:14px solid var(--frame);border-radius:6px;background:radial-gradient(#b8884f 1px,transparent 1.5px) 0 0/7px 7px,radial-gradient(#d9ad78 1px,transparent 1.5px) 3px 4px/9px 9px,var(--cork);box-shadow:inset 0 0 40px #0005;padding:22px 30px 36px}
+.hd{display:flex;align-items:center;gap:18px;margin-bottom:20px}
+.title{background:var(--paper);padding:10px 20px;transform:rotate(-1.5deg);box-shadow:2px 3px 6px #0004;font:700 26px/1 "Kaiti SC","STKaiti","KaiTi",serif;position:relative}
+.title:before{content:"";position:absolute;top:-8px;left:50%;width:70px;height:18px;margin-left:-35px;background:#ffffffaa;transform:rotate(3deg)}
+.cats{display:flex;gap:8px;flex-wrap:wrap}
+.cats button{border:0;background:var(--note);padding:7px 14px;font:inherit;font-weight:600;cursor:pointer;box-shadow:1px 2px 4px #0003;transform:rotate(var(--r,0deg));color:var(--ink)}
+.cats button:hover{background:#fff1a0}
+.cats button[aria-pressed="true"]{background:var(--ink);color:var(--note)}
+.cats button:focus-visible,.x:focus-visible,.view button:focus-visible,.u button:focus-visible{outline:3px solid var(--pin-b);outline-offset:2px}
+.view{margin-left:auto;display:flex;background:var(--paper);box-shadow:1px 2px 4px #0003}
+.view button{border:0;background:none;padding:7px 12px;font:inherit;cursor:pointer}
+.view button[aria-pressed="true"]{background:var(--frame);color:#fff}
+.count{color:#fff;font-weight:600;text-shadow:0 1px 2px #0006}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:30px 26px;padding-top:8px}
+.grid.list{grid-template-columns:1fr 1fr;gap:16px}
+.it{position:relative;background:var(--paper);padding:12px 12px 14px;box-shadow:2px 4px 10px #0004;transform:rotate(var(--r));transition:transform .2s,box-shadow .2s}
+.it:hover{transform:rotate(0) scale(1.03);box-shadow:4px 8px 18px #0005;z-index:2}
+.it.note{background:var(--note)}
+.pin{position:absolute;top:-9px;left:50%;width:18px;height:18px;margin-left:-9px;border-radius:50%;box-shadow:inset -3px -3px 0 #0003,1px 2px 3px #0005}
+.ph{height:120px;margin-bottom:10px;display:grid;place-items:center;font-size:44px}
+.list .it{display:grid;grid-template-columns:80px 1fr;gap:12px;transform:none}
+.list .ph{height:80px;margin:0;font-size:30px}
+.it b{display:block;font-size:15px}
+.it small{color:var(--sub)}
+.it .tag{display:inline-block;margin-top:6px;font-size:11px;padding:1px 6px;border:1px solid var(--sub);color:var(--sub)}
+.x{position:absolute;right:6px;top:6px;width:28px;height:28px;border-radius:50%;border:0;background:#2e241820;cursor:pointer;opacity:0;transition:opacity .15s;font-size:14px}
+.it:hover .x,.x:focus-visible{opacity:1}
+.x:hover{background:var(--pin-r);color:#fff}
+.u{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) rotate(-1deg);background:var(--note);padding:12px 18px;box-shadow:2px 4px 10px #0006;display:none;gap:14px;align-items:center;font-weight:600}
+.u.on{display:flex}
+.u button{border:2px solid var(--ink);background:none;padding:4px 10px;font:inherit;font-weight:700;cursor:pointer}
+.empty{grid-column:1/-1;background:var(--paper);padding:30px;text-align:center;transform:rotate(-1deg);box-shadow:2px 4px 10px #0004}
+@media (max-width:1000px){.grid{grid-template-columns:repeat(2,1fr)}.grid.list{grid-template-columns:1fr}body{padding:10px}.board{padding:16px}}
+@media (prefers-reduced-motion:reduce){.it{transition:none;transform:none!important}.x{transition:none}}
+</style>
+</head>
+<body>
+<div class="board">
+  <div class="hd"><div class="title">我的收藏板</div><div class="cats" id="cats"><button type="button" aria-pressed="true" data-c="" style="--r:-2deg">全部</button><button type="button" aria-pressed="false" data-c="食谱" style="--r:1deg">🍳 食谱</button><button type="button" aria-pressed="false" data-c="去处" style="--r:-1deg">📍 去处</button><button type="button" aria-pressed="false" data-c="文章" style="--r:2deg">📰 文章</button><button type="button" aria-pressed="false" data-c="灵感" style="--r:-1.5deg">✨ 灵感</button></div>
+  <span class="count" id="count"></span><div class="view" role="group" aria-label="视图"><button type="button" aria-pressed="true" data-v="grid">贴板</button><button type="button" aria-pressed="false" data-v="list">清单</button></div></div>
+  <div class="grid" id="grid"></div>
+</div>
+<div class="u" id="u" role="status"><span id="ut"></span><button type="button" id="ub">放回去</button></div>
+<script>
+let S=[['食谱','番茄牛腩焖饭','下厨房 · 收藏于 10/8','🍲','#ffd9c7','r'],['去处','苏州 · 平江路的那家旧书店','大众点评 · 收藏于 10/6','📚','#e2ecd6','b'],['文章','为什么我们总在周日晚上焦虑','少数派 · 收藏于 10/5','📝','note','g'],['灵感','客厅墙面：雾霾蓝 + 原木','小红书 · 收藏于 10/3','🛋️','#d7e3f4','r'],['食谱','5 分钟葱油拌面','B 站 · 收藏于 9/29','🍜','#fff0c2','b'],['去处','莫干山 · 竹林里的民宿','携程 · 收藏于 9/27','🏡','#dbeedd','g'],['文章','一个人旅行的 12 条小经验','公众号 · 收藏于 9/25','🎒','note','r'],['灵感','手账拼贴：秋天的配色','Pinterest · 收藏于 9/20','🍂','#f3dcc8','b']];
+const rots=[-2.5,1.8,-1,2.4,-1.6,1.2,-2.2,1.5],pins={r:'#e0453a',b:'#2f6fd6',g:'#2f9e5b'};let cat='',view='grid',last=null;const g=document.getElementById('grid');
+function render(){g.className='grid'+(view==='list'?' list':'');g.innerHTML='';const v=S.map((s,i)=>[s,i]).filter(([s])=>!cat||s[0]===cat);
+ if(!v.length)g.innerHTML='<div class="empty">这个分类还没有收藏，去逛逛吧。</div>';
+ v.forEach(([s,i],k)=>{const d=document.createElement('article');d.className='it'+(s[4]==='note'?' note':'');d.style.setProperty('--r',rots[i%8]+'deg');
+  d.innerHTML='<span class="pin" style="background:'+pins[s[5]]+'"></span><div class="ph" style="background:'+(s[4]==='note'?'#fff3a0':s[4])+'">'+s[3]+'</div><div><b>'+s[1]+'</b><small>'+s[2]+'</small><br><span class="tag">'+s[0]+'</span></div><button class="x" type="button" aria-label="取消收藏 '+s[1]+'">✕</button>';
+  d.querySelector('.x').onclick=()=>{last=[S[i],i];S.splice(i,1);document.getElementById('ut').textContent='已取下「'+last[0][1]+'」';document.getElementById('u').classList.add('on');render()};g.append(d)});
+ document.getElementById('count').textContent='共 '+v.length+' 条'}
+document.querySelectorAll('#cats button').forEach(b=>b.onclick=()=>{cat=b.dataset.c;document.querySelectorAll('#cats button').forEach(x=>x.setAttribute('aria-pressed',x===b));render()});
+document.querySelectorAll('.view button').forEach(b=>b.onclick=()=>{view=b.dataset.v;document.querySelectorAll('.view button').forEach(x=>x.setAttribute('aria-pressed',x===b));render()});
+document.getElementById('ub').onclick=()=>{if(last){S.splice(last[1],0,last[0]);last=null;document.getElementById('u').classList.remove('on');render()}};
+render();
+</script>
+</body>
+</html>
