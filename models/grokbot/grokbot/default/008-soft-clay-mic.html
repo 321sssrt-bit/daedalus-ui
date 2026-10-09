@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>权限请求 · 拾音会议</title>
+<style>
+:root{--clay:#e7e3de;--hi:#ffffff;--lo:#c5bfb7;--ink:#3b3631;--mute:#857d73;--tang:#f2711c;--tang-d:#d65f10;--green:#3fa46a;--red:#d24b3e}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:var(--clay);color:var(--ink);font:15px/1.6 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;display:grid;grid-template-rows:56px 1fr}
+.top{display:flex;align-items:center;justify-content:space-between;padding:0 32px;color:var(--mute);font-size:13px}
+.top b{color:var(--ink);font-size:15px}
+.room{display:grid;grid-template-columns:1fr 440px;gap:40px;padding:12px 40px 40px;align-items:center;max-width:1200px;margin:0 auto;width:100%}
+.preview{aspect-ratio:16/10;border-radius:28px;background:var(--clay);box-shadow:inset 10px 10px 24px var(--lo),inset -10px -10px 24px var(--hi);display:grid;place-items:center;position:relative}
+.preview .who{width:120px;height:120px;border-radius:50%;background:#d8d2ca;display:grid;place-items:center;font-size:44px;color:#9b9185;box-shadow:6px 6px 14px var(--lo),-6px -6px 14px var(--hi)}
+.preview .tag{position:absolute;left:22px;bottom:20px;background:#3b3631cc;color:#fff;padding:4px 10px;border-radius:10px;font-size:13px}
+.meter{position:absolute;right:22px;bottom:22px;display:flex;gap:4px;align-items:flex-end;height:28px}
+.meter i{width:5px;border-radius:3px;background:var(--lo);height:6px;transition:height .12s}
+.meter.live i{background:var(--green)}
+.ctl{display:flex;gap:18px;justify-content:center;margin-top:22px}
+.ctl span{width:52px;height:52px;border-radius:50%;display:grid;place-items:center;box-shadow:6px 6px 12px var(--lo),-6px -6px 12px var(--hi);font-size:20px}
+.ctl span.off{color:var(--red)}
+.card{border-radius:28px;background:var(--clay);box-shadow:14px 14px 30px var(--lo),-14px -14px 30px var(--hi);padding:34px}
+.ic{width:64px;height:64px;border-radius:20px;display:grid;place-items:center;background:var(--clay);box-shadow:inset 5px 5px 10px var(--lo),inset -5px -5px 10px var(--hi);margin-bottom:18px}
+.card h1{font-size:22px;margin:0 0 6px}
+.card .why{color:var(--mute);margin:0 0 18px}
+.list{list-style:none;padding:0;margin:0 0 24px;display:grid;gap:10px;font-size:14px}
+.list li{display:flex;gap:10px;align-items:flex-start}
+.list li:before{content:"";flex:none;width:8px;height:8px;border-radius:50%;background:var(--tang);margin-top:7px}
+.btns{display:grid;gap:12px}
+.b{height:50px;border-radius:16px;border:0;font:inherit;font-weight:600;cursor:pointer;background:var(--clay);color:var(--ink);box-shadow:6px 6px 12px var(--lo),-6px -6px 12px var(--hi);transition:box-shadow .15s,color .15s}
+.b:hover{color:var(--tang-d)}
+.b:active{box-shadow:inset 4px 4px 8px var(--lo),inset -4px -4px 8px var(--hi)}
+.b.allow{background:var(--tang);color:#fff;box-shadow:6px 6px 14px #c9a58a,-6px -6px 12px var(--hi)}
+.b.allow:hover{background:var(--tang-d);color:#fff}
+.b:focus-visible{outline:3px solid #3b3631;outline-offset:3px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.fine{font-size:12px;color:var(--mute);margin:18px 0 0}
+.result{display:none;margin-top:6px;padding:16px;border-radius:16px;box-shadow:inset 4px 4px 10px var(--lo),inset -4px -4px 10px var(--hi);font-size:14px}
+.result.on{display:block}
+.result b{display:block;font-size:15px;margin-bottom:4px}
+.result button{margin-top:10px;background:none;border:0;color:var(--tang-d);font:inherit;font-weight:600;cursor:pointer;padding:0}
+@media (max-width:960px){.room{grid-template-columns:1fr;padding:12px 24px 32px}.card{max-width:520px;margin:0 auto}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}.meter i{height:10px!important}}
+</style>
+</head>
+<body>
+<div class="top"><b>拾音会议</b><span>周会 · 设计评审（10:30 开始） · 3 人已在会中</span></div>
+<div class="room">
+  <div>
+    <div class="preview"><div class="who">邵</div><span class="tag">邵一帆（你）· 预览</span><div class="meter" id="meter" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div></div>
+    <div class="ctl" aria-hidden="true"><span class="off" id="micIco">🎙️</span><span>📷</span><span>🖥️</span></div>
+  </div>
+  <section class="card" role="dialog" aria-labelledby="h" aria-describedby="w">
+    <div class="ic" aria-hidden="true"><svg width="28" height="28" viewBox="0 0 28 28"><rect x="10" y="3" width="8" height="14" rx="4" fill="#f2711c"/><path d="M6 13a8 8 0 0016 0M14 21v4" stroke="#3b3631" stroke-width="2" fill="none" stroke-linecap="round"/></svg></div>
+    <h1 id="h">「拾音会议」想使用你的麦克风</h1>
+    <p class="why" id="w">为了让会议中的其他人听到你的声音，并在会后生成文字纪要。</p>
+    <ul class="list">
+      <li>仅在你加入会议、且未静音时采集声音</li>
+      <li>会议纪要只保存在你所在团队的空间，30 天后自动删除</li>
+      <li>随时可在「设置 → 隐私 → 麦克风」中撤回</li>
+    </ul>
+    <div class="btns" id="btns">
+      <button class="b allow" type="button" data-c="always">允许使用麦克风</button>
+      <div class="two"><button class="b" type="button" data-c="once">仅本次会议</button><button class="b" type="button" data-c="deny">暂不允许</button></div>
+    </div>
+    <div class="result" id="res" role="status" aria-live="polite"></div>
+    <p class="fine">拒绝后你仍能以「仅收听」身份入会，并通过文字聊天发言。</p>
+  </section>
+</div>
+<script>
+const res=document.getElementById('res'),meter=document.getElementById('meter'),bars=[...meter.children];let iv=null;
+const txt={always:['✓ 已允许，始终可用','你的声音会被会议成员听到。麦克风图标亮起时表示正在采集。'],once:['✓ 本次会议可用','会议结束后权限自动收回，下次入会会再次询问。'],deny:['已拒绝麦克风','你将以「仅收听」身份进入会议，可以通过文字聊天参与。']};
+function live(on){clearInterval(iv);meter.classList.toggle('live',on);document.getElementById('micIco').classList.toggle('off',!on);if(on&&!matchMedia('(prefers-reduced-motion: reduce)').matches)iv=setInterval(()=>bars.forEach(b=>b.style.height=(6+Math.random()*22)+'px'),140);else bars.forEach(b=>b.style.height='6px')}
+document.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>{const c=b.dataset.c;document.getElementById('btns').style.display='none';res.innerHTML='<b>'+txt[c][0]+'</b>'+txt[c][1]+'<br><button type="button" id="undo">重新选择</button>';res.classList.add('on');live(c!=='deny');
+ document.getElementById('undo').onclick=()=>{res.classList.remove('on');document.getElementById('btns').style.display='';live(false)}});
+</script>
+</body>
+</html>
