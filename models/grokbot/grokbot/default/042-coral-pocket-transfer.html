@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>转账 · 小珊钱包</title>
+<style>
+:root{--cream:#fff8f3;--white:#ffffff;--coral:#ff5a4f;--coral-d:#e2433a;--coral-l:#ffe3df;--ink:#1f1a1c;--sub:#857a7d;--line:#f0e2dc;--ok:#1aa37a;--ok-l:#dff5ec;--warn:#b42318}
+*{box-sizing:border-box}
+html,body{height:100%;overflow:hidden}
+body{margin:0;background:var(--cream);color:var(--ink);font:15px/1.5 -apple-system,"SF Pro Text","PingFang SC","Microsoft YaHei",system-ui,sans-serif;overflow:hidden}
+.scr{position:absolute;inset:0;display:flex;flex-direction:column;background:var(--cream);transition:opacity .2s,visibility .2s}
+.scr.off,.scr.back{opacity:0;visibility:hidden;pointer-events:none}
+.scr.in{animation:slin .28s cubic-bezier(.2,.8,.2,1)}
+@keyframes slin{from{transform:translateX(24px);opacity:0}}
+.top{display:flex;align-items:center;gap:8px;padding:14px 16px 6px}
+.top h1{margin:0;font-size:18px;flex:1;text-align:center}
+.ib{width:38px;height:38px;border-radius:50%;border:0;background:var(--white);font-size:18px;cursor:pointer;box-shadow:0 1px 0 var(--line)}
+.ib.ph{visibility:hidden}
+.bal{margin:10px 16px;background:var(--coral);color:#fff;border-radius:22px;padding:16px 18px;display:flex;justify-content:space-between;align-items:end}
+.bal small{opacity:.85;font-size:12px}
+.bal b{display:block;font:700 28px/1.2 "SF Pro Display","Helvetica Neue",Arial,sans-serif;font-variant-numeric:tabular-nums}
+.bal span{font-size:12px;background:#ffffff33;border-radius:10px;padding:2px 8px}
+.srch{margin:6px 16px 4px;height:44px;border:1.5px solid var(--line);border-radius:14px;background:var(--white);padding:0 14px;font:inherit;width:calc(100% - 32px)}
+.srch:focus{outline:none;border-color:var(--coral)}
+.sec{padding:12px 20px 4px;font-size:12px;color:var(--sub);font-weight:600;letter-spacing:.06em}
+.ppl{overflow:auto;flex:1;padding:0 12px 20px}
+.pp{display:grid;grid-template-columns:46px 1fr auto;gap:12px;align-items:center;width:100%;padding:10px 8px;border:0;background:none;border-radius:14px;font:inherit;color:inherit;text-align:left;cursor:pointer}
+.pp:hover{background:var(--white)}
+.av{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:700;font-size:17px}
+.pp small{display:block;color:var(--sub);font-size:12px}
+.pp em{font-style:normal;color:var(--sub);font-size:12px}
+.who{display:flex;flex-direction:column;align-items:center;padding:6px 0 0}
+.who .av{width:58px;height:58px;font-size:21px}
+.who b{margin-top:6px}.who small{color:var(--sub);font-size:12px}
+.amt{text-align:center;padding:14px 16px 4px}
+.amt .v{font:700 52px/1.1 "SF Pro Display","Helvetica Neue",Arial,sans-serif;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.amt .v span{font-size:28px;vertical-align:top;margin-right:2px;color:var(--sub)}
+.amt .v.over{color:var(--warn)}
+.chips{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;padding:6px 16px}
+.chips button{height:30px;padding:0 12px;border-radius:15px;border:1.5px solid var(--line);background:var(--white);font:inherit;font-size:13px;cursor:pointer}
+.chips button.t{border-color:var(--coral);color:var(--coral);border-style:dashed}
+.src{margin:8px 16px;display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:16px;background:var(--white);border:1.5px solid var(--line);cursor:pointer;font:inherit;color:inherit;text-align:left;width:calc(100% - 32px)}
+.src i{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;font-style:normal}
+.src b{display:block;font-size:14px}.src small{color:var(--sub);font-size:12px}
+.src .ch{margin-left:auto;color:var(--coral);font-weight:600;font-size:13px}
+.note{margin:0 16px;height:40px;border:0;border-bottom:1.5px solid var(--line);background:none;font:inherit;font-size:14px;padding:0 4px;width:calc(100% - 32px)}
+.note:focus{outline:none;border-color:var(--coral)}
+.pad{margin-top:auto;display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:10px 12px 6px}
+.pad button{height:52px;border:0;border-radius:14px;background:var(--white);font:600 22px/1 "SF Pro Display","Helvetica Neue",Arial,sans-serif;cursor:pointer;color:var(--ink)}
+.pad button:active{background:var(--coral-l)}
+.go{margin:6px 12px 18px;height:56px;border:0;border-radius:18px;background:var(--coral);color:#fff;font-family:inherit;font-weight:700;font-size:17px;line-height:1;cursor:pointer}
+.go:hover{background:var(--coral-d)}
+.go:disabled{background:#e9d6d0;color:#b7a6a1;cursor:not-allowed}
+button:focus-visible,.src:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+.mask{position:fixed;inset:0;background:#1f1a1c66;opacity:0;pointer-events:none;transition:opacity .2s;z-index:5}
+.mask.on{opacity:1;pointer-events:auto}
+.sheet{position:fixed;left:0;right:0;bottom:0;background:var(--white);border-radius:24px 24px 0 0;padding:12px 18px 22px;transform:translateY(105%);transition:transform .28s cubic-bezier(.2,.8,.2,1);z-index:6;max-height:90vh;overflow:auto}
+.sheet.on{transform:none}
+.grab{width:40px;height:5px;border-radius:3px;background:var(--line);margin:0 auto 12px}
+.sheet h2{margin:0 0 12px;font-size:18px;text-align:center}
+.kv{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--line);font-size:14px}
+.kv span:first-child{color:var(--sub)}
+.big{text-align:center;font:700 36px/1.2 "SF Pro Display","Helvetica Neue",Arial,sans-serif;margin:4px 0 10px}
+.err{display:none;background:#fff1ef;border:1.5px solid #ffc9c2;color:var(--warn);border-radius:14px;padding:12px 14px;margin:12px 0 0;font-size:14px}
+.err.on{display:block}
+.err b{display:block;margin-bottom:4px}
+.err .fx{display:flex;gap:8px;margin-top:10px}
+.err .fx button{flex:1;height:38px;border-radius:12px;border:1.5px solid var(--warn);background:#fff;color:var(--warn);font:inherit;font-size:13px;font-weight:600;cursor:pointer}
+.sheet .go{width:100%;margin:14px 0 0}
+.opt{display:flex;align-items:center;gap:12px;width:100%;padding:12px;border:1.5px solid var(--line);border-radius:14px;background:#fff;margin-bottom:8px;font:inherit;text-align:left;cursor:pointer}
+.opt[aria-checked="true"]{border-color:var(--coral);background:var(--coral-l)}
+.opt i{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;font-style:normal}
+.opt b{display:block;font-size:14px}.opt small{color:var(--sub);font-size:12px}
+.rcpt{flex:1;display:flex;flex-direction:column;align-items:center;padding:30px 20px 0;text-align:center}
+.rcpt .ok{width:72px;height:72px;border-radius:50%;background:var(--ok);color:#fff;font-size:36px;display:grid;place-items:center;animation:pop .35s cubic-bezier(.3,1.6,.6,1)}
+@keyframes pop{from{transform:scale(.4)}}
+.rcpt h2{margin:14px 0 2px;font-size:20px}
+.rcpt .big{margin:6px 0 16px}
+.slip{width:100%;background:var(--white);border-radius:18px;padding:6px 16px;text-align:left;border:1px dashed #e4cfc8}
+.rcpt .go{width:100%;margin-top:auto;margin-bottom:18px}
+.toast{position:fixed;left:50%;top:14px;transform:translate(-50%,-80px);background:var(--ink);color:#fff;border-radius:18px;padding:8px 14px;font-size:13px;transition:transform .25s;z-index:9;white-space:nowrap}
+.toast.on{transform:translate(-50%,0)}
+@media (min-width:600px){body{max-width:430px;margin:0 auto;position:relative}.sheet{max-width:430px;margin:0 auto}}
+@media (prefers-reduced-motion:reduce){.scr,.sheet,.mask,.toast{transition:none}.rcpt .ok,.scr.in{animation:none}}
+</style>
+</head>
+<body>
+<section class="scr" id="s1" aria-label="选择收款人">
+  <div class="top"><button class="ib" type="button" aria-label="返回钱包">‹</button><h1>转账给谁</h1><button class="ib ph" type="button" tabindex="-1" aria-hidden="true">·</button></div>
+  <div class="bal"><div><small>零钱可用余额</small><b id="b1">¥1,280.00</b></div><span>银行卡另有 ¥23,600.00</span></div>
+  <input class="srch" id="q" placeholder="搜索姓名、手机号" aria-label="搜索收款人">
+  <div class="sec">最近转账</div>
+  <div class="ppl" id="ppl"></div>
+</section>
+<section class="scr off" id="s2" aria-label="输入金额">
+  <div class="top"><button class="ib" type="button" id="bk2" aria-label="返回">‹</button><h1>输入金额</h1><button class="ib ph" type="button" tabindex="-1" aria-hidden="true">·</button></div>
+  <div class="who" id="who"></div>
+  <div class="amt"><div class="v" id="av"><span>¥</span>0</div></div>
+  <div class="chips"><button type="button" data-a="50">¥50</button><button type="button" data-a="200">¥200</button><button type="button" data-a="500">¥500</button><button type="button" class="t" data-a="2000">¥2,000（超出零钱）</button></div>
+  <button class="src" type="button" id="srcb"><i id="si"></i><span><b id="sn"></b><small id="sa"></small></span><span class="ch">更换</span></button>
+  <input class="note" id="note" maxlength="20" placeholder="添加备注（选填）" aria-label="备注">
+  <div class="pad" id="pad"></div>
+  <button class="go" type="button" id="next" disabled>下一步</button>
+</section>
+<section class="scr off" id="s3" aria-label="转账凭证"><div class="rcpt"><div class="ok">✓</div><h2>转账成功</h2><div style="color:#857a7d;font-size:13px" id="rto"></div><div class="big" id="ramt"></div><div class="slip" id="slip"></div><button class="go" type="button" id="done">完成</button></div></section>
+<div class="mask" id="mask"></div>
+<section class="sheet" id="cf" role="dialog" aria-labelledby="cft"><div class="grab"></div><h2 id="cft">确认转账</h2><div class="big" id="camt"></div><div id="ckv"></div>
+  <div class="err" id="err" role="alert"><b>余额不足，未转出</b><span id="et"></span><div class="fx"><button type="button" id="fxa">改金额</button><button type="button" id="fxs">换银行卡付款</button></div></div>
+  <button class="go" type="button" id="pay">确认转账</button></section>
+<section class="sheet" id="ss" role="dialog" aria-labelledby="sst"><div class="grab"></div><h2 id="sst">选择付款方式</h2><div id="sopt"></div></section>
+<div class="toast" id="toast" role="status"></div>
+<script>
+const PE=[['林','林小禾','138****2041','昨天','#ff8a5b'],['周','周一舟','135****7766','10 月 6 日','#6b7cff'],['阿','阿柚','186****0912','10 月 2 日','#1aa37a'],['陈','陈默（房东）','139****3388','9 月 30 日','#a35bd6'],['许','许家面馆','商户','9 月 21 日','#e2a400']];
+const SRC=[{k:'w',n:'零钱',bal:1280,ic:'👛',bg:'#ffe3df'},{k:'c',n:'招商银行储蓄卡 (6620)',bal:23600,ic:'🏦',bg:'#e3ecff'}];
+let to=null,amt='0',si=0,txn=8801;const $=s=>document.querySelector(s);
+const yen=n=>'¥'+Number(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+function go(id){['s1','s2','s3'].forEach((s,i,a)=>{const el=$('#'+s);el.classList.remove('off','back','in');if(s===id){void el.offsetWidth;el.classList.add('in')}const t=a.indexOf(id);if(i<t)el.classList.add('back');if(i>t)el.classList.add('off')})}
+function people(f){$('#ppl').innerHTML=PE.filter(p=>!f||p[1].includes(f)||p[2].includes(f)).map((p,i)=>'<button class="pp" type="button" data-i="'+PE.indexOf(p)+'"><span class="av" style="background:'+p[4]+'">'+p[0]+'</span><span><b>'+p[1]+'</b><small>'+p[2]+'</small></span><em>'+p[3]+'</em></button>').join('')||'<p style="text-align:center;color:#857a7d">没有找到这个人</p>';
+ document.querySelectorAll('.pp').forEach(b=>b.onclick=()=>{to=PE[b.dataset.i];amt='0';si=0;$('#note').value='';renderAmt();$('#who').innerHTML='<span class="av" style="background:'+to[4]+'">'+to[0]+'</span><b>'+to[1]+'</b><small>'+to[2]+'</small>';go('s2')})}
+$('#q').oninput=e=>people(e.target.value.trim());people();
+$('#pad').innerHTML=['1','2','3','4','5','6','7','8','9','.','0','⌫'].map(k=>'<button type="button" data-k="'+k+'" aria-label="'+(k==='⌫'?'删除':k)+'">'+k+'</button>').join('');
+document.querySelectorAll('#pad button').forEach(b=>b.onclick=()=>key(b.dataset.k));
+function key(k){if(k==='⌫')amt=amt.length>1?amt.slice(0,-1):'0';else if(k==='.'){if(!amt.includes('.'))amt+='.'}else{if(amt.includes('.')&&amt.split('.')[1].length>=2)return;if(amt.replace('.','').length>=7)return;amt=amt==='0'?k:amt+k}renderAmt()}
+document.querySelectorAll('.chips button').forEach(b=>b.onclick=()=>{amt=b.dataset.a;renderAmt()});
+function renderAmt(){const v=parseFloat(amt)||0,s=SRC[si];$('#av').innerHTML='<span>¥</span>'+amt.replace(/\B(?=(\d{3})+(?!\d))/g,',');$('#av').classList.remove('over');
+ $('#si').textContent=s.ic;$('#si').style.background=s.bg;$('#sn').textContent=s.n;$('#sa').textContent='可用 '+yen(s.bal);$('#next').disabled=v<=0;$('#next').textContent=v>0?'下一步 · '+yen(v):'下一步'}
+$('#bk2').onclick=()=>go('s1');
+const open=id=>{$('#mask').classList.add('on');$(id).classList.add('on')},close=()=>{$('#mask').classList.remove('on');document.querySelectorAll('.sheet').forEach(s=>s.classList.remove('on'))};
+$('#mask').onclick=close;
+function srcSheet(){$('#sopt').innerHTML=SRC.map((s,i)=>'<button class="opt" type="button" role="radio" aria-checked="'+(i===si)+'" data-i="'+i+'"><i style="background:'+s.bg+'">'+s.ic+'</i><span><b>'+s.n+'</b><small>可用 '+yen(s.bal)+'</small></span></button>').join('');
+ document.querySelectorAll('.opt').forEach(o=>o.onclick=()=>{si=+o.dataset.i;renderAmt();close();toast('已切换为：'+SRC[si].n)});open('#ss')}
+$('#srcb').onclick=srcSheet;
+function confirmView(){const v=parseFloat(amt),s=SRC[si];$('#camt').textContent=yen(v);$('#ckv').innerHTML='<div class="kv"><span>收款人</span><span>'+to[1]+'（'+to[2]+'）</span></div><div class="kv"><span>付款方式</span><span>'+s.n+'</span></div><div class="kv"><span>可用余额</span><span>'+yen(s.bal)+'</span></div><div class="kv"><span>备注</span><span>'+($('#note').value||'—')+'</span></div><div class="kv"><span>手续费</span><span>免费</span></div>';$('#err').classList.remove('on');$('#pay').textContent='确认转账'}
+$('#next').onclick=()=>{confirmView();open('#cf')};
+$('#pay').onclick=()=>{const v=parseFloat(amt),s=SRC[si];
+ if(v>s.bal){$('#err').classList.add('on');$('#et').textContent=s.n+'可用 '+yen(s.bal)+'，本次 '+yen(v)+'，还差 '+yen(v-s.bal)+'。可以降低金额，或换一个余额足够的付款方式。';$('#pay').textContent='重新确认';$('#av').classList.add('over');return}
+ s.bal-=v;txn++;close();const d=new Date();
+ $('#rto').textContent='已转给 '+to[1];$('#ramt').textContent=yen(v);
+ $('#slip').innerHTML='<div class="kv"><span>付款方式</span><span>'+s.n+'</span></div><div class="kv"><span>转账时间</span><span>2026-10-10 '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')+'</span></div><div class="kv"><span>交易单号</span><span>TR2026101000'+txn+'</span></div><div class="kv"><span>备注</span><span>'+($('#note').value||'—')+'</span></div><div class="kv"><span>'+s.n+'剩余</span><span>'+yen(s.bal)+'</span></div>';
+ $('#b1').textContent=yen(SRC[0].bal);go('s3')};
+$('#fxa').onclick=()=>{close();amt='0';renderAmt();toast('请重新输入金额')};
+$('#fxs').onclick=()=>{si=1;renderAmt();confirmView();toast('已换为招商银行储蓄卡')};
+$('#done').onclick=()=>{go('s1');amt='0'};
+function toast(t){$('#toast').textContent=t;$('#toast').classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>$('#toast').classList.remove('on'),1800)}
+</script>
+</body>
+</html>
