@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>通知中心 · 绘境</title>
+<style>
+:root{--canvas:#ece8f2;--white:#ffffff;--orchid:#a3248f;--orchid-l:#f6e6f3;--ink:#251a2b;--sub:#7a6f80;--line:#e6e0ea;--c-sec:#e5484d;--c-sys:#3e63dd;--c-ord:#12a594;--c-soc:#f76b15}
+*{box-sizing:border-box}
+body{margin:0;height:100vh;overflow:hidden;background:var(--canvas);color:var(--ink);font:14px/1.55 "PingFang SC","Microsoft YaHei",system-ui,sans-serif}
+.page{position:absolute;inset:0;padding:28px 40px;display:grid;grid-template-columns:repeat(4,1fr);gap:18px;align-content:start;filter:saturate(.7)}
+.page .hd{grid-column:1/-1;display:flex;justify-content:space-between;align-items:center}
+.page h1{margin:0;font:800 26px/1 "PingFang SC",sans-serif;color:var(--orchid)}
+.bell{position:relative;width:44px;height:44px;border-radius:50%;border:0;background:var(--white);cursor:pointer;font-size:18px}
+.bell b{position:absolute;top:2px;right:0;min-width:20px;height:20px;border-radius:10px;background:var(--c-sec);color:#fff;font-size:11px;display:grid;place-items:center;padding:0 5px}
+.page .art{aspect-ratio:3/4;border-radius:18px;background:linear-gradient(160deg,#d8c9e6,#f2d4e6)}
+.page .art:nth-child(3n){background:linear-gradient(160deg,#c9dbe6,#e0e6f2)}
+.scrim{position:fixed;inset:0;background:#251a2b40}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:440px;background:var(--white);box-shadow:-24px 0 60px -20px #251a2b55;display:grid;grid-template-rows:auto auto 1fr auto;animation:slide .3s ease-out}
+@keyframes slide{from{transform:translateX(40px);opacity:0}}
+.dh{display:flex;justify-content:space-between;align-items:center;padding:22px 24px 12px}
+.dh h2{margin:0;font-size:20px}
+.dh h2 span{font-size:13px;color:var(--orchid);background:var(--orchid-l);border-radius:999px;padding:2px 8px;margin-left:8px;vertical-align:3px}
+.allread{border:0;background:none;color:var(--orchid);font:inherit;font-weight:600;cursor:pointer;padding:6px 8px;border-radius:8px}
+.allread:hover{background:var(--orchid-l)}
+.allread:disabled{color:#bdb3c2;cursor:default;background:none}
+.tabs{display:flex;gap:4px;padding:0 20px 12px;border-bottom:1px solid var(--line)}
+.tabs button{border:0;background:none;padding:6px 12px;border-radius:999px;font:inherit;color:var(--sub);cursor:pointer}
+.tabs button:hover{background:#f4f1f6}
+.tabs button[aria-selected="true"]{background:var(--ink);color:#fff}
+.list{overflow:auto;padding:6px 0}
+.day{font-size:12px;color:var(--sub);padding:12px 24px 4px}
+.n{display:grid;grid-template-columns:36px 1fr 10px;gap:12px;padding:12px 24px;cursor:pointer;position:relative;border:0;background:none;width:100%;text-align:left;font:inherit;color:inherit}
+.n:hover{background:#faf8fb}
+.n.unread{background:#fdf7fc}
+.n .ic{width:36px;height:36px;border-radius:12px;display:grid;place-items:center;color:#fff;font-size:16px}
+.n .t{font-size:14px}.n .t b{font-weight:700}
+.n .m{font-size:12px;color:var(--sub);margin-top:2px;display:flex;gap:8px}
+.n .ty{font-weight:600}
+.n .u{width:8px;height:8px;border-radius:50%;margin-top:6px}
+.n.unread .u{background:var(--orchid)}
+.more{display:none;margin-top:10px;padding:12px;border-radius:12px;background:#f7f4f9;font-size:13px}
+.n[aria-expanded="true"] .more{display:block}
+.more .acts{display:flex;gap:8px;margin-top:10px}
+.more .acts span{padding:6px 12px;border-radius:8px;background:var(--white);border:1px solid var(--line);font-weight:600}
+.more .acts span.pri{background:var(--orchid);color:#fff;border-color:var(--orchid)}
+.n .chev{position:absolute;right:24px;bottom:12px;font-size:11px;color:var(--sub)}
+.foot{padding:14px 24px;border-top:1px solid var(--line);display:flex;justify-content:space-between;font-size:13px;color:var(--sub)}
+.foot a{color:var(--orchid)}
+.n:focus-visible,.tabs button:focus-visible,.allread:focus-visible,.bell:focus-visible{outline:2px solid var(--orchid);outline-offset:-2px}
+@media (max-width:900px){.drawer{width:100%}.page{grid-template-columns:repeat(2,1fr)}}
+@media (prefers-reduced-motion:reduce){.drawer{animation:none}}
+</style>
+</head>
+<body>
+<div class="page" aria-hidden="true"><div class="hd"><h1>绘境</h1><button class="bell" tabindex="-1">🔔<b id="badge">5</b></button></div><div class="art"></div><div class="art"></div><div class="art"></div><div class="art"></div></div>
+<div class="scrim"></div>
+<aside class="drawer" role="dialog" aria-labelledby="dt">
+  <div class="dh"><h2 id="dt">通知<span id="cnt">5 条未读</span></h2><button class="allread" id="all" type="button">全部标为已读</button></div>
+  <div class="tabs" role="tablist"><button role="tab" aria-selected="true" data-f="all">全部</button><button role="tab" aria-selected="false" data-f="soc">互动</button><button role="tab" aria-selected="false" data-f="ord">订单</button><button role="tab" aria-selected="false" data-f="sys">系统与安全</button></div>
+  <div class="list" id="list"></div>
+  <div class="foot"><span>通知保留 90 天</span><a href="#">通知设置</a></div>
+</aside>
+<script>
+const T={sec:['#e5484d','🔒','安全'],sys:['#3e63dd','⚙','系统'],ord:['#12a594','¥','订单'],soc:['#f76b15','♥','互动']};
+let N=[
+{d:'今天',k:'sec',u:1,t:'<b>新设备登录</b>：Mac · 杭州 · Safari',tm:'3 分钟前',x:'如果这是你本人，无需操作。如果不是，请立即修改密码并退出该设备。',a:['不是我，冻结账号','是我本人']},
+{d:'今天',k:'soc',u:1,t:'<b>阿梨梨</b> 评论了你的作品《雾中灯塔》：“这个光太好了！”',tm:'12 分钟前',x:'“这个光太好了！请问是用什么笔刷画的雾？”',a:['回复','查看作品']},
+{d:'今天',k:'ord',u:1,t:'你的约稿订单 <b>#YG-20817</b> 已被买家确认收货',tm:'1 小时前',x:'¥ 860.00 将在 T+1 个工作日到账，到账后可在钱包查看。',a:['查看订单']},
+{d:'今天',k:'soc',u:1,t:'<b>柚子茶</b> 等 23 人赞了你的作品',tm:'2 小时前',x:'包括 柚子茶、北岛有雪、Kiko 等 23 位创作者。',a:['查看全部']},
+{d:'昨天',k:'sys',u:1,t:'绘境 6.2 更新：新增「图层分组导出」',tm:'昨天 18:20',x:'现在可以一键导出图层分组为独立 PNG，并保留透明背景。',a:['了解更多']},
+{d:'昨天',k:'ord',u:0,t:'约稿 <b>#YG-20791</b> 买家申请修改第 2 次',tm:'昨天 10:05',x:'买家留言：“人物的衣服颜色能再偏暖一点吗？”',a:['去处理']},
+{d:'更早',k:'soc',u:0,t:'<b>北岛有雪</b> 关注了你',tm:'10 月 6 日',x:'北岛有雪 是一位插画师，作品 214 件。',a:['回关']},
+{d:'更早',k:'sys',u:0,t:'你的作品《夏夜便利店》入选本周精选',tm:'10 月 4 日',x:'作品将在首页精选位展示 7 天。',a:['查看']}];
+let f='all',open=1;const list=document.getElementById('list');
+function render(){list.innerHTML='';let lastD='';N.forEach((n,i)=>{if(f!=='all'&&!(f==='sys'?(n.k==='sys'||n.k==='sec'):n.k===f))return;
+ if(n.d!==lastD){const h=document.createElement('div');h.className='day';h.textContent=n.d;list.append(h);lastD=n.d}
+ const b=document.createElement('button');b.type='button';b.className='n'+(n.u?' unread':'');b.setAttribute('aria-expanded',open===i);
+ b.innerHTML='<span class="ic" style="background:'+T[n.k][0]+'">'+T[n.k][1]+'</span><span><div class="t">'+n.t+'</div><div class="m"><span class="ty" style="color:'+T[n.k][0]+'">'+T[n.k][2]+'</span><span>'+n.tm+'</span></div><div class="more">'+n.x+'<div class="acts">'+n.a.map((a,j)=>'<span class="'+(j===0?'pri':'')+'">'+a+'</span>').join('')+'</div></div></span><span class="u"></span><span class="chev">'+(open===i?'收起 ▲':'展开 ▼')+'</span>';
+ b.onclick=()=>{open=open===i?-1:i;n.u=0;render()};list.append(b)});
+ const c=N.filter(n=>n.u).length;document.getElementById('cnt').textContent=c?c+' 条未读':'全部已读';document.getElementById('badge').textContent=c;document.getElementById('badge').style.display=c?'':'none';document.getElementById('all').disabled=!c}
+document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{f=b.dataset.f;document.querySelectorAll('.tabs button').forEach(x=>x.setAttribute('aria-selected',x===b));render()});
+document.getElementById('all').onclick=()=>{N.forEach(n=>n.u=0);render()};
+open=-1;render();
+</script>
+</body>
+</html>
