@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>原野纪录 · 在线观看</title>
+<style>
+:root{--cream:#f5efe2;--card:#fffaf0;--ink:#1f1b16;--sub:#7a7062;--line:#e3d8c4;--rust:#c4511f;--rust-d:#a2401a;--moss:#55613a;--sky:#9cc3c9;--night:#14120f;--amber:#f0b429}
+*{box-sizing:border-box}
+body{margin:0;background:var(--cream);color:var(--ink);font:14px/1.55 "Avenir Next","PingFang SC","Microsoft YaHei",system-ui,sans-serif}
+header{display:flex;align-items:center;gap:28px;padding:14px 32px;border-bottom:1.5px solid var(--ink)}
+.logo{font:900 20px/1 Georgia,"Songti SC",serif;letter-spacing:.04em}
+.logo span{color:var(--rust)}
+header nav{display:flex;gap:18px;color:var(--sub)}header nav b{color:var(--ink)}
+header .saved{margin-left:auto;font-size:12px;color:var(--sub)}
+.wrap{display:grid;grid-template-columns:1fr 340px;gap:24px;padding:20px 32px 40px;max-width:1400px;margin:0 auto}
+.player{background:var(--night);border-radius:4px;overflow:hidden;position:relative}
+.screen{height:390px;position:relative;overflow:hidden}
+.scene{position:absolute;inset:0;transition:filter .3s}
+.sun{position:absolute;width:90px;height:90px;border-radius:50%;background:radial-gradient(circle,#ffe7a3,#f0b429 60%,#f0b42900 72%);left:10%;top:60%}
+.hill{position:absolute;left:-10%;right:-10%;bottom:0;border-radius:50% 50% 0 0}
+.bird{position:absolute;font-size:18px;color:#1f1b16aa}
+.paused .scene{filter:saturate(.6) brightness(.85)}
+.ttl{position:absolute;left:20px;top:16px;color:#fff;text-shadow:0 1px 6px #0008}
+.ttl small{font-size:12px;letter-spacing:.2em;opacity:.85}
+.ttl b{display:block;font:700 22px/1.3 Georgia,"Songti SC",serif}
+.big{position:absolute;inset:0;margin:auto;width:76px;height:76px;border-radius:50%;border:0;background:#fffaf0e6;font-size:28px;cursor:pointer;display:none;color:var(--ink)}
+.paused .big{display:block}
+.netx{position:absolute;inset:0;background:#14120fd9;color:#fff;display:none;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center}
+.netx.on{display:flex}
+.netx b{font-size:20px}
+.netx p{margin:0;color:#d8cfc0}
+.netx .rc{margin-top:8px;height:42px;padding:0 20px;border-radius:21px;border:0;background:var(--amber);color:var(--ink);font:inherit;font-weight:800;cursor:pointer}
+.netx .sp{width:28px;height:28px;border:3px solid #ffffff44;border-top-color:var(--amber);border-radius:50%;animation:sp .8s linear infinite;display:none}
+.netx.ing .sp{display:block}.netx.ing .rc{display:none}
+@keyframes sp{to{transform:rotate(360deg)}}
+.ctl{padding:10px 16px 14px;color:#f5efe2}
+.bar{position:relative;height:18px;cursor:pointer;display:flex;align-items:center}
+.bar .tr{position:absolute;left:0;right:0;height:5px;background:#ffffff26;border-radius:3px}
+.bar .bf{position:absolute;left:0;height:5px;background:#ffffff55;border-radius:3px}
+.bar .pl{position:absolute;left:0;height:5px;background:var(--rust);border-radius:3px}
+.bar .kn{position:absolute;width:14px;height:14px;border-radius:50%;background:#fff;transform:translateX(-7px);box-shadow:0 0 0 3px #c4511f66}
+.row{display:flex;align-items:center;gap:8px;margin-top:6px}
+.row button{height:34px;min-width:34px;padding:0 10px;border-radius:6px;border:0;background:#ffffff14;color:#f5efe2;font:inherit;cursor:pointer}
+.row button:hover{background:#ffffff26}
+.row .pp{background:var(--rust);font-size:15px;min-width:44px}
+.row .pp:hover{background:var(--rust-d)}
+.row .tm{font:600 13px "SF Mono",Menlo,monospace;margin:0 6px}
+.row .sim{margin-left:auto;background:none;border:1.5px dashed var(--amber);color:var(--amber);font-size:12px;font-weight:700}
+.row .sim:hover{background:#f0b42922}
+button:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
+.info{display:flex;justify-content:space-between;align-items:baseline;margin:14px 0 4px}
+.info h1{margin:0;font:700 24px Georgia,"Songti SC",serif}
+.info span{color:var(--sub);font-size:13px}
+.state{display:inline-flex;gap:6px;align-items:center;font-size:12px;padding:3px 10px;border-radius:12px;background:#e9e1cf;margin-top:4px}
+.state i{width:8px;height:8px;border-radius:50%;background:var(--sub)}
+.state.play i{background:var(--moss)}.state.net i{background:var(--rust)}
+h2{font:700 15px Georgia,"Songti SC",serif;margin:22px 0 10px;display:flex;justify-content:space-between;align-items:baseline}
+h2 small{font:12px "PingFang SC",sans-serif;color:var(--sub)}
+.disc{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.ep{background:var(--card);border:1.5px solid var(--ink);border-radius:4px;overflow:hidden;cursor:pointer;text-align:left;padding:0;font:inherit;color:inherit;transition:transform .15s}
+.ep:hover{transform:translate(-2px,-2px);box-shadow:4px 4px 0 var(--ink)}
+.ep .th{height:92px;position:relative}
+.ep .th span{position:absolute;right:6px;bottom:6px;background:#14120fcc;color:#fff;font-size:11px;padding:1px 6px;border-radius:3px}
+.ep .th em{position:absolute;left:0;bottom:0;height:3px;background:var(--rust);font-style:normal}
+.ep .b{padding:8px 10px}
+.ep b{display:block;font-size:13px}.ep small{color:var(--sub);font-size:11px}
+.ep .add{float:right;border:1px solid var(--ink);background:none;border-radius:4px;font-size:11px;padding:0 6px;cursor:pointer}
+aside{background:var(--card);border:1.5px solid var(--ink);border-radius:4px;padding:14px;align-self:start}
+aside h2{margin-top:0}
+.q{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.q li{display:grid;grid-template-columns:22px 1fr auto;gap:8px;align-items:center;padding:8px;border-radius:4px;border:1px solid var(--line);background:#fff}
+.q li.now{border-color:var(--rust);background:#fbe9de}
+.q li .n{font:700 12px "SF Mono",Menlo,monospace;color:var(--sub)}
+.q li b{font-size:13px;display:block}.q li small{color:var(--sub);font-size:11px}
+.q li .op{display:flex;gap:2px}
+.q li .op button{width:24px;height:24px;border:1px solid var(--line);background:#fff;border-radius:4px;cursor:pointer;font-size:11px}
+.q li .op button:disabled{opacity:.3;cursor:default}
+.cont{margin-top:14px;padding-top:12px;border-top:1px dashed var(--line);font-size:13px}
+.cont b{display:block}
+.toast{position:fixed;left:50%;bottom:22px;transform:translate(-50%,80px);background:var(--ink);color:#fff;padding:9px 16px;border-radius:20px;transition:transform .25s;z-index:9}
+.toast.on{transform:translate(-50%,0)}
+@media (max-width:1000px){.wrap{grid-template-columns:1fr;padding:16px}.disc{grid-template-columns:repeat(2,1fr)}.screen{height:240px}header nav{display:none}}
+@media (prefers-reduced-motion:reduce){.scene,.ep,.toast{transition:none}.netx .sp{animation:none}}
+</style>
+</head>
+<body>
+<header><span class="logo">原野<span>纪录</span></span><nav><b>首页</b><span>系列</span><span>短片</span><span>我的片单</span></nav><span class="saved" id="sv">播放进度自动保存</span></header>
+<div class="wrap">
+  <main>
+    <section class="player paused" id="pl" aria-label="播放器">
+      <div class="screen"><div class="scene" id="scene"></div><div class="ttl"><small id="ser"></small><b id="ept"></b></div>
+        <button class="big" type="button" id="big" aria-label="播放">▶</button>
+        <div class="netx" id="netx" role="alert"><b>网络连接中断</b><p id="nxp"></p><span class="sp"></span><button class="rc" type="button" id="rc">重新连接并继续</button></div></div>
+      <div class="ctl"><div class="bar" id="bar" role="slider" aria-label="播放进度" tabindex="0"><span class="tr"></span><span class="bf" id="bf"></span><span class="pl" id="plb"></span><span class="kn" id="kn"></span></div>
+        <div class="row"><button class="pp" type="button" id="pp" aria-label="播放">▶</button><button type="button" id="rw" aria-label="后退 10 秒">⟲ 10</button><button type="button" id="fw" aria-label="前进 10 秒">10 ⟳</button><span class="tm" id="tm">0:00 / 0:00</span><button type="button" id="spd">1.0×</button><button type="button" id="nx">下一集 ⏭</button><button class="sim" type="button" id="sim">⚡ 模拟网络中断</button></div></div>
+    </section>
+    <div class="info"><div><h1 id="h1"></h1><span class="state" id="st"><i></i><span id="stt">已暂停</span></span></div><span id="meta"></span></div>
+    <h2>发现更多 <small>点卡片立即播放，点「＋ 队列」加入待播</small></h2>
+    <div class="disc" id="disc"></div>
+  </main>
+  <aside aria-label="播放队列"><h2>接下来播放 <small id="qn"></small></h2><ol class="q" id="q"></ol>
+    <div class="cont"><span style="color:#7a7062;font-size:12px">继续观看（已保存）</span><b id="cw">—</b><span id="cwt" style="color:#7a7062"></span></div></aside>
+</div>
+<div class="toast" id="toast" role="status"></div>
+<script>
+const E=[{id:'e1',s:'高原之春 · 第 1 集',t:'雪线之上',d:252,c:['#9cc3c9','#d8c79a','#6d7a4a','#3d4a2a']},{id:'e2',s:'高原之春 · 第 2 集',t:'迁徙的藏羚',d:198,c:['#f2c48d','#e3a05c','#8c6a3a','#4a3a24']},{id:'e3',s:'海岸线 · 第 1 集',t:'潮间带的清晨',d:226,c:['#bfe0e6','#7fb5c2','#3d7a8c','#1f4a5a']},{id:'e4',s:'海岸线 · 第 2 集',t:'红树林的夜',d:174,c:['#3a3f5c','#5c5a7a','#2a3a3a','#141f1f']},{id:'e5',s:'短片',t:'城市里的游隼',d:132,c:['#e6e1d6','#b8b0a0','#7a7062','#3a342c']},{id:'e6',s:'短片',t:'一棵银杏的一年',d:160,c:['#fbe3a0','#f0b429','#c4511f','#5a3a1a']}];
+let st={cur:'e1',t:0,q:['e2','e3','e5'],prog:{e1:0},spd:1};
+try{const s=JSON.parse(localStorage.getItem('yyjl'));if(s&&s.cur)st=s}catch(e){}
+let playing=false,net=false,tm;const $=s=>document.querySelector(s);const ep=id=>E.find(e=>e.id===id);
+const fm=s=>Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0');
+function scene(e){return '<div style="position:absolute;inset:0;background:linear-gradient('+e.c[0]+','+e.c[1]+')"></div><span class="sun" id="sun"></span><div class="hill" style="height:46%;background:'+e.c[2]+';left:-20%;right:30%"></div><div class="hill" style="height:32%;background:'+e.c[3]+'"></div><span class="bird" style="left:30%;top:22%">︶</span><span class="bird" style="left:36%;top:18%">︶</span>'}
+function save(){st.prog[st.cur]=st.t;try{localStorage.setItem('yyjl',JSON.stringify(st))}catch(e){}const e=ep(st.cur);$('#cw').textContent=e.s+'《'+e.t+'》';$('#cwt').textContent='停在 '+fm(st.t)+' / '+fm(e.d);$('#sv').textContent='✓ 进度已保存 · '+fm(st.t)}
+function load(id,keep){if(st.cur!==id){st.prog[st.cur]=st.t;st.cur=id;st.t=keep?(st.prog[id]||0):0}const e=ep(id);$('#scene').innerHTML=scene(e);$('#ser').textContent=e.s;$('#ept').textContent=e.t;$('#h1').textContent=e.t;$('#meta').textContent=e.s+' · '+fm(e.d);ui();disc();queue();save()}
+function ui(){const e=ep(st.cur),p=st.t/e.d*100;$('#plb').style.width=p+'%';$('#kn').style.left=p+'%';$('#bf').style.width=net?p+'%':Math.min(100,p+18)+'%';$('#tm').textContent=fm(st.t)+' / '+fm(e.d);
+ const s=$('#sun');if(s){s.style.left=(10+p*.7)+'%';s.style.top=(60-Math.sin(p/100*Math.PI)*45)+'%'}
+ $('#pl').classList.toggle('paused',!playing);$('#pp').textContent=playing?'❚❚':'▶';$('#pp').setAttribute('aria-label',playing?'暂停':'播放');
+ $('#st').className='state'+(net?' net':playing?' play':'');$('#stt').textContent=net?'网络中断 · 已暂停在 '+fm(st.t):playing?'正在播放 · '+st.spd+'×':'已暂停 · '+fm(st.t);$('#bar').setAttribute('aria-valuenow',Math.round(p))}
+function play(on){if(net)return;playing=on;clearInterval(tm);if(on)tm=setInterval(()=>{const e=ep(st.cur);st.t=Math.min(e.d,st.t+st.spd);if(st.t>=e.d){next();return}ui();if(Math.floor(st.t)%5===0)save()},1000);else save();ui()}
+function next(){if(!st.q.length){play(false);toast('队列已播完');return}const id=st.q.shift();load(id,false);play(true);toast('开始播放：'+ep(id).t)}
+$('#pp').onclick=()=>play(!playing);$('#big').onclick=()=>play(true);
+$('#rw').onclick=()=>{st.t=Math.max(0,st.t-10);ui();save()};$('#fw').onclick=()=>{st.t=Math.min(ep(st.cur).d-1,st.t+10);ui();save()};
+$('#spd').onclick=()=>{st.spd=st.spd===1?1.5:st.spd===1.5?2:1;$('#spd').textContent=st.spd.toFixed(1)+'×';ui()};
+$('#nx').onclick=next;
+$('#bar').onclick=e=>{if(net)return;const r=$('#bar').getBoundingClientRect();st.t=Math.round((e.clientX-r.left)/r.width*ep(st.cur).d);ui();save()};
+$('#bar').onkeydown=e=>{if(e.key==='ArrowRight')$('#fw').click();if(e.key==='ArrowLeft')$('#rw').click()};
+$('#sim').onclick=()=>{if(net)return;const was=playing;play(false);net=true;save();$('#netx').classList.add('on');$('#netx').classList.remove('ing');$('#nxp').textContent='已暂停，进度保存在 '+fm(st.t)+'。恢复后会从这里继续'+(was?'播放':'')+'。';ui()};
+$('#rc').onclick=()=>{$('#netx').classList.add('ing');$('#nxp').textContent='正在重新连接…';setTimeout(()=>{net=false;$('#netx').classList.remove('on','ing');toast('已恢复，从 '+fm(st.t)+' 继续播放');play(true)},1500)};
+function disc(){$('#disc').innerHTML=E.map(e=>{const pr=(e.id===st.cur?st.t:st.prog[e.id]||0)/e.d*100;return '<button class="ep" type="button" data-id="'+e.id+'"><div class="th" style="background:linear-gradient(170deg,'+e.c[0]+','+e.c[2]+' 70%,'+e.c[3]+')"><span>'+fm(e.d)+'</span><em style="width:'+pr+'%"></em></div><div class="b"><small>'+e.s+'</small><b>'+e.t+'</b>'+(e.id===st.cur?'<small style="color:#c4511f">▶ 正在播放</small>':'<span class="add" role="button" tabindex="0" data-add="'+e.id+'">＋ 队列</span>')+'</div></button>'}).join('');
+ document.querySelectorAll('.ep').forEach(b=>b.onclick=ev=>{const a=ev.target.closest('[data-add]');if(a){ev.stopPropagation();if(!st.q.includes(a.dataset.add)){st.q.push(a.dataset.add);queue();save();toast('已加入队列：'+ep(a.dataset.add).t)}else toast('已在队列中');return}if(net){toast('网络中断中，请先重新连接');return}if(b.dataset.id!==st.cur){load(b.dataset.id,true);play(true)}})}
+function queue(){$('#qn').textContent=st.q.length+' 集';$('#q').innerHTML='<li class="now"><span class="n">▶</span><span><b>'+ep(st.cur).t+'</b><small>正在播放</small></span><span></span></li>'+st.q.map((id,i)=>'<li><span class="n">'+(i+1)+'</span><span><b>'+ep(id).t+'</b><small>'+ep(id).s+' · '+fm(ep(id).d)+'</small></span><span class="op"><button type="button" data-u="'+i+'" aria-label="上移" '+(i?'':'disabled')+'>↑</button><button type="button" data-dn="'+i+'" aria-label="下移" '+(i<st.q.length-1?'':'disabled')+'>↓</button><button type="button" data-x="'+i+'" aria-label="移出队列">✕</button></span></li>').join('');
+ document.querySelectorAll('[data-u]').forEach(b=>b.onclick=()=>{const i=+b.dataset.u;[st.q[i-1],st.q[i]]=[st.q[i],st.q[i-1]];queue();save()});
+ document.querySelectorAll('[data-dn]').forEach(b=>b.onclick=()=>{const i=+b.dataset.dn;[st.q[i+1],st.q[i]]=[st.q[i],st.q[i+1]];queue();save()});
+ document.querySelectorAll('[data-x]').forEach(b=>b.onclick=()=>{st.q.splice(+b.dataset.x,1);queue();save()})}
+function toast(t){$('#toast').textContent=t;$('#toast').classList.add('on');clearTimeout(toast.k);toast.k=setTimeout(()=>$('#toast').classList.remove('on'),2000)}
+$('#spd').textContent=st.spd.toFixed(1)+'×';load(st.cur,true);
+</script>
+</body>
+</html>
