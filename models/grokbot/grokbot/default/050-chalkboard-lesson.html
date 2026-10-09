@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>黑板课堂 · 概率初步</title>
+<style>
+:root{--board:#2f4a3a;--board2:#38574455;--wood:#8a5a32;--wood-d:#6b4224;--chalk:#f4f1e6;--dim:#c9d2c4;--yel:#ffe27a;--pink:#ff9aa8;--blue:#9fd3ff;--grn:#a8e6a1;--paper:#f6efe0}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%}
+body{background:var(--wood-d) repeating-linear-gradient(90deg,#00000014 0 3px,transparent 3px 14px);font:16px/1.6 "Kaiti SC","STKaiti","KaiTi","PingFang SC","Microsoft YaHei",serif;color:var(--chalk);padding:24px}
+.frame{max-width:1180px;margin:0 auto;border:16px solid var(--wood);border-radius:6px;box-shadow:inset 0 0 0 2px var(--wood-d),0 10px 30px #0006;background:var(--board) radial-gradient(ellipse at 30% 20%,#3d5d4a 0,transparent 60%);min-height:calc(100vh - 48px);display:grid;grid-template-columns:260px 1fr}
+.side{border-right:2px dashed #f4f1e633;padding:22px 18px}
+.brand{font-size:24px;margin:0 0 4px;color:var(--yel)}
+.side p{margin:0 0 18px;color:var(--dim);font-size:14px}
+.course{display:block;width:100%;text-align:left;border:2px solid #f4f1e655;border-radius:10px;background:none;color:var(--chalk);font:inherit;padding:10px 12px;margin-bottom:10px;cursor:pointer}
+.course small{display:block;color:var(--dim);font-size:13px}
+.course[aria-current="true"]{border-color:var(--yel);background:#ffe27a14}
+.course:disabled{opacity:.5;cursor:not-allowed}
+.prog{margin-top:20px;font-size:14px;color:var(--dim)}
+.prog .bar{height:10px;border:2px solid var(--chalk);border-radius:6px;margin-top:6px;overflow:hidden}
+.prog .bar i{display:block;height:100%;background:var(--grn);width:0;transition:width .5s}
+.tray{margin-top:30px;height:14px;background:var(--wood);border-radius:3px;position:relative}
+.tray::before{content:"";position:absolute;left:20px;top:-8px;width:46px;height:9px;background:var(--chalk);border-radius:3px}
+.tray::after{content:"";position:absolute;left:80px;top:-8px;width:30px;height:9px;background:var(--pink);border-radius:3px}
+.main{padding:26px 36px 30px;position:relative}
+.view{display:none}.view.on{display:block;animation:fd .3s ease}
+@keyframes fd{from{opacity:0}to{opacity:1}}
+h1{font-size:34px;margin:0 0 4px;font-weight:700;letter-spacing:.04em}
+.sub{color:var(--dim);margin:0 0 20px}
+.note{background:var(--paper);color:#3a2c1c;border-radius:4px;padding:16px 20px;transform:rotate(-.6deg);box-shadow:3px 4px 0 #0003;max-width:720px;margin-bottom:22px}
+.note b{color:#b5432b}
+.coin{display:inline-flex;gap:10px;margin:8px 0 2px}
+.coin span{width:46px;height:46px;border-radius:50%;border:2px dashed #3a2c1c;display:grid;place-items:center;font-size:14px}
+.btn{height:46px;padding:0 26px;border:2px solid var(--chalk);border-radius:10px;background:none;color:var(--chalk);font:inherit;font-size:18px;cursor:pointer}
+.btn.pri{background:var(--yel);color:#2a2a1a;border-color:var(--yel);font-weight:700}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn:hover:not(:disabled){transform:translateY(-1px)}
+.qhead{display:flex;justify-content:space-between;align-items:baseline;color:var(--dim);font-size:15px}
+.dots{display:flex;gap:8px}.dots i{width:14px;height:14px;border-radius:50%;border:2px solid var(--chalk)}
+.dots i.done{background:var(--grn);border-color:var(--grn)}.dots i.cur{background:var(--yel);border-color:var(--yel)}.dots i.fix{background:var(--pink);border-color:var(--pink)}
+.q{font-size:26px;margin:10px 0 18px;line-height:1.5}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:12px;max-width:640px}
+.opt{display:flex;align-items:center;gap:12px;border:2px solid #f4f1e677;border-radius:12px;padding:12px 16px;cursor:pointer;font-size:20px;background:none;color:var(--chalk);font-family:inherit;text-align:left}
+.opt span{width:30px;height:30px;border-radius:50%;border:2px solid currentColor;display:grid;place-items:center;font-size:15px;flex-shrink:0}
+.opt[aria-checked="true"]{border-color:var(--yel);color:var(--yel);background:#ffe27a12}
+.opt.wrong{border-color:var(--pink);color:var(--pink);text-decoration:line-through}
+.opt.was{opacity:.55;border-style:dashed}
+.opt.right{border-color:var(--grn);color:var(--grn)}
+.fill{display:flex;gap:10px;align-items:center;font-size:22px}
+.fill input{width:140px;height:52px;border:0;border-bottom:3px solid var(--chalk);background:none;color:var(--yel);font:inherit;font-size:28px;text-align:center;outline:none}
+.fill input:focus{border-color:var(--yel)}
+.act{display:flex;gap:12px;margin-top:22px;align-items:center}
+.fb{margin-top:20px;max-width:640px;border-radius:12px;padding:14px 18px;display:none}
+.fb.bad{display:block;border:2px dashed var(--pink);background:#ff9aa814}
+.fb.good{display:block;border:2px solid var(--grn);background:#a8e6a114}
+.fb h3{margin:0 0 6px;font-size:21px}
+.fb.bad h3{color:var(--pink)}.fb.good h3{color:var(--grn)}
+.fb p{margin:4px 0}
+.fb .hint{color:var(--blue)}
+.stamp{position:absolute;right:40px;top:150px;width:130px;height:130px;border:4px solid var(--grn);border-radius:50%;color:var(--grn);display:none;place-items:center;text-align:center;font-size:24px;font-weight:700;transform:rotate(-14deg);line-height:1.2}
+.stamp.on{display:grid;animation:st .4s ease}
+@keyframes st{from{transform:rotate(-14deg) scale(1.6);opacity:0}to{transform:rotate(-14deg) scale(1);opacity:1}}
+.res{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;max-width:720px;margin:10px 0 20px}
+.res div{border:2px solid #f4f1e655;border-radius:12px;padding:14px;text-align:center;color:var(--dim)}
+.res b{display:block;font-size:40px;color:var(--chalk)}
+.rl{list-style:none;padding:0;max-width:720px}
+.rl li{padding:10px 0;border-bottom:1px dashed #f4f1e644;display:flex;gap:12px}
+.rl li em{font-style:normal;padding:0 8px;border-radius:6px;font-size:14px;height:24px;line-height:24px;flex-shrink:0}
+.rl .ok em{background:var(--grn);color:#1d3a20}.rl .fx em{background:var(--pink);color:#4a1620}
+button:focus-visible,input:focus-visible{outline:3px dashed var(--blue);outline-offset:3px}
+@media (max-width:860px){.frame{grid-template-columns:1fr}.side{border-right:0;border-bottom:2px dashed #f4f1e633}.opts{grid-template-columns:1fr}.stamp{right:16px;top:16px;width:96px;height:96px;font-size:18px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="frame">
+  <aside class="side" aria-label="课程">
+    <h2 class="brand">黑板课堂</h2><p>初二 · 数学选修</p>
+    <button class="course" type="button" aria-current="false"><small>第 1 课 · 已学完</small>什么是概率</button>
+    <button class="course" type="button" id="c2" aria-current="true"><small>第 2 课 · 进行中</small>独立事件</button>
+    <button class="course" type="button" disabled><small>第 3 课 · 学完第 2 课解锁</small>条件概率</button>
+    <div class="prog">本课进度 <span id="pt">0 / 3</span><div class="bar"><i id="pb"></i></div></div>
+    <div class="tray" aria-hidden="true"></div>
+  </aside>
+  <main class="main">
+    <section class="view on" id="v-intro" aria-labelledby="t-in">
+      <h1 id="t-in">第 2 课 · 独立事件</h1><p class="sub">约 6 分钟 · 讲解 + 3 道练习</p>
+      <div class="note"><p style="margin-top:0"><b>两件事互不影响</b>，就叫独立事件。比如抛两次硬币，第一次的结果不会改变第二次。</p>
+        <div class="coin"><span>正</span><span>反</span> × <span>正</span><span>反</span></div>
+        <p><b>乘法规则：</b>两件独立的事同时发生的概率 = 各自概率相乘。<br>P(两次都正) = ½ × ½ = ¼</p>
+        <p style="margin-bottom:0"><b>小心：</b>硬币没有记忆。前面出了多少次正面，下一次仍然是 ½。</p></div>
+      <button class="btn pri" type="button" id="start">开始练习 →</button>
+    </section>
+    <section class="view" id="v-q" aria-labelledby="qq">
+      <div class="qhead"><span id="qn"></span><div class="dots" id="dots" aria-hidden="true"></div></div>
+      <p class="q" id="qq"></p>
+      <div id="qa"></div>
+      <div class="act"><button class="btn pri" type="button" id="sub" disabled>提交答案</button><button class="btn" type="button" id="retry" hidden>再试一次</button><button class="btn pri" type="button" id="next" hidden>下一题 →</button></div>
+      <div class="fb" id="fb" role="status" aria-live="polite"></div>
+      <div class="stamp" id="stamp" aria-hidden="true">订正<br>成功</div>
+    </section>
+    <section class="view" id="v-res" aria-labelledby="t-res">
+      <h1 id="t-res">第 2 课 · 完成！</h1><p class="sub">第 3 课「条件概率」已解锁</p>
+      <div class="res"><div>正确<b id="r1"></b></div><div>订正后正确<b id="r2"></b></div><div>总作答次数<b id="r3"></b></div></div>
+      <ul class="rl" id="rl"></ul>
+      <div class="act"><button class="btn" type="button" id="redo">重新练习本课</button></div>
+    </section>
+  </main>
+</div>
+<script>
+const $=s=>document.querySelector(s);
+const Q=[
+ {t:'choice',q:'抛一枚均匀硬币两次，两次都是正面的概率是多少？',o:['½','¼','⅓','¾'],a:1,
+  why:{0:'½ 只是「一次正面」的概率。两次都要正面，要把两次的概率相乘。',2:'⅓ 是把结果看成「两正、一正一反、两反」三种，但「一正一反」其实有两种顺序（正反、反正）。',3:'¾ 是「至少一次正面」的概率，不是「两次都正面」。'},
+  hint:'列出全部 4 种等可能结果：正正、正反、反正、反反，只有「正正」1 种符合。',ok:'½ × ½ = ¼，全部 4 种结果里只有「正正」符合。'},
+ {t:'fill',q:'掷一枚均匀骰子，掷出偶数点的概率是多少？（填分数，如 1/3）',a:['1/2','3/6','0.5'],
+  why:'偶数点有 2、4、6 共 3 个，骰子一共 6 个面。',hint:'概率 = 符合的结果数 ÷ 全部结果数 = 3 ÷ 6，化简后再填。',ok:'3 ÷ 6 = ½，写成 1/2 或 3/6 都对。'},
+ {t:'choice',q:'一枚均匀硬币已经连续抛出 5 次正面，第 6 次是正面的概率是？',o:['小于 ½，反面该来了','等于 ½','大于 ½，手气正旺','无法确定'],a:1,
+  why:{0:'这是「赌徒谬误」：以为前面的结果会让反面「补回来」。',2:'这是「热手谬误」：以为正面会延续。',3:'硬币是均匀的，概率完全可以确定。'},
+  hint:'回看讲解卡片最后一句：硬币没有记忆，每次抛掷都是独立事件。',ok:'每次抛掷彼此独立，第 6 次仍是 ½。'}];
+let i=0,sel=null,log=[],tries=0,state='ask';
+function dots(){$('#dots').innerHTML=Q.map((_,k)=>'<i class="'+(k<i?(log[k].fix?'fix':'done'):k===i?'cur':'')+'"></i>').join('')}
+function prog(){const d=log.length;$('#pt').textContent=d+' / 3';$('#pb').style.width=(d/3*100)+'%'}
+function show(id){document.querySelectorAll('.view').forEach(v=>v.classList.toggle('on',v.id===id))}
+function ask(){const q=Q[i];sel=null;tries=0;state='ask';$('#qn').textContent='练习 '+(i+1)+' / 3';$('#qq').textContent=q.q;$('#fb').className='fb';$('#stamp').classList.remove('on');
+ $('#sub').hidden=false;$('#sub').disabled=true;$('#retry').hidden=true;$('#next').hidden=true;dots();
+ if(q.t==='choice'){$('#qa').innerHTML='<div class="opts" role="radiogroup" aria-label="选项">'+q.o.map((o,k)=>'<button type="button" class="opt" role="radio" aria-checked="false" data-k="'+k+'"><span>'+'ABCD'[k]+'</span>'+o+'</button>').join('')+'</div>';
+  document.querySelectorAll('.opt').forEach(b=>b.onclick=()=>{if(state!=='ask')return;sel=+b.dataset.k;document.querySelectorAll('.opt').forEach(x=>x.setAttribute('aria-checked',x===b));$('#sub').disabled=false})}
+ else{$('#qa').innerHTML='<label class="fill">答案：<input id="fi" autocomplete="off" aria-label="填写分数答案" placeholder="?/?"></label>';$('#fi').oninput=e=>{sel=e.target.value.trim();$('#sub').disabled=!sel};$('#fi').onkeydown=e=>{if(e.key==='Enter'&&sel)submit()};$('#fi').focus()}}
+function norm(s){return s.replace(/\s/g,'').replace('／','/')}
+function submit(){const q=Q[i];tries++;const right=q.t==='choice'?sel===q.a:q.a.includes(norm(sel));$('#sub').hidden=true;state='done';
+ if(q.t==='choice')document.querySelectorAll('.opt').forEach(b=>{b.setAttribute('aria-disabled','true');if(+b.dataset.k===sel)b.classList.add(right?'right':'wrong')});else $('#fi').disabled=true;
+ if(!right){const w=q.t==='choice'?q.why[sel]:'你填的是「'+sel+'」。'+q.why;$('#fb').className='fb bad';$('#fb').innerHTML='<h3>✗ 答错了，再想想</h3><p>'+w+'</p><p class="hint">订正提示：'+q.hint+'</p>';$('#retry').hidden=false;$('#retry').focus();return}
+ const fixed=tries>1;log[i]={fix:fixed,tries};$('#fb').className='fb good';$('#fb').innerHTML='<h3>✓ '+(fixed?'订正成功！':'回答正确')+'</h3><p>'+q.ok+'</p>'+(fixed?'<p style="color:var(--dim)">这一题第 '+tries+' 次作答答对，已记入错题本并标记为「已订正」。</p>':'');
+ if(fixed)$('#stamp').classList.add('on');$('#next').hidden=false;$('#next').textContent=i<2?'下一题 →':'查看本课结果 →';$('#next').focus();prog()}
+$('#sub').onclick=submit;
+$('#retry').onclick=()=>{state='ask';$('#retry').hidden=true;$('#sub').hidden=false;$('#sub').disabled=true;sel=null;$('#fb').className='fb';$('#fb').innerHTML='';
+ if(Q[i].t==='choice')document.querySelectorAll('.opt').forEach(b=>{b.removeAttribute('aria-disabled');b.setAttribute('aria-checked','false');if(b.classList.contains('wrong')){b.classList.remove('wrong');b.classList.add('was')}});else{$('#fi').disabled=false;$('#fi').value='';$('#fi').focus()}
+ $('#fb').className='fb';};
+$('#next').onclick=()=>{if(i<2){i++;ask()}else res()};
+function res(){show('v-res');const a=log.filter(l=>!l.fix).length,b=log.filter(l=>l.fix).length;$('#r1').textContent=a;$('#r2').textContent=b;$('#r3').textContent=log.reduce((s,l)=>s+l.tries,0);
+ $('#rl').innerHTML=Q.map((q,k)=>'<li class="'+(log[k].fix?'fx':'ok')+'"><em>'+(log[k].fix?'已订正':'一次答对')+'</em>'+q.q+'</li>').join('');
+ const c3=document.querySelector('.course:disabled');if(c3){c3.disabled=false;c3.querySelector('small').textContent='第 3 课 · 已解锁'}$('#c2 small').textContent='第 2 课 · 已完成'}
+$('#start').onclick=()=>{show('v-q');i=0;log=[];prog();ask()};
+$('#redo').onclick=()=>{show('v-q');i=0;log=[];prog();ask()};$('#c2').onclick=()=>{show('v-intro')};
+prog();
+</script>
+</body>
+</html>
