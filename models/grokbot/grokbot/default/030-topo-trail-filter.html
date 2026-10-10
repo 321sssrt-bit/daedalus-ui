@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>找路线 · 山径</title>
+<style>
+:root{--sand:#f3ecdc;--paper:#fbf7ee;--olive:#4a5a2b;--olive-d:#36421f;--rust:#d2602a;--ink:#2b2a22;--sub:#6e6a58;--line:#d9cfb6;--contour:#c9bc98}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;color:var(--ink);font:14px/1.55 "PingFang SC","Microsoft YaHei",system-ui,sans-serif;background:var(--sand)}
+.topo{position:fixed;inset:0;z-index:-1;width:100%;height:100%}
+header{display:flex;align-items:center;gap:24px;padding:18px 40px;background:var(--olive);color:var(--paper)}
+header b{font:800 22px/1 "PingFang SC",sans-serif;letter-spacing:.1em}
+header b span{color:#f2a46c}
+header small{opacity:.8}
+.wrap{max-width:1200px;margin:0 auto;padding:24px 40px 56px;display:grid;grid-template-columns:280px 1fr;gap:28px}
+aside{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:20px;align-self:start;position:sticky;top:16px}
+aside h2{margin:0 0 4px;font-size:16px;display:flex;justify-content:space-between;align-items:center}
+.clr{border:0;background:none;color:var(--rust);font:inherit;font-weight:600;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.clr:disabled{color:var(--sub);opacity:.5;text-decoration:none;cursor:default}
+fieldset{border:0;border-top:1px dashed var(--line);margin:14px 0 0;padding:14px 0 0}
+legend{font-weight:700;font-size:13px;padding:0;margin-bottom:8px;float:left;width:100%}
+.chips{display:flex;flex-wrap:wrap;gap:6px;clear:both}
+.chip{height:32px;padding:0 12px;border-radius:16px;border:1.5px solid var(--line);background:#fff;font:inherit;font-size:13px;cursor:pointer;color:var(--ink)}
+.chip:hover{border-color:var(--olive)}
+.chip[aria-pressed="true"]{background:var(--olive);border-color:var(--olive);color:#fff}
+.seg{display:grid;grid-template-columns:repeat(4,1fr);border:1.5px solid var(--olive);border-radius:8px;overflow:hidden;clear:both}
+.seg button{height:34px;border:0;border-right:1px solid var(--olive);background:#fff;font:inherit;font-size:13px;cursor:pointer;color:var(--olive)}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{background:var(--olive);color:#fff}
+.rng{clear:both}
+.rng input{width:100%;accent-color:var(--rust)}
+.rng div{display:flex;justify-content:space-between;font-size:12px;color:var(--sub)}
+.ck{display:flex;gap:8px;align-items:center;margin:6px 0;clear:both;cursor:pointer}
+.ck input{width:18px;height:18px;accent-color:var(--olive)}
+.chip:focus-visible,.seg button:focus-visible,.clr:focus-visible,.card:focus-visible,select:focus-visible{outline:2px solid var(--rust);outline-offset:2px}
+.bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.bar h1{margin:0;font-size:26px}
+.bar h1 em{font-style:normal;color:var(--rust);font-family:Georgia,serif;font-size:32px}
+.bar select{height:36px;border:1.5px solid var(--line);border-radius:8px;background:var(--paper);font:inherit;padding:0 10px}
+.tags{display:flex;gap:6px;flex-wrap:wrap;min-height:28px;margin-bottom:12px}
+.tags span{font-size:12px;background:#ece2c8;border-radius:12px;padding:3px 10px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:14px;overflow:hidden;transition:transform .2s,box-shadow .2s}
+.card:hover{transform:translateY(-3px);box-shadow:0 12px 24px -12px #4a5a2b55}
+.art{height:120px;position:relative}
+.art svg{width:100%;height:100%;display:block}
+.lv{position:absolute;left:10px;top:10px;font-size:11px;font-weight:700;color:#fff;padding:2px 8px;border-radius:4px}
+.cb{padding:12px 14px 14px}
+.cb h3{margin:0 0 4px;font-size:16px}
+.cb p{margin:0 0 8px;color:var(--sub);font-size:12px}
+.meta{display:flex;gap:12px;font-size:12px;font-variant-numeric:tabular-nums}
+.meta b{color:var(--olive)}
+.empty{grid-column:1/-1;text-align:center;padding:48px;background:var(--paper);border:1.5px dashed var(--contour);border-radius:14px;color:var(--sub)}
+.empty b{display:block;color:var(--ink);font-size:17px;margin-bottom:4px}
+@media (max-width:1100px){.grid{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:800px){.wrap{grid-template-columns:1fr;padding:16px}aside{position:static}.grid{grid-template-columns:1fr}header{padding:14px 16px}}
+@media (prefers-reduced-motion:reduce){.card{transition:none}.card:hover{transform:none}}
+</style>
+</head>
+<body>
+<svg class="topo" aria-hidden="true"><defs><pattern id="tp" width="400" height="400" patternUnits="userSpaceOnUse"><g fill="none" stroke="#d9cdaa" stroke-width="1.2"><path d="M-20 120C60 60 140 160 220 100S360 40 420 90"/><path d="M-20 150C60 90 140 190 220 130S360 70 420 120"/><path d="M-20 180C60 120 140 220 220 160S360 100 420 150"/><ellipse cx="300" cy="300" rx="70" ry="40"/><ellipse cx="300" cy="300" rx="45" ry="24"/><ellipse cx="300" cy="300" rx="20" ry="10"/><path d="M-20 330C40 290 100 360 180 320"/></g></pattern></defs><rect width="100%" height="100%" fill="url(#tp)"/></svg>
+<header><b>山<span>径</span></b><small>找一条适合这个周末的路线</small></header>
+<div class="wrap">
+  <aside aria-label="筛选条件"><h2>筛选 <button class="clr" type="button" id="clr" disabled>清除全部</button></h2>
+    <fieldset><legend>区域</legend><div class="chips" id="area"></div></fieldset>
+    <fieldset><legend>难度</legend><div class="seg" id="lv"><button type="button" aria-pressed="true" data-v="">不限</button><button type="button" aria-pressed="false" data-v="入门">入门</button><button type="button" aria-pressed="false" data-v="进阶">进阶</button><button type="button" aria-pressed="false" data-v="硬核">硬核</button></div></fieldset>
+    <fieldset><legend>最长用时：<span id="hv">不限</span></legend><div class="rng"><input type="range" id="hr" min="2" max="10" step="1" value="10" aria-label="最长用时"><div><span>2 小时</span><span>10 小时以上</span></div></div></fieldset>
+    <fieldset><legend>路线特色</legend><label class="ck"><input type="checkbox" value="水源">沿途有水源</label><label class="ck"><input type="checkbox" value="露营">可以露营</label><label class="ck"><input type="checkbox" value="带狗">允许带狗</label><label class="ck"><input type="checkbox" value="公交">公交可达</label></fieldset>
+  </aside>
+  <main>
+    <div class="bar"><h1>找到 <em id="cnt">0</em> 条路线</h1><select id="so" aria-label="排序"><option value="r">按评分</option><option value="h">用时从短到长</option><option value="k">距离从短到长</option></select></div>
+    <div class="tags" id="tags"></div>
+    <div class="grid" id="grid"></div>
+  </main>
+</div>
+<script>
+const T=[['麦理浩径二段','西贡','进阶',6,13.5,4.9,['水源','露营','公交'],'#5d7a3a'],['凤凰山日出线','大屿山','硬核',5,7.2,4.8,['公交'],'#8b4a2b'],['龙脊','港岛','入门',2.5,8.5,4.7,['带狗','公交'],'#3f7a7a'],['大东山芒草径','大屿山','进阶',4,9,4.6,['带狗','公交'],'#b07a2a'],['八仙岭全程','新界东北','硬核',8,15,4.5,['水源','露营'],'#4a5a2b'],['城门水塘环线','新界中部','入门',3,6.8,4.4,['水源','带狗','公交'],'#2f6a8a'],['蚺蛇尖','西贡','硬核',7,12,4.8,['水源'],'#6a3a5a'],['南丫岛家乐径','离岛','入门',2,5.5,4.3,['公交','带狗'],'#c06a3a']];
+const AREAS=['西贡','大屿山','港岛','新界东北','新界中部','离岛'];const C={'入门':'#4a8a3a','进阶':'#d2602a','硬核':'#7a1f1f'};
+let S={a:[],lv:'',h:10,f:[]};const $=s=>document.querySelector(s);
+$('#area').innerHTML=AREAS.map(a=>'<button class="chip" type="button" aria-pressed="false" data-a="'+a+'">'+a+'</button>').join('');
+document.querySelectorAll('#area .chip').forEach(b=>b.onclick=()=>{const a=b.dataset.a;S.a=S.a.includes(a)?S.a.filter(x=>x!==a):[...S.a,a];go()});
+document.querySelectorAll('#lv button').forEach(b=>b.onclick=()=>{S.lv=b.dataset.v;go()});
+$('#hr').oninput=e=>{S.h=+e.target.value;go()};
+document.querySelectorAll('.ck input').forEach(c=>c.onchange=()=>{S.f=[...document.querySelectorAll('.ck input:checked')].map(x=>x.value);go()});
+$('#so').onchange=go;
+$('#clr').onclick=()=>{S={a:[],lv:'',h:10,f:[]};$('#hr').value=10;document.querySelectorAll('.ck input').forEach(c=>c.checked=false);go()};
+function art(c,i){return '<svg viewBox="0 0 300 120" preserveAspectRatio="none" aria-hidden="true"><rect width="300" height="120" fill="'+c+'"/><path d="M0 120L'+(60+i*9)+' '+(40+i*4)+' 120 80 '+(170+i*5)+' 30 240 75 300 50V120Z" fill="#00000030"/><path d="M0 120L80 70 150 100 220 60 300 90V120Z" fill="#00000040"/><path d="M20 110Q90 '+(60+i*3)+' 150 85T280 55" stroke="#fff" stroke-width="2" stroke-dasharray="5 5" fill="none"/></svg>'}
+function go(){document.querySelectorAll('#area .chip').forEach(b=>b.setAttribute('aria-pressed',S.a.includes(b.dataset.a)));document.querySelectorAll('#lv button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===S.lv));
+ $('#hv').textContent=S.h>=10?'不限':S.h+' 小时内';
+ let r=T.filter(t=>(!S.a.length||S.a.includes(t[1]))&&(!S.lv||t[2]===S.lv)&&(S.h>=10||t[3]<=S.h)&&S.f.every(f=>t[6].includes(f)));
+ const so=$('#so').value;r.sort((a,b)=>so==='r'?b[5]-a[5]:so==='h'?a[3]-b[3]:a[4]-b[4]);$('#cnt').textContent=r.length;
+ const tg=[...S.a,S.lv,S.h<10?S.h+' 小时内':'',...S.f.map(f=>({'水源':'有水源','露营':'可露营','带狗':'可带狗','公交':'公交可达'})[f])].filter(Boolean);
+ $('#tags').innerHTML=tg.map(t=>'<span>'+t+'</span>').join('');$('#clr').disabled=!tg.length;
+ $('#grid').innerHTML=r.length?r.map((t,i)=>'<article class="card" tabindex="0"><div class="art">'+art(t[7],T.indexOf(t))+'<span class="lv" style="background:'+C[t[2]]+'">'+t[2]+'</span></div><div class="cb"><h3>'+t[0]+'</h3><p>'+t[1]+' · '+t[6].map(f=>({'水源':'有水源','露营':'可露营','带狗':'可带狗','公交':'公交可达'})[f]).join(' · ')+'</p><div class="meta"><span>⏱ <b>'+t[3]+'</b> 小时</span><span>↔ <b>'+t[4]+'</b> 公里</span><span>★ <b>'+t[5]+'</b></span></div></div></article>').join(''):'<div class="empty"><b>没有符合全部条件的路线</b>试试放宽用时，或去掉一两个特色条件。</div>'}
+go();
+</script>
+</body>
+</html>

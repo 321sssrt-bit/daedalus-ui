@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>今日总览 · 鲸运调度台</title>
+<style>
+:root{--rail:#161b22;--bg:#eef1f4;--panel:#ffffff;--ink:#14181f;--sub:#5b6573;--line:#d5dbe3;--blue:#0f62fe;--blue-l:#e5edff;--amber:#f1a10b;--red:#da1e28;--green:#198038}
+*{box-sizing:border-box}
+body{margin:0;height:100vh;display:grid;grid-template-columns:56px 1fr;background:var(--bg);color:var(--ink);font:13px/1.45 "IBM Plex Sans","PingFang SC","Microsoft YaHei",system-ui,sans-serif;overflow:hidden}
+.rail{background:var(--rail);display:flex;flex-direction:column;align-items:center;padding:12px 0;gap:6px}
+.rail .lg{width:32px;height:32px;background:var(--blue);display:grid;place-items:center;color:#fff;font-weight:700;margin-bottom:14px}
+.rail a{width:40px;height:40px;display:grid;place-items:center;color:#8d96a3;text-decoration:none;font-size:17px;border-left:3px solid transparent}
+.rail a:hover{color:#fff;background:#232a33}
+.rail a[aria-current]{color:#fff;border-left-color:var(--blue);background:#232a33}
+.rail a:focus-visible{outline:2px solid #fff;outline-offset:-2px}
+.wrap{display:grid;grid-template-rows:48px auto 1fr;min-width:0;min-height:0}
+.top{display:flex;align-items:center;gap:16px;padding:0 20px;background:var(--panel);border-bottom:1px solid var(--line)}
+.top h1{font-size:15px;margin:0;font-weight:600}
+.top .crumb{color:var(--sub)}
+.top .sp{flex:1}
+.search{height:32px;width:260px;border:1px solid var(--line);background:var(--bg);padding:0 10px;font:inherit}
+.search:focus{outline:2px solid var(--blue);outline-offset:-2px;background:#fff}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border-bottom:1px solid var(--line)}
+.kpi{background:var(--panel);padding:14px 20px}
+.kpi small{color:var(--sub);display:block}
+.kpi b{font-size:30px;font-weight:400;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.kpi em{font-style:normal;font-size:12px;margin-left:6px}
+.up{color:var(--green)}.dn{color:var(--red)}
+.spark{display:block;margin-top:4px}
+.body{display:grid;grid-template-columns:1fr 320px;gap:16px;padding:16px 20px;min-height:0}
+.card{background:var(--panel);border:1px solid var(--line);display:flex;flex-direction:column;min-height:0}
+.card h2{font-size:14px;margin:0;padding:12px 16px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;font-weight:600}
+.tabs{display:flex;border-bottom:1px solid var(--line)}
+.tabs button{border:0;background:none;padding:10px 16px;font:inherit;color:var(--sub);cursor:pointer;border-bottom:2px solid transparent}
+.tabs button:hover{background:#f4f6f8;color:var(--ink)}
+.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--blue);font-weight:600}
+.tabs button:focus-visible{outline:2px solid var(--blue);outline-offset:-2px}
+.tabs .n{display:inline-block;min-width:18px;padding:0 5px;margin-left:6px;background:#e0e4ea;border-radius:9px;font-size:11px;text-align:center}
+.scroll{overflow:auto;min-height:0}
+table{width:100%;border-collapse:collapse}
+th{position:sticky;top:0;background:#f4f6f8;text-align:left;font-weight:600;color:var(--sub);padding:8px 16px;border-bottom:1px solid var(--line)}
+td{padding:9px 16px;border-bottom:1px solid #e8ecf0;white-space:nowrap}
+tbody tr{cursor:pointer}
+tbody tr:hover{background:#f4f6f8}
+tbody tr[aria-selected="true"]{background:var(--blue-l);box-shadow:inset 3px 0 0 var(--blue)}
+.pill{display:inline-flex;align-items:center;gap:6px}
+.pill:before{content:"";width:8px;height:8px;border-radius:50%;background:currentColor}
+.s-late{color:var(--red)}.s-run{color:var(--blue)}.s-wait{color:var(--amber)}.s-ok{color:var(--green)}
+.side{display:grid;grid-template-rows:auto 1fr;gap:16px;min-height:0}
+.dock{padding:12px 16px;display:grid;gap:10px}
+.dock div{display:grid;grid-template-columns:64px 1fr 40px;align-items:center;gap:8px}
+.bar{height:8px;background:#e0e4ea}.bar i{display:block;height:100%;background:var(--blue)}
+.bar i.hot{background:var(--amber)}
+.detail{padding:14px 16px;font-size:13px}
+.detail dl{display:grid;grid-template-columns:72px 1fr;gap:6px 10px;margin:0 0 14px}
+.detail dt{color:var(--sub)}.detail dd{margin:0}
+.btn{height:32px;padding:0 14px;border:0;background:var(--blue);color:#fff;font:inherit;cursor:pointer}
+.btn:hover{background:#0050e6}
+.btn:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.btn.ghost{background:transparent;color:var(--blue);border:1px solid var(--blue)}
+@media (max-width:1000px){body{overflow:auto;height:auto}.kpis{grid-template-columns:repeat(2,1fr)}.body{grid-template-columns:1fr}.search{width:160px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<nav class="rail" aria-label="主导航"><span class="lg">鲸</span><a href="#" aria-current="page" title="总览">▦</a><a href="#" title="运单">⇄</a><a href="#" title="车辆">⛟</a><a href="#" title="码头">⚓</a><a href="#" title="报表">◔</a><a href="#" title="设置">⚙</a></nav>
+<div class="wrap">
+  <header class="top"><h1>今日总览</h1><span class="crumb">宁波北仑港区 · 2026-10-10 周六 · 09:42 更新</span><span class="sp"></span><input class="search" placeholder="搜运单号 / 车牌 / 箱号" aria-label="搜索"><button class="btn" type="button">＋ 新建调度</button></header>
+  <section class="kpis" aria-label="今日数字">
+    <div class="kpi"><small>今日计划运单</small><b>1,284</b><em class="up">▲ 6.2%</em><svg class="spark" width="120" height="18" viewBox="0 0 120 18" aria-hidden="true"><polyline points="0,14 20,12 40,13 60,8 80,9 100,5 120,4" fill="none" stroke="#0f62fe" stroke-width="1.5"/></svg></div>
+    <div class="kpi"><small>在途车辆</small><b>346</b><em class="up">▲ 12</em><svg class="spark" width="120" height="18" viewBox="0 0 120 18" aria-hidden="true"><polyline points="0,10 20,11 40,7 60,9 80,6 100,7 120,5" fill="none" stroke="#0f62fe" stroke-width="1.5"/></svg></div>
+    <div class="kpi"><small>准点率</small><b>94.7%</b><em class="dn">▼ 1.1%</em><svg class="spark" width="120" height="18" viewBox="0 0 120 18" aria-hidden="true"><polyline points="0,4 20,5 40,4 60,7 80,6 100,9 120,10" fill="none" stroke="#da1e28" stroke-width="1.5"/></svg></div>
+    <div class="kpi"><small>待处理异常</small><b>17</b><em class="dn">需关注 5</em><svg class="spark" width="120" height="18" viewBox="0 0 120 18" aria-hidden="true"><polyline points="0,12 20,10 40,11 60,6 80,8 100,4 120,6" fill="none" stroke="#f1a10b" stroke-width="1.5"/></svg></div>
+  </section>
+  <div class="body">
+    <section class="card" aria-label="运单队列">
+      <h2>调度队列 <span style="font-weight:400;color:#5b6573">点击一行查看详情</span></h2>
+      <div class="tabs" role="tablist"><button role="tab" aria-selected="true" data-f="all">全部<span class="n">10</span></button><button role="tab" aria-selected="false" data-f="late">延误<span class="n">3</span></button><button role="tab" aria-selected="false" data-f="wait">待派车<span class="n">3</span></button><button role="tab" aria-selected="false" data-f="run">运输中<span class="n">3</span></button></div>
+      <div class="scroll"><table><thead><tr><th>运单号</th><th>线路</th><th>箱型</th><th>车牌</th><th>预计到达</th><th>状态</th></tr></thead><tbody id="tb"></tbody></table></div>
+    </section>
+    <div class="side">
+      <section class="card"><h2>码头闸口负载</h2><div class="dock">
+        <div><span>1 号闸</span><span class="bar"><i style="width:62%"></i></span><span>62%</span></div>
+        <div><span>2 号闸</span><span class="bar"><i class="hot" style="width:91%"></i></span><span>91%</span></div>
+        <div><span>3 号闸</span><span class="bar"><i style="width:44%"></i></span><span>44%</span></div>
+        <div><span>堆场 B</span><span class="bar"><i style="width:73%"></i></span><span>73%</span></div></div></section>
+      <section class="card"><h2>运单详情</h2><div class="detail" id="det"></div></section>
+    </div>
+  </div>
+</div>
+<script>
+const rows=[['YD-26101001','北仑 → 义乌','40HQ','浙B·7K231','10:20','late','延误 25 分'],['YD-26101002','北仑 → 绍兴','20GP','浙B·2M886','10:45','run','运输中'],['YD-26101003','北仑 → 苏州','40GP','—','11:30','wait','待派车'],['YD-26101004','北仑 → 金华','40HQ','浙G·5T019','11:05','run','运输中'],['YD-26101005','北仑 → 杭州','20GP','浙A·9C772','09:58','ok','已签收'],['YD-26101006','北仑 → 合肥','45HQ','皖A·3Q551','13:40','late','延误 40 分'],['YD-26101007','北仑 → 嘉兴','20RF','—','12:10','wait','待派车'],['YD-26101008','北仑 → 上海','40HQ','沪D·8F620','12:35','run','运输中'],['YD-26101009','北仑 → 台州','40GP','浙J·1H302','11:50','late','延误 15 分'],['YD-26101010','北仑 → 温州','20GP','—','14:20','wait','待派车']];
+const tb=document.getElementById('tb'),det=document.getElementById('det');let sel=0,f='all';
+function show(r){det.innerHTML='<dl><dt>运单号</dt><dd>'+r[0]+'</dd><dt>线路</dt><dd>'+r[1]+'</dd><dt>箱型</dt><dd>'+r[2]+'</dd><dt>车牌</dt><dd>'+r[3]+'</dd><dt>预计到达</dt><dd>'+r[4]+'</dd><dt>状态</dt><dd><span class="pill s-'+r[5]+'">'+r[6]+'</span></dd></dl>'+(r[5]==='wait'?'<button class="btn" type="button">指派车辆</button>':'<button class="btn ghost" type="button">联系司机</button>')}
+function render(){tb.innerHTML='';rows.forEach((r,i)=>{if(f!=='all'&&r[5]!==f)return;const tr=document.createElement('tr');tr.tabIndex=0;tr.setAttribute('aria-selected',i===sel);tr.innerHTML='<td>'+r[0]+'</td><td>'+r[1]+'</td><td>'+r[2]+'</td><td>'+r[3]+'</td><td>'+r[4]+'</td><td><span class="pill s-'+r[5]+'">'+r[6]+'</span></td>';tr.onclick=tr.onkeydown=e=>{if(e.type==='keydown'&&e.key!=='Enter')return;sel=i;render()};tb.append(tr)});show(rows[sel])}
+document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{f=b.dataset.f;document.querySelectorAll('.tabs button').forEach(x=>x.setAttribute('aria-selected',x===b));const first=rows.findIndex(r=>f==='all'||r[5]===f);sel=first;render()});
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>任务 · 协作台</title>
+<style>
+:root{--bg:#f4f4f4;--layer:#ffffff;--l2:#e8e8e8;--ink:#161616;--sub:#525252;--line:#c6c6c6;--blue:#0f62fe;--blue-d:#0043ce;--blue-l:#edf5ff;--green:#24a148;--yellow:#f1c21b;--purple:#8a3ffc;--red:#da1e28;--red-l:#fff1f1}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 "IBM Plex Sans","Helvetica Neue",Arial,"PingFang SC","Microsoft YaHei",sans-serif}
+.shell{display:flex;align-items:center;height:48px;background:var(--ink);color:#f4f4f4;padding:0 16px;gap:16px}
+.shell b{font-weight:600}.shell b span{font-weight:400;color:#c6c6c6}
+.shell .me{margin-left:auto;display:flex;align-items:center;gap:8px;font-size:13px;color:#c6c6c6}
+.shell .me i{width:28px;height:28px;background:var(--blue);color:#fff;display:grid;place-items:center;font-style:normal;font-weight:600}
+.wrap{display:grid;grid-template-columns:1fr 340px;min-height:calc(100vh - 48px)}
+main{padding:24px 32px}
+.crumb{font-size:12px;color:var(--sub)}
+h1{font-size:28px;font-weight:400;margin:4px 0 16px}
+.new{display:grid;grid-template-columns:1fr 180px 140px auto;gap:1px;background:var(--line);border-bottom:2px solid var(--blue);margin-bottom:20px}
+.new input,.new select{height:48px;border:0;background:var(--layer);padding:0 16px;font:inherit;color:var(--ink)}
+.new input:focus,.new select:focus{outline:2px solid var(--blue);outline-offset:-2px}
+.btn{height:48px;padding:0 20px;border:0;background:var(--blue);color:#fff;font:inherit;cursor:pointer;display:flex;align-items:center;gap:10px}
+.btn:hover{background:var(--blue-d)}
+.btn:disabled{background:var(--line);color:#8d8d8d;cursor:not-allowed}
+.btn.sec{background:var(--ink)}.btn.sec:hover{background:#393939}
+.btn.gh{background:transparent;color:var(--blue)}.btn.gh:hover{background:var(--blue-l)}
+.btn:focus-visible,select:focus-visible,.adv:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.err{font-size:12px;color:var(--red);min-height:16px;margin:-14px 0 10px}
+.filters{display:flex;gap:0;margin-bottom:0;border-bottom:1px solid var(--line)}
+.filters button{height:40px;padding:0 16px;border:0;border-bottom:2px solid transparent;background:none;font:inherit;color:var(--sub);cursor:pointer}
+.filters button[aria-pressed="true"]{border-bottom-color:var(--blue);color:var(--ink);font-weight:600}
+table{width:100%;border-collapse:collapse;background:var(--layer)}
+th{text-align:left;font-weight:600;font-size:13px;background:var(--l2);height:40px;padding:0 16px}
+td{height:52px;padding:0 16px;border-bottom:1px solid #e0e0e0;font-size:14px}
+tr:hover td{background:#f0f0f0}
+tr.lock td:first-child:before{content:"🔒 ";font-size:12px}
+tr.flash td{animation:fl 1s}
+@keyframes fl{from{background:var(--blue-l)}}
+td select{height:32px;border:0;border-bottom:1px solid #8d8d8d;background:var(--bg);font:inherit;padding:0 8px;min-width:120px}
+.tag{display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 10px;border-radius:12px;font-size:12px}
+.tag i{width:8px;height:8px;border-radius:50%}
+.s0{background:#e0e0e0}.s0 i{background:#8d8d8d}
+.s1{background:#d0e2ff;color:#002d9c}.s1 i{background:var(--blue)}
+.s2{background:#e8daff;color:#491d8b}.s2 i{background:var(--purple)}
+.s3{background:#defbe6;color:#044317}.s3 i{background:var(--green)}
+.adv{height:32px;padding:0 12px;border:1px solid var(--blue);background:none;color:var(--blue);font:inherit;font-size:13px;cursor:pointer}
+.adv:hover{background:var(--blue);color:#fff}
+.adv:disabled{border-color:var(--line);color:#8d8d8d;background:none;cursor:default}
+.own{font-size:12px;color:var(--sub)}
+aside{background:var(--layer);border-left:1px solid var(--line);padding:24px 20px;overflow:auto;max-height:calc(100vh - 48px);position:sticky;top:0}
+aside h2{font-size:16px;font-weight:600;margin:0 0 4px}
+aside p{margin:0 0 16px;font-size:12px;color:var(--sub)}
+.log{list-style:none;margin:0;padding:0;border-left:1px solid var(--line)}
+.log li{position:relative;padding:0 0 16px 16px;font-size:13px}
+.log li:before{content:"";position:absolute;left:-5px;top:4px;width:9px;height:9px;background:var(--layer);border:2px solid var(--blue)}
+.log li.deny:before{border-color:var(--red)}
+.log li.req:before{border-color:var(--yellow)}
+.log li.new{animation:fl 1.2s}
+.log small{display:block;color:var(--sub);font-size:11px}
+.mask{position:fixed;inset:0;background:#161616b3;display:none;place-items:center;z-index:9}
+.mask.on{display:grid}
+.modal{width:560px;max-width:94vw;background:var(--layer);border-top:3px solid var(--red)}
+.modal .mh{padding:16px 16px 0 16px}
+.modal small{font-size:12px;color:var(--sub)}
+.modal h3{margin:4px 0 12px;font-size:20px;font-weight:400}
+.modal .mb{padding:0 16px 20px;font-size:14px}
+.modal .need{background:var(--red-l);border-left:3px solid var(--red);padding:10px 12px;margin:10px 0;font-size:13px}
+.modal textarea{width:100%;height:64px;border:0;border-bottom:1px solid #8d8d8d;background:var(--bg);font:inherit;padding:8px;resize:none}
+.modal .mf{display:grid;grid-template-columns:1fr 1fr}
+.modal .mf .btn{height:64px;align-items:flex-start;padding-top:14px}
+.note{position:fixed;right:16px;top:64px;width:320px;background:var(--ink);color:#f4f4f4;border-left:3px solid var(--green);padding:12px 14px;font-size:13px;transform:translateX(120%);transition:transform .25s;z-index:10}
+.note.on{transform:none}
+.note.w{border-left-color:var(--yellow)}
+@media (max-width:1050px){.wrap{grid-template-columns:1fr}aside{position:static;max-height:none;border-left:0;border-top:1px solid var(--line)}.new{grid-template-columns:1fr 1fr}main{padding:16px}}
+@media (prefers-reduced-motion:reduce){tr.flash td,.log li.new{animation:none}.note{transition:none}}
+</style>
+</head>
+<body>
+<div class="shell"><b>协作台 <span>/ 官网改版 2026Q4</span></b><span class="me">许岚 · 设计组成员<i>许</i></span></div>
+<div class="wrap">
+<main>
+  <div class="crumb">项目 / 官网改版 2026Q4 / 任务</div>
+  <h1>任务看板</h1>
+  <form class="new" id="nf" autocomplete="off"><input id="nt" placeholder="新任务标题，例如：首页首屏动效走查" aria-label="任务标题" maxlength="40"><select id="na" aria-label="分派给"><option value="">分派给…</option></select><select id="ns" aria-label="初始状态"><option value="0">待办</option><option value="1">进行中</option></select><button class="btn" type="submit">创建任务 ＋</button></form>
+  <div class="err" id="ne" role="alert"></div>
+  <div class="filters" role="group" aria-label="筛选"><button type="button" aria-pressed="true" data-f="all">全部</button><button type="button" aria-pressed="false" data-f="mine">分派给我</button><button type="button" aria-pressed="false" data-f="open">未完成</button></div>
+  <table><thead><tr><th>任务</th><th>负责人</th><th>状态</th><th>推进</th><th>所属</th></tr></thead><tbody id="tb"></tbody></table>
+</main>
+<aside aria-label="活动记录"><h2>活动记录</h2><p>所有变更按时间倒序记录；被拒绝的操作不会写入任务。</p><ol class="log" id="log"></ol></aside>
+</div>
+<div class="mask" id="mask"><div class="modal" role="alertdialog" aria-labelledby="mt"><div class="mh"><small>权限不足</small><h3 id="mt">这次变更没有保存</h3></div>
+  <div class="mb"><span id="mx"></span><div class="need" id="need"></div><label for="why" style="font-size:12px;color:#525252">申请理由（选填）</label><textarea id="why">需要跟进预算审批进度，以便排期首页上线。</textarea></div>
+  <div class="mf"><button class="btn sec" type="button" id="back">返回可操作的任务</button><button class="btn" type="button" id="ask">申请访问权限 →</button></div></div></div>
+<div class="note" id="note" role="status"></div>
+<script>
+const ME='许岚',M=['许岚','周一舟','林小禾','陈默','财务 · 王姝'],ST=['待办','进行中','评审','已完成'];
+let T=[{id:1,t:'首页信息架构定稿',a:'周一舟',s:2,g:'设计组'},{id:2,t:'品牌色板与图标重绘',a:'许岚',s:1,g:'设计组'},{id:3,t:'预算审批：外包动效费用',a:'财务 · 王姝',s:0,g:'财务组',lock:1},{id:4,t:'案例页文案初稿',a:'林小禾',s:0,g:'设计组'},{id:5,t:'服务器迁移评估',a:'陈默',s:1,g:'工程组',lock:1}];
+let L=[['周一舟','把「首页信息架构定稿」推进到 评审','09:20',''],['陈默','创建任务「服务器迁移评估」','昨天 18:02','']],nid=6,F='all',pending=null;
+const $=s=>document.querySelector(s);const now=()=>{const d=new Date();return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')};
+$('#na').innerHTML+=M.filter(m=>!m.startsWith('财务')).map(m=>'<option>'+m+'</option>').join('');
+function log(who,txt,cls){L.unshift([who,txt,now(),cls||'']);renderLog(true)}
+function renderLog(nw){$('#log').innerHTML=L.map((l,i)=>'<li class="'+l[3]+(nw&&i===0?' new':'')+'"><b>'+l[0]+'</b> '+l[1]+'<small>'+l[2]+'</small></li>').join('')}
+function render(flash){const rows=T.filter(x=>F==='all'||(F==='mine'?x.a===ME:x.s<3));
+ $('#tb').innerHTML=rows.map(x=>'<tr class="'+(x.lock?'lock':'')+(flash===x.id?' flash':'')+'" data-id="'+x.id+'"><td>'+x.t+'</td><td><select data-as="'+x.id+'" aria-label="负责人">'+M.map(m=>'<option '+(m===x.a?'selected':'')+'>'+m+'</option>').join('')+'</select></td><td><span class="tag s'+x.s+'"><i></i>'+ST[x.s]+'</span></td><td><button class="adv" type="button" data-adv="'+x.id+'" '+(x.s>=3?'disabled':'')+'>'+(x.s>=3?'已完成':'推进到 '+ST[x.s+1]+' →')+'</button></td><td class="own">'+x.g+(x.lock?' · 受限':'')+'</td></tr>').join('');
+ document.querySelectorAll('[data-adv]').forEach(b=>b.onclick=()=>change(+b.dataset.adv,'adv'));
+ document.querySelectorAll('[data-as]').forEach(s=>s.onchange=()=>change(+s.dataset.as,'as',s.value))}
+function change(id,kind,val){const x=T.find(t=>t.id===id);
+ if(x.lock){pending={x,kind,val};const what=kind==='adv'?'把「'+x.t+'」推进到 '+ST[x.s+1]:'把「'+x.t+'」改派给 '+val;
+  $('#mx').textContent='你尝试'+what+'。';$('#need').innerHTML='缺少权限：<b>'+x.g+' · 编辑任务</b><br>你当前的角色：设计组成员（只能查看 '+x.g+' 的任务）';
+  log(ME,'尝试'+what+' — 已被拒绝，未写入','deny');render();$('#mask').classList.add('on');$('#back').focus();return}
+ if(kind==='adv'){x.s++;log(ME,'把「'+x.t+'」推进到 '+ST[x.s])}else{const o=x.a;x.a=val;log(ME,'把「'+x.t+'」从 '+o+' 改派给 '+val)}render(id)}
+$('#back').onclick=()=>{$('#mask').classList.remove('on');pending=null;render();note('已返回。受限任务未做任何改动，你可以继续处理设计组的任务。');const r=document.querySelector('tr:not(.lock) .adv:not(:disabled)');r&&r.focus()};
+$('#ask').onclick=()=>{const g=pending.x.g;$('#mask').classList.remove('on');log(ME,'向 '+g+' 管理员申请「编辑任务」权限：'+($('#why').value.trim()||'未填写理由'),'req');pending=null;render();note('申请已发出，'+g+'管理员处理后会通知你。任务暂时保持原样。',1)};
+$('#nf').onsubmit=e=>{e.preventDefault();const t=$('#nt').value.trim(),a=$('#na').value;if(!t||!a){$('#ne').textContent=!t?'请填写任务标题':'请选择负责人';return}$('#ne').textContent='';
+ const x={id:nid++,t,a,s:+$('#ns').value,g:'设计组'};T.unshift(x);log(ME,'创建任务「'+t+'」并分派给 '+a+'（'+ST[x.s]+'）');$('#nt').value='';$('#na').value='';F='all';setF();render(x.id)};
+function setF(){document.querySelectorAll('.filters button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.f===F))}
+document.querySelectorAll('.filters button').forEach(b=>b.onclick=()=>{F=b.dataset.f;setF();render()});
+function note(t,w){$('#note').textContent=t;$('#note').className='note on'+(w?' w':'');clearTimeout(note.k);note.k=setTimeout(()=>$('#note').classList.remove('on'),3200)}
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('#mask').classList.contains('on'))$('#back').click()});
+render();renderLog();
+</script>
+</body>
+</html>

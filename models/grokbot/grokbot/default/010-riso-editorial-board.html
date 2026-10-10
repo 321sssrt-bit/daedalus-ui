@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>选题看板 · 半月谈编辑部</title>
+<style>
+:root{--paper:#f6f1e7;--pink:#ff48b0;--blue:#0078bf;--yellow:#ffe800;--ink:#1a1a1a;--grey:#6e6a63;--card:#fffdf8;--rule:#1a1a1a}
+*{box-sizing:border-box}
+body{margin:0;height:100vh;display:grid;grid-template-rows:auto auto 1fr;background:var(--paper);color:var(--ink);font:14px/1.5 "PingFang SC","Microsoft YaHei",sans-serif;overflow:hidden}
+.mast{display:flex;align-items:flex-end;justify-content:space-between;padding:18px 32px 10px;border-bottom:3px solid var(--rule)}
+.mast h1{margin:0;font:900 44px/1 "Songti SC","STSong","Noto Serif CJK SC",serif;letter-spacing:-.02em;position:relative}
+.mast h1 span{position:relative;z-index:1}
+.mast h1:after{content:"";position:absolute;left:-6px;bottom:4px;width:120px;height:18px;background:var(--pink);mix-blend-mode:multiply;opacity:.75}
+.mast .meta{text-align:right;font-size:12px;color:var(--grey);text-transform:uppercase;letter-spacing:.1em}
+.tool{display:flex;gap:12px;align-items:center;padding:12px 32px;border-bottom:1px solid var(--rule)}
+.tool input{height:36px;border:2px solid var(--ink);background:var(--card);padding:0 12px;font:inherit;width:320px}
+.tool input:focus{outline:none;box-shadow:4px 4px 0 var(--blue)}
+.tool select{height:36px;border:2px solid var(--ink);background:var(--card);font:inherit;padding:0 8px}
+.add{height:36px;padding:0 16px;border:2px solid var(--ink);background:var(--yellow);font:inherit;font-weight:700;cursor:pointer;box-shadow:3px 3px 0 var(--ink)}
+.add:hover{background:#fff176}
+.add:active{transform:translate(3px,3px);box-shadow:none}
+.add:focus-visible,.mv:focus-visible,.c:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+.hint{margin-left:auto;font-size:12px;color:var(--grey)}
+.board{display:grid;grid-template-columns:repeat(4,1fr);gap:0;min-height:0}
+.col{border-right:1px solid var(--rule);display:flex;flex-direction:column;min-height:0}
+.col:last-child{border-right:0}
+.col header{display:flex;justify-content:space-between;align-items:baseline;padding:14px 18px 10px}
+.col h2{margin:0;font:800 18px/1 "Songti SC","STSong",serif}
+.col .n{font:700 28px/1 Georgia,serif;color:var(--blue);mix-blend-mode:multiply}
+.col.drop{background:#ffe80033}
+.list{flex:1;overflow:auto;padding:4px 14px 18px;display:flex;flex-direction:column;gap:12px}
+.c{background:var(--card);border:2px solid var(--ink);padding:12px 12px 10px;cursor:grab;position:relative;transition:transform .15s,box-shadow .15s}
+.c:hover{transform:translate(-2px,-2px);box-shadow:4px 4px 0 var(--pink)}
+.c[aria-selected="true"]{box-shadow:5px 5px 0 var(--blue)}
+.c.dragging{opacity:.4}
+.c .tag{display:inline-block;font-size:11px;font-weight:700;padding:1px 6px;margin-bottom:6px;color:#fff}
+.t-pink{background:var(--pink)}.t-blue{background:var(--blue)}.t-yel{background:var(--yellow);color:var(--ink)!important}
+.c h3{margin:0 0 8px;font-size:15px;line-height:1.35}
+.c .f{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--grey)}
+.c .who{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;background:var(--ink);color:#fff;font-size:11px}
+.mv{border:1px solid var(--ink);background:none;font:inherit;font-size:11px;padding:2px 6px;cursor:pointer}
+.mv:hover{background:var(--ink);color:#fff}
+.mv:disabled{opacity:.3;cursor:not-allowed;background:none;color:var(--ink)}
+.new{border:2px dashed var(--ink);background:var(--card);padding:10px;display:none}
+.new.on{display:block}
+.new textarea{width:100%;border:0;background:transparent;font:inherit;resize:none;height:48px}
+.new textarea:focus{outline:none}
+.new .r{display:flex;gap:8px;justify-content:flex-end}
+@media (max-width:1000px){body{height:auto;overflow:auto}.board{grid-template-columns:repeat(2,1fr)}.col{border-bottom:1px solid var(--rule)}.tool input{width:180px}.hint{display:none}}
+@media (prefers-reduced-motion:reduce){.c{transition:none}.c:hover{transform:none}}
+</style>
+</head>
+<body>
+<header class="mast"><h1><span>选题看板</span></h1><div class="meta">半月谈编辑部 · 第 214 期<br>截稿 10 月 24 日 · 剩 14 天</div></header>
+<div class="tool"><input id="q" placeholder="搜选题、作者…" aria-label="搜索选题"><select id="who" aria-label="按编辑筛选"><option value="">全部编辑</option><option>林</option><option>周</option><option>何</option></select><button class="add" id="add" type="button">＋ 新选题</button><span class="hint">拖动卡片换列，或点卡片上的「→」推进</span></div>
+<main class="board" id="board"></main>
+<script>
+const cols=['选题池','撰写中','审校','已排期'];
+let cards=[
+ {id:1,c:0,t:'县城咖啡店为什么越开越多？',tag:['调查','t-pink'],w:'林',d:'约 6000 字'},
+ {id:2,c:0,t:'一位 82 岁修钟表匠的最后一个学徒',tag:['人物','t-blue'],w:'周',d:'需摄影'},
+ {id:3,c:0,t:'暑期托管班：家长的第二份工资',tag:['民生','t-yel'],w:'何',d:'待选角度'},
+ {id:4,c:1,t:'北方冬季供暖改革的三个城市样本',tag:['调查','t-pink'],w:'林',d:'初稿 60%'},
+ {id:5,c:1,t:'“搭子社交”背后的孤独经济',tag:['文化','t-blue'],w:'何',d:'采访 4/7'},
+ {id:6,c:2,t:'跨省就医结算一年后',tag:['民生','t-yel'],w:'周',d:'法务意见待回'},
+ {id:7,c:3,t:'封面：沿海小镇的海上风电',tag:['封面','t-pink'],w:'林',d:'P12–19'},
+ {id:8,c:3,t:'书评：《河流的记忆》',tag:['书评','t-blue'],w:'周',d:'P58'}];
+let sel=null,next=9;const board=document.getElementById('board');
+function render(){const q=document.getElementById('q').value.trim(),w=document.getElementById('who').value;board.innerHTML='';
+ cols.forEach((name,ci)=>{const col=document.createElement('section');col.className='col';col.setAttribute('aria-label',name);
+  const vis=cards.filter(x=>x.c===ci&&(!q||x.t.includes(q))&&(!w||x.w===w));
+  col.innerHTML='<header><h2>'+name+'</h2><span class="n">'+String(vis.length).padStart(2,'0')+'</span></header>';
+  const list=document.createElement('div');list.className='list';
+  if(ci===0){const nw=document.createElement('div');nw.className='new'+(adding?' on':'');nw.innerHTML='<textarea id="nt" placeholder="一句话写下选题…"></textarea><div class="r"><button class="mv" type="button" id="nc">取消</button><button class="mv" type="button" id="ns">加入选题池</button></div>';list.append(nw)}
+  vis.forEach(x=>{const el=document.createElement('article');el.className='c';el.tabIndex=0;el.draggable=true;el.setAttribute('aria-selected',sel===x.id);
+   el.innerHTML='<span class="tag '+x.tag[1]+'">'+x.tag[0]+'</span><h3>'+x.t+'</h3><div class="f"><span><span class="who">'+x.w+'</span> '+x.d+'</span><span><button class="mv" type="button" data-d="-1" '+(ci===0?'disabled':'')+' aria-label="移到上一列">←</button> <button class="mv" type="button" data-d="1" '+(ci===3?'disabled':'')+' aria-label="移到下一列">→</button></span></div>';
+   el.onclick=e=>{if(e.target.dataset.d){x.c+=+e.target.dataset.d;sel=x.id;render();return}sel=sel===x.id?null:x.id;render()};
+   el.ondragstart=()=>{drag=x.id;el.classList.add('dragging')};el.ondragend=()=>el.classList.remove('dragging');
+   list.append(el)});
+  col.ondragover=e=>{e.preventDefault();col.classList.add('drop')};col.ondragleave=()=>col.classList.remove('drop');
+  col.ondrop=e=>{e.preventDefault();const x=cards.find(k=>k.id===drag);if(x){x.c=ci;sel=x.id}render()};
+  col.append(list);board.append(col)});
+ if(adding){document.getElementById('nt').focus();document.getElementById('nc').onclick=()=>{adding=false;render()};document.getElementById('ns').onclick=()=>{const v=document.getElementById('nt').value.trim();if(!v)return;cards.unshift({id:next++,c:0,t:v,tag:['新','t-yel'],w:'何',d:'刚刚添加'});adding=false;sel=next-1;render()}}}
+let drag=null,adding=false;
+document.getElementById('add').onclick=()=>{adding=true;render()};
+document.getElementById('q').oninput=render;document.getElementById('who').onchange=render;
+render();
+</script>
+</body>
+</html>

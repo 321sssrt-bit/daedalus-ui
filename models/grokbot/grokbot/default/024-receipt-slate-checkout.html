@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>确认支付 · 现场 LIVE 票务</title>
+<style>
+:root{--slate:#2b3440;--slate2:#36414f;--receipt:#fbfbf7;--ink:#1c1f24;--grey:#7b8290;--line:#d8dbe0;--hot:#ff4f2e;--hot-d:#e23a1b;--okc:#18a058}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:var(--slate);color:#e9edf2;font:15px/1.55 "PingFang SC","Microsoft YaHei",system-ui,sans-serif}
+header{display:flex;justify-content:space-between;align-items:center;padding:18px 48px;border-bottom:1px solid #3f4a59}
+.logo{font:900 20px/1 "Arial Black","PingFang SC",sans-serif;letter-spacing:.04em}
+.logo span{color:var(--hot)}
+.steps{display:flex;gap:10px;font-size:13px;color:#9aa4b3}
+.steps b{color:#fff}
+.hold{font-size:13px;background:#ff4f2e22;color:#ffb3a3;padding:6px 12px;border-radius:999px}
+.hold b{font-variant-numeric:tabular-nums;color:#fff}
+.wrap{max-width:1100px;margin:0 auto;padding:36px 48px 56px;display:grid;grid-template-columns:400px 1fr;gap:48px;align-items:start}
+.rc{background:var(--receipt);color:var(--ink);padding:28px 26px 30px;font:14px/1.6 "SF Mono",Menlo,Consolas,"PingFang SC",monospace;position:relative;filter:drop-shadow(0 18px 30px #0006)}
+.rc:after{content:"";position:absolute;left:0;right:0;bottom:-12px;height:12px;background:linear-gradient(-45deg,transparent 8px,var(--receipt) 0) 0 0/16px 12px,linear-gradient(45deg,transparent 8px,var(--receipt) 0) 0 0/16px 12px}
+.rc h2{font:900 20px/1.3 "Arial Black","PingFang SC",sans-serif;margin:0 0 4px}
+.rc .meta{color:var(--grey);font-size:12px;margin-bottom:16px}
+.rc hr{border:0;border-top:1px dashed #b9bec6;margin:14px 0}
+.ln{display:flex;justify-content:space-between;gap:12px}
+.ln.sub{color:var(--grey);font-size:12px}
+.minus{color:var(--okc)}
+.big{display:flex;justify-content:space-between;align-items:baseline;margin-top:6px}
+.big b{font:900 34px/1 "Arial Black","Helvetica Neue",sans-serif;color:var(--hot);font-variant-numeric:tabular-nums}
+.bar{height:34px;margin-top:18px;background:repeating-linear-gradient(90deg,var(--ink) 0 2px,transparent 2px 4px,var(--ink) 4px 5px,transparent 5px 8px)}
+.pay h1{margin:0 0 6px;font-size:28px;color:#fff}
+.pay>p{margin:0 0 22px;color:#9aa4b3}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:22px}
+.opt{display:grid;grid-template-columns:40px 1fr 20px;gap:12px;align-items:center;padding:16px;border-radius:14px;border:2px solid #455063;background:var(--slate2);cursor:pointer;color:#e9edf2;font:inherit;text-align:left;transition:border-color .15s,background .15s}
+.opt:hover{border-color:#6b7890}
+.opt[aria-checked="true"]{border-color:var(--hot);background:#3b3a44}
+.opt .ic{width:40px;height:40px;border-radius:10px;display:grid;place-items:center;font-weight:900;color:#fff}
+.opt small{display:block;color:#9aa4b3;font-size:12px}
+.opt .rd{width:20px;height:20px;border-radius:50%;border:2px solid #6b7890}
+.opt[aria-checked="true"] .rd{border:6px solid var(--hot)}
+.opt:disabled{opacity:.45;cursor:not-allowed}
+.opt:focus-visible,.go:focus-visible,.agree input:focus-visible{outline:3px solid #fff;outline-offset:2px}
+.card{display:none;gap:10px;grid-template-columns:2fr 1fr 1fr;margin:-8px 0 22px}
+.card.on{display:grid}
+.card input{height:46px;border-radius:10px;border:2px solid #455063;background:var(--slate2);color:#fff;padding:0 12px;font:inherit}
+.card input:focus{outline:none;border-color:var(--hot)}
+.agree{display:flex;gap:10px;align-items:flex-start;font-size:13px;color:#b5bdc9;margin-bottom:18px}
+.agree input{width:18px;height:18px;accent-color:var(--hot);margin-top:2px}
+.go{width:100%;height:60px;border:0;border-radius:14px;background:var(--hot);color:#fff;font:inherit;font-size:18px;font-weight:800;cursor:pointer;transition:background .15s}
+.go:hover{background:var(--hot-d)}
+.go:disabled{background:#56606f;color:#9aa4b3;cursor:not-allowed}
+.res{margin-top:16px;padding:14px 16px;border-radius:12px;display:none}
+.res.on{display:block;background:#18a05822;color:#9ff0c2}
+@media (max-width:1000px){.wrap{grid-template-columns:1fr;padding:24px}.opts{grid-template-columns:1fr}header{padding:14px 24px}.steps{display:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<header><div class="logo">现场<span>LIVE</span></div><div class="steps"><span>① 选座</span><span>›</span><span>② 观演人</span><span>›</span><b>③ 支付</b></div><div class="hold">座位已为你保留 <b id="tm">14:59</b></div></header>
+<div class="wrap">
+  <section class="rc" aria-label="订单摘要">
+    <h2>回声隧道乐队 · 2026 巡演 上海站</h2>
+    <div class="meta">订单号 LV2610100387 · 上海 MAO Livehouse<br>2026.11.21 周六 20:00 开演</div>
+    <hr>
+    <div class="ln"><span>预售票 ¥380 × 2</span><span>¥760.00</span></div>
+    <div class="ln sub"><span>观演人：李想、许晴</span><span>站席 · 无座号</span></div>
+    <div class="ln"><span>票务服务费</span><span>¥16.00</span></div>
+    <div class="ln"><span>会员早鸟立减</span><span class="minus">−¥40.00</span></div>
+    <div class="ln"><span>电子票，无需配送</span><span>¥0.00</span></div>
+    <hr>
+    <div class="big"><span>应付金额</span><b id="amt">¥736.00</b></div>
+    <div class="ln sub" style="margin-top:6px"><span id="note">实名入场，不支持转赠</span><span></span></div>
+    <div class="bar" aria-hidden="true"></div>
+  </section>
+  <section class="pay">
+    <h1>选择支付方式</h1><p>请在保留时间内完成支付，超时座位将自动释放。</p>
+    <div class="opts" role="radiogroup" aria-label="支付方式">
+      <button class="opt" type="button" role="radio" aria-checked="true" data-m="wx"><span class="ic" style="background:#18a058">微</span><span>微信支付<small>推荐已绑定零钱用户</small></span><span class="rd"></span></button>
+      <button class="opt" type="button" role="radio" aria-checked="false" data-m="ali"><span class="ic" style="background:#1677ff">支</span><span>支付宝<small>余额宝可直接付</small></span><span class="rd"></span></button>
+      <button class="opt" type="button" role="radio" aria-checked="false" data-m="card"><span class="ic" style="background:#8a5cf6">卡</span><span>银行卡<small>支持储蓄卡与信用卡</small></span><span class="rd"></span></button>
+      <button class="opt" type="button" role="radio" aria-checked="false" data-m="hb"><span class="ic" style="background:#ff8a00">分</span><span>花呗分 3 期<small>每期 ¥245.33，免息</small></span><span class="rd"></span></button>
+    </div>
+    <div class="card" id="card"><input placeholder="卡号" inputmode="numeric" aria-label="卡号"><input placeholder="有效期 MM/YY" aria-label="有效期"><input placeholder="CVV" inputmode="numeric" aria-label="CVV"></div>
+    <label class="agree"><input type="checkbox" id="ag"> 我已知晓：演出票一经售出不退不换；观演人须携带本人身份证件入场。</label>
+    <button class="go" type="button" id="go" disabled>确认支付 ¥736.00</button>
+    <div class="res" id="res" role="status"></div>
+  </section>
+</div>
+<script>
+const $=s=>document.querySelector(s);let m='wx',left=899;
+const N={wx:'微信支付',ali:'支付宝',card:'银行卡',hb:'花呗分 3 期'};
+document.querySelectorAll('.opt').forEach(o=>o.onclick=()=>{m=o.dataset.m;document.querySelectorAll('.opt').forEach(x=>x.setAttribute('aria-checked',x===o));$('#card').classList.toggle('on',m==='card');$('#note').textContent=m==='hb'?'分 3 期：每期 ¥245.33，0 手续费':'实名入场，不支持转赠';upd()});
+function upd(){$('#go').disabled=!$('#ag').checked||left<=0;$('#go').textContent=left<=0?'保留已超时，请重新选座':'使用'+N[m]+'确认支付 ¥736.00'}
+$('#ag').onchange=upd;
+$('#go').onclick=()=>{if(m==='card'){const ins=[...document.querySelectorAll('#card input')];if(ins.some(i=>!i.value.trim())){ins.find(i=>!i.value.trim()).focus();ins.forEach(i=>i.style.borderColor=i.value.trim()?'':'#ff4f2e');return}}
+ $('#go').disabled=true;$('#go').textContent='正在支付…';setTimeout(()=>{$('#res').classList.add('on');$('#res').innerHTML='✓ 支付成功：已通过'+N[m]+'支付 ¥736.00。电子票已发送到「我的票夹」，演出前 24 小时开放入场码。';$('#go').textContent='已支付';clearInterval(t)},900)};
+const t=setInterval(()=>{left--;$('#tm').textContent=String(Math.floor(left/60)).padStart(2,'0')+':'+String(left%60).padStart(2,'0');if(left<=0){clearInterval(t);upd()}},1000);
+upd();
+</script>
+</body>
+</html>

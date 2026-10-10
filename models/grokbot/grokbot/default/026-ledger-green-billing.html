@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>账单 · 青柠云</title>
+<style>
+:root{--ledger:#eef5e6;--rule:#b9d4a6;--redrule:#d9534f;--ink:#1f2a1c;--sub:#5d6b57;--forest:#2f5d3a;--forest-d:#244a2d;--white:#fdfef9;--amber:#c98a12}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:#dfe9d4;color:var(--ink);font:14px/1.6 "PingFang SC","Microsoft YaHei",system-ui,sans-serif}
+header{display:flex;justify-content:space-between;align-items:center;padding:16px 48px;background:var(--forest);color:#eaf3e0}
+header b{font-size:18px;letter-spacing:.06em}
+header nav{display:flex;gap:22px;font-size:13px}
+header nav span[aria-current]{border-bottom:2px solid #c6e88e;padding-bottom:2px}
+.wrap{max-width:1140px;margin:28px auto 56px;padding:0 48px;display:grid;grid-template-columns:340px 1fr;gap:28px;align-items:start}
+.plan{background:var(--forest);color:#eaf3e0;border-radius:4px;padding:24px;position:relative;overflow:hidden}
+.plan:after{content:"";position:absolute;right:-40px;top:-40px;width:140px;height:140px;border-radius:50%;border:18px solid #ffffff12}
+.plan small{letter-spacing:.2em;color:#c6e88e}
+.plan h2{margin:6px 0 2px;font-size:26px}
+.plan .p{font:700 34px/1.2 "Courier New",Courier,monospace;margin:12px 0 2px}
+.plan .p span{font-size:14px;font-weight:400}
+.plan ul{margin:16px 0 18px;padding-left:18px;color:#cfe0c4}
+.plan .nx{background:#ffffff14;padding:10px 12px;border-radius:4px;font-size:13px}
+.pm{background:var(--white);border:1px solid var(--rule);border-radius:4px;padding:18px 20px;margin-top:18px}
+.pm h3{margin:0 0 10px;font-size:14px}
+.cardv{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.cardv i{width:46px;height:30px;border-radius:4px;background:linear-gradient(135deg,#2f5d3a,#6a9c4f);display:grid;place-items:center;color:#fff;font-style:normal;font-size:10px;font-weight:700}
+.btn{height:36px;padding:0 14px;border:1px solid var(--forest);background:transparent;color:var(--forest);font:inherit;font-weight:600;border-radius:4px;cursor:pointer}
+.btn:hover{background:#e3efd8}
+.btn.pri{background:var(--forest);color:#fff}
+.btn.pri:hover{background:var(--forest-d)}
+.btn:focus-visible,.dl:focus-visible,.opt:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+.book{background:var(--ledger);border:1px solid var(--rule);border-radius:4px;position:relative;padding:0 0 18px}
+.book:before{content:"";position:absolute;left:56px;top:0;bottom:0;border-left:2px solid var(--redrule);opacity:.6}
+.bh{display:flex;justify-content:space-between;align-items:center;padding:18px 20px 12px 72px;border-bottom:2px solid var(--forest)}
+.bh h2{margin:0;font-size:20px}
+.bh select{height:32px;border:1px solid var(--rule);background:var(--white);font:inherit;padding:0 8px;border-radius:4px}
+table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+th{text-align:left;font-size:12px;color:var(--sub);font-weight:600;padding:10px 8px;border-bottom:1px solid var(--rule)}
+th:first-child,td:first-child{padding-left:72px}
+td{padding:0 8px;height:44px;border-bottom:1px solid var(--rule)}
+td.m{font-family:"Courier New",Courier,monospace;font-weight:700;text-align:right}
+th.m{text-align:right}
+.st{font-size:12px;padding:2px 8px;border-radius:10px}
+.st.ok{background:#d4ebc4;color:var(--forest)}.st.rf{background:#f8e2c2;color:#8a5a00}
+.dl{border:0;background:none;color:var(--forest);font:inherit;font-weight:600;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.dl:hover{color:var(--amber)}
+.dl[data-done]{color:var(--sub);text-decoration:none}
+.tot{display:flex;justify-content:flex-end;gap:20px;padding:12px 20px 0;font-size:13px;color:var(--sub)}
+.tot b{font-family:"Courier New",Courier,monospace;color:var(--ink);font-size:16px}
+dialog{border:0;border-radius:6px;padding:0;width:440px;box-shadow:0 30px 60px -20px #1f2a1c88}
+dialog::backdrop{background:#1f2a1c66}
+.dh{padding:18px 20px;border-bottom:1px solid var(--rule);font-weight:700;font-size:16px}
+.db{padding:16px 20px;display:grid;gap:10px}
+.opt{display:flex;gap:12px;align-items:center;padding:12px;border:1px solid var(--rule);border-radius:4px;cursor:pointer;background:#fff;font:inherit;text-align:left;width:100%}
+.opt[aria-checked="true"]{border:2px solid var(--forest);background:#f1f8ea}
+.df{padding:12px 20px 18px;display:flex;justify-content:flex-end;gap:8px}
+.toast{margin-top:10px;font-size:13px;color:var(--forest);min-height:20px}
+@media (max-width:1000px){.wrap{grid-template-columns:1fr;padding:0 20px}header{padding:14px 20px}header nav{display:none}th:first-child,td:first-child{padding-left:20px}.book:before{display:none}.bh{padding-left:20px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<header><b>青柠云 · 控制台</b><nav><span>云主机</span><span>对象存储</span><span aria-current="page">费用中心</span><span>工单</span></nav></header>
+<div class="wrap">
+  <aside>
+    <section class="plan"><small>当前方案</small><h2>团队版 · 按月</h2><div class="p">¥1,280<span> / 月</span></div>
+      <ul><li>8 核 32G 云主机 × 2</li><li>对象存储 2 TB</li><li>每月 5 TB 外网流量</li></ul>
+      <div class="nx">下次扣款：<b>2026-11-01</b> · 预计 ¥1,280.00</div></section>
+    <section class="pm"><h3>支付方式</h3><div class="cardv"><i id="ci">VISA</i><span id="cn">招商银行信用卡 •••• 4021<br><small style="color:#5d6b57">有效期 08/28 · 自动扣款</small></span></div>
+      <button class="btn" type="button" id="chg">更换支付方式</button><div class="toast" id="pt" role="status"></div></section>
+  </aside>
+  <section class="book" aria-label="账单记录">
+    <div class="bh"><h2>账单记录</h2><select id="yr" aria-label="年份"><option value="2026">2026 年</option><option value="2025">2025 年</option></select></div>
+    <table><thead><tr><th>账期</th><th>项目</th><th>状态</th><th class="m">金额</th><th>发票</th></tr></thead><tbody id="tb"></tbody></table>
+    <div class="tot">本年已付合计 <b id="sum"></b></div>
+    <div class="toast" id="dt" role="status" style="padding:0 20px 0 72px"></div>
+  </section>
+</div>
+<dialog id="dlg"><div class="dh">更换支付方式</div><div class="db" role="radiogroup" aria-label="支付方式">
+  <button class="opt" type="button" role="radio" aria-checked="true" data-n="招商银行信用卡 •••• 4021" data-i="VISA">💳 招商银行信用卡 •••• 4021（当前）</button>
+  <button class="opt" type="button" role="radio" aria-checked="false" data-n="对公转账 · 上海青柠科技有限公司" data-i="对公">🏦 对公转账（每月开票后 7 日内付款）</button>
+  <button class="opt" type="button" role="radio" aria-checked="false" data-n="支付宝 · 企业账户 ops@qingning" data-i="支付宝">🅰 支付宝企业账户</button></div>
+  <div class="df"><button class="btn" type="button" id="cc">取消</button><button class="btn pri" type="button" id="ok">设为默认</button></div></dialog>
+<script>
+const R={2026:[['2026-10','团队版月费','ok',1280],['2026-09','团队版月费 + 超额流量 320 GB','ok',1376],['2026-08','团队版月费','ok',1280],['2026-07','从基础版升级（按天折算）','ok',742.6],['2026-06','基础版月费','rf',-120]],2025:[['2025-12','基础版月费','ok',480],['2025-11','基础版月费','ok',480],['2025-10','基础版月费','ok',480],['2025-09','首月优惠','ok',99]]};
+const $=s=>document.querySelector(s);const f=v=>(v<0?'−':'')+'¥'+Math.abs(v).toLocaleString('en-US',{minimumFractionDigits:2});
+function render(){const y=$('#yr').value;$('#tb').innerHTML=R[y].map((r,i)=>'<tr><td>'+r[0]+'</td><td>'+r[1]+'</td><td><span class="st '+r[2]+'">'+(r[2]==='ok'?'已支付':'已退款')+'</span></td><td class="m">'+f(r[3])+'</td><td><button class="dl" type="button" data-i="'+i+'">下载 PDF</button></td></tr>').join('');
+ $('#sum').textContent=f(R[y].reduce((a,r)=>a+r[3],0));
+ document.querySelectorAll('.dl').forEach(b=>b.onclick=()=>{const r=R[y][b.dataset.i];b.textContent='✓ 已下载';b.dataset.done=1;$('#dt').textContent='已生成发票：青柠云_'+r[0]+'_'+f(r[3])+'.pdf'})}
+$('#yr').onchange=render;render();
+const dlg=$('#dlg');$('#chg').onclick=()=>dlg.showModal();$('#cc').onclick=()=>dlg.close();
+document.querySelectorAll('.opt').forEach(o=>o.onclick=()=>document.querySelectorAll('.opt').forEach(x=>x.setAttribute('aria-checked',x===o)));
+$('#ok').onclick=()=>{const o=document.querySelector('.opt[aria-checked="true"]');$('#cn').innerHTML=o.dataset.n+'<br><small style="color:#5d6b57">已设为默认 · 下次扣款生效</small>';$('#ci').textContent=o.dataset.i;$('#pt').textContent='✓ 支付方式已更新';dlg.close()};
+</script>
+</body>
+</html>

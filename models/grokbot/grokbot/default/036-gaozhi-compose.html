@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>写一篇 · 方格</title>
+<style>
+:root{--paper:#fffdf6;--grid:#7fbf9a;--grid-l:#cfe8d9;--ink:#1d2b24;--sub:#6c7a72;--green:#1f7a4d;--green-d:#165c39;--red:#c2410c;--back:#e9efe9}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--back);color:var(--ink);font:15px/1.5 "PingFang SC","Microsoft YaHei",system-ui,sans-serif;display:flex;flex-direction:column}
+.top{display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--paper);border-bottom:1px solid var(--grid-l)}
+.top .x{width:36px;height:36px;border:0;background:none;font-size:20px;cursor:pointer;color:var(--ink)}
+.st{flex:1;font-size:12px;color:var(--sub);display:flex;align-items:center;gap:6px}
+.st i{width:8px;height:8px;border-radius:50%;background:#c8d2cc}
+.st.saved i{background:var(--green)}.st.dirty i{background:#e0a100}
+.draft{height:34px;padding:0 12px;border:1.5px solid var(--green);border-radius:8px;background:none;color:var(--green);font:inherit;font-size:14px;font-weight:600;cursor:pointer}
+.pub{height:34px;padding:0 16px;border:0;border-radius:8px;background:var(--green);color:#fff;font:inherit;font-size:14px;font-weight:700;cursor:pointer}
+.pub:hover{background:var(--green-d)}
+.pub:disabled{background:#b9c9bf;cursor:not-allowed}
+button:focus-visible,select:focus-visible{outline:3px solid #e0a100;outline-offset:2px}
+.sheet{flex:1;margin:12px;background:var(--paper);border:1.5px solid var(--grid);padding:14px 12px 10px;display:flex;flex-direction:column;box-shadow:0 2px 0 var(--grid-l),0 4px 0 var(--paper),0 5px 0 var(--grid-l)}
+.hd{display:flex;justify-content:space-between;font:12px/1 "Songti SC","STSong","SimSun",serif;color:var(--green);border-bottom:2px solid var(--grid);padding-bottom:6px;margin-bottom:8px}
+.ttl{border:0;border-bottom:1px dashed var(--grid);background:none;font:700 22px/1.4 "Songti SC","STSong","Noto Serif SC","SimSun",serif;color:var(--ink);padding:6px 2px 8px;width:100%}
+.ttl:focus{outline:none;border-bottom:1.5px solid var(--green)}
+.ttl::placeholder,.body::placeholder{color:#a9b8af}
+.tags{display:flex;gap:6px;margin:10px 0;flex-wrap:wrap}
+.tags button{height:28px;padding:0 10px;border:1px solid var(--grid);border-radius:14px;background:none;font:inherit;font-size:12px;color:var(--green);cursor:pointer}
+.tags button[aria-pressed="true"]{background:var(--green);color:#fff;border-color:var(--green)}
+.body{flex:1;min-height:340px;border:0;resize:none;width:100%;font:18px/30px "Songti SC","STSong","Noto Serif SC","SimSun",serif;letter-spacing:6px;color:var(--ink);padding:0 3px;
+ background:linear-gradient(90deg,var(--grid-l) 1px,transparent 1px) 0 0/30px 30px,linear-gradient(var(--grid) 1px,transparent 1px) 0 29px/30px 30px;background-attachment:local}
+.body:focus{outline:none}
+.ft{display:flex;justify-content:space-between;align-items:center;font:12px/1 "Songti SC","STSong","SimSun",serif;color:var(--green);border-top:2px solid var(--grid);padding-top:8px;margin-top:6px}
+.cnt b{font:700 14px "Courier New",monospace}
+.cnt.over b{color:var(--red)}
+.msg{font:13px/1.4 "PingFang SC",sans-serif;color:var(--red);min-height:18px;padding:0 14px}
+.tool{display:flex;gap:4px;padding:6px 10px 14px;background:var(--back)}
+.tool button{flex:1;height:40px;border:1px solid #cdd8d0;background:var(--paper);border-radius:8px;font-size:16px;cursor:pointer;color:var(--ink)}
+.done{position:fixed;inset:0;background:#1d2b24cc;display:none;place-items:center;padding:24px;z-index:9}
+.done.on{display:grid}
+.done div{background:var(--paper);border:2px solid var(--green);padding:24px;text-align:center;max-width:320px}
+.done b{display:block;font:700 20px "Songti SC","STSong",serif;margin-bottom:6px}
+.done button{margin-top:14px}
+@media (min-width:600px){body{max-width:430px;margin:0 auto}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<header class="top"><button class="x" type="button" aria-label="关闭">✕</button><span class="st" id="st"><i></i><span id="stt">新草稿 · 未保存</span></span><button class="draft" type="button" id="dr">存草稿</button><button class="pub" type="button" id="pb" disabled>发布</button></header>
+<div class="msg" id="msg" role="status"></div>
+<section class="sheet">
+  <div class="hd"><span>方格 · 随笔稿纸</span><span>第 1 页</span></div>
+  <input class="ttl" id="tt" maxlength="30" placeholder="写个标题（必填）" aria-label="标题">
+  <div class="tags" aria-label="栏目"><button type="button" aria-pressed="true">随笔</button><button type="button" aria-pressed="false">城市</button><button type="button" aria-pressed="false">读书</button><button type="button" aria-pressed="false">吃喝</button></div>
+  <textarea class="body" id="bd" aria-label="正文" placeholder="从一个具体的画面开始写……">今天下班绕路走了一段老街，糖水铺的灯还亮着。</textarea>
+  <div class="ft"><span>15 × 20 = 300</span><span class="cnt" id="cnt"><b id="n">0</b> / 2000 字</span></div>
+</section>
+<div class="tool" aria-label="编辑工具"><button type="button" aria-label="插入图片">🖼</button><button type="button" aria-label="引用">❝</button><button type="button" aria-label="加粗"><b>B</b></button><button type="button" aria-label="撤销">↶</button><button type="button" aria-label="收起键盘">⌨</button></div>
+<div class="done" id="done" role="dialog" aria-labelledby="dt"><div><b id="dt">已发布</b><span id="dd"></span><br><button class="pub" type="button" id="ok">好的</button></div></div>
+<script>
+const $=s=>document.querySelector(s);let saved=null;
+const len=()=>$('#bd').value.replace(/\s/g,'').length;
+function upd(){const n=len(),t=$('#tt').value.trim();$('#n').textContent=n;$('#cnt').classList.toggle('over',n>2000);
+ $('#pb').disabled=!t||n<20||n>2000;
+ $('#msg').textContent=n>2000?'正文超出 '+(n-2000)+' 字，请删减后发布':'';
+ const cur=t+'|'+$('#bd').value;if(saved!==null&&cur!==saved){$('#st').className='st dirty';$('#stt').textContent='有改动未保存'}}
+$('#tt').oninput=upd;$('#bd').oninput=upd;
+document.querySelectorAll('.tags button').forEach(b=>b.onclick=()=>document.querySelectorAll('.tags button').forEach(x=>x.setAttribute('aria-pressed',x===b)));
+$('#dr').onclick=()=>{saved=$('#tt').value.trim()+'|'+$('#bd').value;const d=new Date();$('#st').className='st saved';$('#stt').textContent='草稿已保存 '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')+' · '+len()+' 字';$('#msg').textContent=''};
+$('#pb').onclick=()=>{const tag=document.querySelector('.tags [aria-pressed="true"]').textContent;$('#dd').textContent='《'+$('#tt').value.trim()+'》已发布到「'+tag+'」栏目，共 '+len()+' 字。';$('#done').classList.add('on');$('#st').className='st saved';$('#stt').textContent='已发布'};
+$('#ok').onclick=()=>$('#done').classList.remove('on');
+document.querySelector('.top').addEventListener('pointerdown',e=>{const r=$('#pb').getBoundingClientRect();if($('#pb').disabled&&e.clientX>=r.left&&e.clientX<=r.right&&e.clientY>=r.top&&e.clientY<=r.bottom){$('#msg').textContent=!$('#tt').value.trim()?'请先写个标题再发布':len()<20?'正文至少 20 字，还差 '+(20-len())+' 字':''}});
+upd();
+</script>
+</body>
+</html>

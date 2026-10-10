@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>删除数据库 · 库房</title>
+<style>
+:root{--yel:#ffd400;--blk:#111111;--conc:#e4e2dc;--card:#ffffff;--ink:#1c1c1c;--sub:#5e5c57;--line:#cfccc4;--red:#d21f1f;--red-l:#fdeaea;--steel:#2d3540}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:var(--conc);color:var(--ink);font:15px/1.6 "Inter","PingFang SC","Microsoft YaHei",system-ui,sans-serif;display:grid;place-items:center;padding:32px}
+.app{position:fixed;inset:0;z-index:-1;filter:blur(2px);opacity:.5;padding:24px 40px;font-family:Menlo,Consolas,monospace;font-size:12px;color:#888}
+.app div{height:28px;border-bottom:1px solid #ccc}
+.card{width:640px;max-width:100%;background:var(--card);box-shadow:0 30px 70px -30px #0000006b;border:2px solid var(--blk)}
+.stripe{height:22px;background:repeating-linear-gradient(-45deg,var(--yel) 0 18px,var(--blk) 18px 36px)}
+.in{padding:28px 32px 30px}
+.tag{display:inline-flex;gap:8px;align-items:center;background:var(--blk);color:var(--yel);font:800 12px/1 "Inter",sans-serif;letter-spacing:.2em;padding:6px 10px}
+h1{font-size:28px;line-height:1.25;margin:14px 0 6px}
+h1 code{font:700 26px/1 Menlo,Consolas,monospace;background:var(--yel);padding:0 6px}
+.lead{color:var(--sub);margin:0 0 18px}
+.lose{border:2px solid var(--blk);margin-bottom:20px}
+.lose h2{margin:0;font-size:13px;letter-spacing:.15em;background:var(--blk);color:#fff;padding:8px 14px}
+.lose ul{list-style:none;margin:0;padding:6px 14px}
+.lose li{display:grid;grid-template-columns:28px 1fr auto;gap:10px;align-items:center;padding:9px 0;border-bottom:1px dashed var(--line)}
+.lose li:last-child{border:0}
+.lose li b{font:700 18px/1 Menlo,Consolas,monospace}
+.lose li small{display:block;color:var(--sub);font-size:12px}
+.alt{display:flex;gap:10px;background:#fff8cc;border-left:4px solid var(--yel);padding:10px 12px;font-size:14px;margin-bottom:20px}
+.alt a{color:var(--steel);font-weight:700}
+label{display:block;font-size:14px;margin-bottom:6px}
+label code{font:700 14px Menlo,Consolas,monospace;background:#eee;padding:1px 6px;user-select:all}
+input{width:100%;height:48px;border:2px solid var(--line);padding:0 14px;font:600 16px Menlo,Consolas,monospace;background:#fafaf8}
+input:focus{outline:none;border-color:var(--blk);box-shadow:0 0 0 3px var(--yel)}
+input.ok{border-color:var(--red);background:var(--red-l)}
+.hint{font-size:12px;color:var(--sub);min-height:20px;margin-top:4px}
+.acts{display:flex;gap:12px;margin-top:18px;align-items:center}
+.keep{flex:1;height:56px;border:0;background:var(--steel);color:#fff;font-family:inherit;font-weight:800;font-size:17px;line-height:1;cursor:pointer}
+.keep:hover{background:#1c232c}
+.del{height:44px;padding:0 16px;border:2px solid var(--red);background:transparent;color:var(--red);font-family:inherit;font-weight:700;font-size:14px;line-height:1;cursor:pointer}
+.del:hover:not(:disabled){background:var(--red);color:#fff}
+.del:disabled{border-color:var(--line);color:#aaa;cursor:not-allowed}
+.keep:focus-visible,.del:focus-visible,.alt a:focus-visible{outline:3px solid var(--yel);outline-offset:3px}
+.done{display:none;text-align:center;padding:30px 0 6px}
+.done.on{display:block}
+.done b{font-size:22px;display:block;margin-bottom:6px}
+.prog{height:8px;background:#eee;margin:14px 0;overflow:hidden}
+.prog i{display:block;height:100%;width:0;background:var(--red);transition:width 2.4s linear}
+@media (max-width:700px){body{padding:0}.card{border-left:0;border-right:0}.in{padding:22px 18px}.acts{flex-direction:column-reverse;align-items:stretch}h1{font-size:23px}}
+@media (prefers-reduced-motion:reduce){.prog i{transition:none}}
+</style>
+</head>
+<body>
+<div class="app" aria-hidden="true"><div>库房控制台 / 数据库 / qinghe-prod / 设置 / 危险操作</div><div>orders · 1,284,903 rows</div><div>customers · 86,214 rows</div><div>inventory · 12,540 rows</div><div>audit_log · 4,902,117 rows</div></div>
+<section class="card" role="alertdialog" aria-labelledby="t" aria-describedby="d">
+  <div class="stripe"></div>
+  <div class="in" id="main">
+    <span class="tag">⚠ 不可恢复操作</span>
+    <h1 id="t">永久删除数据库 <code>qinghe-prod</code></h1>
+    <p class="lead" id="d">这是「青禾生鲜」的线上生产库。删除后，所有数据、备份和连接都会一起消失，我们也无法帮你找回。</p>
+    <div class="lose"><h2>你将失去</h2><ul>
+      <li><span>🗄️</span><span>全部 38 张数据表<small>含订单、客户、库存与审计日志</small></span><b>6.3M 行</b></li>
+      <li><span>💾</span><span>过去 30 天的每日自动备份<small>备份与数据库同时删除</small></span><b>30 份</b></li>
+      <li><span>🔌</span><span>正在使用此库的应用连接<small>青禾小程序、门店收银、财务报表会立即报错</small></span><b>3 个</b></li>
+      <li><span>👥</span><span>成员访问权限与 API 密钥</span><b>11 人</b></li></ul></div>
+    <div class="alt"><span>💡</span><span>只想暂停计费？可以先 <a href="#" id="pause">暂停数据库</a>，数据保留 90 天，随时恢复。</span></div>
+    <label for="cf">请输入数据库名 <code>qinghe-prod</code> 确认删除</label>
+    <input id="cf" autocomplete="off" spellcheck="false" placeholder="qinghe-prod">
+    <div class="hint" id="hint" aria-live="polite">名称完全一致后，删除按钮才会启用</div>
+    <div class="acts"><button class="keep" type="button" id="keep">保留数据库，返回</button><button class="del" type="button" id="del" disabled>永久删除</button></div>
+  </div>
+  <div class="in done" id="done" role="status"><b id="dt">正在删除 qinghe-prod…</b><div class="prog"><i id="pi"></i></div><span id="ds">正在断开 3 个应用连接</span></div>
+</section>
+<script>
+const $=s=>document.querySelector(s);
+$('#cf').oninput=e=>{const v=e.target.value,ok=v==='qinghe-prod';$('#del').disabled=!ok;e.target.classList.toggle('ok',ok);
+ $('#hint').textContent=ok?'⚠ 名称已匹配。点击「永久删除」后立即执行，无法撤销。':(v&&!'qinghe-prod'.startsWith(v)?'名称不一致（区分大小写）':'名称完全一致后，删除按钮才会启用')};
+$('#keep').onclick=()=>{$('#cf').value='';$('#del').disabled=true;$('#cf').classList.remove('ok');$('#hint').textContent='✓ 已取消，数据库 qinghe-prod 未做任何改动。'};
+$('#pause').onclick=e=>{e.preventDefault();$('#hint').textContent='已转到「暂停数据库」：数据将保留 90 天（示例原型未实际执行）。'};
+$('#del').onclick=()=>{$('#main').style.display='none';$('#done').classList.add('on');requestAnimationFrame(()=>requestAnimationFrame(()=>$('#pi').style.width='100%'));
+ setTimeout(()=>{$('#ds').textContent='正在清除 38 张表与 30 份备份'},1000);setTimeout(()=>{$('#dt').textContent='qinghe-prod 已永久删除';$('#ds').textContent='操作记录 DEL-20261011-0093 已发送给 11 位成员'},2500)};
+</script>
+</body>
+</html>

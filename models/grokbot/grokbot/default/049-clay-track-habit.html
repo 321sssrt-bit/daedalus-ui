@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>红土 · 运动记录</title>
+<style>
+:root{--clay:#c4532f;--clay-d:#9e3d1f;--sand:#f3e6d3;--sand2:#e9d6bb;--brown:#3b2418;--mute:#8a6b58;--line:#fffaf2;--sage:#6f8a5b;--err:#b3261e;--errbg:#fde8e4}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:#d8c4a8;font:15px/1.5 "Avenir Next","PingFang SC","Microsoft YaHei",system-ui,sans-serif;color:var(--brown);display:flex;justify-content:center}
+.app{width:100%;max-width:430px;min-height:100vh;background:var(--sand);position:relative;padding-bottom:30px}
+.hero{background:var(--clay);color:var(--line);padding:18px 18px 22px;position:relative;overflow:hidden}
+.hero::before{content:"";position:absolute;inset:auto -40px -120px -40px;height:220px;border-radius:50%;border:2px solid #ffffff55;box-shadow:0 0 0 22px var(--clay),0 0 0 24px #ffffff55,0 0 0 46px var(--clay),0 0 0 48px #ffffff55}
+.top{display:flex;justify-content:space-between;align-items:center;position:relative}
+.top b{font-size:18px;letter-spacing:.08em}
+.top span{font-size:13px;opacity:.85}
+.ring{display:flex;align-items:center;gap:18px;margin-top:16px;position:relative}
+.ring svg{flex-shrink:0}
+.ring .n{font-size:13px;opacity:.9}
+.ring .n b{display:block;font-size:40px;line-height:1.05;font-variant-numeric:tabular-nums;opacity:1}
+.ring .n em{font-style:normal;font-size:12px;display:inline-block;margin-top:6px;background:#ffffff26;padding:2px 8px;border-radius:99px}
+.card{background:var(--line);margin:14px 14px 0;border-radius:18px;padding:16px;box-shadow:0 1px 0 var(--sand2)}
+.card h2{margin:0 0 10px;font-size:16px;display:flex;justify-content:space-between;align-items:baseline}
+.card h2 small{font-size:12px;font-weight:400;color:var(--mute)}
+.types{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+.types button{height:62px;border-radius:14px;border:2px solid var(--sand2);background:#fff;font-family:inherit;font-size:12px;color:var(--brown);cursor:pointer}
+.types button span{display:block;font-size:22px;line-height:1.2}
+.types button[aria-pressed="true"]{border-color:var(--clay);background:#c4532f14;font-weight:700}
+.fld{margin-bottom:10px}
+.fld label{display:flex;justify-content:space-between;font-size:13px;font-weight:600;margin-bottom:4px}
+.fld label small{font-weight:400;color:var(--mute)}
+.inp{display:flex;align-items:center;border:2px solid var(--sand2);border-radius:12px;background:#fff;padding:0 12px;height:48px}
+.inp input{flex:1;border:0;outline:0;font-family:inherit;font-size:20px;font-weight:700;color:var(--brown);background:none;width:100%;font-variant-numeric:tabular-nums}
+.inp span{color:var(--mute);font-size:13px}
+.inp:focus-within{border-color:var(--clay)}
+.fld.bad .inp{border-color:var(--err);background:var(--errbg)}
+.fld .em{display:none;color:var(--err);font-size:12px;margin-top:4px;font-weight:600}
+.fld.bad .em{display:block}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.save{width:100%;height:52px;border:0;border-radius:14px;background:var(--brown);color:var(--line);font-family:inherit;font-size:16px;font-weight:700;cursor:pointer;margin-top:6px}
+.save:active{background:#000}
+.save:disabled{opacity:.6}
+.note{border-radius:12px;padding:10px 12px;font-size:13px;margin-top:10px;display:none}
+.note.err{display:block;background:var(--errbg);color:var(--err)}
+.note.ok{display:block;background:#6f8a5b1f;color:#3f5a2e}
+.bars{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;align-items:end;height:140px;padding-top:10px;border-bottom:2px solid var(--sand2);position:relative}
+.bars .g{position:absolute;left:0;right:0;border-top:1.5px dashed var(--sage);font-size:10px;color:var(--sage);text-align:right}
+.bar{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;font-size:11px;color:var(--mute);font-variant-numeric:tabular-nums}
+.bar i{width:100%;border-radius:8px 8px 3px 3px;background:var(--sand2);transition:height .5s ease}
+.bar.today i{background:var(--clay)}
+.bar.new i{background:repeating-linear-gradient(-45deg,var(--clay) 0 6px,var(--clay-d) 6px 12px)}
+.days{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;text-align:center;font-size:12px;color:var(--mute);margin-top:4px}
+.days .today{color:var(--clay);font-weight:700}
+.trend{display:flex;gap:10px;margin-top:12px}
+.trend div{flex:1;background:var(--sand);border-radius:12px;padding:8px 10px;font-size:12px;color:var(--mute)}
+.trend b{display:block;font-size:18px;color:var(--brown);font-variant-numeric:tabular-nums}
+.trend b.up{color:var(--sage)}.trend b.dn{color:var(--clay)}
+.log{list-style:none;margin:0;padding:0}
+.log li{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--sand2);font-size:14px}
+.log li:last-child{border:0}
+.log li span:first-child{width:38px;height:38px;border-radius:12px;background:var(--sand);display:grid;place-items:center;font-size:18px}
+.log li div{flex:1}.log li small{display:block;color:var(--mute);font-size:12px}
+.log li b{font-variant-numeric:tabular-nums}
+.log li.fresh{animation:fl 1.2s ease}
+@keyframes fl{from{background:#c4532f22}to{background:transparent}}
+button:focus-visible{outline:3px solid var(--sage);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="hero">
+    <div class="top"><b>红土</b><span>本周 · 10月5日–11日</span></div>
+    <div class="ring">
+      <svg width="124" height="124" viewBox="0 0 124 124" aria-hidden="true"><circle cx="62" cy="62" r="52" fill="none" stroke="#ffffff33" stroke-width="14"/><circle id="arc" cx="62" cy="62" r="52" fill="none" stroke="#fffaf2" stroke-width="14" stroke-linecap="round" transform="rotate(-90 62 62)" stroke-dasharray="326.7" stroke-dashoffset="326.7" style="transition:stroke-dashoffset .6s ease"/><text id="pct" x="62" y="70" text-anchor="middle" font-size="24" font-weight="800" fill="#fffaf2">0%</text></svg>
+      <div class="n" role="status" aria-live="polite"><span>本周活动分钟</span><b id="min">0</b><span>目标 150 分钟</span><br><em id="left">还差 150 分钟</em></div>
+    </div>
+  </header>
+
+  <section class="card" aria-labelledby="h-rec">
+    <h2 id="h-rec">记录一次活动 <small>今天 10月10日 周六</small></h2>
+    <div class="types" id="types" role="group" aria-label="活动类型"></div>
+    <div class="row2">
+      <div class="fld" id="f-dur"><label for="dur">时长<small>1–300</small></label><div class="inp"><input id="dur" inputmode="numeric" value="35" aria-describedby="e-dur"><span>分钟</span></div><div class="em" id="e-dur"></div></div>
+      <div class="fld" id="f-dist"><label for="dist">距离<small>0–80</small></label><div class="inp"><input id="dist" inputmode="decimal" value="5.2" aria-describedby="e-dist"><span>公里</span></div><div class="em" id="e-dist"></div></div>
+    </div>
+    <div class="fld" id="f-hr"><label for="hr">平均心率<small>合理范围 40–220</small></label><div class="inp"><input id="hr" inputmode="numeric" value="142" aria-describedby="e-hr"><span>次/分</span></div><div class="em" id="e-hr"></div></div>
+    <p style="font-size:12px;color:var(--mute);margin:0 0 6px">提示：时长超出 1–300 分钟、心率超出 40–220、距离超出 0–80 公里或配速明显不合理时，记录不会保存。可以试着把时长改成 <b>480</b> 看看。</p>
+    <button class="save" type="button" id="save">保存记录</button>
+    <div class="note" id="note" role="alert"></div>
+  </section>
+
+  <section class="card" aria-labelledby="h-tr">
+    <h2 id="h-tr">7 日趋势 <small>每日活动分钟</small></h2>
+    <div class="bars" id="bars"></div>
+    <div class="days" id="days"></div>
+    <div class="trend"><div>日均<b id="avg">—</b></div><div>较上周同期<b id="vs">—</b></div><div>连续达标<b id="streak">—</b></div></div>
+    <p id="tip" style="font-size:13px;margin:10px 0 0"></p>
+  </section>
+
+  <section class="card" aria-labelledby="h-log">
+    <h2 id="h-log">本周记录 <small id="cnt"></small></h2>
+    <ul class="log" id="log"></ul>
+  </section>
+</div>
+<script>
+const $=s=>document.querySelector(s);
+const T=[['run','🏃','跑步',[4,22]],['ride','🚴','骑行',[8,45]],['swim','🏊','游泳',[0.5,6]],['walk','🚶','步行',[2,9]]];
+const DAYS=['一','二','三','四','五','六','日'];const LAST=112;
+let type='run';
+let recs=[{d:0,t:'walk',m:28,k:2.3,h:104},{d:1,t:'run',m:32,k:5.6,h:148},{d:3,t:'ride',m:45,k:16.2,h:126},{d:4,t:'walk',m:12,k:1.0,h:98}];
+const TODAY=5;const LBL=['10/5','10/6','10/7','10/8','10/9','10/10','10/11'];
+$('#types').innerHTML=T.map(t=>'<button type="button" data-t="'+t[0]+'" aria-pressed="'+(t[0]===type)+'"><span>'+t[1]+'</span>'+t[2]+'</button>').join('');
+document.querySelectorAll('#types button').forEach(b=>b.onclick=()=>{type=b.dataset.t;document.querySelectorAll('#types button').forEach(x=>x.setAttribute('aria-pressed',x===b))});
+const total=()=>recs.reduce((s,r)=>s+r.m,0);
+function render(newDay){const m=total(),p=Math.min(1,m/150);$('#arc').style.strokeDashoffset=326.7*(1-p);$('#pct').textContent=Math.round(m/150*100)+'%';$('#min').textContent=m;$('#left').textContent=m>=150?'本周目标已达成 ✓':'还差 '+(150-m)+' 分钟';
+ const per=[0,0,0,0,0,0,0];recs.forEach(r=>per[r.d]+=r.m);const mx=Math.max(60,...per);
+ $('#bars').innerHTML='<div class="g" style="bottom:'+(30/mx*100)+'%">每日 30 分钟</div>'+per.map((v,i)=>'<div class="bar'+(i===TODAY?' today':'')+(i===newDay?' new':'')+'"><span>'+(i<=TODAY?v:'')+'</span><i style="height:'+(v/mx*100)+'%"></i></div>').join('');
+ $('#days').innerHTML=LBL.map((l,i)=>'<span class="'+(i===TODAY?'today':'')+'">'+(i===TODAY?'今天':'周'+DAYS[i])+'</span>').join('');
+ const avg=Math.round(m/(TODAY+1));$('#avg').textContent=avg+' 分';const diff=m-LAST;$('#vs').textContent=(diff>=0?'+':'')+diff+' 分';$('#vs').className=diff>=0?'up':'dn';
+ let s=0;for(let i=TODAY;i>=0;i--){if(per[i]>=30)s++;else break}$('#streak').textContent=s+' 天';
+ $('#tip').textContent=m>=150?'🎉 本周 150 分钟目标已完成，保持节奏，注意拉伸恢复。':diff>=0?'比上周同期多运动 '+diff+' 分钟，按日均 '+avg+' 分钟，周日前可达成目标。':'比上周同期少 '+(-diff)+' 分钟，今天再动 '+Math.min(150-m,40)+' 分钟就能追上。';
+ $('#cnt').textContent=recs.length+' 次';
+ $('#log').innerHTML=recs.slice().reverse().map((r,i)=>{const t=T.find(x=>x[0]===r.t);return '<li'+(i===0&&newDay!=null?' class="fresh"':'')+'><span>'+t[1]+'</span><div>'+t[2]+' · '+r.m+' 分钟<small>'+(r.d===TODAY?'今天':'周'+DAYS[r.d])+' '+LBL[r.d]+' · 平均心率 '+r.h+'</small></div><b>'+r.k+' km</b></li>'}).join('')}
+function err(id,msg){const f=$('#f-'+id);f.classList.add('bad');$('#e-'+id).textContent=msg;return id}
+function save(){['dur','dist','hr'].forEach(k=>{$('#f-'+k).classList.remove('bad');$('#e-'+k).textContent=''});
+ const dv=$('#dur').value.trim(),kv=$('#dist').value.trim(),hv=$('#hr').value.trim(),m=Number(dv),k=Number(kv),h=Number(hv),bad=[];
+ if(dv===''||!Number.isInteger(m))bad.push(err('dur','请输入整数分钟'));else if(m<1||m>300)bad.push(err('dur','时长 '+m+' 分钟超出合理范围 1–300'));
+ if(kv===''||isNaN(k))bad.push(err('dist','请输入距离，没有可填 0'));else if(k<0||k>80)bad.push(err('dist','距离 '+k+' 公里超出合理范围 0–80'));
+ if(hv===''||!Number.isInteger(h))bad.push(err('hr','请输入整数心率'));else if(h<40||h>220)bad.push(err('hr','心率 '+h+' 超出合理范围 40–220'));
+ if(!bad.includes('dur')&&!bad.includes('dist')&&k>0){const sp=k/(m/60),t=T.find(x=>x[0]===type),r=t[3];if(sp>r[1])bad.push(err('dist',t[2]+'均速 '+sp.toFixed(1)+' km/h，超过合理上限 '+r[1]+' km/h，请检查距离或时长'))}
+ const n=$('#note');
+ if(bad.length){n.className='note err';n.innerHTML='<b>未保存：</b>有 '+bad.length+' 项数据不合理，已标红。本周进度保持 '+total()+' 分钟不变。';$('#'+bad[0]).focus();$('#'+bad[0]).select();return}
+ const b=$('#save');b.disabled=true;b.textContent='保存中…';setTimeout(()=>{const before=total();recs.push({d:TODAY,t:type,m,k,h});b.disabled=false;b.textContent='保存记录';
+  n.className='note ok';n.innerHTML='✓ 已保存：'+T.find(x=>x[0]===type)[2]+' '+m+' 分钟。本周进度 '+before+' → '+total()+' 分钟，趋势已重新计算。';render(TODAY)},500)}
+$('#save').onclick=save;['dur','dist','hr'].forEach(k=>$('#'+k).oninput=()=>$('#f-'+k).classList.remove('bad'));
+render();
+</script>
+</body>
+</html>

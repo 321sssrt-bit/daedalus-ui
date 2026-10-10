@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>文件上传 · 快传 98</title>
+<style>
+:root{--desk:#008080;--face:#c0c0c0;--hi:#ffffff;--sh:#808080;--dk:#000000;--title:#000080;--title2:#1084d0;--sel:#000080;--ok:#008000;--err:#c00000}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:var(--desk);font:13px/1.4 "MS Sans Serif","Tahoma","SimSun","PingFang SC",sans-serif;color:var(--dk);display:grid;place-items:center;padding:24px}
+.icons{position:fixed;left:16px;top:16px;display:grid;gap:22px;color:#fff;text-align:center;font-size:12px}
+.icons div{width:72px}.icons i{display:block;font-size:30px;font-style:normal}
+.win{width:860px;max-width:100%;background:var(--face);box-shadow:inset -1px -1px var(--dk),inset 1px 1px var(--hi),inset -2px -2px var(--sh),inset 2px 2px #dfdfdf;padding:3px}
+.tb{background:linear-gradient(90deg,var(--title),var(--title2));color:#fff;font-weight:700;padding:3px 4px 3px 6px;display:flex;justify-content:space-between;align-items:center}
+.tb span{display:flex;gap:6px;align-items:center}
+.tb button{width:18px;height:16px;padding:0;font-family:inherit;font-weight:700;font-size:11px;line-height:1;margin-left:2px}
+button,.b{background:var(--face);border:0;box-shadow:inset -1px -1px var(--dk),inset 1px 1px var(--hi),inset -2px -2px var(--sh),inset 2px 2px #dfdfdf;font:inherit;padding:5px 14px;cursor:pointer;color:var(--dk);min-width:75px}
+button:active{box-shadow:inset 1px 1px var(--dk),inset -1px -1px var(--hi),inset 2px 2px var(--sh)}
+button:focus-visible{outline:1px dotted var(--dk);outline-offset:-5px}
+button:disabled{color:var(--sh);text-shadow:1px 1px var(--hi);cursor:default}
+.menu{display:flex;gap:2px;padding:2px 4px}
+.menu span{padding:2px 6px}
+.menu span:hover{background:var(--sel);color:#fff}
+.body{padding:10px;display:grid;grid-template-columns:1fr 220px;gap:10px}
+.drop{grid-column:1/-1;height:150px;background:var(--hi);box-shadow:inset 1px 1px var(--sh),inset -1px -1px var(--hi),inset 2px 2px var(--dk),inset -2px -2px #dfdfdf;display:grid;place-items:center;text-align:center;cursor:pointer;border:0;width:100%}
+.drop .in{border:2px dashed var(--sh);padding:18px 40px}
+.drop.over .in{border-color:var(--sel);background:#e8e8ff}
+.drop b{font-size:15px}
+.list{background:var(--hi);box-shadow:inset 1px 1px var(--sh),inset -1px -1px var(--hi),inset 2px 2px var(--dk),inset -2px -2px #dfdfdf;height:220px;overflow:auto}
+table{width:100%;border-collapse:collapse}
+th{position:sticky;top:0;background:var(--face);box-shadow:inset -1px -1px var(--dk),inset 1px 1px var(--hi);text-align:left;font-weight:400;padding:3px 6px}
+td{padding:4px 6px;white-space:nowrap}
+tr.sel td{background:var(--sel);color:#fff}
+tbody tr{cursor:default}
+.pg{width:120px;height:14px;box-shadow:inset 1px 1px var(--sh),inset -1px -1px var(--hi);background:var(--hi);padding:2px;display:flex;gap:2px}
+.pg i{width:8px;height:100%;background:var(--sel)}
+.st-ok{color:var(--ok)}.st-err{color:var(--err)}
+tr.sel .st-ok,tr.sel .st-err{color:#fff}
+.side{display:flex;flex-direction:column;gap:8px}
+fieldset{border:0;box-shadow:inset -1px -1px var(--hi),inset 1px 1px var(--sh),inset -2px -2px var(--sh),inset 2px 2px var(--hi);padding:10px;margin:0}
+legend{padding:0 4px}
+fieldset label{display:flex;gap:6px;align-items:center;margin:4px 0}
+.status{display:flex;gap:2px;padding:2px}
+.status div{flex:1;padding:3px 6px;box-shadow:inset 1px 1px var(--sh),inset -1px -1px var(--hi)}
+.status div:first-child{flex:3}
+@media (max-width:900px){.body{grid-template-columns:1fr}.icons{display:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="icons" aria-hidden="true"><div><i>🖥️</i>我的电脑</div><div><i>🗑️</i>回收站</div><div><i>📁</i>项目资料</div></div>
+<section class="win" role="dialog" aria-labelledby="wt">
+  <div class="tb"><span id="wt">📤 快传 98 — 上传到「2026 秋季画册」</span><span><button type="button" aria-label="最小化">_</button><button type="button" aria-label="最大化">□</button><button type="button" aria-label="关闭">×</button></span></div>
+  <div class="menu" aria-hidden="true"><span>文件(F)</span><span>编辑(E)</span><span>查看(V)</span><span>帮助(H)</span></div>
+  <div class="body">
+    <button class="drop" type="button" id="drop"><div class="in"><b>把文件拖到这里</b><br>或者单击此处从「我的电脑」选择<br><small>支持 JPG / PNG / PDF / PSD，单个文件不超过 200 MB</small></div></button>
+    <input type="file" id="fi" multiple hidden>
+    <div class="list"><table><thead><tr><th>文件名</th><th>大小</th><th>进度</th><th>状态</th></tr></thead><tbody id="tb"></tbody></table></div>
+    <div class="side">
+      <fieldset><legend>处理选项</legend><label><input type="checkbox" checked> 生成缩略图</label><label><input type="checkbox" checked> 转为 CMYK 印刷色</label><label><input type="checkbox"> 添加水印</label></fieldset>
+      <button type="button" id="del">删除所选</button>
+      <button type="button" id="clr">清除已完成</button>
+      <button type="button" id="go"><b>开始处理</b></button>
+    </div>
+  </div>
+  <div class="status"><div id="msg">就绪。共 0 个文件。</div><div id="tot">0 KB</div><div>剩余 4.2 GB</div></div>
+</section>
+<script>
+let F=[{n:'封面_主视觉.psd',s:86.4*1024*1024,p:0,st:'等待'},{n:'内页_01-12.pdf',s:24.7*1024*1024,p:0,st:'等待'},{n:'摄影_秋林_037.jpg',s:6.2*1024*1024,p:0,st:'等待'},{n:'旧版_封底_过大.tif',s:312*1024*1024,p:0,st:'错误：超过 200 MB'}];
+let sel=0,run=null;const $=s=>document.querySelector(s);
+const sz=b=>b>=1048576?(b/1048576).toFixed(1)+' MB':Math.max(1,Math.round(b/1024))+' KB';
+function render(){$('#tb').innerHTML=F.map((f,i)=>'<tr class="'+(i===sel?'sel':'')+'" data-i="'+i+'"><td>'+(f.st.startsWith('错误')?'⚠️':'📄')+' '+f.n+'</td><td>'+sz(f.s)+'</td><td><div class="pg">'+'<i></i>'.repeat(Math.round(f.p/10))+'</div></td><td class="'+(f.st==='完成'?'st-ok':f.st.startsWith('错误')?'st-err':'')+'">'+f.st+'</td></tr>').join('');
+ document.querySelectorAll('#tb tr').forEach(r=>r.onclick=()=>{sel=+r.dataset.i;render()});
+ const ready=F.filter(f=>f.st==='等待').length;$('#tot').textContent=sz(F.reduce((a,f)=>a+f.s,0));if(!run)$('#msg').textContent='就绪。共 '+F.length+' 个文件，'+ready+' 个待处理。';
+ $('#go').disabled=!ready||!!run;$('#del').disabled=sel<0||!F[sel]||!!run;$('#clr').disabled=!F.some(f=>f.st==='完成')}
+function add(list){[...list].forEach(f=>F.push({n:f.name,s:f.size,p:0,st:f.size>200*1048576?'错误：超过 200 MB':'等待'}));render()}
+const d=$('#drop');d.onclick=()=>$('#fi').click();$('#fi').onchange=e=>add(e.target.files);
+d.ondragover=e=>{e.preventDefault();d.classList.add('over')};d.ondragleave=()=>d.classList.remove('over');d.ondrop=e=>{e.preventDefault();d.classList.remove('over');add(e.dataTransfer.files)};
+$('#del').onclick=()=>{if(F[sel]){$('#msg').textContent='已删除「'+F[sel].n+'」。';F.splice(sel,1);sel=Math.min(sel,F.length-1);run=null;render();$('#msg').textContent+=''}};
+$('#clr').onclick=()=>{F=F.filter(f=>f.st!=='完成');sel=0;render()};
+$('#go').onclick=()=>{const q=F.filter(f=>f.st==='等待');q.forEach(f=>f.st='上传中');run=setInterval(()=>{let busy=false;F.forEach(f=>{if(f.st==='上传中'){f.p=Math.min(100,f.p+Math.round(4e8/f.s/1.5)+3);if(f.p>=100){f.st='完成'}else busy=true}});
+ const done=F.filter(f=>f.st==='完成').length;$('#msg').textContent=busy?'正在上传并处理… 已完成 '+done+' 个':'处理完成：'+done+' 个文件已加入画册。';render();if(!busy){clearInterval(run);run=null;render();$('#msg').textContent='处理完成：'+done+' 个文件已加入画册。'}},300);render()};
+render();
+</script>
+</body>
+</html>

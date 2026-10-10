@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>角色权限 · 图纸工坊</title>
+<style>
+:root{--bp:#0d3b8c;--bp2:#0a2f70;--line:#5f8fd9;--chalk:#eaf2ff;--dim:#a9c2ec;--amber:#ffcf4d;--rose:#ff8a8a;--mint:#7cf0c5}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;color:var(--chalk);font:14px/1.55 "SF Mono","JetBrains Mono",Menlo,Consolas,"PingFang SC","Microsoft YaHei",monospace;background:linear-gradient(#ffffff10 1px,transparent 1px) 0 0/24px 24px,linear-gradient(90deg,#ffffff10 1px,transparent 1px) 0 0/24px 24px,linear-gradient(#ffffff1c 1px,transparent 1px) 0 0/120px 120px,linear-gradient(90deg,#ffffff1c 1px,transparent 1px) 0 0/120px 120px,var(--bp)}
+header{display:flex;justify-content:space-between;align-items:center;padding:18px 40px;border-bottom:1px dashed var(--line)}
+header h1{margin:0;font:700 22px/1 "PingFang SC","Microsoft YaHei",sans-serif;letter-spacing:.06em}
+header small{color:var(--dim)}
+.wrap{display:grid;grid-template-columns:240px 1fr 320px;gap:24px;padding:24px 40px 40px}
+.box{border:1.5px solid var(--chalk);position:relative;padding:16px}
+.box .lbl{position:absolute;top:-10px;left:12px;background:var(--bp);padding:0 6px;font-size:11px;letter-spacing:.2em;color:var(--dim)}
+.roles{display:grid;gap:8px}
+.role{display:grid;grid-template-columns:1fr auto;gap:2px;padding:12px;border:1px dashed var(--line);background:transparent;color:var(--chalk);font:inherit;text-align:left;cursor:pointer}
+.role:hover{border-style:solid;background:#ffffff0a}
+.role[aria-selected="true"]{border:1.5px solid var(--amber);background:#ffcf4d14}
+.role b{font-family:"PingFang SC","Microsoft YaHei",sans-serif;font-size:15px}
+.role small{grid-column:1/-1;color:var(--dim);font-size:12px}
+.role .n{color:var(--amber)}
+.role:focus-visible,.tg:focus-visible,.save:focus-visible,.ghost:focus-visible{outline:2px dashed var(--amber);outline-offset:3px}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;font-size:11px;letter-spacing:.15em;color:var(--dim);font-weight:400;padding:6px 8px;border-bottom:1px solid var(--line)}
+td{padding:9px 8px;border-bottom:1px dashed #5f8fd966}
+td:first-child{font-family:"PingFang SC","Microsoft YaHei",sans-serif}
+td small{display:block;color:var(--dim);font-size:11px;font-family:inherit}
+.grp td{color:var(--amber);font-size:12px;letter-spacing:.2em;border-bottom:1px solid var(--line);padding-top:14px}
+.tg{width:44px;height:22px;border:1.5px solid var(--chalk);background:transparent;position:relative;cursor:pointer;padding:0}
+.tg:after{content:"";position:absolute;top:3px;left:3px;width:13px;height:13px;background:var(--dim);transition:left .15s}
+.tg[aria-checked="true"]{background:var(--mint);border-color:var(--mint)}
+.tg[aria-checked="true"]:after{left:24px;background:var(--bp)}
+.tg:disabled{opacity:.4;cursor:not-allowed}
+.tg.chg{box-shadow:0 0 0 2px var(--amber)}
+.pv{display:grid;gap:10px}
+.mock{border:1px solid var(--chalk);background:var(--bp2);padding:10px}
+.mock .bar{display:flex;gap:6px;margin-bottom:8px}
+.mock .bar span{font-size:11px;padding:2px 6px;border:1px solid var(--line)}
+.mock .bar span.off{opacity:.25;text-decoration:line-through}
+.mock .doc{height:70px;border:1px dashed var(--line);display:grid;place-items:center;color:var(--dim);font-size:12px}
+.mock .acts{display:flex;gap:6px;margin-top:8px}
+.mock .acts span{flex:1;text-align:center;font-size:11px;padding:4px;border:1px solid var(--chalk)}
+.mock .acts span.off{opacity:.2;border-style:dashed}
+.foot{display:flex;gap:10px;align-items:center;margin-top:14px}
+.save{height:40px;padding:0 18px;border:0;background:var(--amber);color:var(--bp2);font:inherit;font-weight:700;cursor:pointer}
+.save:hover{background:#ffe08a}
+.save:disabled{background:#ffffff22;color:var(--dim);cursor:not-allowed}
+.ghost{height:40px;padding:0 14px;border:1px solid var(--chalk);background:transparent;color:var(--chalk);font:inherit;cursor:pointer}
+.ghost:disabled{opacity:.4;cursor:not-allowed}
+.stat{font-size:12px;color:var(--dim)}
+.stat.dirty{color:var(--amber)}.stat.ok{color:var(--mint)}
+@media (max-width:1100px){.wrap{grid-template-columns:1fr;padding:20px}header{padding:14px 20px}}
+@media (prefers-reduced-motion:reduce){.tg:after{transition:none}}
+</style>
+</head>
+<body>
+<header><div><h1>角色与权限</h1><small>图纸工坊 · 建筑设计院协作空间 · 37 位成员</small></div><small>DWG-ROLE-REV.04</small></header>
+<div class="wrap">
+  <section class="box"><span class="lbl">ROLES / 角色</span><div class="roles" id="roles"></div></section>
+  <section class="box"><span class="lbl">MATRIX / 权限清单</span>
+    <table><thead><tr><th>权限</th><th style="width:70px">允许</th></tr></thead><tbody id="tb"></tbody></table>
+    <div class="foot"><button class="save" type="button" id="save" disabled>保存更改</button><button class="ghost" type="button" id="reset" disabled>撤销更改</button><span class="stat" id="stat">没有未保存的更改</span></div>
+  </section>
+  <section class="box"><span class="lbl">PREVIEW / 切换预览</span><div class="pv"><div class="stat">以「<b id="pn"></b>」身份看到的项目页：</div>
+    <div class="mock"><div class="bar" id="mb"></div><div class="doc">A-101 首层平面图.dwg</div><div class="acts" id="ma"></div></div>
+    <div class="stat" id="psum"></div></div></section>
+</div>
+<script>
+const P=[['图纸','view','查看图纸','包括历史版本'],['图纸','edit','编辑与上传图纸',''],['图纸','approve','审核签发','签发后图纸锁定'],['项目','export','导出 PDF / DWG',''],['项目','share','对外分享链接','甲方可免登录查看'],['管理','members','邀请与移除成员',''],['管理','billing','查看费用与发票','']];
+const base={admin:['view','edit','approve','export','share','members','billing'],lead:['view','edit','approve','export','share'],designer:['view','edit','export'],client:['view']};
+const R=[['admin','管理员',2,'全部权限，不可修改'],['lead','专业负责人',6,'负责一个专业的审核签发'],['designer','设计师',21,'绘图与上传'],['client','甲方访客',8,'只读查看指定项目']];
+let saved=JSON.parse(JSON.stringify(base)),draft=JSON.parse(JSON.stringify(base)),cur='designer';const $=s=>document.querySelector(s);
+function dirty(){return Object.keys(draft).some(k=>draft[k].slice().sort().join()!==saved[k].slice().sort().join())}
+function render(){$('#roles').innerHTML=R.map(r=>'<button class="role" type="button" role="tab" aria-selected="'+(r[0]===cur)+'" data-r="'+r[0]+'"><b>'+r[1]+'</b><span class="n">'+r[2]+' 人</span><small>'+r[3]+' · '+draft[r[0]].length+'/7 项</small></button>').join('');
+ document.querySelectorAll('.role').forEach(b=>b.onclick=()=>{cur=b.dataset.r;render()});
+ let g='',h='';P.forEach(p=>{if(p[0]!==g){g=p[0];h+='<tr class="grp"><td colspan="2">'+g+'</td></tr>'}const on=draft[cur].includes(p[1]),ch=on!==saved[cur].includes(p[1]);
+  h+='<tr><td>'+p[2]+(p[3]?'<small>'+p[3]+'</small>':'')+'</td><td><button class="tg'+(ch?' chg':'')+'" type="button" role="switch" aria-checked="'+on+'" aria-label="'+p[2]+'" data-k="'+p[1]+'" '+(cur==='admin'?'disabled':'')+'></button></td></tr>'});$('#tb').innerHTML=h;
+ document.querySelectorAll('.tg').forEach(t=>t.onclick=()=>{const k=t.dataset.k,a=draft[cur];const i=a.indexOf(k);if(i>=0)a.splice(i,1);else a.push(k);if(k==='view'&&i>=0)draft[cur]=[];render()});
+ const d=dirty();$('#save').disabled=!d;$('#reset').disabled=!d;if(d){$('#stat').className='stat dirty';$('#stat').textContent='● 有未保存的更改（黄色描边）'}else if($('#stat').className!=='stat ok'){$('#stat').className='stat';$('#stat').textContent='没有未保存的更改'}
+ const a=draft[cur];$('#pn').textContent=R.find(r=>r[0]===cur)[1];
+ $('#mb').innerHTML=[['图纸','view'],['费用','billing'],['成员','members']].map(x=>'<span class="'+(a.includes(x[1])?'':'off')+'">'+x[0]+'</span>').join('');
+ $('#ma').innerHTML=[['编辑','edit'],['签发','approve'],['导出','export'],['分享','share']].map(x=>'<span class="'+(a.includes(x[1])?'':'off')+'">'+x[0]+'</span>').join('');
+ $('#psum').textContent=a.includes('view')?'可用操作 '+a.length+' 项；虚线按钮对该角色不可见。':'该角色看不到任何图纸，打开项目会显示「无权访问」。'}
+$('#save').onclick=()=>{saved=JSON.parse(JSON.stringify(draft));$('#stat').className='stat ok';$('#stat').textContent='✓ 已保存，成员下次刷新页面生效';render()};
+$('#reset').onclick=()=>{draft=JSON.parse(JSON.stringify(saved));$('#stat').className='stat';render()};
+render();
+</script>
+</body>
+</html>

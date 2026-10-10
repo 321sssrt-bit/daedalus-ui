@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>初诊登记 · 安和诊所</title>
+<style>
+:root{--aqua:#0e8f8a;--aqua-d:#0b726e;--aqua-l:#e3f5f3;--bg:#f6faf9;--white:#ffffff;--ink:#163330;--sub:#5b7470;--line:#d5e6e3;--req:#d6453d;--done:#2e9d5b}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 "PingFang SC","Microsoft YaHei",system-ui,sans-serif}
+header{position:sticky;top:0;z-index:5;background:var(--white);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:20px;padding:12px 40px}
+.logo{display:flex;gap:10px;align-items:center;font-weight:700;font-size:17px;color:var(--aqua)}
+.logo i{width:28px;height:28px;border-radius:8px;background:var(--aqua);position:relative}
+.logo i:before,.logo i:after{content:"";position:absolute;background:#fff;border-radius:1px}
+.logo i:before{left:12px;top:6px;width:4px;height:16px}.logo i:after{left:6px;top:12px;width:16px;height:4px}
+.prog{flex:1;max-width:360px;margin-left:auto}
+.prog small{color:var(--sub)}
+.prog div{height:6px;background:var(--line);border-radius:3px;overflow:hidden;margin-top:4px}
+.prog i{display:block;height:100%;background:var(--aqua);transition:width .3s}
+.saved{font-size:13px;color:var(--sub);min-width:150px;text-align:right}
+.wrap{max-width:1120px;margin:0 auto;padding:28px 40px 80px;display:grid;grid-template-columns:240px 1fr;gap:40px}
+aside{position:sticky;top:90px;align-self:start}
+aside h2{font-size:13px;color:var(--sub);margin:0 0 10px;font-weight:600}
+aside ol{list-style:none;margin:0;padding:0;display:grid;gap:4px;counter-reset:s}
+aside a{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;color:var(--ink);text-decoration:none;counter-increment:s}
+aside a:before{content:counter(s);width:24px;height:24px;border-radius:50%;border:2px solid var(--line);display:grid;place-items:center;font-size:12px;font-weight:700;color:var(--sub);flex:none}
+aside a:hover{background:var(--aqua-l)}
+aside a.cur{background:var(--white);box-shadow:0 1px 3px #16333015;font-weight:600}
+aside a.cur:before{border-color:var(--aqua);color:var(--aqua)}
+aside a.ok:before{content:"✓";background:var(--done);border-color:var(--done);color:#fff}
+aside a.bad:before{border-color:var(--req);color:var(--req)}
+aside a:focus-visible,.btn:focus-visible{outline:3px solid #0e8f8a55;outline-offset:2px}
+.note{margin-top:18px;font-size:12px;color:var(--sub);background:var(--white);border:1px solid var(--line);border-radius:10px;padding:12px}
+form section{background:var(--white);border:1px solid var(--line);border-radius:16px;padding:24px 28px;margin-bottom:20px;scroll-margin-top:90px}
+form h3{margin:0 0 4px;font-size:19px}
+form h3+p{margin:0 0 18px;color:var(--sub);font-size:13px}
+.g{display:grid;grid-template-columns:1fr 1fr;gap:16px 20px}
+.f{display:flex;flex-direction:column}
+.f.w{grid-column:1/-1}
+label{font-size:13px;font-weight:600;margin-bottom:6px}
+label em{color:var(--req);font-style:normal;margin-left:2px}
+input,select,textarea{height:44px;border:1.5px solid var(--line);border-radius:10px;padding:0 12px;font:inherit;background:var(--white);color:var(--ink)}
+textarea{height:88px;padding:10px 12px;resize:vertical}
+input:hover,select:hover,textarea:hover{border-color:#a9cbc6}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--aqua);box-shadow:0 0 0 3px #0e8f8a22}
+.f.err input,.f.err select,.f.err textarea{border-color:var(--req);background:#fff7f6}
+.f .msg{font-size:12px;color:var(--req);min-height:0}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chips label{display:flex;gap:6px;align-items:center;font-weight:400;border:1.5px solid var(--line);border-radius:999px;padding:6px 12px;cursor:pointer;margin:0}
+.chips input{height:auto;accent-color:var(--aqua)}
+.chips label:has(input:checked){border-color:var(--aqua);background:var(--aqua-l)}
+.consent{display:flex;gap:10px;align-items:flex-start;font-size:14px}
+.consent input{height:20px;width:20px;accent-color:var(--aqua)}
+.bar{position:fixed;left:0;right:0;bottom:0;background:var(--white);border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:12px;padding:12px 40px;z-index:5}
+.btn{height:46px;padding:0 22px;border-radius:12px;font:inherit;font-weight:700;cursor:pointer}
+.ghost{border:1.5px solid var(--aqua);background:var(--white);color:var(--aqua)}
+.ghost:hover{background:var(--aqua-l)}
+.pri{border:0;background:var(--aqua);color:#fff}
+.pri:hover{background:var(--aqua-d)}
+.sum{margin-right:auto;align-self:center;font-size:14px;color:var(--sub)}
+.sum.err{color:var(--req)}.sum.ok{color:var(--done);font-weight:600}
+@media (max-width:900px){.wrap{grid-template-columns:1fr;padding:20px}aside{position:static}.g{grid-template-columns:1fr}header{padding:10px 20px}.prog{display:none}.bar{padding:10px 20px}}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}.prog i{transition:none}}
+</style>
+</head>
+<body>
+<header><div class="logo"><i aria-hidden="true"></i>安和诊所 · 初诊登记</div><div class="prog"><small id="pt">已完成 0 / 5 节</small><div><i id="pb" style="width:0"></i></div></div><div class="saved" id="saved">尚未保存草稿</div></header>
+<div class="wrap">
+  <aside><h2>填写进度</h2><ol id="nav">
+    <li><a href="#s1" class="cur">基本信息</a></li><li><a href="#s2">联系方式</a></li><li><a href="#s3">既往病史</a></li><li><a href="#s4">过敏与用药</a></li><li><a href="#s5">知情同意</a></li></ol>
+    <div class="note">带 <b style="color:#d6453d">*</b> 为必填。你的信息仅用于本次就诊，受《个人信息保护法》保护。草稿保存 7 天。</div></aside>
+  <form id="form" novalidate>
+    <section id="s1"><h3>1. 基本信息</h3><p>请与身份证件保持一致</p><div class="g">
+      <div class="f"><label for="n">姓名<em>*</em></label><input id="n" required><span class="msg"></span></div>
+      <div class="f"><label for="sx">性别<em>*</em></label><select id="sx" required><option value="">请选择</option><option>女</option><option>男</option></select><span class="msg"></span></div>
+      <div class="f"><label for="bd">出生日期<em>*</em></label><input id="bd" type="date" required><span class="msg"></span></div>
+      <div class="f"><label for="idn">证件号码<em>*</em></label><input id="idn" required placeholder="18 位身份证号"><span class="msg"></span></div></div></section>
+    <section id="s2"><h3>2. 联系方式</h3><p>用于发送检查报告与复诊提醒</p><div class="g">
+      <div class="f"><label for="ph">手机号<em>*</em></label><input id="ph" required inputmode="tel"><span class="msg"></span></div>
+      <div class="f"><label for="ec">紧急联系人</label><input id="ec" placeholder="姓名 + 电话"><span class="msg"></span></div>
+      <div class="f w"><label for="ad">现住址</label><input id="ad" placeholder="省 / 市 / 区 / 街道门牌"><span class="msg"></span></div></div></section>
+    <section id="s3"><h3>3. 既往病史</h3><p>没有可不选</p><div class="g">
+      <div class="f w"><label>曾确诊的疾病（可多选）</label><div class="chips"><label><input type="checkbox">高血压</label><label><input type="checkbox">糖尿病</label><label><input type="checkbox">哮喘</label><label><input type="checkbox">心脏病</label><label><input type="checkbox">甲状腺疾病</label><label><input type="checkbox">以上都没有</label></div></div>
+      <div class="f w"><label for="cc">本次主要不适<em>*</em></label><textarea id="cc" required placeholder="例如：咳嗽 5 天，夜间加重，无发热"></textarea><span class="msg"></span></div></div></section>
+    <section id="s4"><h3>4. 过敏与用药</h3><p>关系到开药安全，请尽量填写</p><div class="g">
+      <div class="f"><label for="al">药物过敏<em>*</em></label><select id="al" required><option value="">请选择</option><option>无已知过敏</option><option>青霉素类</option><option>头孢类</option><option>其他（请在下方说明）</option></select><span class="msg"></span></div>
+      <div class="f"><label for="md">正在服用的药物</label><input id="md" placeholder="药名与剂量"><span class="msg"></span></div></div></section>
+    <section id="s5"><h3>5. 知情同意</h3><p>请阅读后勾选</p>
+      <div class="f"><label class="consent"><input type="checkbox" id="cs" required>我确认以上信息真实，并同意安和诊所为诊疗目的使用这些信息。<em>*</em></label><span class="msg"></span></div></section>
+  </form>
+</div>
+<div class="bar"><span class="sum" id="sum">填写完必填项即可提交</span><button class="btn ghost" type="button" id="draft">保存草稿</button><button class="btn pri" type="button" id="sub">提交登记</button></div>
+<script>
+const $=s=>document.querySelector(s);const secs=['s1','s2','s3','s4','s5'];
+function req(id){return [...document.querySelectorAll('#'+id+' [required]')]}
+function filled(el){return el.type==='checkbox'?el.checked:!!el.value.trim()}
+function check(el){const f=el.closest('.f');let m='';if(!filled(el))m='此项为必填';else if(el.id==='ph'&&!/^1\d{10}$/.test(el.value.trim()))m='请输入 11 位手机号';else if(el.id==='idn'&&!/^\d{17}[\dXx]$/.test(el.value.trim()))m='证件号码应为 18 位';f.classList.toggle('err',!!m);f.querySelector('.msg').textContent=m;return !m}
+function prog(){let n=0;secs.forEach(s=>{const ok=req(s).every(e=>filled(e));const a=document.querySelector('a[href="#'+s+'"]');a.classList.toggle('ok',ok);if(ok)a.classList.remove('bad');if(ok)n++});$('#pt').textContent='已完成 '+n+' / 5 节';$('#pb').style.width=n/5*100+'%'}
+document.querySelectorAll('#form input,#form select,#form textarea').forEach(e=>{e.addEventListener('input',prog);e.addEventListener('change',prog);if(e.required)e.addEventListener('blur',()=>check(e))});
+const io=new IntersectionObserver(es=>es.forEach(en=>{if(en.isIntersecting)document.querySelectorAll('aside a').forEach(a=>a.classList.toggle('cur',a.getAttribute('href')==='#'+en.target.id))}),{rootMargin:'-40% 0px -55% 0px'});secs.forEach(s=>io.observe($('#'+s)));
+$('#draft').onclick=()=>{const d=new Date();$('#saved').textContent='✓ 草稿已保存 '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')};
+$('#sub').onclick=()=>{let bad=[];secs.forEach(s=>{const ok=req(s).map(check).every(Boolean);document.querySelector('a[href="#'+s+'"]').classList.toggle('bad',!ok);if(!ok)bad.push(s)});prog();
+ if(bad.length){$('#sum').className='sum err';$('#sum').textContent='还有 '+bad.length+' 节未完成，已为你跳到第一处';$('#'+bad[0]).scrollIntoView();const f=$('#'+bad[0]+' .f.err [required]');f&&f.focus({preventScroll:true});return}
+ $('#sum').className='sum ok';$('#sum').textContent='✓ 登记已提交，就诊号 A-1042，请到 2 楼候诊区等候叫号';$('#sub').disabled=true};
+prog();
+</script>
+</body>
+</html>

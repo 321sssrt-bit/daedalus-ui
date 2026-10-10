@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>收件箱 · 邮筒</title>
+<style>
+:root{--bg:#f7f6f2;--white:#ffffff;--ink:#1f2433;--sub:#727889;--line:#e7e4dc;--red:#d7263d;--navy:#1b3a8c;--navy-l:#e9eefc;--star:#f5b400}
+*{box-sizing:border-box}
+body{margin:0;height:100vh;overflow:hidden;background:var(--bg);color:var(--ink);font:14px/1.55 "PingFang SC","Microsoft YaHei",system-ui,sans-serif;display:grid;grid-template-rows:6px 1fr}
+.stripe{background:repeating-linear-gradient(-45deg,var(--red) 0 14px,var(--white) 14px 22px,var(--navy) 22px 36px,var(--white) 36px 44px)}
+.app{display:grid;grid-template-columns:208px 400px 1fr;min-height:0}
+nav{padding:18px 14px;border-right:1px solid var(--line);display:flex;flex-direction:column;gap:2px}
+.logo{font:800 19px/1 "PingFang SC",sans-serif;color:var(--navy);padding:4px 10px 18px;display:flex;align-items:center;gap:8px}
+.write{margin:0 0 14px;height:42px;border:0;border-radius:10px;background:var(--navy);color:#fff;font:inherit;font-weight:600;cursor:pointer}
+.write:hover{background:#244bb0}
+nav a{display:flex;justify-content:space-between;padding:8px 10px;border-radius:8px;color:var(--ink);text-decoration:none}
+nav a:hover{background:#efede6}
+nav a[aria-current]{background:var(--navy-l);color:var(--navy);font-weight:600}
+nav a b{font-size:12px;color:var(--red)}
+.list{border-right:1px solid var(--line);display:grid;grid-template-rows:auto auto 1fr;min-height:0;background:var(--white)}
+.lh{padding:16px 18px 10px;display:flex;justify-content:space-between;align-items:center}
+.lh h1{margin:0;font-size:18px}
+.lh input{width:170px;height:32px;border:1px solid var(--line);border-radius:8px;padding:0 10px;font:inherit;background:var(--bg)}
+.lh input:focus{outline:none;border-color:var(--navy);background:#fff}
+.tabs{display:flex;gap:6px;padding:0 18px 10px;border-bottom:1px solid var(--line)}
+.tabs button{height:28px;padding:0 12px;border:1px solid var(--line);border-radius:999px;background:#fff;font:inherit;font-size:13px;cursor:pointer;color:var(--sub)}
+.tabs button:hover{border-color:var(--navy);color:var(--navy)}
+.tabs button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:#fff}
+.items{overflow:auto}
+.it{display:grid;grid-template-columns:10px 1fr auto;gap:4px 10px;padding:12px 18px;border-bottom:1px solid var(--line);cursor:pointer;position:relative}
+.it:hover{background:#faf9f5}
+.it[aria-selected="true"]{background:var(--navy-l)}
+.it[aria-selected="true"]:before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--navy)}
+.dot{width:8px;height:8px;border-radius:50%;margin-top:7px}
+.unread .dot{background:var(--red)}
+.it .from{font-weight:400}.unread .from{font-weight:700}
+.it .tm{font-size:12px;color:var(--sub)}
+.it .sub{grid-column:2/4;font-size:13px}.unread .sub{font-weight:600}
+.it .pre{grid-column:2/4;font-size:12px;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.it .st{color:var(--star)}
+.empty{padding:40px 18px;text-align:center;color:var(--sub)}
+.read{display:grid;grid-template-rows:auto 1fr;min-height:0;min-width:0}
+.bar{display:flex;gap:8px;padding:12px 28px;border-bottom:1px solid var(--line)}
+.ib{height:34px;padding:0 12px;border:1px solid var(--line);border-radius:8px;background:#fff;font:inherit;cursor:pointer;color:var(--ink)}
+.ib:hover{border-color:var(--navy);color:var(--navy)}
+.ib[aria-pressed="true"]{border-color:var(--star);color:#9a6f00;background:#fff8e1}
+.ib:focus-visible,.it:focus-visible,.tabs button:focus-visible,.write:focus-visible{outline:2px solid var(--navy);outline-offset:2px}
+.doc{overflow:auto;padding:28px 40px 40px;max-width:780px}
+.doc h2{font-size:24px;margin:0 0 14px;line-height:1.35}
+.who{display:flex;gap:12px;align-items:center;margin-bottom:22px}
+.av{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:700}
+.who small{color:var(--sub);display:block}
+.doc p{margin:0 0 14px;font-size:15px;line-height:1.8}
+.att{display:inline-flex;gap:10px;align-items:center;border:1px solid var(--line);border-radius:10px;padding:10px 14px;background:#fff;margin-top:6px}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 16px;border-radius:10px;opacity:0;transition:opacity .25s;display:flex;gap:14px}
+.toast.on{opacity:1}.toast button{background:none;border:0;color:#9db4ff;font:inherit;cursor:pointer}
+@media (max-width:1000px){.app{grid-template-columns:320px 1fr}nav{display:none}.lh input{width:120px}}
+@media (prefers-reduced-motion:reduce){.toast{transition:none}}
+</style>
+</head>
+<body>
+<div class="stripe" aria-hidden="true"></div>
+<div class="app">
+  <nav aria-label="邮箱"><div class="logo">✉ 邮筒</div><button class="write" type="button">写信</button>
+    <a href="#" aria-current="page">收件箱 <b id="uc">4</b></a><a href="#">星标</a><a href="#">已发送</a><a href="#">草稿 <span>2</span></a><a href="#">已归档</a><a href="#">垃圾邮件</a></nav>
+  <section class="list" aria-label="邮件列表">
+    <div class="lh"><h1>收件箱</h1><input id="q" placeholder="搜索邮件" aria-label="搜索邮件"></div>
+    <div class="tabs"><button type="button" aria-pressed="true" data-f="all">全部</button><button type="button" aria-pressed="false" data-f="unread">未读</button><button type="button" aria-pressed="false" data-f="star">星标</button></div>
+    <div class="items" id="items"></div>
+  </section>
+  <section class="read" aria-label="阅读邮件">
+    <div class="bar"><button class="ib" type="button" id="star" aria-pressed="false">☆ 星标</button><button class="ib" type="button" id="arch">归档</button><button class="ib" type="button" id="unr">标为未读</button><span style="flex:1"></span><button class="ib" type="button">回复</button><button class="ib" type="button">转发</button></div>
+    <article class="doc" id="doc"></article>
+  </section>
+</div>
+<div class="toast" id="toast" role="status"><span id="tm"></span><button type="button" id="undo">撤销</button></div>
+<script>
+let M=[
+{id:1,f:'苏青禾',c:'#d7263d',e:'qinghe@lumen-studio.cn',t:'09:41',s:'关于下周二的品牌提案，能否提前半小时？',p:'你好，客户那边临时把会议改到了下午三点，我们这边需要提前对一下…',u:1,st:0,b:['你好，','客户那边临时把会议改到了下午三点，我们这边需要提前对一下提案里第 4 章的预算表。能否把我们的内部碰头改到下周二 14:00？','另外，附件是更新后的情绪板，请帮忙看看第二页的配色是否太冷。','谢谢！<br>青禾'],a:'情绪板_v4.pdf · 8.2 MB'},
+{id:2,f:'顺丰速运',c:'#1b3a8c',e:'notice@sf-express.cn',t:'08:15',s:'您的快递已到达驿站，取件码 6-2-1408',p:'您的包裹（SF1427 0083 2210）已到达西溪园区驿站…',u:1,st:0,b:['您的包裹（SF1427 0083 2210）已到达西溪园区菜鸟驿站。','取件码：<b>6-2-1408</b>，请于 10 月 12 日前取件。']},
+{id:3,f:'周以宁',c:'#2a9d8f',e:'yining@hey-coffee.cn',t:'昨天',s:'报价单确认 ✔ 可以开始第一阶段了',p:'报价单我们看过了，没有问题。合同今天走盖章流程…',u:1,st:1,b:['报价单我们看过了，没有问题。','合同今天走盖章流程，预计周一可以寄出原件。第一阶段可以先开始，排期按你们给的 3 周来。']},
+{id:4,f:'GitHub',c:'#333333',e:'noreply@github-notice.cn',t:'昨天',s:'[mailbox-web] 新的 Pull Request #218：修复附件预览',p:'lin-xiao 请求合并 3 个提交到 main…',u:0,st:0,b:['lin-xiao 请求合并 3 个提交到 main。','修复了 PDF 附件在 Safari 下预览空白的问题。']},
+{id:5,f:'陈默',c:'#e76f51',e:'chenmo@lumen-studio.cn',t:'周三',s:'团建投票：两个方案二选一',p:'方案 A：莫干山徒步 + 民宿；方案 B：城市密室 + 火锅…',u:1,st:0,b:['方案 A：莫干山徒步 + 民宿；方案 B：城市密室 + 火锅。','请在周五前回复数字 A 或 B。']},
+{id:6,f:'招商银行',c:'#8d99ae',e:'service@cmbchina-mail.cn',t:'周二',s:'9 月信用卡电子账单',p:'本期应还 ¥ 3,286.40，最后还款日 10 月 18 日…',u:0,st:1,b:['本期应还 ¥ 3,286.40，最后还款日 10 月 18 日。']}];
+let sel=1,f='all',last=null;const $=s=>document.querySelector(s);
+function vis(){const q=$('#q').value.trim();return M.filter(m=>(f==='all'||(f==='unread'&&m.u)||(f==='star'&&m.st))&&(!q||(m.s+m.f+m.p).includes(q)))}
+function list(){const v=vis();$('#items').innerHTML=v.length?'':'<div class="empty">这个筛选下没有邮件 ✉</div>';
+ v.forEach(m=>{const d=document.createElement('div');d.className='it'+(m.u?' unread':'');d.tabIndex=0;d.setAttribute('role','option');d.setAttribute('aria-selected',m.id===sel);
+  d.innerHTML='<span class="dot"></span><span class="from">'+m.f+(m.st?' <span class="st">★</span>':'')+'</span><span class="tm">'+m.t+'</span><span class="sub">'+m.s+'</span><span class="pre">'+m.p+'</span>';
+  d.onclick=d.onkeydown=e=>{if(e.type==='keydown'&&e.key!=='Enter')return;sel=m.id;m.u=0;render()};$('#items').append(d)});
+ $('#uc').textContent=M.filter(m=>m.u).length||''}
+function read(){const m=M.find(x=>x.id===sel);if(!m){$('#doc').innerHTML='<div class="empty">选择一封邮件来阅读</div>';return}
+ $('#doc').innerHTML='<h2>'+m.s+'</h2><div class="who"><span class="av" style="background:'+m.c+'">'+m.f[0]+'</span><div><b>'+m.f+'</b><small>'+m.e+' · 发给 我 · '+m.t+'</small></div></div>'+m.b.map(x=>'<p>'+x+'</p>').join('')+(m.a?'<div class="att">📎 '+m.a+'</div>':'');
+ $('#star').setAttribute('aria-pressed',!!m.st);$('#star').textContent=m.st?'★ 已星标':'☆ 星标'}
+function render(){list();read()}
+document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{f=b.dataset.f;document.querySelectorAll('.tabs button').forEach(x=>x.setAttribute('aria-pressed',x===b));render()});
+$('#q').oninput=render;
+$('#star').onclick=()=>{const m=M.find(x=>x.id===sel);if(m){m.st=m.st?0:1;render()}};
+$('#unr').onclick=()=>{const m=M.find(x=>x.id===sel);if(m){m.u=1;render()}};
+$('#arch').onclick=()=>{const i=M.findIndex(x=>x.id===sel);if(i<0)return;last=[M[i],i];M.splice(i,1);sel=(M[i]||M[i-1]||{}).id;render();toast('已归档「'+last[0].s.slice(0,12)+'…」')};
+$('#undo').onclick=()=>{if(last){M.splice(last[1],0,last[0]);sel=last[0].id;last=null;render();$('#toast').classList.remove('on')}};
+function toast(t){$('#tm').textContent=t;$('#toast').classList.add('on');clearTimeout(window.tt);window.tt=setTimeout(()=>$('#toast').classList.remove('on'),4000)}
+M[0].u=0;render();
+</script>
+</body>
+</html>
