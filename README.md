@@ -35,7 +35,30 @@ Daedalus 是一套面向 UI Agent 与模型的公开产品设计评测，也是�
 
 在[在线展厅](https://321sssrt-bit.github.io/daedalus-ui/)可按答卷或题目浏览，每件作品都能独立打开并查看对应的复现规范和设计意图；个人收藏只保存在当前浏览器，不会上传。
 
-最新答卷：[Codex · GPT-6.1 Sol · ultra（50/50）](https://321sssrt-bit.github.io/daedalus-ui/submissions/codex--gpt-6.1-sol--ultra/) · [源码与运行回执](models/codex/gpt-6.1-sol/ultra)
+## 当前公开答卷
+
+十八份答卷已发布：十七份完整，一份弃权。最新一份在表格最上面。点下方入口进各自的专属展厅，或者打开 **[综合展厅](https://321sssrt-bit.github.io/daedalus-ui/)** 统一浏览。完成度和状态以各答卷的 `model.json` 为准。
+
+| Harness | Model | 思考档位 | 完成度 | 状态 | 专属展厅 |
+| --- | --- | --- | --- | --- | --- |
+| grokbot | grokbot | `default` | 50 / 50 | Complete | [进入展厅 →](https://321sssrt-bit.github.io/daedalus-ui/submissions/grokbot--grokbot--default/) |
+| Opencode | Muse Spark 1.3 Contributor Free | `xhigh` | 50 / 50 | Complete | [进入展厅 →](https://321sssrt-bit.github.io/daedalus-ui/submissions/opencode--muse-spark-1.3-contributor-free--xhigh/) |
+| Codex | GPT-6.1 Sol | `ultra` | 50 / 50 | Complete | [进入展厅 →](https://321sssrt-bit.github.io/daedalus-ui/submissions/codex--gpt-6.1-sol--ultra/) |
+| Devin | SWE-2 | `max` | 50 / 50 | Complete | [进入展厅 →](https://321sssrt-bit.github.io/daedalus-ui/submissions/devin--swe-2--max/) |
+| Codex | GPT-6 Luna | `max` | 50 / 50 | Complete | [进入展厅 →](https://321sssrt-bit.github.io/daedalus-ui/submissions/codex--gpt-6-luna--max/) |
+| Grok | Grok 4.7 | `xhigh` | 50 / 50 | Complete | [进入展厅 →](https://321sssrt-bit.github.io/daedalus-ui/submissions/grok--grok-4.7--xhigh/) |
+| Kimi Code | K2.8 Preview | `max` | 50 / 50 | Complete | [进入展厅 →](https://321sssrt-bit.github.io/daedalus-ui/submissions/kimi-code--k2.8-preview--max/) |
+| DeepSeek Harness | DeepSeek V4.1 Flash expires-on-0910 | `max` | 50 / 50 | Complete | [进入展厅 →](https://321sssrt-bit.github.io/daedalus-ui/submissions/deepseek-harness--deepseek-v4.1-flash-expires-on-0910--max/) |
+| Cursor | Composer 2.5 Fast | `default` | 50 / 50 | Complete | [进入展厅 →](https://321sssrt-bit.github.io/daedalus-ui/submissions/cursor--composer-2.5-fast--default/) |
+| Kimi Code | Qwen3.8 Flash Next | `xhigh` | 50 / 50 | Complete | [进入展厅 →](https://321sssrt-bit.github.io/daedalus-ui/submissions/kimi-code--qwen3.8-flash-next--xhigh/) |
+| Codex | GPT-6 Astra | `max` | 50 / 50 | Complete | [进入展厅 →](https://321sssrt-bit.github.io/daedalus-ui/submissions/codex--gpt-6-astra--max/) |
+| Kimi Code | DeepSeek V4 Flash vision-exp | `max` | 50 / 50 | Complete | [进入展厅 →](https://321sssrt-bit.github.io/daedalus-ui/submissions/kimi-code--deepseek-v4-flash-vision-exp--max/) |
+| Qoder | 3.8 Flash | `xhigh` | 13 / 50 | Forfeited（我是鸡） | [进入展厅 →](https://321sssrt-bit.github.io/daedalus-ui/submissions/qoder--3.8flash--xhigh/) |
+| Qoder | Qwen3.8 | `max` | 50 / 50 | Complete | [进入展厅 →](https://321sssrt-bit.github.io/daedalus-ui/submissions/qoder--qwen3.8--max/) |
+| Grok Build | Grok 4.6 | `xhigh` | 50 / 50 | Complete | [进入展厅 →](https://321sssrt-bit.github.io/daedalus-ui/submissions/grok-build--grok-4.6--xhigh/) |
+| Kimi Code | K3 | `max` | 50 / 50 | Complete | [进入展厅 →](https://321sssrt-bit.github.io/daedalus-ui/submissions/kimi-code--k3--max/) |
+| DeepSeek Harness | deepseek-v4-pro | `max` | 50 / 50 | Complete | [进入展厅 →](https://321sssrt-bit.github.io/daedalus-ui/submissions/deepseek-harness--deepseek-v4-pro--max/) |
+| Codex | GPT-5.6 Sol | `xhigh` | 50 / 50 | Complete | [进入展厅 →](https://321sssrt-bit.github.io/daedalus-ui/submissions/codex--gpt-5.6-sol--xhigh/) |
 
 <details>
 <summary>在本地运行</summary>

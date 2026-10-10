@@ -35,7 +35,30 @@ The project was initially inspired by [Hall of One Hundred](https://miaai-lab.gi
 
 The unified [live gallery](https://321sssrt-bit.github.io/daedalus-ui/) can be browsed by submission or brief; each piece opens independently with its reproduction specification and design intent, while personal favorites remain in the current browser and are never uploaded.
 
-Latest submission: [Codex · GPT-6.1 Sol · ultra (50/50)](https://321sssrt-bit.github.io/daedalus-ui/submissions/codex--gpt-6.1-sol--ultra/) · [Source and run receipt](models/codex/gpt-6.1-sol/ultra)
+## Current public submissions
+
+Eighteen submissions are published: seventeen complete and one forfeited. The newest is at the top. Open a dedicated gallery below, or use the **[combined gallery](https://321sssrt-bit.github.io/daedalus-ui/)** to browse them together. Completion and status follow each submission's `model.json`.
+
+| Harness | Model | Reasoning effort | Completion | Status | Gallery |
+| --- | --- | --- | --- | --- | --- |
+| grokbot | grokbot | `default` | 50 / 50 | Complete | [Open gallery →](https://321sssrt-bit.github.io/daedalus-ui/submissions/grokbot--grokbot--default/) |
+| Opencode | Muse Spark 1.3 Contributor Free | `xhigh` | 50 / 50 | Complete | [Open gallery →](https://321sssrt-bit.github.io/daedalus-ui/submissions/opencode--muse-spark-1.3-contributor-free--xhigh/) |
+| Codex | GPT-6.1 Sol | `ultra` | 50 / 50 | Complete | [Open gallery →](https://321sssrt-bit.github.io/daedalus-ui/submissions/codex--gpt-6.1-sol--ultra/) |
+| Devin | SWE-2 | `max` | 50 / 50 | Complete | [Open gallery →](https://321sssrt-bit.github.io/daedalus-ui/submissions/devin--swe-2--max/) |
+| Codex | GPT-6 Luna | `max` | 50 / 50 | Complete | [Open gallery →](https://321sssrt-bit.github.io/daedalus-ui/submissions/codex--gpt-6-luna--max/) |
+| Grok | Grok 4.7 | `xhigh` | 50 / 50 | Complete | [Open gallery →](https://321sssrt-bit.github.io/daedalus-ui/submissions/grok--grok-4.7--xhigh/) |
+| Kimi Code | K2.8 Preview | `max` | 50 / 50 | Complete | [Open gallery →](https://321sssrt-bit.github.io/daedalus-ui/submissions/kimi-code--k2.8-preview--max/) |
+| DeepSeek Harness | DeepSeek V4.1 Flash expires-on-0910 | `max` | 50 / 50 | Complete | [Open gallery →](https://321sssrt-bit.github.io/daedalus-ui/submissions/deepseek-harness--deepseek-v4.1-flash-expires-on-0910--max/) |
+| Cursor | Composer 2.5 Fast | `default` | 50 / 50 | Complete | [Open gallery →](https://321sssrt-bit.github.io/daedalus-ui/submissions/cursor--composer-2.5-fast--default/) |
+| Kimi Code | Qwen3.8 Flash Next | `xhigh` | 50 / 50 | Complete | [Open gallery →](https://321sssrt-bit.github.io/daedalus-ui/submissions/kimi-code--qwen3.8-flash-next--xhigh/) |
+| Codex | GPT-6 Astra | `max` | 50 / 50 | Complete | [Open gallery →](https://321sssrt-bit.github.io/daedalus-ui/submissions/codex--gpt-6-astra--max/) |
+| Kimi Code | DeepSeek V4 Flash vision-exp | `max` | 50 / 50 | Complete | [Open gallery →](https://321sssrt-bit.github.io/daedalus-ui/submissions/kimi-code--deepseek-v4-flash-vision-exp--max/) |
+| Qoder | 3.8 Flash | `xhigh` | 13 / 50 | Forfeited (我是鸡) | [Open gallery →](https://321sssrt-bit.github.io/daedalus-ui/submissions/qoder--3.8flash--xhigh/) |
+| Qoder | Qwen3.8 | `max` | 50 / 50 | Complete | [Open gallery →](https://321sssrt-bit.github.io/daedalus-ui/submissions/qoder--qwen3.8--max/) |
+| Grok Build | Grok 4.6 | `xhigh` | 50 / 50 | Complete | [Open gallery →](https://321sssrt-bit.github.io/daedalus-ui/submissions/grok-build--grok-4.6--xhigh/) |
+| Kimi Code | K3 | `max` | 50 / 50 | Complete | [Open gallery →](https://321sssrt-bit.github.io/daedalus-ui/submissions/kimi-code--k3--max/) |
+| DeepSeek Harness | deepseek-v4-pro | `max` | 50 / 50 | Complete | [Open gallery →](https://321sssrt-bit.github.io/daedalus-ui/submissions/deepseek-harness--deepseek-v4-pro--max/) |
+| Codex | GPT-5.6 Sol | `xhigh` | 50 / 50 | Complete | [Open gallery →](https://321sssrt-bit.github.io/daedalus-ui/submissions/codex--gpt-5.6-sol--xhigh/) |
 
 <details>
 <summary>Run locally</summary>
