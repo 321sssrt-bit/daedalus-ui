@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>蓝图八 · 权限请求</title>
+<style>
+:root{
+  --paper:#123C7E;
+  --panel:#0F3168;
+  --ink:#FFFFFF;
+  --mark:#FFD447;
+  --line:#7FA8E8;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  background-color:var(--paper);
+  background-image:
+    linear-gradient(rgba(255,255,255,0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.07) 1px, transparent 1px),
+    linear-gradient(rgba(255,255,255,0.16) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.16) 1px, transparent 1px);
+  background-size:32px 32px, 32px 32px, 160px 160px, 160px 160px;
+  color:var(--ink);
+  font-family:"Segoe UI","PingFang SC","Microsoft YaHei",Arial,sans-serif;
+  min-height:100vh;
+  padding:0 32px 64px;
+}
+.topbar{
+  display:flex;align-items:center;gap:18px;
+  border-bottom:1px solid rgba(255,255,255,0.35);
+  padding:18px 4px;margin-bottom:46px;
+  font-size:13px;letter-spacing:2px;
+}
+.brand{font-size:16px;font-weight:700;letter-spacing:3px}
+.brand span{color:var(--line);font-weight:400}
+.topbar .meta{margin-left:auto;color:var(--line);display:flex;gap:26px}
+.topbar .meta b{color:var(--ink);font-weight:600}
+.status-chip{border:1px solid var(--mark);color:var(--mark);padding:3px 12px;letter-spacing:2px}
+.stage{max-width:640px;margin:0 auto}
+.feedback{display:none;padding:14px 20px;font-size:14px;letter-spacing:1px;margin-bottom:22px;border:1px solid transparent}
+.feedback.show{display:block}
+.feedback.ok{background:var(--ink);color:var(--panel);border-color:var(--ink)}
+.feedback.once{background:var(--mark);color:var(--paper);border-color:var(--mark)}
+.feedback.deny{background:var(--panel);color:var(--mark);border-color:var(--mark)}
+.dialog{
+  position:relative;
+  background:var(--panel);
+  border:1px solid var(--ink);
+  padding:40px 44px 36px;
+}
+.dialog::before,.dialog::after{
+  content:"";position:absolute;width:14px;height:14px;border:2px solid var(--mark);
+}
+.dialog::before{top:-2px;left:-2px;border-right:none;border-bottom:none}
+.dialog::after{bottom:-2px;right:-2px;border-left:none;border-top:none}
+.perm-chip{
+  display:inline-block;border:1px solid var(--mark);color:var(--mark);
+  font-size:12px;letter-spacing:3px;padding:5px 14px;margin-bottom:20px;
+}
+.head{display:flex;gap:22px;align-items:flex-start;margin-bottom:24px}
+.icon{flex:0 0 64px}
+h1{font-size:26px;letter-spacing:2px;margin-bottom:8px}
+.lead{font-size:14px;line-height:1.8;color:var(--line)}
+.why{border-top:1px solid rgba(127,168,232,0.4);border-bottom:1px solid rgba(127,168,232,0.4);padding:18px 0;margin-bottom:20px}
+.why p{font-size:13px;letter-spacing:2px;color:var(--line);margin-bottom:12px}
+.why ul{list-style:none}
+.why li{font-size:14px;line-height:2.1;padding-left:22px;position:relative}
+.why li::before{content:"▪";position:absolute;left:0;color:var(--mark)}
+.detail-toggle{
+  background:none;border:none;color:var(--line);font-family:inherit;font-size:13px;
+  letter-spacing:1px;cursor:pointer;padding:0;margin-bottom:16px;text-decoration:underline;
+  text-underline-offset:4px;
+}
+.detail-toggle:hover{color:var(--ink)}
+.detail-box{
+  display:none;font-size:13px;line-height:1.9;color:var(--ink);
+  background:rgba(127,168,232,0.12);border-left:3px solid var(--line);
+  padding:14px 18px;margin-bottom:18px;
+}
+.detail-box.open{display:block}
+.btn-row{display:flex;gap:14px;flex-wrap:wrap}
+.btn{
+  font-family:inherit;font-size:14px;letter-spacing:2px;cursor:pointer;
+  padding:13px 26px;border:1px solid var(--ink);border-radius:0;
+  transition:background 150ms ease,color 150ms ease,transform 150ms ease;
+}
+.btn:active{transform:translateY(1px)}
+.btn.allow{background:var(--ink);color:var(--panel)}
+.btn.allow:hover{background:var(--mark);border-color:var(--mark);color:var(--paper)}
+.btn.once{background:transparent;color:var(--ink);border-color:var(--line)}
+.btn.once:hover{background:var(--line);color:var(--panel);border-color:var(--line)}
+.btn.deny{background:transparent;color:var(--mark);border-color:var(--mark)}
+.btn.deny:hover{background:var(--mark);color:var(--panel)}
+.btn:focus-visible{outline:2px solid var(--mark);outline-offset:3px}
+.result{display:none}
+.result.show{display:block}
+.readout{
+  border:1px solid var(--line);padding:20px 24px;margin-bottom:20px;
+  display:grid;grid-template-columns:1fr 1fr;gap:10px 32px;
+  font-size:14px;
+}
+.readout .k{color:var(--line);font-size:12px;letter-spacing:2px;display:block;margin-bottom:4px}
+.readout .v{font-size:18px;letter-spacing:1px;font-variant-numeric:tabular-nums}
+.manual{display:none;margin-bottom:20px}
+.manual.show{display:block}
+.manual .row{display:flex;gap:14px;margin-bottom:14px}
+.manual label{flex:1;font-size:12px;color:var(--line);letter-spacing:2px}
+.manual input{
+  width:100%;margin-top:6px;font-family:inherit;font-size:15px;letter-spacing:1px;
+  background:rgba(255,255,255,0.06);border:1px solid var(--line);color:var(--ink);
+  padding:10px 14px;outline:none;border-radius:0;
+}
+.manual input:focus{border-color:var(--mark)}
+.points{border-top:1px solid rgba(127,168,232,0.4);padding-top:14px;margin-top:6px}
+.points h3{font-size:13px;letter-spacing:2px;color:var(--line);margin-bottom:10px}
+.points ul{list-style:none;font-size:13px;line-height:2}
+.points li::before{content:"◈ ";color:var(--mark)}
+.reset-link{
+  background:none;border:none;color:var(--line);font-family:inherit;font-size:13px;
+  letter-spacing:1px;cursor:pointer;text-decoration:underline;text-underline-offset:4px;
+  margin-top:18px;padding:0;display:inline-block;
+}
+.reset-link:hover{color:var(--ink)}
+@media (max-width:900px){
+  body{padding:0 16px 48px}
+  .topbar{flex-wrap:wrap;gap:10px;margin-bottom:32px}
+  .topbar .meta{margin-left:0;flex-wrap:wrap;gap:12px}
+  .dialog{padding:28px 22px}
+  .readout{grid-template-columns:1fr}
+  h1{font-size:22px}
+}
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation-duration:0.01ms !important;animation-iteration-count:1 !important;transition-duration:0.01ms !important}
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">蓝图八 <span>BLUEPRINT-8 · 工程测绘工作站</span></div>
+  <div class="meta">
+    <span>图幅 <b>J-50-001</b></span>
+    <span>比例尺 <b>1:500</b></span>
+    <span>坐标系 <b>WGS-84</b></span>
+    <span class="status-chip" id="statusChip">GNSS 待授权</span>
+  </div>
+</header>
+
+<main class="stage">
+  <div class="feedback" id="feedback"></div>
+
+  <section class="dialog" id="askPanel">
+    <span class="perm-chip">系统权限申请 · 第 1 项</span>
+    <div class="head">
+      <svg class="icon" viewBox="0 0 64 64" width="64" height="64" aria-hidden="true">
+        <circle cx="32" cy="32" r="26" fill="none" stroke="#FFFFFF" stroke-width="2"></circle>
+        <circle cx="32" cy="32" r="16" fill="none" stroke="#FFFFFF" stroke-width="1.5" stroke-dasharray="4 5"></circle>
+        <line x1="32" y1="2" x2="32" y2="18" stroke="#FFD447" stroke-width="2"></line>
+        <line x1="32" y1="46" x2="32" y2="62" stroke="#FFD447" stroke-width="2"></line>
+        <line x1="2" y1="32" x2="18" y2="32" stroke="#FFD447" stroke-width="2"></line>
+        <line x1="46" y1="32" x2="62" y2="32" stroke="#FFD447" stroke-width="2"></line>
+        <circle cx="32" cy="32" r="4" fill="#FFD447"></circle>
+      </svg>
+      <div>
+        <h1>申请「精确位置」权限</h1>
+        <p class="lead">蓝图八需要调用本机的 GNSS 定位能力。请先决定是否授权，测绘作业才能开始记录测点。</p>
+      </div>
+    </div>
+    <div class="why">
+      <p>为什么要这项权限</p>
+      <ul>
+        <li>每个测点自动写入经纬度与高程，免去手抄坐标</li>
+        <li>离线地图按当前位置加载对应图幅，少走冤枉路</li>
+        <li>连续定位用于误差校正，把精度控制在 ±1 米内</li>
+      </ul>
+    </div>
+    <button class="detail-toggle" id="detailToggle">展开：数据使用说明 ▾</button>
+    <div class="detail-box" id="detailBox">
+      位置数据只保存在本机测绘档案中，用于测点记录与地图配准，不上传服务器、不用于作业以外的用途。拒绝授权后仍可手动输入坐标继续作业，只是无法使用自动校正。
+    </div>
+    <div class="btn-row">
+      <button class="btn allow" id="allowBtn">允许并开启定位</button>
+      <button class="btn once" id="onceBtn">仅此一次</button>
+      <button class="btn deny" id="denyBtn">拒绝</button>
+    </div>
+  </section>
+
+  <section class="dialog result" id="resultPanel">
+    <span class="perm-chip" id="resultChip">定位已开启</span>
+    <h1 style="font-size:22px" id="resultTitle">测点坐标</h1>
+    <div class="readout" id="readout">
+      <div><span class="k">纬度 LAT</span><span class="v" id="latV">--</span></div>
+      <div><span class="k">经度 LNG</span><span class="v" id="lngV">--</span></div>
+      <div><span class="k">定位精度</span><span class="v" id="accV">--</span></div>
+      <div><span class="k">在视卫星</span><span class="v" id="satV">--</span></div>
+    </div>
+    <div class="manual" id="manualBox">
+      <div class="row">
+        <label>纬度 LAT<input id="latIn" value="39.916527"></label>
+        <label>经度 LNG<input id="lngIn" value="116.397128"></label>
+      </div>
+      <div class="btn-row">
+        <button class="btn allow" id="manualBtn">确认坐标</button>
+      </div>
+    </div>
+    <div class="btn-row" id="liveRow">
+      <button class="btn allow" id="markBtn">记录当前测点</button>
+    </div>
+    <div class="points">
+      <h3>测点记录</h3>
+      <ul id="pointList">
+        <li>P-017 · N 39°54.992′ E 116°23.228′ · 手动录入 · 昨日 16:40</li>
+      </ul>
+    </div>
+    <button class="reset-link" id="resetBtn">↺ 重新选择权限</button>
+  </section>
+</main>
+
+<script>
+var mode = null;
+var liveTimer = null;
+var pointNo = 18;
+var baseLat = 39.916527;
+var baseLng = 116.397128;
+var feedback = document.getElementById("feedback");
+var askPanel = document.getElementById("askPanel");
+var resultPanel = document.getElementById("resultPanel");
+function showFeedback(cls, text){
+  feedback.className = "feedback show " + cls;
+  feedback.textContent = text;
+}
+function toDMS(lat, lng){
+  function conv(v, pos, neg){
+    var d = Math.floor(Math.abs(v));
+    var m = ((Math.abs(v) - d) * 60).toFixed(3);
+    return (v >= 0 ? pos : neg) + " " + d + "°" + m + "′";
+  }
+  return { lat: conv(lat, "N", "S"), lng: conv(lng, "E", "W") };
+}
+function updateLive(){
+  var lat = baseLat + (Math.random() - 0.5) * 0.0004;
+  var lng = baseLng + (Math.random() - 0.5) * 0.0004;
+  var d = toDMS(lat, lng);
+  document.getElementById("latV").textContent = d.lat;
+  document.getElementById("lngV").textContent = d.lng;
+  document.getElementById("accV").textContent = "±" + (0.6 + Math.random() * 0.5).toFixed(1) + " m";
+  document.getElementById("satV").textContent = (12 + Math.floor(Math.random() * 5)) + " 颗";
+}
+function decide(choice){
+  mode = choice;
+  askPanel.style.display = "none";
+  resultPanel.classList.add("show");
+  var chip = document.getElementById("statusChip");
+  var manual = document.getElementById("manualBox");
+  var liveRow = document.getElementById("liveRow");
+  var resultChip = document.getElementById("resultChip");
+  if (choice === "allow"){
+    showFeedback("ok", "已授权：GNSS 精确定位已开启 · 坐标将自动写入每个测点");
+    chip.textContent = "GNSS 已授权";
+    resultChip.textContent = "授权状态：永久允许";
+    manual.classList.remove("show");
+    liveRow.style.display = "flex";
+    updateLive();
+    liveTimer = setInterval(updateLive, 1000);
+  } else if (choice === "once"){
+    showFeedback("once", "仅此一次：本次会话临时授权 · 下次启动蓝图八时将重新询问");
+    chip.textContent = "GNSS 临时授权";
+    resultChip.textContent = "授权状态：仅此一次";
+    manual.classList.remove("show");
+    liveRow.style.display = "flex";
+    updateLive();
+    liveTimer = setInterval(updateLive, 1000);
+  } else {
+    showFeedback("deny", "已拒绝：定位不可用 · 已切换为手动输入测点坐标");
+    chip.textContent = "GNSS 已拒绝";
+    resultChip.textContent = "授权状态：已拒绝 · 手动模式";
+    manual.classList.add("show");
+    liveRow.style.display = "none";
+    document.getElementById("latV").textContent = "待输入";
+    document.getElementById("lngV").textContent = "待输入";
+    document.getElementById("accV").textContent = "手动模式";
+    document.getElementById("satV").textContent = "不可用";
+  }
+}
+document.getElementById("allowBtn").addEventListener("click", function(){ decide("allow"); });
+document.getElementById("onceBtn").addEventListener("click", function(){ decide("once"); });
+document.getElementById("denyBtn").addEventListener("click", function(){ decide("deny"); });
+document.getElementById("detailToggle").addEventListener("click", function(){
+  var box = document.getElementById("detailBox");
+  box.classList.toggle("open");
+  this.textContent = box.classList.contains("open") ? "收起：数据使用说明 ▴" : "展开：数据使用说明 ▾";
+});
+document.getElementById("manualBtn").addEventListener("click", function(){
+  var lat = parseFloat(document.getElementById("latIn").value);
+  var lng = parseFloat(document.getElementById("lngIn").value);
+  if (isNaN(lat) || isNaN(lng) || Math.abs(lat) > 90 || Math.abs(lng) > 180){
+    showFeedback("deny", "坐标格式有误：纬度需在 ±90 内，经度需在 ±180 内");
+    return;
+  }
+  baseLat = lat;
+  baseLng = lng;
+  var d = toDMS(lat, lng);
+  document.getElementById("latV").textContent = d.lat;
+  document.getElementById("lngV").textContent = d.lng;
+  document.getElementById("accV").textContent = "手动模式";
+  showFeedback("deny", "已采用手动坐标 · 可正常记录测点，但不参与误差校正");
+});
+document.getElementById("markBtn").addEventListener("click", function(){
+  var li = document.createElement("li");
+  var now = new Date();
+  function p(n){ return (n < 10 ? "0" : "") + n; }
+  li.textContent = "P-0" + pointNo + " · " + document.getElementById("latV").textContent + " " +
+    document.getElementById("lngV").textContent + " · " + document.getElementById("accV").textContent +
+    " · " + p(now.getHours()) + ":" + p(now.getMinutes()) + ":" + p(now.getSeconds());
+  document.getElementById("pointList").appendChild(li);
+  pointNo++;
+});
+document.getElementById("resetBtn").addEventListener("click", function(){
+  clearInterval(liveTimer);
+  mode = null;
+  resultPanel.classList.remove("show");
+  askPanel.style.display = "block";
+  feedback.className = "feedback";
+  feedback.textContent = "";
+  document.getElementById("statusChip").textContent = "GNSS 待授权";
+});
+</script>
+</body>
+</html>

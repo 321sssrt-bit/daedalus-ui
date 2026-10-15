@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>暮色车场 · 露天影院</title>
+<style>
+:root{
+  --page:#170F2B;
+  --accent:#FF8A3D;
+  --pink:#FF4D7D;
+  --ink:#F5ECFF;
+  --gold:#FFD98A;
+  --panel:#221740;
+  --panel-2:#2C1E52;
+  --line:#3D2C6B;
+  --dim:#B9A8E6;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{
+  background:var(--page);
+  background-image:
+    radial-gradient(1200px 500px at 50% -10%, rgba(255,138,61,.28), rgba(255,138,61,0) 60%),
+    radial-gradient(900px 480px at 85% 0%, rgba(255,77,125,.20), rgba(255,77,125,0) 55%),
+    linear-gradient(180deg,#1D1236 0%,var(--page) 42%,#120B22 100%);
+  color:var(--ink);
+  font-family:"PingFang SC","Microsoft YaHei","Noto Sans CJK SC",system-ui,-apple-system,sans-serif;
+  min-height:100vh;
+}
+.page{max-width:1280px;margin:0 auto;padding:24px 32px 40px;}
+.topbar{
+  display:flex;align-items:center;gap:16px;
+  padding:14px 0 18px;border-bottom:1px solid var(--line);
+}
+.brand{display:flex;align-items:center;gap:12px;}
+.brand-badge{
+  width:44px;height:44px;border-radius:12px;flex:none;
+  background:linear-gradient(135deg,var(--accent),var(--pink));
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 0 18px rgba(255,138,61,.45);
+}
+.brand h1{font-size:20px;font-weight:800;letter-spacing:2px;}
+.brand p{font-size:12px;color:var(--dim);letter-spacing:1px;margin-top:2px;}
+.top-chips{margin-left:auto;display:flex;gap:10px;align-items:center;}
+.chip{
+  font-size:12px;color:var(--dim);border:1px solid var(--line);
+  border-radius:999px;padding:6px 12px;background:rgba(255,255,255,.03);
+}
+.chip b{color:var(--gold);font-weight:700;}
+.btn{
+  border:none;cursor:pointer;font-family:inherit;
+  border-radius:12px;font-size:14px;font-weight:700;letter-spacing:1px;
+  padding:10px 18px;color:#2A1200;
+  background:linear-gradient(135deg,var(--accent),#FFB36B);
+  box-shadow:0 4px 16px rgba(255,138,61,.35);
+  transition:transform .18s ease,box-shadow .18s ease,filter .18s ease;
+}
+.btn:hover{transform:translateY(-2px);box-shadow:0 8px 22px rgba(255,138,61,.5);}
+.btn:focus-visible{outline:2px solid var(--gold);outline-offset:2px;}
+.btn:active{transform:translateY(0);}
+.btn:disabled{filter:grayscale(.7) brightness(.6);cursor:not-allowed;transform:none;box-shadow:none;}
+.btn-ghost{
+  background:transparent;color:var(--ink);
+  border:1px solid var(--line);box-shadow:none;font-weight:600;
+}
+.btn-ghost:hover{border-color:var(--accent);color:var(--gold);box-shadow:none;}
+.btn-ghost:disabled{color:#6E5FA0;border-color:#2A2048;}
+.btn-pink{
+  background:linear-gradient(135deg,var(--pink),#FF7AA8);color:#33000F;
+  box-shadow:0 4px 16px rgba(255,77,125,.35);
+}
+.layout{
+  display:grid;grid-template-columns:minmax(0,1fr) 460px;gap:24px;margin-top:24px;
+}
+.section-title{
+  font-size:16px;font-weight:800;letter-spacing:2px;margin-bottom:14px;
+  display:flex;align-items:center;gap:10px;
+}
+.section-title::before{
+  content:"";width:8px;height:8px;border-radius:50%;
+  background:var(--gold);box-shadow:0 0 10px var(--gold);
+}
+.tabs{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;}
+.tab{
+  border:1px solid var(--line);background:rgba(255,255,255,.03);color:var(--dim);
+  font-family:inherit;font-size:13px;padding:7px 14px;border-radius:999px;cursor:pointer;
+  transition:all .16s ease;
+}
+.tab:hover{color:var(--ink);border-color:var(--accent);}
+.tab.active{
+  background:linear-gradient(135deg,rgba(255,138,61,.9),rgba(255,77,125,.85));
+  color:#2A0E00;border-color:transparent;font-weight:700;
+}
+.cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;}
+.card{
+  position:relative;border-radius:18px;padding:18px;cursor:pointer;
+  background:linear-gradient(160deg,var(--panel-2),var(--panel));
+  border:1px solid var(--line);overflow:hidden;
+  transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease;
+}
+.card::after{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(120deg,rgba(255,217,138,.08),transparent 45%);
+}
+.card:hover{transform:translateY(-4px);border-color:var(--accent);box-shadow:0 14px 30px rgba(0,0,0,.45);}
+.card.playing{border-color:var(--pink);box-shadow:0 0 0 1px var(--pink),0 14px 34px rgba(255,77,125,.28);}
+.card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;}
+.card h3{font-size:17px;font-weight:800;letter-spacing:1px;}
+.tag{
+  flex:none;font-size:11px;padding:3px 9px;border-radius:999px;letter-spacing:1px;
+  border:1px solid var(--gold);color:var(--gold);
+}
+.tag.new{border-color:var(--pink);color:var(--pink);}
+.tag.old{border-color:var(--accent);color:var(--accent);}
+.card .meta{margin-top:10px;font-size:12px;color:var(--dim);line-height:1.8;}
+.card .desc{margin-top:8px;font-size:13px;color:var(--ink);opacity:.82;line-height:1.7;}
+.card-foot{margin-top:14px;display:flex;align-items:center;justify-content:space-between;}
+.session{font-size:12px;color:var(--gold);letter-spacing:1px;}
+.pick{
+  font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;
+  border:none;border-radius:8px;padding:7px 12px;color:#2A1200;
+  background:linear-gradient(135deg,var(--accent),#FFB36B);
+  transition:transform .15s ease;
+}
+.pick:hover{transform:scale(1.05);}
+.card.playing .pick{background:linear-gradient(135deg,var(--pink),#FF7AA8);color:#33000F;}
+/* 放映区 */
+.player{position:sticky;top:20px;align-self:start;}
+.screen-zone{
+  position:relative;border-radius:22px;padding:22px 22px 18px;
+  background:linear-gradient(170deg,#241847,#180F30);
+  border:1px solid var(--line);overflow:hidden;
+}
+.beam{
+  position:absolute;top:-6px;right:36px;width:170px;height:130px;pointer-events:none;
+  background:linear-gradient(200deg,rgba(255,217,138,.34),rgba(255,217,138,0) 70%);
+  clip-path:polygon(86% 0,100% 0,34% 100%,0 100%);
+  animation:flicker 3.2s ease-in-out infinite;
+}
+@keyframes flicker{0%,100%{opacity:.9;}48%{opacity:.55;}52%{opacity:.8;}70%{opacity:.6;}}
+.screen{
+  position:relative;border-radius:14px;height:210px;
+  background:
+    radial-gradient(420px 120px at 50% 110%, rgba(255,138,61,.24), transparent 70%),
+    linear-gradient(180deg,#2A1A52 0%,#170F2B 78%);
+  border:1px solid #4A3580;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;
+  box-shadow:inset 0 0 40px rgba(0,0,0,.5);
+}
+.screen .neon{
+  font-size:24px;font-weight:900;letter-spacing:4px;color:var(--gold);
+  text-shadow:0 0 8px rgba(255,217,138,.9),0 0 22px rgba(255,138,61,.7);
+  animation:neonPulse 2.6s ease-in-out infinite;text-align:center;padding:0 16px;
+}
+@keyframes neonPulse{0%,100%{text-shadow:0 0 8px rgba(255,217,138,.9),0 0 22px rgba(255,138,61,.7);}50%{text-shadow:0 0 4px rgba(255,217,138,.55),0 0 12px rgba(255,138,61,.4);}}
+.screen .sub{font-size:12px;color:var(--dim);letter-spacing:2px;}
+.screen .state-dot{
+  display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--pink);
+  letter-spacing:2px;font-weight:700;
+}
+.state-dot::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--pink);box-shadow:0 0 8px var(--pink);animation:blink 1.2s steps(2) infinite;}
+@keyframes blink{50%{opacity:.25;}}
+.screen.paused .neon{animation:none;color:var(--dim);text-shadow:none;}
+.screen.paused .state-dot{color:var(--gold);}
+.screen.paused .state-dot::before{background:var(--gold);box-shadow:0 0 8px var(--gold);animation:none;}
+.offmask{
+  position:absolute;inset:0;border-radius:14px;display:none;
+  background:rgba(15,8,32,.86);backdrop-filter:blur(2px);
+  flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center;padding:0 20px;
+}
+.offmask.show{display:flex;}
+.offmask .big{font-size:18px;font-weight:900;color:var(--pink);letter-spacing:3px;}
+.offmask .small{font-size:12px;color:var(--dim);line-height:1.8;}
+.controls{margin-top:16px;}
+.progress-row{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--dim);}
+.time{min-width:44px;text-align:center;font-variant-numeric:tabular-nums;}
+.bar{
+  flex:1;height:10px;border-radius:999px;background:#120A26;border:1px solid var(--line);
+  cursor:pointer;position:relative;overflow:hidden;
+}
+.bar .fill{
+  position:absolute;left:0;top:0;bottom:0;width:0%;
+  background:linear-gradient(90deg,var(--accent),var(--pink));
+  border-radius:999px;transition:width .25s linear;
+}
+.bar.disabled{cursor:not-allowed;opacity:.45;}
+.ctl-row{display:flex;gap:10px;margin-top:14px;align-items:center;}
+.playbtn{
+  width:48px;height:48px;border-radius:50%;border:none;cursor:pointer;flex:none;
+  background:linear-gradient(135deg,var(--accent),var(--pink));
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 6px 18px rgba(255,77,125,.4);
+  transition:transform .16s ease;
+}
+.playbtn:hover{transform:scale(1.08);}
+.playbtn:disabled{filter:grayscale(.8) brightness(.55);cursor:not-allowed;transform:none;box-shadow:none;}
+.playbtn:focus-visible{outline:2px solid var(--gold);outline-offset:3px;}
+.netbar{
+  margin-top:14px;border-radius:12px;padding:10px 12px;
+  border:1px solid var(--line);background:rgba(255,255,255,.03);
+  display:flex;align-items:center;gap:10px;font-size:12px;color:var(--dim);
+}
+.netbar .ok{color:#7BE0A8;font-weight:700;}
+.netbar .bad{color:var(--pink);font-weight:700;}
+.netbar .spacer{flex:1;}
+.netbtn{
+  font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;
+  border-radius:8px;padding:7px 12px;border:1px solid var(--pink);
+  background:transparent;color:var(--pink);transition:all .15s ease;
+}
+.netbtn:hover{background:rgba(255,77,125,.12);}
+.netbtn.reconnect{border-color:#7BE0A8;color:#7BE0A8;}
+.netbtn.reconnect:hover{background:rgba(123,224,168,.12);}
+.netbtn:disabled{opacity:.5;cursor:not-allowed;}
+.panel{
+  margin-top:16px;border-radius:18px;padding:16px 18px;
+  background:linear-gradient(170deg,var(--panel-2),var(--panel));
+  border:1px solid var(--line);
+}
+.panel h4{font-size:13px;font-weight:800;letter-spacing:2px;color:var(--gold);margin-bottom:10px;}
+.queue-list{list-style:none;display:flex;flex-direction:column;gap:8px;}
+.queue-item{
+  display:flex;align-items:center;gap:10px;font-size:13px;
+  padding:9px 10px;border-radius:10px;background:rgba(255,255,255,.03);
+  border:1px solid transparent;
+}
+.queue-item .no{
+  width:22px;height:22px;border-radius:6px;flex:none;font-size:11px;font-weight:800;
+  display:flex;align-items:center;justify-content:center;color:#2A1200;
+  background:linear-gradient(135deg,var(--gold),var(--accent));
+}
+.queue-item .qt{flex:1;}
+.queue-item .qd{font-size:11px;color:var(--dim);}
+.qbtn{
+  font-family:inherit;font-size:11px;cursor:pointer;border-radius:6px;padding:4px 8px;
+  border:1px solid var(--line);background:transparent;color:var(--dim);
+}
+.qbtn:hover{color:var(--gold);border-color:var(--accent);}
+.qbtn:disabled{opacity:.4;cursor:not-allowed;}
+.saved-box{display:flex;flex-direction:column;gap:6px;font-size:13px;line-height:1.8;}
+.saved-box .row{display:flex;justify-content:space-between;gap:10px;}
+.saved-box .k{color:var(--dim);flex:none;}
+.saved-box .v{font-weight:700;text-align:right;}
+.saved-box .v.gold{color:var(--gold);}
+.saved-stamp{font-size:11px;color:var(--dim);letter-spacing:1px;}
+.toast{
+  position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(80px);
+  background:linear-gradient(135deg,#2C1E52,#221740);color:var(--ink);
+  border:1px solid var(--accent);border-radius:12px;padding:12px 20px;font-size:13px;
+  letter-spacing:1px;opacity:0;pointer-events:none;z-index:50;
+  transition:transform .28s ease,opacity .28s ease;box-shadow:0 10px 30px rgba(0,0,0,.5);
+}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
+@media (max-width:900px){
+  .page{padding:16px 16px 32px;}
+  .layout{grid-template-columns:minmax(0,1fr);}
+  .player{position:static;}
+  .cards{grid-template-columns:minmax(0,1fr);}
+  .topbar{flex-wrap:wrap;}
+  .top-chips{margin-left:0;}
+  .screen{height:180px;}
+  .screen .neon{font-size:19px;}
+}
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{
+    animation-duration:.01ms !important;animation-iteration-count:1 !important;
+    transition-duration:.01ms !important;
+  }
+  .beam{animation:none;}
+  .screen .neon{animation:none;}
+}
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-badge">
+        <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><path d="M3 18h18v2H3z" fill="#2A1200"/><rect x="5" y="9" width="14" height="9" rx="2" fill="#2A1200"/><circle cx="8" cy="18" r="1.6" fill="#FFD98A"/><circle cx="16" cy="18" r="1.6" fill="#FFD98A"/><path d="M12 2l1.8 3.6L18 6l-3 2.8.8 4.2L12 10.8 8.2 13l.8-4.2-3-2.8 4.2-.4z" fill="#FFD98A"/></svg>
+      </div>
+      <div>
+        <h1>暮色车场 · 露天影院</h1>
+        <p>DUSK DRIVE-IN · 车位 B-17 车载银幕</p>
+      </div>
+    </div>
+    <div class="top-chips">
+      <span class="chip">今晚 <b>晴 26°C</b> 微风</span>
+      <span class="chip">开场 <b>19:30</b></span>
+      <button class="btn" id="btnTicket">取票根</button>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="discover">
+      <h2 class="section-title">今晚片单 · 点选上映</h2>
+      <div class="tabs" id="tabs">
+        <button class="tab active" data-f="all">全部</button>
+        <button class="tab" data-f="fix">胶片修复</button>
+        <button class="tab" data-f="new">首映</button>
+        <button class="tab" data-f="late">午夜场</button>
+      </div>
+      <div class="cards" id="cards"></div>
+    </section>
+
+    <aside class="player">
+      <div class="screen-zone">
+        <div class="beam" aria-hidden="true"></div>
+        <div class="screen paused" id="screen">
+          <div class="neon" id="neonTitle">尚未选片</div>
+          <div class="sub" id="screenSub">从左侧片单点选一部,光束即刻投上银幕</div>
+          <div class="state-dot" id="stateDot">待机</div>
+          <div class="offmask" id="offmask">
+            <div class="big">信号中断</div>
+            <div class="small" id="offmaskSub">车载天线失去讯号,进度已保留<br>检查天线后点击「重新连接」</div>
+          </div>
+        </div>
+        <div class="controls">
+          <div class="progress-row">
+            <span class="time" id="tCur">00:00</span>
+            <div class="bar disabled" id="bar"><div class="fill" id="fill"></div></div>
+            <span class="time" id="tTotal">00:00</span>
+          </div>
+          <div class="ctl-row">
+            <button class="playbtn" id="btnPlay" disabled aria-label="播放或暂停">
+              <svg viewBox="0 0 24 24" width="20" height="20" id="icoPlay"><path d="M7 4l13 8-13 8z" fill="#2A0E00"/></svg>
+            </button>
+            <button class="btn btn-ghost" id="btnSave" disabled>保存播放状态</button>
+            <button class="btn btn-pink" id="btnNext" disabled>播下一部</button>
+          </div>
+          <div class="netbar">
+            <span>车载天线:</span><span class="ok" id="netState">讯号良好</span>
+            <span class="spacer"></span>
+            <button class="netbtn" id="btnCut">模拟断网</button>
+            <button class="netbtn reconnect" id="btnRe" disabled>重新连接</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h4>待映队列</h4>
+        <ul class="queue-list" id="queueList"></ul>
+      </div>
+
+      <div class="panel">
+        <h4>已保存的播放状态</h4>
+        <div class="saved-box" id="savedBox">
+          <div class="row"><span class="k">影片</span><span class="v" id="svTitle">—</span></div>
+          <div class="row"><span class="k">保留进度</span><span class="v gold" id="svTime">—</span></div>
+          <div class="row"><span class="k">队列</span><span class="v" id="svQueue">—</span></div>
+          <div class="saved-stamp" id="svStamp">尚未保存 · 暂停或点「保存播放状态」都会记录</div>
+        </div>
+      </div>
+    </aside>
+  </main>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ======== 数据 ======== */
+var FILMS=[
+  {id:"f1",title:"银河修理员",cat:"fix",catName:"胶片修复",dur:74,year:"1986",session:"19:30 一场",desc:"修表匠在废弃空间站修理整条银河的齿轮,胶片颗粒里全是星光。"},
+  {id:"f2",title:"午夜榴莲巴士",cat:"late",catName:"午夜场",dur:52,year:"2024",session:"23:10 加场",desc:"末班巴士只载榴莲和不睡觉的人,终点站叫「明天再说」。"},
+  {id:"f3",title:"雨夜烤棉花糖",cat:"new",catName:"首映",dur:63,year:"2025",session:"21:00 首映",desc:"露营地把雨声当柴烧,四个陌生人分一颗烤化的棉花糖。"},
+  {id:"f4",title:"芦苇荡电台",cat:"fix",catName:"胶片修复",dur:81,year:"1979",session:"19:30 二场",desc:"湖区电台深夜播报失踪船只的坐标,播音员其实从未离开过灯塔。"},
+  {id:"f5",title:"返航的纸飞机",cat:"new",catName:"首映",dur:47,year:"2025",session:"21:40 首映",desc:"小学生放出的纸飞机绕着地球飞了二十年,带回了每张课桌的地址。"},
+  {id:"f6",title:"霓虹补胎店",cat:"late",catName:"午夜场",dur:58,year:"1993",session:"00:20 午夜",desc:"只给轮胎补梦的店,霓虹灯管里养着一整条街的失眠。"}
+];
+var state={
+  currentId:null,playing:false,offline:false,reconnecting:false,
+  pos:0,queue:["f3","f6"],saved:null
+};
+/* ======== 工具 ======== */
+function $(id){return document.getElementById(id);}
+function fmt(s){s=Math.max(0,Math.floor(s));var m=Math.floor(s/60),r=s%60;return (m<10?"0"+m:m)+":"+(r<10?"0"+r:r);}
+function film(id){for(var i=0;i<FILMS.length;i++){if(FILMS[i].id===id)return FILMS[i];}return null;}
+function toast(msg){var t=$("toast");t.textContent=msg;t.classList.add("show");clearTimeout(toast._t);toast._t=setTimeout(function(){t.classList.remove("show");},2400);}
+/* ======== 片单渲染 ======== */
+var filter="all";
+function renderCards(){
+  var box=$("cards");box.innerHTML="";
+  FILMS.forEach(function(f){
+    if(filter!=="all"&&f.cat!==filter)return;
+    var d=document.createElement("div");
+    d.className="card"+(state.currentId===f.id?" playing":"");
+    var tagCls=f.cat==="new"?"new":(f.cat==="late"?"":"old");
+    d.innerHTML='<div class="card-top"><h3>《'+f.title+'》</h3><span class="tag '+tagCls+'">'+f.catName+'</span></div>'+
+      '<div class="meta">'+f.year+' · '+f.dur+' 分钟 · 车载声道 FM 101.7</div>'+
+      '<div class="desc">'+f.desc+'</div>'+
+      '<div class="card-foot"><span class="session">'+f.session+'</span>'+
+      '<button class="pick">'+(state.currentId===f.id?"正在上映":"选这部")+'</button></div>';
+    d.querySelector(".pick").addEventListener("click",function(ev){ev.stopPropagation();selectFilm(f.id);});
+    d.addEventListener("click",function(){selectFilm(f.id);});
+    box.appendChild(d);
+  });
+}
+$("tabs").addEventListener("click",function(e){
+  var b=e.target.closest(".tab");if(!b)return;
+  filter=b.getAttribute("data-f");
+  var all=$("tabs").querySelectorAll(".tab");
+  for(var i=0;i<all.length;i++)all[i].classList.remove("active");
+  b.classList.add("active");renderCards();
+});
+/* ======== 队列渲染 ======== */
+function renderQueue(){
+  var ul=$("queueList");ul.innerHTML="";
+  if(state.queue.length===0){
+    var li=document.createElement("li");
+    li.className="queue-item";
+    li.innerHTML='<span class="qd">队列已空 · 从片单继续点选</span>';
+    ul.appendChild(li);return;
+  }
+  state.queue.forEach(function(id,idx){
+    var f=film(id);if(!f)return;
+    var li=document.createElement("li");li.className="queue-item";
+    li.innerHTML='<span class="no">'+(idx+1)+'</span><span class="qt">《'+f.title+'》</span><span class="qd">'+f.dur+' 分钟</span>';
+    var b1=document.createElement("button");b1.className="qbtn";b1.textContent="插队先播";
+    b1.disabled=state.offline;
+    b1.addEventListener("click",function(){playFromQueue(idx);});
+    var b2=document.createElement("button");b2.className="qbtn";b2.textContent="移出";
+    b2.disabled=state.offline;
+    b2.addEventListener("click",function(){
+      state.queue.splice(idx,1);renderQueue();saveState(false);
+      toast("已把《"+f.title+"》移出队列");
+    });
+    li.appendChild(b1);li.appendChild(b2);ul.appendChild(li);
+  });
+}
+/* ======== 播放器 ======== */
+var ICON_PLAY="M7 4l13 8-13 8z";
+var ICON_PAUSE="M6 4h4v16H6zM14 4h4v16h-4z";
+function durSec(){var f=film(state.currentId);return f?f.dur*60:0;}
+function renderPlayer(){
+  var f=film(state.currentId);
+  var screen=$("screen");
+  screen.classList.toggle("paused",!state.playing);
+  if(!f){
+    $("neonTitle").textContent="尚未选片";
+    $("screenSub").textContent="从左侧片单点选一部,光束即刻投上银幕";
+    $("stateDot").textContent="待机";
+    $("tCur").textContent="00:00";$("tTotal").textContent="00:00";
+    $("fill").style.width="0%";
+  }else{
+    $("neonTitle").textContent="《"+f.title+"》";
+    $("screenSub").textContent=f.catName+" · "+f.year+" · 车位 B-17 同步放映";
+    $("stateDot").textContent=state.offline?"已暂停 · 断网":(state.playing?"放映中":"已暂停");
+    $("tCur").textContent=fmt(state.pos);$("tTotal").textContent=fmt(durSec());
+    $("fill").style.width=Math.min(100,(state.pos/durSec())*100)+"%";
+  }
+  $("icoPlay").innerHTML=state.playing?'<path d="'+ICON_PAUSE+'" fill="#2A0E00"/>':'<path d="'+ICON_PLAY+'" fill="#2A0E00"/>';
+  var locked=state.offline||!f;
+  $("btnPlay").disabled=!f||state.offline||state.reconnecting;
+  $("btnSave").disabled=!f;
+  $("btnNext").disabled=locked||state.queue.length===0;
+  $("bar").classList.toggle("disabled",locked);
+  $("offmask").classList.toggle("show",state.offline);
+  if(state.offline){
+    $("offmaskSub").innerHTML="车载天线失去讯号,进度已保留在 "+fmt(state.pos)+"<br>检查天线后点击「重新连接」";
+  }
+  $("netState").textContent=state.reconnecting?"重新连接中…":(state.offline?"讯号中断":"讯号良好");
+  $("netState").className=state.offline||state.reconnecting?"bad":"ok";
+  $("btnCut").disabled=state.offline||state.reconnecting;
+  $("btnRe").disabled=!state.offline||state.reconnecting;
+}
+function selectFilm(id){
+  if(state.offline){toast("断网中,先重新连接再换片");return;}
+  var f=film(id);if(!f)return;
+  state.currentId=id;state.pos=0;state.playing=true;
+  var qi=state.queue.indexOf(id);
+  if(qi>=0)state.queue.splice(qi,1);
+  renderCards();renderQueue();renderPlayer();saveState(false);
+  toast("光束就位,《"+f.title+"》开始放映");
+}
+function playFromQueue(idx){
+  if(state.offline||idx<0||idx>=state.queue.length)return;
+  var id=state.queue[idx];
+  selectFilm(id);
+}
+$("btnPlay").addEventListener("click",function(){
+  if(!film(state.currentId)||state.offline)return;
+  state.playing=!state.playing;
+  if(!state.playing)saveState(true);
+  renderPlayer();
+});
+$("btnNext").addEventListener("click",function(){
+  if(state.offline||state.queue.length===0)return;
+  playFromQueue(0);
+});
+$("bar").addEventListener("click",function(e){
+  if(state.offline||!film(state.currentId))return;
+  var r=$("bar").getBoundingClientRect();
+  var ratio=(e.clientX-r.left)/r.width;
+  ratio=Math.max(0,Math.min(1,ratio));
+  state.pos=Math.round(ratio*durSec());
+  renderPlayer();saveState(false);
+  toast("已跳到 "+fmt(state.pos));
+});
+/* ======== 保存播放状态 ======== */
+function saveState(loud){
+  var f=film(state.currentId);
+  if(!f)return;
+  state.saved={title:f.title,pos:state.pos,queue:state.queue.length,at:new Date()};
+  $("svTitle").textContent="《"+state.saved.title+"》";
+  $("svTime").textContent=fmt(state.saved.pos)+" / "+fmt(durSec());
+  $("svQueue").textContent=state.saved.queue+" 部待映";
+  var d=state.saved.at;
+  $("svStamp").textContent="保存于 "+(d.getHours()<10?"0"+d.getHours():d.getHours())+":"+(d.getMinutes()<10?"0"+d.getMinutes():d.getMinutes())+":"+(d.getSeconds()<10?"0"+d.getSeconds():d.getSeconds())+" · 已写入本车位银幕";
+  if(loud)toast("播放状态已保存:"+f.title+" "+fmt(state.pos));
+}
+$("btnSave").addEventListener("click",function(){saveState(true);});
+/* ======== 断网异常与恢复 ======== */
+$("btnCut").addEventListener("click",function(){
+  if(state.offline)return;
+  state.offline=true;
+  state.playing=false; /* 暂停播放,pos 保留不清零 */
+  saveState(false);
+  renderPlayer();renderQueue();
+  toast("讯号中断,播放已暂停,进度保留在 "+fmt(state.pos));
+});
+$("btnRe").addEventListener("click",function(){
+  if(!state.offline||state.reconnecting)return;
+  state.reconnecting=true;renderPlayer();
+  setTimeout(function(){
+    state.reconnecting=false;state.offline=false;
+    if(film(state.currentId))state.playing=true; /* 从保留进度继续 */
+    renderPlayer();renderQueue();
+    toast("重新连接成功,从 "+fmt(state.pos)+" 继续放映");
+  },1100);
+});
+/* ======== 放映计时 ======== */
+setInterval(function(){
+  if(!state.playing||state.offline||!film(state.currentId))return;
+  state.pos+=1;
+  if(state.pos>=durSec()){
+    if(state.queue.length>0){playFromQueue(0);return;}
+    state.playing=false;state.pos=durSec();saveState(false);
+    toast("本片放映完毕,队列已空");
+  }
+  renderPlayer();
+},1000);
+$("btnTicket").addEventListener("click",function(){
+  toast("票根 B-17 已夹进遮阳板 · 今晚车位费 40 元");
+});
+/* ======== 初始化 ======== */
+renderCards();renderQueue();renderPlayer();
+</script>
+</body>
+</html>

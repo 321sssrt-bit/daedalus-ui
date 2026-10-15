@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>玉衡钱包 · 首页</title>
+<style>
+:root{
+  --page:#21332A;
+  --app:#F2F6F2;
+  --jade:#3E7C59;
+  --jade-pale:#DCE9DC;
+  --ink:#21332A;
+  --gold:#B08D4C;
+  --muted:#6E7F73;
+  --card:#FFFFFF;
+  --line:#E2EAE2;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{min-height:100%}
+body{
+  background:radial-gradient(1200px 800px at 50% 8%,#2C4437,var(--page) 62%);
+  display:flex;align-items:center;justify-content:center;
+  padding:32px 12px;
+  font-family:"PingFang SC","Microsoft YaHei","Hiragino Sans GB",sans-serif;
+}
+.phone{
+  width:390px;height:844px;flex:none;
+  border-radius:46px;border:10px solid #10201A;
+  background:var(--app);overflow:hidden;position:relative;
+  box-shadow:0 40px 90px rgba(0,0,0,.5);
+}
+.notch{
+  position:absolute;top:12px;left:50%;transform:translateX(-50%);
+  width:112px;height:24px;border-radius:12px;background:#10201A;z-index:30;
+}
+.screen{height:100%;display:flex;flex-direction:column}
+.statusbar{
+  flex:none;display:flex;justify-content:space-between;align-items:center;
+  padding:14px 26px 6px;font-size:13px;font-weight:600;color:var(--ink);
+}
+.statusbar .icons{display:flex;gap:6px;align-items:center}
+.statusbar svg{width:16px;height:12px}
+.apphead{
+  flex:none;display:flex;justify-content:space-between;align-items:center;
+  padding:10px 20px 12px;
+}
+.apphead .brand{display:flex;align-items:center;gap:9px}
+.apphead .brand svg{width:26px;height:26px}
+.apphead .brand .t{font-size:17px;font-weight:800;letter-spacing:2px;color:var(--ink)}
+.apphead .hello{font-size:12px;color:var(--muted);margin-top:2px;letter-spacing:1px}
+.apphead .bell{
+  width:36px;height:36px;border-radius:50%;background:var(--card);
+  border:1px solid var(--line);display:flex;align-items:center;justify-content:center;
+  cursor:pointer;position:relative;
+}
+.apphead .bell::after{
+  content:"";position:absolute;top:8px;right:9px;width:7px;height:7px;border-radius:50%;background:var(--gold);
+}
+.apphead .bell svg{width:18px;height:18px}
+.scroll{flex:1;overflow-y:auto;padding:4px 16px 18px;scrollbar-width:none}
+.scroll::-webkit-scrollbar{display:none}
+.view{display:none}
+.view.active{display:block}
+/* 余额卡 */
+.balance{
+  background:linear-gradient(135deg,#35694B,var(--jade) 55%,#2C5C41);
+  border-radius:22px;padding:22px 22px 18px;color:#F4F9F4;position:relative;overflow:hidden;
+  box-shadow:0 14px 30px rgba(62,124,89,.35);
+}
+.balance::before{
+  content:"";position:absolute;right:-46px;top:-46px;width:170px;height:170px;border-radius:50%;
+  border:1.5px solid rgba(176,141,76,.5);
+}
+.balance::after{
+  content:"";position:absolute;right:-16px;top:-16px;width:110px;height:110px;border-radius:50%;
+  border:1.5px solid rgba(176,141,76,.35);
+}
+.balance .cap{font-size:12px;letter-spacing:2px;color:#CFE3D2;display:flex;align-items:center;gap:8px}
+.balance .cap .eye{
+  background:none;border:none;cursor:pointer;padding:2px;display:flex;align-items:center;
+}
+.balance .cap .eye svg{width:17px;height:17px}
+.balance .num{
+  font-size:36px;font-weight:800;letter-spacing:1px;margin:8px 0 2px;
+  font-variant-numeric:tabular-nums;
+}
+.balance .num small{font-size:18px;font-weight:600}
+.balance .gain{font-size:12px;color:#E7D9BC;letter-spacing:1px}
+.balance .gain b{color:var(--gold);color:#EFD9AE;font-weight:700}
+.balance .ops{display:flex;gap:12px;margin-top:18px;position:relative;z-index:2}
+.balance .ops button{
+  flex:1;border:none;border-radius:12px;padding:12px 0;font-size:15px;font-weight:700;
+  letter-spacing:3px;cursor:pointer;font-family:inherit;
+  transition:transform .15s ease,box-shadow .15s ease;
+}
+.balance .ops button:active{transform:scale(.97)}
+.balance .ops .out{background:var(--gold);color:#2B2113;box-shadow:0 6px 16px rgba(176,141,76,.4)}
+.balance .ops .in{background:rgba(244,249,244,.16);color:#F4F9F4;border:1px solid rgba(244,249,244,.4)}
+.balance .ops button:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(176,141,76,.6)}
+/* 快捷入口 */
+.quick{
+  display:flex;justify-content:space-between;background:var(--card);border-radius:18px;
+  border:1px solid var(--line);padding:16px 10px;margin-top:14px;
+}
+.quick button{
+  background:none;border:none;cursor:pointer;font-family:inherit;
+  display:flex;flex-direction:column;align-items:center;gap:8px;width:70px;
+  font-size:12px;color:var(--ink);letter-spacing:1px;
+}
+.quick button .ic{
+  width:42px;height:42px;border-radius:14px;background:var(--jade-pale);
+  display:flex;align-items:center;justify-content:center;transition:background .15s ease,transform .15s ease;
+}
+.quick button:hover .ic{background:#CBDECB;transform:translateY(-2px)}
+.quick button:focus-visible{outline:2px solid var(--jade);border-radius:8px}
+.quick button svg{width:20px;height:20px}
+/* 流水 */
+.sechead{
+  display:flex;justify-content:space-between;align-items:baseline;margin:20px 2px 10px;
+}
+.sechead .t{font-size:16px;font-weight:800;letter-spacing:2px;color:var(--ink)}
+.sechead .more{font-size:12px;color:var(--muted);letter-spacing:1px}
+.chips{display:flex;gap:8px;margin-bottom:10px}
+.chips button{
+  border:1px solid var(--line);background:var(--card);color:var(--muted);
+  font-size:12px;letter-spacing:2px;padding:7px 16px;border-radius:999px;cursor:pointer;
+  font-family:inherit;transition:background .15s ease,color .15s ease,border-color .15s ease;
+}
+.chips button.on{background:var(--jade);color:#F4F9F4;border-color:var(--jade)}
+.chips button:focus-visible{outline:2px solid var(--gold);outline-offset:1px}
+.tx{
+  background:var(--card);border:1px solid var(--line);border-radius:18px;overflow:hidden;
+}
+.tx .row{
+  display:flex;align-items:center;gap:12px;padding:13px 16px;border-bottom:1px solid var(--line);
+}
+.tx .row:last-child{border-bottom:none}
+.tx .ic{
+  width:38px;height:38px;border-radius:12px;flex:none;
+  display:flex;align-items:center;justify-content:center;background:var(--jade-pale);
+}
+.tx .ic.gold{background:#F0E6D2}
+.tx .ic svg{width:18px;height:18px}
+.tx .mid{flex:1;min-width:0}
+.tx .mid .n{font-size:14px;font-weight:700;color:var(--ink)}
+.tx .mid .w{font-size:11px;color:var(--muted);margin-top:3px;letter-spacing:1px}
+.tx .amt{font-size:15px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:.5px}
+.tx .amt.plus{color:var(--jade)}
+.tx .amt.minus{color:var(--ink)}
+.tx .empty{
+  padding:30px 0;text-align:center;font-size:12px;color:var(--muted);letter-spacing:2px;display:none;
+}
+/* 账单视图 */
+.bill-sum{
+  background:var(--card);border:1px solid var(--line);border-radius:20px;padding:20px;
+}
+.bill-sum .m{font-size:12px;color:var(--muted);letter-spacing:2px}
+.bill-sum .big{font-size:30px;font-weight:800;color:var(--ink);margin:6px 0 14px;font-variant-numeric:tabular-nums}
+.bill-sum .pair{display:flex;gap:10px}
+.bill-sum .pair div{
+  flex:1;background:var(--app);border-radius:12px;padding:10px 14px;font-size:12px;color:var(--muted);
+}
+.bill-sum .pair b{display:block;font-size:15px;margin-top:4px;font-variant-numeric:tabular-nums}
+.bill-sum .pair .in b{color:var(--jade)}
+.bill-sum .pair .out b{color:var(--ink)}
+.cat{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:18px 20px;margin-top:14px}
+.cat .r{display:flex;align-items:center;gap:10px;margin-bottom:13px;font-size:13px}
+.cat .r:last-child{margin-bottom:0}
+.cat .r .n{width:56px;color:var(--ink);font-weight:700}
+.cat .r .bar{flex:1;height:8px;border-radius:4px;background:var(--jade-pale);overflow:hidden}
+.cat .r .bar i{display:block;height:100%;border-radius:4px;background:var(--jade)}
+.cat .r .bar i.g{background:var(--gold)}
+.cat .r .p{width:40px;text-align:right;color:var(--muted);font-size:12px}
+/* 理财视图 */
+.fin-card{
+  background:var(--card);border:1px solid var(--line);border-radius:20px;padding:18px 20px;margin-bottom:14px;
+}
+.fin-card .tag{
+  display:inline-block;font-size:11px;letter-spacing:2px;color:var(--gold);
+  border:1px solid #E4D3B4;border-radius:6px;padding:3px 8px;margin-bottom:10px;background:#FBF6EA;
+}
+.fin-card .n{font-size:16px;font-weight:800;color:var(--ink);letter-spacing:1px}
+.fin-card .num{font-size:26px;font-weight:800;color:var(--jade);margin:8px 0 2px;font-variant-numeric:tabular-nums}
+.fin-card .num small{font-size:12px;color:var(--muted);font-weight:400;margin-left:6px}
+.fin-card .d{font-size:12px;color:var(--muted);line-height:1.8;margin-bottom:14px}
+.fin-card button{
+  width:100%;border:none;border-radius:12px;padding:12px 0;font-size:14px;font-weight:700;
+  letter-spacing:3px;background:var(--jade);color:#F4F9F4;cursor:pointer;font-family:inherit;
+  transition:background .15s ease;
+}
+.fin-card button:hover{background:#35694B}
+.fin-card button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+/* 我的视图 */
+.me-card{
+  background:linear-gradient(135deg,#35694B,var(--jade));border-radius:20px;padding:20px;
+  display:flex;align-items:center;gap:14px;color:#F4F9F4;
+}
+.me-card .av{
+  width:54px;height:54px;border-radius:50%;background:var(--jade-pale);flex:none;
+  display:flex;align-items:center;justify-content:center;border:2px solid rgba(176,141,76,.7);
+}
+.me-card .av svg{width:26px;height:26px}
+.me-card .n{font-size:17px;font-weight:800;letter-spacing:2px}
+.me-card .v{font-size:11px;color:#CFE3D2;margin-top:5px;letter-spacing:1px}
+.me-list{background:var(--card);border:1px solid var(--line);border-radius:18px;margin-top:14px;overflow:hidden}
+.me-list .r{
+  display:flex;align-items:center;gap:12px;padding:15px 16px;border-bottom:1px solid var(--line);
+  font-size:14px;color:var(--ink);cursor:pointer;
+}
+.me-list .r:last-child{border-bottom:none}
+.me-list .r:hover{background:#F8FBF8}
+.me-list .r svg{width:18px;height:18px;flex:none}
+.me-list .r .v{margin-left:auto;font-size:12px;color:var(--muted)}
+.me-list .r .chev{color:var(--muted);font-size:12px}
+/* 底部导航 */
+.tabbar{
+  flex:none;display:flex;border-top:1px solid var(--line);background:var(--card);
+  padding:8px 6px 16px;
+}
+.tabbar button{
+  flex:1;background:none;border:none;cursor:pointer;font-family:inherit;
+  display:flex;flex-direction:column;align-items:center;gap:4px;
+  font-size:11px;letter-spacing:2px;color:var(--muted);padding:4px 0;
+  transition:color .15s ease;
+}
+.tabbar button svg{width:22px;height:22px}
+.tabbar button .dot{width:4px;height:4px;border-radius:50%;background:transparent}
+.tabbar button.on{color:var(--jade);font-weight:700}
+.tabbar button.on .dot{background:var(--gold)}
+.tabbar button:focus-visible{outline:2px solid var(--jade);border-radius:8px}
+/* 提示条 */
+.toast{
+  position:absolute;left:50%;bottom:96px;transform:translateX(-50%) translateY(10px);
+  background:var(--ink);color:#F4F9F4;font-size:12px;letter-spacing:1px;
+  padding:10px 20px;border-radius:999px;box-shadow:0 10px 26px rgba(0,0,0,.3);
+  opacity:0;pointer-events:none;transition:opacity .22s ease,transform .22s ease;z-index:40;
+  white-space:nowrap;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation-duration:.01ms !important;transition-duration:.01ms !important}
+}
+@media (max-width: 480px){
+  body{padding:0}
+  .phone{border:none;border-radius:0;width:100%;height:100vh}
+  .notch{display:none}
+}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="notch"></div>
+  <div class="screen">
+    <div class="statusbar">
+      <span>9:41</span>
+      <span class="icons">
+        <svg viewBox="0 0 20 12"><rect x="0" y="7" width="3" height="5" fill="#21332A"/><rect x="5" y="5" width="3" height="7" fill="#21332A"/><rect x="10" y="2.5" width="3" height="9.5" fill="#21332A"/><rect x="15" y="0" width="3" height="12" fill="#21332A" opacity=".35"/></svg>
+        <svg viewBox="0 0 20 12"><rect x="1" y="1" width="16" height="10" rx="2.5" fill="none" stroke="#21332A" stroke-width="1.4"/><rect x="3" y="3" width="9" height="6" rx="1" fill="#3E7C59"/><rect x="18.5" y="4" width="1.8" height="4" rx=".9" fill="#21332A"/></svg>
+      </span>
+    </div>
+    <header class="apphead">
+      <div class="brand">
+        <svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="13" fill="none" stroke="#3E7C59" stroke-width="2.4"/><circle cx="16" cy="16" r="5.5" fill="none" stroke="#B08D4C" stroke-width="2.2"/><path d="M16 3v5M16 24v5M3 16h5M24 16h5" stroke="#3E7C59" stroke-width="2" stroke-linecap="round"/></svg>
+        <div>
+          <div class="t">玉衡钱包</div>
+          <div class="hello">小雪将至 · 沈青梧，上午好</div>
+        </div>
+      </div>
+      <button class="bell" id="bellBtn" type="button" aria-label="消息">
+        <svg viewBox="0 0 24 24"><path d="M6 16v-5a6 6 0 0 1 12 0v5l1.5 2.5h-15L6 16z" fill="none" stroke="#21332A" stroke-width="1.8" stroke-linejoin="round"/><path d="M10 21a2.2 2.2 0 0 0 4 0" fill="none" stroke="#21332A" stroke-width="1.8" stroke-linecap="round"/></svg>
+      </button>
+    </header>
+
+    <div class="scroll">
+      <!-- 首页 -->
+      <section class="view active" id="view-home">
+        <div class="balance">
+          <div class="cap">
+            总资产（元）
+            <button class="eye" id="eyeBtn" type="button" aria-label="隐藏金额">
+              <svg viewBox="0 0 24 24"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z" fill="none" stroke="#CFE3D2" stroke-width="1.7"/><circle cx="12" cy="12" r="3" fill="none" stroke="#CFE3D2" stroke-width="1.7"/></svg>
+            </button>
+          </div>
+          <div class="num" id="balanceNum"><small>¥</small> 86,420.55</div>
+          <div class="gain">昨日收益 <b>+32.18</b> · 七日年化 2.86%</div>
+          <div class="ops">
+            <button class="out" id="btnTransfer" type="button">转出</button>
+            <button class="in" id="btnReceive" type="button">收款</button>
+          </div>
+        </div>
+
+        <div class="quick">
+          <button type="button" data-tip="工资卡（6222 ···· 8848）已置顶">
+            <span class="ic"><svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="2.5" fill="none" stroke="#3E7C59" stroke-width="1.8"/><path d="M3 10h18" stroke="#3E7C59" stroke-width="1.8"/><path d="M6.5 15h5" stroke="#B08D4C" stroke-width="1.8" stroke-linecap="round"/></svg></span>
+            银行卡
+          </button>
+          <button type="button" data-tip="本月定投计划：每周三 500 元">
+            <span class="ic"><svg viewBox="0 0 24 24"><path d="M12 3v18M12 7c-3 0-4.5 1.3-4.5 3s1.5 2.6 4.5 3 4.5 1.4 4.5 3.2-1.8 2.8-4.5 2.8" fill="none" stroke="#3E7C59" stroke-width="1.8" stroke-linecap="round"/></svg></span>
+            定投
+          </button>
+          <button type="button" data-tip="亲情卡剩余额度 2,000 元">
+            <span class="ic"><svg viewBox="0 0 24 24"><circle cx="9" cy="9" r="3.4" fill="none" stroke="#3E7C59" stroke-width="1.8"/><circle cx="16.5" cy="10.5" r="2.6" fill="none" stroke="#B08D4C" stroke-width="1.7"/><path d="M3.5 19c.6-3 2.8-4.5 5.5-4.5s4.9 1.5 5.5 4.5" fill="none" stroke="#3E7C59" stroke-width="1.8" stroke-linecap="round"/><path d="M15 15.2c2.2.1 3.8 1.3 4.3 3.8" fill="none" stroke="#B08D4C" stroke-width="1.7" stroke-linecap="round"/></svg></span>
+            亲情卡
+          </button>
+          <button type="button" data-tip="生活缴费：电费账户已代扣">
+            <span class="ic"><svg viewBox="0 0 24 24"><path d="M13 2L4.5 13.5H11L9.5 22 19 9.5h-6.5L13 2z" fill="none" stroke="#3E7C59" stroke-width="1.8" stroke-linejoin="round"/></svg></span>
+            缴费
+          </button>
+        </div>
+
+        <div class="sechead">
+          <span class="t">近期流水</span>
+          <span class="more">查看全部</span>
+        </div>
+        <div class="chips" id="chips">
+          <button type="button" class="on" data-f="all">全部</button>
+          <button type="button" data-f="in">收入</button>
+          <button type="button" data-f="out">支出</button>
+        </div>
+        <div class="tx" id="txList">
+          <div class="row" data-kind="in">
+            <span class="ic gold"><svg viewBox="0 0 24 24"><path d="M12 19V5M6.5 10.5L12 5l5.5 5.5" fill="none" stroke="#B08D4C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            <div class="mid"><div class="n">工资入账 · 青梧设计工作室</div><div class="w">今日 09:12 · 工商银行 8848</div></div>
+            <span class="amt plus">+18,600.00</span>
+          </div>
+          <div class="row" data-kind="out">
+            <span class="ic"><svg viewBox="0 0 24 24"><path d="M5 8h14l-1.4 11a2 2 0 0 1-2 1.8H8.4a2 2 0 0 1-2-1.8L5 8z" fill="none" stroke="#3E7C59" stroke-width="1.7"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8" fill="none" stroke="#3E7C59" stroke-width="1.7"/></svg></span>
+            <div class="mid"><div class="n">美团外卖 · 午餐</div><div class="w">今日 12:34 · 余额支付</div></div>
+            <span class="amt minus">-32.50</span>
+          </div>
+          <div class="row" data-kind="in">
+            <span class="ic gold"><svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="2.5" fill="none" stroke="#B08D4C" stroke-width="1.8"/><path d="M8 11.5l2.5 2.5L16 9.5" fill="none" stroke="#B08D4C" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            <div class="mid"><div class="n">微信红包 · 母亲</div><div class="w">昨日 20:15 · 零钱转入</div></div>
+            <span class="amt plus">+88.88</span>
+          </div>
+          <div class="row" data-kind="out">
+            <span class="ic"><svg viewBox="0 0 24 24"><path d="M12 19V5M6.5 13.5L12 19l5.5-5.5" fill="none" stroke="#3E7C59" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            <div class="mid"><div class="n">转入余额宝</div><div class="w">昨日 18:02 · 自动攒</div></div>
+            <span class="amt minus">-5,000.00</span>
+          </div>
+          <div class="row" data-kind="out">
+            <span class="ic"><svg viewBox="0 0 24 24"><path d="M4 16c0-5 3.6-9 8-9s8 4 8 9" fill="none" stroke="#3E7C59" stroke-width="1.8"/><path d="M12 16l3.5-4" stroke="#3E7C59" stroke-width="1.8" stroke-linecap="round"/><path d="M3 19h18" stroke="#B08D4C" stroke-width="1.8" stroke-linecap="round"/></svg></span>
+            <div class="mid"><div class="n">滴滴出行 · 虹桥机场</div><div class="w">昨日 21:40 · 免密支付</div></div>
+            <span class="amt minus">-45.60</span>
+          </div>
+          <div class="row" data-kind="in">
+            <span class="ic gold"><svg viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6V3z" fill="none" stroke="#B08D4C" stroke-width="1.8" stroke-linejoin="round"/><path d="M9 12h7M9 16h5" stroke="#B08D4C" stroke-width="1.7" stroke-linecap="round"/></svg></span>
+            <div class="mid"><div class="n">稿费结算 · 《园冶》专栏</div><div class="w">11-18 16:20 · 对公转账</div></div>
+            <span class="amt plus">+2,400.00</span>
+          </div>
+          <div class="row" data-kind="out">
+            <span class="ic"><svg viewBox="0 0 24 24"><path d="M4 7h16v13H4V7z" fill="none" stroke="#3E7C59" stroke-width="1.8"/><path d="M8 7a4 4 0 0 1 8 0" fill="none" stroke="#3E7C59" stroke-width="1.8"/><circle cx="12" cy="13.5" r="2" fill="none" stroke="#B08D4C" stroke-width="1.6"/></svg></span>
+            <div class="mid"><div class="n">山姆会员店 · 浦东店</div><div class="w">11-17 15:05 · 玉衡闪付</div></div>
+            <span class="amt minus">-486.30</span>
+          </div>
+          <div class="row" data-kind="out">
+            <span class="ic"><svg viewBox="0 0 24 24"><path d="M13 2L4.5 13.5H11L9.5 22 19 9.5h-6.5L13 2z" fill="none" stroke="#3E7C59" stroke-width="1.8" stroke-linejoin="round"/></svg></span>
+            <div class="mid"><div class="n">电费代扣 · 国网上海</div><div class="w">11-16 08:00 · 自动代扣</div></div>
+            <span class="amt minus">-212.40</span>
+          </div>
+          <div class="empty" id="txEmpty">本分类下暂无流水</div>
+        </div>
+      </section>
+
+      <!-- 账单 -->
+      <section class="view" id="view-bill">
+        <div class="bill-sum">
+          <div class="m">2025 年 11 月 · 总支出</div>
+          <div class="big">¥ 6,208.30</div>
+          <div class="pair">
+            <div class="in">本月收入<b>+21,088.88</b></div>
+            <div class="out">月均结余<b>+14,880.58</b></div>
+          </div>
+        </div>
+        <div class="cat">
+          <div class="r"><span class="n">餐饮</span><span class="bar"><i style="width:82%"></i></span><span class="p">32%</span></div>
+          <div class="r"><span class="n">居家</span><span class="bar"><i class="g" style="width:61%"></i></span><span class="p">24%</span></div>
+          <div class="r"><span class="n">出行</span><span class="bar"><i style="width:43%"></i></span><span class="p">17%</span></div>
+          <div class="r"><span class="n">文化</span><span class="bar"><i class="g" style="width:30%"></i></span><span class="p">12%</span></div>
+          <div class="r"><span class="n">其他</span><span class="bar"><i style="width:38%"></i></span><span class="p">15%</span></div>
+        </div>
+      </section>
+
+      <!-- 理财 -->
+      <section class="view" id="view-fin">
+        <div class="fin-card">
+          <span class="tag">稳健之选</span>
+          <div class="n">稳利宝 · 30 天持有期</div>
+          <div class="num">2.86%<small>七日年化</small></div>
+          <div class="d">1 元起购，申赎免手续费；近一年最大回撤 0.02%。已持有 40,000 元。</div>
+          <button type="button" data-tip="已预约买入 1,000 元（演示）">追加买入</button>
+        </div>
+        <div class="fin-card">
+          <span class="tag">长期定投</span>
+          <div class="n">金穗指数 · 每周三扣款</div>
+          <div class="num">+6.84%<small>近一年涨跌</small></div>
+          <div class="d">跟踪中证红利指数，每周三定投 500 元，已坚持 34 期。</div>
+          <button type="button" data-tip="已修改下期定投为 600 元（演示）">调整定投</button>
+        </div>
+      </section>
+
+      <!-- 我的 -->
+      <section class="view" id="view-me">
+        <div class="me-card">
+          <span class="av"><svg viewBox="0 0 24 24"><circle cx="12" cy="8.5" r="3.6" fill="none" stroke="#3E7C59" stroke-width="1.9"/><path d="M5 20c.8-3.8 3.6-5.6 7-5.6s6.2 1.8 7 5.6" fill="none" stroke="#3E7C59" stroke-width="1.9" stroke-linecap="round"/></svg></span>
+          <div>
+            <div class="n">沈青梧</div>
+            <div class="v">实名已认证 · 玉衡会员 Lv.4 · 积分 12,608</div>
+          </div>
+        </div>
+        <div class="me-list">
+          <div class="r" data-tip="已绑定 3 张银行卡"><svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="2.5" fill="none" stroke="#3E7C59" stroke-width="1.8"/><path d="M3 10h18" stroke="#3E7C59" stroke-width="1.8"/></svg>银行卡<span class="v">3 张</span><span class="chev">›</span></div>
+          <div class="r" data-tip="账户安全评分 96 分"><svg viewBox="0 0 24 24"><path d="M12 3l7.5 3v5.5c0 4.6-3.2 7.7-7.5 9.5-4.3-1.8-7.5-4.9-7.5-9.5V6L12 3z" fill="none" stroke="#3E7C59" stroke-width="1.8" stroke-linejoin="round"/><path d="M8.8 12l2.3 2.3 4.2-4.5" fill="none" stroke="#B08D4C" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>安全中心<span class="v">96 分</span><span class="chev">›</span></div>
+          <div class="r" data-tip="2 条未读通知"><svg viewBox="0 0 24 24"><path d="M6 16v-5a6 6 0 0 1 12 0v5l1.5 2.5h-15L6 16z" fill="none" stroke="#3E7C59" stroke-width="1.8" stroke-linejoin="round"/><path d="M10 21a2.2 2.2 0 0 0 4 0" fill="none" stroke="#3E7C59" stroke-width="1.8" stroke-linecap="round"/></svg>消息通知<span class="v">2 条未读</span><span class="chev">›</span></div>
+          <div class="r" data-tip="设置（演示页）"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3" fill="none" stroke="#3E7C59" stroke-width="1.8"/><path d="M12 3.5v3M12 17.5v3M3.5 12h3M17.5 12h3M6 6l2.1 2.1M15.9 15.9L18 18M18 6l-2.1 2.1M8.1 15.9L6 18" stroke="#3E7C59" stroke-width="1.7" stroke-linecap="round"/></svg>设置<span class="chev">›</span></div>
+        </div>
+      </section>
+    </div>
+
+    <nav class="tabbar" id="tabbar">
+      <button type="button" class="on" data-v="view-home">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>
+        首页<span class="dot"></span>
+      </button>
+      <button type="button" data-v="view-bill">
+        <svg viewBox="0 0 24 24"><path d="M6 4h12v16l-2-1.6-2 1.6-2-1.6-2 1.6-2-1.6L6 20V4z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M9 9h6M9 13h6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        账单<span class="dot"></span>
+      </button>
+      <button type="button" data-v="view-fin">
+        <svg viewBox="0 0 24 24"><path d="M12 3v18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M12 8c-2.6-1.5-4.5-1-4.5-3M12 8c2.6-1.5 4.5-1 4.5-3M12 13c-2.8-1.5-5-1-5-3.5M12 13c2.8-1.5 5-1 5-3.5M12 18c-2.8-1.5-5.5-1-5.5-3.8M12 18c2.8-1.5 5.5-1 5.5-3.8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        理财<span class="dot"></span>
+      </button>
+      <button type="button" data-v="view-me">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.4" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M5 20c.8-3.8 3.6-5.6 7-5.6s6.2 1.8 7 5.6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        我的<span class="dot"></span>
+      </button>
+    </nav>
+  </div>
+  <div class="toast" id="toast">已完成</div>
+</div>
+
+<script>
+(function(){
+  var toast = document.getElementById('toast');
+  var timer = null;
+  function showTip(text){
+    toast.textContent = text;
+    toast.classList.add('show');
+    if (timer) { clearTimeout(timer); }
+    timer = setTimeout(function(){ toast.classList.remove('show'); }, 2200);
+  }
+
+  var tabbar = document.getElementById('tabbar');
+  var tabs = tabbar.querySelectorAll('button');
+  var views = {
+    'view-home': document.getElementById('view-home'),
+    'view-bill': document.getElementById('view-bill'),
+    'view-fin': document.getElementById('view-fin'),
+    'view-me': document.getElementById('view-me')
+  };
+  tabs.forEach(function(btn){
+    btn.addEventListener('click', function(){
+      tabs.forEach(function(b){ b.classList.remove('on'); });
+      btn.classList.add('on');
+      Object.keys(views).forEach(function(k){ views[k].classList.remove('active'); });
+      views[btn.getAttribute('data-v')].classList.add('active');
+    });
+  });
+
+  var chips = document.getElementById('chips');
+  var rows = document.querySelectorAll('#txList .row');
+  var empty = document.getElementById('txEmpty');
+  chips.querySelectorAll('button').forEach(function(chip){
+    chip.addEventListener('click', function(){
+      chips.querySelectorAll('button').forEach(function(c){ c.classList.remove('on'); });
+      chip.classList.add('on');
+      var f = chip.getAttribute('data-f');
+      var shown = 0;
+      rows.forEach(function(row){
+        var ok = f === 'all' || row.getAttribute('data-kind') === f;
+        row.style.display = ok ? '' : 'none';
+        if (ok) { shown++; }
+      });
+      empty.style.display = shown === 0 ? 'block' : 'none';
+    });
+  });
+
+  var eye = document.getElementById('eyeBtn');
+  var num = document.getElementById('balanceNum');
+  var visible = true;
+  eye.addEventListener('click', function(){
+    visible = !visible;
+    num.innerHTML = visible ? '<small>¥</small> 86,420.55' : '<small>¥</small> ******';
+    showTip(visible ? '金额已显示' : '金额已隐藏');
+  });
+
+  document.getElementById('btnTransfer').addEventListener('click', function(){
+    showTip('转出到工商银行 8848：单日限额 50,000 元');
+  });
+  document.getElementById('btnReceive').addEventListener('click', function(){
+    showTip('收款码已生成，单笔上限 5,000 元（演示）');
+  });
+  document.getElementById('bellBtn').addEventListener('click', function(){
+    showTip('2 条未读：账单月报、定投扣款提醒');
+  });
+  document.querySelectorAll('[data-tip]').forEach(function(el){
+    el.addEventListener('click', function(){
+      showTip(el.getAttribute('data-tip'));
+    });
+  });
+})();
+</script>
+</body>
+</html>

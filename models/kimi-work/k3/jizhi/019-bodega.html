@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>转角小卖部 · 购物车</title>
+<style>
+:root{
+  --paper:#FFFEF8;
+  --ink:#20242A;
+  --red:#D43D2A;
+  --green:#2E7D4F;
+  --beige:#EAE5D8;
+  --gray:#8B8578;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+[hidden]{display:none !important}
+body{
+  background:var(--beige);
+  color:var(--ink);
+  font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans CJK SC",sans-serif;
+  line-height:1.6;
+}
+.mono{font-family:"SFMono-Regular",Consolas,"Liberation Mono","Courier New",monospace}
+.top{background:var(--ink);color:var(--paper)}
+.top-inner{max-width:960px;margin:0 auto;padding:18px 24px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.brand{display:flex;gap:14px;align-items:center}
+.logo-badge{width:44px;height:44px;background:var(--red);color:var(--paper);display:flex;align-items:center;justify-content:center;font-size:22px;border-radius:6px;font-weight:700;flex:none}
+.top h1{font-size:19px;letter-spacing:2px}
+.top .sub{font-size:12px;opacity:.7;margin-top:2px}
+.cart-tag{font-size:14px;background:var(--green);padding:8px 16px;border-radius:999px;letter-spacing:1px;flex:none}
+.receipt{max-width:560px;margin:36px auto 60px;background:var(--paper);padding:36px 36px 28px;box-shadow:0 18px 40px rgba(32,36,42,.12);position:relative}
+.r-head{text-align:center}
+.r-name{font-size:24px;font-weight:700;letter-spacing:6px}
+.r-sub{font-size:12px;color:var(--gray);margin-top:4px;letter-spacing:1px}
+.dash{border:none;border-top:2px dashed var(--gray);margin:18px 0;opacity:.5}
+.items{list-style:none}
+.item{display:grid;grid-template-columns:1fr auto auto auto;gap:14px;align-items:center;padding:14px 0;border-bottom:1px dashed rgba(139,133,120,.4)}
+.i-name{font-size:15px}
+.i-unit{font-size:12px;color:var(--gray);margin-top:2px}
+.stepper{display:flex;align-items:center;gap:8px}
+.st-btn{width:28px;height:28px;border:1px solid var(--ink);background:var(--paper);font-size:16px;cursor:pointer;border-radius:4px;line-height:1;color:var(--ink);transition:all .15s ease}
+.st-btn:hover{background:var(--ink);color:var(--paper)}
+.st-btn:disabled{opacity:.3;cursor:not-allowed;background:var(--paper);color:var(--ink)}
+.st-btn:focus-visible{outline:2px solid var(--red);outline-offset:2px}
+.qty{min-width:24px;text-align:center;font-size:15px}
+.line{font-size:15px;min-width:72px;text-align:right}
+.del{border:none;background:none;color:var(--red);font-size:18px;cursor:pointer;padding:4px;line-height:1;transition:transform .15s ease}
+.del:hover{transform:scale(1.2)}
+.del:focus-visible{outline:2px solid var(--red);outline-offset:2px}
+.sum{margin-top:6px}
+.s-row{display:flex;justify-content:space-between;align-items:center;font-size:14px;padding:5px 0}
+.green{color:var(--green)}
+.free-tip{font-style:normal;font-size:11px;background:var(--green);color:var(--paper);padding:1px 8px;border-radius:999px;margin-left:6px;letter-spacing:1px}
+.total{font-size:17px;font-weight:700;padding-top:12px}
+.grand{color:var(--red);font-size:26px}
+.stamp{position:absolute;right:30px;bottom:158px;width:92px;height:92px;border:3px solid var(--red);border-radius:50%;color:var(--red);display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:17px;letter-spacing:4px;transform:rotate(-12deg);opacity:.85;box-shadow:inset 0 0 0 2px var(--paper),inset 0 0 0 4px var(--red);pointer-events:none}
+.stamp .star{font-size:12px;letter-spacing:0;margin-bottom:2px}
+.checkout{width:100%;margin-top:24px;background:var(--green);color:var(--paper);border:none;padding:16px 20px;font-size:16px;letter-spacing:2px;cursor:pointer;border-radius:6px;display:flex;justify-content:space-between;align-items:center;transition:background .18s ease;font-family:inherit}
+.checkout:hover{background:var(--ink)}
+.checkout:disabled{background:var(--gray);cursor:not-allowed}
+.checkout:focus-visible{outline:2px solid var(--red);outline-offset:3px}
+.empty{text-align:center;padding:30px 0 10px;font-size:14px;color:var(--gray)}
+.r-foot{text-align:center;font-size:12px;color:var(--gray);margin-top:20px;letter-spacing:1px}
+.barcode{height:42px;margin-top:14px;background:repeating-linear-gradient(90deg,var(--ink) 0 2px,transparent 2px 5px,var(--ink) 5px 6px,transparent 6px 11px)}
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important}
+}
+@media (max-width:900px){
+  .top-inner{padding:14px 16px}
+  .receipt{margin:20px 14px 40px;padding:24px 18px}
+  .item{gap:8px}
+  .stamp{width:76px;height:76px;font-size:14px;bottom:170px;right:22px}
+  .grand{font-size:22px}
+}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="top-inner">
+    <div class="brand">
+      <span class="logo-badge">杂</span>
+      <div>
+        <h1>转角小卖部</h1>
+        <p class="sub">幸福里社区店 · 营业至 23:00</p>
+      </div>
+    </div>
+    <p class="cart-tag">购物车 <span id="cartCount" aria-live="polite">4</span> 件</p>
+  </div>
+</header>
+
+<main class="receipt">
+  <div class="r-head">
+    <p class="r-name">转角小卖部</p>
+    <p class="r-sub">幸福里小区 3 栋 101 室</p>
+    <p class="r-sub">单号 № 20250612-0042 · 收银员 阿芳</p>
+  </div>
+  <hr class="dash">
+
+  <ul class="items" id="items">
+    <li class="item" id="row1">
+      <div>
+        <p class="i-name">光明优倍鲜奶 950ml</p>
+        <p class="i-unit">单价 ¥13.50 · 冷藏</p>
+      </div>
+      <div class="stepper">
+        <button class="st-btn minus" type="button" data-row="row1" aria-label="减少 光明优倍鲜奶 数量">−</button>
+        <span class="qty mono" id="q1">2</span>
+        <button class="st-btn plus" type="button" data-row="row1" aria-label="增加 光明优倍鲜奶 数量">+</button>
+      </div>
+      <span class="line mono" id="t1">¥27.00</span>
+      <button class="del" type="button" data-row="row1" aria-label="删除 光明优倍鲜奶">×</button>
+    </li>
+    <li class="item" id="row2">
+      <div>
+        <p class="i-name">白象汤好喝豚骨面 5 连包</p>
+        <p class="i-unit">单价 ¥15.80 · 速食</p>
+      </div>
+      <div class="stepper">
+        <button class="st-btn minus" type="button" data-row="row2" aria-label="减少 豚骨面 数量">−</button>
+        <span class="qty mono" id="q2">1</span>
+        <button class="st-btn plus" type="button" data-row="row2" aria-label="增加 豚骨面 数量">+</button>
+      </div>
+      <span class="line mono" id="t2">¥15.80</span>
+      <button class="del" type="button" data-row="row2" aria-label="删除 豚骨面">×</button>
+    </li>
+    <li class="item" id="row3">
+      <div>
+        <p class="i-name">卫龙大面筋 102g</p>
+        <p class="i-unit">单价 ¥4.50 · 零食</p>
+      </div>
+      <div class="stepper">
+        <button class="st-btn minus" type="button" data-row="row3" aria-label="减少 大面筋 数量">−</button>
+        <span class="qty mono" id="q3">3</span>
+        <button class="st-btn plus" type="button" data-row="row3" aria-label="增加 大面筋 数量">+</button>
+      </div>
+      <span class="line mono" id="t3">¥13.50</span>
+      <button class="del" type="button" data-row="row3" aria-label="删除 大面筋">×</button>
+    </li>
+    <li class="item" id="row4">
+      <div>
+        <p class="i-name">本地小番茄 500g</p>
+        <p class="i-unit">单价 ¥9.90 · 生鲜 · 今日到店</p>
+      </div>
+      <div class="stepper">
+        <button class="st-btn minus" type="button" data-row="row4" aria-label="减少 小番茄 数量">−</button>
+        <span class="qty mono" id="q4">1</span>
+        <button class="st-btn plus" type="button" data-row="row4" aria-label="增加 小番茄 数量">+</button>
+      </div>
+      <span class="line mono" id="t4">¥9.90</span>
+      <button class="del" type="button" data-row="row4" aria-label="删除 小番茄">×</button>
+    </li>
+  </ul>
+
+  <p class="empty" id="empty" hidden>购物车空了,再去货架上挑点什么吧。</p>
+
+  <hr class="dash">
+  <div class="sum">
+    <div class="s-row"><span>小计</span><span class="mono" id="sub">¥66.20</span></div>
+    <div class="s-row"><span>满减优惠(满 30 减 5)</span><span class="mono green" id="disc">−¥5.00</span></div>
+    <div class="s-row"><span>配送费<em class="free-tip" id="freeTip">已免</em></span><span class="mono" id="ship">¥0.00</span></div>
+    <hr class="dash">
+    <div class="s-row total"><span>合计</span><span class="grand mono" id="grand">¥61.20</span></div>
+  </div>
+
+  <div class="stamp" id="stamp" aria-hidden="true"><span class="star">★</span><span id="stampText">已核算</span></div>
+
+  <button class="checkout" id="checkout" type="button"><span>去结算</span><span class="mono" id="payAmt">¥61.20</span></button>
+
+  <p class="r-foot">谢谢惠顾 · 小票即售后凭证,请妥善保留</p>
+  <div class="barcode" aria-hidden="true"></div>
+</main>
+
+<script>
+var data={
+  row1:{unit:13.50,q:2,qid:"q1",tid:"t1"},
+  row2:{unit:15.80,q:1,qid:"q2",tid:"t2"},
+  row3:{unit:4.50,q:3,qid:"q3",tid:"t3"},
+  row4:{unit:9.90,q:1,qid:"q4",tid:"t4"}
+};
+var done=false;
+function money(n){return "¥"+n.toFixed(2);}
+function recalc(){
+  var sub=0,count=0;
+  Object.keys(data).forEach(function(k){
+    var d=data[k];
+    sub+=d.unit*d.q;
+    count+=d.q;
+    document.getElementById(d.qid).textContent=d.q;
+    document.getElementById(d.tid).textContent=money(d.unit*d.q);
+    var row=document.getElementById(k);
+    var minus=row.querySelector(".minus");
+    minus.disabled=d.q<=1;
+  });
+  var disc=sub>=30?5:0;
+  var ship=(sub-disc)>=39||sub===0?0:3;
+  var grand=sub-disc+ship;
+  document.getElementById("sub").textContent=money(sub);
+  document.getElementById("disc").textContent="−"+money(disc);
+  document.getElementById("ship").textContent=money(ship);
+  document.getElementById("freeTip").hidden=!(ship===0&&sub>0);
+  document.getElementById("grand").textContent=money(grand);
+  document.getElementById("payAmt").textContent=money(grand);
+  document.getElementById("cartCount").textContent=count;
+  var empty=count===0;
+  document.getElementById("empty").hidden=!empty;
+  var co=document.getElementById("checkout");
+  if(!done){co.disabled=empty;}
+}
+document.getElementById("items").addEventListener("click",function(ev){
+  var b=ev.target.closest("button");
+  if(!b){return;}
+  var key=b.getAttribute("data-row");
+  var d=data[key];
+  if(!d){return;}
+  if(b.classList.contains("plus")){d.q++;}
+  else if(b.classList.contains("minus")){if(d.q>1){d.q--;}}
+  else if(b.classList.contains("del")){
+    document.getElementById(key).remove();
+    delete data[key];
+  }
+  recalc();
+});
+document.getElementById("checkout").addEventListener("click",function(){
+  var co=document.getElementById("checkout");
+  if(co.disabled){return;}
+  done=true;
+  co.disabled=true;
+  co.querySelector("span").textContent="订单已提交 · 单号 20250612-0043";
+  document.getElementById("payAmt").textContent="30 分钟送达";
+  document.getElementById("stampText").textContent="已收款";
+});
+recalc();
+</script>
+</body>
+</html>

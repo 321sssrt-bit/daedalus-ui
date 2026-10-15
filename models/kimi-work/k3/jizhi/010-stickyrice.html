@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>糯米厨房 · 排单看板</title>
+<style>
+:root{
+  --cork:#E9D8B4;
+  --yellow:#FFE36E;
+  --pink:#FFB3C1;
+  --green:#B8E0A8;
+  --brown:#4A3B2A;
+  --cream:#FFFDF4;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  background-color:var(--cork);
+  background-image:radial-gradient(rgba(74,59,42,0.08) 1.2px, transparent 1.2px);
+  background-size:22px 22px;
+  color:var(--brown);
+  font-family:-apple-system,"PingFang SC","Microsoft YaHei","Segoe UI",sans-serif;
+  min-height:100vh;
+  padding:28px 36px 48px;
+}
+header{
+  max-width:1240px;margin:0 auto 22px;
+  display:flex;align-items:center;gap:18px;flex-wrap:wrap;
+}
+.brand{font-size:26px;font-weight:800;letter-spacing:2px}
+.brand small{display:block;font-size:12px;font-weight:400;letter-spacing:3px;opacity:0.7;margin-top:3px}
+.clock{font-size:13px;letter-spacing:1px;background:var(--cream);padding:8px 16px;border-radius:8px;box-shadow:0 2px 0 rgba(74,59,42,0.2)}
+.new-btn{
+  margin-left:auto;font-family:inherit;font-size:15px;font-weight:700;letter-spacing:2px;
+  background:var(--brown);color:var(--yellow);border:none;border-radius:10px;
+  padding:14px 26px;cursor:pointer;box-shadow:0 4px 0 rgba(46,32,20,0.55);
+  transition:transform 120ms ease, box-shadow 120ms ease;
+}
+.new-btn:hover{transform:translateY(-2px);box-shadow:0 6px 0 rgba(46,32,20,0.55)}
+.new-btn:active{transform:translateY(1px);box-shadow:0 2px 0 rgba(46,32,20,0.55)}
+.new-btn:focus-visible{outline:3px solid rgba(74,59,42,0.4);outline-offset:2px}
+.board{
+  max-width:1240px;margin:0 auto;
+  display:grid;grid-template-columns:repeat(4,1fr);gap:20px;
+  align-items:start;
+}
+.col{
+  background:rgba(255,253,244,0.45);
+  border:2px dashed rgba(74,59,42,0.35);
+  border-radius:14px;
+  padding:14px 12px 16px;
+  min-height:520px;
+}
+.col-head{
+  display:flex;align-items:center;gap:10px;
+  padding:4px 8px 12px;border-bottom:2px solid rgba(74,59,42,0.25);margin-bottom:14px;
+}
+.col-head .sw{width:18px;height:18px;border-radius:5px;box-shadow:inset 0 0 0 1px rgba(74,59,42,0.3)}
+.col-head h2{font-size:16px;letter-spacing:2px}
+.col-head .cnt{
+  margin-left:auto;font-size:12px;font-weight:700;background:var(--brown);color:var(--cream);
+  border-radius:999px;padding:3px 12px;letter-spacing:1px;
+}
+.col-body{display:flex;flex-direction:column;gap:16px}
+.col-body .none{
+  font-size:13px;text-align:center;padding:26px 10px;opacity:0.55;letter-spacing:1px;
+}
+.card{
+  position:relative;
+  background:var(--yellow);
+  border-radius:4px 4px 14px 4px;
+  padding:20px 16px 14px;
+  box-shadow:0 6px 12px rgba(74,59,42,0.28);
+  cursor:pointer;
+  transition:transform 150ms ease, box-shadow 150ms ease;
+}
+.card:nth-child(odd){transform:rotate(-1.4deg)}
+.card:nth-child(even){transform:rotate(1.1deg)}
+.card:hover{transform:rotate(0deg) scale(1.03);box-shadow:0 10px 20px rgba(74,59,42,0.34)}
+.card:focus-visible{outline:3px solid rgba(74,59,42,0.5);outline-offset:2px}
+.card.c-yellow{background:var(--yellow)}
+.card.c-pink{background:var(--pink)}
+.card.c-green{background:var(--green)}
+.card.c-cream{background:var(--cream);opacity:0.85}
+.pin{position:absolute;top:-11px;left:50%;margin-left:-11px;width:22px;height:22px;filter:drop-shadow(0 2px 2px rgba(74,59,42,0.4))}
+.card .no{font-size:12px;font-weight:800;letter-spacing:1px;opacity:0.75}
+.card .table{font-size:17px;font-weight:800;margin:2px 0 8px}
+.card .table .type{font-size:11px;font-weight:700;border:1px solid rgba(74,59,42,0.6);border-radius:4px;padding:1px 6px;margin-left:8px;vertical-align:2px;letter-spacing:1px}
+.card ul{list-style:none;font-size:13px;line-height:1.9}
+.card ul li::before{content:"· ";font-weight:800}
+.card .memo{
+  margin-top:8px;font-size:12px;background:rgba(255,255,255,0.55);
+  border-radius:6px;padding:4px 10px;display:inline-block;
+}
+.card .time{margin-top:10px;font-size:11px;letter-spacing:1px;opacity:0.65;display:flex;justify-content:space-between}
+.card .go{font-weight:800}
+.overlay{
+  position:fixed;inset:0;background:rgba(74,59,42,0.5);
+  display:none;align-items:center;justify-content:center;padding:24px;z-index:90;
+}
+.overlay.open{display:flex}
+.modal{
+  background:var(--cream);border-radius:16px;width:480px;max-width:100%;
+  padding:32px 34px;box-shadow:0 24px 60px rgba(46,32,20,0.5);
+  border-top:10px solid var(--yellow);
+}
+.modal h2{font-size:21px;letter-spacing:2px;margin-bottom:4px}
+.modal .sub{font-size:12px;opacity:0.65;margin-bottom:22px;letter-spacing:1px}
+.field{margin-bottom:16px}
+.field label{display:block;font-size:13px;font-weight:700;margin-bottom:8px;letter-spacing:1px}
+.field input[type=text]{
+  width:100%;font-family:inherit;font-size:14px;color:var(--brown);
+  border:2px solid rgba(74,59,42,0.35);border-radius:10px;padding:11px 14px;
+  background:#fff;outline:none;transition:border-color 150ms ease;
+}
+.field input[type=text]:focus{border-color:var(--brown)}
+.segs{display:flex;gap:10px}
+.segs label{flex:1}
+.segs input{display:none}
+.segs span{
+  display:block;text-align:center;font-size:13px;font-weight:700;letter-spacing:2px;
+  border:2px solid rgba(74,59,42,0.35);border-radius:10px;padding:10px 0;cursor:pointer;
+  transition:all 140ms ease;color:var(--brown);
+}
+.segs input:checked + span{background:var(--brown);color:var(--yellow);border-color:var(--brown)}
+.dishes{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.dishes label{
+  display:flex;align-items:center;gap:8px;font-size:13px;
+  border:2px solid rgba(74,59,42,0.25);border-radius:10px;padding:9px 12px;cursor:pointer;
+  transition:all 140ms ease;
+}
+.dishes label:has(input:checked){background:var(--yellow);border-color:var(--brown);font-weight:700}
+.dishes input{accent-color:var(--brown)}
+.field .err{display:none;font-size:12px;color:#B4513F;margin-top:6px;font-weight:700}
+.modal .row{display:flex;gap:12px;justify-content:flex-end;margin-top:22px}
+.btn{
+  font-family:inherit;font-size:14px;font-weight:700;letter-spacing:2px;border-radius:10px;
+  padding:12px 24px;cursor:pointer;border:2px solid var(--brown);
+  transition:transform 120ms ease, background 140ms ease, color 140ms ease;
+}
+.btn.ok{background:var(--brown);color:var(--yellow)}
+.btn.ok:hover{transform:translateY(-1px)}
+.btn.no{background:transparent;color:var(--brown)}
+.btn.no:hover{background:rgba(74,59,42,0.12)}
+.toast{
+  position:fixed;left:50%;bottom:34px;transform:translateX(-50%) translateY(20px);
+  background:var(--brown);color:var(--cream);font-size:13px;letter-spacing:1px;
+  border-radius:999px;padding:12px 26px;opacity:0;pointer-events:none;
+  transition:opacity 220ms ease, transform 220ms ease;z-index:99;
+  box-shadow:0 10px 24px rgba(46,32,20,0.45);
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+@media (max-width:900px){
+  body{padding:18px 12px 36px}
+  .board{grid-template-columns:1fr;gap:14px}
+  .col{min-height:0}
+  .brand{font-size:21px}
+  .new-btn{margin-left:0;width:100%}
+}
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation-duration:0.01ms !important;animation-iteration-count:1 !important;transition-duration:0.01ms !important}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">糯米厨房<small>STICKY RICE · 晚市排单看板</small></div>
+  <span class="clock">2026年5月20日 · 晚市 17:30 开市 · 厨师 4 人在岗</span>
+  <button class="new-btn" id="newBtn">＋ 新建订单</button>
+</header>
+
+<main class="board">
+  <section class="col" data-col="pending">
+    <div class="col-head"><span class="sw" style="background:#FFE36E"></span><h2>待接单</h2><span class="cnt">0</span></div>
+    <div class="col-body"></div>
+  </section>
+  <section class="col" data-col="cooking">
+    <div class="col-head"><span class="sw" style="background:#FFB3C1"></span><h2>制作中</h2><span class="cnt">0</span></div>
+    <div class="col-body"></div>
+  </section>
+  <section class="col" data-col="ready">
+    <div class="col-head"><span class="sw" style="background:#B8E0A8"></span><h2>待出餐</h2><span class="cnt">0</span></div>
+    <div class="col-body"></div>
+  </section>
+  <section class="col" data-col="done">
+    <div class="col-head"><span class="sw" style="background:#FFFDF4"></span><h2>已出餐</h2><span class="cnt">0</span></div>
+    <div class="col-body"></div>
+  </section>
+</main>
+
+<div class="overlay" id="overlay">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="mTitle">
+    <h2 id="mTitle">新建订单</h2>
+    <p class="sub">写好就钉到「待接单」那一列，后厨马上能看见。</p>
+    <div class="field">
+      <label for="tableIn">桌号 / 取餐号</label>
+      <input type="text" id="tableIn" placeholder="例如：5号桌 或 美团 A37" maxlength="12">
+      <p class="err" id="tableErr">先写个桌号或取餐号</p>
+    </div>
+    <div class="field">
+      <label>用餐方式</label>
+      <div class="segs">
+        <label><input type="radio" name="dtype" value="堂食" checked><span>堂 食</span></label>
+        <label><input type="radio" name="dtype" value="外卖"><span>外 卖</span></label>
+      </div>
+    </div>
+    <div class="field">
+      <label>菜品（至少选一样）</label>
+      <div class="dishes" id="dishBox">
+        <label><input type="checkbox" value="招牌糯米鸡">招牌糯米鸡</label>
+        <label><input type="checkbox" value="荷香蒸排骨">荷香蒸排骨</label>
+        <label><input type="checkbox" value="腊味煲仔饭">腊味煲仔饭</label>
+        <label><input type="checkbox" value="瑶柱艇仔粥">瑶柱艇仔粥</label>
+        <label><input type="checkbox" value="姜汁撞奶">姜汁撞奶</label>
+        <label><input type="checkbox" value="白灼菜心">白灼菜心</label>
+      </div>
+      <p class="err" id="dishErr">至少选一样菜</p>
+    </div>
+    <div class="field">
+      <label for="memoIn">备注（可留空）</label>
+      <input type="text" id="memoIn" placeholder="例如：少辣、打包带走" maxlength="20">
+    </div>
+    <div class="row">
+      <button class="btn no" id="cancelBtn">取 消</button>
+      <button class="btn ok" id="okBtn">钉上看板</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+var orderSeq = 15;
+var orders = [
+  { no: "A011", table: "3号桌", type: "堂食", dishes: ["招牌糯米鸡 ×2", "瑶柱艇仔粥 ×1"], memo: "少辣", time: "17:42", status: "pending" },
+  { no: "A012", table: "美团 A37", type: "外卖", dishes: ["腊味煲仔饭 ×1", "白灼菜心 ×1"], memo: "", time: "17:48", status: "pending" },
+  { no: "A013", table: "7号桌", type: "堂食", dishes: ["荷香蒸排骨 ×1", "招牌糯米鸡 ×1", "姜汁撞奶 ×2"], memo: "排骨蒸软一点", time: "17:31", status: "cooking" },
+  { no: "A014", table: "饿了么 B12", type: "外卖", dishes: ["瑶柱艇仔粥 ×2"], memo: "", time: "17:35", status: "cooking" },
+  { no: "A009", table: "1号桌", type: "堂食", dishes: ["招牌糯米鸡 ×1", "腊味煲仔饭 ×1"], memo: "", time: "17:15", status: "ready" },
+  { no: "A006", table: "美团 A29", type: "外卖", dishes: ["荷香蒸排骨 ×1"], memo: "", time: "16:58", status: "done" }
+];
+var flow = ["pending", "cooking", "ready", "done"];
+var colColor = { pending: "c-yellow", cooking: "c-pink", ready: "c-green", done: "c-cream" };
+var colHint = { pending: "还没有新单，点右上角「新建订单」", cooking: "灶台空着，从待接单点一张过来", ready: "传菜口清静着呢", done: "今晚还没出过餐" };
+var nextLabel = { pending: "接单开炒 →", cooking: "起锅待出餐 →", ready: "出餐完成 →", done: "已完成" };
+var pinSvg = '<svg class="pin" viewBox="0 0 22 22"><circle cx="11" cy="9" r="7" fill="#4A3B2A"></circle><circle cx="8.6" cy="6.6" r="2.2" fill="#8a7458"></circle><rect x="10" y="14" width="2" height="8" rx="1" fill="#4A3B2A"></rect></svg>';
+function toast(text){
+  var t = document.getElementById("toast");
+  t.textContent = text;
+  t.classList.add("show");
+  clearTimeout(t._tm);
+  t._tm = setTimeout(function(){ t.classList.remove("show"); }, 2000);
+}
+function render(){
+  var cols = document.querySelectorAll(".col");
+  for (var c = 0; c < cols.length; c++){
+    (function(col){
+      var key = col.getAttribute("data-col");
+      var body = col.querySelector(".col-body");
+      body.innerHTML = "";
+      var count = 0;
+      for (var i = 0; i < orders.length; i++){
+        if (orders[i].status !== key){ continue; }
+        count++;
+        (function(o){
+          var el = document.createElement("article");
+          el.className = "card " + colColor[o.status];
+          el.tabIndex = 0;
+          var memoHtml = o.memo ? '<span class="memo"></span>' : "";
+          var lis = "";
+          for (var d = 0; d < o.dishes.length; d++){ lis += "<li></li>"; }
+          el.innerHTML = pinSvg +
+            '<div class="no"></div>' +
+            '<div class="table"></div>' +
+            "<ul>" + lis + "</ul>" +
+            memoHtml +
+            '<div class="time"><span></span><span class="go"></span></div>';
+          el.querySelector(".no").textContent = "订单 #" + o.no;
+          var tb = el.querySelector(".table");
+          tb.textContent = o.table;
+          var tg = document.createElement("span");
+          tg.className = "type";
+          tg.textContent = o.type;
+          tb.appendChild(tg);
+          var items = el.querySelectorAll("ul li");
+          for (var k = 0; k < items.length; k++){ items[k].textContent = o.dishes[k]; }
+          if (o.memo){ el.querySelector(".memo").textContent = "备注：" + o.memo; }
+          el.querySelector(".time span").textContent = o.time + " 下单";
+          el.querySelector(".go").textContent = nextLabel[o.status];
+          function advance(){
+            if (o.status === "done"){
+              toast("订单 #" + o.no + " 已出餐，辛苦啦");
+              return;
+            }
+            o.status = flow[flow.indexOf(o.status) + 1];
+            render();
+            toast("订单 #" + o.no + " 已移到「" + colName(o.status) + "」");
+          }
+          el.addEventListener("click", advance);
+          el.addEventListener("keydown", function(e){
+            if (e.key === "Enter" || e.key === " "){ e.preventDefault(); advance(); }
+          });
+          body.appendChild(el);
+        })(orders[i]);
+      }
+      if (count === 0){
+        var none = document.createElement("div");
+        none.className = "none";
+        none.textContent = colHint[key];
+        body.appendChild(none);
+      }
+      col.querySelector(".cnt").textContent = count;
+    })(cols[c]);
+  }
+}
+function colName(key){
+  var names = { pending: "待接单", cooking: "制作中", ready: "待出餐", done: "已出餐" };
+  return names[key];
+}
+var overlay = document.getElementById("overlay");
+document.getElementById("newBtn").addEventListener("click", function(){
+  overlay.classList.add("open");
+  document.getElementById("tableErr").style.display = "none";
+  document.getElementById("dishErr").style.display = "none";
+  setTimeout(function(){ document.getElementById("tableIn").focus(); }, 60);
+});
+document.getElementById("cancelBtn").addEventListener("click", function(){ overlay.classList.remove("open"); });
+overlay.addEventListener("click", function(e){ if (e.target === overlay){ overlay.classList.remove("open"); } });
+document.getElementById("okBtn").addEventListener("click", function(){
+  var table = document.getElementById("tableIn").value.trim();
+  var picks = document.querySelectorAll("#dishBox input:checked");
+  var ok = true;
+  if (!table){
+    document.getElementById("tableErr").style.display = "block";
+    ok = false;
+  }
+  if (picks.length === 0){
+    document.getElementById("dishErr").style.display = "block";
+    ok = false;
+  }
+  if (!ok){ return; }
+  var dishes = [];
+  for (var i = 0; i < picks.length; i++){ dishes.push(picks[i].value + " ×1"); }
+  var dtype = document.querySelector("input[name=dtype]:checked").value;
+  var now = new Date();
+  function p(n){ return (n < 10 ? "0" : "") + n; }
+  var no = "A0" + orderSeq;
+  orderSeq++;
+  orders.unshift({
+    no: no,
+    table: table,
+    type: dtype,
+    dishes: dishes,
+    memo: document.getElementById("memoIn").value.trim(),
+    time: p(now.getHours()) + ":" + p(now.getMinutes()),
+    status: "pending"
+  });
+  document.getElementById("tableIn").value = "";
+  document.getElementById("memoIn").value = "";
+  for (var j = 0; j < picks.length; j++){ picks[j].checked = false; }
+  overlay.classList.remove("open");
+  render();
+  toast("订单 #" + no + " 已钉到「待接单」");
+});
+render();
+</script>
+</body>
+</html>

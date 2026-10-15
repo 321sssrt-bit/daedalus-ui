@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>城际快货 · 确认订单</title>
+<style>
+:root{
+  --bg:#F4F4F0;
+  --yellow:#FFC800;
+  --ink:#16161A;
+  --blue:#0057B8;
+  --white:#FFFFFF;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  background:var(--bg);color:var(--ink);
+  font-family:"PingFang SC","Microsoft YaHei","Helvetica Neue",sans-serif;
+  min-height:100vh;
+}
+/* 顶部导视条 */
+.signbar{
+  background:var(--ink);color:var(--white);
+  display:flex;align-items:center;gap:20px;padding:0 40px;height:64px;
+}
+.signbar .line{background:var(--yellow);color:var(--ink);font-weight:800;padding:4px 14px;font-size:14px;border-radius:3px;letter-spacing:2px}
+.signbar .crumb{font-size:14px;letter-spacing:2px;color:rgba(255,255,255,0.75)}
+.signbar .crumb b{color:var(--white)}
+.wrap{max-width:1060px;margin:0 auto;padding:40px 32px 72px}
+h1{font-size:44px;font-weight:900;letter-spacing:4px;margin-bottom:6px}
+.h1sub{font-size:14px;color:rgba(22,22,26,0.6);letter-spacing:2px;margin-bottom:36px}
+.h1sub b{color:var(--blue)}
+.layout{display:grid;grid-template-columns:1fr 400px;gap:32px;align-items:start}
+/* 面板 */
+.panel{background:var(--white);border:2px solid var(--ink);border-radius:6px;overflow:hidden}
+.panel .ph{
+  background:var(--ink);color:var(--white);padding:12px 22px;
+  font-size:14px;font-weight:800;letter-spacing:4px;display:flex;align-items:center;gap:10px;
+}
+.panel .ph .dot{width:10px;height:10px;background:var(--yellow);border-radius:2px}
+/* 订单摘要 */
+.item{display:flex;gap:16px;padding:18px 22px;border-bottom:1px dashed rgba(22,22,26,0.25);align-items:center}
+.item:last-child{border-bottom:none}
+.item .thumb{
+  width:56px;height:56px;flex:0 0 56px;border:2px solid var(--ink);border-radius:4px;
+  background:var(--bg);display:flex;align-items:center;justify-content:center;
+}
+.item .thumb svg{width:34px;height:34px}
+.item .nm{flex:1}
+.item .nm b{display:block;font-size:15px;letter-spacing:1px}
+.item .nm span{font-size:12px;color:rgba(22,22,26,0.55)}
+.item .pr{font-size:15px;font-weight:800;white-space:nowrap}
+.sumrow{display:flex;justify-content:space-between;padding:12px 22px;font-size:14px;color:rgba(22,22,26,0.75)}
+.sumrow.discount b{color:var(--blue)}
+/* 支付方式 */
+.pay{display:flex;flex-direction:column}
+.pay label{
+  display:flex;align-items:center;gap:16px;padding:20px 22px;cursor:pointer;
+  border-bottom:1px solid rgba(22,22,26,0.15);transition:background 160ms ease;
+}
+.pay label:last-child{border-bottom:none}
+.pay label:hover{background:rgba(255,200,0,0.12)}
+.pay input{display:none}
+.pay .radio{
+  width:22px;height:22px;border:2.5px solid var(--ink);border-radius:50%;
+  display:flex;align-items:center;justify-content:center;flex:0 0 22px;
+}
+.pay .radio i{width:10px;height:10px;border-radius:50%;background:var(--yellow);opacity:0;transition:opacity 120ms ease}
+.pay label.sel{background:rgba(255,200,0,0.22);box-shadow:inset 4px 0 0 var(--yellow)}
+.pay label.sel .radio i{opacity:1}
+.pay .pi{flex:1}
+.pay .pi b{display:block;font-size:15px;letter-spacing:1px}
+.pay .pi span{font-size:12px;color:rgba(22,22,26,0.55)}
+.pay .bal{font-size:13px;font-weight:800;color:var(--blue)}
+/* 右侧应付卡 */
+.due{position:sticky;top:24px}
+.due .body{padding:26px 24px;text-align:left}
+.due .lab{font-size:13px;letter-spacing:3px;color:rgba(22,22,26,0.6);margin-bottom:8px}
+.due .amt{font-size:52px;font-weight:900;letter-spacing:1px;line-height:1}
+.due .amt small{font-size:20px;font-weight:800;margin-right:4px}
+.due .amt .cur{color:var(--blue)}
+.due .note{margin:14px 0 24px;font-size:12px;color:rgba(22,22,26,0.55);line-height:1.9;border-top:1px dashed rgba(22,22,26,0.25);padding-top:14px}
+.paybtn{
+  width:100%;padding:18px;font-size:18px;font-weight:900;letter-spacing:6px;cursor:pointer;
+  background:var(--yellow);color:var(--ink);border:2px solid var(--ink);border-radius:4px;
+  box-shadow:4px 4px 0 var(--ink);font-family:inherit;
+  transition:transform 120ms ease,box-shadow 120ms ease,background 200ms ease;
+}
+.paybtn:hover{background:#FFD43B;transform:translate(-1px,-1px);box-shadow:5px 5px 0 var(--ink)}
+.paybtn:active{transform:translate(2px,2px);box-shadow:2px 2px 0 var(--ink)}
+.paybtn.done{background:var(--blue);color:var(--white);box-shadow:none;cursor:default}
+.due .safe{margin-top:14px;font-size:12px;color:rgba(22,22,26,0.5);text-align:center;letter-spacing:2px}
+@media (prefers-reduced-motion: reduce){
+  *{animation-duration:0.01ms!important;transition-duration:0.01ms!important}
+}
+@media (max-width:900px){
+  .layout{grid-template-columns:1fr}
+  .due{position:static}
+  h1{font-size:32px}
+  .due .amt{font-size:40px}
+  .signbar{padding:0 20px}
+  .wrap{padding:28px 20px 56px}
+}
+</style>
+</head>
+<body>
+<div class="signbar">
+  <span class="line">城际快货</span>
+  <span class="crumb">购物车 › 填写地址 › <b>确认支付</b></span>
+</div>
+<div class="wrap">
+  <h1>确认订单</h1>
+  <p class="h1sub">请在 <b>14:52</b> 内完成支付，超时订单将自动取消。订单号 CJ20250618-4471</p>
+  <div class="layout">
+    <div>
+      <div class="panel">
+        <div class="ph"><span class="dot"></span>订单摘要 · ORDER SUMMARY</div>
+        <div class="item">
+          <div class="thumb"><svg viewBox="0 0 40 40"><rect x="6" y="12" width="28" height="20" fill="none" stroke="#16161A" stroke-width="2"/><path d="M6 12 L20 4 L34 12 M20 4 V12" fill="none" stroke="#16161A" stroke-width="2"/></svg></div>
+          <div class="nm"><b>顺丰次日 · 精密仪器专送</b><span>防震木箱包装 · 保价 ¥20,000</span></div>
+          <div class="pr">¥186.00</div>
+        </div>
+        <div class="item">
+          <div class="thumb"><svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="13" fill="none" stroke="#16161A" stroke-width="2"/><path d="M20 12 V20 L26 24" fill="none" stroke="#16161A" stroke-width="2"/></svg></div>
+          <div class="nm"><b>定时达 · 上午 9–11 点派送</b><span>收货前 30 分钟短信提醒</span></div>
+          <div class="pr">¥12.00</div>
+        </div>
+        <div class="item">
+          <div class="thumb"><svg viewBox="0 0 40 40"><path d="M8 30 L20 8 L32 30 Z" fill="none" stroke="#16161A" stroke-width="2"/><path d="M14 30 L20 18 L26 30" fill="none" stroke="#16161A" stroke-width="1.5"/></svg></div>
+          <div class="nm"><b>回单服务 · 纸质签收单寄回</b><span>签收后 3 个工作日内寄出</span></div>
+          <div class="pr">¥5.00</div>
+        </div>
+        <div class="sumrow"><span>服务费小计</span><span>¥203.00</span></div>
+        <div class="sumrow discount"><span>会员立减（铂金会员 9 折）</span><b>−¥20.30</b></div>
+      </div>
+      <div class="panel" style="margin-top:24px">
+        <div class="ph"><span class="dot"></span>支付方式 · PAYMENT</div>
+        <div class="pay" id="payBox">
+          <label class="sel"><input type="radio" name="pay" checked><span class="radio"><i></i></span><span class="pi"><b>余额支付</b><span>快货钱包 · 单笔限额 ¥5,000</span></span><span class="bal">余额 ¥864.20</span></label>
+          <label><input type="radio" name="pay"><span class="radio"><i></i></span><span class="pi"><b>银联云闪付</b><span>支持储蓄卡与信用卡 · 免手续费</span></span><span class="bal">尾号 6632</span></label>
+        </div>
+      </div>
+    </div>
+    <div class="panel due">
+      <div class="ph"><span class="dot"></span>应付金额</div>
+      <div class="body">
+        <div class="lab">合计（含优惠）</div>
+        <div class="amt"><small class="cur">¥</small>182.70</div>
+        <div class="note">收件人：陈屿 138****2290<br>地址：上海市徐汇区漕河泾开发区宜山路 700 号 B2 栋 3 层<br>预计送达：明天上午 9–11 点</div>
+        <button class="paybtn" id="payBtn">确认支付</button>
+        <div class="safe">支付由银联安全通道加密处理</div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+var labels=document.querySelectorAll("#payBox label");
+for(var i=0;i<labels.length;i++){
+  labels[i].addEventListener("click",function(){
+    for(var k=0;k<labels.length;k++){labels[k].className="";}
+    this.className="sel";
+  });
+}
+var btn=document.getElementById("payBtn");
+var paid=false;
+btn.addEventListener("click",function(){
+  if(paid){return;}
+  paid=true;
+  btn.className="paybtn done";
+  btn.textContent="支付成功 · 已出票";
+});
+</script>
+</body>
+</html>

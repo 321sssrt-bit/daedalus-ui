@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>慢车票亭 · 绿皮火车票</title>
+<style>
+:root{
+  --paper:#F3EFE6;
+  --paper2:#EDE7D8;
+  --red:#C0392B;
+  --blue:#2E5E8C;
+  --ink:#26221C;
+  --beige:#D8CFBE;
+  --frame:#171310;
+  --page:#26221C;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{min-height:100%}
+body{
+  background:var(--page);
+  display:flex;align-items:center;justify-content:center;
+  padding:24px 12px;
+  font-family:-apple-system,"PingFang SC","Microsoft YaHei","Segoe UI",sans-serif;
+  color:var(--ink);
+}
+.mono{font-family:ui-monospace,"Cascadia Mono","Courier New",monospace}
+/* ---------- 手机框 ---------- */
+.phone{
+  width:390px;min-height:844px;border-radius:44px;border:10px solid var(--frame);
+  background:var(--paper);overflow:hidden;display:flex;flex-direction:column;
+  box-shadow:0 24px 60px rgba(0,0,0,.45);
+}
+.statusbar{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:12px 26px 6px;font-size:12px;font-weight:700;letter-spacing:1px;color:var(--ink);
+}
+.appbar{
+  padding:10px 22px 14px;border-bottom:2px solid var(--red);
+  display:flex;align-items:baseline;gap:10px;background:var(--paper);
+}
+.appbar b{font-size:19px;letter-spacing:5px;color:var(--red);font-weight:800}
+.appbar span{font-size:10px;color:var(--blue);letter-spacing:2px}
+.views{flex:1;position:relative;overflow:hidden;display:flex;flex-direction:column}
+.view{
+  display:none;flex:1;overflow-y:auto;padding:18px 20px 26px;
+  flex-direction:column;gap:14px;
+}
+.view.on{display:flex}
+/* ---------- 通用组件 ---------- */
+.card{
+  background:#FBF8F1;border:1.5px solid var(--beige);border-radius:14px;
+  padding:14px 16px;display:flex;flex-direction:column;gap:10px;
+}
+.lbl{font-size:11px;color:var(--blue);letter-spacing:2px;font-weight:700}
+.field{
+  width:100%;border:1.5px solid var(--beige);border-radius:10px;background:var(--paper);
+  padding:11px 13px;font-size:15px;color:var(--ink);font-family:inherit;letter-spacing:1px;
+}
+.field:focus-visible{outline:2px solid var(--blue);outline-offset:1px}
+.station-row{display:flex;align-items:center;gap:10px}
+.station-row .field{flex:1;text-align:center;font-weight:700}
+.swap{
+  width:38px;height:38px;flex:none;border-radius:50%;border:1.5px solid var(--blue);
+  background:var(--paper);color:var(--blue);font-size:15px;cursor:pointer;transition:all .15s ease;
+}
+.swap:hover{background:var(--blue);color:#fff}
+.date-chips{display:flex;gap:8px}
+.chip{
+  flex:1;border:1.5px solid var(--beige);border-radius:999px;background:var(--paper);
+  padding:8px 0;font-size:12px;text-align:center;cursor:pointer;color:var(--ink);
+  font-family:inherit;letter-spacing:1px;transition:all .15s ease;
+}
+.chip:hover{border-color:var(--red)}
+.chip.sel{background:var(--red);border-color:var(--red);color:#FBEBE9;font-weight:700}
+.chip:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.big-btn{
+  width:100%;padding:14px 0;border:none;border-radius:12px;background:var(--red);
+  color:#FBEBE9;font-size:16px;font-weight:800;letter-spacing:6px;cursor:pointer;
+  font-family:inherit;transition:all .15s ease;
+}
+.big-btn:hover{background:#A93226}
+.big-btn:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.big-btn:disabled{background:var(--beige);color:#8C8474;cursor:not-allowed}
+.big-btn.blue{background:var(--blue)}
+.big-btn.blue:hover{background:#254E75}
+.ghost-btn{
+  width:100%;padding:12px 0;border:1.5px solid var(--blue);border-radius:12px;
+  background:transparent;color:var(--blue);font-size:14px;font-weight:700;letter-spacing:3px;
+  cursor:pointer;font-family:inherit;transition:all .15s ease;
+}
+.ghost-btn:hover{background:rgba(46,94,140,.08)}
+.ghost-btn:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.demo-hint{
+  font-size:11px;line-height:1.8;color:var(--red);border:1.5px dashed rgba(192,57,43,.55);
+  border-radius:10px;padding:9px 12px;background:rgba(192,57,43,.06);
+}
+.demo-hint b{letter-spacing:1px}
+/* ---------- 班次列表 ---------- */
+.route-bar{
+  display:flex;justify-content:space-between;align-items:center;font-size:13px;
+  background:var(--paper2);border:1.5px solid var(--beige);border-radius:12px;padding:11px 14px;
+}
+.route-bar b{font-size:15px;letter-spacing:2px}
+.route-bar button{
+  border:none;background:none;color:var(--blue);font-size:12px;cursor:pointer;
+  font-family:inherit;letter-spacing:1px;text-decoration:underline;text-underline-offset:3px;
+}
+.train{
+  text-align:left;border:1.5px solid var(--beige);border-radius:14px;background:#FBF8F1;
+  padding:13px 15px;cursor:pointer;display:flex;flex-direction:column;gap:8px;
+  font-family:inherit;color:var(--ink);transition:all .15s ease;
+}
+.train:hover{border-color:var(--red);transform:translateY(-1px)}
+.train:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.train-top{display:flex;align-items:baseline;gap:12px}
+.train-no{font-size:20px;font-weight:800;color:var(--red);letter-spacing:2px}
+.train-time{font-size:13px;color:var(--ink);flex:1}
+.train-dur{font-size:11px;color:var(--blue)}
+.train-bot{display:flex;justify-content:space-between;align-items:center;font-size:12px}
+.price{color:var(--red);font-weight:800;font-size:15px}
+.price small{font-size:10px;font-weight:400;color:var(--ink)}
+.ticket-tag{
+  font-size:10px;letter-spacing:1px;border-radius:5px;padding:2px 7px;
+  border:1px solid var(--blue);color:var(--blue);
+}
+.ticket-tag.hot{border-color:var(--red);color:var(--red);font-weight:700}
+/* ---------- 铺位 ---------- */
+.seat-legend{display:flex;gap:14px;font-size:11px;color:var(--ink);align-items:center}
+.dot{display:inline-block;width:11px;height:11px;border-radius:4px;margin-right:5px;vertical-align:-1px}
+.seat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+.seat{
+  border:1.5px solid var(--blue);border-radius:10px;background:var(--paper);
+  padding:9px 0;font-size:12.5px;cursor:pointer;color:var(--blue);font-weight:700;
+  font-family:inherit;letter-spacing:1px;transition:all .12s ease;
+}
+.seat:hover{background:rgba(46,94,140,.1)}
+.seat:focus-visible{outline:2px solid var(--red);outline-offset:2px}
+.seat.sel{background:var(--blue);color:#fff;border-color:var(--blue)}
+.seat.gone{border-color:var(--beige);color:#A79C88;background:var(--paper2);cursor:not-allowed;text-decoration:line-through}
+.seat.hot{border-color:var(--red);color:var(--red)}
+.seat.hot.sel{background:var(--red);border-color:var(--red);color:#FBEBE9}
+/* ---------- 确认与凭证 ---------- */
+.tkt{
+  background:#FBF8F1;border:1.5px solid var(--red);border-radius:14px;overflow:hidden;
+  display:flex;flex-direction:column;
+}
+.tkt-head{
+  background:var(--red);color:#FBEBE9;padding:10px 16px;display:flex;
+  justify-content:space-between;align-items:baseline;
+}
+.tkt-head b{font-size:18px;letter-spacing:3px}
+.tkt-head span{font-size:10px;letter-spacing:2px;opacity:.85}
+.tkt-body{padding:13px 16px;display:flex;flex-direction:column;gap:8px;color:var(--blue)}
+.tkt-line{display:flex;justify-content:space-between;font-size:13px;line-height:1.6}
+.tkt-line b{color:var(--ink)}
+.tkt-route{display:flex;align-items:baseline;gap:10px;font-size:20px;font-weight:800;color:var(--ink);letter-spacing:2px}
+.tkt-route small{font-size:11px;color:var(--blue);font-weight:400;letter-spacing:1px}
+.perf{border-top:2px dashed var(--red);position:relative}
+.perf::before,.perf::after{
+  content:"";position:absolute;top:-8px;width:16px;height:16px;border-radius:50%;
+  background:var(--paper);border:1.5px solid var(--red);
+}
+.perf::before{left:-9px}
+.perf::after{right:-9px}
+.tkt-stub{padding:10px 16px;display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--blue)}
+.punch{display:flex;gap:7px}
+.punch i{width:9px;height:9px;border-radius:50%;background:var(--paper);border:1.5px solid var(--blue)}
+.fail-stamp{
+  align-self:center;border:3px double var(--red);color:var(--red);border-radius:8px;
+  font-size:22px;font-weight:800;letter-spacing:8px;padding:6px 14px 6px 20px;
+  transform:rotate(-6deg);margin:4px 0;
+}
+.fail-text{font-size:13px;line-height:1.9;color:var(--ink)}
+.fail-text b{color:var(--red)}
+.keep-bar{
+  font-size:11.5px;color:var(--blue);background:rgba(46,94,140,.08);
+  border:1px solid rgba(46,94,140,.35);border-radius:10px;padding:9px 12px;line-height:1.7;
+}
+.barcode{display:flex;align-items:flex-end;gap:2px;height:44px}
+.barcode i{display:block;background:var(--ink)}
+.qr-note{font-size:10px;color:var(--blue);letter-spacing:1px}
+/* ---------- 降低动效 ---------- */
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{
+    animation-duration:.01ms !important;
+    animation-iteration-count:1 !important;
+    transition-duration:.01ms !important;
+  }
+}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="statusbar">
+    <span>9:41</span>
+    <span class="mono" style="font-weight:400">绿皮在线 · 信号满格</span>
+  </div>
+  <div class="appbar">
+    <b>慢车票亭</b>
+    <span>GREEN TRAIN TICKETS · 县县通</span>
+  </div>
+
+  <div class="views">
+    <!-- 1 搜索 -->
+    <section class="view on" id="viewSearch" aria-label="搜索路线">
+      <div class="card">
+        <span class="lbl">出发与到达</span>
+        <div class="station-row">
+          <input class="field" id="inpFrom" value="北京西" aria-label="出发站">
+          <button class="swap" id="btnSwap" type="button" aria-label="交换出发到达">⇄</button>
+          <input class="field" id="inpTo" value="成都" aria-label="到达站">
+        </div>
+        <span class="lbl">乘车日期</span>
+        <div class="date-chips" id="dateChips">
+          <button class="chip" type="button" data-day="11月11日 周三">11月11日</button>
+          <button class="chip sel" type="button" data-day="11月12日 周四">11月12日</button>
+          <button class="chip" type="button" data-day="11月13日 周五">11月13日</button>
+        </div>
+      </div>
+      <div class="demo-hint">演示入口：车次 <b>K117</b> 与铺位 <b>12 号下铺</b> 带 ◆ 复核标记，选中并提交订单会触发售罄检查。</div>
+      <button class="big-btn" id="btnSearch" type="button">查询车次</button>
+      <div class="card" style="gap:6px">
+        <span class="lbl">票亭启事</span>
+        <p style="font-size:12px;line-height:1.9">本月起 K817 / K117 恢复绿皮车底开行，硬卧票价下调 4 元；学生票核验请在开车前 40 分钟到站办理。</p>
+      </div>
+    </section>
+
+    <!-- 2 班次列表 -->
+    <section class="view" id="viewTrains" aria-label="班次选择">
+      <div class="route-bar">
+        <b><span id="rbFrom">北京西</span> → <span id="rbTo">成都</span></b>
+        <span style="font-size:11px;color:var(--blue)" id="rbDate">11月12日 周四</span>
+        <button id="btnEditRoute" type="button">修改</button>
+      </div>
+      <div class="demo-hint">带 ◆ 标记的班次会在提交订单时复核余票并触发售罄（演示入口）。</div>
+      <button class="train" type="button" data-idx="0">
+        <span class="train-top">
+          <span class="train-no mono">K817</span>
+          <span class="train-time">08:20 北京西 — 次日 09:47 成都</span>
+          <span class="train-dur">25小时27分</span>
+        </span>
+        <span class="train-bot">
+          <span class="price">¥428 <small>硬卧</small></span>
+          <span class="ticket-tag">余票充足</span>
+        </span>
+      </button>
+      <button class="train" type="button" data-idx="1">
+        <span class="train-top">
+          <span class="train-no mono">K117</span>
+          <span class="train-time">11:22 北京西 — 次日 15:03 成都</span>
+          <span class="train-dur">27小时41分</span>
+        </span>
+        <span class="train-bot">
+          <span class="price">¥428 <small>硬卧</small></span>
+          <span class="ticket-tag hot">◆ 仅剩个位数 · 提交复核</span>
+        </span>
+      </button>
+      <button class="train" type="button" data-idx="2">
+        <span class="train-top">
+          <span class="train-no mono">T7</span>
+          <span class="train-time">16:40 北京西 — 次日 21:06 成都</span>
+          <span class="train-dur">28小时26分</span>
+        </span>
+        <span class="train-bot">
+          <span class="price">¥445 <small>硬卧</small></span>
+          <span class="ticket-tag">有票</span>
+        </span>
+      </button>
+      <button class="train" type="button" data-idx="3">
+        <span class="train-top">
+          <span class="train-no mono">K1363</span>
+          <span class="train-time">22:06 北京西 — 第三日 05:12 成都</span>
+          <span class="train-dur">31小时06分</span>
+        </span>
+        <span class="train-bot">
+          <span class="price">¥428 <small>硬卧</small></span>
+          <span class="ticket-tag">有票</span>
+        </span>
+      </button>
+    </section>
+
+    <!-- 3 铺位选择 -->
+    <section class="view" id="viewSeats" aria-label="铺位选择">
+      <div class="route-bar">
+        <b class="mono" id="sbTrain">K117</b>
+        <span style="font-size:11px;color:var(--blue)">07 车 · 硬卧</span>
+        <button id="btnBackTrains" type="button">换班次</button>
+      </div>
+      <div class="demo-hint">铺位 <b>12 号下铺</b> 带 ◆ 复核标记，选中并提交会触发售罄（演示入口）。</div>
+      <div class="seat-legend">
+        <span><i class="dot" style="border:1.5px solid var(--blue);background:var(--paper)"></i>可选</span>
+        <span><i class="dot" style="background:var(--paper2);border:1.5px solid var(--beige)"></i>已售</span>
+        <span><i class="dot" style="background:var(--blue)"></i>已选</span>
+      </div>
+      <div class="seat-grid" id="seatGrid"></div>
+      <p style="font-size:11px;color:var(--blue)" id="seatPick">尚未选择铺位</p>
+      <button class="big-btn blue" id="btnSeatOk" type="button" disabled>确认铺位</button>
+    </section>
+
+    <!-- 4 订单确认 -->
+    <section class="view" id="viewConfirm" aria-label="订单确认">
+      <span class="lbl">请核对订单</span>
+      <div class="tkt">
+        <div class="tkt-head"><b class="mono" id="cfTrain">K117</b><span>硬卧 · 成人票</span></div>
+        <div class="tkt-body">
+          <div class="tkt-route"><span id="cfFrom">北京西</span><small>→</small><span id="cfTo">成都</span></div>
+          <div class="tkt-line"><span>乘车日期</span><b id="cfDate">11月12日 周四</b></div>
+          <div class="tkt-line"><span>铺位</span><b id="cfSeat">07车 12号下铺</b></div>
+          <div class="tkt-line"><span>乘客</span><b>张晓 · 身份证 110***********24</b></div>
+          <div class="tkt-line"><span>票价</span><b class="price" id="cfPrice">¥428</b></div>
+        </div>
+      </div>
+      <p style="font-size:11px;line-height:1.8;color:var(--ink)">提交后系统将实时复核车站余票；开车前退票免收手续费，发车后按票价 20% 核收。</p>
+      <button class="big-btn" id="btnSubmit" type="button">提交订单</button>
+      <button class="ghost-btn" id="btnBackSeats" type="button">返回换铺位</button>
+    </section>
+
+    <!-- 5 售罄 -->
+    <section class="view" id="viewFail" aria-label="售罄提示">
+      <div class="tkt">
+        <div class="tkt-head" style="background:var(--blue)"><span style="font-size:12px;letter-spacing:3px">余票复核结果</span><span class="mono" id="flNo">NO.20261112-06</span></div>
+        <div class="tkt-body" style="align-items:stretch">
+          <span class="fail-stamp">已售罄</span>
+          <p class="fail-text" id="flText">很遗憾，<b>K117 次 · 07 车 12 号下铺</b> 刚刚售出最后一张，车站复核未通过，订单未扣款。</p>
+        </div>
+      </div>
+      <div class="keep-bar">路线条件已保留：<b id="flRoute">北京西 → 成都 · 11月12日 周四</b>，无需重新搜索，直接改选其他班次或铺位即可。</div>
+      <button class="big-btn" id="btnReTrain" type="button">返回班次列表改选</button>
+      <button class="ghost-btn" id="btnReSeat" type="button">仅换铺位</button>
+    </section>
+
+    <!-- 6 行程凭证 -->
+    <section class="view" id="viewTicket" aria-label="行程凭证">
+      <div class="tkt">
+        <div class="tkt-head"><b class="mono" id="tkTrain">K817</b><span>行程凭证 · 已出票</span></div>
+        <div class="tkt-body">
+          <div class="tkt-route"><span id="tkFrom">北京西</span><small>→</small><span id="tkTo">成都</small></div>
+          <div class="tkt-line"><span>乘车日期</span><b id="tkDate">11月12日 周四 · 08:20 开</b></div>
+          <div class="tkt-line"><span>铺位</span><b id="tkSeat">07车 03号中铺</b></div>
+          <div class="tkt-line"><span>乘客</span><b>张晓 · 110***********24</b></div>
+          <div class="tkt-line"><span>检票口</span><b>12B · 提前 30 分钟候车</b></div>
+          <div class="tkt-line"><span>票价</span><b class="price" id="tkPrice">¥428</b></div>
+          <div class="barcode" id="barcode" aria-hidden="true"></div>
+          <span class="qr-note mono" id="tkSerial">E06-4417-8823 · 限乘当日当次车</span>
+        </div>
+        <div class="perf"></div>
+        <div class="tkt-stub">
+          <span>票根 · 报销联请妥善保管</span>
+          <span class="punch"><i></i><i></i><i></i></span>
+        </div>
+      </div>
+      <div class="keep-bar" style="border-color:rgba(192,57,43,.4);color:var(--red);background:rgba(192,57,43,.05)">出票成功，已同步至「我的行程」；进站刷身份证即可，无需取纸质票。</div>
+      <button class="big-btn blue" id="btnHome" type="button">返回首页重新查询</button>
+    </section>
+  </div>
+</div>
+
+<script>
+(function(){
+  function $(id){return document.getElementById(id);}
+  var state={
+    from:'北京西',to:'成都',day:'11月12日 周四',
+    train:null,seat:null
+  };
+  var trains=[
+    {no:'K817',dep:'08:20',dur:'25小时27分',price:428,hot:false},
+    {no:'K117',dep:'11:22',dur:'27小时41分',price:428,hot:true},
+    {no:'T7',dep:'16:40',dur:'28小时26分',price:445,hot:false},
+    {no:'K1363',dep:'22:06',dur:'31小时06分',price:428,hot:false}
+  ];
+  /* 铺位：1-12 号 × 上中下；部分已售；12 号下铺为售罄触发位 */
+  var goneSeats={'1上':1,'2中':1,'4下':1,'6上':1,'7中':1,'9下':1,'11上':1};
+  var hotSeat='12下';
+
+  function go(id){
+    var vs=document.querySelectorAll('.view');
+    for(var i=0;i<vs.length;i++){vs[i].classList.remove('on');}
+    $(id).classList.add('on');
+    $(id).scrollTop=0;
+  }
+
+  /* ---------- 搜索页 ---------- */
+  $('btnSwap').addEventListener('click',function(){
+    var a=$('inpFrom').value;$('inpFrom').value=$('inpTo').value;$('inpTo').value=a;
+  });
+  var chips=document.querySelectorAll('#dateChips .chip');
+  chips.forEach=function(fn){for(var i=0;i<chips.length;i++){fn(chips[i]);}};
+  chips.forEach(function(c){
+    c.addEventListener('click',function(){
+      chips.forEach(function(x){x.classList.remove('sel');});
+      this.classList.add('sel');
+      state.day=this.getAttribute('data-day');
+    });
+  });
+  $('btnSearch').addEventListener('click',function(){
+    state.from=$('inpFrom').value.trim()||'北京西';
+    state.to=$('inpTo').value.trim()||'成都';
+    $('rbFrom').textContent=state.from;
+    $('rbTo').textContent=state.to;
+    $('rbDate').textContent=state.day;
+    go('viewTrains');
+  });
+  $('btnEditRoute').addEventListener('click',function(){go('viewSearch');});
+
+  /* ---------- 班次 ---------- */
+  var trainBtns=document.querySelectorAll('.train');
+  trainBtns.forEach=function(fn){for(var i=0;i<trainBtns.length;i++){fn(trainBtns[i]);}};
+  trainBtns.forEach(function(btn){
+    btn.addEventListener('click',function(){
+      state.train=trains[parseInt(this.getAttribute('data-idx'),10)];
+      state.seat=null;
+      $('sbTrain').textContent=state.train.no;
+      buildSeats();
+      go('viewSeats');
+    });
+  });
+  $('btnBackTrains').addEventListener('click',function(){go('viewTrains');});
+
+  /* ---------- 铺位 ---------- */
+  function buildSeats(){
+    var grid=$('seatGrid');
+    grid.innerHTML='';
+    var rows=['上','中','下'];
+    for(var n=1;n<=12;n++){
+      for(var r=0;r<3;r++){
+        var key=n+rows[r];
+        var b=document.createElement('button');
+        b.type='button';
+        b.className='seat';
+        b.textContent=n+'号'+rows[r]+'铺';
+        b.setAttribute('data-key',key);
+        if(goneSeats[key]){
+          b.classList.add('gone');
+          b.disabled=true;
+          b.textContent=n+'号'+rows[r]+'铺 · 已售';
+        }else if(key===hotSeat){
+          b.classList.add('hot');
+          b.textContent='◆ '+n+'号'+rows[r]+'铺';
+        }
+        b.addEventListener('click',function(){
+          if(this.disabled){return;}
+          var all=grid.querySelectorAll('.seat');
+          for(var i=0;i<all.length;i++){all[i].classList.remove('sel');}
+          this.classList.add('sel');
+          state.seat=this.getAttribute('data-key');
+          $('seatPick').textContent='已选：07 车 '+state.seat.replace(/(\d+)(.)/,'$1 号$2铺')+' · ¥'+state.train.price;
+          $('btnSeatOk').disabled=false;
+        });
+        grid.appendChild(b);
+      }
+    }
+    $('seatPick').textContent='尚未选择铺位';
+    $('btnSeatOk').disabled=true;
+  }
+  function seatLabel(){
+    return '07 车 '+state.seat.replace(/(\d+)(.)/,'$1 号 $2 铺');
+  }
+  $('btnSeatOk').addEventListener('click',function(){
+    if(!state.seat){return;}
+    $('cfTrain').textContent=state.train.no;
+    $('cfFrom').textContent=state.from;
+    $('cfTo').textContent=state.to;
+    $('cfDate').textContent=state.day;
+    $('cfSeat').textContent=seatLabel();
+    $('cfPrice').textContent='¥'+state.train.price;
+    go('viewConfirm');
+  });
+  $('btnBackSeats').addEventListener('click',function(){go('viewSeats');});
+
+  /* ---------- 提交：售罄检查 ---------- */
+  $('btnSubmit').addEventListener('click',function(){
+    var soldBySeat=(state.seat===hotSeat);
+    var soldByTrain=state.train.hot;
+    if(soldBySeat||soldByTrain){
+      var what=soldBySeat?(state.train.no+' 次 · '+seatLabel()):(state.train.no+' 次硬卧');
+      $('flText').innerHTML='';
+      var t1=document.createTextNode('很遗憾，');
+      var b=document.createElement('b');
+      b.textContent=what;
+      var t2=document.createTextNode(' 刚刚售出最后一张，车站复核未通过，订单未扣款。');
+      $('flText').appendChild(t1);$('flText').appendChild(b);$('flText').appendChild(t2);
+      $('flRoute').textContent=state.from+' → '+state.to+' · '+state.day;
+      $('flNo').textContent='NO.20261112-'+state.train.no.replace(/\D/g,'');
+      go('viewFail');
+      return;
+    }
+    showTicket();
+  });
+  $('btnReTrain').addEventListener('click',function(){go('viewTrains');});
+  $('btnReSeat').addEventListener('click',function(){
+    if(state.train.hot){go('viewTrains');return;}
+    state.seat=null;buildSeats();go('viewSeats');
+  });
+
+  /* ---------- 出票 ---------- */
+  function showTicket(){
+    $('tkTrain').textContent=state.train.no;
+    $('tkFrom').textContent=state.from;
+    $('tkTo').textContent=state.to;
+    $('tkDate').textContent=state.day+' · '+state.train.dep+' 开';
+    $('tkSeat').textContent=seatLabel();
+    $('tkPrice').textContent='¥'+state.train.price;
+    $('tkSerial').textContent='E06-'+state.train.no.replace(/\D/g,'')+'-8823 · 限乘当日当次车';
+    var bc=$('barcode');
+    bc.innerHTML='';
+    for(var i=0;i<34;i++){
+      var bar=document.createElement('i');
+      var w=[1,2,3,1,1,4,2,1][i%8];
+      var h=[30,44,38,44,26,44,34,40][(i*3)%8];
+      bar.style.width=w+'px';
+      bar.style.height=h+'px';
+      bc.appendChild(bar);
+    }
+    go('viewTicket');
+  }
+  $('btnHome').addEventListener('click',function(){go('viewSearch');});
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>野外调查表 · 苔原科考记录系统</title>
+<style>
+:root{
+  --page:#F3F1E8;
+  --olive:#5B6B3C;
+  --ink:#2E2E24;
+  --pencil:#7A7A6E;
+  --amber:#B86E2E;
+  --panel:#FBFAF3;
+  --line:#DDD8C6;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{
+  background-color:var(--page);
+  background-image:
+    linear-gradient(rgba(122,122,110,.10) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(122,122,110,.10) 1px,transparent 1px);
+  background-size:28px 28px;
+  color:var(--ink);
+  font-family:"PingFang SC","Microsoft YaHei","Segoe UI",sans-serif;
+  min-height:100vh;padding:28px 40px 64px;
+}
+.topbar{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid var(--ink);padding-bottom:14px;margin-bottom:26px;}
+.topbar h1{font-size:24px;font-weight:700;letter-spacing:3px;}
+.topbar .no{font-family:"Courier New",Consolas,monospace;font-size:12px;color:var(--pencil);letter-spacing:1px;margin-top:4px;}
+.topbar .meta{font-size:12px;color:var(--pencil);text-align:right;line-height:1.8;}
+.layout{display:grid;grid-template-columns:240px 1fr;gap:28px;align-items:start;}
+.sidenav{position:sticky;top:28px;background:var(--panel);border:1px solid var(--line);border-radius:6px;overflow:hidden;}
+.sidenav .cap{padding:12px 18px;background:var(--olive);color:#F3F1E8;font-size:13px;font-weight:700;letter-spacing:3px;}
+.navlink{
+  display:flex;align-items:center;gap:10px;width:100%;text-align:left;
+  background:none;border:none;border-bottom:1px solid var(--line);
+  padding:13px 18px;font-size:13px;color:var(--ink);cursor:pointer;font-family:inherit;
+  transition:background .15s ease,color .15s ease;
+}
+.navlink:last-child{border-bottom:none;}
+.navlink .num{font-family:"Courier New",Consolas,monospace;font-size:11px;color:var(--pencil);}
+.navlink:hover{background:#EFECDD;}
+.navlink:focus-visible{outline:2px solid var(--amber);outline-offset:-2px;}
+.navlink.active{background:#E9E5D2;color:var(--olive);font-weight:700;border-left:4px solid var(--olive);padding-left:14px;}
+.navlink .done{margin-left:auto;font-size:11px;color:var(--olive);}
+.progress{padding:12px 18px;font-size:12px;color:var(--pencil);border-top:1px dashed var(--line);}
+.progress b{color:var(--amber);}
+.section{
+  background:var(--panel);border:1px solid var(--line);border-radius:6px;
+  margin-bottom:24px;overflow:hidden;scroll-margin-top:24px;
+}
+.section-head{
+  display:flex;align-items:baseline;gap:12px;padding:15px 24px;
+  border-bottom:1px solid var(--line);background:linear-gradient(180deg,#F6F3E6,#FBFAF3);
+}
+.section-head .idx{
+  font-family:"Courier New",Consolas,monospace;font-size:12px;color:#F3F1E8;
+  background:var(--olive);border-radius:3px;padding:2px 8px;letter-spacing:1px;
+}
+.section-head h2{font-size:16px;font-weight:700;letter-spacing:2px;}
+.section-head .hint{font-size:12px;color:var(--pencil);}
+.section-body{padding:20px 24px 24px;}
+.fgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:18px 28px;}
+.field{display:flex;flex-direction:column;gap:6px;}
+.field.full{grid-column:1/-1;}
+label{font-size:13px;font-weight:700;letter-spacing:1px;}
+.req{color:var(--amber);margin-left:4px;font-weight:700;}
+.opt{color:var(--pencil);font-weight:400;font-size:12px;margin-left:6px;}
+input[type=text],input[type=number],select,textarea{
+  font-family:inherit;font-size:14px;color:var(--ink);
+  background:#fff;border:1px solid var(--line);border-radius:4px;
+  padding:9px 12px;transition:border-color .15s ease,box-shadow .15s ease;
+}
+input:hover,select:hover,textarea:hover{border-color:var(--pencil);}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--olive);box-shadow:0 0 0 3px rgba(91,107,60,.18);}
+.field.error input,.field.error select,.field.error textarea{border-color:var(--amber);box-shadow:0 0 0 3px rgba(184,110,46,.16);}
+.err-msg{display:none;font-size:12px;color:var(--amber);}
+.field.error .err-msg{display:block;}
+.help{font-size:12px;color:var(--pencil);}
+.radio-row,.chk-row{display:flex;gap:14px;flex-wrap:wrap;padding-top:2px;}
+.radio-pill,.chk-pill{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:400;cursor:pointer;border:1px solid var(--line);border-radius:20px;padding:7px 14px;background:#fff;transition:border-color .15s ease,background .15s ease;}
+.radio-pill:hover,.chk-pill:hover{border-color:var(--olive);}
+.radio-pill:has(input:checked),.chk-pill:has(input:checked){border-color:var(--olive);background:rgba(91,107,60,.10);}
+.radio-pill input,.chk-pill input{accent-color:var(--olive);}
+.formbar{
+  position:sticky;bottom:0;background:rgba(251,250,243,.95);border:1px solid var(--line);
+  border-radius:6px;padding:14px 24px;display:flex;justify-content:space-between;align-items:center;
+  backdrop-filter:none;box-shadow:0 -2px 0 rgba(46,46,36,.05);
+}
+.draft-note{font-size:12px;color:var(--pencil);letter-spacing:1px;}
+.btn{font-family:inherit;cursor:pointer;border-radius:4px;font-size:14px;padding:11px 26px;letter-spacing:2px;transition:background .18s ease,border-color .18s ease,color .18s ease;}
+.btn-primary{background:var(--olive);color:#F3F1E8;border:1px solid var(--olive);}
+.btn-primary:hover{background:#4A5731;}
+.btn-primary:focus-visible{outline:2px solid var(--amber);outline-offset:2px;}
+.btn-ghost{background:transparent;color:var(--olive);border:1px solid var(--olive);}
+.btn-ghost:hover{background:rgba(91,107,60,.10);}
+.btn-ghost:focus-visible{outline:2px solid var(--amber);outline-offset:2px;}
+.toast{
+  position:fixed;left:50%;bottom:34px;transform:translateX(-50%) translateY(20px);
+  background:var(--ink);color:var(--page);font-size:13px;letter-spacing:2px;
+  padding:11px 26px;border-radius:4px;opacity:0;pointer-events:none;z-index:30;
+  transition:opacity .22s ease,transform .22s ease;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+@media (max-width:900px){
+  body{padding:16px;background-size:22px 22px;}
+  .layout{grid-template-columns:1fr;}
+  .sidenav{position:static;}
+  .fgrid{grid-template-columns:1fr;}
+  .formbar{flex-direction:column;gap:10px;align-items:stretch;text-align:center;}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{transition-duration:.01ms !important;animation-duration:.01ms !important;scroll-behavior:auto !important;}
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div>
+    <h1>野外调查表 · 第 7 次样方</h1>
+    <div class="no">表号 KY-FIELD-2026-041 · 苔原科考记录系统</div>
+  </div>
+  <div class="meta">
+    调查队：祁连山高山植被组<br>填表人：陆之遥 · 记录日期 2026-06-12
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="sidenav" id="sidenav">
+    <div class="cap">节目录</div>
+    <button class="navlink active" data-target="sec1"><span class="num">01</span>样点生境<span class="done">●</span></button>
+    <button class="navlink" data-target="sec2"><span class="num">02</span>样方测量<span class="done">●</span></button>
+    <button class="navlink" data-target="sec3"><span class="num">03</span>样本采集<span class="done">○</span></button>
+    <button class="navlink" data-target="sec4"><span class="num">04</span>气象与土壤<span class="done">○</span></button>
+    <button class="navlink" data-target="sec5"><span class="num">05</span>复核与提交<span class="done">○</span></button>
+    <div class="progress">必填完成度 <b id="progText">5 / 9</b></div>
+  </nav>
+
+  <main>
+    <section class="section" id="sec1">
+      <div class="section-head"><span class="idx">01</span><h2>样点生境</h2><span class="hint">定位与植被概况，打 <span class="req">*</span> 为必填</span></div>
+      <div class="section-body fgrid">
+        <div class="field">
+          <label for="fCode">样点编号<span class="req">*</span></label>
+          <input type="text" id="fCode" value="QLS-A07" required>
+          <span class="err-msg">请填写样点编号</span>
+        </div>
+        <div class="field">
+          <label for="fAlt">海拔（米）<span class="req">*</span></label>
+          <input type="number" id="fAlt" value="3480" required>
+          <span class="err-msg">请填写海拔数值</span>
+        </div>
+        <div class="field">
+          <label for="fVeg">植被类型<span class="req">*</span></label>
+          <select id="fVeg" required>
+            <option value="">请选择</option>
+            <option selected>高寒草甸</option>
+            <option>高寒灌丛</option>
+            <option>流石滩稀疏植被</option>
+            <option>沼泽化草甸</option>
+          </select>
+          <span class="err-msg">请选择植被类型</span>
+        </div>
+        <div class="field">
+          <label for="fCover">总盖度（%）<span class="opt">选填</span></label>
+          <input type="number" id="fCover" value="82">
+          <span class="help">目测估计，取整数</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="sec2">
+      <div class="section-head"><span class="idx">02</span><h2>样方测量</h2><span class="hint">几何与地形参数</span></div>
+      <div class="section-body fgrid">
+        <div class="field">
+          <label for="fArea">样方面积（平方米）<span class="req">*</span></label>
+          <input type="number" id="fArea" value="25" required>
+          <span class="err-msg">请填写样方面积</span>
+        </div>
+        <div class="field">
+          <label for="fSlope">坡度（度）<span class="opt">选填</span></label>
+          <input type="number" id="fSlope" value="12">
+        </div>
+        <div class="field">
+          <label>坡向<span class="opt">选填</span></label>
+          <div class="radio-pillset radio-row">
+            <label class="radio-pill"><input type="radio" name="aspect" checked>阳坡</label>
+            <label class="radio-pill"><input type="radio" name="aspect">阴坡</label>
+            <label class="radio-pill"><input type="radio" name="aspect">半阳坡</label>
+            <label class="radio-pill"><input type="radio" name="aspect">半阴坡</label>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="sec3">
+      <div class="section-head"><span class="idx">03</span><h2>样本采集</h2><span class="hint">凭证标本与土样</span></div>
+      <div class="section-body fgrid">
+        <div class="field">
+          <label for="fSample">采集编号<span class="req">*</span></label>
+          <input type="text" id="fSample" placeholder="例：QLS-A07-S01" required>
+          <span class="err-msg">请填写采集编号</span>
+        </div>
+        <div class="field">
+          <label for="fCount">采集份数<span class="req">*</span></label>
+          <input type="number" id="fCount" placeholder="例：3" required>
+          <span class="err-msg">请填写采集份数</span>
+        </div>
+        <div class="field full">
+          <label>样本类型<span class="req">*</span><span class="help" style="display:inline;margin-left:8px;">至少勾选一项</span></label>
+          <div class="chk-row" id="typeRow">
+            <label class="chk-pill"><input type="checkbox" value="凭证标本">凭证标本</label>
+            <label class="chk-pill"><input type="checkbox" value="土样">土样</label>
+            <label class="chk-pill"><input type="checkbox" value="种子">种子</label>
+            <label class="chk-pill"><input type="checkbox" value="影像资料">影像资料</label>
+          </div>
+          <span class="err-msg">请至少勾选一种样本类型</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="sec4">
+      <div class="section-head"><span class="idx">04</span><h2>气象与土壤</h2><span class="hint">现场速测值</span></div>
+      <div class="section-body fgrid">
+        <div class="field">
+          <label for="fTemp">地表温度（℃）<span class="opt">选填</span></label>
+          <input type="number" id="fTemp" value="14.5">
+        </div>
+        <div class="field">
+          <label for="fHum">土壤含水率（%）<span class="opt">选填</span></label>
+          <input type="number" id="fHum" value="31">
+        </div>
+        <div class="field">
+          <label for="fPh">土壤 pH<span class="req">*</span></label>
+          <input type="text" id="fPh" placeholder="例：6.8" required>
+          <span class="err-msg">请填写土壤 pH</span>
+        </div>
+        <div class="field">
+          <label for="fWeather">天气状况<span class="opt">选填</span></label>
+          <input type="text" id="fWeather" value="多云，微风">
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="sec5">
+      <div class="section-head"><span class="idx">05</span><h2>复核与提交</h2><span class="hint">备注与责任确认</span></div>
+      <div class="section-body fgrid">
+        <div class="field full">
+          <label for="fNote">现场备注<span class="opt">选填</span></label>
+          <textarea id="fNote" rows="3" placeholder="异常天气、干扰因素、补充观察……">东坡有放牧痕迹，已拍照存档。</textarea>
+        </div>
+        <div class="field full">
+          <label class="chk-pill" style="border-radius:4px;">
+            <input type="checkbox" id="fConfirm">
+            本人确认以上记录与现场一致，同意提交复核<span class="req">*</span>
+          </label>
+          <span class="err-msg">提交前请勾选确认</span>
+        </div>
+      </div>
+    </section>
+
+    <div class="formbar">
+      <span class="draft-note" id="draftNote">草稿尚未保存</span>
+      <div style="display:flex;gap:12px;">
+        <button class="btn btn-ghost" id="draftBtn">保存草稿</button>
+        <button class="btn btn-primary" id="submitBtn">提交复核</button>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+var reduced=window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+function showToast(msg){
+  var t=document.getElementById("toast");
+  t.textContent=msg;t.classList.add("show");
+  setTimeout(function(){t.classList.remove("show");},2400);
+}
+var links=document.querySelectorAll(".navlink");
+links.forEach(function(l){
+  l.addEventListener("click",function(){
+    var target=document.getElementById(l.getAttribute("data-target"));
+    if(target)target.scrollIntoView({behavior:reduced?"auto":"smooth",block:"start"});
+  });
+});
+var sections=["sec1","sec2","sec3","sec4","sec5"].map(function(id){return document.getElementById(id);});
+window.addEventListener("scroll",function(){
+  var activeIdx=0;
+  sections.forEach(function(s,i){
+    if(s.getBoundingClientRect().top<=140)activeIdx=i;
+  });
+  links.forEach(function(l,i){l.classList.toggle("active",i===activeIdx);});
+},{passive:true});
+function requiredFields(){
+  return [
+    {el:document.getElementById("fCode"),ok:function(v){return v.trim()!=="";}},
+    {el:document.getElementById("fAlt"),ok:function(v){return v.trim()!=="";}},
+    {el:document.getElementById("fVeg"),ok:function(v){return v!=="";}},
+    {el:document.getElementById("fArea"),ok:function(v){return v.trim()!=="";}},
+    {el:document.getElementById("fSample"),ok:function(v){return v.trim()!=="";}},
+    {el:document.getElementById("fCount"),ok:function(v){return v.trim()!=="";}},
+    {el:document.getElementById("typeRow"),ok:function(){return document.querySelectorAll("#typeRow input:checked").length>0;}},
+    {el:document.getElementById("fPh"),ok:function(v){return v.trim()!=="";}},
+    {el:document.getElementById("fConfirm"),ok:function(){return document.getElementById("fConfirm").checked;},wrap:true}
+  ];
+}
+function fieldWrap(el){
+  return el.closest(".field");
+}
+function validate(focusFirst){
+  var firstBad=null;
+  requiredFields().forEach(function(f){
+    var v=f.wrap?null:f.el.value;
+    var ok=f.ok(v);
+    var wrap=fieldWrap(f.el);
+    if(wrap)wrap.classList.toggle("error",!ok);
+    if(!ok&&!firstBad)firstBad=f.el;
+  });
+  if(firstBad&&focusFirst){
+    var sec=firstBad.closest(".section");
+    if(sec)sec.scrollIntoView({behavior:reduced?"auto":"smooth",block:"start"});
+  }
+  return !firstBad;
+}
+function updateProgress(){
+  var done=0,total=requiredFields().length;
+  requiredFields().forEach(function(f){
+    var v=f.wrap?null:f.el.value;
+    if(f.ok(v))done++;
+  });
+  document.getElementById("progText").textContent=done+" / "+total;
+}
+document.querySelectorAll("input,select,textarea").forEach(function(el){
+  el.addEventListener("input",function(){
+    var wrap=fieldWrap(el);
+    if(wrap)wrap.classList.remove("error");
+    updateProgress();
+  });
+  el.addEventListener("change",updateProgress);
+});
+document.getElementById("draftBtn").addEventListener("click",function(){
+  var now=new Date();
+  var hh=String(now.getHours()).padStart(2,"0");
+  var mm=String(now.getMinutes()).padStart(2,"0");
+  document.getElementById("draftNote").textContent="草稿已保存于 "+hh+":"+mm+"（本机暂存）";
+  showToast("草稿已保存，可随时离开再回来继续填写");
+});
+document.getElementById("submitBtn").addEventListener("click",function(){
+  if(!validate(true)){
+    showToast("仍有必填项未完成，请按提示补齐");
+    return;
+  }
+  showToast("调查表已提交复核，编号 KY-FIELD-2026-041");
+});
+updateProgress();
+</script>
+</body>
+</html>

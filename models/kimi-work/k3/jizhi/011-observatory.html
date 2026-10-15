@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>观星台 · 天文观测数据平台</title>
+<style>
+:root{
+  --page:#070B1A;
+  --surface:#1A2340;
+  --line:#26325A;
+  --deep:#0B1226;
+  --text:#E8EDFF;
+  --muted:#9FB4FF;
+  --accent:#4FD8E8;
+  --violet:#8B5CF6;
+  --amber:#FFB020;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  font-family:"Segoe UI","Microsoft YaHei","PingFang SC","Noto Sans SC",sans-serif;
+  color:var(--text);
+  min-height:100vh;
+  background:
+    radial-gradient(1100px 520px at 82% -12%, rgba(139,92,246,0.22), rgba(7,11,26,0) 62%),
+    radial-gradient(900px 520px at 6% 112%, rgba(79,216,232,0.14), rgba(7,11,26,0) 58%),
+    var(--page);
+}
+.mono{font-family:ui-monospace,"Cascadia Mono",Consolas,"Courier New",monospace}
+.stars{position:fixed;left:0;top:0;width:100%;height:100%;z-index:0;pointer-events:none}
+.tw{animation:tw 3.6s ease-in-out infinite}
+@keyframes tw{0%,100%{opacity:0.15}50%{opacity:0.9}}
+.top{position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;gap:20px;padding:20px 32px;border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:14px}
+.brand h1{font-size:20px;font-weight:700;letter-spacing:2px}
+.brand .sub{font-size:12px;color:var(--muted);letter-spacing:3px;margin-top:3px}
+.sync{text-align:right;font-size:12px;color:var(--muted);line-height:1.8}
+.sync b{color:var(--text);font-weight:600}
+.wrap{position:relative;z-index:1;max-width:1216px;margin:0 auto;padding:0 32px 40px}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:24px}
+.kpi{height:128px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px 20px;transition:border-color 0.2s ease}
+.kpi:hover{border-color:#3A4A7A}
+.kname{font-size:13px;color:var(--muted)}
+.knum{margin-top:10px}
+.knum .n{font-family:ui-monospace,"Cascadia Mono",Consolas,monospace;font-size:30px;font-weight:600;line-height:1.1}
+.knum .u{font-size:13px;color:var(--muted);margin-left:6px}
+.kdelta{margin-top:10px;font-size:12px;color:var(--accent)}
+.kdelta.flat{color:var(--muted)}
+.content{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:16px;margin-top:16px}
+.chartcard{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:20px 22px}
+.chead{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}
+.chead h2{font-size:17px;font-weight:600}
+.csub{margin-top:4px;font-size:12px;color:var(--muted)}
+.tabs{display:flex;background:var(--deep);border:1px solid var(--line);border-radius:999px;padding:3px}
+.tab{height:32px;padding:0 18px;border:0;border-radius:999px;background:transparent;color:var(--muted);font-size:13px;font-family:inherit;cursor:pointer;transition:background 0.18s ease,color 0.18s ease}
+.tab:hover{color:var(--text)}
+.tab:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.tab.active{background:var(--accent);color:#06202A;font-weight:600}
+.chart{display:block;width:100%;height:auto;margin-top:8px}
+.grid{stroke:#26325A;stroke-width:1}
+.ax{fill:#9FB4FF;font-size:11px;font-family:ui-monospace,Consolas,monospace}
+.dot{fill:#070B1A;stroke:#4FD8E8;stroke-width:2;transition:transform 0.15s ease;transform-box:fill-box;transform-origin:center}
+.dot:hover{transform:scale(1.6)}
+.legend{display:flex;gap:18px;margin-top:10px;font-size:12px;color:var(--muted)}
+.legend .li{display:flex;align-items:center;gap:8px}
+.sw{display:inline-block;width:22px;height:3px;border-radius:2px}
+.swd{display:inline-block;width:22px;height:0;border-top:2px dashed #8B5CF6}
+.side{display:flex;flex-direction:column;gap:16px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.panel h3{font-size:14px;font-weight:600;letter-spacing:1px;padding:16px 18px 12px}
+.rows{list-style:none}
+.rows li{padding:12px 18px;border-top:1px solid var(--line)}
+.rtime{font-family:ui-monospace,Consolas,monospace;font-size:13px;color:var(--accent)}
+.rt1{font-size:14px;margin-top:3px}
+.rt2{font-size:12px;color:var(--muted);margin-top:3px}
+.strow{display:flex;align-items:center;gap:10px}
+.sdot{width:8px;height:8px;border-radius:50%;flex:none}
+.sname{font-size:14px}
+.ssub{font-size:12px;color:var(--muted);margin-top:3px}
+.stxt{margin-left:auto;font-size:12px;color:var(--muted)}
+.foot{margin-top:18px;font-size:12px;color:var(--muted)}
+@media (max-width:900px){
+  .top{flex-direction:column;align-items:flex-start;padding:16px 20px}
+  .sync{text-align:left}
+  .wrap{padding:0 20px 32px}
+  .kpis{grid-template-columns:repeat(2,1fr)}
+  .content{grid-template-columns:1fr}
+  .chead{flex-direction:column}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:0.01ms !important;animation-iteration-count:1 !important;transition-duration:0.01ms !important}
+}
+</style>
+</head>
+<body>
+<svg class="stars" aria-hidden="true"><g id="starLayer"></g></svg>
+<header class="top">
+  <div class="brand">
+    <svg width="40" height="40" viewBox="0 0 40 40" aria-hidden="true">
+      <circle cx="20" cy="20" r="17" fill="none" stroke="#4FD8E8" stroke-width="1.4" opacity="0.7"/>
+      <circle cx="20" cy="20" r="3" fill="#4FD8E8"/>
+      <path d="M20 5v7M20 28v7M5 20h7M28 20h7" stroke="#9FB4FF" stroke-width="1.2"/>
+    </svg>
+    <div>
+      <h1>观星台</h1>
+      <p class="sub">天文观测数据平台 · OBSERVATORY</p>
+    </div>
+  </div>
+  <p class="sync">数据每 15 分钟同步一次<br>最近同步 <b class="mono">2025-10-14 20:00:15</b></p>
+</header>
+<div class="wrap">
+  <section class="kpis" aria-label="关键指标">
+    <article class="kpi">
+      <p class="kname" id="kpiName0">今夜可见星体</p>
+      <p class="knum"><span class="n" id="kpiNum0">1,284</span><span class="u" id="kpiUnit0">颗</span></p>
+      <p class="kdelta" id="kpiDelta0">较昨日同时段 +3.2%</p>
+    </article>
+    <article class="kpi">
+      <p class="kname" id="kpiName1">计划观测时长</p>
+      <p class="knum"><span class="n" id="kpiNum1">9.5</span><span class="u" id="kpiUnit1">小时</span></p>
+      <p class="kdelta flat" id="kpiDelta1">窗口 20:00 – 05:30</p>
+    </article>
+    <article class="kpi">
+      <p class="kname" id="kpiName2">流星体已记录</p>
+      <p class="knum"><span class="n" id="kpiNum2">326</span><span class="u" id="kpiUnit2">颗</span></p>
+      <p class="kdelta" id="kpiDelta2">极大期前夜 · 流量上升</p>
+    </article>
+    <article class="kpi">
+      <p class="kname" id="kpiName3">当前视宁度</p>
+      <p class="knum"><span class="n" id="kpiNum3">0.8</span><span class="u" id="kpiUnit3">″</span></p>
+      <p class="kdelta flat" id="kpiDelta3">大气稳定 · 成像优良</p>
+    </article>
+  </section>
+  <div class="content">
+    <section class="chartcard">
+      <div class="chead">
+        <div>
+          <h2>流星体流量趋势</h2>
+          <p class="csub" id="chartNote">2025 年 10 月 14 日 · 夜间逐小时 · 单位：颗/小时</p>
+        </div>
+        <div class="tabs" role="group" aria-label="统计粒度">
+          <button class="tab active" data-g="day">日</button>
+          <button class="tab" data-g="week">周</button>
+          <button class="tab" data-g="month">月</button>
+        </div>
+      </div>
+      <svg id="chartSvg" class="chart" viewBox="0 0 720 260" role="img" aria-label="流星体流量趋势图">
+        <g id="chartFrame"></g>
+        <polygon id="chartArea" points="" fill="#4FD8E8" opacity="0.08"></polygon>
+        <polyline id="chartGlow" points="" fill="none" stroke="#4FD8E8" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" opacity="0.18"></polyline>
+        <polyline id="chartBase" points="" fill="none" stroke="#8B5CF6" stroke-width="1.6" stroke-dasharray="5 5" opacity="0.85"></polyline>
+        <polyline id="chartLine" points="" fill="none" stroke="#4FD8E8" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"></polyline>
+        <g id="chartDots"></g>
+        <g id="chartXLabels"></g>
+      </svg>
+      <div class="legend">
+        <span class="li"><i class="sw" style="background:#4FD8E8"></i>本周期流量</span>
+        <span class="li"><i class="swd"></i>上周期对照</span>
+        <span class="li" style="margin-left:auto" id="legendMax">峰值 120 颗/小时</span>
+      </div>
+    </section>
+    <aside class="side">
+      <section class="panel">
+        <h3>今夜观测窗口</h3>
+        <ul class="rows">
+          <li><span class="rtime">20:12</span><p class="rt1">火星合月</p><p class="rt2">东南方低空，双筒望远镜可见</p></li>
+          <li><span class="rtime">21:40</span><p class="rt1">国际空间站过境</p><p class="rt2">最亮 −3.9 等，可见约 4 分钟</p></li>
+          <li><span class="rtime">23:05</span><p class="rt1">猎户座流星雨极大</p><p class="rt2">辐射点升起后，每小时约 20 颗</p></li>
+          <li><span class="rtime">02:30</span><p class="rt1">木星观测窗口</p><p class="rt2">视直径 46″，云带与大红斑清晰</p></li>
+        </ul>
+      </section>
+      <section class="panel">
+        <h3>台站状态</h3>
+        <ul class="rows">
+          <li class="strow"><span class="sdot" style="background:#4FD8E8"></span><div><p class="sname">兴隆观测站</p><p class="ssub">2.16 米反射望远镜</p></div><span class="stxt">运行中</span></li>
+          <li class="strow"><span class="sdot" style="background:#8B5CF6"></span><div><p class="sname">冷湖观测基地</p><p class="ssub">1.0 米光学望远镜</p></div><span class="stxt">维护窗口</span></li>
+          <li class="strow"><span class="sdot" style="background:#FFB020"></span><div><p class="sname">慕士塔格观测站</p><p class="ssub">50 厘米广角巡天镜</p></div><span class="stxt">云层暂停</span></li>
+        </ul>
+      </section>
+    </aside>
+  </div>
+  <p class="foot">观星台由三处台站联合供数 · 流量数据经大气消光与月相修正 · 仅供观测计划参考</p>
+</div>
+<script>
+var DATA={
+  day:{
+    note:"2025 年 10 月 14 日 · 夜间逐小时 · 单位：颗/小时",
+    unit:"颗/小时",
+    max:120,
+    kpis:[
+      ["今夜可见星体","1,284","颗","较昨日同时段 +3.2%",1],
+      ["计划观测时长","9.5","小时","窗口 20:00 – 05:30",0],
+      ["流星体已记录","326","颗","极大期前夜 · 流量上升",1],
+      ["当前视宁度","0.8","″","大气稳定 · 成像优良",0]
+    ],
+    series:[14,19,27,43,59,77,98,86,61,33],
+    base:[11,16,23,37,51,68,85,80,57,29],
+    xl:[[0,"20时"],[1,"21时"],[2,"22时"],[3,"23时"],[4,"00时"],[5,"01时"],[6,"02时"],[7,"03时"],[8,"04时"],[9,"05时"]],
+    lab:function(i){return (i<4?20+i:i-4)+"时";}
+  },
+  week:{
+    note:"2025 年 10 月 6 日 – 10 月 12 日 · 逐晚 · 单位：颗/晚",
+    unit:"颗/晚",
+    max:320,
+    kpis:[
+      ["本周可见星体","3,946","颗","较上周 +5.1%",1],
+      ["累计观测时长","46.5","小时","7 个观测夜 · 晴夜率 71%",0],
+      ["流星体记录","1,575","颗","猎户座流星雨进入活跃期",1],
+      ["平均视宁度","1.1","″","周中受扰动略升",0]
+    ],
+    series:[168,192,154,226,248,301,286],
+    base:[150,171,149,205,231,264,250],
+    xl:[[0,"周一"],[1,"周二"],[2,"周三"],[3,"周四"],[4,"周五"],[5,"周六"],[6,"周日"]],
+    lab:function(i){return ["周一","周二","周三","周四","周五","周六","周日"][i];}
+  },
+  month:{
+    note:"2025 年 10 月 · 逐晚 · 单位：颗/晚",
+    unit:"颗/晚",
+    max:320,
+    kpis:[
+      ["本月可见星体","12,037","颗次","较 9 月 +8.4%",1],
+      ["累计观测时长","186","小时","22 个有效观测夜",0],
+      ["流星体记录","7,415","颗","含 3 次流星雨极大",1],
+      ["新确认变星","23","颗","已上报国际变星索引",1]
+    ],
+    series:[88,96,102,95,110,124,131,128,142,156,149,163,171,168,182,190,186,201,215,208,226,231,244,238,252,247,261,270,266,288],
+    base:[80,88,94,90,101,112,120,118,130,141,136,150,158,155,167,174,172,185,196,191,207,214,224,219,231,227,240,248,245,265],
+    xl:[[0,"1日"],[5,"6日"],[10,"11日"],[15,"16日"],[20,"21日"],[25,"26日"],[29,"30日"]],
+    lab:function(i){return "10月"+(i+1)+"日";}
+  }
+};
+function render(key){
+  var d=DATA[key];
+  var i;
+  for(i=0;i<4;i++){
+    document.getElementById("kpiName"+i).textContent=d.kpis[i][0];
+    document.getElementById("kpiNum"+i).textContent=d.kpis[i][1];
+    document.getElementById("kpiUnit"+i).textContent=d.kpis[i][2];
+    var de=document.getElementById("kpiDelta"+i);
+    de.textContent=d.kpis[i][3];
+    de.className=d.kpis[i][4]?"kdelta":"kdelta flat";
+  }
+  document.getElementById("chartNote").textContent=d.note;
+  document.getElementById("legendMax").textContent="峰值 "+d.max+" "+d.unit;
+  var L=44,R=16,T=18,B=34,W=720,H=260;
+  var iw=W-L-R,ih=H-T-B,base=H-B;
+  var max=d.max;
+  function pts(arr){
+    var out=[];
+    for(var i=0;i<arr.length;i++){
+      var x=L+iw*i/(arr.length-1);
+      var y=base-(arr[i]/max)*ih;
+      out.push([Math.round(x*10)/10,Math.round(y*10)/10]);
+    }
+    return out;
+  }
+  function join(p){var s=[];for(var i=0;i<p.length;i++){s.push(p[i][0]+","+p[i][1]);}return s.join(" ");}
+  var p1=pts(d.series),p2=pts(d.base);
+  document.getElementById("chartLine").setAttribute("points",join(p1));
+  document.getElementById("chartGlow").setAttribute("points",join(p1));
+  document.getElementById("chartBase").setAttribute("points",join(p2));
+  document.getElementById("chartArea").setAttribute("points",L+","+base+" "+join(p1)+" "+(W-R)+","+base);
+  var dots="";
+  for(i=0;i<p1.length;i++){
+    dots+='<circle class="dot" cx="'+p1[i][0]+'" cy="'+p1[i][1]+'" r="3.4"><title>'+d.lab(i)+" · "+d.series[i]+" "+d.unit+'</title></circle>';
+  }
+  document.getElementById("chartDots").innerHTML=dots;
+  var xl="";
+  for(i=0;i<d.xl.length;i++){
+    var x=L+iw*d.xl[i][0]/(d.series.length-1);
+    xl+='<text class="ax" x="'+x+'" y="'+(H-12)+'" text-anchor="middle">'+d.xl[i][1]+'</text>';
+  }
+  document.getElementById("chartXLabels").innerHTML=xl;
+  var fr="";
+  for(i=0;i<4;i++){
+    var y=base-ih*i/3;
+    fr+='<line class="grid" x1="'+L+'" y1="'+y+'" x2="'+(W-R)+'" y2="'+y+'"/>';
+    fr+='<text class="ax" x="'+(L-10)+'" y="'+(y+4)+'" text-anchor="end">'+Math.round(max*i/3)+'</text>';
+  }
+  document.getElementById("chartFrame").innerHTML=fr;
+}
+var tabs=document.querySelectorAll(".tab");
+for(var t=0;t<tabs.length;t++){
+  tabs[t].addEventListener("click",function(){
+    for(var j=0;j<tabs.length;j++){tabs[j].classList.remove("active");}
+    this.classList.add("active");
+    render(this.getAttribute("data-g"));
+  });
+}
+function makeStars(){
+  var s="";
+  for(var i=0;i<70;i++){
+    var x=(Math.random()*100).toFixed(2);
+    var y=(Math.random()*100).toFixed(2);
+    var r=(0.5+Math.random()*1.1).toFixed(2);
+    var o=(0.15+Math.random()*0.5).toFixed(2);
+    if(Math.random()<0.35){
+      s+='<circle class="tw" style="animation-delay:'+(Math.random()*3).toFixed(1)+'s" cx="'+x+'%" cy="'+y+'%" r="'+r+'" fill="#E8EDFF" opacity="'+o+'"/>';
+    }else{
+      s+='<circle cx="'+x+'%" cy="'+y+'%" r="'+r+'" fill="#E8EDFF" opacity="'+o+'"/>';
+    }
+  }
+  document.getElementById("starLayer").innerHTML=s;
+}
+makeStars();
+render("day");
+</script>
+</body>
+</html>

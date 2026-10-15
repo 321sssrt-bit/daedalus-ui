@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>幕布剧院 · 剧目发布确认</title>
+<style>
+:root{
+  --bg:#191215;
+  --curtain:#8E1E2E;
+  --gold:#D8B45A;
+  --paper:#F4EAD8;
+  --panel:#3A2530;
+  --ink:#2A151C;
+  --muted:#B08CA0;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{
+  background:var(--bg);
+  color:var(--paper);
+  font-family:"PingFang SC","Microsoft YaHei","Hiragino Sans GB",sans-serif;
+  overflow:hidden;
+}
+.stage{position:relative;width:100%;height:100vh}
+.curtain{
+  position:absolute;top:0;bottom:0;width:230px;
+  background:linear-gradient(90deg,#5C1220 0%,var(--curtain) 22%,#A8283B 38%,var(--curtain) 52%,#6E1424 74%,#4A0E1A 100%);
+  box-shadow:inset -24px 0 48px rgba(0,0,0,.55);
+  z-index:2;
+}
+.curtain.left{left:0}
+.curtain.right{right:0;transform:scaleX(-1)}
+.curtain::after{
+  content:"";position:absolute;left:0;right:0;bottom:0;height:26px;
+  background:repeating-linear-gradient(90deg,var(--gold) 0 14px,#B08D4C 14px 28px);
+  opacity:.9;
+}
+.valance{
+  position:absolute;top:0;left:0;right:0;height:86px;z-index:3;
+  background:linear-gradient(180deg,#A8283B 0%,var(--curtain) 55%,#6E1424 100%);
+  border-bottom:3px solid var(--gold);
+  box-shadow:0 10px 28px rgba(0,0,0,.5);
+  display:flex;align-items:center;justify-content:space-between;padding:0 34px;
+}
+.valance .brand{display:flex;align-items:center;gap:14px}
+.valance .brand svg{width:34px;height:34px}
+.valance .brand .name{font-size:19px;font-weight:700;letter-spacing:4px}
+.valance .brand .sub{font-size:11px;color:var(--gold);letter-spacing:2px;margin-top:2px}
+.valance .hall{font-size:12px;color:var(--gold);letter-spacing:2px;text-align:right;line-height:1.7}
+.rod{
+  position:absolute;top:86px;left:0;right:0;height:10px;z-index:4;
+  background:linear-gradient(180deg,#F0D68A,var(--gold) 55%,#8F6E2C);
+}
+.center{
+  position:absolute;inset:0;z-index:5;
+  display:flex;align-items:center;justify-content:center;
+  padding:120px 250px 48px;
+}
+.program{
+  width:620px;background:var(--paper);color:var(--ink);
+  border:1px solid var(--gold);
+  box-shadow:0 0 0 6px rgba(216,180,90,.16),0 32px 80px rgba(0,0,0,.6);
+  padding:34px 40px 30px;position:relative;
+}
+.program::before{
+  content:"";position:absolute;inset:8px;border:1px solid rgba(216,180,90,.65);
+  pointer-events:none;
+}
+.program .kicker{
+  text-align:center;font-size:12px;letter-spacing:6px;color:var(--curtain);font-weight:700;
+}
+.program h1{
+  text-align:center;font-size:26px;font-weight:800;letter-spacing:3px;margin:10px 0 4px;
+}
+.program .orn{display:flex;align-items:center;gap:10px;margin:14px 0 18px}
+.program .orn .line{flex:1;height:1px;background:var(--gold)}
+.program .orn .dot{width:7px;height:7px;background:var(--gold);transform:rotate(45deg)}
+.meta{border:1px solid rgba(216,180,90,.55);background:rgba(216,180,90,.08)}
+.meta .row{
+  display:flex;justify-content:space-between;align-items:baseline;
+  padding:11px 18px;border-bottom:1px dashed rgba(216,180,90,.5);
+  font-size:14px;
+}
+.meta .row:last-child{border-bottom:none}
+.meta .k{color:#6B5A44;letter-spacing:2px;font-size:13px}
+.meta .v{font-weight:700;letter-spacing:1px}
+.meta .v.warn{color:var(--curtain)}
+.consequence{
+  margin:18px 0 16px;padding:14px 18px;
+  background:rgba(142,30,46,.08);border-left:3px solid var(--curtain);
+  font-size:14px;line-height:1.9;color:#4A2530;
+}
+.consequence b{color:var(--curtain)}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:12px;letter-spacing:2px;color:#6B5A44;margin-bottom:7px}
+.field input[type=text]{
+  width:100%;padding:11px 14px;font-size:15px;letter-spacing:1px;
+  border:1px solid #C9B896;background:#FFFDF6;color:var(--ink);outline:none;
+  transition:border-color .18s ease,box-shadow .18s ease;
+}
+.field input[type=text]:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(216,180,90,.3)}
+.field input::placeholder{color:#B9A98D}
+.check{
+  display:flex;align-items:flex-start;gap:10px;cursor:pointer;user-select:none;
+  font-size:13px;line-height:1.7;color:#4A2530;margin-bottom:20px;
+}
+.check input{position:absolute;opacity:0;width:0;height:0}
+.check .box{
+  flex:none;width:18px;height:18px;margin-top:2px;
+  border:1.5px solid var(--gold);background:#FFFDF6;position:relative;
+  transition:background .15s ease;
+}
+.check input:checked + .box{background:var(--curtain);border-color:var(--curtain)}
+.check input:checked + .box::after{
+  content:"";position:absolute;left:5px;top:2px;width:5px;height:9px;
+  border:solid var(--paper);border-width:0 2px 2px 0;transform:rotate(42deg);
+}
+.check input:focus-visible + .box{box-shadow:0 0 0 3px rgba(216,180,90,.45)}
+.actions{display:flex;gap:16px}
+.btn{
+  flex:1;padding:14px 0;font-size:15px;font-weight:700;letter-spacing:4px;
+  cursor:pointer;transition:transform .15s ease,box-shadow .15s ease,background .15s ease;
+  font-family:inherit;
+}
+.btn-back{
+  background:transparent;color:var(--ink);border:1px solid #A89371;
+}
+.btn-back:hover{background:rgba(216,180,90,.14)}
+.btn-back:focus-visible{box-shadow:0 0 0 3px rgba(216,180,90,.45);outline:none}
+.btn-confirm{
+  background:linear-gradient(180deg,#F0D68A,var(--gold) 60%,#BE9A44);
+  color:var(--ink);border:1px solid #8F6E2C;
+  box-shadow:0 6px 18px rgba(216,180,90,.35);
+}
+.btn-confirm:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 10px 24px rgba(216,180,90,.5)}
+.btn-confirm:focus-visible{box-shadow:0 0 0 3px rgba(142,30,46,.5);outline:none}
+.btn-confirm:disabled{
+  background:#CFC3AE;color:#8F8471;border-color:#B9AC92;box-shadow:none;cursor:not-allowed;
+}
+.lockline{
+  margin-top:14px;text-align:center;font-size:12px;color:#8A7360;letter-spacing:1px;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+}
+.lockline svg{width:14px;height:14px}
+/* 成功遮罩 */
+.overlay{
+  position:fixed;inset:0;z-index:50;display:none;
+  background:rgba(15,9,12,.78);
+  align-items:center;justify-content:center;
+}
+.overlay.show{display:flex}
+.overlay .card{
+  width:420px;background:var(--paper);color:var(--ink);text-align:center;
+  border:1px solid var(--gold);padding:38px 36px 30px;
+  box-shadow:0 0 0 6px rgba(216,180,90,.18),0 40px 90px rgba(0,0,0,.7);
+}
+.overlay .seal{
+  width:64px;height:64px;margin:0 auto 16px;border-radius:50%;
+  background:var(--curtain);display:flex;align-items:center;justify-content:center;
+}
+.overlay .seal svg{width:30px;height:30px}
+.overlay h2{font-size:22px;letter-spacing:4px;margin-bottom:10px}
+.overlay p{font-size:13px;line-height:1.9;color:#5C4632;margin-bottom:22px}
+.overlay .btn-confirm{flex:none;width:100%}
+/* 侧幕拉开动画 */
+@keyframes openLeft{to{transform:translateX(-86%)}}
+@keyframes openRight{to{transform:scaleX(-1) translateX(-86%)}}
+.curtain.left.opening{animation:openLeft 1.2s cubic-bezier(.7,0,.3,1) forwards}
+.curtain.right.opening{animation:openRight 1.2s cubic-bezier(.7,0,.3,1) forwards}
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation-duration:.01ms !important;transition-duration:.01ms !important}
+}
+@media (max-width: 900px){
+  .curtain{width:54px}
+  .center{padding:110px 70px 32px}
+  .program{width:100%;max-width:560px;padding:26px 22px 22px}
+  .valance .hall{display:none}
+  .actions{flex-direction:column}
+}
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="curtain left" id="curtainL"></div>
+  <div class="curtain right" id="curtainR"></div>
+  <header class="valance">
+    <div class="brand">
+      <svg viewBox="0 0 40 40"><path d="M6 4h28v6H6z" fill="#D8B45A"/><path d="M8 10c0 10 4 18 12 22C12 30 10 20 8 10z" fill="#F4EAD8"/><path d="M32 10c0 10-4 18-12 22 8-2 10-12 12-22z" fill="#F4EAD8"/><circle cx="20" cy="34" r="3" fill="#D8B45A"/></svg>
+      <div>
+        <div class="name">幕布剧院</div>
+        <div class="sub">CURTAIN THEATRE · 演出管理台</div>
+      </div>
+    </div>
+    <div class="hall">上海 · 黄浦大剧场<br>2025 秋冬演出季 · 第 7 场</div>
+  </header>
+  <div class="rod"></div>
+
+  <main class="center">
+    <section class="program" aria-label="发布确认节目单">
+      <div class="kicker">开演前 · 最后确认</div>
+      <h1>确认发布《雷雨》本轮演出</h1>
+      <div class="orn"><span class="line"></span><span class="dot"></span><span class="line"></span></div>
+
+      <div class="meta">
+        <div class="row"><span class="k">剧目</span><span class="v">话剧《雷雨》 · 明星版</span></div>
+        <div class="row"><span class="k">演出时间</span><span class="v">2025-11-21（周五）19:30</span></div>
+        <div class="row"><span class="k">发布渠道</span><span class="v">官方小程序 · 大麦 · 猫眼同步上架</span></div>
+        <div class="row"><span class="k">已售门票</span><span class="v warn">已锁定 1,186 张 · 不可回收</span></div>
+      </div>
+
+      <div class="consequence">
+        <b>后果须知：</b>按下「确认发布」后，本场演出立即对外公开售票，已锁定的 1,186 张门票同步出票。发布不可整单撤销，如需变更只能走「延期 / 退票」流程并产生手续费。
+      </div>
+
+      <div class="field">
+        <label for="showName">输入剧目名「雷雨」以确认身份</label>
+        <input type="text" id="showName" placeholder="请输入：雷雨" autocomplete="off">
+      </div>
+
+      <label class="check">
+        <input type="checkbox" id="knowCheck">
+        <span class="box"></span>
+        <span>我已知晓：发布后演出立即公开，门票不可回收，变更需走延期 / 退票流程。</span>
+      </label>
+
+      <div class="actions">
+        <button class="btn btn-back" id="btnBack" type="button">返回修改</button>
+        <button class="btn btn-confirm" id="btnConfirm" type="button" disabled>确认发布</button>
+      </div>
+
+      <div class="lockline">
+        <svg viewBox="0 0 24 24"><path d="M7 10V7a5 5 0 0 1 10 0v3" fill="none" stroke="#8A7360" stroke-width="2"/><rect x="5" y="10" width="14" height="10" fill="none" stroke="#8A7360" stroke-width="2"/></svg>
+        <span>完成「输入剧目名」并勾选须知后，确认按钮才会点亮</span>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="card">
+    <div class="seal">
+      <svg viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5" fill="none" stroke="#F4EAD8" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <h2>大幕已启</h2>
+    <p>《雷雨》2025-11-21 19:30 场次已发布至全部渠道，<br>1,186 张门票已同步出票。票务总监将于 10 分钟内收到回执。</p>
+    <button class="btn btn-confirm" id="btnDone" type="button">知道了</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  var nameInput = document.getElementById('showName');
+  var check = document.getElementById('knowCheck');
+  var confirmBtn = document.getElementById('btnConfirm');
+  var backBtn = document.getElementById('btnBack');
+  var overlay = document.getElementById('overlay');
+  var doneBtn = document.getElementById('btnDone');
+  var curtainL = document.getElementById('curtainL');
+  var curtainR = document.getElementById('curtainR');
+
+  function refresh(){
+    var ok = nameInput.value.trim() === '雷雨' && check.checked;
+    confirmBtn.disabled = !ok;
+  }
+  nameInput.addEventListener('input', refresh);
+  check.addEventListener('change', refresh);
+
+  confirmBtn.addEventListener('click', function(){
+    if (confirmBtn.disabled) { return; }
+    curtainL.classList.add('opening');
+    curtainR.classList.add('opening');
+    overlay.classList.add('show');
+  });
+
+  backBtn.addEventListener('click', function(){
+    nameInput.value = '';
+    check.checked = false;
+    refresh();
+    nameInput.focus();
+  });
+
+  doneBtn.addEventListener('click', function(){
+    overlay.classList.remove('show');
+    curtainL.classList.remove('opening');
+    curtainR.classList.remove('opening');
+    nameInput.value = '';
+    check.checked = false;
+    refresh();
+  });
+
+  refresh();
+})();
+</script>
+</body>
+</html>

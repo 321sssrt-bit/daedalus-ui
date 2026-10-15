@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>试剂检索台 · 澄明试剂库</title>
+<style>
+:root{
+  --page:#FBFCFD;
+  --teal:#14808C;
+  --ink:#182225;
+  --muted:#5D6B70;
+  --line:#DDE5E7;
+  --amber:#C25E10;
+  --panel:#FFFFFF;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{
+  background:var(--page);color:var(--ink);
+  font-family:"PingFang SC","Microsoft YaHei","Segoe UI",sans-serif;
+  min-height:100vh;padding:28px 40px 56px;
+}
+.mono{font-family:"Courier New",Consolas,monospace;}
+.ruler{
+  height:22px;margin-bottom:2px;
+  background:
+    repeating-linear-gradient(90deg,var(--muted) 0 1px,transparent 1px 10px),
+    repeating-linear-gradient(90deg,var(--muted) 0 1px,transparent 1px 50px);
+  background-size:100% 8px,100% 14px;
+  background-position:bottom left,bottom left;
+  background-repeat:repeat-x;
+  opacity:.55;
+}
+.ruler-scale{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);letter-spacing:1px;margin-bottom:18px;}
+.topbar{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid var(--teal);padding-bottom:14px;margin-bottom:24px;}
+.topbar h1{font-size:24px;font-weight:700;letter-spacing:3px;color:var(--teal);}
+.topbar .sub{font-size:12px;color:var(--muted);margin-top:4px;letter-spacing:1px;}
+.topbar .who{font-size:12px;color:var(--muted);text-align:right;line-height:1.8;}
+.layout{display:grid;grid-template-columns:300px 1fr;gap:24px;align-items:start;}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:hidden;}
+.card-head{padding:14px 20px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;}
+.card-head h2{font-size:15px;font-weight:700;letter-spacing:2px;}
+.fgroup{padding:16px 20px;border-bottom:1px solid var(--line);}
+.fgroup:last-of-type{border-bottom:none;}
+.fgroup h3{font-size:12px;color:var(--muted);font-weight:400;letter-spacing:2px;margin-bottom:10px;}
+select,input[type=text]{
+  width:100%;font-family:inherit;font-size:13px;color:var(--ink);
+  background:#fff;border:1px solid var(--line);border-radius:4px;padding:9px 12px;
+  transition:border-color .15s ease,box-shadow .15s ease;
+}
+select:hover,input[type=text]:hover{border-color:var(--muted);}
+select:focus,input[type=text]:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 3px rgba(20,128,140,.15);}
+.chk{display:flex;align-items:center;gap:8px;font-size:13px;padding:5px 0;cursor:pointer;}
+.chk input{accent-color:var(--teal);width:15px;height:15px;}
+.radio{display:flex;align-items:center;gap:8px;font-size:13px;padding:5px 0;cursor:pointer;}
+.radio input{accent-color:var(--teal);width:15px;height:15px;}
+.range-wrap{padding-top:2px;}
+input[type=range]{width:100%;accent-color:var(--teal);cursor:pointer;}
+.range-val{font-size:13px;font-weight:700;color:var(--teal);margin-top:4px;}
+.btn{font-family:inherit;cursor:pointer;border-radius:4px;font-size:13px;padding:10px 20px;letter-spacing:2px;transition:background .18s ease,border-color .18s ease,color .18s ease;}
+.btn-clear{background:transparent;color:var(--amber);border:1px solid var(--amber);width:100%;}
+.btn-clear:hover{background:rgba(194,94,16,.08);}
+.btn-clear:focus-visible{outline:2px solid var(--teal);outline-offset:2px;}
+.count-bar{padding:14px 20px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:baseline;background:#F4F8F9;}
+.count-bar .n{font-size:14px;}
+.count-bar .n b{color:var(--teal);font-size:20px;font-family:"Courier New",Consolas,monospace;}
+.count-bar .stamp{font-size:11px;color:var(--muted);letter-spacing:1px;}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+thead th{background:#F4F8F9;font-size:12px;color:var(--muted);font-weight:400;letter-spacing:2px;padding:10px 16px;text-align:left;border-bottom:1px solid var(--line);}
+tbody td{padding:13px 16px;border-bottom:1px solid var(--line);vertical-align:middle;}
+tbody tr{transition:background .15s ease;}
+tbody tr:hover{background:#F4FAFB;}
+.rname{font-weight:700;font-size:14px;}
+.rcas{font-size:11px;color:var(--muted);margin-top:2px;}
+.tag{display:inline-block;font-size:11px;letter-spacing:1px;border-radius:3px;padding:2px 8px;}
+.tag-cat{color:var(--teal);border:1px solid var(--teal);}
+.risk-1{color:#2E7D32;border:1px solid #2E7D32;}
+.risk-2{color:var(--amber);border:1px solid var(--amber);}
+.risk-3{color:#C0392B;border:1px solid #C0392B;}
+.stock-ok{color:#2E7D32;font-size:12px;letter-spacing:1px;}
+.stock-low{color:var(--amber);font-size:12px;letter-spacing:1px;}
+.stock-out{color:#C0392B;font-size:12px;letter-spacing:1px;}
+.use{
+  background:none;border:1px solid var(--line);border-radius:4px;color:var(--teal);
+  font-size:12px;padding:6px 14px;cursor:pointer;font-family:inherit;letter-spacing:2px;
+  transition:border-color .15s ease,background .15s ease;
+}
+.use:hover{border-color:var(--teal);background:rgba(20,128,140,.06);}
+.use:focus-visible{outline:2px solid var(--teal);outline-offset:2px;}
+.use[disabled]{color:var(--muted);border-color:var(--line);cursor:not-allowed;background:none;}
+.empty{padding:40px;text-align:center;font-size:13px;color:var(--muted);letter-spacing:1px;display:none;}
+.toast{
+  position:fixed;left:50%;bottom:34px;transform:translateX(-50%) translateY(20px);
+  background:var(--ink);color:var(--page);font-size:13px;letter-spacing:2px;
+  padding:11px 26px;border-radius:4px;opacity:0;pointer-events:none;z-index:30;
+  transition:opacity .22s ease,transform .22s ease;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+@media (max-width:900px){
+  body{padding:16px;}
+  .layout{grid-template-columns:1fr;}
+  thead th:nth-child(3),tbody td:nth-child(3){display:none;}
+  .topbar{flex-direction:column;align-items:flex-start;gap:6px;}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{transition-duration:.01ms !important;animation-duration:.01ms !important;}
+}
+</style>
+</head>
+<body>
+<div class="ruler"></div>
+<div class="ruler-scale mono"><span>0</span><span>25</span><span>50</span><span>75</span><span>100 mL</span></div>
+<header class="topbar">
+  <div>
+    <h1>澄明试剂库 · 检索台</h1>
+    <div class="sub">分析化学实验室 · 在库试剂联合检索（数据同步于今日 08:30）</div>
+  </div>
+  <div class="who">检索人：分析组 · 温书仪<br>权限等级：可领用 ≤ 500mL</div>
+</header>
+
+<div class="layout">
+  <aside class="card">
+    <div class="card-head"><h2>过滤条件</h2><span style="font-size:11px;color:var(--muted);letter-spacing:1px;">FILTER</span></div>
+    <div class="fgroup">
+      <h3>关键词</h3>
+      <input type="text" id="kw" placeholder="试剂名 / 货号 / CAS 号">
+    </div>
+    <div class="fgroup">
+      <h3>类别</h3>
+      <select id="cat">
+        <option value="all" selected>全部类别</option>
+        <option value="酸类">酸类</option>
+        <option value="碱类">碱类</option>
+        <option value="盐类">盐类</option>
+        <option value="指示剂">指示剂</option>
+      </select>
+    </div>
+    <div class="fgroup">
+      <h3>危险等级</h3>
+      <label class="chk"><input type="checkbox" class="riskChk" value="1" checked>Ⅰ级 · 低危</label>
+      <label class="chk"><input type="checkbox" class="riskChk" value="2" checked>Ⅱ级 · 中危</label>
+      <label class="chk"><input type="checkbox" class="riskChk" value="3" checked>Ⅲ级 · 高危（需双人复核）</label>
+    </div>
+    <div class="fgroup">
+      <h3>库存状态</h3>
+      <label class="radio"><input type="radio" name="stock" value="all" checked>全部</label>
+      <label class="radio"><input type="radio" name="stock" value="ok">有货</label>
+      <label class="radio"><input type="radio" name="stock" value="low">紧缺</label>
+      <label class="radio"><input type="radio" name="stock" value="out">缺货</label>
+    </div>
+    <div class="fgroup">
+      <h3>纯度下限</h3>
+      <div class="range-wrap">
+        <input type="range" id="purity" min="95" max="99.9" step="0.1" value="95">
+        <div class="range-val">≥ <span id="purityVal">95.0</span>%</div>
+      </div>
+    </div>
+    <div class="fgroup">
+      <button class="btn btn-clear" id="clearBtn">清除全部条件</button>
+    </div>
+  </aside>
+
+  <main class="card">
+    <div class="count-bar">
+      <span class="n">命中 <b id="hitCount">8</b> 条 / 在库共 8 条</span>
+      <span class="stamp">烧杯刻度仅供参考 · 取用请戴护具</span>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>试剂 / 货号</th>
+          <th style="width:90px;">类别</th>
+          <th style="width:80px;">纯度</th>
+          <th style="width:90px;">危险等级</th>
+          <th style="width:120px;">库存</th>
+          <th style="width:110px;">操作</th>
+        </tr>
+      </thead>
+      <tbody id="rows"></tbody>
+    </table>
+    <div class="empty" id="emptyTip">当前条件下无命中试剂，请放宽过滤条件</div>
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+var ITEMS=[
+  {name:"盐酸（优级纯）",no:"CM-HCl-036",cas:"7647-01-0",cat:"酸类",purity:99.8,risk:2,stock:"ok",qty:"4.5L"},
+  {name:"硫酸（分析纯）",no:"CM-H2SO4-012",cas:"7664-93-9",cat:"酸类",purity:98.0,risk:3,stock:"low",qty:"600mL"},
+  {name:"氢氧化钠（片状）",no:"CM-NaOH-027",cas:"1310-73-2",cat:"碱类",purity:99.0,risk:2,stock:"ok",qty:"2.0kg"},
+  {name:"氨水（25%）",no:"CM-NH3-008",cas:"1336-21-6",cat:"碱类",purity:99.5,risk:2,stock:"out",qty:"0mL"},
+  {name:"氯化钠（基准试剂）",no:"CM-NaCl-104",cas:"7647-14-5",cat:"盐类",purity:99.9,risk:1,stock:"ok",qty:"1.2kg"},
+  {name:"无水碳酸钠",no:"CM-Na2CO3-061",cas:"497-19-8",cat:"盐类",purity:99.7,risk:1,stock:"low",qty:"380g"},
+  {name:"酚酞指示液",no:"CM-PP-210",cas:"77-09-8",cat:"指示剂",purity:98.5,risk:1,stock:"ok",qty:"900mL"},
+  {name:"甲基橙指示液",no:"CM-MO-233",cas:"547-58-0",cat:"指示剂",purity:96.0,risk:2,stock:"out",qty:"0mL"}
+];
+var STOCK_TEXT={ok:["stock-ok","有货"],low:["stock-low","紧缺"],out:["stock-out","缺货"]};
+function showToast(msg){
+  var t=document.getElementById("toast");
+  t.textContent=msg;t.classList.add("show");
+  setTimeout(function(){t.classList.remove("show");},2200);
+}
+function getFilters(){
+  var risks=[];
+  document.querySelectorAll(".riskChk:checked").forEach(function(c){risks.push(c.value);});
+  var stock="all";
+  var s=document.querySelector('input[name="stock"]:checked');
+  if(s)stock=s.value;
+  return {
+    kw:document.getElementById("kw").value.trim().toLowerCase(),
+    cat:document.getElementById("cat").value,
+    risks:risks,
+    stock:stock,
+    purity:parseFloat(document.getElementById("purity").value)
+  };
+}
+function apply(){
+  var f=getFilters();
+  var hits=ITEMS.filter(function(it){
+    if(f.kw){
+      var hay=(it.name+it.no+it.cas).toLowerCase();
+      if(hay.indexOf(f.kw)===-1)return false;
+    }
+    if(f.cat!=="all"&&it.cat!==f.cat)return false;
+    if(f.risks.indexOf(String(it.risk))===-1)return false;
+    if(f.stock!=="all"&&it.stock!==f.stock)return false;
+    if(it.purity<f.purity)return false;
+    return true;
+  });
+  document.getElementById("hitCount").textContent=hits.length;
+  document.getElementById("emptyTip").style.display=hits.length?"none":"block";
+  var html="";
+  hits.forEach(function(it){
+    var st=STOCK_TEXT[it.stock];
+    html+='<tr>'
+      +'<td><div class="rname">'+it.name+'</div><div class="rcas mono">'+it.no+' · CAS '+it.cas+'</div></td>'
+      +'<td><span class="tag tag-cat">'+it.cat+'</span></td>'
+      +'<td class="mono">'+it.purity.toFixed(1)+'%</td>'
+      +'<td><span class="tag risk-'+it.risk+'">'+["","Ⅰ 低危","Ⅱ 中危","Ⅲ 高危"][it.risk]+'</span></td>'
+      +'<td><span class="'+st[0]+'">'+st[1]+' '+it.qty+'</span></td>'
+      +'<td><button class="use" data-name="'+it.name+'" '+(it.stock==="out"?"disabled":"")+'>'+(it.stock==="out"?"缺货":"领用申请")+'</button></td>'
+      +'</tr>';
+  });
+  document.getElementById("rows").innerHTML=html;
+}
+document.getElementById("kw").addEventListener("input",apply);
+document.getElementById("cat").addEventListener("change",apply);
+document.querySelectorAll(".riskChk").forEach(function(c){c.addEventListener("change",apply);});
+document.querySelectorAll('input[name="stock"]').forEach(function(r){r.addEventListener("change",apply);});
+document.getElementById("purity").addEventListener("input",function(){
+  document.getElementById("purityVal").textContent=parseFloat(this.value).toFixed(1);
+  apply();
+});
+document.getElementById("clearBtn").addEventListener("click",function(){
+  document.getElementById("kw").value="";
+  document.getElementById("cat").value="all";
+  document.querySelectorAll(".riskChk").forEach(function(c){c.checked=true;});
+  document.querySelector('input[name="stock"][value="all"]').checked=true;
+  document.getElementById("purity").value=95;
+  document.getElementById("purityVal").textContent="95.0";
+  apply();
+  showToast("过滤条件已复位，显示全部在库试剂");
+});
+document.getElementById("rows").addEventListener("click",function(e){
+  var btn=e.target.closest(".use");
+  if(!btn||btn.disabled)return;
+  showToast("「"+btn.getAttribute("data-name")+"」领用单已提交至库房");
+});
+apply();
+</script>
+</body>
+</html>

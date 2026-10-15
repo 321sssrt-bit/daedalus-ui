@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>权限签证处 · 远牍协作云</title>
+<style>
+:root{
+  --page:#F2F4F7;
+  --navy:#1B2A4A;
+  --red:#B03A2E;
+  --muted:#66707F;
+  --line:#D5DBE3;
+  --panel:#FFFFFF;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{
+  background:var(--page);color:var(--navy);
+  font-family:"PingFang SC","Microsoft YaHei","Segoe UI",sans-serif;
+  min-height:100vh;padding:28px 40px 48px;
+}
+.topbar{
+  display:flex;justify-content:space-between;align-items:center;
+  background:var(--navy);color:#F2F4F7;border-radius:6px 6px 0 0;
+  padding:18px 28px;
+}
+.topbar .title{font-size:20px;font-weight:700;letter-spacing:4px;}
+.topbar .doc{font-size:12px;color:#D5DBE3;letter-spacing:1px;font-family:"Courier New",Consolas,monospace;}
+.strip{
+  background:#E9EDF3;border:1px solid var(--line);border-top:none;
+  padding:8px 28px;font-size:12px;color:var(--muted);letter-spacing:1px;
+  display:flex;justify-content:space-between;margin-bottom:24px;
+}
+.layout{display:grid;grid-template-columns:300px 1fr;gap:24px;align-items:start;}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:6px;overflow:hidden;}
+.card-head{
+  padding:14px 20px;border-bottom:1px solid var(--line);
+  display:flex;justify-content:space-between;align-items:center;
+}
+.card-head h2{font-size:15px;font-weight:700;letter-spacing:2px;}
+.card-head .code{font-size:11px;color:var(--muted);font-family:"Courier New",Consolas,monospace;}
+.role{display:flex;gap:12px;padding:16px 20px;border-bottom:1px solid var(--line);cursor:pointer;transition:background .15s ease;position:relative;}
+.role:hover{background:#F7F9FC;}
+.role.active{background:#EEF2F8;}
+.role.active::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--red);}
+.role .badge{
+  width:40px;height:40px;border-radius:4px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:15px;font-weight:700;color:#fff;letter-spacing:0;
+}
+.role .name{font-size:14px;font-weight:700;}
+.role .desc{font-size:12px;color:var(--muted);margin-top:3px;line-height:1.5;}
+.role .count{font-size:11px;color:var(--muted);margin-top:4px;font-family:"Courier New",Consolas,monospace;}
+.toolbar{padding:14px 20px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+.preview-toggle{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);cursor:pointer;user-select:none;}
+.switch{width:36px;height:20px;border-radius:10px;background:#C3CAD4;position:relative;transition:background .18s ease;}
+.switch::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;transition:left .18s ease;}
+.preview-toggle input{display:none;}
+.preview-toggle input:checked + .switch{background:var(--navy);}
+.preview-toggle input:checked + .switch::after{left:18px;}
+.preview-banner{
+  display:none;margin:0 20px;padding:10px 16px;border:1px dashed var(--red);
+  border-radius:4px;background:rgba(176,58,46,.05);font-size:12px;color:var(--red);
+  letter-spacing:1px;
+}
+.preview-banner.show{display:block;}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+thead th{
+  background:#F7F9FC;font-size:12px;color:var(--muted);font-weight:400;letter-spacing:2px;
+  padding:10px 16px;text-align:left;border-bottom:1px solid var(--line);
+}
+thead th.perm,tbody td.perm{text-align:center;width:96px;}
+tbody td{padding:12px 16px;border-bottom:1px solid var(--line);vertical-align:middle;}
+tbody tr:last-child td{border-bottom:none;}
+.mod-name{font-weight:700;font-size:14px;}
+.mod-desc{font-size:12px;color:var(--muted);margin-top:2px;}
+.chk{
+  width:20px;height:20px;border:1.5px solid var(--muted);border-radius:3px;
+  display:inline-flex;align-items:center;justify-content:center;cursor:pointer;
+  background:#fff;transition:background .15s ease,border-color .15s ease;vertical-align:middle;
+}
+.chk svg{display:none;}
+.chk.on{background:var(--navy);border-color:var(--navy);}
+.chk.on svg{display:block;}
+.chk:hover{border-color:var(--navy);}
+.chk:focus-visible{outline:2px solid var(--red);outline-offset:2px;}
+.chk.locked{cursor:not-allowed;opacity:.55;}
+.scope-tag{font-size:11px;color:var(--muted);border:1px solid var(--line);border-radius:2px;padding:2px 7px;letter-spacing:1px;}
+.foot{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:16px 20px;border-top:1px solid var(--line);background:#F7F9FC;
+}
+.dirty-note{font-size:12px;color:var(--red);letter-spacing:1px;visibility:hidden;}
+.dirty-note.show{visibility:visible;}
+.btn{font-family:inherit;cursor:pointer;border-radius:4px;font-size:13px;padding:10px 22px;letter-spacing:2px;transition:background .18s ease,border-color .18s ease,color .18s ease;}
+.btn-primary{background:var(--navy);color:#fff;border:1px solid var(--navy);}
+.btn-primary:hover{background:#14203A;}
+.btn-primary:focus-visible{outline:2px solid var(--red);outline-offset:2px;}
+.btn-primary[disabled]{background:#8B94A3;border-color:#8B94A3;cursor:not-allowed;}
+.btn-ghost{background:transparent;color:var(--navy);border:1px solid var(--line);}
+.btn-ghost:hover{border-color:var(--navy);}
+.btn-ghost:focus-visible{outline:2px solid var(--red);outline-offset:2px;}
+.seal-mini{
+  display:inline-flex;align-items:center;justify-content:center;
+  border:2px solid var(--red);color:var(--red);border-radius:4px;
+  font-size:12px;font-weight:700;letter-spacing:2px;padding:4px 10px;transform:rotate(-4deg);
+}
+.toast{
+  position:fixed;left:50%;bottom:34px;transform:translateX(-50%) translateY(20px);
+  background:var(--navy);color:#F2F4F7;font-size:13px;letter-spacing:2px;
+  padding:11px 26px;border-radius:4px;opacity:0;pointer-events:none;
+  transition:opacity .22s ease,transform .22s ease;z-index:30;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+@media (max-width:900px){
+  body{padding:16px;}
+  .layout{grid-template-columns:1fr;}
+  thead th.perm,tbody td.perm{width:64px;padding-left:4px;padding-right:4px;}
+  .topbar{flex-direction:column;align-items:flex-start;gap:6px;}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{transition-duration:.01ms !important;animation-duration:.01ms !important;}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="topbar">
+    <div>
+      <div class="title">权限签证处</div>
+      <div class="doc" style="margin-top:4px;">远牍协作云 · 角色与权限核准台</div>
+    </div>
+    <div class="doc">公文编号 YD-AC-2026-0114 · 密级：内部</div>
+  </div>
+  <div class="strip">
+    <span>本页变更须经系统大使复核后方可生效</span>
+    <span>核准时区 UTC+8 · 办事员：顾北辰</span>
+  </div>
+</header>
+
+<div class="layout">
+  <aside class="card">
+    <div class="card-head"><h2>在册角色</h2><span class="code">4 枚签章</span></div>
+    <div id="roleList"></div>
+  </aside>
+
+  <main class="card">
+    <div class="card-head">
+      <h2 id="matrixTitle">权限核准表</h2>
+      <span class="seal-mini" id="roleSeal">大使</span>
+    </div>
+    <div class="toolbar">
+      <label class="preview-toggle">
+        <input type="checkbox" id="previewChk">
+        <span class="switch"></span>
+        以该角色身份预览界面
+      </label>
+      <span style="font-size:12px;color:var(--muted);" id="permSummary"></span>
+    </div>
+    <div style="padding:12px 0 0;">
+      <div class="preview-banner" id="previewBanner"></div>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>业务模块</th>
+          <th class="perm">查阅</th>
+          <th class="perm">经办</th>
+          <th class="perm">签发</th>
+          <th class="perm">核销</th>
+          <th style="width:120px;">适用范围</th>
+        </tr>
+      </thead>
+      <tbody id="matrixRows"></tbody>
+    </table>
+    <div class="foot">
+      <span class="dirty-note" id="dirtyNote">有未核准的改动，保存后方可用印生效</span>
+      <div style="display:flex;gap:10px;">
+        <button class="btn btn-ghost" id="resetBtn">还原改动</button>
+        <button class="btn btn-primary" id="saveBtn" disabled>用印保存</button>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+var MODULES=[
+  {name:"文牍管理",desc:"公文起草、流转与归档"},
+  {name:"成员名册",desc:"账号、席位与组织名录"},
+  {name:"库藏财务",desc:"预算、费用与票据核销"},
+  {name:"外务发布",desc:"对公告示与门户内容"},
+  {name:"稽核日志",desc:"操作留痕与安全审计"}
+];
+var PERM_NAMES=["查阅","经办","签发","核销"];
+var ROLES=[
+  {key:"ambassador",name:"系统大使",mark:"使",color:"#1B2A4A",desc:"最高签章权限，统管全部模块与角色任免",count:"在编 2 人",scope:"全馆",
+   perms:[[1,1,1,1],[1,1,1,1],[1,1,1,1],[1,1,1,1],[1,1,1,1]]},
+  {key:"counselor",name:"内容参赞",mark:"赞",color:"#3A5BA9",desc:"主管文牍与外务发布，可签发对外公示",count:"在编 5 人",scope:"本司",
+   perms:[[1,1,1,1],[1,0,0,0],[1,0,0,0],[1,1,1,0],[1,0,0,0]]},
+  {key:"attache",name:"财务随员",mark:"随",color:"#0F7B6C",desc:"经办库藏财务与票据核销，查阅名册",count:"在编 3 人",scope:"本司",
+   perms:[[1,0,0,0],[1,0,0,0],[1,1,0,1],[0,0,0,0],[1,0,0,0]]},
+  {key:"probationer",name:"见习专员",mark:"习",color:"#66707F",desc:"仅可查阅已公示内容，不参与经办",count:"在编 14 人",scope:"本人",
+   perms:[[1,0,0,0],[0,0,0,0],[0,0,0,0],[1,0,0,0],[0,0,0,0]]}
+];
+var cur=0;
+var draft=null;
+function clonePerms(m){return m.map(function(r){return r.slice();});}
+function showToast(msg){
+  var t=document.getElementById("toast");
+  t.textContent=msg;t.classList.add("show");
+  setTimeout(function(){t.classList.remove("show");},2200);
+}
+function renderRoles(){
+  var html="";
+  ROLES.forEach(function(r,i){
+    html+='<div class="role'+(i===cur?' active':'')+'" data-i="'+i+'">'
+      +'<div class="badge" style="background:'+r.color+';">'+r.mark+'</div>'
+      +'<div><div class="name">'+r.name+'</div>'
+      +'<div class="desc">'+r.desc+'</div>'
+      +'<div class="count">'+r.count+'</div></div></div>';
+  });
+  document.getElementById("roleList").innerHTML=html;
+}
+function renderMatrix(){
+  var r=ROLES[cur];
+  document.getElementById("roleSeal").textContent=r.mark+" · "+r.name;
+  document.getElementById("matrixTitle").textContent="权限核准表 · "+r.name;
+  var total=0;
+  draft.forEach(function(row){row.forEach(function(v){if(v)total++;});});
+  document.getElementById("permSummary").textContent="共 "+total+" / 20 项核准权限";
+  var html="";
+  MODULES.forEach(function(m,mi){
+    html+='<tr><td><div class="mod-name">'+m.name+'</div><div class="mod-desc">'+m.desc+'</div></td>';
+    for(var pi=0;pi<4;pi++){
+      var on=draft[mi][pi];
+      html+='<td class="perm"><span class="chk'+(on?' on':'')+'" data-m="'+mi+'" data-p="'+pi+'" tabindex="0" role="checkbox" aria-checked="'+(on?"true":"false")+'" aria-label="'+m.name+PERM_NAMES[pi]+'">'
+        +'<svg width="12" height="12" viewBox="0 0 12 12"><path d="M2 6.2 4.8 9 10 3.2" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>'
+        +'</span></td>';
+    }
+    html+='<td><span class="scope-tag">'+r.scope+'</span></td></tr>';
+  });
+  document.getElementById("matrixRows").innerHTML=html;
+  updatePreview();
+}
+function updatePreview(){
+  var on=document.getElementById("previewChk").checked;
+  var banner=document.getElementById("previewBanner");
+  if(!on){banner.classList.remove("show");return;}
+  var r=ROLES[cur];
+  var cans=[];
+  MODULES.forEach(function(m,mi){
+    var acts=[];
+    for(var pi=0;pi<4;pi++){if(draft[mi][pi])acts.push(PERM_NAMES[pi]);}
+    if(acts.length)cans.push(m.name+"（"+acts.join("、")+"）");
+  });
+  banner.textContent="预览中：「"+r.name+"」登录后可见 —— "+(cans.length?cans.join("；"):"无任何模块权限")+"。";
+  banner.classList.add("show");
+}
+function markDirty(){
+  document.getElementById("dirtyNote").classList.add("show");
+  document.getElementById("saveBtn").disabled=false;
+}
+document.getElementById("roleList").addEventListener("click",function(e){
+  var el=e.target.closest(".role");
+  if(!el)return;
+  cur=parseInt(el.getAttribute("data-i"),10);
+  draft=clonePerms(ROLES[cur].perms);
+  document.getElementById("dirtyNote").classList.remove("show");
+  document.getElementById("saveBtn").disabled=true;
+  renderRoles();renderMatrix();
+});
+document.getElementById("matrixRows").addEventListener("click",function(e){
+  var c=e.target.closest(".chk");
+  if(!c||c.classList.contains("locked"))return;
+  var mi=parseInt(c.getAttribute("data-m"),10);
+  var pi=parseInt(c.getAttribute("data-p"),10);
+  draft[mi][pi]=draft[mi][pi]?0:1;
+  renderMatrix();markDirty();
+});
+document.getElementById("matrixRows").addEventListener("keydown",function(e){
+  if(e.key!==" "&&e.key!=="Enter")return;
+  var c=e.target.closest(".chk");
+  if(!c)return;
+  e.preventDefault();c.click();
+});
+document.getElementById("previewChk").addEventListener("change",updatePreview);
+document.getElementById("resetBtn").addEventListener("click",function(){
+  draft=clonePerms(ROLES[cur].perms);
+  document.getElementById("dirtyNote").classList.remove("show");
+  document.getElementById("saveBtn").disabled=true;
+  renderMatrix();
+  showToast("已还原为上次核准的权限");
+});
+document.getElementById("saveBtn").addEventListener("click",function(){
+  ROLES[cur].perms=clonePerms(draft);
+  document.getElementById("dirtyNote").classList.remove("show");
+  document.getElementById("saveBtn").disabled=true;
+  showToast("「"+ROLES[cur].name+"」权限已用印保存，即时生效");
+});
+draft=clonePerms(ROLES[0].perms);
+renderRoles();renderMatrix();
+</script>
+</body>
+</html>

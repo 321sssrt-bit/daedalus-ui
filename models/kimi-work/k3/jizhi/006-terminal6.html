@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>终端六 · 二次安全核验</title>
+<style>
+:root{
+  --room:#061206;
+  --panel:#0B1F0B;
+  --phos:#33FF66;
+  --dim:#1F8F43;
+  --amber:#FFB000;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{min-height:100%}
+body{
+  background:var(--room);
+  color:var(--phos);
+  font-family:"Cascadia Mono","JetBrains Mono",Consolas,"Courier New",monospace;
+  display:flex;align-items:center;justify-content:center;
+  padding:40px 24px;
+}
+body::after{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:60;
+  background:repeating-linear-gradient(0deg, rgba(51,255,102,0.045) 0px, rgba(51,255,102,0.045) 1px, transparent 1px, transparent 4px);
+}
+.crt{
+  width:1040px;max-width:100%;
+  background:var(--panel);
+  border:1px solid var(--dim);
+  border-radius:8px;
+  box-shadow:0 0 0 1px rgba(51,255,102,0.12), 0 0 42px rgba(51,255,102,0.16), inset 0 0 80px rgba(6,18,6,0.55);
+  overflow:hidden;
+}
+.crt-bar{
+  display:flex;align-items:center;gap:12px;
+  padding:12px 18px;
+  border-bottom:1px solid var(--dim);
+  background:rgba(51,255,102,0.05);
+}
+.dot{width:11px;height:11px;border-radius:50%;border:1px solid var(--phos);display:inline-block}
+.dot.solid{background:var(--phos)}
+.crt-title{font-size:13px;letter-spacing:2px;color:var(--phos);text-shadow:0 0 6px rgba(51,255,102,0.6)}
+.crt-sess{margin-left:auto;font-size:12px;color:var(--dim)}
+.crt-body{padding:34px 42px 38px}
+.log{font-size:13px;line-height:1.9;color:var(--dim);margin-bottom:26px}
+.log b{color:var(--phos);font-weight:600}
+.log .ok{color:var(--phos)}
+.push{
+  border:1px dashed var(--amber);
+  color:var(--amber);
+  padding:12px 16px;
+  font-size:13px;
+  letter-spacing:1px;
+  margin-bottom:26px;
+  background:rgba(255,176,0,0.06);
+}
+.push .tag{border:1px solid var(--amber);padding:1px 8px;margin-right:10px;font-size:11px}
+h1{font-size:22px;letter-spacing:4px;margin-bottom:6px;text-shadow:0 0 8px rgba(51,255,102,0.55)}
+.sub{font-size:13px;color:var(--dim);margin-bottom:26px;letter-spacing:1px}
+.code-row{display:flex;gap:12px;margin-bottom:20px}
+.code-box{
+  width:56px;height:64px;
+  background:rgba(51,255,102,0.04);
+  border:1px solid var(--dim);
+  color:var(--phos);
+  font-family:inherit;font-size:26px;text-align:center;
+  caret-color:var(--phos);
+  outline:none;
+  transition:border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
+}
+.code-box:hover{border-color:var(--phos)}
+.code-box:focus{border-color:var(--phos);box-shadow:0 0 10px rgba(51,255,102,0.45);background:rgba(51,255,102,0.09)}
+.code-box:disabled{border-color:rgba(31,143,67,0.4);color:rgba(31,143,67,0.5);cursor:not-allowed}
+.code-row.shake{animation:shake 320ms ease}
+@keyframes shake{
+  0%,100%{transform:translateX(0)}
+  20%{transform:translateX(-8px)}
+  40%{transform:translateX(7px)}
+  60%{transform:translateX(-5px)}
+  80%{transform:translateX(3px)}
+}
+.meta-row{display:flex;flex-wrap:wrap;gap:26px;font-size:13px;letter-spacing:1px;margin-bottom:18px}
+.meta-row .k{color:var(--dim)}
+.meta-row .v{color:var(--phos)}
+.msg{min-height:22px;font-size:13px;letter-spacing:1px;margin-bottom:20px}
+.msg.err{color:var(--amber)}
+.msg.ok{color:var(--phos)}
+.msg.warn{color:var(--amber)}
+.msg.info{color:var(--dim)}
+.btn-row{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.btn{
+  font-family:inherit;font-size:14px;letter-spacing:2px;
+  padding:12px 22px;
+  background:transparent;color:var(--phos);
+  border:1px solid var(--phos);
+  cursor:pointer;
+  transition:background 160ms ease, color 160ms ease, box-shadow 160ms ease;
+}
+.btn:hover:not(:disabled){background:var(--phos);color:var(--panel);box-shadow:0 0 14px rgba(51,255,102,0.5)}
+.btn:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+.btn:disabled{border-color:rgba(31,143,67,0.5);color:rgba(31,143,67,0.6);cursor:not-allowed}
+.btn.ghost{border-color:var(--dim);color:var(--dim)}
+.btn.ghost:hover:not(:disabled){background:var(--dim);color:var(--panel);box-shadow:none}
+.lock{
+  display:none;
+  border:1px solid var(--amber);
+  background:rgba(255,176,0,0.08);
+  color:var(--amber);
+  padding:16px 20px;
+  margin-top:24px;
+  font-size:13px;letter-spacing:1px;line-height:1.8;
+}
+.lock strong{font-size:15px;letter-spacing:3px}
+.success{display:none;padding:28px 0 6px}
+.success h2{font-size:24px;letter-spacing:6px;color:var(--phos);text-shadow:0 0 12px rgba(51,255,102,0.7);margin-bottom:18px}
+.success table{border-collapse:collapse;font-size:13px;margin-bottom:24px}
+.success td{border:1px solid var(--dim);padding:9px 18px;letter-spacing:1px}
+.success td:first-child{color:var(--dim);width:130px}
+.cursor{display:inline-block;width:9px;height:16px;background:var(--phos);vertical-align:-2px;animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+@media (max-width:900px){
+  body{padding:20px 12px}
+  .crt-body{padding:24px 18px 28px}
+  h1{font-size:18px;letter-spacing:2px}
+  .code-row{gap:8px}
+  .code-box{width:44px;height:52px;font-size:20px}
+  .meta-row{gap:14px}
+}
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation-duration:0.01ms !important;animation-iteration-count:1 !important;transition-duration:0.01ms !important}
+  .cursor{animation:none}
+}
+</style>
+</head>
+<body>
+<div class="crt">
+  <div class="crt-bar">
+    <span class="dot solid"></span><span class="dot"></span><span class="dot"></span>
+    <span class="crt-title">TERMINAL-6 · SECURE SHELL</span>
+    <span class="crt-sess">会话 7F3A-22C1</span>
+  </div>
+  <div class="crt-body">
+    <div id="verifyBlock">
+      <div class="log">
+        <div>[06:31:02] [BOOT] 终端六 v6.2.1 · 安全子系统加载完毕</div>
+        <div>[06:31:05] [AUTH] 账号 <b>dev@kuanyu.io</b> · 密码校验通过（第一因子 <span class="ok">OK</span>）</div>
+        <div>[06:31:05] [AUTH] 密码正确还不够，请再确认一次是本人操作</div>
+      </div>
+      <div class="push"><span class="tag">PUSH</span>安全令牌推送 · 本机动态码 <b id="pushCode">------</b> · 60 秒内有效（演示环境模拟）</div>
+      <h1>第二因子核验</h1>
+      <p class="sub">请输入安全令牌上的 6 位动态验证码，连续输错 3 次将临时锁定</p>
+      <div class="code-row" id="codeRow">
+        <input class="code-box" type="text" inputmode="numeric" maxlength="1" autocomplete="off" aria-label="第1位">
+        <input class="code-box" type="text" inputmode="numeric" maxlength="1" autocomplete="off" aria-label="第2位">
+        <input class="code-box" type="text" inputmode="numeric" maxlength="1" autocomplete="off" aria-label="第3位">
+        <input class="code-box" type="text" inputmode="numeric" maxlength="1" autocomplete="off" aria-label="第4位">
+        <input class="code-box" type="text" inputmode="numeric" maxlength="1" autocomplete="off" aria-label="第5位">
+        <input class="code-box" type="text" inputmode="numeric" maxlength="1" autocomplete="off" aria-label="第6位">
+      </div>
+      <div class="meta-row">
+        <span><span class="k">动态码有效期</span> <span class="v" id="ttl">01:00</span></span>
+        <span><span class="k">剩余尝试</span> <span class="v" id="attempts">3 次</span></span>
+        <span><span class="k">通道</span> <span class="v">硬件令牌 · 离线 TOTP</span></span>
+      </div>
+      <div class="msg info" id="msg">等待输入<span class="cursor"></span></div>
+      <div class="btn-row">
+        <button class="btn" id="resendBtn" disabled>重新发送动态码</button>
+        <button class="btn ghost" id="altBtn">更换验证方式</button>
+      </div>
+      <div class="lock" id="lockPanel">
+        <strong>!! 核验已临时锁定</strong><br>
+        已连续输错 3 次，为保护账号安全，<span id="lockTime">00:30</span> 后才可重新输入。若并非本人操作，请立即冻结账号。
+      </div>
+    </div>
+    <div class="success" id="successBlock">
+      <h2>[OK] 身份核验通过</h2>
+      <table>
+        <tr><td>账号</td><td>dev@kuanyu.io</td></tr>
+        <tr><td>核验方式</td><td>密码 + 硬件令牌动态码（双因子）</td></tr>
+        <tr><td>通过时间</td><td id="successTime">--</td></tr>
+        <tr><td>访问令牌</td><td>已签发 · 有效期 12 小时 · 仅限本终端</td></tr>
+      </table>
+      <div class="btn-row">
+        <button class="btn" id="resetBtn">重新演示核验流程</button>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+var code = "";
+var attempts = 3;
+var locked = false;
+var expired = false;
+var ttl = 60;
+var lockTtl = 30;
+var timer = null;
+var lockTimer = null;
+var boxes = Array.prototype.slice.call(document.querySelectorAll(".code-box"));
+var msg = document.getElementById("msg");
+function pad(n){ return (n < 10 ? "0" : "") + n; }
+function rand(){ var s = ""; for (var i = 0; i < 6; i++){ s += Math.floor(Math.random() * 10); } return s; }
+function spaced(s){ return s.split("").join(" "); }
+function setMsg(t, cls){ msg.textContent = t; msg.className = "msg " + cls; }
+function renderTtl(){
+  document.getElementById("ttl").textContent = pad(Math.floor(ttl / 60)) + ":" + pad(ttl % 60);
+}
+function renderAttempts(){
+  document.getElementById("attempts").textContent = attempts + " 次";
+}
+function clearBoxes(){
+  for (var i = 0; i < boxes.length; i++){ boxes[i].value = ""; }
+  if (!locked){ boxes[0].focus(); }
+}
+function setDisabled(d){
+  for (var i = 0; i < boxes.length; i++){ boxes[i].disabled = d; }
+}
+function tick(){
+  ttl--;
+  if (ttl <= 0){
+    ttl = 0;
+    expired = true;
+    clearInterval(timer);
+    document.getElementById("resendBtn").disabled = false;
+    setMsg("动态码已过期，请重新获取", "warn");
+  }
+  renderTtl();
+}
+function startCountdown(){
+  clearInterval(timer);
+  ttl = 60;
+  expired = false;
+  renderTtl();
+  document.getElementById("resendBtn").disabled = true;
+  timer = setInterval(tick, 1000);
+}
+function issueCode(){
+  code = rand();
+  document.getElementById("pushCode").textContent = spaced(code);
+}
+function fail(){
+  attempts--;
+  renderAttempts();
+  var row = document.getElementById("codeRow");
+  row.classList.remove("shake");
+  void row.offsetWidth;
+  row.classList.add("shake");
+  if (attempts <= 0){ lock(); return; }
+  setMsg("动态码不正确，剩余尝试 " + attempts + " 次", "err");
+  clearBoxes();
+}
+function lock(){
+  locked = true;
+  setDisabled(true);
+  setMsg("输入通道已锁定", "err");
+  document.getElementById("lockPanel").style.display = "block";
+  lockTtl = 30;
+  document.getElementById("lockTime").textContent = "00:" + pad(lockTtl);
+  lockTimer = setInterval(function(){
+    lockTtl--;
+    document.getElementById("lockTime").textContent = "00:" + pad(lockTtl < 0 ? 0 : lockTtl);
+    if (lockTtl <= 0){
+      clearInterval(lockTimer);
+      locked = false;
+      attempts = 3;
+      renderAttempts();
+      setDisabled(false);
+      document.getElementById("lockPanel").style.display = "none";
+      setMsg("锁定已解除，请重新输入", "info");
+      clearBoxes();
+    }
+  }, 1000);
+}
+function success(){
+  clearInterval(timer);
+  setDisabled(true);
+  document.getElementById("verifyBlock").style.display = "none";
+  document.getElementById("successBlock").style.display = "block";
+  var d = new Date();
+  document.getElementById("successTime").textContent =
+    d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()) + " " +
+    pad(d.getHours()) + ":" + pad(d.getMinutes()) + ":" + pad(d.getSeconds());
+}
+function check(){
+  var s = "";
+  for (var i = 0; i < boxes.length; i++){ s += boxes[i].value; }
+  if (s.length < 6 || locked){ return; }
+  if (expired){
+    setMsg("动态码已过期，请先重新获取", "warn");
+    clearBoxes();
+    return;
+  }
+  if (s === code){ success(); } else { fail(); }
+}
+for (var i = 0; i < boxes.length; i++){
+  (function(idx){
+    boxes[idx].addEventListener("input", function(e){
+      var v = e.target.value.replace(/\D/g, "");
+      e.target.value = v.slice(-1);
+      if (v && idx < boxes.length - 1){ boxes[idx + 1].focus(); }
+      check();
+    });
+    boxes[idx].addEventListener("keydown", function(e){
+      if (e.key === "Backspace" && !e.target.value && idx > 0){ boxes[idx - 1].focus(); }
+    });
+  })(i);
+}
+document.getElementById("resendBtn").addEventListener("click", function(){
+  issueCode();
+  startCountdown();
+  attempts = 3;
+  renderAttempts();
+  setMsg("新的动态码已推送至本机安全令牌", "ok");
+  clearBoxes();
+});
+document.getElementById("altBtn").addEventListener("click", function(){
+  setMsg("演示环境仅开放硬件令牌动态码一种方式", "warn");
+});
+document.getElementById("resetBtn").addEventListener("click", function(){
+  document.getElementById("successBlock").style.display = "none";
+  document.getElementById("verifyBlock").style.display = "block";
+  attempts = 3;
+  renderAttempts();
+  setDisabled(false);
+  issueCode();
+  startCountdown();
+  setMsg("等待输入", "info");
+  clearBoxes();
+});
+issueCode();
+startCountdown();
+renderAttempts();
+boxes[0].focus();
+</script>
+</body>
+</html>

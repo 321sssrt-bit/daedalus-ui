@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>泡泡清单 · 池子还空着</title>
+<style>
+:root{
+  --water:#E8F4F8;
+  --blue:#3D9BC5;
+  --coral:#FF7A59;
+  --deep:#17384A;
+  --white:#FFFFFF;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  min-height:100vh;display:flex;align-items:center;justify-content:center;
+  background:#0C2231;padding:24px 12px;
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei","Segoe UI",sans-serif;
+  color:var(--deep);
+}
+.phone{
+  width:390px;min-height:844px;flex:none;position:relative;overflow:hidden;
+  border-radius:44px;border:10px solid #07131B;background:var(--white);
+  box-shadow:0 40px 90px rgba(0,0,0,.55);
+  display:flex;flex-direction:column;
+}
+.hero{
+  flex:none;position:relative;overflow:hidden;
+  background:linear-gradient(168deg,var(--blue) 0%,#6FBADB 62%,var(--water) 100%);
+  padding:26px 24px 20px;color:var(--white);
+}
+.hero h1{font-size:24px;font-weight:700;letter-spacing:1px;position:relative;z-index:2}
+.hero p{font-size:13px;opacity:.92;margin-top:6px;position:relative;z-index:2}
+.bub{position:absolute;border-radius:50%;background:rgba(255,255,255,.28);border:1px solid rgba(255,255,255,.45);animation:rise 7s ease-in infinite}
+.bub.b1{width:22px;height:22px;left:78%;bottom:-26px;animation-delay:0s}
+.bub.b2{width:12px;height:12px;left:62%;bottom:-14px;animation-delay:2.2s}
+.bub.b3{width:32px;height:32px;left:88%;bottom:-36px;animation-delay:4s}
+.bub.b4{width:9px;height:9px;left:48%;bottom:-10px;animation-delay:1.1s}
+@keyframes rise{
+  0%{transform:translateY(0);opacity:0}
+  15%{opacity:.9}
+  100%{transform:translateY(-150px);opacity:0}
+}
+.pond{
+  flex:1;overflow-y:auto;position:relative;
+  background:linear-gradient(180deg,var(--water) 0%,var(--white) 46%);
+  padding:18px 20px 20px;
+}
+.tabNote{
+  display:none;background:var(--white);border:1.5px dashed var(--blue);border-radius:14px;
+  padding:16px;font-size:13px;line-height:1.7;color:var(--deep);
+}
+.tabNote.on{display:block}
+.emptyBox{text-align:center;padding:26px 10px 8px}
+.koiWrap{display:flex;justify-content:center;margin-bottom:18px}
+.koiWrap svg{animation:swim 5s ease-in-out infinite}
+@keyframes swim{
+  0%,100%{transform:translateX(0) rotate(-3deg)}
+  50%{transform:translateX(14px) rotate(3deg)}
+}
+.emptyTitle{font-size:19px;font-weight:700;color:var(--deep)}
+.emptySub{font-size:13px;line-height:1.8;color:#4A6B7D;margin:10px 0 22px}
+.btnMain{
+  display:inline-flex;align-items:center;gap:8px;border:none;cursor:pointer;
+  background:var(--coral);color:var(--white);font:inherit;font-size:15px;font-weight:700;
+  padding:14px 26px;border-radius:999px;letter-spacing:1px;
+  box-shadow:0 6px 0 #D9552F;transition:transform .15s ease,box-shadow .15s ease;
+}
+.btnMain:hover{transform:translateY(-2px);box-shadow:0 8px 0 #D9552F}
+.btnMain:active{transform:translateY(3px);box-shadow:0 2px 0 #D9552F}
+.btnMain:focus-visible{outline:3px solid var(--blue);outline-offset:3px}
+.listBox{display:none}
+.listBox.on{display:block}
+.listHead{display:flex;justify-content:space-between;align-items:baseline;margin:2px 2px 12px}
+.listHead h2{font-size:16px;color:var(--deep)}
+.listHead span{font-size:12px;color:#4A6B7D}
+.wishItem{
+  display:flex;align-items:center;gap:12px;background:var(--white);
+  border-radius:16px;padding:14px 16px;margin-bottom:10px;
+  box-shadow:0 3px 10px rgba(23,56,74,.08);
+}
+.wishItem .dot{
+  width:30px;height:30px;flex:none;border-radius:50%;
+  background:radial-gradient(circle at 32% 32%,var(--coral),#E0573A);
+  display:flex;align-items:center;justify-content:center;color:var(--white);font-size:14px;
+}
+.wishItem .txt{flex:1;font-size:14px;color:var(--deep)}
+.wishItem .txt small{display:block;font-size:11px;color:#6B8A9B;margin-top:2px}
+.wishItem .tag{font-size:11px;color:var(--blue);border:1px solid var(--blue);border-radius:999px;padding:2px 8px}
+.tabbar{
+  flex:none;display:flex;background:var(--white);border-top:1px solid #DCE9EF;
+  padding:8px 0 14px;
+}
+.tabbar button{
+  flex:1;background:none;border:none;cursor:pointer;font:inherit;
+  display:flex;flex-direction:column;align-items:center;gap:3px;
+  font-size:11px;color:#7C99A8;padding:6px 0;
+}
+.tabbar button .ico{font-size:18px;line-height:1}
+.tabbar button.on{color:var(--blue);font-weight:700}
+.tabbar button:focus-visible{outline:2px solid var(--blue);outline-offset:-2px;border-radius:8px}
+.mask{
+  position:absolute;inset:0;background:rgba(23,56,74,.45);z-index:20;
+  display:none;align-items:flex-end;
+}
+.mask.on{display:flex}
+.sheet{
+  width:100%;background:var(--white);border-radius:22px 22px 0 0;
+  padding:20px 22px 26px;animation:up .3s ease-out;
+}
+@keyframes up{from{transform:translateY(60px);opacity:.4}to{transform:translateY(0);opacity:1}}
+.sheet h3{font-size:17px;color:var(--deep);margin-bottom:4px}
+.sheet p{font-size:12px;color:#5B7B8C;margin-bottom:14px}
+.wishIn{
+  width:100%;font:inherit;font-size:15px;color:var(--deep);
+  border:1.5px solid var(--blue);border-radius:12px;padding:12px 14px;background:var(--water);
+}
+.wishIn:focus{outline:none;box-shadow:0 0 0 3px rgba(61,155,197,.25)}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 18px}
+.chips button{
+  font:inherit;font-size:12px;color:var(--deep);background:var(--water);
+  border:1px solid #BBDCEC;border-radius:999px;padding:6px 12px;cursor:pointer;
+}
+.chips button:hover{background:#D3EAF4}
+.sheetActs{display:flex;gap:12px}
+.btnGhost2{
+  flex:1;font:inherit;font-size:14px;padding:13px 0;border-radius:999px;cursor:pointer;
+  background:transparent;color:var(--deep);border:1.5px solid #B7CFDC;
+}
+.btnGhost2:hover{background:var(--water)}
+.btnCoral2{
+  flex:2;font:inherit;font-size:14px;font-weight:700;padding:13px 0;border-radius:999px;cursor:pointer;
+  background:var(--coral);color:var(--white);border:none;
+}
+.btnCoral2:hover{background:#F06643}
+.toast{
+  position:absolute;left:50%;bottom:96px;transform:translateX(-50%) translateY(14px);
+  background:var(--deep);color:var(--white);font-size:13px;padding:10px 18px;
+  border-radius:999px;opacity:0;pointer-events:none;z-index:40;white-space:nowrap;
+  transition:opacity .25s ease,transform .25s ease;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+@media (prefers-reduced-motion: reduce){
+  *{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
+</style>
+</head>
+<body>
+<div class="phone">
+  <header class="hero">
+    <span class="bub b1"></span><span class="bub b2"></span><span class="bub b3"></span><span class="bub b4"></span>
+    <h1>泡泡清单</h1>
+    <p id="tabHint">今天想做的事，先丢进池子养着</p>
+  </header>
+  <main class="pond">
+    <div class="tabNote" id="noteFind">灵感池：每天捞一条陌生人丢进池子的泡泡，顺眼的就领回家养。</div>
+    <div class="tabNote" id="noteMe">我的：本月已养活 3 条泡泡，池子等级「浅浅一汪」。</div>
+    <section class="emptyBox" id="emptyBox">
+      <div class="koiWrap">
+        <svg viewBox="0 0 180 120" width="180" height="120" role="img" aria-label="一条锦鲤和几枚气泡">
+          <circle cx="150" cy="18" r="7" fill="none" stroke="#3D9BC5" stroke-width="2" opacity=".6"/>
+          <circle cx="164" cy="38" r="4.5" fill="none" stroke="#3D9BC5" stroke-width="2" opacity=".45"/>
+          <circle cx="138" cy="40" r="3" fill="none" stroke="#3D9BC5" stroke-width="2" opacity=".4"/>
+          <path d="M18 62 Q2 50 6 38 Q14 46 22 44 Q14 58 18 62 Z" fill="#FF7A59"/>
+          <ellipse cx="70" cy="58" rx="52" ry="26" fill="#FF7A59"/>
+          <ellipse cx="70" cy="66" rx="40" ry="14" fill="#FFD9CC"/>
+          <path d="M96 40 Q112 24 118 30 Q108 40 100 46 Z" fill="#E0573A"/>
+          <path d="M96 76 Q112 92 118 86 Q108 76 100 70 Z" fill="#E0573A"/>
+          <circle cx="104" cy="52" r="5" fill="#17384A"/>
+          <circle cx="106" cy="50" r="1.8" fill="#FFFFFF"/>
+          <path d="M116 58 Q122 60 116 64" fill="none" stroke="#C2452C" stroke-width="2" stroke-linecap="round"/>
+          <path d="M46 44 Q60 52 46 60" fill="none" stroke="#E0573A" stroke-width="3" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <h2 class="emptyTitle">池子里还空空如也</h2>
+      <p class="emptySub">一条泡泡都还没有。<br>把第一件想做的事丢进来，让它先泡着。</p>
+      <button class="btnMain" id="btnOpen" type="button">＋ 放入第一条</button>
+    </section>
+    <section class="listBox" id="listBox">
+      <div class="listHead"><h2>池里的泡泡</h2><span id="listCount">0 条</span></div>
+      <div id="wishList"></div>
+    </section>
+  </main>
+  <nav class="tabbar">
+    <button type="button" class="on" data-tab="list"><span class="ico">🐟</span>清单</button>
+    <button type="button" data-tab="find"><span class="ico">🫧</span>灵感池</button>
+    <button type="button" data-tab="me"><span class="ico">🛟</span>我的</button>
+  </nav>
+  <div class="mask" id="mask">
+    <div class="sheet">
+      <h3>丢一条新泡泡</h3>
+      <p>写短一点，泡泡喜欢轻的东西。</p>
+      <input class="wishIn" id="wishIn" type="text" maxlength="24" placeholder="例如：周末去江边跑 5 公里" autocomplete="off">
+      <div class="chips">
+        <button type="button" data-chip="看一场傍晚的展">看一场傍晚的展</button>
+        <button type="button" data-chip="存下 500 块">存下 500 块</button>
+        <button type="button" data-chip="给妈妈打个电话">给妈妈打个电话</button>
+      </div>
+      <div class="sheetActs">
+        <button class="btnGhost2" id="btnClose" type="button">再想想</button>
+        <button class="btnCoral2" id="btnAdd" type="button">养进池子</button>
+      </div>
+    </div>
+  </div>
+  <div class="toast" id="toast"></div>
+</div>
+<script>
+(function(){
+  var tabHint=document.getElementById('tabHint');
+  var noteFind=document.getElementById('noteFind');
+  var noteMe=document.getElementById('noteMe');
+  var emptyBox=document.getElementById('emptyBox');
+  var listBox=document.getElementById('listBox');
+  var wishList=document.getElementById('wishList');
+  var listCount=document.getElementById('listCount');
+  var mask=document.getElementById('mask');
+  var wishIn=document.getElementById('wishIn');
+  var toastBox=document.getElementById('toast');
+  var toastTimer=null;
+  var hints={
+    list:'今天想做的事，先丢进池子养着',
+    find:'灵感池：捞一条别人的泡泡看看',
+    me:'我的：看看池子被养得多好了'
+  };
+  function toast(msg){
+    toastBox.textContent=msg;
+    toastBox.classList.add('show');
+    if(toastTimer){clearTimeout(toastTimer);}
+    toastTimer=setTimeout(function(){toastBox.classList.remove('show');},2000);
+  }
+  var tabs=document.querySelectorAll('.tabbar button');
+  tabs.forEach(function(b){
+    b.addEventListener('click',function(){
+      tabs.forEach(function(x){x.classList.remove('on');});
+      b.classList.add('on');
+      var k=b.getAttribute('data-tab');
+      tabHint.textContent=hints[k];
+      noteFind.classList.toggle('on',k==='find');
+      noteMe.classList.toggle('on',k==='me');
+    });
+  });
+  document.getElementById('btnOpen').addEventListener('click',function(){
+    mask.classList.add('on');
+    wishIn.focus();
+  });
+  document.getElementById('btnClose').addEventListener('click',function(){
+    mask.classList.remove('on');
+  });
+  var chips=document.querySelectorAll('[data-chip]');
+  chips.forEach(function(c){
+    c.addEventListener('click',function(){
+      wishIn.value=c.getAttribute('data-chip');
+      wishIn.focus();
+    });
+  });
+  function refreshCount(){
+    var n=wishList.children.length;
+    listCount.textContent=n+' 条';
+    emptyBox.style.display=n===0?'block':'none';
+    listBox.classList.toggle('on',n>0);
+  }
+  document.getElementById('btnAdd').addEventListener('click',function(){
+    var v=wishIn.value.replace(/^\s+|\s+$/g,'');
+    if(v===''){
+      toast('泡泡不能是空的');
+      wishIn.focus();
+      return;
+    }
+    var item=document.createElement('div');
+    item.className='wishItem';
+    item.innerHTML='<span class="dot">泡</span><span class="txt"></span><span class="tag">新泡</span>';
+    var txt=item.querySelector('.txt');
+    txt.textContent=v;
+    var small=document.createElement('small');
+    small.textContent='今天丢进池子';
+    txt.appendChild(small);
+    wishList.insertBefore(item,wishList.firstChild);
+    wishIn.value='';
+    mask.classList.remove('on');
+    refreshCount();
+    toast('咕嘟一声，泡泡入池了');
+  });
+})();
+</script>
+</body>
+</html>

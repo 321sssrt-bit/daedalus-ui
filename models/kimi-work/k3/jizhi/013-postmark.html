@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>邮戳 POSTMARK · 航空收件箱</title>
+<style>
+:root{
+  --page:#F5EFE2;
+  --ink:#2F2A24;
+  --red:#B23A2E;
+  --blue:#2F5D8A;
+  --kraft:#D9C9A3;
+  --card:#FFFDF6;
+  --line:#E0D2B4;
+  --faint:#8B7E66;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;background:var(--page);color:var(--ink);min-height:100vh}
+.stripe{height:10px;background:repeating-linear-gradient(135deg,var(--red) 0 16px,var(--page) 16px 24px,var(--blue) 24px 40px,var(--page) 40px 48px)}
+.top{display:flex;justify-content:space-between;align-items:center;gap:20px;padding:18px 32px}
+.brand{display:flex;align-items:center;gap:14px}
+.brand h1{font-size:22px;font-weight:800;letter-spacing:4px}
+.sub{font-size:12px;color:var(--blue);letter-spacing:3px;margin-top:3px}
+.pm{width:72px;height:72px;transform:rotate(-8deg);opacity:0.8;flex:none}
+.pmt{font-family:ui-monospace,Consolas,"Courier New",monospace;font-size:13px;fill:var(--blue)}
+.toolbar{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:14px 32px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:var(--card)}
+.seg{display:flex;border:1px solid var(--ink)}
+.seg button{height:34px;padding:0 16px;background:var(--card);border:0;border-right:1px solid var(--ink);font-family:inherit;font-size:13px;color:var(--ink);cursor:pointer}
+.seg button:last-child{border-right:0}
+.seg button:hover{background:var(--kraft)}
+.seg button.on{background:var(--ink);color:var(--card)}
+.seg button.on:hover{background:var(--ink)}
+.seg button:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+#kw{height:36px;width:280px;border:1px solid var(--ink);background:var(--card);padding:0 12px;font-family:inherit;font-size:13px;color:var(--ink)}
+#kw:focus{outline:2px solid var(--blue);outline-offset:1px}
+.main{display:grid;grid-template-columns:400px minmax(0,1fr);align-items:start}
+.list{border-right:1px solid var(--line)}
+.mail{display:grid;grid-template-columns:64px minmax(0,1fr) 34px;gap:10px;padding:14px 16px;border-bottom:1px solid var(--line);cursor:pointer;background:var(--page)}
+.mail:hover{background:var(--card)}
+.mail.sel{background:var(--card);box-shadow:inset 3px 0 0 var(--red)}
+.stamp{flex:none;padding:6px;background-color:var(--kraft);background-image:radial-gradient(circle at 6px 6px,var(--page) 2.8px,rgba(0,0,0,0) 3.2px);background-size:12px 12px}
+.mail .stamp{width:64px;height:72px}
+.face{width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#FFFDF6;font-size:18px;font-weight:700}
+.mrow1{display:flex;justify-content:space-between;gap:8px;font-size:13px}
+.mrow1 b{font-weight:600}
+.mrow1 i{font-style:normal;color:var(--faint);font-size:12px;flex:none}
+.msub{display:block;font-size:14px;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mail.unread .msub{font-weight:700}
+.mprev{display:block;font-size:12px;color:var(--faint);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mside{display:flex;flex-direction:column;align-items:center;gap:10px;padding-top:4px}
+.udot{width:8px;height:8px;border-radius:50%;background:var(--red);display:inline-block}
+.star{border:0;background:transparent;font-size:16px;cursor:pointer;color:#C9B98F;line-height:1;padding:2px}
+.star.on{color:var(--red)}
+.star:hover{color:var(--red)}
+.star:focus-visible{outline:2px solid var(--blue);outline-offset:1px}
+.reader{padding:24px 28px 40px}
+.letter{position:relative;background:var(--card);border:1px solid var(--line);padding:28px 32px;box-shadow:3px 3px 0 rgba(47,42,36,0.08)}
+.lhead{display:flex;gap:16px;align-items:flex-start;padding-bottom:18px;border-bottom:1px dashed var(--line)}
+.stamp.big{width:76px;height:88px;padding:7px}
+.lmeta{min-width:0}
+.lmeta h2{font-size:20px;font-weight:700;line-height:1.4;padding-right:80px}
+.from{font-size:13px;margin-top:8px}
+.via{font-size:12px;color:var(--blue);margin-top:4px}
+.lbody{padding:20px 0;font-size:14px;line-height:2}
+.lbody p{margin-bottom:12px}
+.lfoot{display:flex;gap:12px;border-top:1px dashed var(--line);padding-top:16px}
+.act{height:36px;padding:0 16px;border:1px solid var(--ink);background:var(--card);color:var(--ink);font-family:inherit;font-size:13px;cursor:pointer}
+.act:hover{background:var(--kraft)}
+.act:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.pmark{position:absolute;right:24px;top:22px;width:88px;height:88px;transform:rotate(-12deg);opacity:0.55;pointer-events:none}
+.phold{padding:80px 0;text-align:center;color:var(--faint)}
+.phold p{margin-top:16px;font-size:14px}
+.listempty{padding:40px 16px;text-align:center;color:var(--faint);font-size:13px}
+.toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);background:var(--ink);color:var(--card);padding:10px 18px;font-size:13px;opacity:0;pointer-events:none;transition:opacity 0.25s ease}
+.toast.show{opacity:0.95}
+@media (max-width:900px){
+  .top{padding:16px 20px}
+  .toolbar{flex-direction:column;align-items:stretch;padding:12px 20px}
+  .seg{align-self:flex-start}
+  #kw{width:100%}
+  .main{grid-template-columns:1fr}
+  .list{border-right:0;border-bottom:1px solid var(--line);max-height:340px;overflow:auto}
+  .reader{padding:16px 20px 32px}
+  .lmeta h2{padding-right:0}
+  .pmark{display:none}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:0.01ms !important;animation-iteration-count:1 !important;transition-duration:0.01ms !important}
+}
+</style>
+</head>
+<body>
+<div class="stripe" aria-hidden="true"></div>
+<header class="top">
+  <div class="brand">
+    <svg width="44" height="44" viewBox="0 0 44 44" aria-hidden="true">
+      <rect x="4" y="6" width="36" height="32" fill="#FFFDF6" stroke="#2F2A24" stroke-width="2"/>
+      <path d="M4 8 L22 26 L40 8" fill="none" stroke="#2F2A24" stroke-width="2"/>
+      <circle cx="33" cy="15" r="6.5" fill="none" stroke="#B23A2E" stroke-width="1.6"/>
+    </svg>
+    <div>
+      <h1>邮 戳</h1>
+      <p class="sub">POSTMARK · 航空收件箱</p>
+    </div>
+  </div>
+  <svg class="pm" viewBox="0 0 96 96" aria-hidden="true">
+    <circle cx="48" cy="48" r="43" fill="none" stroke="#2F5D8A" stroke-width="2"/>
+    <circle cx="48" cy="48" r="32" fill="none" stroke="#2F5D8A" stroke-width="1"/>
+    <text class="pmt" x="48" y="44" text-anchor="middle">北京</text>
+    <text class="pmt" x="48" y="60" text-anchor="middle">2025.10.14</text>
+    <path d="M66 30 q10 4 20 0 M66 48 q10 4 20 0 M66 66 q10 4 20 0" fill="none" stroke="#2F5D8A" stroke-width="2"/>
+  </svg>
+</header>
+<div class="toolbar">
+  <div class="seg" role="group" aria-label="信件筛选">
+    <button class="on" data-f="all">全部 <span id="cntAll">7</span></button>
+    <button data-f="unread">未读 <span id="cntUn">3</span></button>
+    <button data-f="star">星标 <span id="cntSt">2</span></button>
+  </div>
+  <input id="kw" type="search" placeholder="搜寄件人、主题或摘要…" aria-label="搜索信件">
+</div>
+<main class="main">
+  <aside class="list" id="mailList" aria-label="信件列表"></aside>
+  <article class="reader" id="reader" aria-label="阅读区"></article>
+</main>
+<div class="toast" id="toast" role="status"></div>
+<script>
+var MAILS=[
+  {id:"m1",from:"三联生活周刊",mono:"三",c:"#2F5D8A",tag:"订阅",time:"今天 08:42",unread:true,star:false,
+   subject:"11 月刊已付梓：封面故事《县城咖啡馆》",
+   preview:"您的订阅将于 10 月 18 日前寄出，本期随刊附赠咖啡豆风味地图一张……",
+   via:"寄自 北京 · 印刷品挂号",
+   body:["编辑部来信：","11 月刊已于昨日付梓，封面故事《县城咖啡馆》走访了 12 座县城的 27 家咖啡馆，记录下沉市场里第三空间的生长。","您的订阅本刊将于 10 月 18 日前从北京邮局寄出，随刊附赠手绘《咖啡豆风味地图》一张。如需更改收件地址，请在寄出前回复本邮件。","三联生活周刊 发行部"]},
+  {id:"m2",from:"招商银行信用卡中心",mono:"招",c:"#B23A2E",tag:"账单",time:"今天 09:15",unread:true,star:false,
+   subject:"10 月账单已出：应还 ¥4,218.66",
+   preview:"本期账单 4,218.66 元，最后还款日 10 月 28 日，最低还款 421.87 元……",
+   via:"寄自 深圳 · 电子转信件",
+   body:["尊敬的持卡人：","您尾号 6082 的信用卡 10 月账单已出具：应还金额 4,218.66 元，最后还款日 10 月 28 日；本期最低还款额 421.87 元。","其中餐饮消费 1,862.30 元、加油 640.00 元、线上订阅 316.36 元、其他 1,400.00 元。明细可登录手机银行查看。","招商银行信用卡中心"]},
+  {id:"m3",from:"周予安",mono:"周",c:"#7A4A1F",tag:"信件",time:"昨天 21:07",unread:true,star:true,
+   subject:"大理的秋天（附照片说明）",
+   preview:"古城的银杏黄了，洱海边风很大。你上次说的那家乳扇店我找到了……",
+   via:"寄自 大理 · 航空信 · 历时 2 天",
+   body:["见字如面：","古城的银杏这周彻底黄了，人民路下段一地碎金。洱海边风大，骑车得压低身子。你上次说的那家乳扇店我找到了，在床单厂艺术区后面，老板娘还认得你。","拍了几张照片，冲印出来后随下一封信寄你。十一月我回北京，带鲜花饼。","予安 于大理"]},
+  {id:"m4",from:"中通快递",mono:"中",c:"#2F5D8A",tag:"通知",time:"昨天 18:26",unread:false,star:false,
+   subject:"包裹已放入 3 号楼丰巢柜，取件码 8-2-4417",
+   preview:"您的包裹已由快递员投递至 3 号楼丰巢柜，请于 24 小时内取件……",
+   via:"寄自 杭州 · 系统通知",
+   body:["您的包裹（运单号 7315 8820 4417）已由快递员投递至 3 号楼丰巢柜 8 号格口，取件码 8-2-4417，请于 24 小时内取件。","如超时未取，将收取 0.5 元/天保管费。如需改派上门，请在小程序内申请。","中通快递 客户服务中心"]},
+  {id:"m5",from:"夜航读书会",mono:"夜",c:"#B23A2E",tag:"邀请",time:"周二 20:12",unread:false,star:true,
+   subject:"周六共读《遥远的向日葵地》报名确认",
+   preview:"您已报名成功。本周六 14:00，五道口 PAGEONE 二层，请携书到场……",
+   via:"寄自 北京 · 活动邀请",
+   body:["你好，共读人：","您已成功报名第 47 期共读：李娟《遥远的向日葵地》。时间 10 月 18 日（周六）14:00–16:30，地点五道口 PAGEONE 二层咖啡区。","请携书到场（版本不限），我们会先轮流朗读第三章。场地低消一杯饮品，可点单后入座。","夜航读书会 发起人 阿离"]},
+  {id:"m6",from:"国家电网北京电力",mono:"电",c:"#7A4A1F",tag:"账单",time:"10 月 9 日",unread:false,star:false,
+   subject:"9 月电费账单：¥186.40",
+   preview:"您户号 0105123445 的 9 月电费为 186.40 元，已完成代扣……",
+   via:"寄自 北京 · 电子转信件",
+   body:["尊敬的客户：","您户号 0105123445 的 2025 年 9 月电费账单已出：用电量 372 千瓦时，电费 186.40 元，已于 10 月 8 日从绑定账户完成代扣。","当前阶梯：第一档（0–240 千瓦时部分 0.4883 元/千瓦时）。明细可在「网上国网」App 查询。","国网北京市电力公司"]},
+  {id:"m7",from:"阿灿",mono:"灿",c:"#2F5D8A",tag:"明信片",time:"10 月 8 日",unread:false,star:false,
+   subject:"鼓浪屿明信片已盖戳，正在路上",
+   preview:"在岛上邮局给你寄了张明信片，盖了鼓浪屿的风景戳，大概一周到……",
+   via:"寄自 厦门 · 明信片 · 陆运约 7 天",
+   body:["在岛上邮局给你寄了张明信片，正面是八卦楼，背面盖了鼓浪屿的风景日戳，营业员说陆运大概一周到北京。","厦门的沙茶面还是好吃。下次一起来，住岛上。","阿灿 10 月 6 日于厦门"]}
+];
+var filter="all",cur=null,kw="",tmr=null;
+function find(id){
+  for(var i=0;i<MAILS.length;i++){if(MAILS[i].id===id){return MAILS[i];}}
+  return null;
+}
+function visible(m){
+  if(filter==="unread"&&!m.unread){return false;}
+  if(filter==="star"&&!m.star){return false;}
+  if(kw){
+    var h=m.from+m.subject+m.preview;
+    if(h.indexOf(kw)<0){return false;}
+  }
+  return true;
+}
+function counts(){
+  var u=0,s=0;
+  for(var i=0;i<MAILS.length;i++){
+    if(MAILS[i].unread){u++;}
+    if(MAILS[i].star){s++;}
+  }
+  document.getElementById("cntAll").textContent=MAILS.length;
+  document.getElementById("cntUn").textContent=u;
+  document.getElementById("cntSt").textContent=s;
+}
+function renderList(){
+  var h="";
+  for(var i=0;i<MAILS.length;i++){
+    var m=MAILS[i];
+    if(!visible(m)){continue;}
+    h+='<div class="mail'+(m.unread?" unread":"")+(cur===m.id?" sel":"")+'" data-id="'+m.id+'">';
+    h+='<span class="stamp"><span class="face" style="background:'+m.c+'">'+m.mono+'</span></span>';
+    h+='<span class="mmain"><span class="mrow1"><b>'+m.from+'</b><i>'+m.time+'</i></span>';
+    h+='<span class="msub">'+m.subject+'</span><span class="mprev">'+m.preview+'</span></span>';
+    h+='<span class="mside">'+(m.unread?'<i class="udot"></i>':'<i class="udot" style="visibility:hidden"></i>');
+    h+='<button class="star'+(m.star?" on":"")+'" data-star="'+m.id+'" aria-label="切换星标">★</button></span></div>';
+  }
+  if(!h){h='<p class="listempty">没有符合条件的信件。</p>';}
+  document.getElementById("mailList").innerHTML=h;
+  counts();
+}
+function renderReader(){
+  var box=document.getElementById("reader");
+  var m=cur?find(cur):null;
+  if(!m){
+    box.innerHTML='<div class="phold"><svg width="120" height="86" viewBox="0 0 120 86" aria-hidden="true"><rect x="4" y="8" width="112" height="72" fill="#FFFDF6" stroke="#2F2A24" stroke-width="2"/><path d="M4 10 L60 50 L116 10" fill="none" stroke="#2F2A24" stroke-width="2"/><circle cx="96" cy="24" r="10" fill="none" stroke="#B23A2E" stroke-width="1.6"/></svg><p>从左侧挑一封信，拆开看看吧。</p></div>';
+    return;
+  }
+  var h='<div class="letter">';
+  h+='<svg class="pmark" viewBox="0 0 96 96" aria-hidden="true"><circle cx="48" cy="48" r="42" fill="none" stroke="#2F5D8A" stroke-width="2"/><circle cx="48" cy="48" r="31" fill="none" stroke="#2F5D8A" stroke-width="1"/><text class="pmt" x="48" y="44" text-anchor="middle">北京</text><text class="pmt" x="48" y="60" text-anchor="middle">2025.10.14</text></svg>';
+  h+='<div class="lhead"><span class="stamp big"><span class="face" style="background:'+m.c+'">'+m.mono+'</span></span>';
+  h+='<div class="lmeta"><h2>'+m.subject+'</h2><p class="from">寄件人：'+m.from+' · '+m.tag+'</p><p class="via">'+m.via+' · '+m.time+'</p></div></div>';
+  h+='<div class="lbody">';
+  for(var i=0;i<m.body.length;i++){h+='<p>'+m.body[i]+'</p>';}
+  h+='</div><div class="lfoot">';
+  h+='<button class="act" data-op="star">'+(m.star?"★ 取消星标":"☆ 加星标")+'</button>';
+  h+='<button class="act" data-op="arch">归档此信</button>';
+  h+='</div></div>';
+  box.innerHTML=h;
+}
+function toast(t){
+  var el=document.getElementById("toast");
+  el.textContent=t;
+  el.classList.add("show");
+  if(tmr){clearTimeout(tmr);}
+  tmr=setTimeout(function(){el.classList.remove("show");},2400);
+}
+document.getElementById("mailList").addEventListener("click",function(e){
+  var st=e.target.closest("[data-star]");
+  if(st){
+    var sm=find(st.getAttribute("data-star"));
+    sm.star=!sm.star;
+    renderList();
+    if(cur===sm.id){renderReader();}
+    return;
+  }
+  var it=e.target.closest(".mail");
+  if(it){
+    var m=find(it.getAttribute("data-id"));
+    cur=m.id;
+    m.unread=false;
+    renderList();
+    renderReader();
+  }
+});
+document.getElementById("reader").addEventListener("click",function(e){
+  var b=e.target.closest("[data-op]");
+  if(!b){return;}
+  var m=find(cur);
+  if(!m){return;}
+  if(b.getAttribute("data-op")==="star"){
+    m.star=!m.star;
+    renderList();
+    renderReader();
+  }else{
+    MAILS.splice(MAILS.indexOf(m),1);
+    toast("已归档："+m.subject);
+    cur=null;
+    renderList();
+    renderReader();
+  }
+});
+var segBtns=document.querySelectorAll(".seg button");
+for(var i=0;i<segBtns.length;i++){
+  segBtns[i].addEventListener("click",function(){
+    for(var j=0;j<segBtns.length;j++){segBtns[j].classList.remove("on");}
+    this.classList.add("on");
+    filter=this.getAttribute("data-f");
+    renderList();
+  });
+}
+document.getElementById("kw").addEventListener("input",function(){
+  kw=this.value.replace(/^\s+|\s+$/g,"");
+  renderList();
+});
+renderList();
+renderReader();
+</script>
+</body>
+</html>

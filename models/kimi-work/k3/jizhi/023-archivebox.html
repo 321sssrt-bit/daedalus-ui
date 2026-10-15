@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>拾光标本箱 — 我的收藏</title>
+<style>
+:root{
+  --kraft:#EDE4D0;
+  --ink:#33302A;
+  --deep:#1C1B18;
+  --seal:#9E2B25;
+  --card:#F7F1E2;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  background:var(--kraft);color:var(--ink);
+  font-family:"PingFang SC","Microsoft YaHei",sans-serif;
+  min-height:100vh;
+  background-image:repeating-linear-gradient(0deg,rgba(51,48,42,0.03) 0 1px,transparent 1px 5px);
+}
+.wrap{max-width:1120px;margin:0 auto;padding:44px 32px 72px}
+header{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid var(--deep);padding-bottom:20px;margin-bottom:28px}
+h1{font-family:"Songti SC","SimSun",serif;font-size:32px;letter-spacing:4px;font-weight:700}
+h1 .en{display:block;font-size:12px;letter-spacing:4px;color:rgba(51,48,42,0.6);margin-top:8px;font-family:"Songti SC","SimSun",serif;font-style:italic}
+.count{font-size:13px;color:rgba(51,48,42,0.7);text-align:right;line-height:1.9}
+.count b{color:var(--seal);font-size:20px}
+/* 分类 Tab */
+.tabs{display:flex;gap:0;margin-bottom:32px;border:1px solid var(--deep);width:max-content;max-width:100%;flex-wrap:wrap}
+.tabs button{
+  font-family:inherit;font-size:14px;letter-spacing:2px;padding:11px 26px;cursor:pointer;
+  background:transparent;border:none;border-right:1px solid var(--deep);color:var(--ink);
+  transition:background 180ms ease,color 180ms ease;
+}
+.tabs button:last-child{border-right:none}
+.tabs button:hover{background:rgba(28,27,24,0.08)}
+.tabs button.on{background:var(--deep);color:var(--card)}
+/* 抽屉格 */
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+.card{
+  background:var(--card);border:2px solid var(--deep);position:relative;
+  padding:18px;box-shadow:5px 5px 0 rgba(28,27,24,0.18);
+  transition:transform 200ms ease,box-shadow 200ms ease;
+}
+.card:hover{transform:translate(-2px,-2px);box-shadow:7px 7px 0 rgba(28,27,24,0.22)}
+.card .frame{border:1px solid var(--deep);height:130px;display:flex;align-items:center;justify-content:center;margin-bottom:14px;background:rgba(237,228,208,0.5)}
+.card .frame svg{width:96px;height:80px}
+.card h3{font-size:16px;letter-spacing:1px;margin-bottom:4px}
+.card .latin{font-family:"Songti SC","SimSun",serif;font-style:italic;font-size:13px;color:var(--seal);margin-bottom:8px}
+.card .meta{font-size:12px;color:rgba(51,48,42,0.65);line-height:1.8}
+.card .stamp{
+  position:absolute;top:10px;right:10px;width:38px;height:38px;border:1.5px solid var(--seal);
+  color:var(--seal);border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:11px;transform:rotate(-12deg);opacity:0.75;letter-spacing:1px;
+}
+.rm{
+  position:absolute;bottom:14px;right:14px;font-size:12px;cursor:pointer;
+  border:1px solid var(--deep);background:transparent;color:var(--ink);padding:5px 12px;
+  font-family:inherit;letter-spacing:1px;transition:all 180ms ease;
+}
+.rm:hover{background:var(--seal);border-color:var(--seal);color:var(--card)}
+/* 空状态 */
+.empty{display:none;text-align:center;padding:64px 0;color:rgba(51,48,42,0.55);font-size:14px;letter-spacing:2px}
+.empty.show{display:block}
+/* 移除提示条 */
+.toast{
+  position:fixed;left:50%;bottom:36px;transform:translateX(-50%);
+  background:var(--deep);color:var(--card);font-size:13px;letter-spacing:2px;
+  padding:12px 28px;border:2px solid var(--seal);opacity:0;pointer-events:none;
+  transition:opacity 240ms ease;
+}
+.toast.show{opacity:1}
+@media (prefers-reduced-motion: reduce){
+  *{animation-duration:0.01ms!important;transition-duration:0.01ms!important}
+}
+@media (max-width:900px){
+  .wrap{padding:28px 18px 56px}
+  header{flex-direction:column;align-items:flex-start;gap:12px}
+  .grid{grid-template-columns:1fr 1fr}
+}
+@media (max-width:560px){
+  .grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>拾光标本箱<span class="en">CABINET OF FOUND SPECIMENS</span></h1>
+    <div class="count">共收藏 <b id="cnt">8</b> 件标本<br>建档人：周野 · 始于 2019 年</div>
+  </header>
+  <div class="tabs" id="tabs">
+    <button class="on" data-cat="all">全部</button>
+    <button data-cat="leaf">植物叶脉</button>
+    <button data-cat="insect">昆虫</button>
+    <button data-cat="stone">矿石</button>
+  </div>
+  <div class="grid" id="grid">
+    <div class="card" data-cat="leaf">
+      <div class="stamp">NO.014</div>
+      <div class="frame"><svg viewBox="0 0 80 60"><path d="M40 6 C22 18 18 38 40 54 C62 38 58 18 40 6 Z" fill="none" stroke="#33302A" stroke-width="1.6"/><path d="M40 10 V50 M40 22 L28 30 M40 22 L52 30 M40 34 L30 42 M40 34 L50 42" stroke="#33302A" stroke-width="1"/></svg></div>
+      <h3>银杏落叶</h3>
+      <div class="latin">Ginkgo biloba</div>
+      <div class="meta">2023-11 采于钓鱼台银杏大道<br>已压干 · 覆硫酸纸</div>
+      <button class="rm">移出箱子</button>
+    </div>
+    <div class="card" data-cat="insect">
+      <div class="stamp">NO.027</div>
+      <div class="frame"><svg viewBox="0 0 80 60"><ellipse cx="40" cy="30" rx="10" ry="16" fill="none" stroke="#33302A" stroke-width="1.6"/><path d="M40 14 V46 M30 26 L14 16 M30 34 L14 44 M50 26 L66 16 M50 34 L66 44" stroke="#33302A" stroke-width="1.2"/><circle cx="40" cy="12" r="4" fill="none" stroke="#33302A" stroke-width="1.4"/></svg></div>
+      <h3>星天牛</h3>
+      <div class="latin">Anoplophora chinensis</div>
+      <div class="meta">2022-07 采于莫干山民宿窗台<br>整姿 · 针插三级台</div>
+      <button class="rm">移出箱子</button>
+    </div>
+    <div class="card" data-cat="stone">
+      <div class="stamp">NO.031</div>
+      <div class="frame"><svg viewBox="0 0 80 60"><path d="M20 46 L32 18 L48 14 L62 34 L52 48 Z" fill="none" stroke="#33302A" stroke-width="1.6"/><path d="M32 18 L40 34 L48 14 M40 34 L52 48 M40 34 L20 46" stroke="#33302A" stroke-width="1"/></svg></div>
+      <h3>烟晶原石</h3>
+      <div class="latin">Smoky quartz</div>
+      <div class="meta">2021-05 购于连云港水晶集市<br>未打磨 · 重 86 克</div>
+      <button class="rm">移出箱子</button>
+    </div>
+    <div class="card" data-cat="leaf">
+      <div class="stamp">NO.042</div>
+      <div class="frame"><svg viewBox="0 0 80 60"><path d="M40 8 L48 26 L68 26 L52 38 L58 56 L40 44 L22 56 L28 38 L12 26 L32 26 Z" fill="none" stroke="#33302A" stroke-width="1.5"/></svg></div>
+      <h3>五角枫</h3>
+      <div class="latin">Acer pictum</div>
+      <div class="meta">2024-10 采于香山后山步道<br>红叶期 · 叶柄完整</div>
+      <button class="rm">移出箱子</button>
+    </div>
+    <div class="card" data-cat="insect">
+      <div class="stamp">NO.055</div>
+      <div class="frame"><svg viewBox="0 0 80 60"><path d="M40 30 m-14 0 a14 8 0 1 0 28 0 a14 8 0 1 0 -28 0" fill="none" stroke="#33302A" stroke-width="1.6"/><path d="M40 22 V38 M26 30 H14 M54 30 H66 M33 24 L26 14 M47 24 L54 14" stroke="#33302A" stroke-width="1.1"/></svg></div>
+      <h3>中华虎甲</h3>
+      <div class="latin">Cicindela chinensis</div>
+      <div class="meta">2023-06 采于千岛湖环湖道<br>鞘翅带金属绿斑</div>
+      <button class="rm">移出箱子</button>
+    </div>
+    <div class="card" data-cat="stone">
+      <div class="stamp">NO.063</div>
+      <div class="frame"><svg viewBox="0 0 80 60"><circle cx="40" cy="30" r="20" fill="none" stroke="#33302A" stroke-width="1.6"/><path d="M24 30 H56 M40 14 V46 M28 20 Q40 30 52 20 M28 40 Q40 30 52 40" stroke="#33302A" stroke-width="1"/></svg></div>
+      <h3>雨花石</h3>
+      <div class="latin">Yuhua agate</div>
+      <div class="meta">2020-04 淘于南京六合砂矿<br>水养保存 · 纹路似远山</div>
+      <button class="rm">移出箱子</button>
+    </div>
+    <div class="card" data-cat="leaf">
+      <div class="stamp">NO.071</div>
+      <div class="frame"><svg viewBox="0 0 80 60"><path d="M14 46 C26 20 54 12 68 14 C66 34 48 52 14 46 Z" fill="none" stroke="#33302A" stroke-width="1.6"/><path d="M18 44 C36 34 52 24 64 16" stroke="#33302A" stroke-width="1"/></svg></div>
+      <h3>鹅掌楸</h3>
+      <div class="latin">Liriodendron chinense</div>
+      <div class="meta">2025-05 采于植物园温室旁<br>马褂形叶 · 濒危物种</div>
+      <button class="rm">移出箱子</button>
+    </div>
+    <div class="card" data-cat="insect">
+      <div class="stamp">NO.078</div>
+      <div class="frame"><svg viewBox="0 0 80 60"><ellipse cx="28" cy="30" rx="14" ry="18" fill="none" stroke="#33302A" stroke-width="1.5"/><ellipse cx="52" cy="30" rx="14" ry="18" fill="none" stroke="#33302A" stroke-width="1.5"/><circle cx="40" cy="30" r="3" fill="#33302A"/></svg></div>
+      <h3>柑橘凤蝶</h3>
+      <div class="latin">Papilio xuthus</div>
+      <div class="meta">2024-08 采于外婆家橘园<br>展翅 7.2cm · 触须完整</div>
+      <button class="rm">移出箱子</button>
+    </div>
+  </div>
+  <div class="empty" id="emptyBox">这个分类下暂时没有标本了。</div>
+</div>
+<div class="toast" id="toast">已移出标本箱</div>
+<script>
+var tabs=document.getElementById("tabs").getElementsByTagName("button");
+var grid=document.getElementById("grid");
+var emptyBox=document.getElementById("emptyBox");
+var cntEl=document.getElementById("cnt");
+var toast=document.getElementById("toast");
+var toastTimer=null;
+function cards(){return grid.getElementsByClassName("card");}
+function refreshEmpty(cat){
+  var cs=cards(),vis=0,i;
+  for(i=0;i<cs.length;i++){
+    var show=(cat==="all"||cs[i].getAttribute("data-cat")===cat);
+    cs[i].style.display=show?"":"none";
+    if(show){vis++;}
+  }
+  emptyBox.className=vis===0?"empty show":"empty";
+}
+var curCat="all";
+for(var t=0;t<tabs.length;t++){
+  (function(btn){
+    btn.addEventListener("click",function(){
+      for(var k=0;k<tabs.length;k++){tabs[k].className="";}
+      btn.className="on";
+      curCat=btn.getAttribute("data-cat");
+      refreshEmpty(curCat);
+    });
+  })(tabs[t]);
+}
+grid.addEventListener("click",function(e){
+  var btn=e.target;
+  if(btn.className!=="rm"){return;}
+  var card=btn.parentNode;
+  grid.removeChild(card);
+  cntEl.textContent=cards().length;
+  refreshEmpty(curCat);
+  toast.className="toast show";
+  if(toastTimer){clearTimeout(toastTimer);}
+  toastTimer=setTimeout(function(){toast.className="toast";},1800);
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>榫卯工单 · 木匠工坊协作台</title>
+<style>
+:root{
+  --page:#F5EFE3;
+  --wood:#8B5E34;
+  --ink:#2F2A22;
+  --soft:#4A4238;
+  --lacq:#B85C2B;
+  --paper:#FBF7EC;
+  --line:#D8CBB2;
+  --line-dark:#B9A888;
+  --ok:#5C7A3A;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{
+  background:var(--page);
+  background-image:
+    repeating-linear-gradient(90deg,rgba(139,94,52,.045) 0 2px,transparent 2px 90px),
+    repeating-linear-gradient(0deg,rgba(139,94,52,.03) 0 1px,transparent 1px 46px);
+  color:var(--ink);
+  font-family:"PingFang SC","Microsoft YaHei","Noto Sans CJK SC",system-ui,-apple-system,sans-serif;
+  min-height:100vh;
+}
+.page{max-width:1280px;margin:0 auto;padding:24px 32px 48px;}
+.topbar{
+  display:flex;align-items:center;gap:16px;
+  padding-bottom:16px;border-bottom:2px solid var(--ink);
+}
+.brand{display:flex;align-items:center;gap:12px;}
+.brand-seal{
+  width:46px;height:46px;flex:none;border:2.5px solid var(--ink);border-radius:8px;
+  display:flex;align-items:center;justify-content:center;background:var(--paper);
+  box-shadow:3px 3px 0 var(--wood);
+}
+.brand h1{font-size:21px;font-weight:900;letter-spacing:3px;}
+.brand p{font-size:12px;color:var(--soft);letter-spacing:2px;margin-top:3px;}
+.top-right{margin-left:auto;display:flex;align-items:center;gap:12px;}
+.me{
+  display:flex;align-items:center;gap:8px;font-size:13px;color:var(--soft);
+  border:1.5px solid var(--line-dark);border-radius:999px;padding:6px 14px;background:var(--paper);
+}
+.me b{color:var(--ink);}
+.role-dot{width:8px;height:8px;border-radius:50%;background:var(--wood);}
+.btn{
+  font-family:inherit;cursor:pointer;border-radius:8px;font-size:14px;font-weight:700;
+  letter-spacing:2px;padding:10px 20px;border:2px solid var(--ink);
+  background:var(--wood);color:var(--paper);
+  box-shadow:3px 3px 0 var(--ink);
+  transition:transform .15s ease,box-shadow .15s ease,background .15s ease;
+}
+.btn:hover{background:var(--lacq);transform:translate(-1px,-1px);box-shadow:4px 4px 0 var(--ink);}
+.btn:focus-visible{outline:3px solid var(--lacq);outline-offset:2px;}
+.btn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink);}
+.btn:disabled{background:#C9BCA3;border-color:var(--line-dark);color:#8A7E68;box-shadow:none;cursor:not-allowed;transform:none;}
+.btn-ghost{background:var(--paper);color:var(--ink);}
+.btn-ghost:hover{background:#F1E7D2;color:var(--lacq);}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:24px;margin-top:24px;}
+.section-title{
+  font-size:16px;font-weight:900;letter-spacing:3px;margin-bottom:14px;
+  display:flex;align-items:center;gap:10px;
+}
+.joint{width:22px;height:22px;flex:none;}
+/* 新建任务表单 */
+.create-panel{
+  display:none;border:2px solid var(--ink);border-radius:12px;background:var(--paper);
+  padding:18px 20px;margin-bottom:20px;box-shadow:4px 4px 0 var(--wood);
+}
+.create-panel.open{display:block;animation:slideIn .24s ease-out;}
+@keyframes slideIn{from{opacity:0;transform:translateY(-8px);}to{opacity:1;transform:translateY(0);}}
+.create-panel h3{font-size:15px;font-weight:900;letter-spacing:2px;margin-bottom:14px;}
+.form-grid{display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:12px;align-items:end;}
+.field label{display:block;font-size:12px;font-weight:700;color:var(--soft);letter-spacing:1px;margin-bottom:6px;}
+.field input,.field select{
+  width:100%;font-family:inherit;font-size:14px;color:var(--ink);
+  border:2px solid var(--ink);border-radius:8px;padding:9px 12px;background:#FFFDF6;
+  transition:border-color .15s ease,box-shadow .15s ease;
+}
+.field input:focus,.field select:focus{outline:none;border-color:var(--lacq);box-shadow:3px 3px 0 rgba(184,92,43,.35);}
+.field input::placeholder{color:#A7987F;}
+.form-err{display:none;margin-top:10px;font-size:12px;color:var(--lacq);font-weight:700;letter-spacing:1px;}
+.form-err.show{display:block;}
+/* 任务板 */
+.board{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;}
+.col{
+  border:2px solid var(--ink);border-radius:12px;background:var(--paper);
+  padding:12px;min-height:220px;box-shadow:4px 4px 0 rgba(47,42,34,.18);
+}
+.col-head{
+  display:flex;align-items:center;gap:8px;padding-bottom:10px;margin-bottom:10px;
+  border-bottom:1.5px dashed var(--line-dark);
+}
+.col-head h3{font-size:13px;font-weight:900;letter-spacing:2px;}
+.col-head .cnt{
+  margin-left:auto;font-size:11px;font-weight:800;color:var(--paper);
+  background:var(--wood);border-radius:999px;padding:2px 9px;
+}
+.tcard{
+  border:1.5px solid var(--ink);border-radius:10px;background:#FFFDF6;
+  padding:11px 12px;margin-bottom:10px;position:relative;
+  transition:transform .15s ease,box-shadow .15s ease;
+}
+.tcard:hover{transform:translate(-1px,-1px);box-shadow:3px 3px 0 rgba(139,94,52,.4);}
+.tcard .tid{font-size:10px;color:var(--soft);letter-spacing:1px;font-weight:700;}
+.tcard h4{font-size:14px;font-weight:800;margin:3px 0 8px;line-height:1.5;}
+.tmeta{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:9px;}
+.pill{
+  font-size:11px;padding:2px 8px;border-radius:999px;letter-spacing:1px;
+  border:1px solid var(--line-dark);color:var(--soft);background:var(--page);
+}
+.pill.assignee{border-color:var(--wood);color:var(--wood);font-weight:700;}
+.pill.lock{border-color:var(--lacq);color:var(--lacq);font-weight:700;}
+.tact{display:flex;gap:6px;}
+.mini{
+  flex:1;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;
+  border:1.5px solid var(--ink);border-radius:7px;padding:6px 8px;
+  background:var(--page);color:var(--ink);letter-spacing:1px;
+  transition:all .14s ease;
+}
+.mini:hover{background:var(--wood);color:var(--paper);}
+.mini:disabled{background:#EAE1CD;color:#A7987F;border-color:var(--line-dark);cursor:not-allowed;}
+.mini.warn{border-color:var(--lacq);color:var(--lacq);background:#FBF0E6;}
+.mini.warn:hover{background:var(--lacq);color:#FFFDF6;}
+.tcard.locked{background:#F6EFE0;border-style:dashed;}
+.empty-tip{font-size:12px;color:#A7987F;text-align:center;padding:18px 6px;letter-spacing:1px;}
+/* 活动记录 */
+.feed{
+  border:2px solid var(--ink);border-radius:12px;background:var(--paper);
+  box-shadow:4px 4px 0 var(--wood);padding:16px;align-self:start;
+  position:sticky;top:20px;max-height:720px;display:flex;flex-direction:column;
+}
+.feed h3{font-size:14px;font-weight:900;letter-spacing:3px;padding-bottom:10px;border-bottom:1.5px solid var(--ink);margin-bottom:10px;}
+.feed-list{list-style:none;overflow-y:auto;display:flex;flex-direction:column;gap:0;}
+.feed-item{
+  position:relative;padding:10px 0 10px 22px;border-left:none;font-size:13px;line-height:1.7;
+  border-bottom:1px dashed var(--line);
+}
+.feed-item::before{
+  content:"";position:absolute;left:2px;top:16px;width:9px;height:9px;
+  background:var(--wood);border:1.5px solid var(--ink);transform:rotate(45deg);
+}
+.feed-item .who{font-weight:800;}
+.feed-item .when{display:block;font-size:11px;color:var(--soft);margin-top:2px;letter-spacing:1px;}
+.feed-item.blocked::before{background:var(--lacq);}
+.feed-item.blocked .bl{
+  display:inline-block;font-size:10px;font-weight:800;color:var(--lacq);
+  border:1px solid var(--lacq);border-radius:4px;padding:0 5px;margin-left:6px;letter-spacing:1px;
+}
+/* 权限弹层 */
+.overlay{
+  position:fixed;inset:0;background:rgba(47,42,34,.5);display:none;
+  align-items:center;justify-content:center;z-index:60;padding:20px;
+}
+.overlay.show{display:flex;}
+.modal{
+  width:min(480px,100%);background:var(--paper);border:2.5px solid var(--ink);
+  border-radius:14px;box-shadow:8px 8px 0 var(--ink);padding:24px;
+  animation:popIn .22s ease-out;
+}
+@keyframes popIn{from{opacity:0;transform:scale(.94);}to{opacity:1;transform:scale(1);}}
+.modal-head{display:flex;align-items:center;gap:12px;margin-bottom:14px;}
+.lock-badge{
+  width:44px;height:44px;flex:none;border:2px solid var(--lacq);border-radius:10px;
+  display:flex;align-items:center;justify-content:center;background:#FBF0E6;
+}
+.modal-head h3{font-size:17px;font-weight:900;letter-spacing:2px;color:var(--lacq);}
+.modal p{font-size:13.5px;line-height:2;color:var(--ink);}
+.modal .miss{
+  margin:12px 0;padding:10px 14px;border:1.5px dashed var(--lacq);border-radius:8px;
+  background:#FBF0E6;font-size:13px;
+}
+.modal .miss b{color:var(--lacq);}
+.modal .note{font-size:12px;color:var(--soft);}
+.modal-acts{display:flex;gap:10px;margin-top:18px;justify-content:flex-end;}
+.modal.done .modal-head h3{color:var(--ok);}
+.modal.done .lock-badge{border-color:var(--ok);background:#EFF4E4;}
+.toast{
+  position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(80px);
+  background:var(--ink);color:var(--page);border-radius:10px;padding:12px 22px;
+  font-size:13px;letter-spacing:1px;opacity:0;pointer-events:none;z-index:70;
+  transition:transform .26s ease,opacity .26s ease;box-shadow:4px 4px 0 rgba(47,42,34,.3);
+}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
+@media (max-width:900px){
+  .page{padding:16px 16px 36px;}
+  .layout{grid-template-columns:minmax(0,1fr);}
+  .board{grid-template-columns:repeat(2,minmax(0,1fr));}
+  .form-grid{grid-template-columns:minmax(0,1fr);}
+  .feed{position:static;max-height:none;}
+  .topbar{flex-wrap:wrap;}
+  .top-right{margin-left:0;flex-wrap:wrap;}
+}
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{
+    animation-duration:.01ms !important;animation-iteration-count:1 !important;
+    transition-duration:.01ms !important;
+  }
+}
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-seal">
+        <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><path d="M7 3h10v6h3v4h-3v8H7v-8H4V9h3z" fill="none" stroke="#2F2A22" stroke-width="1.8"/><path d="M9 9h6v6H9z" fill="#B85C2B"/></svg>
+      </div>
+      <div>
+        <h1>榫卯工单</h1>
+        <p>城南木匠工坊 · 协作台 · 一榫一卯皆有记录</p>
+      </div>
+    </div>
+    <div class="top-right">
+      <span class="me"><span class="role-dot"></span>当前伙计:<b>阿榫</b> · 木工(无掌柜工牌)</span>
+      <button class="btn" id="btnNew">+ 开新工单</button>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section>
+      <h2 class="section-title">
+        <svg class="joint" viewBox="0 0 22 22" aria-hidden="true"><path d="M3 3h7v6H6v4H3zM19 19h-7v-6h4V9h3z" fill="#8B5E34"/></svg>
+        工坊任务板
+      </h2>
+
+      <div class="create-panel" id="createPanel">
+        <h3>开新工单 · 写上料单就算立项</h3>
+        <div class="form-grid">
+          <div class="field">
+            <label for="fTitle">活计名称</label>
+            <input id="fTitle" type="text" maxlength="20" placeholder="例如:打一张榆木条凳">
+          </div>
+          <div class="field">
+            <label for="fCraft">工种</label>
+            <select id="fCraft">
+              <option>下料</option><option>开榫</option><option>雕刻</option>
+              <option>打磨</option><option>上漆</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="fAssign">指派给</label>
+            <select id="fAssign">
+              <option>阿榫</option><option>阿刨</option><option>小漆</option><option>老卯(掌柜)</option>
+            </select>
+          </div>
+          <button class="btn" id="btnCreate">立工单</button>
+        </div>
+        <div class="form-err" id="formErr">活计名称不能为空,写清楚再立。</div>
+      </div>
+
+      <div class="board" id="board"></div>
+    </section>
+
+    <aside class="feed">
+      <h3>活动记录 · 工坊流水</h3>
+      <ul class="feed-list" id="feedList"></ul>
+    </aside>
+  </main>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="modal" id="modal">
+    <div class="modal-head">
+      <div class="lock-badge">
+        <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><rect x="5" y="10" width="14" height="10" rx="2" fill="none" stroke="#B85C2B" stroke-width="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3" fill="none" stroke="#B85C2B" stroke-width="2"/><circle cx="12" cy="15" r="1.8" fill="#B85C2B"/></svg>
+      </div>
+      <h3 id="modalTitle">权限不足 · 已被拦下</h3>
+    </div>
+    <div id="modalBody">
+      <p id="denyText">这张工单盖着「掌柜专属」印,只有掌柜工牌才能推进。</p>
+      <div class="miss">缺少权限:<b>掌柜工牌</b>(当前身份:阿榫 · 木工)</div>
+      <p class="note">本次变更未写入任务板,也未计入活动记录;活计仍停在原工序。</p>
+    </div>
+    <div class="modal-acts" id="modalActs">
+      <button class="btn btn-ghost" id="btnBack">安全返回任务板</button>
+      <button class="btn" id="btnApply">向掌柜申请权限</button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ======== 数据 ======== */
+var STAGES=["待开工","备料中","制作中","已完工"];
+var TASKS=[
+  {id:"T-101",title:"打一张榆木条凳",craft:"下料",assignee:"阿榫",stage:0,locked:false},
+  {id:"T-102",title:"修榫:圈椅后腿卯眼",craft:"开榫",assignee:"阿刨",stage:2,locked:false},
+  {id:"T-103",title:"樟木衣箱上两遍大漆",craft:"上漆",assignee:"小漆",stage:1,locked:false},
+  {id:"T-104",title:"盘点库房黄花梨老料",craft:"下料",assignee:"老卯(掌柜)",stage:0,locked:true},
+  {id:"T-105",title:"给门板刻回纹边",craft:"雕刻",assignee:"阿榫",stage:2,locked:false}
+];
+var FEED=[
+  {who:"老卯(掌柜)",what:"立了工单 T-104「盘点库房黄花梨老料」,加盖掌柜专属印",when:"今天 09:12",blocked:false},
+  {who:"阿刨",what:"把 T-102 推进到「制作中」",when:"今天 10:05",blocked:false},
+  {who:"小漆",what:"领了 T-103,开始「备料中」调漆",when:"今天 10:40",blocked:false}
+];
+var seq=106;
+/* ======== 工具 ======== */
+function $(id){return document.getElementById(id);}
+function nowStr(){
+  var d=new Date();
+  return "今天 "+(d.getHours()<10?"0"+d.getHours():d.getHours())+":"+(d.getMinutes()<10?"0"+d.getMinutes():d.getMinutes());
+}
+function toast(msg){
+  var t=$("toast");t.textContent=msg;t.classList.add("show");
+  clearTimeout(toast._t);toast._t=setTimeout(function(){t.classList.remove("show");},2400);
+}
+/* ======== 任务板渲染 ======== */
+function renderBoard(){
+  var board=$("board");board.innerHTML="";
+  STAGES.forEach(function(name,si){
+    var col=document.createElement("div");col.className="col";
+    var list=TASKS.filter(function(t){return t.stage===si;});
+    col.innerHTML='<div class="col-head"><h3>'+name+'</h3><span class="cnt">'+list.length+'</span></div>';
+    if(list.length===0){
+      var tip=document.createElement("div");tip.className="empty-tip";
+      tip.textContent=si===0?"暂无待开工的活":"这一工序空着";
+      col.appendChild(tip);
+    }
+    list.forEach(function(t){
+      var c=document.createElement("div");
+      c.className="tcard"+(t.locked?" locked":"");
+      c.innerHTML='<div class="tid">'+t.id+' · '+t.craft+'</div>'+
+        '<h4>'+t.title+'</h4>'+
+        '<div class="tmeta"><span class="pill assignee">'+t.assignee+'</span>'+
+        (t.locked?'<span class="pill lock">掌柜专属</span>':'')+'</div>';
+      var acts=document.createElement("div");acts.className="tact";
+      var adv=document.createElement("button");
+      adv.className="mini"+(t.locked?" warn":"");
+      adv.textContent=t.locked?"推进(需掌柜)":(si<STAGES.length-1?"推进工序":"已完工");
+      adv.disabled=(!t.locked&&si===STAGES.length-1);
+      adv.addEventListener("click",function(){advance(t.id);});
+      acts.appendChild(adv);
+      c.appendChild(acts);
+      col.appendChild(c);
+    });
+    board.appendChild(col);
+  });
+}
+/* ======== 活动记录渲染 ======== */
+function renderFeed(){
+  var ul=$("feedList");ul.innerHTML="";
+  FEED.forEach(function(f){
+    var li=document.createElement("li");
+    li.className="feed-item"+(f.blocked?" blocked":"");
+    li.innerHTML='<span class="who">'+f.who+'</span> '+f.what+(f.blocked?'<span class="bl">已拦截 · 未写入</span>':'')+
+      '<span class="when">'+f.when+'</span>';
+    ul.appendChild(li);
+  });
+}
+function logFeed(who,what,blocked){
+  FEED.unshift({who:who,what:what,when:nowStr(),blocked:!!blocked});
+  renderFeed();
+}
+/* ======== 推进任务(含权限拦截) ======== */
+var pendingId=null;
+function advance(id){
+  var t=null;
+  for(var i=0;i<TASKS.length;i++){if(TASKS[i].id===id){t=TASKS[i];break;}}
+  if(!t)return;
+  if(t.locked){
+    /* 权限不足:不写入任何变更,只打开拦截弹层 */
+    pendingId=id;
+    $("denyText").textContent="「"+t.title+"」("+t.id+")盖着掌柜专属印,只有掌柜工牌才能推进。";
+    openModal(false);
+    logFeed("阿榫","试图推进 "+t.id+"「"+t.title+"」,缺少掌柜工牌",true);
+    return;
+  }
+  if(t.stage<STAGES.length-1){
+    t.stage+=1;
+    renderBoard();
+    logFeed("阿榫","把 "+t.id+"「"+t.title+"」推进到「"+STAGES[t.stage]+"」",false);
+    toast("已推进:"+t.title+" → "+STAGES[t.stage]);
+  }
+}
+/* ======== 权限弹层 ======== */
+function openModal(done){
+  var m=$("modal");
+  m.classList.toggle("done",done);
+  $("modalTitle").textContent=done?"申请已发出":"权限不足 · 已被拦下";
+  $("modalBody").style.display=done?"none":"block";
+  $("modalActs").style.display=done?"none":"flex";
+  $("overlay").classList.add("show");
+}
+function closeModal(){
+  $("overlay").classList.remove("show");
+  pendingId=null;
+}
+$("btnBack").addEventListener("click",function(){
+  closeModal();
+  toast("已安全返回任务板,可继续处理手头活计");
+});
+$("btnApply").addEventListener("click",function(){
+  logFeed("阿榫","就 "+(pendingId||"受限工单")+" 向掌柜申请「掌柜工牌」权限,等待批复",false);
+  openModal(true);
+  setTimeout(function(){
+    closeModal();
+    toast("申请已送到掌柜案头 · 先推进自己有权限的活");
+  },1400);
+});
+$("overlay").addEventListener("click",function(e){
+  if(e.target===$("overlay"))closeModal();
+});
+/* ======== 新建任务 ======== */
+$("btnNew").addEventListener("click",function(){
+  var p=$("createPanel");
+  p.classList.toggle("open");
+  if(p.classList.contains("open"))$("fTitle").focus();
+});
+$("btnCreate").addEventListener("click",function(){
+  var title=$("fTitle").value.replace(/^\s+|\s+$/g,"");
+  if(!title){
+    $("formErr").classList.add("show");$("fTitle").focus();return;
+  }
+  $("formErr").classList.remove("show");
+  var t={
+    id:"T-"+(seq++),title:title,
+    craft:$("fCraft").value,assignee:$("fAssign").value,
+    stage:0,locked:false
+  };
+  TASKS.unshift(t);
+  renderBoard();
+  logFeed("阿榫","立了新工单 "+t.id+"「"+t.title+"」,指派给 "+t.assignee,false);
+  $("fTitle").value="";
+  $("createPanel").classList.remove("open");
+  toast("工单 "+t.id+" 已立,进入「待开工」");
+});
+/* ======== 初始化 ======== */
+renderBoard();renderFeed();
+</script>
+</body>
+</html>

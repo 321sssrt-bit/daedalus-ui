@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>铅字铺 · 写完再发出去</title>
+<style>
+:root{
+  --paper:#FBF7EC;
+  --desk:#EFE9DC;
+  --ink:#1F1C17;
+  --seal:#A32E22;
+  --muted:#6F6A5E;
+  --platen:#171410;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  min-height:100vh;display:flex;align-items:center;justify-content:center;
+  background:#221D14;padding:24px 12px;
+  font-family:ui-monospace,"Courier New",Menlo,Consolas,"Liberation Mono",monospace;
+  color:var(--ink);
+}
+.phone{
+  width:390px;min-height:844px;flex:none;position:relative;overflow:hidden;
+  border-radius:46px;border:10px solid #100D09;background:var(--paper);
+  box-shadow:0 42px 90px rgba(0,0,0,.6),0 6px 20px rgba(0,0,0,.45);
+  display:flex;flex-direction:column;
+}
+.platen{
+  flex:none;background:var(--platen);color:var(--desk);
+  padding:18px 22px 14px;display:flex;align-items:center;justify-content:space-between;
+}
+.brand{font-size:15px;letter-spacing:3px;font-weight:700}
+.brand small{display:block;font-size:9px;letter-spacing:4px;color:var(--muted);margin-top:3px;font-weight:400}
+.lamp{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--desk)}
+.lamp i{width:8px;height:8px;border-radius:50%;background:var(--seal);display:inline-block;animation:lamp 2.4s ease-in-out infinite}
+@keyframes lamp{0%,100%{opacity:.35}50%{opacity:1}}
+.tear{
+  flex:none;height:14px;background-color:var(--paper);
+  background-image:linear-gradient(45deg,var(--platen) 50%,transparent 50%),linear-gradient(-45deg,var(--platen) 50%,transparent 50%);
+  background-size:18px 14px;background-repeat:repeat-x;background-position:0 0,9px 0;
+}
+.paper{
+  flex:1;overflow-y:auto;background:var(--paper);
+  padding:20px 22px 14px;display:flex;flex-direction:column;
+}
+.orderNo{
+  display:flex;justify-content:space-between;font-size:11px;color:var(--muted);
+  letter-spacing:1px;margin-bottom:14px;
+}
+.titleIn{
+  width:100%;border:none;background:transparent;color:var(--ink);
+  font:inherit;font-size:22px;font-weight:700;letter-spacing:1px;
+  padding:4px 0 12px;border-bottom:2px dashed var(--muted);
+}
+.titleIn::placeholder{color:var(--muted);font-weight:400}
+.titleIn:focus{outline:none;border-bottom-color:var(--seal)}
+.bodyWrap{position:relative;margin-top:6px}
+.bodyIn{
+  width:100%;min-height:308px;border:none;resize:none;color:var(--ink);
+  font:inherit;font-size:15px;line-height:32px;background-color:transparent;
+  background-image:repeating-linear-gradient(transparent 0,transparent 31px,#DDD4BE 31px,#DDD4BE 32px);
+}
+.bodyIn::placeholder{color:var(--muted)}
+.bodyIn:focus{outline:none}
+.caret{display:inline-block;color:var(--seal);animation:blink 1s steps(2) infinite}
+@keyframes blink{50%{opacity:0}}
+.countRow{
+  display:flex;justify-content:space-between;align-items:center;gap:8px;
+  font-size:12px;color:var(--muted);padding:12px 0 4px;flex-wrap:wrap;
+}
+.countRow b{color:var(--ink);font-weight:700}
+.stateTxt{display:flex;align-items:center;gap:6px}
+.stateDot{width:7px;height:7px;border-radius:50%;background:var(--muted);display:inline-block}
+.stateDot.saved{background:var(--seal)}
+.acts{
+  flex:none;display:flex;gap:12px;padding:12px 22px 24px;background:var(--paper);
+  border-top:1px solid #E4DCC8;
+}
+.btn{
+  flex:1;font:inherit;font-size:15px;letter-spacing:2px;padding:13px 0 12px;
+  border-radius:6px;cursor:pointer;text-align:center;
+  transition:transform .15s ease,box-shadow .15s ease,background .15s ease;
+}
+.btn:active{transform:translateY(2px)}
+.btn:focus-visible{outline:2px solid var(--seal);outline-offset:2px}
+.btnGhost{background:transparent;color:var(--ink);border:1.5px solid var(--ink)}
+.btnGhost:hover{background:var(--desk)}
+.btnSeal{background:var(--seal);color:var(--paper);border:1.5px solid var(--seal)}
+.btnSeal:hover{box-shadow:0 4px 0 var(--ink)}
+.btn:disabled{opacity:.55;cursor:not-allowed;box-shadow:none}
+.stamp{
+  position:absolute;right:28px;top:170px;width:96px;height:96px;z-index:5;
+  border:3px solid var(--seal);border-radius:50%;color:var(--seal);
+  display:flex;align-items:center;justify-content:center;text-align:center;
+  font-size:24px;font-weight:700;letter-spacing:6px;line-height:1.2;
+  transform:rotate(-14deg) scale(2.4);opacity:0;pointer-events:none;
+  box-shadow:inset 0 0 0 2px rgba(163,46,34,.25);
+  transition:transform .3s cubic-bezier(.2,1.6,.4,1),opacity .3s ease;
+}
+.stamp.on{opacity:.92;transform:rotate(-14deg) scale(1)}
+.toast{
+  position:absolute;left:50%;bottom:96px;transform:translateX(-50%) translateY(16px);
+  background:var(--ink);color:var(--paper);font-size:13px;letter-spacing:1px;
+  padding:10px 18px;border-radius:4px;opacity:0;pointer-events:none;z-index:8;
+  transition:opacity .25s ease,transform .25s ease;white-space:nowrap;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+@media (prefers-reduced-motion: reduce){
+  *{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
+</style>
+</head>
+<body>
+<div class="phone">
+  <header class="platen">
+    <div class="brand">铅字铺<small>TYPE &amp; PRESS</small></div>
+    <div class="lamp"><i></i>机器待机</div>
+  </header>
+  <div class="tear"></div>
+  <main class="paper">
+    <div class="orderNo"><span>排印单 LY-2026-0518</span><span>第 3 号机器</span></div>
+    <input id="inTitle" class="titleIn" type="text" maxlength="40" placeholder="给这篇起个题" autocomplete="off">
+    <div class="bodyWrap">
+      <textarea id="inBody" class="bodyIn" placeholder="从这里开始敲。写够一百字，机器就给你上油墨……"></textarea>
+    </div>
+    <div class="countRow">
+      <span><b id="countNum">正文 0 字</b> · <span id="readTime">读完不到 1 分钟</span><span class="caret">▌</span></span>
+      <span class="stateTxt"><i class="stateDot" id="stateDot"></i><span id="stateTxt">未保存</span></span>
+    </div>
+  </main>
+  <div class="stamp" id="stamp">已<br>发</div>
+  <div class="acts">
+    <button class="btn btnGhost" id="btnDraft" type="button">存草稿</button>
+    <button class="btn btnSeal" id="btnPub" type="button">发出去</button>
+  </div>
+  <div class="toast" id="toast"></div>
+</div>
+<script>
+(function(){
+  var inTitle=document.getElementById('inTitle');
+  var inBody=document.getElementById('inBody');
+  var countNum=document.getElementById('countNum');
+  var readTime=document.getElementById('readTime');
+  var stateTxt=document.getElementById('stateTxt');
+  var stateDot=document.getElementById('stateDot');
+  var btnDraft=document.getElementById('btnDraft');
+  var btnPub=document.getElementById('btnPub');
+  var stamp=document.getElementById('stamp');
+  var toastBox=document.getElementById('toast');
+  var toastTimer=null;
+  function toast(msg){
+    toastBox.textContent=msg;
+    toastBox.classList.add('show');
+    if(toastTimer){clearTimeout(toastTimer);}
+    toastTimer=setTimeout(function(){toastBox.classList.remove('show');},2200);
+  }
+  function words(){
+    return inBody.value.replace(/\s/g,'').length;
+  }
+  function refresh(){
+    var n=words();
+    countNum.textContent='正文 '+n+' 字';
+    readTime.textContent=n===0?'读完不到 1 分钟':'读完约 '+Math.ceil(n/400)+' 分钟';
+  }
+  function nowHM(){
+    var t=new Date();
+    var h=('0'+t.getHours()).slice(-2);
+    var m=('0'+t.getMinutes()).slice(-2);
+    return h+':'+m;
+  }
+  inBody.addEventListener('input',function(){
+    refresh();
+    stateTxt.textContent='未保存';
+    stateDot.classList.remove('saved');
+  });
+  inTitle.addEventListener('input',refresh);
+  btnDraft.addEventListener('click',function(){
+    stateTxt.textContent='草稿已存 '+nowHM();
+    stateDot.classList.add('saved');
+    toast('草稿已塞进抽屉');
+  });
+  btnPub.addEventListener('click',function(){
+    if(words()===0){
+      toast('正文还空着，先写点什么');
+      inBody.focus();
+      return;
+    }
+    var t=inTitle.value.replace(/^\s+|\s+$/g,'');
+    if(t===''){t='无题';}
+    stamp.classList.add('on');
+    stateTxt.textContent='已发出 '+nowHM();
+    stateDot.classList.add('saved');
+    btnPub.disabled=true;
+    btnPub.textContent='已发出';
+    toast('《'+t+'》已发往排印房');
+  });
+  refresh();
+})();
+</script>
+</body>
+</html>

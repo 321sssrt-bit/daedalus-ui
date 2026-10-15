@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>资料空投台 · 雁传数据专线</title>
+<style>
+:root{
+  --page:#F5F3EE;
+  --orange:#E86A10;
+  --ink:#191C20;
+  --muted:#6E757C;
+  --line:#E0DCD2;
+  --panel:#FFFFFF;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{
+  background:var(--page);color:var(--ink);
+  font-family:"PingFang SC","Microsoft YaHei","Segoe UI",sans-serif;
+  min-height:100vh;padding:28px 40px 56px;
+}
+.mono{font-family:"Courier New",Consolas,monospace;}
+.waybill{
+  background:var(--ink);color:#F5F3EE;border-radius:8px;
+  padding:20px 28px;display:flex;justify-content:space-between;align-items:center;gap:24px;
+  margin-bottom:26px;
+}
+.waybill .left .brand{font-size:20px;font-weight:700;letter-spacing:4px;}
+.waybill .left .sub{font-size:12px;color:#B9B2A6;margin-top:4px;letter-spacing:1px;}
+.waybill .mid{flex:1;display:flex;gap:28px;justify-content:center;font-size:12px;color:#B9B2A6;}
+.waybill .mid b{display:block;color:#F5F3EE;font-size:14px;margin-top:3px;font-weight:400;}
+.barcode{
+  width:150px;height:44px;
+  background:repeating-linear-gradient(90deg,#F5F3EE 0 2px,transparent 2px 5px,#F5F3EE 5px 6px,transparent 6px 10px,#F5F3EE 10px 13px,transparent 13px 15px);
+}
+.barcode-num{font-size:11px;letter-spacing:3px;margin-top:5px;text-align:center;color:#B9B2A6;}
+.layout{display:grid;grid-template-columns:1fr 320px;gap:24px;align-items:start;}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:hidden;}
+.card-head{padding:15px 22px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;}
+.card-head h2{font-size:15px;font-weight:700;letter-spacing:2px;}
+.card-head .tag{font-size:11px;color:var(--muted);letter-spacing:1px;}
+.dropzone{
+  margin:22px;border:2px dashed var(--muted);border-radius:8px;
+  padding:44px 24px;text-align:center;cursor:pointer;
+  transition:border-color .18s ease,background .18s ease;
+}
+.dropzone:hover,.dropzone.over{border-color:var(--orange);background:rgba(232,106,16,.05);}
+.dropzone .big{font-size:16px;font-weight:700;letter-spacing:2px;margin:14px 0 6px;}
+.dropzone .small{font-size:12px;color:var(--muted);line-height:1.9;}
+.dropzone .or{
+  display:inline-block;margin-top:16px;font-size:13px;color:var(--orange);
+  border:1px solid var(--orange);border-radius:4px;padding:8px 20px;letter-spacing:2px;
+  transition:background .15s ease,color .15s ease;
+}
+.dropzone:hover .or{background:var(--orange);color:#fff;}
+.plist{padding:0 22px 8px;}
+.prow{
+  display:grid;grid-template-columns:36px 1fr 110px 120px 90px;gap:14px;align-items:center;
+  padding:14px 0;border-bottom:1px solid var(--line);
+}
+.prow:last-child{border-bottom:none;}
+.prow .fname{font-size:14px;font-weight:700;word-break:break-all;}
+.prow .fmeta{font-size:11px;color:var(--muted);margin-top:3px;letter-spacing:1px;}
+.prow .size{font-size:12px;text-align:right;}
+.st{font-size:12px;letter-spacing:2px;padding:3px 10px;border-radius:3px;text-align:center;white-space:nowrap;}
+.st-wait{color:var(--muted);border:1px solid var(--line);}
+.st-run{color:#fff;background:var(--orange);}
+.st-done{color:#fff;background:#2E7D32;}
+.pbar{height:6px;background:var(--line);border-radius:3px;overflow:hidden;margin-top:6px;display:none;}
+.pbar i{display:block;height:100%;width:0;background:var(--orange);transition:width .5s linear;}
+.del{
+  background:none;border:1px solid var(--line);border-radius:4px;color:var(--muted);
+  font-size:12px;padding:6px 12px;cursor:pointer;font-family:inherit;letter-spacing:2px;
+  transition:border-color .15s ease,color .15s ease;
+}
+.del:hover{border-color:#C0392B;color:#C0392B;}
+.del:focus-visible{outline:2px solid var(--orange);outline-offset:2px;}
+.del[disabled]{opacity:.4;cursor:not-allowed;}
+.empty{padding:34px;text-align:center;font-size:13px;color:var(--muted);letter-spacing:2px;display:none;}
+.summary{padding:16px 22px;border-top:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;background:#FBFAF6;}
+.summary .info{font-size:12px;color:var(--muted);letter-spacing:1px;}
+.btn{font-family:inherit;cursor:pointer;border-radius:4px;font-size:14px;padding:11px 26px;letter-spacing:2px;transition:background .18s ease,color .18s ease,border-color .18s ease;}
+.btn-primary{background:var(--orange);color:#fff;border:1px solid var(--orange);}
+.btn-primary:hover{background:#C95A0C;}
+.btn-primary:focus-visible{outline:2px solid var(--ink);outline-offset:2px;}
+.btn-primary[disabled]{background:#B9B2A6;border-color:#B9B2A6;cursor:not-allowed;}
+.side-sec{padding:16px 20px;border-bottom:1px solid var(--line);font-size:13px;}
+.side-sec:last-child{border-bottom:none;}
+.side-sec h3{font-size:12px;color:var(--muted);letter-spacing:2px;font-weight:400;margin-bottom:10px;}
+.kv{display:flex;justify-content:space-between;font-size:13px;padding:5px 0;}
+.kv .k{color:var(--muted);}
+.kv .v{font-weight:700;}
+.quota{height:8px;background:var(--line);border-radius:4px;overflow:hidden;margin-top:8px;}
+.quota i{display:block;height:100%;width:62%;background:var(--orange);}
+.toast{
+  position:fixed;left:50%;bottom:34px;transform:translateX(-50%) translateY(20px);
+  background:var(--ink);color:var(--page);font-size:13px;letter-spacing:2px;
+  padding:11px 26px;border-radius:4px;opacity:0;pointer-events:none;z-index:30;
+  transition:opacity .22s ease,transform .22s ease;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+@media (max-width:900px){
+  body{padding:16px;}
+  .layout{grid-template-columns:1fr;}
+  .waybill{flex-direction:column;align-items:flex-start;}
+  .waybill .mid{justify-content:flex-start;flex-wrap:wrap;gap:16px;}
+  .prow{grid-template-columns:28px 1fr 80px;gap:10px;}
+  .prow .size,.prow .stcol{display:none;}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{transition-duration:.01ms !important;animation-duration:.01ms !important;}
+}
+</style>
+</head>
+<body>
+<header class="waybill">
+  <div class="left">
+    <div class="brand">雁传空投台</div>
+    <div class="sub">雁传数据专线 · 批量文件托运窗口</div>
+  </div>
+  <div class="mid mono">
+    <span>运单号<b>AWB-2026-8842-CS</b></span>
+    <span>航线<b>本地仓 → 华东处理枢纽</b></span>
+    <span>班次<b>YC-114 · 当日达</b></span>
+  </div>
+  <div>
+    <div class="barcode"></div>
+    <div class="barcode-num mono">AWB 8842 CS</div>
+  </div>
+</header>
+
+<div class="layout">
+  <main class="card">
+    <div class="card-head"><h2>待运货件</h2><span class="tag" id="countTag">已入列 2 件</span></div>
+    <div class="dropzone" id="dropzone" tabindex="0" role="button" aria-label="拖放或选择文件">
+      <svg width="46" height="46" viewBox="0 0 46 46" style="display:inline-block;">
+        <path d="M8 30h30l-6 8H14z" fill="#E86A10"/>
+        <path d="M23 6 33 20h-6v8H19v-8h-6z" fill="#191C20"/>
+      </svg>
+      <div class="big">把文件拖进这架货机</div>
+      <div class="small">支持 PDF / DOCX / XLSX / CSV / PNG，单件不超过 200MB<br>涉密件请先走加密专线 YC-007</div>
+      <span class="or">或点击选择文件</span>
+      <input type="file" id="fileInput" multiple style="display:none;">
+    </div>
+    <div class="plist" id="plist"></div>
+    <div class="empty" id="emptyTip">货舱已清空，请重新装载文件</div>
+    <div class="summary">
+      <span class="info" id="sumInfo">合计 2 件 · 46.8MB · 预计处理 4 分钟</span>
+      <button class="btn btn-primary" id="startBtn">开始处理</button>
+    </div>
+  </main>
+
+  <aside class="card">
+    <div class="card-head"><h2>托运须知</h2></div>
+    <div class="side-sec">
+      <h3>本单信息</h3>
+      <div class="kv"><span class="k">托运人</span><span class="v">云杉出版 · 印前组</span></div>
+      <div class="kv"><span class="k">收货方</span><span class="v">华东处理枢纽 B7 台</span></div>
+      <div class="kv"><span class="k">保价</span><span class="v">全程留痕 · 失败自动重投</span></div>
+    </div>
+    <div class="side-sec">
+      <h3>本月舱位用量</h3>
+      <div class="kv"><span class="k">已用</span><span class="v">3.1GB / 5GB</span></div>
+      <div class="quota"><i></i></div>
+    </div>
+    <div class="side-sec">
+      <h3>处理流水线</h3>
+      <div style="font-size:12px;color:var(--muted);line-height:2;">
+        ① 病毒安检　② 格式校验　③ OCR 著录<br>④ 入库编目　⑤ 回执签收
+      </div>
+    </div>
+  </aside>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+var files=[
+  {name:"《山野植物图鉴》终稿-第三版.pdf",size:"31.2MB",status:"wait",prog:0},
+  {name:"印前色彩校对表-2026春季.xlsx",size:"15.6MB",status:"wait",prog:0}
+];
+var processing=false;
+var counter=2;
+function showToast(msg){
+  var t=document.getElementById("toast");
+  t.textContent=msg;t.classList.add("show");
+  setTimeout(function(){t.classList.remove("show");},2200);
+}
+function fmtSize(b){
+  if(b>=1048576)return (b/1048576).toFixed(1)+"MB";
+  if(b>=1024)return Math.round(b/1024)+"KB";
+  return b+"B";
+}
+function statusHtml(f){
+  if(f.status==="wait")return '<span class="st st-wait">待处理</span>';
+  if(f.status==="run")return '<span class="st st-run">处理中</span>';
+  return '<span class="st st-done">已完成</span>';
+}
+function render(){
+  var list=document.getElementById("plist");
+  var html="";
+  files.forEach(function(f,i){
+    html+='<div class="prow">'
+      +'<svg width="26" height="30" viewBox="0 0 26 30"><rect x="1" y="1" width="24" height="28" rx="3" fill="none" stroke="#6E757C" stroke-width="1.5"/><path d="M6 8h14M6 13h14M6 18h9" stroke="#E86A10" stroke-width="1.5"/></svg>'
+      +'<div><div class="fname">'+f.name+'</div><div class="fmeta mono">货件编号 PKG-'+String(8842+i)+'</div>'
+      +'<div class="pbar" style="'+(f.status!=="wait"?"display:block;":"")+'"><i style="width:'+f.prog+'%;"></i></div></div>'
+      +'<div class="size mono">'+f.size+'</div>'
+      +'<div class="stcol">'+statusHtml(f)+'</div>'
+      +'<div style="text-align:right;"><button class="del" data-i="'+i+'" '+(f.status!=="wait"?"disabled":"")+'>移除</button></div>'
+      +'</div>';
+  });
+  list.innerHTML=html;
+  var n=files.length;
+  document.getElementById("countTag").textContent="已入列 "+n+" 件";
+  document.getElementById("emptyTip").style.display=n?"none":"block";
+  var totalMb=files.reduce(function(s,f){
+    var m=parseFloat(f.size);
+    return s+(f.size.indexOf("KB")>-1?m/1024:m);
+  },0);
+  document.getElementById("sumInfo").textContent="合计 "+n+" 件 · "+totalMb.toFixed(1)+"MB · 预计处理 "+Math.max(1,Math.round(n*2))+" 分钟";
+  document.getElementById("startBtn").disabled=(n===0||processing||files.every(function(f){return f.status==="done";}));
+}
+var dz=document.getElementById("dropzone");
+var fi=document.getElementById("fileInput");
+dz.addEventListener("click",function(){fi.click();});
+dz.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();fi.click();}});
+["dragenter","dragover"].forEach(function(ev){
+  dz.addEventListener(ev,function(e){e.preventDefault();dz.classList.add("over");});
+});
+["dragleave","drop"].forEach(function(ev){
+  dz.addEventListener(ev,function(e){e.preventDefault();dz.classList.remove("over");});
+});
+dz.addEventListener("drop",function(e){
+  addFiles(e.dataTransfer.files);
+});
+fi.addEventListener("change",function(){
+  addFiles(fi.files);
+  fi.value="";
+});
+function addFiles(list){
+  var added=0;
+  Array.prototype.forEach.call(list,function(f){
+    if(processing)return;
+    files.push({name:f.name,size:fmtSize(f.size),status:"wait",prog:0});
+    added++;
+  });
+  if(added){
+    counter+=added;
+    render();
+    showToast("已装载 "+added+" 件货件，等待起飞指令");
+  }
+}
+document.getElementById("plist").addEventListener("click",function(e){
+  var btn=e.target.closest(".del");
+  if(!btn||btn.disabled)return;
+  var i=parseInt(btn.getAttribute("data-i"),10);
+  var removed=files.splice(i,1)[0];
+  render();
+  showToast("「"+removed.name+"」已卸货移除");
+});
+document.getElementById("startBtn").addEventListener("click",function(){
+  var pend=files.filter(function(f){return f.status==="wait";});
+  if(!pend.length)return;
+  processing=true;
+  render();
+  showToast("班次 YC-114 起飞，开始逐件处理");
+  var idx=0;
+  function next(){
+    if(idx>=pend.length){
+      processing=false;
+      render();
+      showToast("全部货件已签收，回执已发送至印前组");
+      return;
+    }
+    var f=pend[idx];
+    f.status="run";f.prog=0;render();
+    var timer=setInterval(function(){
+      f.prog=Math.min(100,f.prog+25);
+      render();
+      if(f.prog>=100){
+        clearInterval(timer);
+        f.status="done";
+        idx++;
+        setTimeout(next,350);
+      }
+    },450);
+  }
+  next();
+});
+render();
+</script>
+</body>
+</html>

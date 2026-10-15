@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>文献港 · 馆藏检索系统</title>
+<style>
+:root{
+  --page:#EFE6D5;
+  --wood:#8B5E34;
+  --card:#FFFDF4;
+  --ink:#33291F;
+  --brown:#7A4A1F;
+  --stamp:#A63D2F;
+  --line:#D8C7A4;
+  --brass:#B08D3C;
+  --faint:#8B7E66;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:Georgia,"Songti SC","SimSun",serif;background:var(--page);color:var(--ink);min-height:100vh}
+.mono{font-family:Consolas,"Courier New",ui-monospace,monospace}
+.topbar{background:linear-gradient(180deg,#8B5E34,#7A4A1F);padding:20px 32px;display:flex;justify-content:space-between;align-items:center;gap:20px;box-shadow:0 2px 0 rgba(51,41,31,0.25)}
+.plate{background:var(--card);border:2px solid var(--brass);padding:8px 20px;display:inline-block}
+.plate h1{font-size:18px;font-weight:700;letter-spacing:6px;color:var(--brown)}
+.plate .en{font-size:11px;letter-spacing:2px;color:var(--faint);margin-top:3px}
+.hours{font-size:12px;color:#EFE6D5;text-align:right;line-height:1.9}
+.searchbox{background:var(--card);border:1px solid var(--line);padding:24px 28px;margin:24px 32px 0;box-shadow:3px 3px 0 rgba(51,41,31,0.08)}
+.slabel{font-size:13px;letter-spacing:3px;color:var(--brown);margin-bottom:10px}
+.srow{display:flex;gap:12px}
+#kw{flex:1;height:44px;border:2px solid var(--ink);background:var(--card);padding:0 14px;font-family:Consolas,"Courier New",ui-monospace,monospace;font-size:16px;color:var(--ink)}
+#kw:focus{outline:2px solid var(--stamp);outline-offset:2px}
+.sbtn{height:44px;padding:0 28px;border:2px solid var(--brown);background:var(--wood);color:var(--card);font-family:inherit;font-size:15px;letter-spacing:4px;cursor:pointer}
+.sbtn:hover{background:var(--brown)}
+.sbtn:focus-visible{outline:2px solid var(--stamp);outline-offset:2px}
+.shint{margin-top:10px;font-size:12px;color:var(--faint)}
+.result{margin:20px 32px 40px}
+.statusbar{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}
+.qchip{display:inline-flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--ink);padding:6px 14px;font-size:14px}
+.qchip .lab{font-size:12px;color:var(--faint);letter-spacing:2px}
+.qchip b{font-family:Consolas,"Courier New",monospace;font-weight:700}
+.qcount{font-size:14px;color:var(--stamp);font-weight:700;letter-spacing:2px}
+.empty{background:var(--card);border:1px solid var(--line);padding:36px 28px;margin-top:16px;text-align:center;box-shadow:3px 3px 0 rgba(51,41,31,0.08)}
+.cabinet{width:180px;margin:0 auto 22px}
+.drawer{height:44px;background:linear-gradient(180deg,#8B5E34,#7A4A1F);border:2px solid #5E3F22;margin-bottom:8px;position:relative;display:flex;align-items:center;justify-content:center}
+.dlabel{background:var(--card);border:1px solid var(--brass);font-family:Consolas,"Courier New",monospace;font-size:11px;padding:1px 10px;color:var(--brown);letter-spacing:1px}
+.pull{position:absolute;bottom:4px;left:50%;transform:translateX(-50%);width:34px;height:5px;background:var(--brass);border-radius:3px}
+.emain{font-size:20px;font-weight:700;line-height:1.6}
+.emain b{font-family:Consolas,"Courier New",monospace;color:var(--stamp)}
+.esub{font-size:13px;color:var(--faint);line-height:2;margin-top:12px}
+.sugs{margin-top:14px}
+.sug{display:inline-block;margin:6px 8px 0;padding:8px 18px;border:1px solid var(--brown);background:var(--page);font-family:Consolas,"Courier New",monospace;font-size:14px;color:var(--brown);cursor:pointer}
+.sug:hover{background:var(--card);border-color:var(--stamp);color:var(--stamp)}
+.sug:focus-visible{outline:2px solid var(--stamp);outline-offset:2px}
+.enote{margin-top:18px;font-size:12px;color:var(--faint)}
+.hits{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:16px}
+.hit{position:relative;background:var(--card);border:1px solid var(--line);padding:18px;box-shadow:3px 3px 0 rgba(51,41,31,0.08)}
+.hole{width:14px;height:14px;border-radius:50%;background:var(--page);border:1px solid var(--line);margin-bottom:12px}
+.callno{font-family:Consolas,"Courier New",monospace;font-size:18px;font-weight:700;color:var(--brown)}
+.htitle{font-size:16px;font-weight:700;margin-top:8px;line-height:1.5}
+.hmeta{font-size:13px;margin-top:6px;line-height:1.9;color:#5C4F3D}
+.hloc{font-family:Consolas,"Courier New",monospace;font-size:12px;margin-top:8px;color:var(--brown)}
+.hdue{font-family:Consolas,"Courier New",monospace;font-size:12px;color:var(--faint);margin-top:4px}
+.stampst{position:absolute;top:14px;right:14px;border:2px solid var(--stamp);color:var(--stamp);padding:2px 8px;font-size:12px;font-weight:700;transform:rotate(-8deg);letter-spacing:2px}
+.stampst.out{border-color:var(--faint);color:var(--faint)}
+@media (max-width:900px){
+  .topbar{flex-direction:column;align-items:flex-start;padding:16px 20px}
+  .hours{text-align:left}
+  .searchbox{margin:16px 20px 0;padding:18px 20px}
+  .srow{flex-direction:column}
+  .sbtn{width:100%}
+  .result{margin:16px 20px 32px}
+  .hits{grid-template-columns:1fr}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:0.01ms !important;animation-iteration-count:1 !important;transition-duration:0.01ms !important}
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="plate">
+    <h1>文 献 港</h1>
+    <p class="en">馆藏检索系统 · LIBRARY OPAC</p>
+  </div>
+  <p class="hours">开馆时间：周二至周日 9:00–21:00（周一闭馆整架）<br>咨询台电话 010-6612-8830</p>
+</header>
+<section class="searchbox" aria-label="检索区">
+  <p class="slabel">馆 藏 检 索</p>
+  <div class="srow">
+    <input id="kw" type="text" value="量子引力导论" aria-label="检索词">
+    <button class="sbtn" id="goBtn">检 索</button>
+  </div>
+  <p class="shint">支持题名、著者、索书号检索；索书号示例：P145.8/12</p>
+</section>
+<section class="result" aria-label="检索结果">
+  <div class="statusbar">
+    <span class="qchip"><span class="lab">检索词</span><b id="qText">量子引力导论</b></span>
+    <span class="qcount" id="qCount">共 0 条馆藏记录</span>
+  </div>
+  <div id="resultBody"></div>
+</section>
+<script>
+var DB={
+  "引力波":[
+    {no:"P145.8/12",t:"引力波：爱因斯坦最后的预言",a:"珍娜·莱文 著 · 胡小锐 译",p:"中信出版社 · 2020",loc:"三层 · 自然科学阅览区",st:"在架"},
+    {no:"P159/44",t:"时空的未来",a:"基普·索恩 著",p:"湖南科学技术出版社 · 2018",loc:"四层 · 保存本书库",st:"已借出",due:"应还 11-02"}
+  ],
+  "量子场论":[
+    {no:"O413.3/21:1",t:"量子场论（卷一）",a:"史蒂文·温伯格 著",p:"世界图书出版公司 · 2014",loc:"三层 · 自然科学阅览区",st:"在架"},
+    {no:"O413.3/18",t:"量子场论导论",a:"迈克尔·佩斯金 著",p:"世界图书出版公司 · 2016",loc:"三层 · 自然科学阅览区",st:"在架"},
+    {no:"O413.3/33",t:"量子场论基础",a:"王正行 著",p:"北京大学出版社 · 2019",loc:"三层 · 自然科学阅览区",st:"已借出",due:"应还 10-30"}
+  ],
+  "时间简史":[
+    {no:"P159-49/7",t:"时间简史（插图版）",a:"史蒂芬·霍金 著 · 许明贤 译",p:"湖南科学技术出版社 · 2015",loc:"二层 · 科普读物区",st:"已借出",due:"应还 11-05"}
+  ],
+  "弦论":[]
+};
+var SUGS=["引力波","量子场论","时间简史","弦论"];
+function esc(s){return s;}
+function doSearch(q){
+  if(!q){q="";}
+  document.getElementById("kw").value=q;
+  document.getElementById("qText").textContent=q;
+  var hits=DB[q]||[];
+  document.getElementById("qCount").textContent="共 "+hits.length+" 条馆藏记录";
+  var box=document.getElementById("resultBody");
+  var h="",i;
+  if(!hits.length){
+    h+='<div class="empty">';
+    h+='<div class="cabinet" aria-hidden="true">';
+    h+='<div class="drawer"><span class="dlabel">O413</span><i class="pull"></i></div>';
+    h+='<div class="drawer"><span class="dlabel">P145</span><i class="pull"></i></div>';
+    h+='<div class="drawer"><span class="dlabel">P159</span><i class="pull"></i></div>';
+    h+='</div>';
+    h+='<p class="emain">馆藏目录中没有找到与「<b>'+esc(q)+'</b>」相关的记录</p>';
+    h+='<p class="esub">建议您：核对用字是否有误；缩短检索词（例如只保留「引力」）；<br>或者换一个相近的检索词再试一次：</p>';
+    h+='<div class="sugs">';
+    for(i=0;i<SUGS.length;i++){
+      h+='<button class="sug" data-q="'+SUGS[i]+'">'+SUGS[i]+'</button>';
+    }
+    h+='</div>';
+    h+='<p class="enote">仍找不到？可到一层总咨询台填写《读者荐购单》，馆藏采购周期约 3 周。</p>';
+    h+='</div>';
+  }else{
+    h+='<div class="hits">';
+    for(i=0;i<hits.length;i++){
+      var r=hits[i];
+      h+='<div class="hit"><span class="hole" aria-hidden="true"></span>';
+      h+='<span class="stampst'+(r.st==="在架"?"":" out")+'">'+r.st+'</span>';
+      h+='<p class="callno">'+r.no+'</p>';
+      h+='<p class="htitle">'+r.t+'</p>';
+      h+='<p class="hmeta">'+r.a+'<br>'+r.p+'</p>';
+      h+='<p class="hloc">馆藏地：'+r.loc+'</p>';
+      if(r.due){h+='<p class="hdue">'+r.due+'</p>';}
+      h+='</div>';
+    }
+    h+='</div>';
+  }
+  box.innerHTML=h;
+}
+document.getElementById("goBtn").addEventListener("click",function(){
+  var v=document.getElementById("kw").value.replace(/^\s+|\s+$/g,"");
+  doSearch(v);
+});
+document.getElementById("kw").addEventListener("keydown",function(e){
+  if(e.key==="Enter"){
+    var v=this.value.replace(/^\s+|\s+$/g,"");
+    doSearch(v);
+  }
+});
+document.getElementById("resultBody").addEventListener("click",function(e){
+  var b=e.target.closest("[data-q]");
+  if(b){doSearch(b.getAttribute("data-q"));}
+});
+doSearch("量子引力导论");
+</script>
+</body>
+</html>

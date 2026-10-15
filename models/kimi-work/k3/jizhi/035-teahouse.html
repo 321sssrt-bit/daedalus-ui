@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>茶寮 · 一盏单丛的时间</title>
+<style>
+:root{
+  --page:#33291F;
+  --app:#F6F1E7;
+  --tea:#6F4E37;
+  --ink:#33291F;
+  --muted:#8C7E6A;
+  --goldtea:#9C7A3C;
+  --card:#FFFDF8;
+  --line:#E5DBC7;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{min-height:100%}
+body{
+  background:radial-gradient(1100px 760px at 50% 6%,#453829,var(--page) 62%);
+  display:flex;align-items:center;justify-content:center;
+  padding:32px 12px;
+  font-family:"PingFang SC","Microsoft YaHei","Hiragino Sans GB",sans-serif;
+}
+.phone{
+  width:390px;height:844px;flex:none;
+  border-radius:44px;border:10px solid #1E1710;
+  background:var(--app);overflow:hidden;position:relative;
+  box-shadow:0 40px 90px rgba(0,0,0,.55);
+  transition:background .3s ease;
+}
+.notch{
+  position:absolute;top:12px;left:50%;transform:translateX(-50%);
+  width:112px;height:24px;border-radius:12px;background:#1E1710;z-index:30;
+}
+.screen{height:100%;display:flex;flex-direction:column;color:var(--ink);transition:color .3s ease}
+.statusbar{
+  flex:none;display:flex;justify-content:space-between;align-items:center;
+  padding:14px 26px 6px;font-size:13px;font-weight:600;
+}
+.statusbar .icons{display:flex;gap:6px}
+.statusbar svg{width:16px;height:12px}
+.apphead{
+  flex:none;display:flex;align-items:center;gap:12px;
+  padding:8px 16px 10px;border-bottom:1px solid var(--line);
+  position:relative;transition:border-color .3s ease;
+}
+.apphead button{
+  background:none;border:none;cursor:pointer;color:inherit;padding:6px;
+  display:flex;align-items:center;border-radius:8px;
+}
+.apphead button:focus-visible{outline:2px solid var(--goldtea)}
+.apphead button svg{width:20px;height:20px}
+.apphead .brand{font-size:15px;font-weight:800;letter-spacing:3px;flex:1;text-align:center}
+.apphead .brand small{display:block;font-size:9px;color:var(--muted);letter-spacing:3px;margin-top:2px;font-weight:400}
+.readbar{
+  position:absolute;left:0;bottom:-1px;height:2px;width:0%;
+  background:linear-gradient(90deg,var(--goldtea),var(--tea));
+  transition:width .12s linear;
+}
+.scroll{flex:1;overflow-y:auto;scrollbar-width:none}
+.scroll::-webkit-scrollbar{display:none}
+/* 题图区 */
+.hero{
+  position:relative;padding:26px 22px 20px;
+  border-bottom:1px solid var(--line);
+}
+.hero .vtitle{
+  position:absolute;right:20px;top:24px;
+  writing-mode:vertical-rl;letter-spacing:10px;
+  font-size:15px;color:var(--goldtea);font-weight:700;
+  border-right:1px solid var(--goldtea);padding-right:8px;height:210px;
+}
+.hero .cat{
+  display:inline-block;font-size:11px;letter-spacing:3px;color:var(--goldtea);
+  border:1px solid #D8C9A8;border-radius:6px;padding:4px 10px;background:#FBF6EA;
+}
+.hero h1{
+  font-size:27px;font-weight:800;letter-spacing:2px;line-height:1.5;
+  margin:14px 90px 10px 0;
+}
+.hero .byline{font-size:12px;color:var(--muted);letter-spacing:1px;line-height:1.9}
+.hero .cup{margin:20px 0 4px;display:flex;justify-content:center}
+.hero .cup svg{width:190px;height:110px}
+/* 调节条 */
+.tune{
+  position:sticky;top:0;z-index:5;
+  display:flex;align-items:center;gap:10px;
+  background:var(--app);padding:12px 18px;border-bottom:1px solid var(--line);
+  transition:background .3s ease,border-color .3s ease;
+}
+.tune .grp{display:flex;align-items:center;gap:6px;flex:1}
+.tune .lbl{font-size:11px;color:var(--muted);letter-spacing:2px;flex:none}
+.tune .step{
+  display:flex;border:1px solid var(--line);border-radius:9px;overflow:hidden;background:var(--card);
+}
+.tune .step button{
+  border:none;background:none;cursor:pointer;font-family:inherit;color:var(--tea);
+  font-size:13px;font-weight:700;padding:6px 13px;transition:background .15s ease;
+}
+.tune .step button.on{background:var(--tea);color:#F6F1E7}
+.tune .step button:focus-visible{outline:2px solid var(--goldtea);outline-offset:-2px}
+.tune .val{font-size:11px;color:var(--tea);min-width:34px;letter-spacing:1px}
+/* 正文 */
+.article{
+  padding:22px 22px 30px;
+  font-size:18px;line-height:2.0;letter-spacing:.5px;
+  transition:font-size .2s ease;
+}
+.article p{margin-bottom:1.2em;text-align:justify}
+.article p:first-child::first-letter{
+  font-size:2.6em;float:left;line-height:1.05;margin:4px 10px 0 0;
+  color:var(--tea);font-weight:800;
+}
+.article h2{
+  font-size:1.06em;font-weight:800;color:var(--tea);letter-spacing:2px;
+  margin:1.4em 0 .7em;display:flex;align-items:center;gap:10px;
+}
+.article h2::before{content:"";width:18px;height:2px;background:var(--goldtea)}
+.article .ending{
+  text-align:center;color:var(--muted);font-size:.78em;letter-spacing:4px;margin-top:2em;
+}
+/* 浓茶模式 */
+.phone.dark{background:#33291F}
+.phone.dark .screen{color:#EFE6D4}
+.phone.dark .apphead{border-color:#4A3C2C}
+.phone.dark .tune{background:#33291F;border-color:#4A3C2C}
+.phone.dark .hero{border-color:#4A3C2C}
+.phone.dark .hero .cat{background:#3E3226;border-color:#5C4B36;color:#C9A96E}
+.phone.dark .hero .vtitle{color:#C9A96E;border-color:#C9A96E}
+.phone.dark .hero .byline{color:#A4917A}
+.phone.dark .tune .lbl{color:#A4917A}
+.phone.dark .tune .step{background:#3E3226;border-color:#4A3C2C}
+.phone.dark .tune .step button{color:#D9C9AC}
+.phone.dark .tune .step button.on{background:#6F4E37;color:#F6F1E7}
+.phone.dark .tune .val{color:#C9A96E}
+.phone.dark .article h2{color:#C9A96E}
+.phone.dark .article p:first-child::first-letter{color:#C9A96E}
+.phone.dark .bottombar{background:#3E3226;border-color:#4A3C2C}
+/* 底栏 */
+.bottombar{
+  flex:none;display:flex;align-items:center;gap:10px;
+  background:var(--card);border-top:1px solid var(--line);
+  padding:10px 16px 22px;transition:background .3s ease,border-color .3s ease;
+}
+.fav{
+  display:flex;align-items:center;gap:7px;
+  border:1px solid var(--line);background:var(--app);color:var(--tea);
+  border-radius:999px;padding:10px 18px;font-size:13px;font-weight:700;letter-spacing:2px;
+  cursor:pointer;font-family:inherit;transition:all .2s ease;
+}
+.fav svg{width:17px;height:17px}
+.fav.on{background:#F4E9CF;border-color:var(--goldtea);color:var(--goldtea)}
+.fav.on svg path{fill:var(--goldtea)}
+.fav:focus-visible{outline:2px solid var(--goldtea);outline-offset:2px}
+.start{
+  flex:1;border:none;border-radius:999px;padding:13px 0;
+  background:var(--tea);color:#F6F1E7;font-size:15px;font-weight:800;letter-spacing:4px;
+  cursor:pointer;font-family:inherit;transition:background .15s ease,transform .15s ease;
+}
+.start:hover{background:#5C4028}
+.start:active{transform:scale(.98)}
+.start:focus-visible{outline:2px solid var(--goldtea);outline-offset:2px}
+.toast{
+  position:absolute;left:50%;bottom:96px;transform:translateX(-50%) translateY(10px);
+  background:var(--ink);color:#F6F1E7;font-size:12px;letter-spacing:1px;
+  padding:10px 20px;border-radius:999px;box-shadow:0 10px 26px rgba(0,0,0,.35);
+  opacity:0;pointer-events:none;transition:opacity .22s ease,transform .22s ease;z-index:40;
+  white-space:nowrap;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation-duration:.01ms !important;transition-duration:.01ms !important}
+}
+@media (max-width: 480px){
+  body{padding:0}
+  .phone{border:none;border-radius:0;width:100%;height:100vh}
+  .notch{display:none}
+}
+</style>
+</head>
+<body>
+<div class="phone" id="phone">
+  <div class="notch"></div>
+  <div class="screen">
+    <div class="statusbar">
+      <span>15:26</span>
+      <span class="icons">
+        <svg viewBox="0 0 20 12"><rect x="0" y="7" width="3" height="5" fill="#33291F"/><rect x="5" y="5" width="3" height="7" fill="#33291F"/><rect x="10" y="2.5" width="3" height="9.5" fill="#33291F"/><rect x="15" y="0" width="3" height="12" fill="#33291F" opacity=".35"/></svg>
+        <svg viewBox="0 0 20 12"><rect x="1" y="1" width="16" height="10" rx="2.5" fill="none" stroke="#33291F" stroke-width="1.4"/><rect x="3" y="3" width="12" height="6" rx="1" fill="#6F4E37"/><rect x="18.5" y="4" width="1.8" height="4" rx=".9" fill="#33291F"/></svg>
+      </span>
+    </div>
+    <header class="apphead">
+      <button type="button" id="backBtn" aria-label="返回">
+        <svg viewBox="0 0 24 24"><path d="M14.5 5L8 12l6.5 7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <div class="brand">茶寮<small>TEAHOUSE · 慢读</small></div>
+      <button type="button" id="shareBtn" aria-label="分享">
+        <svg viewBox="0 0 24 24"><circle cx="6" cy="12" r="2.6" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="17.5" cy="5.5" r="2.6" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="17.5" cy="18.5" r="2.6" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M8.4 10.8l6.8-4M8.4 13.2l6.8 4" stroke="currentColor" stroke-width="1.8"/></svg>
+      </button>
+      <div class="readbar" id="readbar"></div>
+    </header>
+
+    <div class="scroll" id="scroll">
+      <div class="hero">
+        <div class="vtitle">一盏单丛的时间</div>
+        <span class="cat">茶事 · 风物志</span>
+        <h1>一盏单丛的时间：凤凰山的午后</h1>
+        <div class="byline">作者 顾清和 · 2025-11-20 霜降茶会记 · 约 8 分钟读完 · 2,316 人已读</div>
+        <div class="cup">
+          <svg viewBox="0 0 190 110">
+            <ellipse cx="95" cy="98" rx="58" ry="9" fill="#E5DBC7"/>
+            <path d="M48 46h94c0 26-14 44-34 48H82C62 90 48 72 48 46z" fill="#FFFDF8" stroke="#6F4E37" stroke-width="2.4"/>
+            <ellipse cx="95" cy="46" rx="47" ry="9" fill="#F6F1E7" stroke="#6F4E37" stroke-width="2.4"/>
+            <ellipse cx="95" cy="47" rx="36" ry="6" fill="#C89A55"/>
+            <path d="M142 52c14-2 22 4 20 13-2 8-12 12-22 9" fill="none" stroke="#6F4E37" stroke-width="2.4"/>
+            <path d="M78 30c-3-6 3-8 0-14M95 32c-3-6 3-8 0-14M112 30c-3-6 3-8 0-14" fill="none" stroke="#9C7A3C" stroke-width="2.2" stroke-linecap="round"/>
+            <path d="M60 96h70" stroke="#9C7A3C" stroke-width="1.6" stroke-dasharray="2 5"/>
+          </svg>
+        </div>
+      </div>
+
+      <div class="tune">
+        <div class="grp">
+          <span class="lbl">字号</span>
+          <div class="step" id="fontStep">
+            <button type="button" data-fz="16px">小</button>
+            <button type="button" class="on" data-fz="18px">标准</button>
+            <button type="button" data-fz="20px">大</button>
+          </div>
+          <span class="val" id="fzVal">标准</span>
+        </div>
+        <div class="grp" style="justify-content:flex-end">
+          <span class="lbl">茶汤</span>
+          <div class="step" id="themeStep">
+            <button type="button" class="on" data-th="light">清淡</button>
+            <button type="button" data-th="dark">浓茶</button>
+          </div>
+        </div>
+      </div>
+
+      <article class="article" id="article">
+        <p>从潮州古城往凤凰山去，车程四十分钟。山路盘到乌岽村时，云雾已经压在茶园上。顾师傅说，单丛的好，七分在山场，三分在火工，剩下的九十分，是等水开的耐心。</p>
+        <p>鸭屎香这个名字，是茶农的狡黠。怕人偷了茶种，故意起个粗名字护住。如今它成了单丛里最出圈的一支，兰花香高扬，汤感却厚，像把整座山的春天压进了一盏。</p>
+        <h2>工夫在器</h2>
+        <p>潮汕人泡茶，壶必孟臣，杯必若琛。小壶不过拳大，纳茶七分满，沸水高冲，第一泡洗茶不喝，叫「醒茶」。三个小杯摆成品字，轮流斟茶，杯杯都要滚烫，这叫「关公巡城」；最后几滴最浓，点点均分，叫「韩信点兵」。</p>
+        <p>我照着学，手忙脚乱。顾师傅笑：急什么，茶又跑不掉。他把公道杯递过来，汤色金黄透亮，杯壁挂一层薄薄的金圈。入口先苦，回甘来得很快，像山雾散开后突然照进来的太阳。</p>
+        <h2>时间最贵</h2>
+        <p>一泡茶从烧水讲起，到第七泡味淡收尾，恰好一个时辰。山里人用这个时辰聊完一年的收成，也聊远方回来的孩子。茶的浓淡可以调，水的老嫩可以等，唯有坐下来的人，千金难换。</p>
+        <p>下山时云雾更低了。我带走两罐春茶，和一肚子没喝完的话。回程的车上想，所谓工夫茶，工夫原来不在茶上，在肯为你留出一盏茶时间的人身上。</p>
+        <div class="ending">— 全文完 · 茶寮第 214 期 —</div>
+      </article>
+    </div>
+
+    <div class="bottombar">
+      <button class="fav" id="favBtn" type="button">
+        <svg viewBox="0 0 24 24"><path d="M12 4.6l2.3 4.7 5.2.8-3.8 3.7.9 5.2-4.6-2.4-4.6 2.4.9-5.2L4.5 10.1l5.2-.8L12 4.6z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+        <span id="favText">收藏</span>
+      </button>
+      <button class="start" id="startBtn" type="button">开始共读</button>
+    </div>
+  </div>
+  <div class="toast" id="toast">已完成</div>
+</div>
+
+<script>
+(function(){
+  var toast = document.getElementById('toast');
+  var timer = null;
+  function showTip(text){
+    toast.textContent = text;
+    toast.classList.add('show');
+    if (timer) { clearTimeout(timer); }
+    timer = setTimeout(function(){ toast.classList.remove('show'); }, 2200);
+  }
+
+  var article = document.getElementById('article');
+  var fzVal = document.getElementById('fzVal');
+  var fontStep = document.getElementById('fontStep');
+  fontStep.querySelectorAll('button').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      fontStep.querySelectorAll('button').forEach(function(b){ b.classList.remove('on'); });
+      btn.classList.add('on');
+      article.style.fontSize = btn.getAttribute('data-fz');
+      fzVal.textContent = btn.textContent;
+      showTip('正文字号已调整为「' + btn.textContent + '」');
+    });
+  });
+
+  var phone = document.getElementById('phone');
+  var themeStep = document.getElementById('themeStep');
+  themeStep.querySelectorAll('button').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      themeStep.querySelectorAll('button').forEach(function(b){ b.classList.remove('on'); });
+      btn.classList.add('on');
+      var dark = btn.getAttribute('data-th') === 'dark';
+      phone.classList.toggle('dark', dark);
+      showTip(dark ? '浓茶模式：适合夜读' : '清淡模式：宣纸本色');
+    });
+  });
+
+  var favBtn = document.getElementById('favBtn');
+  var favText = document.getElementById('favText');
+  var faved = false;
+  favBtn.addEventListener('click', function(){
+    faved = !faved;
+    favBtn.classList.toggle('on', faved);
+    favText.textContent = faved ? '已收藏' : '收藏';
+    showTip(faved ? '已收入「我的茶仓」，共 12 篇' : '已取消收藏');
+  });
+
+  document.getElementById('startBtn').addEventListener('click', function(){
+    document.getElementById('scroll').scrollTo({top: 0, behavior: 'smooth'});
+    showTip('共读已开启：今晚 20:00，与 37 位茶友同读');
+  });
+  document.getElementById('backBtn').addEventListener('click', function(){
+    showTip('返回风物志栏目（演示页）');
+  });
+  document.getElementById('shareBtn').addEventListener('click', function(){
+    showTip('分享卡片已生成：一盏单丛的时间');
+  });
+
+  var scroll = document.getElementById('scroll');
+  var readbar = document.getElementById('readbar');
+  scroll.addEventListener('scroll', function(){
+    var max = scroll.scrollHeight - scroll.clientHeight;
+    var p = max > 0 ? scroll.scrollTop / max * 100 : 0;
+    readbar.style.width = p + '%';
+  });
+})();
+</script>
+</body>
+</html>

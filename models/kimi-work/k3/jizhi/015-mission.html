@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>飞控通知中心 · MISSION CONTROL</title>
+<style>
+:root{
+  --page:#0E1420;
+  --surface:#16202F;
+  --line:#24314A;
+  --ok:#35D07F;
+  --warn:#FFB020;
+  --alert:#FF5C5C;
+  --info:#6EA8FE;
+  --plan:#B48CFF;
+  --text:#C9D4E8;
+  --muted:#7E8CA8;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:"Segoe UI","Microsoft YaHei","PingFang SC",sans-serif;background:var(--page);color:var(--text);min-height:100vh}
+body::after{content:"";position:fixed;left:0;top:0;width:100%;height:100%;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(201,212,232,0.03) 0 1px,rgba(0,0,0,0) 1px 3px)}
+.mono{font-family:ui-monospace,"Cascadia Mono",Consolas,"Courier New",monospace}
+.top{display:flex;justify-content:space-between;align-items:center;gap:20px;padding:18px 32px;border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:14px}
+.blights{display:flex;gap:6px;align-items:center}
+.blights i{width:9px;height:9px;border-radius:50%;display:inline-block}
+.blights .g{background:var(--ok)}
+.blights .a{background:var(--warn);animation:blink 1.6s ease-in-out infinite}
+.blights .r{background:var(--alert);animation:blink 2.4s ease-in-out infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.25}}
+.brand h1{font-size:18px;font-weight:700;letter-spacing:1px}
+.brand .sub{font-size:11px;color:var(--muted);letter-spacing:3px;margin-top:3px}
+.clockwrap{text-align:right}
+.clocklab{font-size:11px;color:var(--muted);letter-spacing:2px}
+.clock{font-size:20px;color:var(--ok);margin-top:2px}
+.subbar{display:flex;align-items:center;gap:16px;padding:14px 32px;border-bottom:1px solid var(--line);background:var(--surface);flex-wrap:wrap}
+.sumn{font-size:13px;color:var(--muted)}
+.sumn b{color:var(--text);font-family:ui-monospace,Consolas,monospace}
+.seg{display:flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.seg button{height:32px;padding:0 14px;background:transparent;border:0;border-right:1px solid var(--line);color:var(--muted);font-family:inherit;font-size:13px;cursor:pointer}
+.seg button:last-child{border-right:0}
+.seg button:hover{color:var(--text)}
+.seg button.on{background:var(--line);color:var(--text)}
+.seg button:focus-visible{outline:2px solid var(--ok);outline-offset:2px}
+.markall{margin-left:auto;height:34px;padding:0 16px;border:1px solid var(--ok);background:transparent;color:var(--ok);border-radius:6px;font-family:inherit;font-size:13px;cursor:pointer;transition:background 0.18s ease}
+.markall:hover{background:rgba(53,208,127,0.12)}
+.markall:focus-visible{outline:2px solid var(--ok);outline-offset:2px}
+.markall:disabled{border-color:var(--line);color:var(--muted);cursor:not-allowed;background:transparent}
+.list{padding:16px 32px 40px;display:flex;flex-direction:column;gap:10px;max-width:1080px}
+.n{background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--tc);border-radius:8px;overflow:hidden;opacity:0.62}
+.n.unread{opacity:1}
+.nhead{display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer}
+.nhead:hover{background:rgba(255,255,255,0.02)}
+.lamp{width:9px;height:9px;border-radius:50%;background:var(--tc);box-shadow:0 0 8px var(--tc);flex:none}
+.badge{font-size:11px;color:var(--tc);border:1px solid var(--tc);border-radius:4px;padding:2px 8px;flex:none}
+.ntext{flex:1;min-width:0}
+.ntitle{font-size:14px}
+.n.unread .ntitle{color:#FFFFFF;font-weight:700}
+.nsum{font-size:12px;color:var(--muted);margin-top:3px}
+.ntime{font-size:12px;color:var(--muted);flex:none}
+.chev{color:var(--muted);transition:transform 0.18s ease;flex:none}
+.n.open .chev{transform:rotate(180deg)}
+.ndetail{display:none;border-top:1px solid var(--line);padding:14px 16px;background:rgba(0,0,0,0.18)}
+.n.open .ndetail{display:block}
+.kv{display:grid;grid-template-columns:88px minmax(0,1fr);gap:4px 10px;font-size:12px;line-height:2;font-family:ui-monospace,Consolas,monospace}
+.k{color:var(--muted)}
+.v{color:var(--text)}
+.nops{margin-top:10px}
+.nops button{height:30px;padding:0 14px;border:1px solid var(--line);background:transparent;color:var(--text);border-radius:6px;font-size:12px;cursor:pointer;font-family:inherit}
+.nops button:hover{border-color:var(--ok);color:var(--ok)}
+.nops button:focus-visible{outline:2px solid var(--ok);outline-offset:2px}
+.listempty{padding:48px 0;text-align:center;color:var(--muted);font-size:13px}
+@media (max-width:900px){
+  .top{flex-direction:column;align-items:flex-start;padding:16px 20px}
+  .clockwrap{text-align:left}
+  .subbar{padding:12px 20px}
+  .markall{margin-left:0}
+  .list{padding:16px 20px 32px}
+  .ntime{display:none}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:0.01ms !important;animation-iteration-count:1 !important;transition-duration:0.01ms !important}
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand">
+    <span class="blights" aria-hidden="true"><i class="g"></i><i class="a"></i><i class="r"></i></span>
+    <div>
+      <h1>飞控通知中心</h1>
+      <p class="sub">MISSION CONTROL · NOTIFY</p>
+    </div>
+  </div>
+  <div class="clockwrap">
+    <p class="clocklab">任务时钟 MISSION ELAPSED</p>
+    <p class="clock mono">T+128 <span id="ckT">04:32:55</span></p>
+  </div>
+</header>
+<div class="subbar">
+  <p class="sumn">未读 <b id="uCount">4</b> 条 · 共 <b id="tCount">6</b> 条</p>
+  <div class="seg" role="group" aria-label="通知筛选">
+    <button class="on" data-f="all">全部</button>
+    <button data-f="unread">仅未读</button>
+  </div>
+  <button class="markall" id="markAll">全部标为已读</button>
+</div>
+<main class="list" id="list" aria-label="通知列表"></main>
+<script>
+var ITEMS=[
+  {id:"n1",type:"alert",tn:"警报",title:"推进分系统：2 号贮箱压力低于阈值",sum:"遥测帧 TM-8842 触发压力低限告警，已自动切换至备份加压回路。",time:"T+128 04:12:07",unread:true,
+   detail:[["参数","PRESS_TK2 = 1.82 MPa（阈值 2.05 MPa）"],["采样","2025-10-14 04:11:58 UTC"],["处置","备份加压回路已接管；06:00 前完成地面在轨复核"],["责任岗","推进控制台 · PROP-02"]]},
+  {id:"n2",type:"warn",tn:"预警",title:"空间天气：太阳风速度升至 612 km/s",sum:"预计 40 分钟后到达近地轨道，舱外活动预案 EVA-3 建议暂停。",time:"T+128 03:58:44",unread:true,
+   detail:[["参数","VEL_SW = 612 km/s · KP 指数 5.3"],["到达","预计 04:38 UTC 前后抵达"],["处置","暂停 EVA-3；舱外载荷转入安全模式"],["责任岗","环境控制台 · ENV-01"]]},
+  {id:"n3",type:"info",tn:"消息",title:"北京飞控中心：轨道修正指令已确认执行",sum:"ORB-2025-118 轨控点火 6.2 秒，增量 ΔV 1.86 m/s，轨道面修正完成。",time:"T+128 02:40:31",unread:true,
+   detail:[["指令","ORB-2025-118"],["点火","02:37:12 UTC · 持续 6.2 s"],["结果","ΔV = 1.86 m/s · 半长轴 +3.2 km"],["确认","北京飞控中心 · 轨道组"]]},
+  {id:"n4",type:"ok",tn:"状态",title:"姿态控制系统例行自检完成",sum:"三轴稳定，动量轮转速均在标称范围内，无异常项。",time:"T+128 01:05:00",unread:false,
+   detail:[["自检","ADCS 例行自检 #4471"],["结果","PASS · 异常项 0"],["动量轮","MW1 3200 rpm · MW2 3155 rpm · MW3 3188 rpm"]]},
+  {id:"n5",type:"info",tn:"消息",title:"乘组晨会纪要（第 128 天）已发布",sum:"今日重点：水循环系统滤芯更换、实验柜 EL-2 样品转移。",time:"T+128 00:30:12",unread:true,
+   detail:[["纪要","CREW-D128-MORNING"],["今日重点","水循环滤芯更换 · EL-2 样品转移"],["备注","14:00 与地面医监例行通话"]]},
+  {id:"n6",type:"plan",tn:"计划",title:"交会对接演练 DOCK-09 排程更新",sum:"演练窗口调整至明晨 06:40–08:10，请相关岗位提前 1 小时就位。",time:"T+127 22:15:48",unread:false,
+   detail:[["窗口","06:40 – 08:10（UTC+8）"],["科目","远近距离导引 · 对接机构捕获"],["要求","相关岗位提前 60 分钟就位"]]}
+];
+var TC={alert:"#FF5C5C",warn:"#FFB020",ok:"#35D07F",info:"#6EA8FE",plan:"#B48CFF"};
+var openId=null,filter="all";
+function render(){
+  var u=0,i,j;
+  for(i=0;i<ITEMS.length;i++){if(ITEMS[i].unread){u++;}}
+  document.getElementById("uCount").textContent=u;
+  document.getElementById("tCount").textContent=ITEMS.length;
+  var ma=document.getElementById("markAll");
+  ma.disabled=(u===0);
+  ma.textContent=(u===0)?"已全部已读":"全部标为已读";
+  var h="";
+  for(i=0;i<ITEMS.length;i++){
+    var n=ITEMS[i];
+    if(filter==="unread"&&!n.unread){continue;}
+    h+='<article class="n'+(n.unread?" unread":"")+(openId===n.id?" open":"")+'" data-id="'+n.id+'" style="--tc:'+TC[n.type]+'">';
+    h+='<div class="nhead"><span class="lamp"></span><span class="badge">'+n.tn+'</span>';
+    h+='<div class="ntext"><p class="ntitle">'+n.title+'</p><p class="nsum">'+n.sum+'</p></div>';
+    h+='<span class="ntime mono">'+n.time+'</span><span class="chev">▾</span></div>';
+    h+='<div class="ndetail"><div class="kv">';
+    for(j=0;j<n.detail.length;j++){
+      h+='<span class="k">'+n.detail[j][0]+'</span><span class="v">'+n.detail[j][1]+'</span>';
+    }
+    h+='</div><div class="nops"><button data-op="toggle">'+(n.unread?"标为已读":"标为未读")+'</button></div></div></article>';
+  }
+  if(!h){h='<p class="listempty">没有未读通知。各系统正常，继续保持。</p>';}
+  document.getElementById("list").innerHTML=h;
+}
+document.getElementById("list").addEventListener("click",function(e){
+  var it=e.target.closest(".n");
+  if(!it){return;}
+  var id=it.getAttribute("data-id");
+  var n=null;
+  for(var i=0;i<ITEMS.length;i++){if(ITEMS[i].id===id){n=ITEMS[i];}}
+  var b=e.target.closest("[data-op]");
+  if(b){
+    n.unread=!n.unread;
+    render();
+    return;
+  }
+  openId=(openId===id)?null:id;
+  render();
+});
+document.getElementById("markAll").addEventListener("click",function(){
+  for(var i=0;i<ITEMS.length;i++){ITEMS[i].unread=false;}
+  render();
+});
+var segBtns=document.querySelectorAll(".seg button");
+for(var s=0;s<segBtns.length;s++){
+  segBtns[s].addEventListener("click",function(){
+    for(var j=0;j<segBtns.length;j++){segBtns[j].classList.remove("on");}
+    this.classList.add("on");
+    filter=this.getAttribute("data-f");
+    render();
+  });
+}
+var sec=4*3600+32*60+55;
+function tick(){
+  sec++;
+  var h=Math.floor(sec/3600)%24,m=Math.floor(sec/60)%60,s2=sec%60;
+  document.getElementById("ckT").textContent=(h<10?"0":"")+h+":"+(m<10?"0":"")+m+":"+(s2<10?"0":"")+s2;
+}
+setInterval(tick,1000);
+render();
+</script>
+</body>
+</html>

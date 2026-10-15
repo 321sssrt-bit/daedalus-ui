@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>高山 ALPINE · 俱乐部活动日历</title>
+<style>
+:root{
+  --page:#FFFFFF;
+  --red:#E2001A;
+  --ink:#000000;
+  --muted:#8E8E8E;
+  --line:#E5E5E5;
+  --soft:#F7F7F5;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:"Helvetica Neue",Helvetica,Arial,"PingFang SC","Microsoft YaHei",sans-serif;background:var(--page);color:var(--ink);min-height:100vh}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:18px 32px;border-bottom:3px solid var(--ink)}
+.brand{display:flex;align-items:center;gap:14px}
+.mark{width:46px;height:46px;background:var(--red);color:#FFFFFF;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;letter-spacing:1px}
+.brand h1{font-size:17px;font-weight:800;letter-spacing:1px}
+.brand .en{font-size:11px;color:var(--muted);letter-spacing:3px;margin-top:3px;text-transform:uppercase}
+.sign{font-size:12px;color:var(--muted);text-align:right;line-height:1.8}
+.layout{display:grid;grid-template-columns:minmax(0,7fr) minmax(300px,5fr);gap:24px;padding:24px 32px 40px;max-width:1216px;margin:0 auto}
+.calcard{border:2px solid var(--ink);background:#FFFFFF}
+.calhead{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px 20px;border-bottom:3px solid var(--ink)}
+.mh{display:flex;align-items:flex-end;gap:14px}
+.mnum{font-size:64px;font-weight:800;line-height:0.9;color:var(--red);letter-spacing:-2px}
+.mys .yy{font-size:15px;font-weight:700}
+.mys .en2{font-size:11px;color:var(--muted);letter-spacing:3px;margin-top:4px;text-transform:uppercase}
+.navs{display:flex;gap:10px}
+.nav{width:38px;height:38px;border:2px solid var(--ink);background:#FFFFFF;color:var(--ink);font-size:17px;font-family:inherit;cursor:pointer}
+.nav:hover{background:var(--ink);color:#FFFFFF}
+.nav:focus-visible{outline:2px solid var(--red);outline-offset:2px}
+.nav:disabled{border-color:var(--muted);color:var(--muted);background:#FFFFFF;cursor:not-allowed}
+.wdrow{display:grid;grid-template-columns:repeat(7,1fr);border-bottom:2px solid var(--ink)}
+.wdrow span{padding:10px 12px;font-size:12px;color:var(--muted);letter-spacing:2px}
+.calgrid{display:grid;grid-template-columns:repeat(7,1fr)}
+.cell{min-height:92px;padding:8px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);cursor:pointer}
+.cell:nth-child(7n){border-right:none}
+.cell:hover{background:var(--soft)}
+.cell.sel{background:var(--soft);box-shadow:inset 0 0 0 2px var(--red)}
+.cell.out{cursor:default;background:#FFFFFF}
+.cell.out:hover{background:#FFFFFF}
+.dnum{font-size:20px;font-weight:700}
+.cell.out .dnum{color:var(--line);font-weight:400}
+.today .dnum{display:inline-flex;align-items:center;justify-content:center;min-width:28px;height:28px;background:var(--red);color:#FFFFFF}
+.evb{display:block;font-size:11px;padding:2px 6px;margin-top:5px;color:#FFFFFF;background:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.evb.act{background:var(--red)}
+.evb.lec{background:#FFFFFF;color:var(--ink);border:1px solid var(--ink)}
+.evb.mtg{background:var(--muted)}
+.more{display:block;font-size:11px;color:var(--muted);margin-top:4px}
+.detail{border:2px solid var(--ink);background:#FFFFFF;align-self:start}
+.dhead{padding:18px 20px;border-bottom:3px solid var(--ink)}
+.dnum2{font-size:56px;font-weight:800;line-height:1}
+.dwd{font-size:12px;color:var(--muted);letter-spacing:2px;margin-top:8px}
+.evcard{display:grid;grid-template-columns:64px minmax(0,1fr) 18px;gap:10px;padding:14px 20px;border-bottom:1px solid var(--line);cursor:pointer}
+.evcard:hover{background:#FAFAF8}
+.evtime{font-size:15px;font-weight:800;color:var(--red)}
+.evtitle{font-size:15px;font-weight:700}
+.evmeta{font-size:12px;color:var(--muted);margin-top:4px}
+.evmore{display:none;margin-top:10px}
+.evcard.open .evmore{display:block}
+.evdesc{font-size:13px;line-height:1.8}
+.evquota{font-size:12px;color:var(--muted);margin-top:8px}
+.btn{margin-top:10px;height:36px;padding:0 16px;border:2px solid var(--ink);background:var(--ink);color:#FFFFFF;font-size:13px;font-family:inherit;cursor:pointer}
+.btn:hover{background:var(--red);border-color:var(--red)}
+.btn:focus-visible{outline:2px solid var(--red);outline-offset:2px}
+.btn.joined{background:#FFFFFF;color:var(--ink)}
+.btn.joined:hover{color:var(--red);border-color:var(--red);background:#FFFFFF}
+.btn:disabled{border-color:var(--muted);color:var(--muted);background:#FFFFFF;cursor:not-allowed}
+.chev{color:var(--muted);transition:transform 0.18s ease}
+.evcard.open .chev{transform:rotate(180deg)}
+.dempty{padding:22px 20px;font-size:13px;color:var(--muted);line-height:1.8}
+@media (max-width:900px){
+  .topbar{flex-direction:column;align-items:flex-start;padding:16px 20px}
+  .sign{text-align:left}
+  .layout{grid-template-columns:1fr;padding:16px 20px 32px}
+  .cell{min-height:72px;padding:6px}
+  .dnum{font-size:16px}
+  .mnum{font-size:48px}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:0.01ms !important;animation-iteration-count:1 !important;transition-duration:0.01ms !important}
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <span class="mark">高山</span>
+    <div>
+      <h1>高山户外运动俱乐部</h1>
+      <p class="en">Alpine Outdoor Club · Est. 2011</p>
+    </div>
+  </div>
+  <p class="sign">俱乐部活动室：周二至周日 10:00–21:00 开放<br>紧急联络：领队值班电话 010-8201-4477</p>
+</header>
+<div class="layout">
+  <section class="calcard" aria-label="活动日历">
+    <div class="calhead">
+      <div class="mh">
+        <span class="mnum" id="bigM">10</span>
+        <div class="mys">
+          <p class="yy" id="yyT">2025 年 10 月</p>
+          <p class="en2" id="enM">October</p>
+        </div>
+      </div>
+      <div class="navs">
+        <button class="nav" id="prevBtn" aria-label="上一月">‹</button>
+        <button class="nav" id="nextBtn" aria-label="下一月">›</button>
+      </div>
+    </div>
+    <div class="wdrow"><span>周一</span><span>周二</span><span>周三</span><span>周四</span><span>周五</span><span>周六</span><span>周日</span></div>
+    <div class="calgrid" id="calGrid"></div>
+  </section>
+  <aside class="detail" aria-label="当日安排">
+    <div class="dhead">
+      <p class="dnum2" id="dBig">14</p>
+      <p class="dwd" id="dWd">星期二 · 2025 年 10 月 14 日</p>
+    </div>
+    <div id="dBody"></div>
+  </aside>
+</div>
+<script>
+var WD=["一","二","三","四","五","六","日"];
+var EN=["January","February","March","April","May","June","July","August","September","October","November","December"];
+var TAGN={act:"活动",trn:"训练",lec:"讲座",mtg:"会议"};
+var BTN={act:"我要报名",trn:"我要报名",lec:"我要参加",mtg:"我要参加"};
+var MONTHS=[
+  {y:2025,m:9,ev:{
+    6:[{t:"19:00",title:"香山夜爬 · 赏月线",tag:"act",place:"香山邮局门口集合",leader:"林远",quota:20,joined:18,me:false,desc:"夜爬香炉峰赏月，全程约 3 小时。请带头灯与防风外套，下山后拼车回城。"}],
+    13:[{t:"06:30",title:"海坨山一日徒步",tag:"act",place:"惠新西街南口集合",leader:"小满",quota:18,joined:15,me:false,desc:"大海坨环线 14 公里，高山草甸正值金黄。注意防晒与保暖，自备路餐。"}],
+    21:[{t:"19:00",title:"攀岩基础课 · 第 3 期",tag:"trn",place:"岩时攀岩馆（望京店）",leader:"赵一橙",quota:10,joined:10,me:false,desc:"顶绳保护认证考核场，通过后可独立预约俱乐部保护位。租鞋 20 元自理。"}],
+    27:[{t:"13:00",title:"秋季装备市集",tag:"act",place:"俱乐部露台",leader:"阿初",quota:60,joined:41,me:true,desc:"二手装备互换与保养义诊，可带闲置帐篷、炉头现场寄卖，收取 5% 服务费。"}]
+  }},
+  {y:2025,m:10,ev:{
+    4:[{t:"07:30",title:"西山防火道徒步",tag:"act",place:"香山邮局门口集合",leader:"林远",quota:20,joined:12,me:false,desc:"香山邮局出发，经好汉坡、老望京楼折返，全程约 18 公里、累计爬升 600 米。自备路餐与 1.5 升水，建议登山杖与防滑鞋。"}],
+    8:[{t:"19:00",title:"室内攀岩训练",tag:"trn",place:"岩时攀岩馆（望京店）",leader:"赵一橙",quota:12,joined:9,me:false,desc:"顶绳与抱石轮换，重点练脚法与读线。新手有保护员带教，租鞋 20 元自理。"}],
+    12:[{t:"20:00",title:"哈巴雪山行前会",tag:"mtg",place:"线上会议",leader:"陈默",quota:30,joined:21,me:false,desc:"核对装备清单、高原反应预案与分组。缺席者请提前向领队报备并观看录播。"}],
+    14:[{t:"19:30",title:"体能训练 · 间歇跑",tag:"trn",place:"奥体中心田径场",leader:"赵一橙",quota:15,joined:11,me:true,desc:"400 米 × 10 组间歇，配速按入营测试分组。雨后场地湿滑则改为核心力量训练。"}],
+    18:[{t:"06:00",title:"白河峡谷两日露营",tag:"act",place:"东直门集合点",leader:"林远",quota:16,joined:14,me:false,desc:"两日轻装露营，峡谷篝火与观星。俱乐部提供帐篷与炉头，睡袋自备，温标建议 −5℃。"}],
+    19:[{t:"全天",title:"白河峡谷露营 · 第 2 天",tag:"act",place:"白河峡谷营地",leader:"林远",quota:16,joined:14,me:false,desc:"拔营后沿白河徒步 8 公里出山，预计 16:00 返抵东直门。"}],
+    25:[{t:"14:00",title:"山地救援公益讲座",tag:"lec",place:"俱乐部活动室（三层）",leader:"蓝天救援队 老猫",quota:40,joined:26,me:false,desc:"山地搜救流程、伤员固定与转运实操演示，可现场体验简易担架制作。"}],
+    30:[{t:"20:00",title:"十一月行程发布会",tag:"mtg",place:"线上会议",leader:"陈默",quota:50,joined:33,me:false,desc:"发布十一月排期与哈巴雪山复盘，现场开放十二月活动提案。"}]
+  }},
+  {y:2025,m:11,ev:{
+    1:[{t:"06:30",title:"哈巴雪山攀登 · 第 1 天",tag:"act",place:"丽江集合",leader:"林远",quota:10,joined:10,me:false,desc:"丽江集合后乘车至哈巴村，海拔 2600 米适应性休整，晚间检查高山靴与冰爪。"}],
+    2:[{t:"全天",title:"哈巴雪山攀登 · 第 2 天",tag:"act",place:"哈巴村 → 大本营",leader:"林远",quota:10,joined:10,me:false,desc:"徒步至 4100 米大本营，全程约 6 小时，下午进行冰雪坡行走训练。"}],
+    3:[{t:"03:30",title:"哈巴雪山攀登 · 冲顶日",tag:"act",place:"大本营 → 5396 米顶峰",leader:"林远",quota:10,joined:10,me:false,desc:"凌晨 03:30 冲顶 5396 米，视天气窗口决定下撤时间，晚间返回丽江。"}],
+    8:[{t:"09:00",title:"攀冰体验课",tag:"trn",place:"云蒙峡冰壁（视结冰情况）",leader:"赵一橙",quota:12,joined:5,me:false,desc:"冰壁基础：踢冰、挥镐与顶绳保护。俱乐部提供冰镐冰爪，自备防水手套。"}],
+    15:[{t:"19:30",title:"年会筹备会",tag:"mtg",place:"俱乐部活动室（三层）",leader:"陈默",quota:12,joined:6,me:false,desc:"确定年会流程、奖项与物料分工，欢迎带方案来旁听。"}],
+    22:[{t:"14:00",title:"雪季安全培训",tag:"lec",place:"俱乐部活动室（三层）",leader:"蓝天救援队 老猫",quota:35,joined:18,me:false,desc:"雪崩三件套使用、雪层判断与极端天气决策，含室内演练。"}]
+  }}
+];
+var mi=1,selD=null,openKey=null;
+function pad(n){return (n<10?"0":"")+n;}
+function render(){
+  var M=MONTHS[mi];
+  document.getElementById("bigM").textContent=pad(M.m);
+  document.getElementById("yyT").textContent=M.y+" 年 "+M.m+" 月";
+  document.getElementById("enM").textContent=EN[M.m-1];
+  if(selD===null){
+    var ks=Object.keys(M.ev);
+    selD=ks.length?Number(ks[0]):null;
+  }
+  var first=new Date(M.y,M.m-1,1);
+  var off=(first.getDay()+6)%7;
+  var days=new Date(M.y,M.m,0).getDate();
+  var prevDays=new Date(M.y,M.m-1,0).getDate();
+  var h="",i,k;
+  for(i=0;i<off;i++){h+='<div class="cell out"><span class="dnum">'+(prevDays-off+1+i)+'</span></div>';}
+  for(i=1;i<=days;i++){
+    var evs=M.ev[i]||[];
+    var cls="cell";
+    if(M.y===2025&&M.m===10&&i===14){cls+=" today";}
+    if(selD===i){cls+=" sel";}
+    h+='<div class="'+cls+'" data-d="'+i+'"><span class="dnum">'+i+'</span>';
+    for(k=0;k<evs.length&&k<2;k++){h+='<span class="evb '+evs[k].tag+'">'+evs[k].title+'</span>';}
+    if(evs.length>2){h+='<span class="more">+'+(evs.length-2)+' 更多</span>';}
+    h+='</div>';
+  }
+  var used=off+days,tail=(7-used%7)%7;
+  for(i=1;i<=tail;i++){h+='<div class="cell out"><span class="dnum">'+i+'</span></div>';}
+  document.getElementById("calGrid").innerHTML=h;
+  document.getElementById("prevBtn").disabled=(mi===0);
+  document.getElementById("nextBtn").disabled=(mi===MONTHS.length-1);
+  renderDetail();
+}
+function renderDetail(){
+  var M=MONTHS[mi];
+  var big=document.getElementById("dBig"),wd=document.getElementById("dWd"),box=document.getElementById("dBody");
+  if(selD===null){
+    big.textContent=M.m+" 月";
+    wd.textContent="点击左侧日期，查看当日安排";
+    box.innerHTML='<p class="dempty">本月暂无可报名的活动。</p>';
+    return;
+  }
+  big.textContent=selD;
+  var dt=new Date(M.y,M.m-1,selD);
+  wd.textContent="星期"+WD[(dt.getDay()+6)%7]+" · "+M.y+" 年 "+M.m+" 月 "+selD+" 日";
+  var evs=M.ev[selD]||[];
+  if(!evs.length){
+    box.innerHTML='<p class="dempty">当日暂无安排。可以去山里，也可以去岩馆。</p>';
+    return;
+  }
+  var h="";
+  for(var i=0;i<evs.length;i++){
+    var e=evs[i];
+    var full=(e.joined>=e.quota)&&!e.me;
+    h+='<div class="evcard'+(openKey===i?" open":"")+'" data-i="'+i+'">';
+    h+='<div class="evtime">'+e.t+'</div>';
+    h+='<div class="evmain"><p class="evtitle">'+e.title+'</p>';
+    h+='<p class="evmeta">'+TAGN[e.tag]+' · '+e.place+'</p>';
+    h+='<div class="evmore"><p class="evdesc">'+e.desc+'</p>';
+    h+='<p class="evquota">领队 '+e.leader+' · 报名 '+e.joined+'/'+e.quota+'</p>';
+    if(full){h+='<button class="btn" disabled>名额已满</button>';}
+    else if(e.me){h+='<button class="btn joined" data-act="join">已报名 · 点击取消</button>';}
+    else{h+='<button class="btn" data-act="join">'+BTN[e.tag]+'</button>';}
+    h+='</div></div><span class="chev">▾</span></div>';
+  }
+  box.innerHTML=h;
+}
+document.getElementById("calGrid").addEventListener("click",function(e){
+  var c=e.target.closest(".cell");
+  if(!c||c.className.indexOf("out")>=0){return;}
+  selD=Number(c.getAttribute("data-d"));
+  openKey=null;
+  var cells=document.querySelectorAll(".cell");
+  for(var i=0;i<cells.length;i++){cells[i].classList.remove("sel");}
+  c.classList.add("sel");
+  renderDetail();
+});
+document.getElementById("dBody").addEventListener("click",function(e){
+  var b=e.target.closest("[data-act]");
+  var card=e.target.closest(".evcard");
+  if(!card){return;}
+  var M=MONTHS[mi];
+  var evs=M.ev[selD]||[];
+  var idx=Number(card.getAttribute("data-i"));
+  if(b){
+    var ev=evs[idx];
+    if(ev.me){ev.me=false;ev.joined--;}
+    else{ev.me=true;ev.joined++;}
+    renderDetail();
+    return;
+  }
+  openKey=(openKey===idx)?null:idx;
+  renderDetail();
+});
+document.getElementById("prevBtn").addEventListener("click",function(){
+  if(mi>0){mi--;selD=null;openKey=null;render();}
+});
+document.getElementById("nextBtn").addEventListener("click",function(){
+  if(mi<MONTHS.length-1){mi++;selD=null;openKey=null;render();}
+});
+render();
+</script>
+</body>
+</html>

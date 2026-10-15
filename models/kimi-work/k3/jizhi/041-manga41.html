@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>漫仓 MANGA DEPOT · 漫画周边商店</title>
+<style>
+:root{
+  --paper:#FFFFFF;
+  --ink:#111111;
+  --magenta:#E5007D;
+  --cyan:#00A3E0;
+  --yellow:#FFE94A;
+  --pinksoft:#FFF3FA;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+[hidden]{display:none !important}
+html,body{min-height:100%}
+body{
+  font-family:"PingFang SC","Microsoft YaHei","Noto Sans SC",system-ui,-apple-system,sans-serif;
+  background-color:var(--paper);
+  background-image:radial-gradient(rgba(17,17,17,.12) 1.2px,transparent 1.7px);
+  background-size:16px 16px;
+  color:var(--ink);
+  font-size:15px;
+  line-height:1.6;
+}
+button{font-family:inherit}
+
+/* ---------- 顶部栏 ---------- */
+.topbar{
+  display:flex;align-items:center;gap:20px;flex-wrap:wrap;
+  padding:16px 40px;
+  border-bottom:3px solid var(--ink);
+  background:var(--paper);
+  position:sticky;top:0;z-index:20;
+}
+.logo{
+  font-size:28px;font-weight:900;letter-spacing:2px;line-height:1;
+  display:flex;align-items:baseline;gap:8px;
+}
+.logo-sub{
+  font-size:11px;font-weight:800;letter-spacing:3px;
+  background:var(--ink);color:var(--yellow);padding:3px 8px;border-radius:4px;
+}
+.top-stickers{display:flex;align-items:center;gap:12px;margin-left:6px}
+.sticker{
+  font-size:12px;font-weight:800;padding:4px 12px;border:2px solid var(--ink);
+  border-radius:999px;transform:rotate(-3deg);
+}
+.sticker-cyan{background:var(--cyan);color:#fff}
+.sticker-pink{background:var(--magenta);color:#fff;transform:rotate(2deg)}
+.burst{
+  display:inline-flex;align-items:center;justify-content:center;text-align:center;
+  background:var(--yellow);color:var(--ink);font-weight:900;
+  clip-path:polygon(50% 0,61% 12%,76% 6%,80% 21%,95% 20%,92% 35%,100% 45%,90% 55%,97% 68%,83% 70%,82% 86%,67% 81%,58% 95%,48% 84%,34% 93%,30% 77%,14% 78%,17% 62%,3% 55%,13% 44%,5% 30%,20% 30%,24% 14%,38% 21%);
+}
+.burst-mini{width:64px;height:56px;font-size:13px;transform:rotate(-8deg)}
+.topnav{margin-left:auto;display:flex;gap:6px}
+.nav-item{
+  border:2px solid transparent;background:none;font-size:14px;font-weight:800;
+  padding:8px 14px;border-radius:8px;cursor:pointer;letter-spacing:1px;
+}
+.nav-item:hover{background:var(--pinksoft)}
+.nav-item.is-on{border-color:var(--ink);background:var(--yellow);box-shadow:3px 3px 0 var(--ink)}
+
+/* ---------- 主区布局 ---------- */
+.shop{
+  display:grid;grid-template-columns:1fr 400px;gap:28px;align-items:start;
+  max-width:1240px;margin:0 auto;padding:28px 40px 64px;
+}
+.shelf-head{display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-bottom:20px}
+.shelf-head h1{font-size:28px;font-weight:900;letter-spacing:1px}
+.shelf-note{
+  font-size:13px;font-weight:700;background:var(--yellow);
+  border:2px solid var(--ink);border-radius:6px;padding:4px 10px;
+}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:22px}
+
+/* ---------- 商品卡片 ---------- */
+.card{
+  border:3px solid var(--ink);border-radius:14px;background:#fff;overflow:hidden;
+  box-shadow:6px 6px 0 var(--ink);display:flex;flex-direction:column;
+  transition:transform .18s ease,box-shadow .18s ease;
+}
+.card:hover{transform:translate(-3px,-3px);box-shadow:9px 9px 0 var(--ink)}
+.card-art{
+  border-bottom:3px solid var(--ink);
+  background-color:var(--paper);
+  background-image:radial-gradient(rgba(17,17,17,.14) 1.2px,transparent 1.7px);
+  background-size:12px 12px;
+}
+.card-art svg{display:block;width:100%;height:auto}
+.card-body{padding:14px 16px 16px;display:flex;flex-direction:column;gap:10px}
+.card-tag{
+  align-self:flex-start;font-size:11px;font-weight:800;letter-spacing:1px;
+  background:var(--cyan);color:#fff;border:2px solid var(--ink);border-radius:4px;padding:2px 8px;
+}
+.card-name{font-size:17px;font-weight:900;line-height:1.4}
+.card-specs{display:flex;flex-wrap:wrap;gap:8px}
+.chip{
+  border:2px solid var(--ink);background:#fff;border-radius:6px;
+  padding:5px 10px;font-size:13px;font-weight:700;cursor:pointer;
+  transition:background .12s ease,box-shadow .12s ease;
+}
+.chip:hover{background:var(--pinksoft)}
+.chip.is-on{background:var(--yellow);box-shadow:3px 3px 0 var(--ink)}
+.chip:focus-visible{outline:3px solid var(--cyan);outline-offset:1px}
+.card-foot{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.price{font-size:22px;font-weight:900;color:var(--magenta)}
+.stock{
+  font-size:12px;font-weight:800;padding:2px 10px;
+  border:2px solid var(--ink);border-radius:999px;background:#fff;white-space:nowrap;
+}
+.stock.is-low{background:var(--magenta);color:#fff;border-color:var(--ink)}
+.stock.is-out{background:#CFCFCF;color:#fff;text-decoration:line-through}
+.card-actions{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:2px}
+
+/* ---------- 步进器 ---------- */
+.stepper{
+  display:inline-flex;align-items:center;border:2px solid var(--ink);
+  border-radius:8px;overflow:hidden;background:#fff;
+}
+.stepper button{
+  width:30px;height:30px;border:none;background:#fff;
+  font-size:16px;font-weight:900;cursor:pointer;line-height:1;
+}
+.stepper button:hover{background:var(--yellow)}
+.stepper button:disabled{background:#eee;color:#999;cursor:not-allowed}
+.stepper .num{min-width:32px;text-align:center;font-weight:800;font-size:14px}
+.stepper-sm button{width:26px;height:26px;font-size:14px}
+.stepper-sm .num{min-width:26px;font-size:13px}
+
+/* ---------- 按钮 ---------- */
+.btn-primary{
+  background:var(--magenta);color:#fff;border:3px solid var(--ink);
+  border-radius:10px;padding:10px 18px;font-size:15px;font-weight:800;
+  letter-spacing:2px;cursor:pointer;box-shadow:5px 5px 0 var(--ink);
+  transition:transform .15s ease,box-shadow .15s ease,background .15s ease;
+}
+.btn-primary:hover{transform:translate(-2px,-2px);box-shadow:7px 7px 0 var(--ink)}
+.btn-primary:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink)}
+.btn-primary:focus-visible{outline:3px solid var(--cyan);outline-offset:2px}
+.btn-primary:disabled{background:#BDBDBD;cursor:not-allowed;transform:none;box-shadow:5px 5px 0 var(--ink)}
+.btn-add{padding:8px 14px;font-size:13px;letter-spacing:1px}
+.btn-big{width:100%;padding:15px 20px;font-size:17px}
+.btn-ghost{
+  background:#fff;color:var(--ink);border:3px solid var(--ink);border-radius:10px;
+  padding:12px 20px;font-size:15px;font-weight:800;cursor:pointer;
+  box-shadow:4px 4px 0 var(--ink);transition:transform .15s ease,box-shadow .15s ease;
+}
+.btn-ghost:hover{transform:translate(-2px,-2px);box-shadow:6px 6px 0 var(--ink);background:var(--yellow)}
+
+/* ---------- 购物车 ---------- */
+.cart{
+  position:sticky;top:96px;
+  border:3px solid var(--ink);border-radius:14px;background:#fff;
+  padding:20px;box-shadow:8px 8px 0 var(--ink);
+}
+.cart-head h2{font-size:20px;font-weight:900;display:flex;align-items:center;gap:8px}
+.cart-count{
+  background:var(--magenta);color:#fff;font-size:13px;font-weight:900;
+  min-width:26px;height:26px;border-radius:999px;border:2px solid var(--ink);
+  display:inline-flex;align-items:center;justify-content:center;padding:0 6px;
+}
+.pressure{
+  display:flex;align-items:center;gap:10px;margin-top:14px;cursor:pointer;user-select:none;
+}
+.pressure input{position:absolute;opacity:0;width:0;height:0}
+.pressure-track{
+  width:46px;height:26px;border:3px solid var(--ink);border-radius:999px;
+  background:#fff;position:relative;flex:none;transition:background .15s ease;
+}
+.pressure-knob{
+  position:absolute;top:1px;left:2px;width:18px;height:18px;border-radius:50%;
+  background:var(--ink);transition:left .15s ease,background .15s ease;
+}
+.pressure input:checked + .pressure-track{background:var(--yellow)}
+.pressure input:checked + .pressure-track .pressure-knob{left:20px;background:var(--magenta)}
+.pressure input:focus-visible + .pressure-track{outline:3px solid var(--cyan);outline-offset:2px}
+.pressure-text{font-size:14px;font-weight:900}
+.pressure-hint{font-size:12px;color:#555;margin-top:6px;line-height:1.5}
+.cart-lines{margin-top:16px;max-height:320px;overflow-y:auto;padding-right:4px}
+.cart-empty{
+  border:2px dashed var(--ink);border-radius:10px;padding:26px 14px;text-align:center;
+  font-weight:800;font-size:15px;background:var(--pinksoft);
+}
+.cart-empty span{display:block;font-size:12px;font-weight:600;color:#666;margin-top:6px}
+.line{
+  display:grid;grid-template-columns:48px 1fr;gap:10px;
+  border:3px solid var(--ink);border-radius:10px;background:#fff;
+  padding:10px;margin-bottom:10px;box-shadow:4px 4px 0 var(--ink);
+}
+.line.is-short{background:var(--pinksoft);border-color:var(--magenta)}
+.line-thumb{
+  width:48px;height:48px;border:2px solid var(--ink);border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;font-weight:900;
+}
+.thumb-p1{background:var(--magenta);color:#fff}
+.thumb-p2{background:var(--cyan);color:#fff}
+.thumb-p3{background:var(--yellow)}
+.thumb-p4{background:var(--pinksoft)}
+.thumb-p5{background:var(--yellow)}
+.thumb-p6{background:var(--cyan);color:#fff}
+.line-name{font-size:14px;font-weight:800;line-height:1.4}
+.line-spec{font-size:12px;color:#555;margin-top:2px}
+.line-warn{
+  display:inline-block;margin-top:4px;font-size:12px;font-weight:800;color:#fff;
+  background:var(--magenta);border-radius:4px;padding:1px 8px;
+}
+.line-ops{display:flex;align-items:center;gap:10px;margin-top:8px;flex-wrap:wrap}
+.line-sum{font-size:15px;font-weight:900;color:var(--magenta);margin-left:auto}
+.line-del{
+  border:none;background:none;font-size:12px;font-weight:700;color:#777;
+  cursor:pointer;text-decoration:underline;
+}
+.line-del:hover{color:var(--magenta)}
+.cart-error{
+  border:3px solid var(--ink);border-left:10px solid var(--magenta);
+  background:var(--pinksoft);border-radius:10px;
+  padding:12px 14px;font-size:13px;line-height:1.7;margin:12px 0;
+}
+.cart-sum{border-top:3px solid var(--ink);margin-top:14px;padding-top:12px}
+.sum-row{display:flex;justify-content:space-between;font-size:14px;font-weight:700;padding:3px 0}
+.sum-total{font-size:19px;font-weight:900;border-top:2px dashed var(--ink);margin-top:8px;padding-top:10px}
+.sum-total span:last-child{color:var(--magenta)}
+#submitBtn{margin-top:14px}
+
+/* ---------- 回执视图 ---------- */
+.receipt{
+  max-width:640px;margin:0 auto;padding:48px 24px 80px;
+  display:flex;flex-direction:column;align-items:center;text-align:center;
+}
+.burst-big{width:150px;height:140px;font-size:34px;letter-spacing:2px;transform:rotate(-8deg)}
+.receipt h1{font-size:30px;font-weight:900;margin-top:18px;letter-spacing:2px}
+.receipt-no{font-size:14px;font-weight:700;margin-top:8px}
+.receipt-no b{color:var(--magenta)}
+.receipt-card{
+  width:100%;border:3px solid var(--ink);border-radius:14px;background:#fff;
+  box-shadow:8px 8px 0 var(--ink);padding:18px 20px;margin-top:22px;text-align:left;
+}
+.rc-line{
+  display:flex;justify-content:space-between;gap:12px;
+  font-size:14px;font-weight:700;padding:8px 0;border-bottom:2px dashed #bbb;
+}
+.rc-line small{display:block;font-weight:600;color:#666;font-size:12px}
+.rc-row{display:flex;justify-content:space-between;font-size:14px;font-weight:700;padding:6px 0}
+.rc-total{font-size:20px;font-weight:900;border-top:3px solid var(--ink);margin-top:8px;padding-top:12px}
+.rc-total span:last-child{color:var(--magenta)}
+.rc-addr{
+  margin-top:18px;font-size:13px;font-weight:700;background:var(--yellow);
+  border:2px solid var(--ink);border-radius:8px;padding:8px 14px;
+}
+.rc-time{margin-top:10px;font-size:12px;color:#666}
+#backBtn{max-width:280px;margin-top:22px}
+
+/* ---------- 提示条 ---------- */
+.toast{
+  position:fixed;left:50%;bottom:34px;transform:translateX(-50%);
+  background:var(--ink);color:var(--yellow);font-weight:800;font-size:14px;
+  padding:12px 22px;border-radius:10px;border:3px solid var(--yellow);
+  z-index:60;max-width:80vw;text-align:center;box-shadow:6px 6px 0 rgba(17,17,17,.3);
+}
+
+.shake{animation:shake .4s ease}
+@keyframes shake{
+  0%,100%{transform:translateX(0)}
+  25%{transform:translateX(-6px)}
+  50%{transform:translateX(6px)}
+  75%{transform:translateX(-4px)}
+}
+
+/* ---------- 窄屏适配 ---------- */
+@media (max-width:900px){
+  .topbar{padding:14px 20px;gap:12px}
+  .logo{font-size:22px}
+  .topnav{width:100%;margin-left:0;overflow-x:auto}
+  .shop{grid-template-columns:1fr;padding:20px;gap:24px}
+  .cart{position:static}
+  .cart-lines{max-height:none}
+}
+
+@media (prefers-reduced-motion: reduce){
+  *{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important}
+}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="logo">漫仓<span class="logo-sub">MANGA DEPOT</span></div>
+  <div class="top-stickers">
+    <span class="sticker sticker-cyan">新刊入荷</span>
+    <span class="sticker sticker-pink">满 ¥99 免运费</span>
+    <span class="burst burst-mini">ゴゴゴ</span>
+  </div>
+  <nav class="topnav" aria-label="分类导航">
+    <button class="nav-item is-on" type="button">全部周边</button>
+    <button class="nav-item" type="button">海报</button>
+    <button class="nav-item" type="button">徽章</button>
+    <button class="nav-item" type="button">生活杂货</button>
+    <button class="nav-item" type="button">画册</button>
+  </nav>
+</header>
+
+<main id="viewShop" class="shop">
+  <section class="shelf" aria-label="商品列表">
+    <div class="shelf-head">
+      <h1>本周补货上架</h1>
+      <p class="shelf-note">官方授权正品 · 支持门店自提</p>
+    </div>
+    <div id="productGrid" class="grid"></div>
+  </section>
+
+  <aside class="cart" aria-label="购物车">
+    <div class="cart-head">
+      <h2>购物车 <span id="cartCount" class="cart-count">0</span></h2>
+      <label class="pressure" for="pressureToggle">
+        <input type="checkbox" id="pressureToggle">
+        <span class="pressure-track"><span class="pressure-knob"></span></span>
+        <span class="pressure-text">库存压力开关</span>
+      </label>
+      <p class="pressure-hint">演示用：开启后模拟抢购高峰，「怒吼 ver.」「反派组」「帆布袋」库存立刻被抢空。</p>
+    </div>
+    <div id="cartLines" class="cart-lines"></div>
+    <div id="cartError" class="cart-error" hidden></div>
+    <div class="cart-sum">
+      <div class="sum-row"><span>商品合计</span><span id="sumGoods">¥0.00</span></div>
+      <div class="sum-row"><span>运费（满 ¥99 免）</span><span id="sumShip">¥0.00</span></div>
+      <div class="sum-row sum-total"><span>应付合计</span><span id="sumTotal">¥0.00</span></div>
+    </div>
+    <button id="submitBtn" class="btn-primary btn-big" type="button">提交订单</button>
+  </aside>
+</main>
+
+<section id="viewReceipt" class="receipt" hidden>
+  <div class="burst burst-big">ドン!</div>
+  <h1>下单成功！</h1>
+  <p class="receipt-no">订单编号 <b id="rcNo">—</b></p>
+  <div class="receipt-card">
+    <div id="rcLines"></div>
+    <div class="rc-row"><span>商品合计</span><span id="rcGoods">—</span></div>
+    <div class="rc-row"><span>运费</span><span id="rcShip">—</span></div>
+    <div class="rc-row rc-total"><span>实付金额</span><span id="rcTotal">—</span></div>
+  </div>
+  <p class="rc-addr">自提点：上海市杨浦区网点巷 3 号「漫仓」自提柜 A-12 · 下单后 3 日内可取</p>
+  <p class="rc-time" id="rcTime">—</p>
+  <button id="backBtn" class="btn-primary btn-big" type="button">再逛一单</button>
+</section>
+
+<div id="toast" class="toast" hidden></div>
+
+<script>
+/* ============ 数据 ============ */
+var PRODUCTS=[
+  {id:'p1',name:'「疾风斩」烫金海报',tag:'周刊人气 TOP1',art:'poster',abbr:'斬',specs:[
+    {name:'A2 款',price:49,stock:12},
+    {name:'A3 款',price:39,stock:8}]},
+  {id:'p2',name:'热血番搪瓷徽章·三枚套',tag:'官方授权',art:'badge',abbr:'徽',specs:[
+    {name:'主角组',price:35,stock:6},
+    {name:'反派组',price:35,stock:4}]},
+  {id:'p3',name:'「咚！」拟声词地垫',tag:'编辑部同款',art:'mat',abbr:'咚',specs:[
+    {name:'60×40cm',price:89,stock:5},
+    {name:'90×60cm',price:109,stock:3}]},
+  {id:'p4',name:'战斗姿态亚克力立牌',tag:'两次补货均售罄',art:'stand',abbr:'立',specs:[
+    {name:'怒吼 ver.',price:59,stock:2},
+    {name:'微笑 ver.',price:59,stock:9}]},
+  {id:'p5',name:'网点纹帆布购物袋',tag:'店长推荐',art:'bag',abbr:'袋',specs:[
+    {name:'均码',price:45,stock:7}]},
+  {id:'p6',name:'复刻原画集·第一卷',tag:'首刷限定',art:'book',abbr:'画',specs:[
+    {name:'普通版',price:128,stock:4}]}
+];
+var PRESSURE_EMPTY={'p4|怒吼 ver.':1,'p5|均码':1,'p2|反派组':1};
+var pressure=false;
+var cart=[];
+var selSpec={};
+var selQty={};
+var toastTimer=null;
+
+/* ============ 工具 ============ */
+function money(n){return '¥'+n.toFixed(2)}
+function findProduct(pid){
+  for(var i=0;i<PRODUCTS.length;i++){if(PRODUCTS[i].id===pid)return PRODUCTS[i]}
+  return null;
+}
+function findSpec(pid,specName){
+  var p=findProduct(pid);
+  if(!p)return null;
+  for(var j=0;j<p.specs.length;j++){if(p.specs[j].name===specName)return p.specs[j]}
+  return null;
+}
+function stockOf(pid,specName){
+  if(pressure&&PRESSURE_EMPTY[pid+'|'+specName])return 0;
+  var s=findSpec(pid,specName);
+  return s?s.stock:0;
+}
+function showToast(msg){
+  var t=document.getElementById('toast');
+  t.textContent=msg;t.hidden=false;
+  if(toastTimer)clearTimeout(toastTimer);
+  toastTimer=setTimeout(function(){t.hidden=true},2400);
+}
+function hideError(){document.getElementById('cartError').hidden=true}
+
+/* ============ 商品插画（内联 SVG） ============ */
+function artSVG(kind){
+  var s='<svg viewBox="0 0 300 150">';
+  if(kind==='poster'){
+    s+='<rect x="70" y="14" width="160" height="122" rx="6" fill="#FFFFFF" stroke="#111111" stroke-width="3"/>'
+      +'<line x1="86" y1="118" x2="150" y2="40" stroke="#E5007D" stroke-width="5"/>'
+      +'<line x1="100" y1="126" x2="164" y2="48" stroke="#E5007D" stroke-width="3"/>'
+      +'<line x1="214" y1="30" x2="214" y2="120" stroke="#00A3E0" stroke-width="4"/>'
+      +'<text x="130" y="112" font-size="72" font-weight="900" fill="#111111">斬</text>';
+  }else if(kind==='badge'){
+    s+='<circle cx="92" cy="66" r="34" fill="#FFE94A" stroke="#111111" stroke-width="3"/>'
+      +'<circle cx="150" cy="78" r="34" fill="#00A3E0" stroke="#111111" stroke-width="3"/>'
+      +'<circle cx="208" cy="62" r="34" fill="#E5007D" stroke="#111111" stroke-width="3"/>'
+      +'<circle cx="84" cy="60" r="4" fill="#111111"/><circle cx="100" cy="60" r="4" fill="#111111"/>'
+      +'<path d="M84 74 Q92 82 100 74" fill="none" stroke="#111111" stroke-width="3"/>'
+      +'<circle cx="142" cy="72" r="4" fill="#111111"/><circle cx="158" cy="72" r="4" fill="#111111"/>'
+      +'<path d="M142 86 Q150 94 158 86" fill="none" stroke="#111111" stroke-width="3"/>'
+      +'<circle cx="200" cy="56" r="4" fill="#FFFFFF"/><circle cx="216" cy="56" r="4" fill="#FFFFFF"/>'
+      +'<path d="M200 70 Q208 78 216 70" fill="none" stroke="#FFFFFF" stroke-width="3"/>';
+  }else if(kind==='mat'){
+    s+='<polygon points="150,10 168,42 206,30 196,66 236,72 200,92 218,126 176,112 164,146 142,114 104,130 112,92 70,86 106,66 92,30 132,44" fill="#FFE94A" stroke="#111111" stroke-width="3"/>'
+      +'<text x="104" y="98" font-size="40" font-weight="900" fill="#E5007D">ドン!</text>';
+  }else if(kind==='stand'){
+    s+='<rect x="96" y="118" width="108" height="14" rx="4" fill="#00A3E0" stroke="#111111" stroke-width="3"/>'
+      +'<circle cx="150" cy="46" r="20" fill="#FFF3FA" stroke="#111111" stroke-width="3"/>'
+      +'<path d="M150 66 L118 118 L182 118 Z" fill="#E5007D" stroke="#111111" stroke-width="3"/>'
+      +'<circle cx="143" cy="42" r="3" fill="#111111"/><circle cx="157" cy="42" r="3" fill="#111111"/>'
+      +'<path d="M142 54 Q150 60 158 54" fill="none" stroke="#111111" stroke-width="3"/>'
+      +'<line x1="112" y1="34" x2="96" y2="18" stroke="#111111" stroke-width="3"/>'
+      +'<line x1="188" y1="34" x2="204" y2="18" stroke="#111111" stroke-width="3"/>';
+  }else if(kind==='bag'){
+    s+='<path d="M100 60 L200 60 L212 132 L88 132 Z" fill="#FFFFFF" stroke="#111111" stroke-width="3"/>'
+      +'<path d="M122 60 Q122 30 150 30 Q178 30 178 60" fill="none" stroke="#111111" stroke-width="4"/>'
+      +'<circle cx="150" cy="96" r="18" fill="#FFE94A" stroke="#111111" stroke-width="3"/>'
+      +'<circle cx="144" cy="92" r="3" fill="#111111"/><circle cx="156" cy="92" r="3" fill="#111111"/>'
+      +'<path d="M144 102 Q150 107 156 102" fill="none" stroke="#111111" stroke-width="2.5"/>';
+  }else{
+    s+='<rect x="96" y="18" width="116" height="118" rx="6" fill="#E5007D" stroke="#111111" stroke-width="3"/>'
+      +'<rect x="108" y="30" width="92" height="60" rx="4" fill="#FFFFFF" stroke="#111111" stroke-width="3"/>'
+      +'<line x1="118" y1="46" x2="190" y2="46" stroke="#00A3E0" stroke-width="4"/>'
+      +'<line x1="118" y1="62" x2="176" y2="62" stroke="#111111" stroke-width="3"/>'
+      +'<line x1="118" y1="76" x2="182" y2="76" stroke="#111111" stroke-width="3"/>'
+      +'<rect x="108" y="100" width="60" height="22" rx="4" fill="#FFE94A" stroke="#111111" stroke-width="3"/>'
+      +'<text x="116" y="117" font-size="14" font-weight="900" fill="#111111">第一卷</text>';
+  }
+  return s+'</svg>';
+}
+
+/* ============ 渲染：商品 ============ */
+function stockBadge(st){
+  if(st<=0)return '<span class="stock is-out">已抢光</span>';
+  if(st<=2)return '<span class="stock is-low">仅剩 '+st+' 件</span>';
+  return '<span class="stock">现货 '+st+' 件</span>';
+}
+function renderProducts(){
+  var html='';
+  for(var i=0;i<PRODUCTS.length;i++){
+    var p=PRODUCTS[i];
+    var specName=selSpec[p.id]||p.specs[0].name;
+    var spec=findSpec(p.id,specName);
+    var q=selQty[p.id]||1;
+    var st=stockOf(p.id,specName);
+    var chips='';
+    for(var j=0;j<p.specs.length;j++){
+      var s=p.specs[j];
+      chips+='<button type="button" class="chip'+(s.name===specName?' is-on':'')+'"'
+        +' data-act="spec" data-p="'+p.id+'" data-spec="'+s.name+'">'+s.name+'</button>';
+    }
+    html+='<article class="card">'
+      +'<div class="card-art">'+artSVG(p.art)+'</div>'
+      +'<div class="card-body">'
+      +'<span class="card-tag">'+p.tag+'</span>'
+      +'<h3 class="card-name">'+p.name+'</h3>'
+      +'<div class="card-specs">'+chips+'</div>'
+      +'<div class="card-foot"><span class="price">'+money(spec.price)+'</span>'+stockBadge(st)+'</div>'
+      +'<div class="card-actions">'
+      +'<span class="stepper"><button type="button" data-act="minus" data-p="'+p.id+'" aria-label="减少数量">−</button>'
+      +'<span class="num">'+q+'</span>'
+      +'<button type="button" data-act="plus" data-p="'+p.id+'" aria-label="增加数量">＋</button></span>'
+      +'<button type="button" class="btn-primary btn-add" data-act="add" data-p="'+p.id+'">加入购物车</button>'
+      +'</div></div></article>';
+  }
+  document.getElementById('productGrid').innerHTML=html;
+}
+
+/* ============ 渲染：购物车 ============ */
+function renderCart(){
+  var box=document.getElementById('cartLines');
+  var count=0,goods=0,html='';
+  for(var i=0;i<cart.length;i++){
+    var l=cart[i];
+    var p=findProduct(l.pid);
+    var spec=findSpec(l.pid,l.spec);
+    var st=stockOf(l.pid,l.spec);
+    var short=l.qty>st;
+    count+=l.qty;
+    goods+=spec.price*l.qty;
+    html+='<div class="line'+(short?' is-short':'')+'">'
+      +'<div class="line-thumb thumb-'+l.pid+'">'+p.abbr+'</div>'
+      +'<div class="line-info">'
+      +'<div class="line-name">'+p.name+'</div>'
+      +'<div class="line-spec">'+l.spec+' · '+money(spec.price)+'/件</div>'
+      +(short?'<span class="line-warn">'+(st===0?'该规格已被抢空，请移除或改选':'库存不足 · 仅剩 '+st+' 件')+'</span>':'')
+      +'<div class="line-ops">'
+      +'<span class="stepper stepper-sm"><button type="button" data-cact="minus" data-i="'+i+'" aria-label="减少">−</button>'
+      +'<span class="num">'+l.qty+'</span>'
+      +'<button type="button" data-cact="plus" data-i="'+i+'" aria-label="增加">＋</button></span>'
+      +'<button type="button" class="line-del" data-cact="del" data-i="'+i+'">移除</button>'
+      +'<span class="line-sum">'+money(spec.price*l.qty)+'</span>'
+      +'</div></div></div>';
+  }
+  if(cart.length===0){
+    html='<div class="cart-empty">购物车空空如也<span>从左边挑几件周边加入吧！</span></div>';
+  }
+  box.innerHTML=html;
+  var ship=cart.length===0?0:(goods>=99?0:8);
+  document.getElementById('cartCount').textContent=count;
+  document.getElementById('sumGoods').textContent=money(goods);
+  document.getElementById('sumShip').textContent=ship===0?(cart.length===0?'¥0.00':'免运费'):money(ship);
+  document.getElementById('sumTotal').textContent=money(goods+ship);
+}
+
+function renderAll(){renderProducts();renderCart()}
+
+/* ============ 交互：商品区 ============ */
+document.getElementById('productGrid').addEventListener('click',function(e){
+  var b=e.target.closest('[data-act]');
+  if(!b)return;
+  var pid=b.getAttribute('data-p');
+  var act=b.getAttribute('data-act');
+  if(act==='spec'){selSpec[pid]=b.getAttribute('data-spec');renderProducts();return}
+  if(act==='minus'){selQty[pid]=Math.max(1,(selQty[pid]||1)-1);renderProducts();return}
+  if(act==='plus'){selQty[pid]=Math.min(9,(selQty[pid]||1)+1);renderProducts();return}
+  if(act==='add'){
+    var p=findProduct(pid);
+    var specName=selSpec[pid]||p.specs[0].name;
+    var q=selQty[pid]||1;
+    var st=stockOf(pid,specName);
+    var merged=q;
+    for(var i=0;i<cart.length;i++){
+      if(cart[i].pid===pid&&cart[i].spec===specName){merged=cart[i].qty+q;break}
+    }
+    if(merged>st){
+      showToast('加入失败：「'+p.name+'·'+specName+'」仅剩 '+st+' 件');
+      return;
+    }
+    var found=false;
+    for(var k=0;k<cart.length;k++){
+      if(cart[k].pid===pid&&cart[k].spec===specName){cart[k].qty=merged;found=true;break}
+    }
+    if(!found)cart.push({pid:pid,spec:specName,qty:q});
+    hideError();
+    renderCart();
+    showToast('已加入：'+p.name+'（'+specName+'）× '+q);
+  }
+});
+
+/* ============ 交互：购物车 ============ */
+document.getElementById('cartLines').addEventListener('click',function(e){
+  var b=e.target.closest('[data-cact]');
+  if(!b)return;
+  var i=parseInt(b.getAttribute('data-i'),10);
+  var act=b.getAttribute('data-cact');
+  if(act==='minus'){cart[i].qty=Math.max(1,cart[i].qty-1)}
+  if(act==='plus'){cart[i].qty=Math.min(9,cart[i].qty+1)}
+  if(act==='del'){cart.splice(i,1)}
+  hideError();
+  renderCart();
+});
+
+/* ============ 交互：库存压力开关 ============ */
+document.getElementById('pressureToggle').addEventListener('change',function(){
+  pressure=this.checked;
+  hideError();
+  renderAll();
+  showToast(pressure?'库存压力已开启：部分规格被抢空':'已恢复正常库存');
+});
+
+/* ============ 交互：提交订单 ============ */
+document.getElementById('submitBtn').addEventListener('click',function(){
+  if(cart.length===0){
+    showToast('购物车还是空的，先去挑几件周边吧');
+    return;
+  }
+  var probs=[];
+  for(var i=0;i<cart.length;i++){
+    var st=stockOf(cart[i].pid,cart[i].spec);
+    if(cart[i].qty>st)probs.push({line:cart[i],stock:st});
+  }
+  if(probs.length){
+    var html='<b>订单被拦截：以下规格库存不足</b><br>';
+    for(var j=0;j<probs.length;j++){
+      var p=findProduct(probs[j].line.pid);
+      html+='· '+p.name+'（'+probs[j].line.spec+'）：需要 '+probs[j].line.qty+' 件，仅剩 '+probs[j].stock+' 件<br>';
+    }
+    html+='请减少数量、移除缺货行，或回商品区改选有货规格后再提交。';
+    var box=document.getElementById('cartError');
+    box.innerHTML=html;
+    box.hidden=false;
+    box.classList.remove('shake');
+    void box.offsetWidth;
+    box.classList.add('shake');
+    return;
+  }
+  placeOrder();
+});
+
+function placeOrder(){
+  var goods=0;
+  for(var i=0;i<cart.length;i++){
+    var spec=findSpec(cart[i].pid,cart[i].spec);
+    goods+=spec.price*cart[i].qty;
+    spec.stock-=cart[i].qty;
+  }
+  var ship=goods>=99?0:8;
+  var no='MC'+Date.now().toString(36).toUpperCase();
+  var time=new Date().toLocaleString('zh-CN',{hour12:false});
+  var html='';
+  for(var j=0;j<cart.length;j++){
+    var l=cart[j];
+    var p=findProduct(l.pid);
+    var s=findSpec(l.pid,l.spec);
+    html+='<div class="rc-line"><span>'+p.name+'<small>'+l.spec+' × '+l.qty+'</small></span><span>'+money((s.price)*l.qty)+'</span></div>';
+  }
+  document.getElementById('rcLines').innerHTML=html;
+  document.getElementById('rcNo').textContent=no;
+  document.getElementById('rcGoods').textContent=money(goods);
+  document.getElementById('rcShip').textContent=ship===0?'免运费':money(ship);
+  document.getElementById('rcTotal').textContent=money(goods+ship);
+  document.getElementById('rcTime').textContent='下单时间：'+time+' · 支付方式：到店自提并付款';
+  cart=[];
+  selQty={};
+  hideError();
+  renderAll();
+  showView('receipt');
+}
+
+document.getElementById('backBtn').addEventListener('click',function(){
+  showView('shop');
+});
+
+/* ============ 视图切换 ============ */
+function showView(name){
+  document.getElementById('viewShop').hidden=(name!=='shop');
+  document.getElementById('viewReceipt').hidden=(name!=='receipt');
+  window.scrollTo(0,0);
+}
+
+/* ============ 顶部分类导航（视觉态切换） ============ */
+var navItems=document.querySelectorAll('.nav-item');
+for(var n=0;n<navItems.length;n++){
+  navItems[n].addEventListener('click',function(){
+    for(var m=0;m<navItems.length;m++)navItems[m].classList.remove('is-on');
+    this.classList.add('is-on');
+  });
+}
+
+renderAll();
+</script>
+</body>
+</html>

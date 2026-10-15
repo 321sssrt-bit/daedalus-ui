@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>粉笔学堂 · 水滴的旅行</title>
+<style>
+:root{
+  --board:#2E4A3E;
+  --board2:#3E5C4E;
+  --chalk:#F2F2E8;
+  --yellow:#F0D98C;
+  --pink:#E8A0A0;
+  --wood:#6B4A2E;
+  --chalk-dim:rgba(242,242,232,.62);
+  --line:rgba(242,242,232,.4);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{min-height:100%}
+body{
+  font-family:"KaiTi","STKaiti","DFKai-SB","楷体",serif;
+  background:var(--wood);
+  background-image:repeating-linear-gradient(90deg,rgba(0,0,0,.07) 0 3px,rgba(0,0,0,0) 3px 120px),repeating-linear-gradient(2deg,rgba(255,255,255,.04) 0 2px,rgba(255,255,255,0) 2px 60px);
+  min-height:100vh;display:flex;align-items:center;justify-content:center;
+}
+.frame{width:1280px;max-width:100%;height:800px;background:var(--wood);border-radius:24px;padding:16px;box-shadow:inset 0 0 0 3px rgba(0,0,0,.28),0 30px 70px rgba(0,0,0,.45)}
+.board{height:100%;background:var(--board);border-radius:12px;box-shadow:inset 0 0 80px rgba(0,0,0,.35);padding:20px 26px 12px;display:flex;flex-direction:column;position:relative;overflow:hidden;color:var(--chalk)}
+.top{display:flex;justify-content:space-between;align-items:baseline;gap:16px;flex-wrap:wrap;border-bottom:2px dashed var(--line);padding-bottom:12px}
+.brand{font-size:26px;font-weight:700;letter-spacing:6px}
+.meta{font-size:13px;color:var(--chalk-dim);letter-spacing:2px}
+.stars{font-size:14px;color:var(--chalk-dim);letter-spacing:2px}
+.stars i{font-style:normal;color:var(--yellow);font-size:17px;margin-left:2px}
+.main{flex:1;display:flex;gap:24px;min-height:0;padding-top:16px}
+.courses{width:296px;flex:none;display:flex;flex-direction:column;gap:12px;overflow-y:auto}
+.ctitle{font-size:15px;letter-spacing:4px;color:var(--yellow)}
+.course{text-align:left;background:var(--board2);border:2px dashed var(--line);border-radius:14px;padding:12px 14px;color:var(--chalk);cursor:pointer;font:inherit;display:flex;flex-direction:column;gap:4px;transform:rotate(-.3deg);transition:background .2s,border-color .2s}
+.course:hover{background:#47685A}
+.course.active{border-color:var(--yellow);background:rgba(240,217,140,.1)}
+.course.locked{opacity:.55}
+.cnum{font-size:12px;color:var(--yellow);letter-spacing:3px}
+.cname{font-size:17px;font-weight:700}
+.cstat{font-size:12px;color:var(--chalk-dim)}
+.course.done .cstat{color:var(--yellow)}
+.tipbox{margin-top:2px;border:2px dashed rgba(240,217,140,.5);border-radius:14px;padding:10px 12px;font-size:12.5px;line-height:1.7;color:var(--yellow)}
+.stage{flex:1;min-width:0;overflow-y:auto;padding-right:6px}
+.stage::-webkit-scrollbar{width:0}
+.view h1{font-size:27px;letter-spacing:4px}
+.view h2{font-size:23px;letter-spacing:4px}
+.under{width:250px;height:13px;display:block;margin-top:6px}
+.upath{fill:none;stroke:var(--yellow);stroke-width:3;stroke-linecap:round}
+.lead{margin-top:14px;font-size:15px;line-height:1.9;color:var(--chalk);max-width:640px}
+.kpis{display:flex;gap:14px;margin:18px 0 8px}
+.kpi{flex:1;border:2px dashed var(--line);border-radius:16px;padding:14px;background:rgba(242,242,232,.04);transform:rotate(.4deg)}
+.kpi.k2{transform:rotate(-.5deg)}
+.kpi.k3{transform:rotate(.3deg)}
+.knum{color:var(--yellow);font-size:20px;font-weight:700}
+.kpi h3{font-size:17px;margin:6px 0 4px;letter-spacing:3px}
+.kpi p{font-size:13px;line-height:1.7;color:var(--chalk-dim)}
+.cycle{width:100%;max-width:560px;margin:6px 0 14px}
+.sea{fill:none;stroke:var(--chalk);stroke-width:2.5;stroke-linecap:round;opacity:.8}
+.sun{fill:none;stroke:var(--yellow);stroke-width:3}
+.sunray{stroke:var(--yellow);stroke-width:2.5;stroke-linecap:round}
+.cloud{fill:none;stroke:var(--chalk);stroke-width:3;stroke-linejoin:round}
+.rain{stroke:var(--chalk);stroke-width:2.5;stroke-linecap:round;opacity:.7}
+.flow{fill:none;stroke:var(--yellow);stroke-width:2.5;stroke-dasharray:6 6;stroke-linecap:round}
+.clab{fill:var(--chalk);font-size:15px;letter-spacing:3px;font-family:"KaiTi","STKaiti","DFKai-SB","楷体",serif}
+.btn{font:inherit;font-weight:700;letter-spacing:3px;border-radius:12px;padding:13px 26px;cursor:pointer;border:none;transition:transform .15s,box-shadow .2s,background .2s,opacity .2s}
+.btn.primary{background:var(--yellow);color:var(--board);box-shadow:0 6px 0 rgba(0,0,0,.25);transform:rotate(-.6deg)}
+.btn.primary:hover{background:#F5E4AC}
+.btn.primary:active{transform:rotate(-.6deg) translateY(3px);box-shadow:0 2px 0 rgba(0,0,0,.25)}
+.btn.primary:disabled{opacity:.38;cursor:not-allowed;box-shadow:none;transform:rotate(-.6deg)}
+.btn.ghost{background:transparent;color:var(--chalk);border:2px dashed var(--line)}
+.btn.ghost:hover{border-color:var(--chalk);background:rgba(242,242,232,.06)}
+.btn:focus-visible,.opt:focus-visible,.course:focus-visible{outline:3px solid rgba(240,217,140,.55);outline-offset:2px}
+.vhead{margin-bottom:16px}
+.vhint{margin-top:8px;font-size:13px;line-height:1.8;color:var(--chalk-dim)}
+.score{margin-top:8px;font-size:20px;color:var(--yellow);letter-spacing:2px;font-weight:700}
+.q{border:2px dashed var(--line);border-radius:18px;padding:16px 18px;margin-bottom:16px;background:rgba(242,242,232,.03)}
+.qhead{display:flex;gap:14px;align-items:flex-start}
+.qno{flex:none;width:36px;height:36px;border:2px solid var(--yellow);border-radius:50%;color:var(--yellow);display:inline-flex;align-items:center;justify-content:center;font-size:17px;font-weight:700}
+.qtext{font-size:17px;line-height:1.6;font-weight:700}
+.opts{display:flex;flex-direction:column;gap:10px;margin-top:12px}
+.opt{display:flex;align-items:center;gap:12px;text-align:left;font:inherit;color:var(--chalk);background:transparent;border:2px dashed var(--line);border-radius:12px;padding:11px 14px;cursor:pointer;transition:background .15s,border-color .15s,transform .15s}
+.opt:hover{background:rgba(242,242,232,.08);transform:translateX(3px)}
+.opt .ok{flex:none;width:26px;height:26px;border:2px solid var(--line);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:13px;color:var(--chalk-dim)}
+.opt.sel{border-color:var(--yellow);background:rgba(240,217,140,.14);color:var(--yellow)}
+.opt.sel .ok{border-color:var(--yellow);color:var(--yellow);background:rgba(240,217,140,.2)}
+.lastpick{margin-top:10px;font-size:12.5px;color:var(--pink)}
+.qfoot{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-top:8px;padding-bottom:12px}
+.count{font-size:14px;color:var(--chalk-dim);letter-spacing:1px}
+.rcard{border:2px dashed var(--line);border-radius:16px;padding:14px 16px;margin-bottom:14px;background:rgba(242,242,232,.03)}
+.rcard.ok{border-color:rgba(240,217,140,.65)}
+.rcard.bad{border-color:var(--pink);background:rgba(232,160,160,.06)}
+.rhead{display:flex;gap:12px;align-items:flex-start}
+.rmark{font-size:22px;font-weight:700;line-height:1.4}
+.rcard.ok .rmark{color:var(--yellow)}
+.rcard.bad .rmark{color:var(--pink)}
+.rmeta{margin-top:8px;font-size:13.5px;color:var(--chalk-dim);line-height:1.7}
+.why{margin-top:10px;border-left:4px solid var(--yellow);background:rgba(240,217,140,.09);border-radius:8px;padding:10px 14px;font-size:13.5px;line-height:1.8}
+.whyT{color:var(--yellow);font-weight:700;letter-spacing:3px;margin-bottom:4px}
+.tip{margin-top:6px;color:var(--pink)}
+.doneWrap{text-align:center;padding:40px 20px;display:flex;flex-direction:column;align-items:center;gap:16px}
+.stamp{width:150px;height:150px;transform:rotate(-8deg)}
+.st1{fill:none;stroke:var(--yellow);stroke-width:4;stroke-dasharray:10 8}
+.st2{fill:none;stroke:var(--yellow);stroke-width:2;stroke-dasharray:4 6}
+.st3{fill:var(--yellow)}
+.doneWrap h2{font-size:26px;letter-spacing:6px;color:var(--yellow)}
+.doneWrap p{font-size:14.5px;color:var(--chalk-dim);line-height:1.8;max-width:460px}
+.tray{margin-top:12px;border-top:2px dashed var(--line);padding-top:10px;display:flex;align-items:center;gap:14px}
+.chalkbit{width:52px;height:10px;border-radius:5px;background:var(--chalk)}
+.chalkbit.y{background:var(--yellow);width:40px}
+.chalkbit.p{background:var(--pink);width:34px}
+.eraser{width:84px;height:26px;border-radius:6px;background:linear-gradient(180deg,#8A6240 0 9px,var(--wood) 9px)}
+.traytxt{margin-left:auto;font-size:12px;color:var(--chalk-dim);letter-spacing:2px}
+.toast{position:absolute;left:50%;bottom:78px;transform:translate(-50%,20px);background:rgba(242,242,232,.96);color:var(--board);border-radius:999px;padding:10px 22px;font-size:13.5px;font-weight:700;letter-spacing:2px;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;z-index:9}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+@media (max-width:900px){
+  body{align-items:flex-start}
+  .frame{height:auto;min-height:100vh;border-radius:0;padding:10px}
+  .board{padding:16px 16px 10px}
+  .main{flex-direction:column}
+  .courses{width:100%}
+  .kpis{flex-direction:column}
+  .qfoot{flex-direction:column;align-items:stretch}
+  .qfoot .btn{width:100%}
+  .brand{font-size:21px}
+  .view h1{font-size:22px}
+  .view h2{font-size:19px}
+}
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important;scroll-behavior:auto !important}
+}
+</style>
+</head>
+<body>
+<div class="frame">
+  <div class="board">
+    <header class="top">
+      <div class="brand">粉笔学堂</div>
+      <div class="meta">三年级 2 班 · 自然课 ｜ 5月21日 星期四 ｜ 值日生：小雨</div>
+      <div class="stars">通关进度 <i id="star1">☆</i><i id="star2">☆</i><i id="star3">☆</i></div>
+    </header>
+    <div class="main">
+      <aside class="courses">
+        <div class="ctitle">今日课程表</div>
+        <button type="button" class="course active" id="c1">
+          <span class="cnum">第一课</span>
+          <span class="cname">水滴的旅行</span>
+          <span class="cstat" id="c1stat">进行中</span>
+        </button>
+        <button type="button" class="course locked" id="c2">
+          <span class="cnum">第二课</span>
+          <span class="cname">云和雨的故事</span>
+          <span class="cstat">未解锁</span>
+        </button>
+        <button type="button" class="course locked" id="c3">
+          <span class="cnum">第三课</span>
+          <span class="cname">江河入海</span>
+          <span class="cstat">未解锁</span>
+        </button>
+        <div class="tipbox">小提示：写错的题会得到一段粉笔解析，订正成功才算通关。也可以故意选错一题，看看黑板的批改方式。</div>
+      </aside>
+      <section class="stage" id="stage">
+        <div class="view" id="viewLesson">
+          <h1>第一课 · 水滴的旅行</h1>
+          <svg viewBox="0 0 260 14" class="under" aria-hidden="true"><path class="upath" d="M4 9c30-8 60-8 86 0s60 8 86 0 58-7 80-2"></path></svg>
+          <p class="lead">一杯水放在窗台上，过几天就少了。水去了哪里？跟着小水滴走一圈，你就会明白天空和江河之间的秘密。</p>
+          <div class="kpis">
+            <div class="kpi">
+              <span class="knum">①</span>
+              <h3>蒸发</h3>
+              <p>太阳晒热水面，水变成看不见的水蒸气，悄悄升上天空。</p>
+            </div>
+            <div class="kpi k2">
+              <span class="knum">②</span>
+              <h3>凝结</h3>
+              <p>高空很冷，水蒸气变成小水滴，聚在一起就成了白云。</p>
+            </div>
+            <div class="kpi k3">
+              <span class="knum">③</span>
+              <h3>降水</h3>
+              <p>小水滴越聚越重，空气托不住了，就落回地面变成雨。</p>
+            </div>
+          </div>
+          <svg viewBox="0 0 560 180" class="cycle" role="img" aria-label="水循环示意图：蒸发、凝结、降水">
+            <path class="sea" d="M30 150c25-9 45-9 65 0s45 9 65 0 45-9 65 0 45 9 65 0 45-9 65 0 45 9 65 0 45-9 65 0 45 9 60 0"></path>
+            <circle class="sun" cx="70" cy="46" r="20"></circle>
+            <path class="sunray" d="M70 16V8M70 84v-8M40 46h-8M108 46h-8M49 25l-6-6M97 25l6-6M49 67l-6 6M97 67l6 6"></path>
+            <path class="cloud" d="M238 62a17 17 0 0 1 3-33 22 22 0 0 1 41-7 16 16 0 0 1 24 12 14 14 0 0 1-4 28z"></path>
+            <path class="rain" d="M254 96l-4 12M272 98l-4 12M290 96l-4 12"></path>
+            <path class="flow" d="M150 140c0-38 10-68 26-92"></path>
+            <path class="flow" d="M170 56l7-11 7 10"></path>
+            <path class="flow" d="M330 66c38 20 58 46 62 74"></path>
+            <path class="flow" d="M380 132l12 9 3-14"></path>
+            <text class="clab" x="112" y="66">蒸发</text>
+            <text class="clab" x="238" y="16">凝结</text>
+            <text class="clab" x="360" y="120">降水</text>
+          </svg>
+          <button type="button" class="btn primary" id="btnStart">学完啦，开始练习</button>
+        </div>
+
+        <div class="view" id="viewQuiz" hidden>
+          <div class="vhead">
+            <h2>课堂练习</h2>
+            <p class="vhint">共 3 题，全部作答后才能交卷。小实验：故意选错一题再交卷，就能看到粉笔解析与订正流程。</p>
+          </div>
+          <div id="quizBox"></div>
+          <div class="qfoot">
+            <span class="count" id="quizCount">已作答 0 / 3</span>
+            <button type="button" class="btn primary" id="submitQuiz" disabled>交卷（还剩 3 题）</button>
+          </div>
+        </div>
+
+        <div class="view" id="viewResult" hidden>
+          <div class="vhead">
+            <h2 id="resultTitle">成绩单</h2>
+            <p class="score" id="resultScore"></p>
+            <p class="vhint" id="resultSub"></p>
+          </div>
+          <div id="resultList"></div>
+          <div class="qfoot">
+            <button type="button" class="btn ghost" id="btnBackLesson">再看一遍课文</button>
+            <button type="button" class="btn primary" id="btnRetry">返回错题订正</button>
+          </div>
+        </div>
+
+        <div class="view" id="viewRetry" hidden>
+          <div class="vhead">
+            <h2>错题订正</h2>
+            <p class="vhint">已答对的题保留成绩，只需重写错题；这次提交后按新答案重新批改。</p>
+          </div>
+          <div id="retryBox"></div>
+          <div class="qfoot">
+            <span class="count" id="retryCount">已作答 0 / 1</span>
+            <button type="button" class="btn primary" id="submitRetry" disabled>提交订正</button>
+          </div>
+        </div>
+
+        <div class="view" id="viewDone" hidden>
+          <div class="doneWrap">
+            <svg viewBox="0 0 160 160" class="stamp" aria-hidden="true">
+              <circle class="st1" cx="80" cy="80" r="66"></circle>
+              <circle class="st2" cx="80" cy="80" r="52"></circle>
+              <path class="st3" d="M80 44l9 20 22 2-16 14 5 21-20-11-20 11 5-21-16-14 22-2z"></path>
+            </svg>
+            <h2>订正成功 · 本课通关</h2>
+            <p>3 / 3 全部答对，「水滴的旅行」盖章通过。下一课「云和雨的故事」明天见，记得带伞。</p>
+            <button type="button" class="btn primary" id="btnHome">回到课程表</button>
+          </div>
+        </div>
+      </section>
+    </div>
+    <footer class="tray">
+      <span class="chalkbit" aria-hidden="true"></span>
+      <span class="chalkbit y" aria-hidden="true"></span>
+      <span class="chalkbit p" aria-hidden="true"></span>
+      <span class="eraser" aria-hidden="true"></span>
+      <span class="traytxt">粉笔学堂 · 把知识写在黑板上</span>
+    </footer>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  </div>
+</div>
+<script>
+(function(){
+  var QUESTIONS=[
+    {id:'q1',no:1,text:'江河里的水在阳光照射下，会变成什么升入空中？',options:[{k:'a',t:'水蒸气'},{k:'b',t:'小沙粒'},{k:'c',t:'冰块'}],answer:'a',why:'阳光让水面受热，水会变成看不见的水蒸气升到空中，这一步叫作「蒸发」。晒在阳台上的湿衣服变干，也是同样的道理。',tip:'想想晒衣服：湿衣服变干了，水去了哪里？'},
+    {id:'q2',no:2,text:'水蒸气升到高空遇到冷空气，会结成什么？',options:[{k:'a',t:'彩虹'},{k:'b',t:'小水滴，聚成云'},{k:'c',t:'一阵大风'}],answer:'b',why:'高空温度低，水蒸气会凝结成许多小水滴，无数小水滴聚在一起，就是我们抬头看到的云。',tip:'冷饮杯外壁的小水珠，就是空气中的水蒸气凝结出来的。'},
+    {id:'q3',no:3,text:'云里的小水滴越聚越大，最后会怎样？',options:[{k:'a',t:'变成星星挂在天上'},{k:'b',t:'消失不见'},{k:'c',t:'太重了，落回地面成为雨'}],answer:'c',why:'小水滴不断合并变大，空气托不住它们时就会落下来，这就是「降水」，雨是最常见的一种。',tip:'云越来越黑、越来越低的时候，常常就是要下雨了。'}
+  ];
+  var picked={q1:null,q2:null,q3:null};
+  var retryPicked={q1:null,q2:null,q3:null};
+  var solved={q1:false,q2:false,q3:false};
+  var lastPick={q1:null,q2:null,q3:null};
+  var attempts=0;
+  var mode='quiz';
+  function $(id){return document.getElementById(id);}
+  function show(id){
+    var vs=document.querySelectorAll('.view');
+    for(var i=0;i<vs.length;i++){vs[i].hidden=true;}
+    $(id).hidden=false;
+    $('stage').scrollTop=0;
+  }
+  var tt=null;
+  function toast(t){
+    var e=$('toast');
+    e.textContent=t;
+    e.classList.add('show');
+    if(tt){clearTimeout(tt);}
+    tt=setTimeout(function(){e.classList.remove('show');},2200);
+  }
+  function labelOf(q,k){
+    if(!k){return '未作答';}
+    for(var i=0;i<q.options.length;i++){
+      if(q.options[i].k===k){return k.toUpperCase()+' · '+q.options[i].t;}
+    }
+    return '未作答';
+  }
+  function renderQuestions(containerId,store,prefix,onlyUnsolved){
+    var html='';
+    for(var i=0;i<QUESTIONS.length;i++){
+      var q=QUESTIONS[i];
+      if(onlyUnsolved&&solved[q.id]){continue;}
+      html+='<div class="q" id="'+prefix+'-box-'+q.id+'">';
+      html+='<div class="qhead"><span class="qno">'+q.no+'</span><p class="qtext">'+q.text+'</p></div>';
+      if(onlyUnsolved&&lastPick[q.id]){
+        html+='<p class="lastpick">上次选择了 '+lastPick[q.id].toUpperCase()+' · 再读一遍解析里的提示</p>';
+      }
+      html+='<div class="opts">';
+      for(var j=0;j<q.options.length;j++){
+        var o=q.options[j];
+        html+='<button type="button" class="opt" id="'+prefix+'-'+q.id+'-'+o.k+'" data-q="'+q.id+'" data-k="'+o.k+'"><span class="ok">'+o.k.toUpperCase()+'</span><span class="ot">'+o.t+'</span></button>';
+      }
+      html+='</div></div>';
+    }
+    $(containerId).innerHTML=html;
+  }
+  function bindOpts(containerId,store,prefix){
+    $(containerId).addEventListener('click',function(ev){
+      var b=ev.target.closest('.opt');
+      if(!b){return;}
+      var q=b.getAttribute('data-q');
+      var k=b.getAttribute('data-k');
+      store[q]=k;
+      var box=$(prefix+'-box-'+q);
+      var opts=box.querySelectorAll('.opt');
+      for(var i=0;i<opts.length;i++){opts[i].classList.remove('sel');}
+      b.classList.add('sel');
+      updateSubmit();
+    });
+  }
+  function pendingCount(){
+    var need=0,got=0;
+    for(var i=0;i<QUESTIONS.length;i++){
+      var q=QUESTIONS[i];
+      if(mode==='retry'&&solved[q.id]){continue;}
+      need++;
+      var s=mode==='quiz'?picked[q.id]:retryPicked[q.id];
+      if(s){got++;}
+    }
+    return {need:need,got:got};
+  }
+  function updateSubmit(){
+    var c=pendingCount();
+    var btn=mode==='quiz'?$('submitQuiz'):$('submitRetry');
+    var cnt=mode==='quiz'?$('quizCount'):$('retryCount');
+    btn.disabled=c.got<c.need;
+    btn.textContent=(mode==='quiz'?'交卷':'提交订正')+(c.got<c.need?'（还剩 '+(c.need-c.got)+' 题）':'');
+    cnt.textContent='已作答 '+c.got+' / '+c.need;
+  }
+  function setStars(){
+    var n=0;
+    for(var i=0;i<QUESTIONS.length;i++){if(solved[QUESTIONS[i].id]){n++;}}
+    for(var s=1;s<=3;s++){$('star'+s).textContent=s<=n?'★':'☆';}
+    var c1=$('c1stat');
+    if(n===3){
+      c1.textContent='已通关 · 3/3';
+      $('c1').classList.add('done');
+    }else{
+      c1.textContent=n>0?'进行中 · 已答对 '+n+'/3':'进行中';
+    }
+  }
+  function renderResult(wrongCount){
+    var total=QUESTIONS.length,ok=0;
+    for(var i=0;i<total;i++){if(solved[QUESTIONS[i].id]){ok++;}}
+    $('resultTitle').textContent='成绩单 · 第 '+attempts+' 次作答';
+    $('resultScore').textContent='答对 '+ok+' / '+total+' 题';
+    $('resultSub').textContent=wrongCount>0?('有 '+wrongCount+' 题需要订正，粉笔解析已经写在下面，读懂后再试一次。'):'全部答对，马上为你盖上通关章。';
+    var html='';
+    for(var j=0;j<total;j++){
+      var q=QUESTIONS[j];
+      var good=solved[q.id];
+      html+='<div class="rcard '+(good?'ok':'bad')+'">';
+      html+='<div class="rhead"><span class="rmark">'+(good?'✓':'✕')+'</span><p class="qtext">第 '+q.no+' 题 · '+q.text+'</p></div>';
+      html+='<p class="rmeta">你的答案：'+labelOf(q,lastPick[q.id])+(good?' · 回答正确':' · 正确答案：'+labelOf(q,q.answer))+'</p>';
+      if(!good){
+        html+='<div class="why"><p class="whyT">粉笔解析</p><p>'+q.why+'</p><p class="tip">订正提示：'+q.tip+'</p></div>';
+      }
+      html+='</div>';
+    }
+    $('resultList').innerHTML=html;
+    $('btnRetry').textContent=wrongCount>0?('返回错题订正（'+wrongCount+' 题）'):'查看通关章';
+  }
+  function grade(store){
+    var wrong=0;
+    for(var i=0;i<QUESTIONS.length;i++){
+      var q=QUESTIONS[i];
+      if(mode==='retry'&&solved[q.id]){continue;}
+      lastPick[q.id]=store[q.id];
+      if(store[q.id]===q.answer){solved[q.id]=true;}else{wrong++;}
+    }
+    attempts++;
+    setStars();
+    renderResult(wrong);
+    show('viewResult');
+  }
+  $('c1').addEventListener('click',function(){show('viewLesson');});
+  $('c2').addEventListener('click',function(){toast('先完成第一课，再来擦这块黑板');});
+  $('c3').addEventListener('click',function(){toast('先完成第一课，再来擦这块黑板');});
+  $('btnStart').addEventListener('click',function(){
+    mode='quiz';
+    picked.q1=null;picked.q2=null;picked.q3=null;
+    renderQuestions('quizBox',picked,'qz',false);
+    updateSubmit();
+    show('viewQuiz');
+  });
+  bindOpts('quizBox',picked,'qz');
+  bindOpts('retryBox',retryPicked,'rt');
+  $('submitQuiz').addEventListener('click',function(){mode='quiz';grade(picked);});
+  $('submitRetry').addEventListener('click',function(){mode='retry';grade(retryPicked);});
+  $('btnBackLesson').addEventListener('click',function(){show('viewLesson');});
+  $('btnRetry').addEventListener('click',function(){
+    var left=0;
+    for(var i=0;i<QUESTIONS.length;i++){if(!solved[QUESTIONS[i].id]){left++;}}
+    if(left===0){
+      setStars();
+      show('viewDone');
+      return;
+    }
+    mode='retry';
+    retryPicked.q1=null;retryPicked.q2=null;retryPicked.q3=null;
+    renderQuestions('retryBox',retryPicked,'rt',true);
+    updateSubmit();
+    show('viewRetry');
+  });
+  $('btnHome').addEventListener('click',function(){show('viewLesson');});
+  setStars();
+  show('viewLesson');
+})();
+</script>
+</body>
+</html>

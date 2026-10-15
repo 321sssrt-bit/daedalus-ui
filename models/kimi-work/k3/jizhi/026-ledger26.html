@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>账单账房 · 墨记文档</title>
+<style>
+:root{
+  --paper:#F6EFDD;
+  --ink:#2C2318;
+  --seal:#B73225;
+  --bamboo:#D8C9A8;
+  --pine:#3F5E46;
+  --panel:#FBF6E8;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{
+  background:var(--paper);
+  color:var(--ink);
+  font-family:"PingFang SC","Microsoft YaHei","Segoe UI",sans-serif;
+  min-height:100vh;
+  padding:32px 40px 48px;
+}
+.serif{font-family:Georgia,"Songti SC","STSong","SimSun",serif;}
+.topbar{
+  display:flex;align-items:flex-end;justify-content:space-between;
+  border-bottom:3px double var(--ink);
+  padding-bottom:14px;margin-bottom:24px;
+}
+.brand{display:flex;align-items:baseline;gap:12px;}
+.brand .name{font-size:26px;font-weight:700;letter-spacing:6px;}
+.brand .sub{font-size:13px;color:var(--pine);letter-spacing:2px;}
+.account{font-size:13px;color:var(--ink);display:flex;align-items:center;gap:10px;}
+.account .dot{width:8px;height:8px;border-radius:50%;background:var(--pine);}
+.layout{display:grid;grid-template-columns:340px 1fr;gap:24px;align-items:start;}
+.card{
+  background:var(--panel);
+  border:1px solid var(--bamboo);
+  border-radius:4px;
+  box-shadow:0 1px 0 rgba(44,35,24,.12), 4px 4px 0 rgba(44,35,24,.06);
+}
+.card-head{
+  padding:14px 20px;border-bottom:1px solid var(--bamboo);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.card-head h2{font-size:17px;letter-spacing:3px;font-weight:700;}
+.card-body{padding:18px 20px;}
+.plan-name{font-size:22px;font-weight:700;letter-spacing:2px;margin-bottom:6px;}
+.plan-price{font-size:30px;font-weight:700;margin:4px 0 2px;}
+.plan-price small{font-size:13px;font-weight:400;color:var(--pine);margin-left:6px;}
+.plan-meta{font-size:13px;line-height:1.9;color:var(--ink);margin-top:10px;}
+.plan-meta li{list-style:none;padding-left:18px;position:relative;}
+.plan-meta li::before{content:"";position:absolute;left:0;top:10px;width:7px;height:7px;background:var(--pine);}
+.stamp{
+  width:74px;height:74px;border:3px solid var(--seal);border-radius:6px;
+  color:var(--seal);display:flex;align-items:center;justify-content:center;
+  font-size:22px;font-weight:700;letter-spacing:2px;transform:rotate(-8deg);
+  opacity:.85;flex-shrink:0;
+}
+.plan-row{display:flex;justify-content:space-between;gap:16px;align-items:center;}
+.btn{
+  font-family:inherit;cursor:pointer;border-radius:3px;font-size:13px;
+  padding:9px 18px;letter-spacing:2px;transition:background .18s ease,color .18s ease,border-color .18s ease;
+}
+.btn-primary{background:var(--pine);color:#FBF6E8;border:1px solid var(--pine);}
+.btn-primary:hover{background:#31493A;}
+.btn-primary:focus-visible{outline:2px solid var(--seal);outline-offset:2px;}
+.btn-ghost{background:transparent;color:var(--ink);border:1px solid var(--bamboo);}
+.btn-ghost:hover{border-color:var(--ink);background:rgba(216,201,168,.25);}
+.btn-ghost:focus-visible{outline:2px solid var(--seal);outline-offset:2px;}
+.btn[disabled]{opacity:.45;cursor:not-allowed;}
+.pay-line{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px dashed var(--bamboo);font-size:14px;}
+.pay-line:last-of-type{border-bottom:none;}
+.pay-tag{font-size:11px;color:var(--pine);border:1px solid var(--pine);border-radius:2px;padding:1px 6px;letter-spacing:1px;}
+.ledger{overflow:hidden;}
+.ledger-tabs{display:flex;gap:0;}
+.tab{
+  font-family:inherit;background:transparent;border:none;border-bottom:3px solid transparent;
+  font-size:14px;padding:10px 22px;cursor:pointer;color:var(--ink);letter-spacing:2px;
+  transition:color .18s ease,border-color .18s ease;
+}
+.tab:hover{color:var(--seal);}
+.tab:focus-visible{outline:2px solid var(--seal);outline-offset:-2px;}
+.tab.active{color:var(--seal);border-bottom-color:var(--seal);font-weight:700;}
+.ledger-body{
+  background-image:repeating-linear-gradient(90deg,transparent 0 79px,rgba(44,35,24,.10) 79px 80px);
+  padding:6px 20px 16px;
+}
+table{width:100%;border-collapse:collapse;font-size:14px;}
+thead th{
+  font-size:12px;color:var(--pine);letter-spacing:2px;font-weight:400;
+  text-align:left;padding:12px 10px 8px;border-bottom:1px solid var(--ink);
+}
+tbody td{padding:13px 10px;border-bottom:1px dashed var(--bamboo);vertical-align:middle;}
+tbody tr.row{cursor:pointer;transition:background .15s ease;}
+tbody tr.row:hover{background:rgba(216,201,168,.28);}
+tbody tr.row.open{background:rgba(216,201,168,.35);}
+.mono{font-family:"Courier New",Consolas,monospace;font-size:13px;}
+.amount{font-weight:700;text-align:right;}
+.status-paid{color:var(--pine);font-size:13px;letter-spacing:2px;white-space:nowrap;}
+.status-paid::before{content:"●";margin-right:5px;font-size:9px;}
+.detail td{padding:0 10px;border-bottom:1px solid var(--bamboo);}
+.detail-box{
+  padding:14px 16px;margin:2px 0 12px;background:var(--paper);
+  border:1px solid var(--bamboo);border-left:4px solid var(--seal);
+  font-size:13px;line-height:2;
+}
+.detail-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:2px 28px;margin-bottom:10px;}
+.detail-grid b{font-weight:700;}
+.detail-actions{display:flex;gap:10px;}
+.expand-hint{font-size:12px;color:var(--seal);letter-spacing:1px;}
+.empty{padding:36px;text-align:center;font-size:14px;color:var(--pine);letter-spacing:2px;}
+.mask{
+  position:fixed;inset:0;background:rgba(44,35,24,.45);
+  display:none;align-items:center;justify-content:center;z-index:20;
+}
+.mask.show{display:flex;}
+.modal{width:440px;background:var(--panel);border:1px solid var(--bamboo);border-radius:4px;box-shadow:8px 8px 0 rgba(44,35,24,.18);}
+.modal-head{padding:16px 22px;border-bottom:1px solid var(--bamboo);font-size:16px;font-weight:700;letter-spacing:3px;display:flex;justify-content:space-between;align-items:center;}
+.modal-close{background:none;border:none;font-size:20px;cursor:pointer;color:var(--ink);line-height:1;}
+.modal-body{padding:18px 22px;}
+.pay-opt{
+  display:flex;align-items:center;gap:12px;padding:12px 14px;margin-bottom:10px;
+  border:1px solid var(--bamboo);border-radius:3px;cursor:pointer;font-size:14px;
+  transition:border-color .15s ease,background .15s ease;
+}
+.pay-opt:hover{border-color:var(--ink);}
+.pay-opt:has(input:checked){border-color:var(--seal);background:rgba(183,50,37,.06);}
+.pay-opt input{accent-color:var(--seal);width:16px;height:16px;}
+.pay-opt .desc{font-size:12px;color:var(--pine);margin-top:2px;}
+.modal-foot{padding:14px 22px 20px;display:flex;justify-content:flex-end;gap:10px;}
+.toast{
+  position:fixed;left:50%;bottom:34px;transform:translateX(-50%) translateY(20px);
+  background:var(--ink);color:var(--paper);font-size:13px;letter-spacing:2px;
+  padding:11px 26px;border-radius:3px;opacity:0;pointer-events:none;
+  transition:opacity .22s ease,transform .22s ease;z-index:30;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+@media (max-width:900px){
+  body{padding:20px 16px 36px;}
+  .layout{grid-template-columns:1fr;}
+  .ledger-body{background-image:none;padding:4px 12px 14px;overflow-x:hidden;}
+  table{font-size:13px;}
+  thead th:nth-child(2),tbody td:nth-child(2){display:none;}
+  .detail-grid{grid-template-columns:1fr;}
+  .modal{width:calc(100vw - 40px);}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{transition-duration:.01ms !important;animation-duration:.01ms !important;}
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <span class="name serif">墨记账房</span>
+    <span class="sub">墨记文档 · 团队订阅账单</span>
+  </div>
+  <div class="account"><span class="dot"></span>青崖文化工作室 · 账房先生：沈砚秋</div>
+</header>
+
+<div class="layout">
+  <aside>
+    <section class="card" style="margin-bottom:24px;">
+      <div class="card-head"><h2 class="serif">当前方案</h2><span class="pay-tag">生效中</span></div>
+      <div class="card-body">
+        <div class="plan-row">
+          <div>
+            <div class="plan-name serif">私塾版 · 年付</div>
+            <div class="plan-price serif">¥680<small>/ 年（折合 ¥56.7 / 月）</small></div>
+          </div>
+          <div class="stamp serif">已付讫</div>
+        </div>
+        <ul class="plan-meta">
+          <li>席位 12 / 20，可随时加座</li>
+          <li>本期账期：2025-03-01 至 2026-02-28</li>
+          <li>下次续费日：2026-03-01，提前 15 日提醒</li>
+        </ul>
+        <div style="margin-top:16px;display:flex;gap:10px;">
+          <button class="btn btn-primary" id="upgradeBtn">升级书苑版</button>
+          <button class="btn btn-ghost" id="cancelBtn">预约退订</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-head"><h2 class="serif">支付方式</h2></div>
+      <div class="card-body">
+        <div class="pay-line"><span class="pay-tag">默认</span><span id="payCurrent">支付宝 · 青崖文化工作室（尾号 6621）</span></div>
+        <div class="pay-line"><span style="font-size:13px;color:var(--pine);">自动续费已开启，扣款失败将宽限 7 日</span></div>
+        <button class="btn btn-ghost" id="changePayBtn" style="margin-top:14px;width:100%;">更换支付方式</button>
+      </div>
+    </section>
+  </aside>
+
+  <main class="card ledger">
+    <div class="card-head" style="padding-bottom:0;border-bottom:none;">
+      <h2 class="serif">往来账目</h2>
+      <nav class="ledger-tabs" id="yearTabs">
+        <button class="tab active" data-year="2025">乙巳年 · 2025</button>
+        <button class="tab" data-year="2024">甲辰年 · 2024</button>
+        <button class="tab" data-year="2023">癸卯年 · 2023</button>
+      </nav>
+    </div>
+    <div class="ledger-body">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:110px;">日期</th>
+            <th style="width:150px;">单号</th>
+            <th>摘要</th>
+            <th style="width:90px;">类目</th>
+            <th style="width:110px;text-align:right;">金额</th>
+            <th style="width:80px;">状态</th>
+            <th style="width:70px;"></th>
+          </tr>
+        </thead>
+        <tbody id="ledgerRows"></tbody>
+      </table>
+    </div>
+  </main>
+</div>
+
+<div class="mask" id="payMask">
+  <div class="modal" role="dialog" aria-label="更换支付方式">
+    <div class="modal-head serif">更换支付方式<button class="modal-close" id="payClose" aria-label="关闭">×</button></div>
+    <div class="modal-body">
+      <label class="pay-opt">
+        <input type="radio" name="pay" value="支付宝 · 青崖文化工作室（尾号 6621）" checked>
+        <span>支付宝 · 企业账户<span class="desc" style="display:block;">当前默认，尾号 6621</span></span>
+      </label>
+      <label class="pay-opt">
+        <input type="radio" name="pay" value="微信支付 · 青崖文化工作室">
+        <span>微信支付 · 企业账户<span class="desc" style="display:block;">需扫码完成一次验证</span></span>
+      </label>
+      <label class="pay-opt">
+        <input type="radio" name="pay" value="对公银行转账 · 招商银行 7559 0888 2310">
+        <span>对公银行转账<span class="desc" style="display:block;">招商银行 · 尾号 2310，到账后人工确认</span></span>
+      </label>
+      <label class="pay-opt">
+        <input type="radio" name="pay" value="银联云闪付 · 尾号 8842">
+        <span>银联云闪付<span class="desc" style="display:block;">尾号 8842，仅支持月付方案</span></span>
+      </label>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" id="payCancel">取消</button>
+      <button class="btn btn-primary" id="payConfirm">确认更换</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+var DATA={
+  "2025":[
+    {date:"2025-03-01",no:"MJ-2025-0301-08",item:"私塾版年付续费 · 12 席位",cat:"订阅",amt:"¥680.00",st:"已入账",inv:{title:"青崖文化工作室",tax:"9131 0106 MA1K 3XX8 7Q",addr:"上海市徐汇区永嘉路 385 号 2 幢 301 室",bank:"招商银行上海分行 1219 0888 2310 6621",issued:"2025-03-03",type:"增值税电子普通发票"}},
+    {date:"2025-03-12",no:"MJ-2025-0312-11",item:"加购席位 × 4（按剩余账期折算）",cat:"加购",amt:"¥181.36",st:"已入账",inv:{title:"青崖文化工作室",tax:"9131 0106 MA1K 3XX8 7Q",addr:"上海市徐汇区永嘉路 385 号 2 幢 301 室",bank:"招商银行上海分行 1219 0888 2310 6621",issued:"2025-03-13",type:"增值税电子普通发票"}},
+    {date:"2025-06-18",no:"MJ-2025-0618-02",item:"云端仓扩容 200GB · 年付",cat:"扩容",amt:"¥240.00",st:"已入账",inv:{title:"青崖文化工作室",tax:"9131 0106 MA1K 3XX8 7Q",addr:"上海市徐汇区永嘉路 385 号 2 幢 301 室",bank:"招商银行上海分行 1219 0888 2310 6621",issued:"2025-06-19",type:"增值税电子普通发票"}},
+    {date:"2025-09-30",no:"MJ-2025-0930-19",item:"宣纸模板集 · 一次性买断",cat:"素材",amt:"¥99.00",st:"已入账",inv:{title:"青崖文化工作室",tax:"9131 0106 MA1K 3XX8 7Q",addr:"上海市徐汇区永嘉路 385 号 2 幢 301 室",bank:"招商银行上海分行 1219 0888 2310 6621",issued:"2025-10-01",type:"增值税电子普通发票"}},
+    {date:"2025-11-11",no:"MJ-2025-1111-31",item:"加购席位 × 2（按剩余账期折算）",cat:"加购",amt:"¥62.92",st:"已入账",inv:{title:"青崖文化工作室",tax:"9131 0106 MA1K 3XX8 7Q",addr:"上海市徐汇区永嘉路 385 号 2 幢 301 室",bank:"招商银行上海分行 1219 0888 2310 6621",issued:"2025-11-12",type:"增值税电子普通发票"}}
+  ],
+  "2024":[
+    {date:"2024-03-01",no:"MJ-2024-0301-05",item:"私塾版年付 · 8 席位",cat:"订阅",amt:"¥544.00",st:"已入账",inv:{title:"青崖文化工作室",tax:"9131 0106 MA1K 3XX8 7Q",addr:"上海市徐汇区永嘉路 385 号 2 幢 301 室",bank:"招商银行上海分行 1219 0888 2310 6621",issued:"2024-03-02",type:"增值税电子普通发票"}},
+    {date:"2024-05-20",no:"MJ-2024-0520-14",item:"云端仓扩容 100GB · 年付",cat:"扩容",amt:"¥120.00",st:"已入账",inv:{title:"青崖文化工作室",tax:"9131 0106 MA1K 3XX8 7Q",addr:"上海市徐汇区永嘉路 385 号 2 幢 301 室",bank:"招商银行上海分行 1219 0888 2310 6621",issued:"2024-05-21",type:"增值税电子普通发票"}},
+    {date:"2024-08-08",no:"MJ-2024-0808-07",item:"加购席位 × 4（按剩余账期折算）",cat:"加购",amt:"¥136.22",st:"已入账",inv:{title:"青崖文化工作室",tax:"9131 0106 MA1K 3XX8 7Q",addr:"上海市徐汇区永嘉路 385 号 2 幢 301 室",bank:"招商银行上海分行 1219 0888 2310 6621",issued:"2024-08-09",type:"增值税电子普通发票"}},
+    {date:"2024-12-02",no:"MJ-2024-1202-22",item:"活字模板集 · 一次性买断",cat:"素材",amt:"¥79.00",st:"已入账",inv:{title:"青崖文化工作室",tax:"9131 0106 MA1K 3XX8 7Q",addr:"上海市徐汇区永嘉路 385 号 2 幢 301 室",bank:"招商银行上海分行 1219 0888 2310 6621",issued:"2024-12-03",type:"增值税电子普通发票"}}
+  ],
+  "2023":[
+    {date:"2023-04-16",no:"MJ-2023-0416-01",item:"私塾版首年开通 · 6 席位",cat:"订阅",amt:"¥408.00",st:"已入账",inv:{title:"青崖文化工作室",tax:"9131 0106 MA1K 3XX8 7Q",addr:"上海市徐汇区永嘉路 385 号 2 幢 301 室",bank:"招商银行上海分行 1219 0888 2310 6621",issued:"2023-04-17",type:"增值税电子普通发票"}},
+    {date:"2023-09-01",no:"MJ-2023-0901-03",item:"加购席位 × 2（按剩余账期折算）",cat:"加购",amt:"¥68.05",st:"已入账",inv:{title:"青崖文化工作室",tax:"9131 0106 MA1K 3XX8 7Q",addr:"上海市徐汇区永嘉路 385 号 2 幢 301 室",bank:"招商银行上海分行 1219 0888 2310 6621",issued:"2023-09-02",type:"增值税电子普通发票"}},
+    {date:"2023-11-23",no:"MJ-2023-1123-06",item:"云端仓扩容 50GB · 年付",cat:"扩容",amt:"¥60.00",st:"已入账",inv:{title:"青崖文化工作室",tax:"9131 0106 MA1K 3XX8 7Q",addr:"上海市徐汇区永嘉路 385 号 2 幢 301 室",bank:"招商银行上海分行 1219 0888 2310 6621",issued:"2023-11-24",type:"增值税电子普通发票"}},
+    {date:"2023-12-30",no:"MJ-2023-1230-02",item:"墨色主题包 · 一次性买断",cat:"素材",amt:"¥49.00",st:"已入账",inv:{title:"青崖文化工作室",tax:"9131 0106 MA1K 3XX8 7Q",addr:"上海市徐汇区永嘉路 385 号 2 幢 301 室",bank:"招商银行上海分行 1219 0888 2310 6621",issued:"2023-12-31",type:"增值税电子普通发票"}}
+  ]
+};
+var openKey=null;
+var curYear="2025";
+function showToast(msg){
+  var t=document.getElementById("toast");
+  t.textContent=msg;
+  t.classList.add("show");
+  setTimeout(function(){t.classList.remove("show");},2200);
+}
+function render(){
+  var rows=DATA[curYear];
+  var tb=document.getElementById("ledgerRows");
+  if(!rows.length){tb.innerHTML='<tr><td colspan="7"><div class="empty">本年尚无账目往来</div></td></tr>';return;}
+  var html="";
+  rows.forEach(function(r,i){
+    var key=curYear+"-"+i;
+    var open=(openKey===key);
+    html+='<tr class="row'+(open?' open':'')+'" data-key="'+key+'">'
+      +'<td class="mono">'+r.date+'</td>'
+      +'<td class="mono">'+r.no+'</td>'
+      +'<td>'+r.item+'</td>'
+      +'<td>'+r.cat+'</td>'
+      +'<td class="amount">'+r.amt+'</td>'
+      +'<td><span class="status-paid">'+r.st+'</span></td>'
+      +'<td><span class="expand-hint">'+(open?'收起 ▲':'票据 ▼')+'</span></td>'
+      +'</tr>';
+    if(open){
+      html+='<tr class="detail"><td colspan="7"><div class="detail-box">'
+        +'<div class="detail-grid">'
+        +'<span>发票抬头：<b>'+r.inv.title+'</b></span>'
+        +'<span>纳税人识别号：<b class="mono">'+r.inv.tax+'</b></span>'
+        +'<span>注册地址：<b>'+r.inv.addr+'</b></span>'
+        +'<span>开户行及账号：<b class="mono">'+r.inv.bank+'</b></span>'
+        +'<span>开票日期：<b class="mono">'+r.inv.issued+'</b></span>'
+        +'<span>发票种类：<b>'+r.inv.type+'</b></span>'
+        +'</div>'
+        +'<div class="detail-actions">'
+        +'<button class="btn btn-primary" data-dl="'+r.no+'">下载发票 PDF</button>'
+        +'<button class="btn btn-ghost" data-rc="'+r.no+'">下载收据</button>'
+        +'</div></div></td></tr>';
+    }
+  });
+  tb.innerHTML=html;
+}
+document.getElementById("yearTabs").addEventListener("click",function(e){
+  var btn=e.target.closest(".tab");
+  if(!btn)return;
+  document.querySelectorAll("#yearTabs .tab").forEach(function(t){t.classList.remove("active");});
+  btn.classList.add("active");
+  curYear=btn.getAttribute("data-year");
+  openKey=null;
+  render();
+});
+document.getElementById("ledgerRows").addEventListener("click",function(e){
+  var dl=e.target.closest("[data-dl]");
+  if(dl){showToast("发票 "+dl.getAttribute("data-dl")+" 已开始下载");return;}
+  var rc=e.target.closest("[data-rc]");
+  if(rc){showToast("收据 "+rc.getAttribute("data-rc")+" 已开始下载");return;}
+  var tr=e.target.closest("tr.row");
+  if(!tr)return;
+  var key=tr.getAttribute("data-key");
+  openKey=(openKey===key)?null:key;
+  render();
+});
+var mask=document.getElementById("payMask");
+document.getElementById("changePayBtn").addEventListener("click",function(){mask.classList.add("show");});
+document.getElementById("payClose").addEventListener("click",function(){mask.classList.remove("show");});
+document.getElementById("payCancel").addEventListener("click",function(){mask.classList.remove("show");});
+mask.addEventListener("click",function(e){if(e.target===mask){mask.classList.remove("show");}});
+document.getElementById("payConfirm").addEventListener("click",function(){
+  var sel=document.querySelector('input[name="pay"]:checked');
+  if(sel){document.getElementById("payCurrent").textContent=sel.value;}
+  mask.classList.remove("show");
+  showToast("默认支付方式已更换");
+});
+document.getElementById("upgradeBtn").addEventListener("click",function(){showToast("书苑版报价单已发送至账房邮箱");});
+document.getElementById("cancelBtn").addEventListener("click",function(){showToast("已预约退订，客服将于 1 个工作日内回电");});
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>纸径 PaperTrail · 新手引导</title>
+<style>
+:root{
+  --page:#F7F1E3;
+  --surface:#FFFDF6;
+  --text:#3B3226;
+  --muted:#8A7F6D;
+  --accent:#D96C3F;
+  --paper2:#E8D9B5;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  min-height:100vh;
+  font-family:"PingFang SC","Microsoft YaHei","Segoe UI","Helvetica Neue",Arial,sans-serif;
+  color:var(--text);
+  background:
+    repeating-linear-gradient(0deg, rgba(138,127,109,.07) 0 1px, transparent 1px 32px),
+    var(--page);
+  display:flex;align-items:center;justify-content:center;
+  padding:48px 24px;
+}
+.stage{width:560px;max-width:100%}
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+.brand{display:flex;align-items:center;gap:10px;font-size:18px;font-weight:700;letter-spacing:1px}
+.brand small{font-size:11px;color:var(--muted);letter-spacing:2px;font-weight:400}
+.skip{
+  appearance:none;background:none;border:none;cursor:pointer;
+  font-size:13px;color:var(--muted);
+  text-decoration:underline;text-underline-offset:3px;
+  transition:color .15s ease;
+}
+.skip:hover{color:var(--accent)}
+.stack{position:relative;min-height:400px}
+.ghost{
+  position:absolute;inset:0;border-radius:8px;
+  background:var(--paper2);
+  box-shadow:0 8px 24px rgba(59,50,38,.10);
+}
+.ghost.g1{transform:rotate(-3.5deg) translate(-12px,10px)}
+.ghost.g2{transform:rotate(2.2deg) translate(12px,14px);background:#EFE3C6}
+.sheet{
+  position:relative;
+  background:var(--surface);
+  border:1px solid #E3D5B4;
+  border-radius:8px;
+  box-shadow:0 14px 34px rgba(59,50,38,.14);
+  padding:42px 46px 34px;
+  min-height:400px;
+  display:flex;flex-direction:column;
+  transform:rotate(-1deg);
+  transition:transform .25s ease;
+}
+.sheet.rot-b{transform:rotate(1.1deg)}
+.tape{
+  position:absolute;top:-14px;left:50%;transform:translateX(-50%) rotate(-3deg);
+  width:130px;height:32px;
+  background:rgba(232,217,181,.9);
+  border-left:1px dashed rgba(138,127,109,.5);
+  border-right:1px dashed rgba(138,127,109,.5);
+}
+.step-badge{
+  display:inline-block;font-size:12px;font-weight:700;letter-spacing:2px;
+  color:var(--accent);border:1px solid var(--accent);border-radius:999px;
+  padding:3px 12px;margin-bottom:16px;align-self:flex-start;
+  background:rgba(217,108,63,.06);
+}
+.pane{display:flex;flex-direction:column;flex:1}
+.pane h1{font-size:23px;margin-bottom:12px;letter-spacing:1px}
+.pane p{font-size:14.5px;line-height:1.9;color:#5C5240;margin-bottom:18px}
+.illus{margin-top:auto;display:flex;justify-content:center;padding:6px 0 2px}
+.controls{display:flex;align-items:center;justify-content:space-between;margin-top:22px}
+.dots{display:flex;gap:8px;align-items:center}
+.dot{
+  width:10px;height:10px;border-radius:50%;
+  background:var(--paper2);border:1px solid var(--muted);
+  transition:background .2s ease,transform .2s ease;
+}
+.dot.on{background:var(--accent);border-color:var(--accent);transform:scale(1.2)}
+.navbtns{display:flex;gap:12px}
+.btn-ghost,.btn-main{
+  height:44px;padding:0 22px;border-radius:10px;cursor:pointer;
+  font-size:14px;letter-spacing:1px;
+  transition:background .15s ease,color .15s ease,transform .1s ease,opacity .15s ease;
+}
+.btn-ghost{
+  background:transparent;color:var(--text);
+  border:1px solid #C9B98F;
+}
+.btn-ghost:hover:not(:disabled){background:var(--paper2)}
+.btn-ghost:disabled{opacity:.4;cursor:not-allowed}
+.btn-main{
+  background:var(--accent);color:#FFFDF6;border:1px solid var(--accent);font-weight:600;
+}
+.btn-main:hover{background:#C45E34}
+.btn-main:active{transform:translateY(1px)}
+.done{text-align:center}
+.done .step-badge{align-self:center}
+.done h1{font-size:24px;margin-bottom:10px}
+.done p{color:#5C5240;font-size:14.5px;line-height:1.9;margin-bottom:20px}
+.sample-note{
+  width:260px;margin:0 auto 24px;padding:16px 18px;
+  background:#FFF6D8;border:1px solid #E3D5B4;border-radius:6px;
+  box-shadow:0 8px 18px rgba(59,50,38,.12);
+  transform:rotate(-2deg);
+  font-size:13px;line-height:1.8;color:#5C5240;text-align:left;
+}
+.done .navbtns{justify-content:center}
+.done-msg{min-height:20px;font-size:13px;color:var(--accent);margin-top:14px}
+@media (max-width:900px){
+  body{padding:28px 14px}
+  .sheet{padding:32px 22px 26px;min-height:0}
+  .stack{min-height:0}
+  .ghost{display:none}
+  .controls{flex-direction:column;gap:14px;align-items:stretch}
+  .dots{justify-content:center}
+  .navbtns{width:100%}
+  .btn-ghost,.btn-main{flex:1}
+}
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{
+    animation-duration:.01ms !important;
+    animation-iteration-count:1 !important;
+    transition-duration:.01ms !important;
+  }
+}
+</style>
+</head>
+<body>
+<main class="stage">
+  <div class="topbar">
+    <div class="brand">
+      <svg viewBox="0 0 32 32" width="26" height="26" aria-hidden="true">
+        <rect x="6" y="4" width="20" height="24" rx="2" fill="#FFFDF6" stroke="#3B3226" stroke-width="1.6" transform="rotate(-4 16 16)"/>
+        <line x1="11" y1="11" x2="22" y2="11" stroke="#D96C3F" stroke-width="1.8" stroke-linecap="round" transform="rotate(-4 16 16)"/>
+        <line x1="11" y1="16" x2="21" y2="16" stroke="#8A7F6D" stroke-width="1.8" stroke-linecap="round" transform="rotate(-4 16 16)"/>
+        <line x1="11" y1="21" x2="18" y2="21" stroke="#8A7F6D" stroke-width="1.8" stroke-linecap="round" transform="rotate(-4 16 16)"/>
+      </svg>
+      纸径 <small>PaperTrail · 新手引导</small>
+    </div>
+    <button class="skip" id="skipBtn" type="button">跳过引导</button>
+  </div>
+
+  <div class="stack">
+    <div class="ghost g1" aria-hidden="true"></div>
+    <div class="ghost g2" aria-hidden="true"></div>
+    <section class="sheet" id="sheet">
+      <span class="tape" aria-hidden="true"></span>
+
+      <div class="pane" id="pane1">
+        <span class="step-badge">第 1 步 · 共 3 步</span>
+        <h1>写下第一张便签</h1>
+        <p>在纸径，每一条想法都是一张便签。点一下右下角「＋」就能记，不用先想分类、不用取标题，写完往桌上一放就行。</p>
+        <div class="illus">
+          <svg viewBox="0 0 220 110" width="220" height="110" aria-hidden="true">
+            <rect x="30" y="16" width="110" height="80" rx="6" fill="#FFFDF6" stroke="#3B3226" stroke-width="2" transform="rotate(-3 85 56)"/>
+            <line x1="48" y1="40" x2="120" y2="40" stroke="#D96C3F" stroke-width="3" stroke-linecap="round" transform="rotate(-3 85 56)"/>
+            <line x1="48" y1="56" x2="112" y2="56" stroke="#8A7F6D" stroke-width="3" stroke-linecap="round" transform="rotate(-3 85 56)"/>
+            <line x1="48" y1="72" x2="96" y2="72" stroke="#8A7F6D" stroke-width="3" stroke-linecap="round" transform="rotate(-3 85 56)"/>
+            <rect x="150" y="30" width="12" height="52" rx="6" fill="#D96C3F" transform="rotate(24 156 56)"/>
+            <polygon points="148,86 164,82 158,70" fill="#3B3226" transform="rotate(24 156 56)"/>
+          </svg>
+        </div>
+      </div>
+
+      <div class="pane" id="pane2" hidden>
+        <span class="step-badge">第 2 步 · 共 3 步</span>
+        <h1>用「小径」串起便签</h1>
+        <p>把相关的便签拖进同一条小径，顺序由你决定，随时可以重排。一条小径就是一条思路的脚印，比如「装修灵感」或「读书会笔记」。</p>
+        <div class="illus">
+          <svg viewBox="0 0 220 110" width="220" height="110" aria-hidden="true">
+            <path d="M40 80 C 80 20, 140 100, 180 36" fill="none" stroke="#D96C3F" stroke-width="3" stroke-dasharray="7 7" stroke-linecap="round"/>
+            <rect x="18" y="64" width="42" height="34" rx="4" fill="#E8D9B5" stroke="#3B3226" stroke-width="2" transform="rotate(-6 39 81)"/>
+            <rect x="90" y="30" width="42" height="34" rx="4" fill="#FFFDF6" stroke="#3B3226" stroke-width="2" transform="rotate(4 111 47)"/>
+            <rect x="160" y="18" width="42" height="34" rx="4" fill="#E8D9B5" stroke="#3B3226" stroke-width="2" transform="rotate(-4 181 35)"/>
+          </svg>
+        </div>
+      </div>
+
+      <div class="pane" id="pane3" hidden>
+        <span class="step-badge">第 3 步 · 共 3 步</span>
+        <h1>每天 5 分钟回顾</h1>
+        <p>傍晚 18:00，纸径会把今天的新便签叠成一摞放在桌上。翻一翻、划掉已完成的，再安心收工。</p>
+        <div class="illus">
+          <svg viewBox="0 0 220 110" width="220" height="110" aria-hidden="true">
+            <rect x="60" y="34" width="100" height="64" rx="6" fill="#E8D9B5" stroke="#3B3226" stroke-width="2" transform="rotate(-4 110 66)"/>
+            <rect x="60" y="28" width="100" height="64" rx="6" fill="#FFFDF6" stroke="#3B3226" stroke-width="2" transform="rotate(2 110 60)"/>
+            <line x1="76" y1="50" x2="140" y2="50" stroke="#8A7F6D" stroke-width="3" stroke-linecap="round" transform="rotate(2 110 60)"/>
+            <line x1="76" y1="64" x2="126" y2="64" stroke="#8A7F6D" stroke-width="3" stroke-linecap="round" transform="rotate(2 110 60)"/>
+            <circle cx="176" cy="30" r="16" fill="#FFFDF6" stroke="#D96C3F" stroke-width="3"/>
+            <line x1="176" y1="30" x2="176" y2="20" stroke="#D96C3F" stroke-width="3" stroke-linecap="round"/>
+            <line x1="176" y1="30" x2="183" y2="33" stroke="#D96C3F" stroke-width="3" stroke-linecap="round"/>
+          </svg>
+        </div>
+      </div>
+
+      <div class="pane done" id="paneDone" hidden>
+        <span class="step-badge">准备就绪</span>
+        <h1 id="doneTitle">你的第一张便签已备好</h1>
+        <p id="doneText">从今天起，把想法写在纸上，把路走在纸径。</p>
+        <div class="sample-note">便签 · 今天 09:12<br>试试把「周末市集想买的手作」记成第一张便签，再拖进「生活」小径。</div>
+        <div class="navbtns">
+          <button class="btn-ghost" id="againBtn" type="button">重新看一遍</button>
+          <button class="btn-main" id="goBtn" type="button">开始用纸径</button>
+        </div>
+        <p class="done-msg" id="doneMsg" aria-live="polite"></p>
+      </div>
+    </section>
+  </div>
+
+  <div class="controls" id="controls">
+    <div class="dots" id="dots">
+      <span class="dot on"></span><span class="dot"></span><span class="dot"></span>
+    </div>
+    <div class="navbtns">
+      <button class="btn-ghost" id="prevBtn" type="button" disabled>上一步</button>
+      <button class="btn-main" id="nextBtn" type="button">下一步</button>
+    </div>
+  </div>
+</main>
+
+<script>
+(function(){
+  var panes=[document.getElementById('pane1'),document.getElementById('pane2'),document.getElementById('pane3')];
+  var done=document.getElementById('paneDone');
+  var controls=document.getElementById('controls');
+  var dots=Array.prototype.slice.call(document.querySelectorAll('#dots .dot'));
+  var prev=document.getElementById('prevBtn');
+  var next=document.getElementById('nextBtn');
+  var skip=document.getElementById('skipBtn');
+  var sheet=document.getElementById('sheet');
+  var again=document.getElementById('againBtn');
+  var go=document.getElementById('goBtn');
+  var doneTitle=document.getElementById('doneTitle');
+  var doneText=document.getElementById('doneText');
+  var doneMsg=document.getElementById('doneMsg');
+  var step=0;
+
+  function render(){
+    var i;
+    for(i=0;i<3;i+=1){panes[i].hidden=(i!==step);}
+    done.hidden=true;
+    controls.hidden=false;
+    dots.forEach(function(d,i){d.classList.toggle('on',i===step);});
+    prev.disabled=(step===0);
+    next.textContent=(step===2)?'开始用纸径':'下一步';
+    sheet.classList.toggle('rot-b',step===1);
+  }
+  function showDone(skipped){
+    var i;
+    for(i=0;i<3;i+=1){panes[i].hidden=true;}
+    controls.hidden=true;
+    done.hidden=false;
+    doneMsg.textContent='';
+    if(skipped){
+      doneTitle.textContent='好的，不打扰你';
+      doneText.textContent='引导已跳过。你随时可以在「设置 · 帮助」里重新播放。';
+    }else{
+      doneTitle.textContent='你的第一张便签已备好';
+      doneText.textContent='从今天起，把想法写在纸上，把路走在纸径。';
+    }
+  }
+  prev.addEventListener('click',function(){
+    if(step>0){step-=1;render();}
+  });
+  next.addEventListener('click',function(){
+    if(step<2){step+=1;render();}
+    else{showDone(false);}
+  });
+  skip.addEventListener('click',function(){showDone(true);});
+  again.addEventListener('click',function(){step=0;render();});
+  go.addEventListener('click',function(){
+    doneMsg.textContent='桌面已铺开，第一张便签在等你落笔。';
+  });
+  render();
+})();
+</script>
+</body>
+</html>

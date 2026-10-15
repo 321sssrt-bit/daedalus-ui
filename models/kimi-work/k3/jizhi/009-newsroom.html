@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>编辑部 · 工作台总览</title>
+<style>
+:root{
+  --paper:#FAF7F0;
+  --ink:#111111;
+  --red:#C1272D;
+  --gray:#5A5A5A;
+  --rule:#E3DCCB;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  background:var(--paper);
+  color:var(--ink);
+  font-family:Georgia,"Times New Roman","Songti SC","SimSun",serif;
+  padding:34px 44px 50px;
+}
+.wrap{max-width:1180px;margin:0 auto}
+.masthead{border-top:4px solid var(--ink);border-bottom:1px solid var(--ink);padding:18px 0 14px;text-align:center}
+.masthead h1{font-size:56px;letter-spacing:14px;font-weight:900;display:inline-block}
+.masthead .en{font-size:14px;letter-spacing:6px;color:var(--gray);vertical-align:14px;margin-left:18px}
+.dateline{
+  display:flex;justify-content:space-between;align-items:center;
+  border-bottom:3px double var(--ink);padding:9px 2px;
+  font-size:13px;color:var(--gray);letter-spacing:1px;
+}
+.dateline .live{color:var(--red);font-weight:700}
+.nav{
+  display:flex;gap:6px;border-bottom:1px solid var(--ink);
+  padding:0 2px;margin-bottom:24px;
+}
+.nav button{
+  font-family:inherit;font-size:15px;letter-spacing:3px;
+  background:none;border:none;cursor:pointer;color:var(--gray);
+  padding:13px 22px 11px;border-bottom:3px solid transparent;
+  transition:color 150ms ease,border-color 150ms ease;
+}
+.nav button:hover{color:var(--ink)}
+.nav button.active{color:var(--red);border-bottom-color:var(--red);font-weight:700}
+.nav button:focus-visible{outline:2px solid var(--red);outline-offset:-2px}
+.kpis{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  border:1px solid var(--ink);margin-bottom:26px;
+}
+.kpi{padding:18px 22px 16px;border-right:1px solid var(--ink)}
+.kpi:last-child{border-right:none}
+.kpi .num{font-size:42px;font-weight:900;line-height:1;font-variant-numeric:tabular-nums}
+.kpi .num i{font-style:normal;font-size:15px;color:var(--gray);margin-left:6px;font-weight:400}
+.kpi .lbl{font-size:13px;color:var(--gray);letter-spacing:2px;margin-top:8px}
+.kpi.alert .num{color:var(--red)}
+.cols{display:grid;grid-template-columns:300px 1fr 300px;gap:0;border:1px solid var(--ink)}
+.col{padding:20px 22px}
+.col + .col{border-left:1px solid var(--rule)}
+.col h2{
+  font-size:15px;letter-spacing:4px;border-bottom:2px solid var(--ink);
+  padding-bottom:8px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:baseline;
+}
+.col h2 .n{font-size:12px;color:var(--gray);letter-spacing:1px;font-weight:400}
+.queue-item{
+  padding:11px 10px;border-bottom:1px solid var(--rule);cursor:pointer;
+  transition:background 120ms ease;
+}
+.queue-item:hover{background:var(--rule)}
+.queue-item.active{background:var(--rule);box-shadow:inset 3px 0 0 var(--red)}
+.queue-item.done{opacity:0.45;cursor:default}
+.tag{
+  display:inline-block;font-size:11px;letter-spacing:1px;padding:1px 8px;margin-right:8px;
+  border:1px solid var(--gray);color:var(--gray);vertical-align:2px;
+}
+.tag.hot{border-color:var(--red);color:var(--red)}
+.tag.pub{border-color:var(--ink);color:#fff;background:var(--ink)}
+.tag.back{border-color:var(--red);color:#fff;background:var(--red)}
+.queue-item h3{font-size:14px;line-height:1.55;margin:6px 0 4px;font-weight:700}
+.queue-item .by{font-size:12px;color:var(--gray)}
+.detail h3.headline{font-size:26px;line-height:1.45;margin-bottom:10px}
+.detail .byline{font-size:12px;color:var(--gray);letter-spacing:1px;border-bottom:1px solid var(--rule);padding-bottom:12px;margin-bottom:14px}
+.detail .abstract{font-size:14px;line-height:2;color:var(--ink);margin-bottom:8px}
+.detail .abstract::first-letter{font-size:34px;font-weight:900;float:left;line-height:1;margin:4px 8px 0 0}
+.detail .more{font-size:13px;line-height:1.9;color:var(--gray);margin-bottom:18px}
+.stamp{
+  display:none;font-size:13px;letter-spacing:3px;font-weight:700;
+  border:2px solid var(--red);color:var(--red);padding:5px 14px;
+  transform:rotate(-3deg);margin-bottom:16px;width:max-content;
+}
+.stamp.show{display:inline-block}
+.stamp.ink{border-color:var(--ink);color:var(--ink)}
+.actions{display:flex;gap:12px}
+.btn{
+  font-family:inherit;font-size:14px;letter-spacing:2px;cursor:pointer;
+  padding:11px 26px;border:1px solid var(--ink);
+  transition:background 140ms ease,color 140ms ease;
+}
+.btn.pub{background:var(--ink);color:var(--paper)}
+.btn.pub:hover:not(:disabled){background:var(--red);border-color:var(--red)}
+.btn.back{background:transparent;color:var(--ink)}
+.btn.back:hover:not(:disabled){background:var(--ink);color:var(--paper)}
+.btn:disabled{opacity:0.35;cursor:not-allowed}
+.btn:focus-visible{outline:2px solid var(--red);outline-offset:2px}
+.duty{font-size:13px;line-height:2.15}
+.duty b{display:inline-block;width:52px;font-weight:700}
+.duty span{color:var(--gray)}
+.alerts{margin-top:18px;border-top:1px solid var(--rule);padding-top:12px}
+.alerts h4{font-size:13px;letter-spacing:3px;color:var(--red);margin-bottom:10px}
+.alerts li{list-style:none;font-size:13px;line-height:1.7;margin-bottom:10px;padding-left:14px;position:relative}
+.alerts li::before{content:"";position:absolute;left:0;top:8px;width:7px;height:7px;background:var(--red);border-radius:50%}
+.alerts .t{color:var(--gray);font-size:12px;display:block}
+.view{display:none}
+.view.show{display:block}
+table.sheet{width:100%;border-collapse:collapse;border:1px solid var(--ink)}
+table.sheet th{
+  background:var(--ink);color:var(--paper);font-size:12px;letter-spacing:2px;
+  padding:10px 14px;text-align:left;font-weight:400;
+}
+table.sheet td{border-bottom:1px solid var(--rule);padding:11px 14px;font-size:13px}
+table.sheet tr:hover td{background:var(--rule)}
+.topics{display:grid;grid-template-columns:repeat(2,1fr);gap:18px}
+.topic{border:1px solid var(--ink);padding:20px 22px}
+.topic h3{font-size:18px;line-height:1.5;margin:8px 0 10px}
+.topic .m{font-size:12px;color:var(--gray);letter-spacing:1px;line-height:1.9}
+.topic .when{font-size:12px;color:var(--red);letter-spacing:1px}
+.bars{border:1px solid var(--ink);padding:24px 26px}
+.bars h3{font-size:15px;letter-spacing:3px;margin-bottom:18px}
+.bar-row{display:flex;align-items:center;gap:16px;margin-bottom:12px;font-size:13px}
+.bar-row .h{width:52px;color:var(--gray);text-align:right}
+.bar-track{flex:1;background:var(--rule);height:20px}
+.bar-fill{height:100%;background:var(--ink);width:0;transition:width 700ms ease}
+.bar-row .v{width:56px;font-variant-numeric:tabular-nums}
+.stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-bottom:22px}
+.stat{border:1px solid var(--ink);padding:16px 20px}
+.stat .num{font-size:30px;font-weight:900}
+.stat .lbl{font-size:12px;color:var(--gray);letter-spacing:2px;margin-top:6px}
+.foot{
+  margin-top:30px;border-top:1px solid var(--ink);padding-top:12px;
+  font-size:12px;color:var(--gray);letter-spacing:2px;display:flex;justify-content:space-between;
+}
+@media (max-width:900px){
+  body{padding:22px 14px 36px}
+  .masthead h1{font-size:38px;letter-spacing:8px}
+  .masthead .en{display:block;margin:6px 0 0}
+  .kpis{grid-template-columns:repeat(2,1fr)}
+  .kpi:nth-child(2){border-right:none}
+  .kpi:nth-child(1),.kpi:nth-child(2){border-bottom:1px solid var(--ink)}
+  .cols{grid-template-columns:1fr}
+  .col + .col{border-left:none;border-top:1px solid var(--rule)}
+  .topics{grid-template-columns:1fr}
+  .stat-row{grid-template-columns:1fr}
+  .dateline{flex-wrap:wrap;gap:6px}
+}
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation-duration:0.01ms !important;animation-iteration-count:1 !important;transition-duration:0.01ms !important}
+  .bar-fill{transition:none}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="masthead">
+    <h1>编辑部</h1><span class="en">NEWSROOM · 融媒体工作台</span>
+  </header>
+  <div class="dateline">
+    <span>2026年5月20日 星期三 · 农历四月初四</span>
+    <span class="live">● 早班进行中</span>
+    <span>值班主编：林晚舟 · 班次 06:30–14:30</span>
+  </div>
+  <nav class="nav">
+    <button class="active" data-view="overview">总 览</button>
+    <button data-view="queue">审稿队列</button>
+    <button data-view="topics">选题会</button>
+    <button data-view="stats">值班数据</button>
+  </nav>
+
+  <section class="view show" id="view-overview">
+    <div class="kpis">
+      <div class="kpi"><div class="num" id="kPending">12<i>篇</i></div><div class="lbl">待审稿件</div></div>
+      <div class="kpi"><div class="num" id="kPub">34<i>篇</i></div><div class="lbl">今日已签发</div></div>
+      <div class="kpi"><div class="num">8<i>路</i></div><div class="lbl">采访进行中</div></div>
+      <div class="kpi alert"><div class="num">2<i>条</i></div><div class="lbl">舆情预警</div></div>
+    </div>
+    <div class="cols">
+      <div class="col">
+        <h2>审稿队列 <span class="n">急审优先</span></h2>
+        <div id="queueList"></div>
+      </div>
+      <div class="col">
+        <h2>稿件详情</h2>
+        <div class="detail" id="detailBox"></div>
+      </div>
+      <div class="col">
+        <h2>值班表</h2>
+        <div class="duty">
+          <div><b>早班</b>林晚舟（主编） <span>06:30–14:30</span></div>
+          <div><b>中班</b>何 岸 <span>14:30–22:30</span></div>
+          <div><b>夜班</b>关 山 <span>22:30–06:30</span></div>
+          <div><b>美编</b>白 露 <span>随早班</span></div>
+          <div><b>校对</b>陈 年 <span>随中班</span></div>
+        </div>
+        <div class="alerts">
+          <h4>舆情预警</h4>
+          <ul>
+            <li>地铁二号线出口积水视频热传，需核实拍摄位置与时间<span class="t">08:12 · 监测组</span></li>
+            <li>网传高架全线封闭系谣言，澄清稿已签发<span class="t">07:40 · 监测组</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="view" id="view-queue">
+    <table class="sheet">
+      <thead><tr><th>状态</th><th>标题</th><th>记者</th><th>字数</th><th>截稿</th><th>通道</th></tr></thead>
+      <tbody>
+        <tr><td>急审</td><td>暴雨橙色预警：城区三处立交桥下积水封路</td><td>陈默</td><td>1840</td><td>09:30</td><td>要闻</td></tr>
+        <tr><td>急审</td><td>市气象台首席解读本轮强对流天气</td><td>赵一鸣</td><td>1260</td><td>10:00</td><td>要闻</td></tr>
+        <tr><td>常规</td><td>老旧小区加装电梯新政满月回访</td><td>苏青</td><td>2340</td><td>12:00</td><td>民生</td></tr>
+        <tr><td>常规</td><td>非遗夜市开街首日客流破三万</td><td>高翔</td><td>980</td><td>13:00</td><td>城市</td></tr>
+        <tr><td>常规</td><td>一季度居民收入数据图解</td><td>吴桐（数据组）</td><td>图表6幅</td><td>15:00</td><td>数据</td></tr>
+        <tr><td>常规</td><td>城西路网改造二期今晚围挡</td><td>陈默</td><td>760</td><td>16:30</td><td>城市</td></tr>
+        <tr><td>外稿</td><td>专栏：菜市场的物价晴雨表</td><td>特约 周野</td><td>1520</td><td>18:00</td><td>副刊</td></tr>
+        <tr><td>外稿</td><td>读者来信：公交站遮阳棚该修了</td><td>读者来信</td><td>430</td><td>18:00</td><td>副刊</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="view" id="view-topics">
+    <div class="topics">
+      <div class="topic"><span class="when">今日 10:30 报题</span><h3>强对流天气下的城市排水能力调查</h3><p class="m">牵头：陈默 · 联合：数据组<br>状态：采访进行中 · 已约市政院专家</p></div>
+      <div class="topic"><span class="when">今日 11:00 报题</span><h3>社区食堂开业半年，谁在为它买单</h3><p class="m">牵头：苏青<br>状态：已采完 · 下午成稿</p></div>
+      <div class="topic"><span class="when">明日 09:00 例会</span><h3>高考考点周边交通保障方案图解</h3><p class="m">牵头：高翔 · 联合：美编 白露<br>状态：资料收集 · 等交警回函</p></div>
+      <div class="topic"><span class="when">明日 09:00 例会</span><h3>旧书市搬迁追踪：摊主们的去处</h3><p class="m">牵头：赵一鸣<br>状态：候选选题 · 待主编拍板</p></div>
+    </div>
+  </section>
+
+  <section class="view" id="view-stats">
+    <div class="stat-row">
+      <div class="stat"><div class="num">12,840</div><div class="lbl">网站实时在线</div></div>
+      <div class="stat"><div class="num">18.6%</div><div class="lbl">客户端推送打开率</div></div>
+      <div class="stat"><div class="num">112</div><div class="lbl">昨日签发总量（篇）</div></div>
+    </div>
+    <div class="bars">
+      <h3>今日分时段流量（千人/小时）</h3>
+      <div class="bar-row"><span class="h">06时</span><div class="bar-track"><div class="bar-fill" data-w="22%"></div></div><span class="v">3.2</span></div>
+      <div class="bar-row"><span class="h">07时</span><div class="bar-track"><div class="bar-fill" data-w="41%"></div></div><span class="v">6.1</span></div>
+      <div class="bar-row"><span class="h">08时</span><div class="bar-track"><div class="bar-fill" data-w="76%"></div></div><span class="v">11.4</span></div>
+      <div class="bar-row"><span class="h">09时</span><div class="bar-track"><div class="bar-fill" data-w="100%"></div></div><span class="v">15.0</span></div>
+      <div class="bar-row"><span class="h">10时</span><div class="bar-track"><div class="bar-fill" data-w="68%"></div></div><span class="v">10.2</span></div>
+      <div class="bar-row"><span class="h">11时</span><div class="bar-track"><div class="bar-fill" data-w="47%"></div></div><span class="v">7.1</span></div>
+    </div>
+  </section>
+
+  <footer class="foot">
+    <span>编辑部内网系统 v4.2 · 仅早班编辑组可见</span>
+    <span>签发即对外发布，请二次核对事实与署名</span>
+  </footer>
+</div>
+
+<script>
+var articles = [
+  { id: 1, hot: true,  title: "暴雨橙色预警：城区三处立交桥下积水封路", by: "记者 陈默 · 1840 字 · 截稿 09:30", abs: "今晨 6 时起，城区迎来本轮最强降雨。中山、解放、望江三处立交桥下积水没过路缘，交警已实施临时封路。市政排水中心出动 14 台泵车抢排，预计午前恢复通行。", more: "稿内含封路点位清单与绕行示意，已附现场图 4 张，待美编统一色调。", status: "pending" },
+  { id: 2, hot: true,  title: "市气象台首席解读本轮强对流天气", by: "记者 赵一鸣 · 1260 字 · 截稿 10:00", abs: "市气象台首席预报员解读：本轮强对流由低空急流与地面辐合线共同触发，短时雨强大、落区分散，预计明日凌晨减弱。", more: "采访录音已转写，专家头衔与数据引用需校对复核。", status: "pending" },
+  { id: 3, hot: false, title: "老旧小区加装电梯新政满月回访", by: "记者 苏青 · 2340 字 · 截稿 12:00", abs: "加装电梯新政落地满月，全市申报 217 部、开工 96 部。记者回访三个社区，低层与高层住户的分歧正在缩小，资金分摊仍是最大堵点。", more: "稿尾附三部电梯的分摊方案对照表。", status: "pending" },
+  { id: 4, hot: false, title: "非遗夜市开街首日客流破三万", by: "记者 高翔 · 980 字 · 截稿 13:00", abs: "滨江非遗夜市昨晚开街，首日客流 3.2 万人次，糖画、竹编摊位前排起长队。主办方提醒：今晚客流或更高，建议错峰前往。", more: "已核实客流数据来源为园区闸机统计。", status: "pending" },
+  { id: 5, hot: false, title: "一季度居民收入数据图解", by: "数据组 吴桐 · 图表 6 幅 · 截稿 15:00", abs: "一季度全市居民人均可支配收入 18240 元，同比名义增长 5.4%。图解拆解工资、经营、财产、转移四项收入结构。", more: "数据源为统计局公开快报，图表已过一次校对。", status: "pending" },
+  { id: 6, hot: false, title: "城西路网改造二期今晚围挡", by: "记者 陈默 · 760 字 · 截稿 16:30", abs: "城西路网改造二期今晚 22 时起围挡，工期 45 天，涉及两条公交线路临时改道，站点调整清单已附。", more: "短讯稿，随晚班值班编辑复核后即可签发。", status: "pending" }
+];
+var pending = 12;
+var published = 34;
+var selected = null;
+function tagHtml(a){
+  if (a.status === "published"){ return '<span class="tag pub">已签发</span>'; }
+  if (a.status === "returned"){ return '<span class="tag back">已退回</span>'; }
+  return a.hot ? '<span class="tag hot">急审</span>' : '<span class="tag">常规</span>';
+}
+function renderQueue(){
+  var box = document.getElementById("queueList");
+  box.innerHTML = "";
+  for (var i = 0; i < articles.length; i++){
+    (function(a){
+      var el = document.createElement("div");
+      el.className = "queue-item" + (selected === a.id ? " active" : "") + (a.status !== "pending" ? " done" : "");
+      el.innerHTML = tagHtml(a) + "<h3></h3>" + '<p class="by"></p>';
+      el.querySelector("h3").textContent = a.title;
+      el.querySelector(".by").textContent = a.by;
+      el.addEventListener("click", function(){
+        selected = a.id;
+        renderQueue();
+        renderDetail();
+      });
+      box.appendChild(el);
+    })(articles[i]);
+  }
+  document.getElementById("kPending").innerHTML = pending + "<i>篇</i>";
+  document.getElementById("kPub").innerHTML = published + "<i>篇</i>";
+}
+function renderDetail(){
+  var box = document.getElementById("detailBox");
+  var a = null;
+  for (var i = 0; i < articles.length; i++){ if (articles[i].id === selected){ a = articles[i]; } }
+  if (!a){
+    box.innerHTML = '<p class="more">从左侧队列选一篇稿件，在这里读摘要、看署名，然后决定签发或退回。</p>';
+    return;
+  }
+  var stamp = "";
+  if (a.status === "published"){ stamp = '<span class="stamp show ink">已签发</span>'; }
+  if (a.status === "returned"){ stamp = '<span class="stamp show">已退回</span>'; }
+  box.innerHTML =
+    '<h3 class="headline"></h3>' +
+    '<p class="byline"></p>' +
+    stamp +
+    '<p class="abstract"></p>' +
+    '<p class="more"></p>' +
+    '<div class="actions">' +
+    '<button class="btn pub" id="pubBtn">签 发</button>' +
+    '<button class="btn back" id="backBtn">退回修改</button>' +
+    '</div>';
+  box.querySelector(".headline").textContent = a.title;
+  box.querySelector(".byline").textContent = a.by;
+  box.querySelector(".abstract").textContent = a.abs;
+  box.querySelector(".more").textContent = a.more;
+  var done = a.status !== "pending";
+  var pubBtn = document.getElementById("pubBtn");
+  var backBtn = document.getElementById("backBtn");
+  pubBtn.disabled = done;
+  backBtn.disabled = done;
+  pubBtn.addEventListener("click", function(){
+    a.status = "published";
+    pending--; published++;
+    renderQueue(); renderDetail();
+  });
+  backBtn.addEventListener("click", function(){
+    a.status = "returned";
+    pending--;
+    renderQueue(); renderDetail();
+  });
+}
+var navBtns = document.querySelectorAll(".nav button");
+for (var i = 0; i < navBtns.length; i++){
+  (function(btn){
+    btn.addEventListener("click", function(){
+      for (var j = 0; j < navBtns.length; j++){ navBtns[j].classList.remove("active"); }
+      btn.classList.add("active");
+      var views = document.querySelectorAll(".view");
+      for (var k = 0; k < views.length; k++){ views[k].classList.remove("show"); }
+      document.getElementById("view-" + btn.getAttribute("data-view")).classList.add("show");
+      if (btn.getAttribute("data-view") === "stats"){
+        var fills = document.querySelectorAll(".bar-fill");
+        for (var m = 0; m < fills.length; m++){
+          fills[m].style.width = "0";
+          (function(f){ setTimeout(function(){ f.style.width = f.getAttribute("data-w"); }, 40); })(fills[m]);
+        }
+      }
+    });
+  })(navBtns[i]);
+}
+renderQueue();
+renderDetail();
+</script>
+</body>
+</html>

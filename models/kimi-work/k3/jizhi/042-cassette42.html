@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>卡带 CASSETTE · 口袋钱包</title>
+<style>
+:root{
+  --cream:#FFF6E5;
+  --yellow:#FFD23F;
+  --ink:#1A1A1A;
+  --pink:#FF6B9D;
+  --blue:#3D5AFE;
+  --white:#FFFFFF;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+[hidden]{display:none !important}
+body{
+  min-height:100vh;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--blue);
+  background-image:repeating-linear-gradient(45deg,rgba(255,255,255,.07) 0 14px,transparent 14px 28px);
+  font-family:"PingFang SC","Microsoft YaHei","Noto Sans SC",system-ui,-apple-system,sans-serif;
+  color:var(--ink);
+  padding:24px;
+}
+button{font-family:inherit}
+
+/* ---------- 手机框 ---------- */
+.phone{
+  width:390px;min-height:844px;height:844px;
+  border:10px solid var(--ink);border-radius:44px;
+  background:var(--cream);
+  overflow:hidden;position:relative;
+  display:flex;flex-direction:column;
+  box-shadow:0 24px 64px rgba(0,0,0,.4);
+}
+.view{
+  position:absolute;inset:0;
+  display:flex;flex-direction:column;
+  background:var(--cream);
+  overflow-y:auto;
+}
+.view-inner{padding:0 20px 28px}
+
+/* ---------- App 顶栏 ---------- */
+.appbar{
+  display:flex;align-items:center;gap:12px;
+  padding:16px 20px 12px;flex:none;
+}
+.appbar-title{font-size:18px;font-weight:900;letter-spacing:1px}
+.back-btn{
+  width:36px;height:36px;border-radius:50%;flex:none;
+  border:3px solid var(--ink);background:var(--white);
+  font-size:16px;font-weight:900;cursor:pointer;
+  box-shadow:3px 3px 0 var(--ink);
+  transition:transform .12s ease,box-shadow .12s ease;
+}
+.back-btn:hover{transform:translate(-1px,-1px);box-shadow:4px 4px 0 var(--ink)}
+.back-btn:active{transform:translate(1px,1px);box-shadow:1px 1px 0 var(--ink)}
+.brand{
+  display:inline-flex;align-items:center;gap:8px;
+  font-size:24px;font-weight:900;letter-spacing:2px;
+}
+.brand-chip{
+  background:var(--yellow);border:3px solid var(--ink);border-radius:8px;
+  padding:2px 10px;box-shadow:3px 3px 0 var(--ink);
+}
+.brand-tag{
+  font-size:10px;font-weight:800;letter-spacing:1px;color:var(--white);
+  background:var(--pink);border:2px solid var(--ink);border-radius:999px;
+  padding:3px 8px;transform:rotate(3deg);
+}
+
+/* ---------- 卡带余额卡 ---------- */
+.cassette{
+  border:3px solid var(--ink);border-radius:20px;background:var(--yellow);
+  box-shadow:6px 6px 0 var(--ink);
+  padding:18px 18px 14px;position:relative;overflow:hidden;
+}
+.cassette-screws{position:absolute;inset:8px;pointer-events:none}
+.cassette-screws i{
+  position:absolute;width:10px;height:10px;border-radius:50%;
+  background:var(--ink);
+}
+.cassette-screws i:nth-child(1){top:0;left:0}
+.cassette-screws i:nth-child(2){top:0;right:0}
+.cassette-screws i:nth-child(3){bottom:0;left:0}
+.cassette-screws i:nth-child(4){bottom:0;right:0}
+.cassette-label{
+  background:var(--white);border:3px solid var(--ink);border-radius:14px;
+  padding:12px 14px;
+}
+.cassette-label-row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.balance-label{font-size:12px;font-weight:800;color:#5a5142;letter-spacing:1px}
+.balance-num{font-size:34px;font-weight:900;line-height:1.15;letter-spacing:1px}
+.balance-source{
+  font-size:11px;font-weight:800;background:var(--ink);color:var(--yellow);
+  border-radius:6px;padding:3px 8px;white-space:nowrap;
+}
+.cassette-window{
+  margin-top:12px;border:3px solid var(--ink);border-radius:12px;
+  background:var(--cream);padding:10px;display:flex;justify-content:center;gap:34px;
+}
+.reel{animation:spin 7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.cassette-tape{
+  position:absolute;right:-26px;top:14px;transform:rotate(38deg);
+  background:var(--pink);color:var(--white);font-size:10px;font-weight:900;
+  letter-spacing:2px;padding:4px 30px;border:2px solid var(--ink);
+}
+.cassette-foot{
+  display:flex;justify-content:space-between;margin-top:10px;
+  font-size:11px;font-weight:800;letter-spacing:2px;color:rgba(26,26,26,.7);
+}
+
+/* ---------- 收款人 ---------- */
+.section-title{
+  font-size:16px;font-weight:900;margin:22px 0 12px;
+  display:flex;align-items:center;gap:8px;letter-spacing:1px;
+}
+.section-title::after{content:"";flex:1;border-top:3px solid var(--ink)}
+.payee-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.payee{
+  border:3px solid var(--ink);border-radius:16px;background:var(--white);
+  padding:14px 8px 12px;display:flex;flex-direction:column;align-items:center;gap:8px;
+  cursor:pointer;box-shadow:4px 4px 0 var(--ink);
+  transition:transform .12s ease,box-shadow .12s ease,background .12s ease;
+}
+.payee:hover{transform:translate(-2px,-2px);box-shadow:6px 6px 0 var(--ink)}
+.payee:active{transform:translate(1px,1px);box-shadow:1px 1px 0 var(--ink)}
+.payee:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+.avatar{
+  width:52px;height:52px;border-radius:50%;border:3px solid var(--ink);
+  display:flex;align-items:center;justify-content:center;
+  font-size:22px;font-weight:900;
+}
+.payee-name{font-size:13px;font-weight:800}
+.payee-last{font-size:10px;color:#7a7263;font-weight:600}
+.home-hint{
+  margin-top:18px;font-size:12px;font-weight:700;text-align:center;color:#7a7263;
+}
+
+/* ---------- 通用按钮 ---------- */
+.btn-primary{
+  background:var(--yellow);color:var(--ink);border:3px solid var(--ink);
+  border-radius:16px;padding:15px 20px;font-size:17px;font-weight:900;
+  letter-spacing:2px;cursor:pointer;box-shadow:5px 5px 0 var(--ink);
+  transition:transform .14s ease,box-shadow .14s ease,background .14s ease;
+  width:100%;
+}
+.btn-primary:hover{transform:translate(-2px,-2px);box-shadow:7px 7px 0 var(--ink)}
+.btn-primary:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink)}
+.btn-primary:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+.btn-primary:disabled{background:#E4DCCB;color:#8a8172;cursor:not-allowed;transform:none}
+.btn-ghost{
+  background:var(--white);color:var(--ink);border:3px solid var(--ink);
+  border-radius:16px;padding:13px 20px;font-size:15px;font-weight:900;
+  letter-spacing:1px;cursor:pointer;box-shadow:4px 4px 0 var(--ink);
+  transition:transform .14s ease,box-shadow .14s ease;width:100%;
+}
+.btn-ghost:hover{transform:translate(-2px,-2px);box-shadow:6px 6px 0 var(--ink);background:var(--cream)}
+.btn-mini{
+  border:2px solid var(--ink);background:var(--white);border-radius:8px;
+  font-size:12px;font-weight:800;padding:4px 10px;cursor:pointer;
+}
+.btn-mini:hover{background:var(--yellow)}
+.btn-mini.pink{background:var(--pink);color:var(--white)}
+
+/* ---------- 金额视图 ---------- */
+.payee-chip{
+  display:flex;align-items:center;gap:10px;
+  border:3px solid var(--ink);border-radius:999px;background:var(--white);
+  padding:6px 14px 6px 6px;box-shadow:4px 4px 0 var(--ink);
+  align-self:flex-start;font-weight:900;font-size:14px;
+}
+.payee-chip .avatar{width:34px;height:34px;font-size:15px;border-width:2px}
+.amount-box{
+  margin-top:20px;border-bottom:4px solid var(--ink);
+  padding:6px 4px 14px;display:flex;align-items:baseline;gap:6px;
+}
+.amount-cur{font-size:26px;font-weight:900}
+.amount-num{font-size:48px;font-weight:900;letter-spacing:1px;line-height:1;word-break:break-all}
+.amount-warn{
+  margin-top:10px;font-size:13px;font-weight:800;color:var(--white);
+  background:var(--pink);border:2px solid var(--ink);border-radius:8px;
+  padding:6px 12px;display:inline-block;
+}
+.source-row{
+  margin-top:16px;width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;
+  border:3px solid var(--ink);border-radius:14px;background:var(--white);
+  padding:12px 14px;cursor:pointer;box-shadow:4px 4px 0 var(--ink);
+  transition:transform .12s ease,box-shadow .12s ease;
+}
+.source-row:hover{transform:translate(-1px,-1px);box-shadow:5px 5px 0 var(--ink)}
+.source-name{font-size:14px;font-weight:900}
+.source-bal{font-size:12px;font-weight:700;color:#7a7263;margin-top:2px}
+.source-arrow{font-size:14px;font-weight:900}
+.note-input{
+  margin-top:14px;width:100%;border:3px solid var(--ink);border-radius:12px;
+  background:var(--white);padding:12px 14px;font-size:14px;font-weight:700;
+  font-family:inherit;
+}
+.note-input:focus{outline:3px solid var(--blue);outline-offset:1px}
+.keypad{
+  margin-top:18px;display:grid;grid-template-columns:repeat(3,1fr);gap:10px;
+}
+.key{
+  height:60px;border:3px solid var(--ink);border-radius:16px;background:var(--white);
+  font-size:24px;font-weight:900;cursor:pointer;box-shadow:4px 4px 0 var(--ink);
+  transition:transform .1s ease,box-shadow .1s ease,background .1s ease;
+}
+.key:hover{background:var(--cream)}
+.key:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink);background:var(--yellow)}
+.key:focus-visible{outline:3px solid var(--blue);outline-offset:1px}
+.keypad-cta{margin-top:16px}
+
+/* ---------- 确认视图 ---------- */
+.confirm-card{
+  border:3px solid var(--ink);border-radius:20px;background:var(--white);
+  box-shadow:6px 6px 0 var(--ink);padding:18px;margin-top:8px;
+}
+.confirm-amount{
+  text-align:center;padding:8px 0 16px;border-bottom:3px dashed var(--ink);
+}
+.confirm-amount .num{font-size:40px;font-weight:900;line-height:1.1}
+.confirm-amount .cap{font-size:12px;font-weight:800;color:#7a7263;letter-spacing:2px}
+.confirm-row{
+  display:flex;justify-content:space-between;align-items:center;gap:10px;
+  padding:12px 0;border-bottom:2px dashed #d8cfbd;font-size:14px;font-weight:700;
+}
+.confirm-row:last-child{border-bottom:none}
+.confirm-row .k{color:#7a7263;font-weight:700;flex:none}
+.confirm-row .v{font-weight:900;text-align:right}
+.err-box{
+  margin-top:16px;border:3px solid var(--ink);border-left:10px solid var(--pink);
+  background:var(--white);border-radius:14px;padding:14px;
+  font-size:13px;line-height:1.7;font-weight:700;
+  box-shadow:4px 4px 0 var(--ink);
+}
+.err-box b{color:var(--pink);font-size:15px}
+.err-actions{display:flex;gap:10px;margin-top:12px}
+.err-actions .btn-mini{padding:8px 12px;font-size:13px}
+.confirm-note{margin-top:14px;font-size:11px;color:#7a7263;font-weight:600;text-align:center}
+.confirm-cta{margin-top:16px}
+
+/* ---------- 凭证视图 ---------- */
+.stamp-wrap{display:flex;justify-content:center;margin-top:18px}
+.stamp{
+  width:120px;height:120px;border-radius:50%;
+  border:4px solid var(--pink);color:var(--pink);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+  font-size:22px;font-weight:900;letter-spacing:4px;transform:rotate(-10deg);
+  background:var(--white);
+}
+.stamp small{font-size:10px;letter-spacing:2px;font-weight:800}
+.voucher{
+  margin-top:22px;border:3px solid var(--ink);border-radius:20px;background:var(--yellow);
+  box-shadow:6px 6px 0 var(--ink);overflow:hidden;
+}
+.voucher-head{
+  background:var(--ink);color:var(--yellow);font-size:12px;font-weight:900;
+  letter-spacing:3px;padding:8px 14px;display:flex;justify-content:space-between;
+}
+.voucher-body{padding:16px 18px}
+.voucher-amount{font-size:38px;font-weight:900;text-align:center;padding:6px 0 12px}
+.voucher-row{
+  display:flex;justify-content:space-between;gap:10px;font-size:13px;font-weight:700;
+  padding:8px 0;border-top:2px dashed rgba(26,26,26,.35);
+}
+.voucher-row .k{color:rgba(26,26,26,.65)}
+.voucher-holes{display:flex;justify-content:center;gap:40px;padding:0 0 14px}
+.voucher-holes i{
+  width:22px;height:22px;border-radius:50%;background:var(--cream);
+  border:3px solid var(--ink);display:block;
+}
+.receipt-btns{display:flex;flex-direction:column;gap:12px;margin-top:22px}
+
+/* ---------- 付款方式浮层 ---------- */
+.sheet-mask{
+  position:absolute;inset:0;background:rgba(26,26,26,.45);z-index:40;
+  display:flex;align-items:flex-end;
+}
+.sheet{
+  width:100%;background:var(--cream);border-top:4px solid var(--ink);
+  border-radius:24px 24px 0 0;padding:20px 20px 28px;
+}
+.sheet-title{font-size:16px;font-weight:900;letter-spacing:1px;margin-bottom:14px}
+.source-opt{
+  width:100%;display:flex;align-items:center;gap:12px;text-align:left;
+  border:3px solid var(--ink);border-radius:16px;background:var(--white);
+  padding:14px;margin-bottom:12px;cursor:pointer;box-shadow:4px 4px 0 var(--ink);
+  transition:transform .12s ease,box-shadow .12s ease,background .12s ease;
+}
+.source-opt:hover{transform:translate(-1px,-1px)}
+.source-opt.is-on{background:var(--yellow)}
+.source-radio{
+  width:22px;height:22px;border-radius:50%;border:3px solid var(--ink);
+  background:var(--white);flex:none;position:relative;
+}
+.source-opt.is-on .source-radio::after{
+  content:"";position:absolute;inset:3px;border-radius:50%;background:var(--ink);
+}
+.source-opt .meta{flex:1}
+.source-opt .meta .n{font-size:14px;font-weight:900}
+.source-opt .meta .b{font-size:12px;font-weight:700;color:#7a7263;margin-top:2px}
+.source-default{
+  font-size:10px;font-weight:800;background:var(--blue);color:var(--white);
+  border-radius:6px;padding:3px 8px;border:2px solid var(--ink);
+}
+
+/* ---------- 提示条 ---------- */
+.toast{
+  position:absolute;left:50%;bottom:36px;transform:translateX(-50%);
+  background:var(--ink);color:var(--yellow);font-weight:800;font-size:13px;
+  padding:10px 18px;border-radius:12px;border:3px solid var(--yellow);
+  z-index:60;max-width:82%;text-align:center;white-space:nowrap;
+}
+
+.shake{animation:shake .4s ease}
+@keyframes shake{
+  0%,100%{transform:translateX(0)}
+  25%{transform:translateX(-6px)}
+  50%{transform:translateX(6px)}
+  75%{transform:translateX(-4px)}
+}
+
+@media (max-width:430px){
+  body{padding:0}
+  .phone{width:100%;min-height:100vh;height:100vh;border-radius:0;border-width:0}
+}
+
+@media (prefers-reduced-motion: reduce){
+  *{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important}
+}
+</style>
+</head>
+<body>
+
+<div class="phone">
+
+  <!-- 首页：余额与收款人 -->
+  <section id="view-home" class="view">
+    <div class="appbar">
+      <span class="brand"><span class="brand-chip">卡带</span></span>
+      <span class="brand-tag">口袋磁带钱包</span>
+    </div>
+    <div class="view-inner">
+      <div class="cassette">
+        <span class="cassette-tape">POCKET MIX VOL.90</span>
+        <div class="cassette-screws"><i></i><i></i><i></i><i></i></div>
+        <div class="cassette-label">
+          <div class="cassette-label-row">
+            <div>
+              <div class="balance-label">可用余额</div>
+              <div class="balance-num" id="homeBalance">¥2,480.50</div>
+            </div>
+            <span class="balance-source" id="homeSource">零钱</span>
+          </div>
+          <div class="cassette-window">
+            <svg class="reel" viewBox="0 0 60 60" width="52" height="52">
+              <circle cx="30" cy="30" r="26" fill="#FFF6E5" stroke="#1A1A1A" stroke-width="3"/>
+              <circle cx="30" cy="30" r="7" fill="#1A1A1A"/>
+              <g stroke="#1A1A1A" stroke-width="4" stroke-linecap="round">
+                <line x1="30" y1="10" x2="30" y2="20"/>
+                <line x1="30" y1="10" x2="30" y2="20" transform="rotate(60 30 30)"/>
+                <line x1="30" y1="10" x2="30" y2="20" transform="rotate(120 30 30)"/>
+                <line x1="30" y1="10" x2="30" y2="20" transform="rotate(180 30 30)"/>
+                <line x1="30" y1="10" x2="30" y2="20" transform="rotate(240 30 30)"/>
+                <line x1="30" y1="10" x2="30" y2="20" transform="rotate(300 30 30)"/>
+              </g>
+            </svg>
+            <svg class="reel" viewBox="0 0 60 60" width="52" height="52">
+              <circle cx="30" cy="30" r="26" fill="#FFF6E5" stroke="#1A1A1A" stroke-width="3"/>
+              <circle cx="30" cy="30" r="7" fill="#1A1A1A"/>
+              <g stroke="#1A1A1A" stroke-width="4" stroke-linecap="round">
+                <line x1="30" y1="10" x2="30" y2="20"/>
+                <line x1="30" y1="10" x2="30" y2="20" transform="rotate(60 30 30)"/>
+                <line x1="30" y1="10" x2="30" y2="20" transform="rotate(120 30 30)"/>
+                <line x1="30" y1="10" x2="30" y2="20" transform="rotate(180 30 30)"/>
+                <line x1="30" y1="10" x2="30" y2="20" transform="rotate(240 30 30)"/>
+                <line x1="30" y1="10" x2="30" y2="20" transform="rotate(300 30 30)"/>
+              </g>
+            </svg>
+          </div>
+        </div>
+        <div class="cassette-foot"><span>SIDE A</span><span>90 MIN</span><span>卡带支付</span></div>
+      </div>
+
+      <h2 class="section-title">选择收款人</h2>
+      <div class="payee-grid" id="payeeGrid"></div>
+      <p class="home-hint">点击头像开始转账 · 单笔限额 ¥50,000</p>
+    </div>
+  </section>
+
+  <!-- 金额输入 -->
+  <section id="view-amount" class="view" hidden>
+    <div class="appbar">
+      <button class="back-btn" type="button" data-go="home" aria-label="返回">←</button>
+      <span class="appbar-title">转账金额</span>
+    </div>
+    <div class="view-inner" style="display:flex;flex-direction:column">
+      <span class="payee-chip" id="amountPayee"></span>
+      <div class="amount-box">
+        <span class="amount-cur">¥</span>
+        <span class="amount-num" id="amountNum">0</span>
+      </div>
+      <div id="amountWarn" class="amount-warn" hidden></div>
+      <button class="source-row" type="button" id="sourceRow">
+        <span>
+          <span class="source-name" id="sourceName">零钱</span>
+          <div class="source-bal" id="sourceBal">可用余额 ¥2,480.50</div>
+        </span>
+        <span class="source-arrow">切换 ▸</span>
+      </button>
+      <input class="note-input" id="noteInput" type="text" maxlength="20" placeholder="加个备注（选填，20 字内）">
+      <div class="keypad" id="keypad">
+        <button class="key" type="button" data-k="1">1</button>
+        <button class="key" type="button" data-k="2">2</button>
+        <button class="key" type="button" data-k="3">3</button>
+        <button class="key" type="button" data-k="4">4</button>
+        <button class="key" type="button" data-k="5">5</button>
+        <button class="key" type="button" data-k="6">6</button>
+        <button class="key" type="button" data-k="7">7</button>
+        <button class="key" type="button" data-k="8">8</button>
+        <button class="key" type="button" data-k="9">9</button>
+        <button class="key" type="button" data-k=".">.</button>
+        <button class="key" type="button" data-k="0">0</button>
+        <button class="key" type="button" data-k="del">⌫</button>
+      </div>
+      <div class="keypad-cta">
+        <button class="btn-primary" type="button" id="toConfirmBtn">下一步</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 核对确认 -->
+  <section id="view-confirm" class="view" hidden>
+    <div class="appbar">
+      <button class="back-btn" type="button" data-go="amount" aria-label="返回">←</button>
+      <span class="appbar-title">核对转账</span>
+    </div>
+    <div class="view-inner">
+      <div class="confirm-card">
+        <div class="confirm-amount">
+          <div class="cap">转账金额</div>
+          <div class="num" id="cfAmount">¥0.00</div>
+        </div>
+        <div class="confirm-row"><span class="k">收款人</span><span class="v" id="cfPayee">—</span></div>
+        <div class="confirm-row">
+          <span class="k">付款方式</span>
+          <span class="v"><span id="cfSource">零钱</span> <button class="btn-mini" type="button" id="cfSwitch">切换</button></span>
+        </div>
+        <div class="confirm-row"><span class="k">手续费</span><span class="v">免费</span></div>
+        <div class="confirm-row"><span class="k">备注</span><span class="v" id="cfNote">无</span></div>
+      </div>
+      <div class="err-box" id="errBox" hidden></div>
+      <p class="confirm-note">转账实时到账，转出前请核对收款人与金额</p>
+      <div class="confirm-cta">
+        <button class="btn-primary" type="button" id="payBtn">确认转账</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 转账凭证 -->
+  <section id="view-receipt" class="view" hidden>
+    <div class="appbar">
+      <span class="appbar-title" style="margin-left:48px">转账凭证</span>
+    </div>
+    <div class="view-inner">
+      <div class="stamp-wrap">
+        <div class="stamp">转账成功<small>CASSETTE PAY</small></div>
+      </div>
+      <div class="voucher">
+        <div class="voucher-head"><span>卡带电子凭证</span><span>SIDE A</span></div>
+        <div class="voucher-body">
+          <div class="voucher-amount" id="rcAmount">¥0.00</div>
+          <div class="voucher-row"><span class="k">收款人</span><span id="rcPayee">—</span></div>
+          <div class="voucher-row"><span class="k">付款方式</span><span id="rcSource">—</span></div>
+          <div class="voucher-row"><span class="k">转账单号</span><span id="rcNo">—</span></div>
+          <div class="voucher-row"><span class="k">转账时间</span><span id="rcTime">—</span></div>
+          <div class="voucher-row"><span class="k">备注</span><span id="rcNote">无</span></div>
+        </div>
+        <div class="voucher-holes"><i></i><i></i></div>
+      </div>
+      <div class="receipt-btns">
+        <button class="btn-primary" type="button" id="doneBtn">完成</button>
+        <button class="btn-ghost" type="button" id="againBtn">再转一笔</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 付款方式浮层 -->
+  <div class="sheet-mask" id="sheet" hidden>
+    <div class="sheet">
+      <div class="sheet-title">选择付款方式</div>
+      <button class="source-opt" type="button" data-src="lingqian">
+        <span class="source-radio"></span>
+        <span class="meta">
+          <span class="n">零钱</span>
+          <div class="b" id="balLingqian">可用余额 ¥2,480.50</div>
+        </span>
+        <span class="source-default">默认</span>
+      </button>
+      <button class="source-opt" type="button" data-src="card">
+        <span class="source-radio"></span>
+        <span class="meta">
+          <span class="n">储蓄卡 · 招商银行 尾号 6688</span>
+          <div class="b" id="balCard">可用余额 ¥18,200.00</div>
+        </span>
+      </button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" hidden></div>
+</div>
+
+<script>
+/* ============ 数据 ============ */
+var payees=[
+  {id:'u1',name:'阿瓜',color:'#FFD23F',last:'上周 · 午饭 ¥38.00'},
+  {id:'u2',name:'老白',color:'#FF6B9D',last:'3 天前 · 球赛 AA ¥66.00'},
+  {id:'u3',name:'桃桃',color:'#3D5AFE',last:'本月 · 拼单 ¥25.50'},
+  {id:'u4',name:'大熊',color:'#FFD23F',last:'上月 · 房租分摊 ¥900.00'},
+  {id:'u5',name:'陈姐（房东）',color:'#FF6B9D',last:'每月 5 号 · 房租'},
+  {id:'u6',name:'健身房小齐',color:'#3D5AFE',last:'从未转账'}
+];
+var sources={
+  lingqian:{name:'零钱',balance:2480.50},
+  card:{name:'储蓄卡 · 招商银行 尾号 6688',balance:18200.00}
+};
+var state={payee:null,amount:'',source:'lingqian',note:''};
+var lastOrder=null;
+var toastTimer=null;
+
+/* ============ 工具 ============ */
+function fmt2(n){return n.toLocaleString('zh-CN',{minimumFractionDigits:2,maximumFractionDigits:2})}
+function fmtInput(a){
+  if(a==='')return '0';
+  var parts=a.split('.');
+  var int=parts[0].replace(/\B(?=(\d{3})+(?!\d))/g,',');
+  return parts.length>1?int+'.'+parts[1]:int;
+}
+function amountVal(){return parseFloat(state.amount||'0')||0}
+function showToast(msg){
+  var t=document.getElementById('toast');
+  t.textContent=msg;t.hidden=false;
+  if(toastTimer)clearTimeout(toastTimer);
+  toastTimer=setTimeout(function(){t.hidden=true},2400);
+}
+function payeeById(id){
+  for(var i=0;i<payees.length;i++){if(payees[i].id===id)return payees[i]}
+  return null;
+}
+
+/* ============ 视图切换 ============ */
+function showView(name){
+  var views=['home','amount','confirm','receipt'];
+  for(var i=0;i<views.length;i++){
+    document.getElementById('view-'+views[i]).hidden=(views[i]!==name);
+  }
+  if(name==='home')renderHome();
+  if(name==='amount')renderAmount();
+  if(name==='confirm')renderConfirm();
+}
+
+/* ============ 首页 ============ */
+function renderHome(){
+  document.getElementById('homeBalance').textContent='¥'+fmt2(sources.lingqian.balance);
+  var html='';
+  for(var i=0;i<payees.length;i++){
+    var p=payees[i];
+    html+='<button class="payee" type="button" data-pid="'+p.id+'">'
+      +'<span class="avatar" style="background:'+p.color+'">'+p.name.charAt(0)+'</span>'
+      +'<span class="payee-name">'+p.name+'</span>'
+      +'<span class="payee-last">'+p.last+'</span>'
+      +'</button>';
+  }
+  document.getElementById('payeeGrid').innerHTML=html;
+}
+document.getElementById('payeeGrid').addEventListener('click',function(e){
+  var b=e.target.closest('[data-pid]');
+  if(!b)return;
+  state.payee=b.getAttribute('data-pid');
+  state.amount='';
+  state.note='';
+  document.getElementById('noteInput').value='';
+  hideErr();
+  showView('amount');
+});
+
+/* ============ 金额输入 ============ */
+function renderAmount(){
+  var p=payeeById(state.payee);
+  document.getElementById('amountPayee').innerHTML=
+    '<span class="avatar" style="background:'+p.color+'">'+p.name.charAt(0)+'</span>转给「'+p.name+'」';
+  document.getElementById('amountNum').textContent=fmtInput(state.amount);
+  renderSourceRow();
+  renderWarn();
+}
+function renderSourceRow(){
+  var s=sources[state.source];
+  document.getElementById('sourceName').textContent=s.name;
+  document.getElementById('sourceBal').textContent='可用余额 ¥'+fmt2(s.balance);
+  document.getElementById('balLingqian').textContent='可用余额 ¥'+fmt2(sources.lingqian.balance);
+  document.getElementById('balCard').textContent='可用余额 ¥'+fmt2(sources.card.balance);
+}
+function renderWarn(){
+  var w=document.getElementById('amountWarn');
+  var amt=amountVal();
+  var s=sources[state.source];
+  if(amt>0&&amt>s.balance){
+    w.textContent='已超出「'+s.name+'」可用余额 ¥'+fmt2(s.balance);
+    w.hidden=false;
+  }else{
+    w.hidden=true;
+  }
+}
+document.getElementById('keypad').addEventListener('click',function(e){
+  var b=e.target.closest('[data-k]');
+  if(!b)return;
+  var k=b.getAttribute('data-k');
+  var a=state.amount;
+  if(k==='del'){
+    state.amount=a.slice(0,-1);
+  }else if(k==='.'){
+    if(a.indexOf('.')===-1){state.amount=(a===''?'0.':a+'.')}
+  }else{
+    if(a.indexOf('.')!==-1&&a.split('.')[1].length>=2){return}
+    if(a.indexOf('.')===-1&&a.length>=7){return}
+    state.amount=(a==='0')?k:a+k;
+  }
+  document.getElementById('amountNum').textContent=fmtInput(state.amount);
+  renderWarn();
+});
+document.getElementById('noteInput').addEventListener('input',function(){
+  state.note=this.value;
+});
+document.getElementById('toConfirmBtn').addEventListener('click',function(){
+  if(amountVal()<=0){
+    showToast('请先输入转账金额');
+    return;
+  }
+  if(amountVal()>50000){
+    showToast('单笔限额 ¥50,000，请降低金额');
+    return;
+  }
+  hideErr();
+  showView('confirm');
+});
+
+/* ============ 付款方式浮层 ============ */
+var sheet=document.getElementById('sheet');
+function openSheet(){
+  var opts=sheet.querySelectorAll('.source-opt');
+  for(var i=0;i<opts.length;i++){
+    opts[i].classList.toggle('is-on',opts[i].getAttribute('data-src')===state.source);
+  }
+  renderSourceRow();
+  sheet.hidden=false;
+}
+function closeSheet(){sheet.hidden=true}
+document.getElementById('sourceRow').addEventListener('click',openSheet);
+document.getElementById('cfSwitch').addEventListener('click',openSheet);
+sheet.addEventListener('click',function(e){
+  if(e.target===sheet){closeSheet();return}
+  var b=e.target.closest('[data-src]');
+  if(!b)return;
+  state.source=b.getAttribute('data-src');
+  closeSheet();
+  renderSourceRow();
+  renderWarn();
+  renderConfirm();
+  hideErr();
+  showToast('已切换付款方式：'+sources[state.source].name);
+});
+
+/* ============ 确认 ============ */
+function renderConfirm(){
+  if(!state.payee)return;
+  var p=payeeById(state.payee);
+  var s=sources[state.source];
+  document.getElementById('cfAmount').textContent='¥'+fmt2(amountVal());
+  document.getElementById('cfPayee').textContent=p.name;
+  document.getElementById('cfSource').textContent=s.name+'（可用 ¥'+fmt2(s.balance)+'）';
+  document.getElementById('cfNote').textContent=state.note?state.note:'无';
+}
+function hideErr(){document.getElementById('errBox').hidden=true}
+document.getElementById('payBtn').addEventListener('click',function(){
+  var amt=amountVal();
+  var s=sources[state.source];
+  if(amt>s.balance){
+    var box=document.getElementById('errBox');
+    box.innerHTML='<b>余额不足，转账未发出</b><br>'
+      +'「'+s.name+'」可用余额 ¥'+fmt2(s.balance)+'，本次需支付 ¥'+fmt2(amt)+'，还差 ¥'+fmt2(amt-s.balance)+'。'
+      +'<div class="err-actions">'
+      +'<button class="btn-mini pink" type="button" id="errFix">修改金额</button>'
+      +'<button class="btn-mini" type="button" id="errSwitch">切换付款方式</button>'
+      +'</div>';
+    box.hidden=false;
+    box.classList.remove('shake');
+    void box.offsetWidth;
+    box.classList.add('shake');
+    document.getElementById('errFix').addEventListener('click',function(){showView('amount')});
+    document.getElementById('errSwitch').addEventListener('click',openSheet);
+    return;
+  }
+  s.balance=Math.round((s.balance-amt)*100)/100;
+  lastOrder={
+    no:'KD'+Date.now().toString(36).toUpperCase(),
+    time:new Date().toLocaleString('zh-CN',{hour12:false}),
+    amt:amt,
+    payee:payeeById(state.payee).name,
+    source:s.name,
+    note:state.note
+  };
+  renderReceipt();
+  showView('receipt');
+});
+
+/* ============ 凭证 ============ */
+function renderReceipt(){
+  document.getElementById('rcAmount').textContent='¥'+fmt2(lastOrder.amt);
+  document.getElementById('rcPayee').textContent=lastOrder.payee;
+  document.getElementById('rcSource').textContent=lastOrder.source;
+  document.getElementById('rcNo').textContent=lastOrder.no;
+  document.getElementById('rcTime').textContent=lastOrder.time;
+  document.getElementById('rcNote').textContent=lastOrder.note?lastOrder.note:'无';
+}
+document.getElementById('doneBtn').addEventListener('click',function(){
+  state.payee=null;state.amount='';state.note='';
+  hideErr();
+  showView('home');
+});
+document.getElementById('againBtn').addEventListener('click',function(){
+  state.amount='';state.note='';
+  document.getElementById('noteInput').value='';
+  hideErr();
+  showView('amount');
+});
+
+/* ============ 返回按钮 ============ */
+var backs=document.querySelectorAll('[data-go]');
+for(var i=0;i<backs.length;i++){
+  backs[i].addEventListener('click',function(){
+    hideErr();
+    showView(this.getAttribute('data-go'));
+  });
+}
+
+renderHome();
+</script>
+</body>
+</html>
