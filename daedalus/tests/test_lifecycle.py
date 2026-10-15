@@ -311,7 +311,7 @@ class LifecycleTests(unittest.TestCase):
             self.assertTrue(receipt["ok"])
             gallery = (root / "dist" / "site" / "index.html").read_text(encoding="utf-8")
             self.assertIn('id="export-specs"', gallery)
-            for control in ("compare-left", "compare-right", "swap-pair", "category-filter", "page-top"):
+            for control in ("compare-left", "compare-right", "swap-pair", "category-filter", "page-top", "previous-question", "next-question", "question-progress"):
                 self.assertIn(f'id="{control}"', gallery)
             self.assertIn("[hidden]{display:none!important}", gallery)
             self.assertIn("一键导出规范", gallery)
@@ -381,9 +381,11 @@ class FakeElement {
   scrollTo({top}){ this.scrollTop=Math.max(0,Math.min(top,this.scrollHeight-this.clientHeight)); this.dispatch("scroll",{}); }
 }
 const elements = {};
-for (const selector of ["main","#browse-mode","#compare-mode","#export-specs","#reader-overlay",".reader-panel","#reader-kind","#reader-title","#reader-note","#reader-content","#reader-export","#reader-progress","#reader-top","#reader-close","body>header"]) elements[selector]=new FakeElement();
-for (const selector of ["#answer-filter","#answer-picker","#prototype-filter","#prototype-picker","#category-filter","#browse-filters","#pair-picker","#compare-left","#compare-right","#swap-pair","#browse-note","#page-top"]) elements[selector]=new FakeElement();
+for (const selector of ["main",".toolbar","#workspace-heading","#browse-mode","#compare-mode","#export-specs","#reader-overlay",".reader-panel","#reader-kind","#reader-title","#reader-note","#reader-content","#reader-export","#reader-progress","#reader-top","#reader-close","body>header"]) elements[selector]=new FakeElement();
+for (const selector of ["#answer-filter","#answer-picker","#prototype-filter","#prototype-picker","#category-filter","#browse-filters","#pair-picker","#compare-left","#compare-right","#swap-pair","#browse-note","#page-top","#question-pager","#previous-question","#next-question","#question-progress"]) elements[selector]=new FakeElement();
+const rootStyle={};
 const document = {
+  documentElement:{style:{setProperty(name,value){rootStyle[name]=value;}}},
   body:new FakeElement("body"), activeElement:null,
   querySelector(selector){ return elements[selector] || null; },
   createElement(tag){ return new FakeElement(tag); },
@@ -393,9 +395,19 @@ const sample=(id,category,owner)=>({id,category,title:id,slug:id,scene:"场景",
 const data={submissions:["alpha","beta","gamma"].map(key=>({key,displayName:key,harness:"test",model:key,reasoningEffort:"max",pieces:[sample("001","pages",key),sample("041","products",key),sample("042","products",key)]})),categories:[{id:"pages",label:"页面",range:["001","040"]},{id:"products",label:"原型",range:["041","050"]}],prototypeTasks:[{id:"041",title:"购物",scene:"购买"},{id:"042",title:"钱包",scene:"转账"}]};
 elements["#prototype-filter"].value="041";
 for(const id of ["#compare-left","#compare-right"])elements[id].options=data.submissions.map(sub=>({value:sub.key}));
-const context = {window:{DAEDALUS_DATA:data,scrollTo({top}){this.scrollY=top}},document,ResizeObserver:class {observe(){} disconnect(){}},Blob:function(){},URL:{createObjectURL(){return "blob:test";},revokeObjectURL(){}},setTimeout(){}};
+const observers=[];
+const context = {window:{DAEDALUS_DATA:data,scrollTo({top}){this.scrollY=top}},document,ResizeObserver:class {constructor(callback){this.callback=callback;observers.push(this)} observe(){} disconnect(){}},Blob:function(){},URL:{createObjectURL(){return "blob:test";},revokeObjectURL(){}},setTimeout(){}};
 vm.runInNewContext(source,context);
 const assert=require("node:assert/strict");
+elements[".toolbar"].getBoundingClientRect=()=>({height:168});elements["body>header"].getBoundingClientRect=()=>({height:49});observers[0].callback();
+assert.equal(rootStyle["--dock-height"],"168px","content clearance must follow the actual dock height");
+assert.equal(rootStyle["--header-height"],"49px","the stage must follow the actual header height");
+const scaledFrame={style:{}};
+observers[1].callback([{target:{firstElementChild:scaledFrame},contentRect:{width:1800,height:600}}]);
+assert.equal(scaledFrame.style.transform,"scale(0.75)","short wide viewports must fit the whole prototype");
+assert.equal(scaledFrame.style.left,"420px","centering must use the scaled canvas width");
+const tallFrame={style:{}};observers[1].callback([{target:{firstElementChild:tallFrame},contentRect:{width:640,height:800}}]);
+assert.equal(tallFrame.style.top,"200px","letterboxing must be balanced above and below the canvas");
 const textTree=element=>element.textContent+element.children.map(textTree).join(" ");
 const select=(id,value)=>{elements[id].value=value;elements[id].dispatch("change",{});};
 const preview=context.cardFor(sample("001","pages","alpha")).children[0].children[0];
@@ -404,15 +416,54 @@ assert.equal(preview.srcdoc,undefined);
 assert.equal(preview.loading,"lazy");
 assert.equal(preview.attributes.sandbox,"allow-scripts");
 assert.equal(context.cardFor(sample("041","products","alpha"),true).children[0].children[0].loading,"eager");
-assert.equal(elements["main"].children.length,1,"browse should start with one submission");
+const currentCards=()=>elements["main"].children.filter(child=>child.tagName==="ARTICLE");
+const currentSource=()=>currentCards()[0]?.children[0].children[0].src;
+assert.equal(currentCards().length,1,"browse should display exactly one piece");
+assert.equal(currentSource(),"answers/alpha/001.html");
+assert.equal(elements["#question-progress"].textContent,"1 / 3");
+assert.equal(elements["#previous-question"].disabled,true);
+elements["#next-question"].dispatch("click",{});
+assert.equal(currentSource(),"answers/alpha/041.html");
+assert.equal(currentCards().length,1,"next must replace the current piece");
+elements["#next-question"].dispatch("click",{});
+assert.equal(currentSource(),"answers/alpha/042.html");
+assert.equal(elements["#next-question"].disabled,true);
+context.stepQuestion(1);assert.equal(currentSource(),"answers/alpha/042.html","the final question must not wrap");
+elements["#previous-question"].dispatch("click",{});
+assert.equal(currentSource(),"answers/alpha/041.html");
 select("#category-filter","products");
-assert.equal(elements["main"].children[0].children.length,2,"category filter should show only one category");
+assert.equal(currentSource(),"answers/alpha/041.html");
+assert.equal(elements["#question-progress"].textContent,"1 / 2","changing category resets pagination");
+elements["#next-question"].dispatch("click",{});
+select("#answer-filter","beta");
+assert.equal(currentSource(),"answers/beta/041.html","changing model resets pagination");
+select("#category-filter","empty");
+assert.equal(currentCards().length,0);
+assert.equal(elements["#question-progress"].textContent,"0 / 0");
+assert.ok(elements["#previous-question"].disabled&&elements["#next-question"].disabled);
+select("#category-filter","products");select("#answer-filter","");
+assert.equal(currentCards().length,1,"all-submissions scope must still display one piece at a time");
+assert.equal(elements["#question-progress"].textContent,"1 / 6");
+assert.ok(textTree(elements["#workspace-heading"]).includes("alpha"),"all-submissions scope must identify the current submission");
+context.stepQuestion(1);context.stepQuestion(1);
+assert.equal(currentSource(),"answers/beta/041.html");
+assert.ok(textTree(elements["#workspace-heading"]).includes("beta"),"cross-submission navigation must update the displayed owner");
+elements["#answer-picker"].hidden=true;select("#answer-filter","alpha");
+assert.ok(textTree(elements["#workspace-heading"]).includes("test / alpha / max"),"a dedicated gallery must expose its identity without the hidden chooser");
+elements["#answer-picker"].hidden=false;
+select("#answer-filter","alpha");
 select("#compare-left","gamma");
 context.setMode("compare");
 assert.deepEqual(Array.from(context.compareRows(),sub=>sub.key),["gamma","beta"]);
-assert.equal(elements["main"].children[1].children.length,2,"only the chosen opponents should render");
+assert.equal(elements["main"].children[0].children.length,2,"only the chosen opponents should render");
 assert.ok(!textTree(elements["main"]).includes("alpha"));
 assert.ok(elements["#compare-right"].options.find(option=>option.value==="gamma").disabled,"same submission must not be selectable twice");
+elements["#next-question"].dispatch("click",{});
+assert.equal(elements["#prototype-filter"].value,"042","compare next must advance the task");
+assert.deepEqual(Array.from(context.compareRows(),sub=>sub.key),["gamma","beta"],"compare next must retain opponents");
+assert.equal(elements["#next-question"].disabled,true);
+elements["#previous-question"].dispatch("click",{});
+assert.equal(elements["#prototype-filter"].value,"041");
 select("#prototype-filter","042");
 assert.deepEqual(Array.from(context.compareRows(),sub=>sub.key),["gamma","beta"],"changing task must retain opponents");
 let exported="";context.download=(filename,text)=>{exported=text;};context.exportSpecs();
@@ -425,6 +476,7 @@ assert.equal(document.activeElement,elements["#browse-mode"]);
 const piece={id:"001",slug:"scheme-001",title:"方案001",spec:"规范正文",intent:"意图正文",specUrl:"answers/001.spec.md",intentUrl:"answers/001.intent.md"};
 const opener=new FakeElement("button");
 context.showReader(piece,"spec",opener);
+assert.equal(elements[".toolbar"].inert,true,"the relocated controls must be inaccessible behind the reader");
 const content=elements["#reader-content"];
 const topButton=elements["#reader-top"];
 topButton.focus();
@@ -435,7 +487,12 @@ if(!content.attributes["aria-label"]?.includes("复现规范正文")) throw new 
 if(elements["#reader-export"].href!==piece.specUrl || elements["#reader-export"].download!=="001-scheme-001.spec.md") throw new Error("reader export is not a native file link");
 context.closeReader();
 if(!opener.focused) throw new Error("reader did not restore focus to its opener");
+const summary=new FakeElement("summary"),menu={open:true,querySelector(){return summary;}};
+const menuOpener=new FakeElement("button");menuOpener.closest=()=>menu;
+context.showReader(piece,"spec",menuOpener);assert.equal(menu.open,false);context.closeReader();
+assert.equal(document.activeElement,summary,"reader must restore focus to the visible menu summary");
 assert.equal(elements["#page-top"].inert,false);
+assert.equal(elements[".toolbar"].inert,false);
 data.submissions[1].pieces=[];data.submissions[1].status="forfeited";data.submissions[1].forfeitReason="未完成";
 context.setMode("compare");
 assert.ok(textTree(elements["main"]).includes("已弃权：未完成"),"missing work must remain explicit");
@@ -448,6 +505,14 @@ assert.equal(elements["#swap-pair"].disabled,true);
 assert.ok(textTree(elements["main"]).includes("当前只有一份登记答卷"));
 data.submissions=[];elements["#compare-left"].value="";context.syncPair();context.render();
 assert.ok(textTree(elements["main"]).includes("暂无登记答卷"));
+data.submissions=[{key:"alpha",displayName:"alpha",status:"complete",pieces:[sample("041","products","alpha")]},{key:"beta",displayName:"beta",status:"forfeited",forfeitReason:"空答卷",pieces:[]}];
+elements["#answer-filter"].value="";context.setMode("browse");
+assert.equal(currentCards().length,1);
+assert.ok(textTree(elements["main"]).includes("beta · 我是鸡 — 空答卷 · 已完成 0 / 50 题"),"all-submissions scope must not hide empty forfeited submissions");
+data.submissions=[{key:"alpha",displayName:"alpha",status:"forfeited",forfeitReason:"没有完成作品",pieces:[]}];
+context.setMode("browse");
+assert.ok(textTree(elements["main"]).includes("我是鸡 — 没有完成作品 · 已完成 0 / 50 题"),"empty forfeited submissions must keep their public notice");
+assert.equal(elements["#question-progress"].textContent,"0 / 0");
 """,
                 encoding="utf-8",
             )
