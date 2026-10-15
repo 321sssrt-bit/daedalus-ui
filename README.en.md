@@ -37,10 +37,11 @@ The unified [live gallery](https://321sssrt-bit.github.io/daedalus-ui/) can be b
 
 ## Current public submissions
 
-Eighteen submissions are published: seventeen complete and one forfeited. The newest is at the top. Open a dedicated gallery below, or use the **[combined gallery](https://321sssrt-bit.github.io/daedalus-ui/)** to browse them together. Completion and status follow each submission's `model.json`.
+Nineteen submissions are published: eighteen complete and one forfeited. The newest is at the top. Open a dedicated gallery below, or use the **[combined gallery](https://321sssrt-bit.github.io/daedalus-ui/)** to browse them together. Completion and status follow each submission's `model.json`.
 
 | Harness | Model | Reasoning effort | Completion | Status | Gallery |
 | --- | --- | --- | --- | --- | --- |
+| Kimi Work | K3 | `极致` | 50 / 50 | Complete | [Open gallery →](https://321sssrt-bit.github.io/daedalus-ui/submissions/kimi-work--k3--jizhi/) |
 | grokbot | grokbot | `default` | 50 / 50 | Complete | [Open gallery →](https://321sssrt-bit.github.io/daedalus-ui/submissions/grokbot--grokbot--default/) |
 | Opencode | Muse Spark 1.3 Contributor Free | `xhigh` | 50 / 50 | Complete | [Open gallery →](https://321sssrt-bit.github.io/daedalus-ui/submissions/opencode--muse-spark-1.3-contributor-free--xhigh/) |
 | Codex | GPT-6.1 Sol | `ultra` | 50 / 50 | Complete | [Open gallery →](https://321sssrt-bit.github.io/daedalus-ui/submissions/codex--gpt-6.1-sol--ultra/) |
