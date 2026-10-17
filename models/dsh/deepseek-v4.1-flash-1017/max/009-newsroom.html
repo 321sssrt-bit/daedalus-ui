@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>头版 · 今日总览</title>
+<style>
+:root{
+  --ink:#161513;--paper:#f4f1ea;--card:#fbf8f2;--red:#d02b1f;--gray:#6f6a62;
+  --line:#d8d2c6;--blue:#2c4a6b;--sand:#e8e1d4;--white:#fffdf8;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font:14px/1.55 "Avenir Next","PingFang SC","Microsoft YaHei",sans-serif;min-height:100vh}
+.app{display:grid;grid-template-columns:232px minmax(0,1fr);min-height:100vh}
+.side{background:var(--ink);color:#e9e3d8;padding:26px 18px 20px;display:flex;flex-direction:column;position:sticky;top:0;height:100vh}
+.logo{display:flex;align-items:baseline;gap:8px;font:600 26px/1 "Songti SC","Noto Serif SC",Georgia,serif;letter-spacing:.06em;padding:0 10px 22px;border-bottom:1px solid #ffffff1f}
+.logo small{font:9px/1 ui-monospace,Consolas,monospace;letter-spacing:.24em;color:#b8b0a2}
+.nav{margin-top:20px;display:grid;gap:2px}
+.nav a{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:4px;color:#b8b0a2;text-decoration:none;font-size:13px;letter-spacing:.02em}
+.nav a span{font:9px/1 ui-monospace,Consolas,monospace;color:#7c766c;letter-spacing:.08em;margin-left:auto}
+.nav a:hover{background:#ffffff0d;color:#f4f1ea}
+.nav a.active{background:#f4f1ea;color:var(--ink);font-weight:600}
+.nav a.active span{color:var(--red)}
+.side-foot{margin-top:auto;padding:16px 10px 0;border-top:1px solid #ffffff1f;display:flex;align-items:center;gap:10px}
+.side-foot .ava{width:30px;height:30px;border-radius:50%;background:#3d3a34;display:grid;place-items:center;font:600 10px/1 ui-monospace,Consolas,monospace;color:#e9e3d8}
+.side-foot b{display:block;font-size:12px;color:#eee8dd}
+.side-foot span{font:9px/1.4 ui-monospace,Consolas,monospace;color:#8a8478;letter-spacing:.08em}
+.main{display:flex;flex-direction:column;min-width:0}
+.top{display:flex;align-items:center;gap:18px;padding:18px 28px;border-bottom:1px solid var(--line);background:var(--paper)}
+.top .date{font:600 12px/1.4 ui-monospace,Consolas,monospace;letter-spacing:.1em;color:var(--gray)}
+.top .deadline{margin-left:auto;display:flex;align-items:center;gap:8px;font:11px/1 ui-monospace,Consolas,monospace;letter-spacing:.06em;color:var(--red)}
+.top .deadline i{width:7px;height:7px;border-radius:50%;background:var(--red);animation:pulse 2.2s infinite}
+.top button{height:36px;padding:0 14px;border:1px solid var(--ink);border-radius:3px;background:var(--ink);color:var(--paper);font:12px/1 "Avenir Next","PingFang SC",sans-serif;letter-spacing:.08em;cursor:pointer}
+.top button:hover{background:var(--red);border-color:var(--red)}
+.content{padding:26px 28px 30px;display:grid;grid-template-columns:minmax(0,1fr) 336px;gap:22px;flex:1}
+h1{margin:0;font:400 30px/1.2 "Songti SC","Noto Serif SC",Georgia,serif;letter-spacing:.01em}
+.sub{margin:4px 0 18px;font:11px/1.6 ui-monospace,Consolas,monospace;color:var(--gray);letter-spacing:.06em}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:22px}
+.kpi{background:var(--card);border:1px solid var(--line);padding:14px 16px 12px;position:relative;overflow:hidden}
+.kpi::before{content:"";position:absolute;left:0;top:0;width:3px;height:100%;background:var(--ink)}
+.kpi.red::before{background:var(--red)}
+.kpi.blue::before{background:var(--blue)}
+.kpi span{font:10px/1 ui-monospace,Consolas,monospace;letter-spacing:.14em;color:var(--gray)}
+.kpi b{display:block;font:400 44px/1.1 "Songti SC",Georgia,serif;margin:8px 0 2px;letter-spacing:-.02em}
+.kpi small{font:10px/1.5 ui-monospace,Consolas,monospace;color:#918b80;letter-spacing:.04em}
+.kpi em{font-style:normal;color:var(--red)}
+.queue{background:var(--card);border:1px solid var(--line)}
+.queue-head{display:flex;align-items:center;gap:4px;padding:12px 14px;border-bottom:1px solid var(--line)}
+.queue-head h2{margin:0 12px 0 0;font:600 13px/1 "Songti SC",Georgia,serif;letter-spacing:.08em}
+.tab{height:28px;padding:0 10px;border:1px solid transparent;border-radius:999px;background:transparent;color:var(--gray);font:11px/1 "Avenir Next","PingFang SC",sans-serif;cursor:pointer}
+.tab:hover{color:var(--ink)}
+.tab[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.queue-head .count{margin-left:auto;font:10px/1 ui-monospace,Consolas,monospace;color:var(--gray);letter-spacing:.06em}
+.rows{display:flex;flex-direction:column}
+.row{display:grid;grid-template-columns:44px minmax(0,1fr) 88px 76px;gap:12px;align-items:center;padding:12px 14px;border-bottom:1px solid #e6dfd2;cursor:pointer;text-align:left;background:transparent;border-left:0;border-right:0;border-top:0;font:inherit;color:inherit}
+.row:last-child{border-bottom:0}
+.row:hover{background:#f2ede2}
+.row.active{background:#efe8d9;box-shadow:inset 3px 0 0 var(--red)}
+.row .time{font:10px/1 ui-monospace,Consolas,monospace;color:#918b80;letter-spacing:.04em}
+.row .title{font-size:13px;line-height:1.45;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row .by{display:block;font:10px/1.4 ui-monospace,Consolas,monospace;color:#918b80;font-weight:400;margin-top:3px;letter-spacing:.02em}
+.chip{justify-self:start;padding:3px 8px;border-radius:2px;font:10px/1.4 ui-monospace,Consolas,monospace;letter-spacing:.04em;white-space:nowrap}
+.chip.review{background:#f3e3df;color:#a52a20}
+.chip.ready{background:#e4e9df;color:#425a3f}
+.chip.layout{background:#e2e8ee;color:#2c4a6b}
+.row .flag{font:10px/1.4 ui-monospace,Consolas,monospace;color:var(--gray);justify-self:end;white-space:nowrap}
+.row .flag b{color:var(--red);font-weight:600}
+.detail{background:var(--card);border:1px solid var(--line);padding:18px;position:sticky;top:18px;align-self:start}
+.detail .kicker{margin:0 0 10px;font:10px/1 ui-monospace,Consolas,monospace;letter-spacing:.2em;color:var(--red)}
+.detail h3{margin:0 0 8px;font:400 23px/1.35 "Songti SC","Noto Serif SC",Georgia,serif}
+.detail .meta{font:10px/1.8 ui-monospace,Consolas,monospace;color:#918b80;letter-spacing:.04em;padding-bottom:12px;border-bottom:1px solid var(--line)}
+.detail p{font-size:12px;line-height:1.9;color:#5f5a51;margin:12px 0 16px}
+.actions{display:flex;gap:8px}
+.approve{flex:1;height:36px;border:0;border-radius:3px;background:var(--ink);color:var(--paper);font:12px/1 "Avenir Next","PingFang SC",sans-serif;letter-spacing:.06em;cursor:pointer}
+.approve:hover{background:var(--blue)}
+.return{height:36px;padding:0 12px;border:1px solid var(--line);border-radius:3px;background:transparent;color:var(--gray);font-size:12px;cursor:pointer}
+.return:hover{border-color:var(--red);color:var(--red)}
+.note{margin-top:14px;padding:10px 12px;background:#efe8d9;font:10px/1.7 ui-monospace,Consolas,monospace;color:#7a7368;letter-spacing:.03em}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
+:focus-visible{outline:2px solid var(--red);outline-offset:2px}
+@media(max-width:1080px){
+  .content{grid-template-columns:minmax(0,1fr)}
+  .detail{position:static}
+}
+@media(max-width:780px){
+  .app{grid-template-columns:1fr}
+  .side{position:static;height:auto;flex-direction:row;align-items:center;padding:14px 16px;gap:12px}
+  .logo{border:0;padding:0;font-size:20px}
+  .nav{display:none}
+  .side-foot{margin:0 0 0 auto;border:0;padding:0}
+  .side-foot div{display:none}
+  .content{padding:18px 16px}
+  .kpis{grid-template-columns:1fr 1fr}
+  .row{grid-template-columns:38px minmax(0,1fr) 76px}
+  .row .flag{display:none}
+}
+@media(max-width:520px){
+  .kpis{grid-template-columns:1fr}
+  .top{flex-wrap:wrap;padding:14px 16px}
+  .top .deadline{margin-left:0}
+  .top button{width:100%}
+  h1{font-size:25px}
+}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="side">
+    <div class="logo">头版<small>FRONT PAGE</small></div>
+    <nav class="nav" aria-label="工作台导航">
+      <a class="active" href="#overview">今日总览 <span>01</span></a>
+      <a href="#topics">选题池 <span>24</span></a>
+      <a href="#drafts">稿件 <span>12</span></a>
+      <a href="#layout">版面 <span>03</span></a>
+      <a href="#publish">发布 <span>—</span></a>
+    </nav>
+    <div class="side-foot"><span class="ava">周</span><div><b>周予安</b><span>值班主编</span></div></div>
+  </aside>
+
+  <main class="main">
+    <header class="top">
+      <span class="date">10.17 周五 · 第 2,847 期</span>
+      <span class="deadline"><i></i>晚报截稿 23:30</span>
+      <button type="button" id="new-story">＋ 新建选题</button>
+    </header>
+
+    <section class="content">
+      <div>
+        <h1>今晚的头版，还差三块拼图。</h1>
+        <p class="sub">MORNING EDITION CLOSED · EVENING DESK OPEN</p>
+
+        <div class="kpis">
+          <div class="kpi red"><span>待审稿件</span><b id="kpi-review">12</b><small>其中 <em>3 篇</em> 超过 48 小时</small></div>
+          <div class="kpi"><span>今日已上线</span><b>8</b><small>比昨日多 2 篇 · 平均阅读 4′12″</small></div>
+          <div class="kpi blue"><span>版面冲突</span><b>2</b><small>头版与本地版重复</small></div>
+        </div>
+
+        <section class="queue" aria-label="待处理队列">
+          <div class="queue-head">
+            <h2>处理队列</h2>
+            <button class="tab" type="button" data-filter="all" aria-pressed="true">全部</button>
+            <button class="tab" type="button" data-filter="review" aria-pressed="false">待审</button>
+            <button class="tab" type="button" data-filter="ready" aria-pressed="false">可发</button>
+            <span class="count" id="row-count">6 条 · 按优先级</span>
+          </div>
+          <div class="rows" id="rows">
+            <button class="row active" type="button" data-status="review" data-title="城市在凌晨四点醒来" data-by="林见鹿 · 特稿" data-time="22:10" data-excerpt="环卫车经过安福路时，第一笼包子刚好上汽。我们跟了三条街，记录这座城市最安静的两个小时。" data-priority="头版">
+              <span class="time">22:10</span>
+              <span class="title">城市在凌晨四点醒来<span class="by">林见鹿 · 特稿</span></span>
+              <span class="chip review">待审</span>
+              <span class="flag"><b>头版</b> · A1</span>
+            </button>
+            <button class="row" type="button" data-status="review" data-title="一条河的第二次呼吸" data-by="陈默 · 调查" data-time="21:40" data-excerpt="治理第六年，水质数据第一次连续三个月达标。但沿岸还有 11 个排口没有完成改造。" data-priority="深度">
+              <span class="time">21:40</span>
+              <span class="title">一条河的第二次呼吸<span class="by">陈默 · 调查</span></span>
+              <span class="chip review">待审</span>
+              <span class="flag">深度 · B2</span>
+            </button>
+            <button class="row" type="button" data-status="ready" data-title="地铁末班车上的十二种睡姿" data-by="苏禾 · 影像" data-time="20:55" data-excerpt="末班车是一天里最柔软的时段。我们把镜头放低，记录十二个困倦但放松的人。" data-priority="视觉">
+              <span class="time">20:55</span>
+              <span class="title">地铁末班车上的十二种睡姿<span class="by">苏禾 · 影像</span></span>
+              <span class="chip ready">可发</span>
+              <span class="flag">视觉 · C1</span>
+            </button>
+            <button class="row" type="button" data-status="layout" data-title="旧书店的最后一周" data-by="何岸 · 城市" data-time="19:20" data-excerpt="老板把最后一箱书搬上车，门口的黑板还写着「全场五折，欢迎来坐」。" data-priority="本地">
+              <span class="time">19:20</span>
+              <span class="title">旧书店的最后一周<span class="by">何岸 · 城市</span></span>
+              <span class="chip layout">排版中</span>
+              <span class="flag">本地 · D3</span>
+            </button>
+            <button class="row" type="button" data-status="review" data-title="外卖骑手的雨天算法" data-by="沈一 · 数据" data-time="18:45" data-excerpt="雨天补贴上调的同一小时，超时率也上升了 14%。我们拆开了平台的三套调度规则。" data-priority="数据">
+              <span class="time">18:45</span>
+              <span class="title">外卖骑手的雨天算法<span class="by">沈一 · 数据</span></span>
+              <span class="chip review">待审</span>
+              <span class="flag">数据 · B1</span>
+            </button>
+            <button class="row" type="button" data-status="ready" data-title="给一盆薄荷找新家" data-by="顾青 · 生活" data-time="17:30" data-excerpt="搬家那天，她把养了三年的薄荷分了七盆，送给楼道里七户不熟的邻居。" data-priority="生活">
+              <span class="time">17:30</span>
+              <span class="title">给一盆薄荷找新家<span class="by">顾青 · 生活</span></span>
+              <span class="chip ready">可发</span>
+              <span class="flag">生活 · E2</span>
+            </button>
+          </div>
+        </section>
+      </div>
+
+      <aside class="detail" id="detail" aria-live="polite">
+        <p class="kicker" id="detail-kicker">A1 · 头版候选</p>
+        <h3 id="detail-title">城市在凌晨四点醒来</h3>
+        <p class="meta" id="detail-meta">林见鹿 · 特稿 · 22:10 交稿 · 3,240 字</p>
+        <p id="detail-excerpt">环卫车经过安福路时，第一笼包子刚好上汽。我们跟了三条街，记录这座城市最安静的两个小时。</p>
+        <div class="actions">
+          <button class="approve" id="approve" type="button">通过并占版</button>
+          <button class="return" id="return" type="button">退回修改</button>
+        </div>
+        <p class="note" id="note">通过后会自动锁定 A1 版面，并通知美编在 23:00 前出大样。</p>
+      </aside>
+    </section>
+  </main>
+</div>
+
+<script>
+const rows = Array.from(document.querySelectorAll('.row'));
+const tabs = Array.from(document.querySelectorAll('.tab'));
+let filter = 'all';
+let selected = rows[0];
+
+function showRow(row) {
+  selected = row;
+  rows.forEach(function (item) { item.classList.toggle('active', item === row); });
+  document.getElementById('detail-kicker').textContent = (row.dataset.priority === '头版' ? 'A1 · 头版候选' : row.dataset.priority + ' · 待处理');
+  document.getElementById('detail-title').textContent = row.dataset.title;
+  document.getElementById('detail-meta').textContent = row.dataset.by + ' · ' + row.dataset.time + ' 交稿';
+  document.getElementById('detail-excerpt').textContent = row.dataset.excerpt;
+  document.getElementById('note').textContent = '通过后会自动锁定版面，并通知美编在 23:00 前出大样。';
+  const approve = document.getElementById('approve');
+  approve.disabled = false;
+  approve.textContent = '通过并占版';
+}
+
+rows.forEach(function (row) {
+  row.addEventListener('click', function () { showRow(row); });
+});
+
+tabs.forEach(function (tab) {
+  tab.addEventListener('click', function () {
+    filter = tab.dataset.filter;
+    tabs.forEach(function (item) { item.setAttribute('aria-pressed', String(item === tab)); });
+    let visible = 0;
+    rows.forEach(function (row) {
+      const show = filter === 'all' || row.dataset.status === filter;
+      row.hidden = !show;
+      if (show) visible += 1;
+    });
+    document.getElementById('row-count').textContent = visible + ' 条 · 按优先级';
+    const firstVisible = rows.find(function (row) { return !row.hidden; });
+    if (firstVisible) showRow(firstVisible);
+  });
+});
+
+document.getElementById('approve').addEventListener('click', function () {
+  const chip = selected.querySelector('.chip');
+  chip.textContent = '已通过';
+  chip.className = 'chip ready';
+  selected.dataset.status = 'ready';
+  document.getElementById('note').textContent = '已锁定版面。美编会在 23:00 前把大样送到你的桌上。';
+  document.getElementById('approve').textContent = '已通过';
+  document.getElementById('approve').disabled = true;
+  document.getElementById('kpi-review').textContent = '11';
+});
+
+document.getElementById('return').addEventListener('click', function () {
+  const chip = selected.querySelector('.chip');
+  chip.textContent = '退回中';
+  chip.className = 'chip review';
+  selected.dataset.status = 'review';
+  document.getElementById('note').textContent = '已退回给作者，附言会在编辑台里显示。';
+});
+
+document.getElementById('new-story').addEventListener('click', function () {
+  document.getElementById('note').textContent = '新选题草稿已创建，去「选题池」继续填写。';
+});
+</script>
+</body>
+</html>

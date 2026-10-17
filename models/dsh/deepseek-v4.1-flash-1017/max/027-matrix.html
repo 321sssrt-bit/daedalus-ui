@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>权 · 角色权限</title>
+<style>
+:root{
+  --paper:#f3f1eb;--card:#fffdf7;--ink:#222a35;--slate:#1e2632;--amber:#d9a441;
+  --blue:#4a6fa5;--line:#d5d2c7;--muted:#7a7f85;--soft:#eceae1;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font:14px/1.6 "Avenir Next","PingFang SC","Microsoft YaHei",sans-serif;min-height:100vh}
+.top{display:flex;align-items:center;gap:18px;padding:15px 28px;border-bottom:1px solid var(--line);background:var(--card)}
+.brand{display:flex;align-items:baseline;gap:8px;font:600 16px/1 "Songti SC","Noto Serif SC",Georgia,serif;letter-spacing:.18em}
+.brand small{font:9px/1 ui-monospace,Consolas,monospace;letter-spacing:.28em;color:var(--amber)}
+.top nav{display:flex;gap:16px;margin-left:14px}
+.top nav a{color:var(--muted);text-decoration:none;font-size:11px}
+.top nav a.on{color:var(--ink);border-bottom:2px solid var(--amber);padding-bottom:4px}
+.top .right{margin-left:auto;display:flex;align-items:center;gap:10px;font:9px/1 ui-monospace,Consolas,monospace;color:var(--muted);letter-spacing:.06em}
+.avatar{width:28px;height:28px;border-radius:6px;background:var(--slate);color:#f5f1e6;display:grid;place-items:center;font:600 9px/1 ui-monospace,Consolas,monospace}
+.layout{display:grid;grid-template-columns:250px minmax(0,1fr);max-width:1160px;margin:0 auto;padding:28px 28px 60px;gap:22px;align-items:start}
+.roles{background:var(--slate);color:#e9e4d8;padding:20px 14px 16px;position:sticky;top:20px}
+.roles h2{margin:0 10px 12px;font:9px/1 ui-monospace,Consolas,monospace;letter-spacing:.22em;color:#8f97a3}
+.role{display:flex;align-items:center;gap:10px;width:100%;padding:10px 10px;border:0;border-radius:3px;background:transparent;color:#b6bdc8;text-align:left;cursor:pointer;font:inherit}
+.role:hover{background:#ffffff0a;color:#fff}
+.role.on{background:#2d3746;color:#fff}
+.role .dot{width:6px;height:6px;border-radius:50%;background:#5b6674;flex:none}
+.role.on .dot{background:var(--amber)}
+.role b{font-size:12px;font-weight:600}
+.role span{margin-left:auto;font:9px/1 ui-monospace,Consolas,monospace;color:#7f8894}
+.role.on span{color:var(--amber)}
+.roles .add{margin-top:14px;width:100%;height:32px;border:1px dashed #4a5565;background:transparent;color:#8f97a3;font-size:10px;cursor:pointer}
+.roles .add:hover{border-color:var(--amber);color:var(--amber)}
+.roles .foot{margin-top:18px;padding-top:12px;border-top:1px solid #313b49;font:8.5px/1.8 ui-monospace,Consolas,monospace;color:#7f8894;letter-spacing:.03em}
+.panel{background:var(--card);border:1px solid var(--line)}
+.panel-head{display:flex;align-items:center;gap:12px;padding:16px 18px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.panel-head h1{margin:0;font:400 28px/1.2 "Songti SC","Noto Serif SC",Georgia,serif}
+.panel-head p{margin:2px 0 0;font:9px/1.6 ui-monospace,Consolas,monospace;color:var(--muted);letter-spacing:.04em}
+.panel-head .actions{margin-left:auto;display:flex;gap:8px;align-items:center}
+.previewbtn{height:32px;padding:0 12px;border:1px solid var(--line);border-radius:2px;background:transparent;color:var(--muted);font:10px/1 "Avenir Next","PingFang SC",sans-serif;cursor:pointer}
+.previewbtn:hover{border-color:var(--blue);color:var(--blue)}
+.save{height:32px;padding:0 14px;border:1px solid var(--ink);background:var(--ink);color:#f5f1e6;font:10px/1 "Avenir Next","PingFang SC",sans-serif;letter-spacing:.08em;cursor:pointer}
+.save:hover{background:var(--blue);border-color:var(--blue)}
+.save:disabled{opacity:.4;cursor:default}
+.banner{display:none;align-items:center;gap:10px;padding:9px 18px;background:#f7efdc;border-bottom:1px solid #e6d6b2;font:9px/1.6 ui-monospace,Consolas,monospace;color:#8a6a2c;letter-spacing:.03em}
+.banner.on{display:flex}
+.banner b{color:#6d5220;font-weight:600}
+.banner button{margin-left:auto;height:26px;padding:0 10px;border:1px solid #cbb07a;background:transparent;color:#7a5b22;font-size:9px;cursor:pointer}
+.group{border-bottom:1px solid var(--line)}
+.group-head{display:flex;align-items:center;gap:10px;padding:11px 18px;background:#f8f6ee}
+.group-head h2{margin:0;font:400 15px/1.3 "Songti SC",Georgia,serif}
+.group-head span{font:8.5px/1 ui-monospace,Consolas,monospace;color:var(--muted);letter-spacing:.08em}
+.perm{display:grid;grid-template-columns:minmax(0,1fr) 52px;gap:10px;align-items:center;padding:9px 18px;border-top:1px solid #efede4}
+.perm .name{font-size:11px;line-height:1.5}
+.perm .name span{display:block;font:8.5px/1.5 ui-monospace,Consolas,monospace;color:#9a9e99;letter-spacing:.02em}
+.check{width:20px;height:20px;border:1px solid #b9b5a8;border-radius:2px;background:#fffdf7;display:grid;place-items:center;cursor:pointer;color:transparent;font:11px/1 ui-monospace,Consolas,monospace;justify-self:center}
+.check[aria-pressed="true"]{background:var(--blue);border-color:var(--blue);color:#fff}
+.check:disabled{opacity:.4;cursor:not-allowed}
+.panel.previewing .group{opacity:.55}
+.panel.previewing .group.has-access{opacity:1}
+.panel-foot{display:flex;align-items:center;gap:12px;padding:12px 18px}
+.panel-foot .status{font:9px/1.5 ui-monospace,Consolas,monospace;color:var(--muted)}
+.panel-foot .status.dirty{color:#a06a2e}
+.panel-foot .save{margin-left:auto;height:36px;padding:0 18px}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:#f5f1e6;padding:8px 14px;font-size:11px;opacity:0;pointer-events:none;transition:opacity .18s}
+.toast.show{opacity:1}
+:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+@media(max-width:860px){
+  .layout{grid-template-columns:1fr;padding:18px 14px 50px}
+  .roles{position:static;display:flex;gap:4px;overflow-x:auto;padding:10px}
+  .roles h2,.roles .add,.roles .foot{display:none}
+  .role{width:auto;white-space:nowrap}
+  .role span{display:none}
+  .panel-head{padding:14px}
+  .panel-head h1{font-size:24px}
+  .panel-head .actions{width:100%;margin-left:0}
+  .previewbtn,.save{flex:1}
+}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand">权<small>MATRIX</small></div>
+  <nav aria-label="管理导航"><a href="#team">成员</a><a href="#roles" class="on">角色</a><a href="#audit">审计</a></nav>
+  <div class="right"><span>北岸工作室 · 12 人</span><span class="avatar">林</span></div>
+</header>
+
+<main class="layout">
+  <aside class="roles">
+    <h2>ROLES / 角色</h2>
+    <button class="role on" type="button" data-role="admin"><span class="dot"></span><b>管理员</b><span>2 人</span></button>
+    <button class="role" type="button" data-role="editor"><span class="dot"></span><b>编辑</b><span>6 人</span></button>
+    <button class="role" type="button" data-role="finance"><span class="dot"></span><b>财务</b><span>1 人</span></button>
+    <button class="role" type="button" data-role="viewer"><span class="dot"></span><b>访客</b><span>3 人</span></button>
+    <button class="add" type="button" id="add-role">＋ 新建角色</button>
+    <p class="foot">角色变更会在审计日志里留下记录。<br>成员可同时拥有多个角色。</p>
+  </aside>
+
+  <section class="panel" id="panel">
+    <div class="panel-head">
+      <div><h1 id="role-title">管理员</h1><p id="role-meta">2 位成员 · 拥有全部权限 · 不可删除</p></div>
+      <div class="actions"><button class="previewbtn" id="preview" type="button">预览此角色</button><button class="save" id="save" type="button" disabled>保存更改</button></div>
+    </div>
+    <div class="banner" id="banner"><b>正在以「管理员」身份预览</b> · 权限为只读，退出后可继续编辑。<button type="button">退出预览</button></div>
+
+    <div class="group has-access" data-module="content">
+      <div class="group-head"><h2>内容</h2><span>CONTENT</span></div>
+      <div class="perm"><div class="name">查看稿件与素材<span>content:read</span></div><button class="check" type="button" data-perm="content.read" aria-pressed="true" aria-label="查看内容">✓</button></div>
+      <div class="perm"><div class="name">编辑与删除稿件<span>content:write</span></div><button class="check" type="button" data-perm="content.write" aria-pressed="true" aria-label="编辑内容">✓</button></div>
+      <div class="perm"><div class="name">发布与下线<span>content:publish</span></div><button class="check" type="button" data-perm="content.publish" aria-pressed="true" aria-label="发布内容">✓</button></div>
+    </div>
+
+    <div class="group has-access" data-module="team">
+      <div class="group-head"><h2>成员</h2><span>TEAM</span></div>
+      <div class="perm"><div class="name">查看成员目录<span>team:read</span></div><button class="check" type="button" data-perm="team.read" aria-pressed="true" aria-label="查看成员">✓</button></div>
+      <div class="perm"><div class="name">邀请新成员<span>team:invite</span></div><button class="check" type="button" data-perm="team.invite" aria-pressed="true" aria-label="邀请成员">✓</button></div>
+      <div class="perm"><div class="name">移除成员与转移角色<span>team:remove</span></div><button class="check" type="button" data-perm="team.remove" aria-pressed="true" aria-label="移除成员">✓</button></div>
+    </div>
+
+    <div class="group has-access" data-module="billing">
+      <div class="group-head"><h2>账单</h2><span>BILLING</span></div>
+      <div class="perm"><div class="name">查看发票与用量<span>billing:read</span></div><button class="check" type="button" data-perm="billing.read" aria-pressed="true" aria-label="查看账单">✓</button></div>
+      <div class="perm"><div class="name">更换方案与支付方式<span>billing:manage</span></div><button class="check" type="button" data-perm="billing.manage" aria-pressed="true" aria-label="管理账单">✓</button></div>
+    </div>
+
+    <div class="group has-access" data-module="settings">
+      <div class="group-head"><h2>设置</h2><span>SETTINGS</span></div>
+      <div class="perm"><div class="name">查看工作区设置<span>settings:read</span></div><button class="check" type="button" data-perm="settings.read" aria-pressed="true" aria-label="查看设置">✓</button></div>
+      <div class="perm"><div class="name">修改域名与集成<span>settings:write</span></div><button class="check" type="button" data-perm="settings.write" aria-pressed="true" aria-label="修改设置">✓</button></div>
+    </div>
+
+    <div class="panel-foot"><span class="status" id="status">没有未保存的更改</span><button class="save" id="save2" type="button" disabled>保存更改</button></div>
+  </section>
+</main>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+const roles = {
+  admin: { name: '管理员', meta: '2 位成员 · 拥有全部权限 · 不可删除', perms: ['content.read', 'content.write', 'content.publish', 'team.read', 'team.invite', 'team.remove', 'billing.read', 'billing.manage', 'settings.read', 'settings.write'] },
+  editor: { name: '编辑', meta: '6 位成员 · 负责内容生产，不能接触账单', perms: ['content.read', 'content.write', 'content.publish', 'team.read', 'team.invite', 'settings.read'] },
+  finance: { name: '财务', meta: '1 位成员 · 只看账单与发票，不能改内容', perms: ['billing.read', 'billing.manage', 'team.read'] },
+  viewer: { name: '访客', meta: '3 位成员 · 只读，适合外部合作方', perms: ['content.read', 'team.read'] }
+};
+let current = 'admin';
+let dirty = false;
+let previewing = false;
+
+function applyRole() {
+  const role = roles[current];
+  document.getElementById('role-title').textContent = role.name;
+  document.getElementById('role-meta').textContent = role.meta;
+  document.querySelectorAll('.check').forEach(function (check) {
+    check.setAttribute('aria-pressed', String(role.perms.includes(check.dataset.perm)));
+  });
+  document.querySelectorAll('.group').forEach(function (group) {
+    const module = group.dataset.module;
+    const any = role.perms.some(function (perm) { return perm.indexOf(module + '.') === 0; });
+    group.classList.toggle('has-access', any);
+  });
+  document.getElementById('banner').innerHTML = '<b>正在以「' + role.name + '」身份预览</b> · 权限为只读，退出后可继续编辑。<button type="button">退出预览</button>';
+  document.getElementById('banner').classList.toggle('on', previewing);
+  bindExit();
+  setDirty(false);
+}
+
+function setDirty(value) {
+  dirty = value;
+  const status = document.getElementById('status');
+  status.textContent = value ? '有未保存的更改' : '没有未保存的更改';
+  status.classList.toggle('dirty', value);
+  document.getElementById('save').disabled = !value || previewing;
+  document.getElementById('save2').disabled = !value || previewing;
+}
+
+document.querySelectorAll('.role').forEach(function (button) {
+  button.addEventListener('click', function () {
+    current = button.dataset.role;
+    previewing = false;
+    document.getElementById('panel').classList.remove('previewing');
+    document.querySelectorAll('.role').forEach(function (item) { item.classList.toggle('on', item === button); });
+    applyRole();
+  });
+});
+
+document.querySelectorAll('.check').forEach(function (check) {
+  check.addEventListener('click', function () {
+    if (previewing || check.disabled) return;
+    const on = check.getAttribute('aria-pressed') === 'true';
+    check.setAttribute('aria-pressed', String(!on));
+    const perm = check.dataset.perm;
+    const list = roles[current].perms;
+    if (on) {
+      roles[current].perms = list.filter(function (item) { return item !== perm; });
+    } else if (!list.includes(perm)) {
+      list.push(perm);
+    }
+    setDirty(true);
+  });
+});
+
+function bindExit() {
+  const exit = document.querySelector('#banner button');
+  if (exit) {
+    exit.addEventListener('click', function () {
+      previewing = false;
+      document.getElementById('panel').classList.remove('previewing');
+      document.getElementById('banner').classList.remove('on');
+      document.querySelectorAll('.check').forEach(function (check) { check.disabled = false; });
+      document.getElementById('preview').textContent = '预览此角色';
+      setDirty(dirty);
+    });
+  }
+}
+
+document.getElementById('preview').addEventListener('click', function () {
+  previewing = !previewing;
+  document.getElementById('panel').classList.toggle('previewing', previewing);
+  document.getElementById('banner').classList.toggle('on', previewing);
+  document.querySelectorAll('.check').forEach(function (check) { check.disabled = previewing; });
+  document.getElementById('preview').textContent = previewing ? '退出预览' : '预览此角色';
+  setDirty(dirty);
+  toast(previewing ? '已进入只读预览。' : '已退出预览。');
+});
+
+function save() {
+  setDirty(false);
+  toast('角色权限已保存，审计日志已记录。');
+}
+document.getElementById('save').addEventListener('click', save);
+document.getElementById('save2').addEventListener('click', save);
+
+document.getElementById('add-role').addEventListener('click', function () {
+  toast('新角色默认只读，创建后可以逐项勾选。');
+});
+
+function toast(text) {
+  const el = document.getElementById('toast');
+  el.textContent = text;
+  el.classList.add('show');
+  clearTimeout(toast.timer);
+  toast.timer = setTimeout(function () { el.classList.remove('show'); }, 2200);
+}
+
+applyRole();
+if (window.matchMedia('(max-width: 860px)').matches) {
+  document.querySelector('.role.on span').style.display = 'none';
+}
+</script>
+</body>
+</html>

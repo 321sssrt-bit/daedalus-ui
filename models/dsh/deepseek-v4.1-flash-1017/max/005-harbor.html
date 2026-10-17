@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>潮汐 · 找回密码</title>
+<style>
+:root{
+  --paper:#f4f1e8;--ink:#1d2a28;--deep:#123c3a;--foam:#9fc4bb;--coral:#d97757;
+  --line:#d9d2c2;--muted:#6f7f78;--field:#fbf9f2;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.7 "Avenir Next","PingFang SC","Microsoft YaHei",sans-serif}
+.shell{display:grid;grid-template-columns:96px minmax(0,1fr);min-height:100vh}
+.rail{background:var(--deep);color:#e9efe9;display:flex;flex-direction:column;align-items:center;padding:30px 0;position:relative;overflow:hidden}
+.rail::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(180deg,#ffffff06 0 1px,transparent 1px 7px)}
+.rail-brand{writing-mode:vertical-rl;font:400 25px/1 "Songti SC","Noto Serif SC",Georgia,serif;letter-spacing:.34em;position:relative;z-index:2}
+.rail-brand span{font:600 9px/1 ui-monospace,Consolas,monospace;letter-spacing:.4em;opacity:.55;margin-top:14px;display:inline-block}
+.rail-note{writing-mode:vertical-rl;margin-top:auto;font:9px/1 ui-monospace,Consolas,monospace;letter-spacing:.4em;color:#e9efe988;position:relative;z-index:2}
+.main{position:relative;display:flex;justify-content:center;align-items:center;padding:56px 32px;overflow:hidden}
+.waves{position:absolute;right:-180px;bottom:-220px;width:760px;height:560px;border-radius:50%;border:1px solid #9fc4bb55;box-shadow:0 0 0 40px #9fc4bb2e,0 0 0 90px #9fc4bb1f,0 0 0 150px #9fc4bb12;pointer-events:none}
+.waves::before{content:"";position:absolute;inset:70px;border-radius:50%;border:1px solid #9fc4bb44}
+.card{width:min(520px,100%);position:relative;z-index:2}
+.kicker{margin:0 0 18px;font:600 10px/1 ui-monospace,Consolas,monospace;letter-spacing:.3em;color:var(--coral)}
+h1{margin:0;font:400 42px/1.3 "Songti SC","Noto Serif SC",Georgia,serif;letter-spacing:.01em}
+.lede{margin:16px 0 30px;font-size:14px;line-height:1.95;color:var(--muted);max-width:440px}
+.tabs{display:flex;gap:4px;padding:4px;border:1px solid var(--line);border-radius:999px;width:max-content;margin-bottom:22px;background:#efeadd}
+.tabs button{height:34px;padding:0 18px;border:0;border-radius:999px;background:transparent;color:var(--muted);font:12px/1 "Avenir Next","PingFang SC",sans-serif;letter-spacing:.08em;cursor:pointer}
+.tabs button[aria-selected="true"]{background:var(--deep);color:#f4f1e8}
+.field-label{display:block;margin-bottom:8px;font-size:12px;font-weight:600;letter-spacing:.06em;color:#4e5f58}
+.field-label span{font-weight:400;color:var(--muted);margin-left:8px;letter-spacing:0}
+input{width:100%;height:54px;padding:0 16px;border:1px solid var(--line);border-radius:4px;background:var(--field);color:var(--ink);font:16px/1 "Avenir Next","PingFang SC",sans-serif;outline:none;transition:border-color .16s,box-shadow .16s}
+input:hover{border-color:#b9b09c}
+input:focus{border-color:var(--deep);box-shadow:0 0 0 3px #123c3a1a}
+input::placeholder{color:#a7ada5}
+.error{margin:10px 0 0;color:#a8452f;font-size:12px;line-height:1.7}
+.send{width:100%;height:52px;margin-top:18px;border:0;border-radius:999px;background:var(--deep);color:#f4f1e8;font:600 14px/1 "Avenir Next","PingFang SC",sans-serif;letter-spacing:.12em;cursor:pointer;transition:background .16s,transform .16s}
+.send:hover{background:#1b5551}
+.send:active{transform:translateY(1px)}
+.send:disabled{opacity:.7;cursor:wait}
+.back{margin:22px 0 0;font-size:12px;color:var(--muted)}
+.back a{color:var(--deep);text-decoration:none;border-bottom:1px solid #123c3a55}
+.sent{padding-top:6px}
+.envelope{width:66px;height:46px;border:1.5px solid var(--deep);border-radius:3px;position:relative;margin-bottom:22px}
+.envelope::before{content:"";position:absolute;left:0;top:0;width:32px;height:32px;border-right:1.5px solid var(--deep);border-bottom:1.5px solid var(--deep);transform:rotate(45deg) translate(8px,-26px);background:var(--paper)}
+.sent h2{margin:0 0 10px;font:400 32px/1.3 "Songti SC",Georgia,serif}
+.sent p{margin:0;color:var(--muted);font-size:13px;line-height:1.95;max-width:430px}
+.sent .to{display:inline-block;margin:14px 0 0;padding:6px 12px;border:1px dashed #b9c9c2;border-radius:4px;font:600 12px/1 ui-monospace,Consolas,monospace;color:var(--deep);letter-spacing:.04em;word-break:break-all}
+.wait{display:flex;align-items:center;gap:12px;margin-top:24px;padding-top:18px;border-top:1px solid var(--line)}
+.clock{width:34px;height:34px;border-radius:50%;border:1px solid var(--foam);display:grid;place-items:center;font:600 10px/1 ui-monospace,Consolas,monospace;color:var(--deep);flex:none}
+.wait-copy{flex:1;font-size:12px;line-height:1.7;color:var(--muted)}
+.resend{height:36px;padding:0 14px;border:1px solid var(--deep);border-radius:999px;background:transparent;color:var(--deep);font:12px/1 "Avenir Next","PingFang SC",sans-serif;cursor:pointer;flex:none}
+.resend:disabled{opacity:.4;cursor:default;border-color:var(--line);color:var(--muted)}
+.sent .back{margin-top:20px}
+.tip{margin-top:36px;padding-top:14px;border-top:1px solid var(--line);font:11px/1.9 ui-monospace,Consolas,monospace;color:#9aa79f;letter-spacing:.04em}
+:focus-visible{outline:2px solid var(--coral);outline-offset:3px}
+@media(max-width:820px){
+  .shell{grid-template-columns:58px minmax(0,1fr)}
+  .rail-brand{font-size:20px}
+  .main{padding:36px 20px;align-items:flex-start}
+  h1{font-size:33px}
+  .waves{right:-320px;bottom:-300px}
+}
+@media(max-width:520px){
+  .shell{grid-template-columns:1fr}
+  .rail{flex-direction:row;justify-content:space-between;padding:14px 18px;min-height:auto}
+  .rail-brand{writing-mode:horizontal-tb;font-size:18px;letter-spacing:.2em}
+  .rail-brand span{margin:0 0 0 10px}
+  .rail-note{writing-mode:horizontal-tb;margin:0}
+  .main{padding:30px 18px}
+  h1{font-size:28px}
+}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<main class="shell">
+  <aside class="rail">
+    <div class="rail-brand">潮汐<span>TIDE</span></div>
+    <div class="rail-note">ACCOUNT RECOVERY · 02</div>
+  </aside>
+
+  <section class="main">
+    <div class="waves" aria-hidden="true"></div>
+    <div class="card">
+      <p class="kicker">找回入口 / 01</p>
+      <h1>风把密码吹走了，<br>我们把它找回来。</h1>
+      <p class="lede">输入注册时用的邮箱或手机号。我们会寄出一封带重置链接的信，链接三十分钟内有效，只用一次。</p>
+
+      <div class="tabs" role="tablist" aria-label="联系方式">
+        <button type="button" role="tab" id="tab-email" aria-selected="true" aria-controls="contact">用邮箱</button>
+        <button type="button" role="tab" id="tab-phone" aria-selected="false" aria-controls="contact">用手机号</button>
+      </div>
+
+      <form id="reset-form" novalidate>
+        <label class="field-label" for="contact" id="contact-label">邮箱 <span id="contact-note">例如：lan@example.com</span></label>
+        <input id="contact" name="contact" type="email" autocomplete="email" placeholder="lan@example.com">
+        <p class="error" id="error" role="alert" hidden></p>
+        <button class="send" id="send" type="submit">寄出重置信</button>
+      </form>
+
+      <div class="sent" id="sent" hidden>
+        <div class="envelope" aria-hidden="true"></div>
+        <h2>信已经寄出。</h2>
+        <p>如果这个联系方式在我们的名册上，你会收到一封来自潮汐的信。没看到的话，先翻翻垃圾邮件，或者等一分钟再试。</p>
+        <span class="to" id="sent-to">—</span>
+        <div class="wait">
+          <span class="clock" id="clock">30</span>
+          <span class="wait-copy" id="wait-copy">秒后可以重发。请留在这里，别关掉页面。</span>
+          <button class="resend" id="resend" type="button" disabled>重新发送</button>
+        </div>
+        <p class="back"><a href="#signin">记起来了？回登录</a></p>
+      </div>
+
+      <p class="back" id="back-login"><a href="#signin">回登录</a> · <a href="#help">联系人工客服</a></p>
+      <p class="tip">潮汐不会在信里向你索要密码。遇到可疑链接，请直接回到官网重新发起。</p>
+    </div>
+  </section>
+</main>
+
+<script>
+let mode = 'email';
+let seconds = 30;
+let timer = null;
+const contact = document.getElementById('contact');
+const label = document.getElementById('contact-label');
+const note = document.getElementById('contact-note');
+const form = document.getElementById('reset-form');
+const sent = document.getElementById('sent');
+const errorEl = document.getElementById('error');
+const sendButton = document.getElementById('send');
+const resend = document.getElementById('resend');
+const clock = document.getElementById('clock');
+const waitCopy = document.getElementById('wait-copy');
+const backLogin = document.getElementById('back-login');
+
+function setMode(next) {
+  mode = next;
+  const isEmail = next === 'email';
+  document.getElementById('tab-email').setAttribute('aria-selected', String(isEmail));
+  document.getElementById('tab-phone').setAttribute('aria-selected', String(!isEmail));
+  label.firstChild.textContent = isEmail ? '邮箱 ' : '手机号 ';
+  note.textContent = isEmail ? '例如：lan@example.com' : '例如：138 0000 0000';
+  contact.type = isEmail ? 'email' : 'tel';
+  contact.autocomplete = isEmail ? 'email' : 'tel';
+  contact.placeholder = isEmail ? 'lan@example.com' : '138 0000 0000';
+  contact.value = '';
+  contact.focus();
+}
+
+document.getElementById('tab-email').addEventListener('click', function () { setMode('email'); });
+document.getElementById('tab-phone').addEventListener('click', function () { setMode('phone'); });
+
+function mask(value) {
+  if (mode === 'phone') {
+    return value.replace(/\s/g, '').replace(/^(\d{3})\d{4}(\d{4})$/, '$1 **** $2');
+  }
+  const parts = value.split('@');
+  if (parts.length !== 2) return value;
+  const name = parts[0];
+  return name.slice(0, 2) + '•••' + '@' + parts[1];
+}
+
+function startCountdown() {
+  seconds = 30;
+  clock.textContent = String(seconds);
+  resend.disabled = true;
+  waitCopy.textContent = '秒后可以重发。请留在这里，别关掉页面。';
+  clearInterval(timer);
+  timer = setInterval(function () {
+    seconds -= 1;
+    clock.textContent = String(Math.max(0, seconds));
+    if (seconds <= 0) {
+      clearInterval(timer);
+      resend.disabled = false;
+      waitCopy.textContent = '还没有收到？可以再寄一次。';
+      clock.textContent = 'OK';
+    }
+  }, 1000);
+}
+
+form.addEventListener('submit', function (event) {
+  event.preventDefault();
+  const value = contact.value.trim();
+  errorEl.hidden = true;
+  if (!value) {
+    errorEl.textContent = mode === 'email' ? '请先填写注册邮箱。' : '请先填写注册手机号。';
+    errorEl.hidden = false;
+    contact.focus();
+    return;
+  }
+  if (mode === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+    errorEl.textContent = '这个邮箱格式不完整，请检查 @ 和后面的域名。';
+    errorEl.hidden = false;
+    contact.focus();
+    return;
+  }
+  if (mode === 'phone' && !/^1\d{10}$/.test(value.replace(/\s/g, ''))) {
+    errorEl.textContent = '手机号应该是 11 位数字，以 1 开头。';
+    errorEl.hidden = false;
+    contact.focus();
+    return;
+  }
+  sendButton.disabled = true;
+  sendButton.textContent = '正在把信放进邮筒…';
+  setTimeout(function () {
+    form.hidden = true;
+    backLogin.hidden = true;
+    sent.hidden = false;
+    document.getElementById('sent-to').textContent = mask(value);
+    startCountdown();
+    document.getElementById('resend').focus();
+  }, 850);
+});
+
+resend.addEventListener('click', function () {
+  resend.disabled = true;
+  resend.textContent = '正在重寄…';
+  setTimeout(function () {
+    resend.textContent = '重新发送';
+    startCountdown();
+  }, 650);
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>筛 · 材料检索</title>
+<style>
+:root{
+  --paper:#f4f1f3;--card:#fffafc;--ink:#2a2228;--magenta:#b03a6e;--line:#ded6dc;
+  --muted:#6f6670;--soft:#eee6eb;
+}
+*{box-sizing:border-box}
+body{margin:0;background:
+  radial-gradient(800px 400px at 100% 0%,#fdf9fb 0%,transparent 60%),var(--paper);
+  color:var(--ink);font:14px/1.65 "Avenir Next","PingFang SC","Microsoft YaHei",sans-serif;min-height:100vh}
+.top{display:flex;align-items:center;gap:18px;padding:15px 28px;border-bottom:1px solid var(--line);background:#faf6f8}
+.brand{display:flex;align-items:baseline;gap:8px;font:600 16px/1 "Songti SC","Noto Serif SC",Georgia,serif;letter-spacing:.24em}
+.brand small{font:9px/1 ui-monospace,Consolas,monospace;letter-spacing:.3em;color:var(--magenta)}
+.top .right{margin-left:auto;display:flex;align-items:center;gap:14px;font:9px/1 ui-monospace,Consolas,monospace;color:var(--muted);letter-spacing:.06em}
+.top .right b{color:var(--magenta);font-weight:600}
+main{max-width:1180px;margin:0 auto;padding:28px 26px 70px}
+.head{display:flex;align-items:flex-end;gap:20px;margin-bottom:20px}
+.kicker{margin:0 0 8px;font:600 9px/1 ui-monospace,Consolas,monospace;letter-spacing:.26em;color:var(--magenta)}
+h1{margin:0;font:400 36px/1.18 "Songti SC","Noto Serif SC",Georgia,serif}
+.head p{margin:0 0 4px auto;max-width:320px;font-size:11px;line-height:1.8;color:var(--muted);text-align:right}
+.layout{display:grid;grid-template-columns:272px minmax(0,1fr);gap:22px;align-items:start}
+.filters{background:var(--card);border:1px solid var(--line);position:sticky;top:18px}
+.filters-head{display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--line)}
+.filters-head h2{margin:0;font:400 17px/1.3 "Songti SC",Georgia,serif}
+.filters-head button{margin-left:auto;border:0;background:none;color:var(--muted);font:9px/1 ui-monospace,Consolas,monospace;letter-spacing:.06em;cursor:pointer;padding:0}
+.filters-head button:hover{color:var(--magenta)}
+.group{padding:13px 14px;border-bottom:1px solid #ece4e9}
+.group:last-child{border-bottom:0}
+.group h3{margin:0 0 8px;font:600 9px/1 ui-monospace,Consolas,monospace;letter-spacing:.2em;color:#9a8f97}
+.opt{display:flex;align-items:center;gap:8px;padding:4px 0;font-size:11px;color:#554b52;cursor:pointer}
+.opt input{width:14px;height:14px;accent-color:var(--magenta);flex:none}
+.opt span{margin-left:auto;font:8.5px/1 ui-monospace,Consolas,monospace;color:#a89da4}
+select{width:100%;height:32px;border:1px solid var(--line);background:#fff;color:var(--ink);font:11px/1 "Avenir Next","PingFang SC",sans-serif;padding:0 8px;outline:none}
+select:focus{border-color:var(--magenta)}
+.toolbar{display:flex;align-items:center;gap:10px;padding-bottom:10px;border-bottom:1px solid var(--ink);margin-bottom:14px}
+.toolbar .count{font:10px/1.5 ui-monospace,Consolas,monospace;color:var(--muted);letter-spacing:.04em}
+.toolbar .count b{color:var(--ink)}
+.toolbar .sort{margin-left:auto;display:flex;align-items:center;gap:6px;font:9px/1 ui-monospace,Consolas,monospace;color:var(--muted)}
+.toolbar .sort select{width:auto;height:28px;font-size:9px}
+.chips{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:12px}
+.chip{height:24px;padding:0 8px;border:1px solid #d9c6d1;border-radius:999px;background:#f8edf3;color:#8a3a5e;font:9px/22px ui-monospace,Consolas,monospace;cursor:pointer;letter-spacing:.02em}
+.chip:hover{background:var(--magenta);border-color:var(--magenta);color:#fff}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.card{border:1px solid var(--line);background:var(--card);padding:0;text-align:left;color:inherit;font:inherit;cursor:pointer;transition:border-color .15s}
+.card:hover{border-color:var(--magenta)}
+.card .visual{height:132px;position:relative;overflow:hidden;border-bottom:1px solid var(--line)}
+.mat1{background:radial-gradient(2px 2px at 20% 30%,#ffffff55 50%,transparent 51%),linear-gradient(150deg,#c98d6b,#8f5a3e)}
+.mat2{background:linear-gradient(155deg,#b9b4aa,#6f6a61 70%)}
+.mat2::before{content:"";position:absolute;left:18%;top:20%;width:64%;height:1px;background:#ffffff44;transform:rotate(-14deg);box-shadow:0 18px 0 #ffffff22,0 36px 0 #ffffff11}
+.mat3{background:linear-gradient(120deg,#8d8f93,#d9dadd 40%,#7a7c80 75%)}
+.mat3::before{content:"";position:absolute;left:0;right:0;top:50%;height:1px;background:#ffffff66;transform:rotate(-18deg)}
+.mat4{background:linear-gradient(160deg,#c9d8d8,#8fa9a9 70%);opacity:.9}
+.mat4::before{content:"";position:absolute;left:22%;top:14%;width:56%;height:72%;background:#ffffff33;border:1px solid #ffffff55}
+.mat5{background:linear-gradient(160deg,#b7a58c,#7e6a52)}
+.mat5::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(45deg,#ffffff08 0 2px,transparent 2px 6px)}
+.mat6{background:linear-gradient(160deg,#d8b6c0,#a86e80 70%)}
+.mat7{background:linear-gradient(160deg,#9fa9b4,#5d6a77)}
+.mat8{background:linear-gradient(160deg,#c8c3a8,#8a846b)}
+.card .no{position:absolute;left:9px;top:8px;font:9px/1 ui-monospace,Consolas,monospace;color:#fff;opacity:.8;letter-spacing:.1em}
+.card .avail{position:absolute;right:8px;top:8px;padding:2px 5px;background:#fffafcdd;border:1px solid #ffffff99;font:8px/1.4 ui-monospace,Consolas,monospace;color:#7a3a56;letter-spacing:.04em}
+.card .info{padding:10px 11px 11px}
+.card h2{margin:0 0 2px;font:400 16px/1.35 "Songti SC",Georgia,serif}
+.card .src{font:8.5px/1.6 ui-monospace,Consolas,monospace;color:#9a8f97;letter-spacing:.03em}
+.card .tags{display:flex;gap:4px;margin-top:7px}
+.card .tags span{padding:2px 5px;border:1px solid #eadfe5;background:#fbf4f7;font:8px/1.4 ui-monospace,Consolas,monospace;color:#8a7b83;letter-spacing:.02em}
+.empty{display:none;padding:60px 0;text-align:center;color:var(--muted)}
+.empty.on{display:block}
+.empty b{display:block;font:400 22px/1.3 "Songti SC",Georgia,serif;color:var(--ink);margin-bottom:6px}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:8px 14px;font-size:11px;opacity:0;pointer-events:none;transition:opacity .18s}
+.toast.show{opacity:1}
+:focus-visible{outline:2px solid var(--magenta);outline-offset:2px}
+@media(max-width:900px){
+  .layout{grid-template-columns:1fr}
+  .filters{position:static}
+  .head{flex-wrap:wrap}
+  .head p{margin-left:0;text-align:left}
+}
+@media(max-width:620px){
+  .top{padding:13px 16px}
+  main{padding:20px 14px 50px}
+  h1{font-size:29px}
+  .grid{grid-template-columns:1fr}
+  .group{padding:10px 12px}
+  .filters-head{padding:10px 12px}
+}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand">筛<small>LENS</small></div>
+  <div class="right"><span>材料档案 · 8 条记录</span><b>已选 0 个条件</b></div>
+</header>
+
+<main>
+  <div class="head">
+    <div><p class="kicker">MATERIAL ARCHIVE / 2026</p><h1>用几个条件，<br>把材料收窄。</h1></div>
+    <p>来自 12 个工作室的样块、照片与使用记录。筛选结果会立即更新，不需要按「查询」。</p>
+  </div>
+
+  <div class="layout">
+    <aside class="filters" aria-label="筛选条件">
+      <div class="filters-head"><h2>筛选</h2><button id="clear" type="button">清除全部</button></div>
+
+      <div class="group">
+        <h3>类型</h3>
+        <label class="opt"><input type="checkbox" data-filter="type" value="clay">陶土<span>2</span></label>
+        <label class="opt"><input type="checkbox" data-filter="type" value="stone">石材<span>2</span></label>
+        <label class="opt"><input type="checkbox" data-filter="type" value="metal">金属<span>2</span></label>
+        <label class="opt"><input type="checkbox" data-filter="type" value="glass">玻璃<span>1</span></label>
+        <label class="opt"><input type="checkbox" data-filter="type" value="textile">织物<span>1</span></label>
+      </div>
+
+      <div class="group">
+        <h3>年代</h3>
+        <select id="era" aria-label="年代">
+          <option value="all">全部年代</option>
+          <option value="2020">2020 年代</option>
+          <option value="2010">2010 年代</option>
+          <option value="older">2010 年以前</option>
+        </select>
+      </div>
+
+      <div class="group">
+        <h3>地区</h3>
+        <label class="opt"><input type="checkbox" data-filter="region" value="asia">亚洲<span>5</span></label>
+        <label class="opt"><input type="checkbox" data-filter="region" value="europe">欧洲<span>2</span></label>
+        <label class="opt"><input type="checkbox" data-filter="region" value="na">北美<span>1</span></label>
+      </div>
+
+      <div class="group">
+        <h3>可用性</h3>
+        <label class="opt"><input type="radio" name="avail" value="all" checked>全部</label>
+        <label class="opt"><input type="radio" name="avail" value="borrow">可借用</label>
+        <label class="opt"><input type="radio" name="avail" value="ref">仅参考</label>
+      </div>
+    </aside>
+
+    <section>
+      <div class="toolbar"><span class="count" id="count">8 项中的 <b>8</b> 项</span><div class="sort"><span>排序</span><select id="sort" aria-label="排序"><option value="new">最新添加</option><option value="old">最早添加</option></select></div></div>
+      <div class="chips" id="chips"></div>
+
+      <div class="grid" id="grid">
+        <article class="card" data-type="clay" data-era="2020" data-region="asia" data-avail="borrow" data-order="8">
+          <div class="visual mat1"><span class="no">M-081</span><span class="avail">可借用</span></div>
+          <div class="info"><h2>粗陶 · 铁斑釉面</h2><p class="src">景德镇 / 王师傅 / 2026</p><div class="tags"><span>陶土</span><span>手作</span></div></div>
+        </article>
+        <article class="card" data-type="stone" data-era="2010" data-region="europe" data-avail="ref" data-order="7">
+          <div class="visual mat2"><span class="no">M-080</span><span class="avail">仅参考</span></div>
+          <div class="info"><h2>石灰岩 · 细孔</h2><p class="src">葡萄牙 / 采石场 B / 2018</p><div class="tags"><span>石材</span><span>外墙</span></div></div>
+        </article>
+        <article class="card" data-type="metal" data-era="2020" data-region="asia" data-avail="borrow" data-order="6">
+          <div class="visual mat3"><span class="no">M-079</span><span class="avail">可借用</span></div>
+          <div class="info"><h2>拉丝铝 · 银灰</h2><p class="src">上海 / 金属工坊 / 2025</p><div class="tags"><span>金属</span><span>展陈</span></div></div>
+        </article>
+        <article class="card" data-type="glass" data-era="2020" data-region="asia" data-avail="ref" data-order="5">
+          <div class="visual mat4"><span class="no">M-078</span><span class="avail">仅参考</span></div>
+          <div class="info"><h2>压花玻璃 · 水波</h2><p class="src">沙溪 / 小窑 / 2024</p><div class="tags"><span>玻璃</span><span>隔断</span></div></div>
+        </article>
+        <article class="card" data-type="clay" data-era="older" data-region="na" data-avail="ref" data-order="4">
+          <div class="visual mat5"><span class="no">M-077</span><span class="avail">仅参考</span></div>
+          <div class="info"><h2>夯土 · 分层样本</h2><p class="src">新墨西哥 / 2020 前</p><div class="tags"><span>陶土</span><span>墙体</span></div></div>
+        </article>
+        <article class="card" data-type="textile" data-era="2010" data-region="asia" data-avail="borrow" data-order="3">
+          <div class="visual mat6"><span class="no">M-076</span><span class="avail">可借用</span></div>
+          <div class="info"><h2>植物染亚麻 · 茜色</h2><p class="src">大理 / 周氏染坊 / 2019</p><div class="tags"><span>织物</span><span>软装</span></div></div>
+        </article>
+        <article class="card" data-type="metal" data-era="2010" data-region="europe" data-avail="borrow" data-order="2">
+          <div class="visual mat7"><span class="no">M-075</span><span class="avail">可借用</span></div>
+          <div class="info"><h2>发黑钢 · 锻打面</h2><p class="src">柏林 / 铁匠 M / 2017</p><div class="tags"><span>金属</span><span>家具</span></div></div>
+        </article>
+        <article class="card" data-type="stone" data-era="older" data-region="asia" data-avail="borrow" data-order="1">
+          <div class="visual mat8"><span class="no">M-074</span><span class="avail">可借用</span></div>
+          <div class="info"><h2>青石 · 手凿边</h2><p class="src">苏州 / 旧料 / 2008</p><div class="tags"><span>石材</span><span>地面</span></div></div>
+        </article>
+      </div>
+      <div class="empty" id="empty"><b>没有符合的材料。</b>把条件放宽一点，或者清除全部再试。</div>
+    </section>
+  </div>
+</main>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+const cards = Array.from(document.querySelectorAll('.card'));
+const boxes = Array.from(document.querySelectorAll('input[data-filter]'));
+const era = document.getElementById('era');
+const sort = document.getElementById('sort');
+
+function selected(kind) {
+  return boxes.filter(function (box) { return box.dataset.filter === kind && box.checked; }).map(function (box) { return box.value; });
+}
+
+function apply() {
+  const types = selected('type');
+  const regions = selected('region');
+  const avail = document.querySelector('input[name="avail"]:checked').value;
+  let visible = 0;
+  cards.forEach(function (card) {
+    const okType = !types.length || types.includes(card.dataset.type);
+    const okRegion = !regions.length || regions.includes(card.dataset.region);
+    const okEra = era.value === 'all' || card.dataset.era === era.value;
+    const okAvail = avail === 'all' || card.dataset.avail === avail;
+    const show = okType && okRegion && okEra && okAvail;
+    card.style.display = show ? '' : 'none';
+    if (show) visible += 1;
+  });
+  document.getElementById('count').innerHTML = cards.length + ' 项中的 <b>' + visible + '</b> 项';
+  document.getElementById('empty').classList.toggle('on', visible === 0);
+  renderChips(types, regions, avail);
+}
+
+function renderChips(types, regions, avail) {
+  const labels = { clay: '陶土', stone: '石材', metal: '金属', glass: '玻璃', textile: '织物', asia: '亚洲', europe: '欧洲', na: '北美' };
+  const chips = [];
+  types.forEach(function (value) { chips.push({ kind: 'type', value: value, label: labels[value] }); });
+  regions.forEach(function (value) { chips.push({ kind: 'region', value: value, label: labels[value] }); });
+  if (era.value !== 'all') chips.push({ kind: 'era', value: era.value, label: { 2020: '2020 年代', 2010: '2010 年代', older: '2010 年前' }[era.value] });
+  if (avail !== 'all') chips.push({ kind: 'avail', value: avail, label: avail === 'borrow' ? '可借用' : '仅参考' });
+  document.getElementById('chips').innerHTML = chips.map(function (chip) {
+    return '<button class="chip" type="button" data-kind="' + chip.kind + '" data-value="' + chip.value + '">' + chip.label + ' ×</button>';
+  }).join('');
+  document.querySelectorAll('.chip').forEach(function (button) {
+    button.addEventListener('click', function () {
+      if (button.dataset.kind === 'era') era.value = 'all';
+      else if (button.dataset.kind === 'avail') document.querySelector('input[name="avail"][value="all"]').checked = true;
+      else {
+        const box = boxes.find(function (item) { return item.dataset.filter === button.dataset.kind && item.value === button.dataset.value; });
+        if (box) box.checked = false;
+      }
+      apply();
+    });
+  });
+}
+
+boxes.forEach(function (box) { box.addEventListener('change', apply); });
+era.addEventListener('change', apply);
+document.querySelectorAll('input[name="avail"]').forEach(function (radio) { radio.addEventListener('change', apply); });
+
+document.getElementById('clear').addEventListener('click', function () {
+  boxes.forEach(function (box) { box.checked = false; });
+  era.value = 'all';
+  document.querySelector('input[name="avail"][value="all"]').checked = true;
+  apply();
+  toast('筛选条件已清除。');
+});
+
+sort.addEventListener('change', function () {
+  const grid = document.getElementById('grid');
+  const ordered = cards.slice().sort(function (a, b) {
+    return sort.value === 'new' ? Number(b.dataset.order) - Number(a.dataset.order) : Number(a.dataset.order) - Number(b.dataset.order);
+  });
+  ordered.forEach(function (card) { grid.appendChild(card); });
+});
+
+function toast(text) {
+  const el = document.getElementById('toast');
+  el.textContent = text;
+  el.classList.add('show');
+  clearTimeout(toast.timer);
+  toast.timer = setTimeout(function () { el.classList.remove('show'); }, 2200);
+}
+
+apply();
+</script>
+</body>
+</html>

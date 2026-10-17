@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>便笺 · 写一篇</title>
+<style>
+:root{
+  --butter:#fbf1cf;--paper:#fff9e6;--ink:#2a261c;--gold:#d9a441;--line:#e7dcc0;
+  --muted:#7c7462;--good:#3f6b4f;--red:#b4552f;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:radial-gradient(700px 500px at 50% 0%,#f7e9c0 0%,transparent 60%),#e9d9ae;display:grid;place-items:center;padding:26px;font:14px/1.5 "Avenir Next","PingFang SC","Microsoft YaHei",sans-serif;color:var(--ink)}
+.phone{width:390px;height:844px;background:#2b261c;border-radius:48px;padding:10px;box-shadow:0 40px 90px #4a3a1f44;position:relative;flex:none}
+.screen{width:100%;height:100%;background:var(--paper);border-radius:39px;overflow:hidden;position:relative;display:flex;flex-direction:column}
+.notch{position:absolute;left:50%;top:8px;transform:translateX(-50%);width:110px;height:24px;background:#2b261c;border-radius:14px;z-index:7}
+.statusbar{height:40px;display:flex;align-items:flex-end;justify-content:space-between;padding:0 22px 4px;font:600 10px/1 ui-monospace,Consolas,monospace;color:#8a7c5a}
+.bar{display:flex;align-items:center;padding:6px 14px 10px;border-bottom:1px solid var(--line)}
+.bar button{border:0;background:none;color:var(--muted);font:11px/1 "Avenir Next","PingFang SC",sans-serif;cursor:pointer;padding:6px 4px}
+.bar .title{margin:0 auto;font:600 9px/1 ui-monospace,Consolas,monospace;letter-spacing:.2em;color:#a08e63}
+.bar .publish{padding:7px 12px;border-radius:999px;background:var(--ink);color:var(--paper);font-weight:600;letter-spacing:.06em}
+.bar .publish:hover{background:var(--good)}
+.editor{flex:1;overflow-y:auto;padding:20px 20px 20px;background:repeating-linear-gradient(180deg,transparent 0 31px,#e9dcbb66 31px 32px);scrollbar-width:none}
+.editor::-webkit-scrollbar{display:none}
+.title-input{width:100%;border:0;background:transparent;color:var(--ink);font:400 27px/1.35 "Songti SC","Noto Serif SC",Georgia,serif;outline:none;padding:0 0 6px}
+.title-input::placeholder{color:#b7a77f}
+.body-input{width:100%;min-height:330px;border:0;background:transparent;color:#3d372a;font:14px/2.3 "Avenir Next","PingFang SC",sans-serif;outline:none;resize:none;padding:4px 0 0}
+.body-input::placeholder{color:#b7a77f}
+.tools{display:flex;gap:6px;padding:10px 16px;border-top:1px solid var(--line);background:#fff9e6}
+.tools button{height:28px;padding:0 10px;border:1px solid var(--line);border-radius:4px;background:transparent;color:#8a7c5a;font:10px/1 ui-monospace,Consolas,monospace;cursor:pointer}
+.tools button:hover{border-color:var(--gold);color:#7a5c1e}
+.tools .spacer{flex:1}
+.error{padding:0 20px;font:9px/1.6 ui-monospace,Consolas,monospace;color:var(--red);display:none}
+.error.on{display:block}
+.statusbar-foot{display:flex;align-items:center;gap:10px;padding:10px 16px 20px;border-top:1px solid var(--line);background:#fff9e6}
+.statusbar-foot .count{font:9px/1.5 ui-monospace,Consolas,monospace;color:#a08e63;letter-spacing:.04em}
+.statusbar-foot .state{margin-left:auto;font:9px/1.5 ui-monospace,Consolas,monospace;color:#b0a486}
+.draft{height:30px;padding:0 11px;border:1px solid var(--line);background:transparent;color:#7c6c46;font:10px/1 "Avenir Next","PingFang SC",sans-serif;cursor:pointer}
+.draft:hover{border-color:var(--ink);color:var(--ink)}
+.done{position:absolute;inset:0;background:var(--paper);display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:34px;z-index:8}
+.done.on{display:flex}
+.done .mark{width:58px;height:58px;border-radius:50%;border:1px solid var(--good);color:var(--good);display:grid;place-items:center;font-size:22px;margin-bottom:18px}
+.done h2{margin:0 0 6px;font:400 28px/1.3 "Songti SC",Georgia,serif}
+.done p{margin:0 0 18px;font-size:11px;line-height:1.8;color:var(--muted);max-width:280px}
+.done .ref{padding:6px 10px;border:1px dashed #cbbd97;font:9px/1 ui-monospace,Consolas,monospace;color:#7c6c46;letter-spacing:.06em;margin-bottom:18px}
+.done button{height:36px;padding:0 16px;border:1px solid var(--line);background:transparent;color:var(--muted);font-size:10px;cursor:pointer}
+.done button:hover{border-color:var(--ink);color:var(--ink)}
+.toast{position:absolute;left:50%;bottom:86px;transform:translateX(-50%) translateY(8px);background:var(--ink);color:var(--paper);padding:8px 14px;border-radius:999px;font-size:10px;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;white-space:nowrap;z-index:9}
+.toast.show{opacity:1;transform:translateX(-50%)}
+@media(min-width:441px) and (max-height:900px){.phone{zoom:.86}}
+@media(max-width:440px){
+  body{padding:0;display:block;background:var(--paper)}
+  .phone{width:100%;height:100svh;border-radius:0;padding:0;box-shadow:none;background:var(--paper)}
+  .screen{border-radius:0;height:100svh}
+  .notch{display:none}
+  .statusbar{height:20px;padding:8px 18px 0}
+  .body-input{min-height:280px}
+}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="notch" aria-hidden="true"></div>
+  <div class="screen">
+    <div class="statusbar"><span>9:41</span><span>——</span></div>
+    <div class="bar"><button type="button" id="cancel">取消</button><span class="title">新笔记 / 草稿</span><button class="publish" id="publish" type="button">发布</button></div>
+
+    <div class="editor">
+      <input class="title-input" id="title" type="text" maxlength="40" placeholder="给这一篇起个名字" aria-label="标题">
+      <textarea class="body-input" id="body" placeholder="从第一句开始。写不下去的时候，就描述你眼前的东西。" aria-label="正文"></textarea>
+    </div>
+
+    <div class="tools"><button type="button" data-insert="## ">小标题</button><button type="button" data-insert="> ">引用</button><button type="button" data-insert="- ">列表</button><span class="spacer"></span><button type="button" id="tag">＋ 标签</button></div>
+    <p class="error" id="error" role="alert">标题和正文都写一点，才可以发布。</p>
+
+    <div class="statusbar-foot"><span class="count" id="count">0 字</span><span class="state" id="state">尚未保存</span><button class="draft" id="draft" type="button">存草稿</button></div>
+
+    <div class="done" id="done" aria-live="polite">
+      <div class="mark" aria-hidden="true">✓</div>
+      <h2>已经发出去了。</h2>
+      <p id="done-copy">这一篇会先进入「待审」，编辑在 24 小时内给你回复。你也可以继续修改。</p>
+      <span class="ref">NOTE · 2026-1017-042</span>
+      <div><button type="button" id="again">再写一篇</button></div>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  </div>
+</div>
+
+<script>
+const title = document.getElementById('title');
+const body = document.getElementById('body');
+const count = document.getElementById('count');
+const state = document.getElementById('state');
+const error = document.getElementById('error');
+const toast = document.getElementById('toast');
+
+function updateCount() {
+  const text = body.value.trim();
+  count.textContent = text.length + ' 字';
+  state.textContent = text.length || title.value.trim() ? '未保存的修改' : '尚未保存';
+  state.style.color = text.length || title.value.trim() ? '#b07a2e' : '#b0a486';
+}
+
+title.addEventListener('input', updateCount);
+body.addEventListener('input', updateCount);
+
+document.querySelectorAll('.tools [data-insert]').forEach(function (button) {
+  button.addEventListener('click', function () {
+    const prefix = button.dataset.insert;
+    const start = body.selectionStart;
+    const before = body.value.slice(0, start);
+    const after = body.value.slice(start);
+    body.value = before + (before.endsWith('\n') || start === 0 ? '' : '\n') + prefix + after;
+    body.focus();
+    body.selectionStart = body.selectionEnd = start + prefix.length + 1;
+    updateCount();
+  });
+});
+
+document.getElementById('tag').addEventListener('click', function () {
+  showToast('标签选择器打开了。最多加三个。');
+});
+
+document.getElementById('draft').addEventListener('click', function () {
+  state.textContent = '草稿已保存在本机';
+  state.style.color = '#3f6b4f';
+  showToast('草稿已保存。截止前都可以回来改。');
+});
+
+document.getElementById('publish').addEventListener('click', function () {
+  if (!title.value.trim() || body.value.trim().length < 10) {
+    error.classList.add('on');
+    (title.value.trim() ? body : title).focus();
+    return;
+  }
+  error.classList.remove('on');
+  document.getElementById('done-copy').textContent = '「' + title.value.trim() + '」会先进入「待审」，编辑在 24 小时内给你回复。';
+  document.getElementById('done').classList.add('on');
+});
+
+document.getElementById('again').addEventListener('click', function () {
+  title.value = '';
+  body.value = '';
+  document.getElementById('done').classList.remove('on');
+  updateCount();
+  title.focus();
+});
+
+document.getElementById('cancel').addEventListener('click', function () {
+  if (!title.value && !body.value) { showToast('还没有写东西。'); return; }
+  title.value = '';
+  body.value = '';
+  updateCount();
+  showToast('已放弃这一篇。');
+});
+
+function showToast(text) {
+  toast.textContent = text;
+  toast.classList.add('show');
+  clearTimeout(showToast.timer);
+  showToast.timer = setTimeout(function () { toast.classList.remove('show'); }, 2000);
+}
+
+updateCount();
+</script>
+</body>
+</html>

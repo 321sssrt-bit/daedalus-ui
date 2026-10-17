@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>潮位 · 读者数据</title>
+<style>
+:root{
+  --deep:#081b26;--panel:#0e2937;--ink:#e6f2f2;--cyan:#55c1c9;--amber:#f2b45c;
+  --muted:#6d8896;--line:#1b4354;--soft:#123240;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--deep);color:var(--ink);font:14px/1.55 "Avenir Next","PingFang SC","Microsoft YaHei",sans-serif;min-height:100vh}
+.top{display:flex;align-items:center;gap:18px;padding:16px 30px;border-bottom:1px solid var(--line);background:#0a202c}
+.brand{display:flex;align-items:baseline;gap:8px;font:600 17px/1 "Songti SC","Noto Serif SC",Georgia,serif;letter-spacing:.14em}
+.brand small{font:9px/1 ui-monospace,Consolas,monospace;letter-spacing:.28em;color:var(--muted)}
+.top nav{display:flex;gap:3px;margin-left:14px}
+.top nav a{padding:7px 12px;border-radius:3px;color:var(--muted);text-decoration:none;font-size:12px}
+.top nav a.on{background:#123240;color:var(--ink)}
+.top nav a:hover{color:var(--ink)}
+.top .right{margin-left:auto;display:flex;align-items:center;gap:10px}
+.range{display:flex;gap:2px;background:#0b2330;border:1px solid var(--line);border-radius:999px;padding:3px}
+.range button{height:26px;padding:0 11px;border:0;border-radius:999px;background:transparent;color:var(--muted);font:11px/1 "Avenir Next","PingFang SC",sans-serif;cursor:pointer}
+.range button[aria-pressed="true"]{background:var(--cyan);color:#06232b}
+.export{height:32px;padding:0 13px;border:1px solid var(--line);border-radius:3px;background:transparent;color:var(--ink);font:11px/1 "Avenir Next","PingFang SC",sans-serif;letter-spacing:.06em;cursor:pointer}
+.export:hover{border-color:var(--cyan);color:var(--cyan)}
+.main{padding:24px 30px 34px;max-width:1400px;margin:0 auto}
+.head{display:flex;align-items:flex-end;gap:18px;margin-bottom:18px}
+.head h1{margin:0;font:400 28px/1.2 "Songti SC",Georgia,serif;letter-spacing:.01em}
+.head p{margin:4px 0 0;font:10px/1.6 ui-monospace,Consolas,monospace;color:var(--muted);letter-spacing:.1em}
+.head .live{margin-left:auto;display:flex;align-items:center;gap:7px;font:10px/1 ui-monospace,Consolas,monospace;color:var(--muted);letter-spacing:.08em}
+.head .live i{width:6px;height:6px;border-radius:50%;background:var(--cyan);box-shadow:0 0 0 3px #55c1c922}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
+.kpi{background:var(--panel);border:1px solid var(--line);padding:13px 15px 12px;position:relative;overflow:hidden}
+.kpi::after{content:"";position:absolute;right:-18px;top:-18px;width:64px;height:64px;border:1px solid #55c1c91f;border-radius:50%}
+.kpi span{font:10px/1 ui-monospace,Consolas,monospace;letter-spacing:.14em;color:var(--muted)}
+.kpi b{display:block;font:400 32px/1.15 "Songti SC",Georgia,serif;margin:8px 0 3px;letter-spacing:-.01em}
+.kpi small{font:10px/1.5 ui-monospace,Consolas,monospace;color:#8aa3ad;letter-spacing:.03em}
+.kpi small em{font-style:normal;color:var(--cyan)}
+.grid{display:grid;grid-template-columns:minmax(0,1fr) 318px;gap:14px}
+.card{background:var(--panel);border:1px solid var(--line)}
+.card-head{display:flex;align-items:center;gap:10px;padding:12px 15px;border-bottom:1px solid var(--line)}
+.card-head h2{margin:0;font:600 12px/1 "Avenir Next","PingFang SC",sans-serif;letter-spacing:.08em}
+.card-head .sub{font:9px/1 ui-monospace,Consolas,monospace;color:var(--muted);letter-spacing:.1em}
+.seg{display:flex;gap:2px;margin-left:auto;background:#0b2330;border:1px solid var(--line);border-radius:3px;padding:2px}
+.seg button{height:24px;padding:0 9px;border:0;border-radius:2px;background:transparent;color:var(--muted);font:10px/1 ui-monospace,Consolas,monospace;letter-spacing:.06em;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--soft);color:var(--ink);box-shadow:inset 0 -2px 0 var(--cyan)}
+.chart-wrap{padding:18px 16px 12px}
+.chart{position:relative;height:268px;display:flex;align-items:flex-end;gap:6px;padding:0 4px 0 42px;background:repeating-linear-gradient(180deg,transparent 0 calc(25% - 1px),#1b435466 calc(25% - 1px) 25%)}
+.chart .bar{flex:1;border:0;padding:0;background:linear-gradient(180deg,var(--cyan),#2a7f88);border-radius:2px 2px 0 0;min-height:2px;cursor:pointer;position:relative;transition:filter .15s,transform .15s;align-self:flex-end}
+.chart .bar:hover{filter:brightness(1.18)}
+.chart .bar.on{background:linear-gradient(180deg,#ffe0a8,var(--amber));transform:scaleY(1.02);transform-origin:bottom}
+.chart .bar::after{content:attr(data-value);position:absolute;bottom:calc(100% + 5px);left:50%;transform:translateX(-50%);font:9px/1 ui-monospace,Consolas,monospace;color:var(--ink);opacity:0;white-space:nowrap;pointer-events:none}
+.chart .bar:hover::after,.chart .bar.on::after{opacity:1}
+.axis{position:absolute;left:0;top:0;bottom:0;width:38px;display:flex;flex-direction:column;justify-content:space-between;font:9px/1 ui-monospace,Consolas,monospace;color:#5c7683;letter-spacing:.04em;padding:2px 0}
+.labels{display:flex;gap:6px;padding:9px 4px 0 42px;font:9px/1 ui-monospace,Consolas,monospace;color:#5c7683}
+.labels span{flex:1;text-align:center;overflow:hidden;white-space:nowrap}
+.readout{display:flex;align-items:baseline;gap:12px;padding:10px 16px 14px;border-top:1px solid #163646;font:10px/1.5 ui-monospace,Consolas,monospace;color:var(--muted);letter-spacing:.04em}
+.readout b{color:var(--ink);font-weight:600;font-size:12px}
+.readout em{font-style:normal;color:var(--cyan);margin-left:auto}
+.side{display:grid;gap:14px;align-content:start}
+.sources{padding:4px 15px 12px}
+.source{display:grid;grid-template-columns:78px minmax(0,1fr) 46px;gap:10px;align-items:center;padding:8px 0;font-size:11px}
+.source span{color:#a9bec7;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.track{height:5px;background:#0b2330;border-radius:3px;overflow:hidden}
+.track i{display:block;height:100%;background:var(--cyan);border-radius:3px}
+.source em{font:10px/1 ui-monospace,Consolas,monospace;color:var(--muted);text-align:right;font-style:normal}
+.top-list{padding:4px 15px 12px}
+.top-list ol{list-style:none;margin:0;padding:0;counter-reset:rank}
+.top-list li{counter-increment:rank;display:flex;gap:10px;padding:8px 0;border-bottom:1px solid #163646;font-size:11px;line-height:1.5}
+.top-list li:last-child{border-bottom:0}
+.top-list li::before{content:counter(rank,decimal-leading-zero);font:9px/1.9 ui-monospace,Consolas,monospace;color:var(--amber);flex:none}
+.top-list b{font-weight:500;color:#d3e4e9;flex:1}
+.top-list em{font:9px/1.9 ui-monospace,Consolas,monospace;color:var(--muted);font-style:normal;white-space:nowrap}
+:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+@media(max-width:1080px){
+  .grid{grid-template-columns:1fr}
+  .side{grid-template-columns:1fr 1fr;display:grid}
+  .kpis{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:700px){
+  .top{padding:12px 16px;flex-wrap:wrap}
+  .top nav{display:none}
+  .main{padding:18px 16px 26px}
+  .chart{height:210px}
+  .labels span:nth-child(even){visibility:hidden}
+  .side{grid-template-columns:1fr}
+  .head .live{display:none}
+}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand">潮位<small>TIDEMARK</small></div>
+  <nav aria-label="数据导航"><a href="#read" class="on">读者</a><a href="#grow">增长</a><a href="#content">内容</a></nav>
+  <div class="right">
+    <div class="range" role="group" aria-label="时间范围">
+      <button type="button" aria-pressed="true" data-range="30">30 天</button>
+      <button type="button" aria-pressed="false" data-range="90">90 天</button>
+    </div>
+    <button class="export" id="export" type="button">导出 CSV</button>
+  </div>
+</header>
+
+<main class="main">
+  <div class="head">
+    <div>
+      <h1>读者正在什么时候醒来。</h1>
+      <p>CONSOLE / AUDIENCE · 更新于 21:04</p>
+    </div>
+    <div class="live"><i></i>实时同步中</div>
+  </div>
+
+  <section class="kpis" aria-label="关键数字">
+    <div class="kpi"><span>总阅读</span><b id="kpi-reads">128.4k</b><small>较上周期 <em id="kpi-reads-delta">+12.6%</em></small></div>
+    <div class="kpi"><span>打开率</span><b id="kpi-open">46.2%</b><small>行业中位数 38.1%</small></div>
+    <div class="kpi"><span>平均阅读时长</span><b id="kpi-time">3′48″</b><small>深度完成率 <em>62%</em></small></div>
+    <div class="kpi"><span>新增订阅</span><b id="kpi-subs">+1,284</b><small>退订 96 · 净增 <em>1,188</em></small></div>
+  </section>
+
+  <div class="grid">
+    <section class="card">
+      <div class="card-head">
+        <h2>阅读趋势</h2><span class="sub">READS / PERIOD</span>
+        <div class="seg" role="group" aria-label="时间粒度">
+          <button type="button" data-grain="day" aria-pressed="true">日</button>
+          <button type="button" data-grain="week" aria-pressed="false">周</button>
+          <button type="button" data-grain="month" aria-pressed="false">月</button>
+        </div>
+      </div>
+      <div class="chart-wrap">
+        <div class="chart" id="chart" role="img" aria-label="阅读趋势柱状图">
+          <div class="axis"><span id="axis-4">10k</span><span id="axis-3">7.5k</span><span id="axis-2">5k</span><span id="axis-1">2.5k</span><span>0</span></div>
+        </div>
+        <div class="labels" id="labels"></div>
+      </div>
+      <div class="readout"><span id="readout-date">10.17</span><b id="readout-value">9,842</b><span>次阅读</span><em id="readout-note">本周最高</em></div>
+    </section>
+
+    <aside class="side">
+      <section class="card">
+        <div class="card-head"><h2>来源构成</h2><span class="sub">CHANNELS</span></div>
+        <div class="sources" id="sources">
+          <div class="source"><span>邮件</span><div class="track"><i style="width:68%"></i></div><em>68%</em></div>
+          <div class="source"><span>站内推荐</span><div class="track"><i style="width:41%"></i></div><em>41%</em></div>
+          <div class="source"><span>搜索</span><div class="track"><i style="width:23%"></i></div><em>23%</em></div>
+          <div class="source"><span>社交转发</span><div class="track"><i style="width:17%"></i></div><em>17%</em></div>
+          <div class="source"><span>直接访问</span><div class="track"><i style="width:12%"></i></div><em>12%</em></div>
+        </div>
+      </section>
+      <section class="card">
+        <div class="card-head"><h2>最多读完</h2><span class="sub">TOP 4</span></div>
+        <div class="top-list">
+          <ol>
+            <li><b>城市在凌晨四点醒来</b><em>92%</em></li>
+            <li><b>一条河的第二次呼吸</b><em>88%</em></li>
+            <li><b>给一盆薄荷找新家</b><em>81%</em></li>
+            <li><b>地铁末班车上的十二种睡姿</b><em>76%</em></li>
+          </ol>
+        </div>
+      </section>
+    </aside>
+  </div>
+</main>
+
+<script>
+const data = {
+  day: {
+    values: [4180, 4620, 4410, 5100, 5480, 4980, 5860, 6020, 5740, 6480, 7120, 6890, 7540, 9842],
+    labels: ['10.04', '10.05', '10.06', '10.07', '10.08', '10.09', '10.10', '10.11', '10.12', '10.13', '10.14', '10.15', '10.16', '10.17'],
+    axis: ['10k', '7.5k', '5k', '2.5k'],
+    kpis: ['128.4k', '+12.6%', '46.2%', '3′48″', '+1,284'],
+    max: 10000
+  },
+  week: {
+    values: [38400, 41200, 39800, 45200, 48600, 52100],
+    labels: ['W38', 'W39', 'W40', 'W41', 'W42', 'W43'],
+    axis: ['80k', '60k', '40k', '20k'],
+    kpis: ['268.4k', '+18.2%', '44.8%', '3′41″', '+6,420'],
+    max: 80000
+  },
+  month: {
+    values: [96000, 104000, 98200, 112000, 121000, 118400],
+    labels: ['5 月', '6 月', '7 月', '8 月', '9 月', '10 月'],
+    axis: ['160k', '120k', '80k', '40k'],
+    kpis: ['1.28M', '+26.4%', '43.1%', '3′36″', '+28,940'],
+    max: 160000
+  }
+};
+let grain = 'day';
+
+function fmt(value) {
+  return value >= 1000 ? (value / 1000).toFixed(1).replace('.0', '') + 'k' : String(value);
+}
+
+function render() {
+  const set = data[grain];
+  const chart = document.getElementById('chart');
+  chart.querySelectorAll('.bar').forEach(function (bar) { bar.remove(); });
+  const max = set.max;
+  set.values.forEach(function (value, index) {
+    const bar = document.createElement('button');
+    bar.type = 'button';
+    bar.className = 'bar';
+    bar.style.height = Math.max(3, (value / max) * 100) + '%';
+    bar.dataset.value = fmt(value);
+    bar.setAttribute('aria-label', set.labels[index] + ' ' + fmt(value) + ' 次阅读');
+    bar.addEventListener('click', function () {
+      chart.querySelectorAll('.bar').forEach(function (item) { item.classList.remove('on'); });
+      bar.classList.add('on');
+      document.getElementById('readout-date').textContent = set.labels[index];
+      document.getElementById('readout-value').textContent = value.toLocaleString('en-US');
+      document.getElementById('readout-note').textContent = index === set.values.length - 1 ? '当前周期' : '已归档';
+    });
+    chart.appendChild(bar);
+  });
+  const labels = document.getElementById('labels');
+  labels.innerHTML = set.labels.map(function (label) { return '<span>' + label + '</span>'; }).join('');
+  document.getElementById('axis-4').textContent = set.axis[0];
+  document.getElementById('axis-3').textContent = set.axis[1];
+  document.getElementById('axis-2').textContent = set.axis[2];
+  document.getElementById('axis-1').textContent = set.axis[3];
+  document.getElementById('kpi-reads').textContent = set.kpis[0];
+  document.getElementById('kpi-reads-delta').textContent = set.kpis[1];
+  document.getElementById('kpi-open').textContent = set.kpis[2];
+  document.getElementById('kpi-time').textContent = set.kpis[3];
+  document.getElementById('kpi-subs').textContent = set.kpis[4];
+  const last = set.values.length - 1;
+  document.getElementById('readout-date').textContent = set.labels[last];
+  document.getElementById('readout-value').textContent = set.values[last].toLocaleString('en-US');
+  document.getElementById('readout-note').textContent = grain === 'day' ? '最近一日' : grain === 'week' ? '本周' : '本月';
+  const bar = chart.querySelectorAll('.bar')[last];
+  if (bar) bar.classList.add('on');
+}
+
+document.querySelectorAll('.seg button').forEach(function (button) {
+  button.addEventListener('click', function () {
+    grain = button.dataset.grain;
+    document.querySelectorAll('.seg button').forEach(function (item) { item.setAttribute('aria-pressed', String(item === button)); });
+    render();
+  });
+});
+
+document.querySelectorAll('.range button').forEach(function (button) {
+  button.addEventListener('click', function () {
+    document.querySelectorAll('.range button').forEach(function (item) { item.setAttribute('aria-pressed', String(item === button)); });
+    document.getElementById('readout-note').textContent = button.dataset.range === '90' ? '近 90 天视图' : '近 30 天视图';
+  });
+});
+
+document.getElementById('export').addEventListener('click', function () {
+  const button = document.getElementById('export');
+  button.textContent = '已生成 tide-1017.csv';
+  button.disabled = true;
+  setTimeout(function () { button.textContent = '导出 CSV'; button.disabled = false; }, 1800);
+});
+
+render();
+</script>
+</body>
+</html>

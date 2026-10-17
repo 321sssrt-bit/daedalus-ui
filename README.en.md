@@ -37,10 +37,11 @@ The unified [live gallery](https://321sssrt-bit.github.io/daedalus-ui/) can be b
 
 ## Current public submissions
 
-Nineteen submissions are published: eighteen complete and one forfeited. The newest is at the top. Open a dedicated gallery below, or use the **[combined gallery](https://321sssrt-bit.github.io/daedalus-ui/)** to browse them together. Completion and status follow each submission's `model.json`.
+Twenty submissions are published: nineteen complete and one forfeited. The newest is at the top. Open a dedicated gallery below, or use the **[combined gallery](https://321sssrt-bit.github.io/daedalus-ui/)** to browse them together. Completion and status follow each submission's `model.json`.
 
 | Harness | Model | Reasoning effort | Completion | Status | Gallery |
 | --- | --- | --- | --- | --- | --- |
+| DSH | DeepSeek V4.1 Flash 1017 | `max` | 50 / 50 | Complete | [Open gallery →](https://321sssrt-bit.github.io/daedalus-ui/submissions/dsh--deepseek-v4.1-flash-1017--max/) |
 | Kimi Work | K3 | `极致` | 50 / 50 | Complete | [Open gallery →](https://321sssrt-bit.github.io/daedalus-ui/submissions/kimi-work--k3--jizhi/) |
 | grokbot | grokbot | `default` | 50 / 50 | Complete | [Open gallery →](https://321sssrt-bit.github.io/daedalus-ui/submissions/grokbot--grokbot--default/) |
 | Opencode | Muse Spark 1.3 Contributor Free | `xhigh` | 50 / 50 | Complete | [Open gallery →](https://321sssrt-bit.github.io/daedalus-ui/submissions/opencode--muse-spark-1.3-contributor-free--xhigh/) |

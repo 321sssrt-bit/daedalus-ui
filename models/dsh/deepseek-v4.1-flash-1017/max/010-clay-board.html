@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>工序 · 本周看板</title>
+<style>
+:root{
+  --page:#e9e4da;--col:#f6f1e7;--card:#fffdf8;--ink:#201f1c;--muted:#7d776b;
+  --line:#d6cfc2;--orange:#e0662e;--green:#5b7f5a;--blue:#3f6f8f;--yellow:#e8c76a;
+}
+*{box-sizing:border-box}
+body{margin:0;background:
+  linear-gradient(90deg,#ffffff22 1px,transparent 1px) 0 0/32px 32px,
+  linear-gradient(180deg,#ffffff22 1px,transparent 1px) 0 0/32px 32px,
+  var(--page);color:var(--ink);font:14px/1.55 "Avenir Next","PingFang SC","Microsoft YaHei",sans-serif;min-height:100vh}
+.top{max-width:1320px;margin:0 auto;padding:24px 30px 0;display:flex;align-items:center;gap:22px}
+.brand{display:flex;align-items:center;gap:10px;font:600 15px/1 "Songti SC","Noto Serif SC",Georgia,serif;letter-spacing:.16em}
+.brand i{width:28px;height:28px;border-radius:4px;background:var(--ink);color:var(--page);display:grid;place-items:center;font-style:normal;font-size:12px;transform:rotate(-4deg)}
+.top nav{display:flex;gap:16px;margin-left:10px}
+.top nav a{color:var(--muted);text-decoration:none;font-size:12px;letter-spacing:.04em}
+.top nav a.on{color:var(--ink);border-bottom:2px solid var(--orange);padding-bottom:4px}
+.top .team{margin-left:auto;display:flex;align-items:center}
+.top .team span{width:26px;height:26px;border-radius:50%;border:2px solid var(--page);background:var(--yellow);display:grid;place-items:center;font:600 9px/1 ui-monospace,Consolas,monospace;margin-left:-7px}
+.top .team span:nth-child(2){background:#b9cfc0}
+.top .team span:nth-child(3){background:#c7b7d6}
+.top .team b{margin-left:10px;font:10px/1 ui-monospace,Consolas,monospace;color:var(--muted);letter-spacing:.08em}
+.head{max-width:1320px;margin:0 auto;padding:26px 30px 18px;display:flex;align-items:flex-end;gap:20px}
+.head h1{margin:0;font:400 38px/1.15 "Songti SC","Noto Serif SC",Georgia,serif;letter-spacing:.01em}
+.head p{margin:6px 0 0;font:10px/1.6 ui-monospace,Consolas,monospace;letter-spacing:.14em;color:var(--muted)}
+.head .new{margin-left:auto;height:42px;padding:0 18px;border:1px solid var(--ink);border-radius:3px;background:var(--ink);color:var(--page);font:600 12px/1 "Avenir Next","PingFang SC",sans-serif;letter-spacing:.1em;cursor:pointer;transition:background .15s}
+.head .new:hover{background:var(--orange);border-color:var(--orange)}
+.board{max-width:1320px;margin:0 auto;padding:0 30px 50px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;align-items:start}
+.col{background:var(--col);border:1px solid var(--line);border-radius:6px;padding:10px 10px 12px;min-height:420px}
+.col-head{display:flex;align-items:center;gap:8px;padding:4px 4px 10px}
+.col-head i{width:8px;height:8px;border-radius:50%;background:var(--muted)}
+.col[data-col="0"] .col-head i{background:var(--muted)}
+.col[data-col="1"] .col-head i{background:var(--blue)}
+.col[data-col="2"] .col-head i{background:var(--orange)}
+.col[data-col="3"] .col-head i{background:var(--green)}
+.col-head b{font-size:12px;letter-spacing:.06em}
+.col-head span{margin-left:auto;font:10px/1 ui-monospace,Consolas,monospace;color:var(--muted)}
+.cards{display:flex;flex-direction:column;gap:9px;min-height:60px}
+.card{background:var(--card);border:1px solid #e3dccd;border-radius:4px;padding:11px 12px 10px;box-shadow:0 1px 0 #00000008;cursor:pointer;transition:box-shadow .15s,transform .15s}
+.card:hover{box-shadow:0 6px 16px #201f1c14;transform:translateY(-1px)}
+.card.picked{box-shadow:0 0 0 2px var(--orange),0 6px 16px #201f1c14}
+.card-top{display:flex;align-items:center;gap:6px;margin-bottom:6px}
+.tag{padding:2px 6px;border-radius:2px;font:9px/1.4 ui-monospace,Consolas,monospace;letter-spacing:.06em}
+.tag.design{background:#f6e3d6;color:#a34a1f}
+.tag.dev{background:#e0e9ef;color:#2f5a76}
+.tag.content{background:#e4ebdf;color:#45663f}
+.due{margin-left:auto;font:9px/1 ui-monospace,Consolas,monospace;color:#a09a8d;letter-spacing:.06em}
+.card h3{margin:0;font:600 13px/1.45 "Avenir Next","PingFang SC",sans-serif}
+.card .detail{display:none;margin:7px 0 0;font-size:11px;line-height:1.7;color:var(--muted)}
+.card.expanded .detail{display:block}
+.card-foot{display:flex;align-items:center;justify-content:space-between;margin-top:9px;padding-top:8px;border-top:1px solid #efe9dc}
+.who{display:flex;align-items:center;gap:6px;font:10px/1 ui-monospace,Consolas,monospace;color:var(--muted);letter-spacing:.04em}
+.who i{width:19px;height:19px;border-radius:50%;background:#dfd6c5;display:grid;place-items:center;font:600 8px/1 ui-monospace,Consolas,monospace;font-style:normal;color:var(--ink)}
+.advance{height:24px;padding:0 8px;border:1px solid var(--line);border-radius:3px;background:transparent;color:var(--muted);font:10px/1 "Avenir Next","PingFang SC",sans-serif;cursor:pointer}
+.advance:hover{border-color:var(--orange);color:var(--orange)}
+.advance:disabled{opacity:.35;cursor:default;border-color:var(--line);color:var(--muted)}
+.composer{display:none;background:#fff;border:1px dashed #c8bda9;border-radius:4px;padding:10px;margin-bottom:9px}
+.composer.on{display:block}
+.composer input{width:100%;height:34px;padding:0 9px;border:1px solid var(--line);border-radius:3px;font:12px/1 "Avenir Next","PingFang SC",sans-serif;outline:none}
+.composer input:focus{border-color:var(--orange);box-shadow:0 0 0 2px #e0662e1f}
+.composer .row{display:flex;gap:6px;margin-top:7px}
+.composer select{height:30px;border:1px solid var(--line);border-radius:3px;background:#fbf8f2;font-size:11px;color:var(--ink);flex:1;padding:0 6px}
+.composer .add{height:30px;padding:0 10px;border:0;border-radius:3px;background:var(--orange);color:#fff;font-size:11px;cursor:pointer}
+.composer .cancel{height:30px;padding:0 8px;border:1px solid var(--line);border-radius:3px;background:transparent;font-size:11px;color:var(--muted);cursor:pointer}
+.empty-hint{padding:8px 4px;font:10px/1.7 ui-monospace,Consolas,monospace;color:#a9a294;letter-spacing:.04em}
+:focus-visible{outline:2px solid var(--orange);outline-offset:2px}
+@media(max-width:1080px){
+  .board{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:680px){
+  .top,.head{padding-left:16px;padding-right:16px}
+  .top nav{display:none}
+  .head{flex-wrap:wrap;align-items:flex-start}
+  .head h1{font-size:28px}
+  .head .new{width:100%;margin:8px 0 0}
+  .board{grid-template-columns:1fr;padding:0 16px 30px}
+  .col{min-height:0}
+}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand"><i>工</i>工序 · STUDIO FLOW</div>
+  <nav aria-label="项目导航"><a href="#board" class="on">本周</a><a href="#projects">项目</a><a href="#archive">归档</a></nav>
+  <div class="team" aria-label="在线成员"><span>岚</span><span>周</span><span>陈</span><b>3 人在线</b></div>
+</header>
+
+<div class="head">
+  <div>
+    <h1>本周在做的事。</h1>
+    <p>WEEK 42 · 10.13 — 10.19 · 拖不动的卡片，点一下也能走</p>
+  </div>
+  <button class="new" id="new" type="button">＋ 新建一条</button>
+</div>
+
+<main class="board" aria-label="项目看板">
+  <section class="col" data-col="0" aria-label="待排期">
+    <div class="col-head"><i></i><b>待排期</b><span class="count">0</span></div>
+    <form class="composer" id="composer" hidden>
+      <input id="new-title" type="text" placeholder="这条要做什么？" maxlength="40" aria-label="新任务标题">
+      <div class="row">
+        <select id="new-type" aria-label="任务类型">
+          <option value="设计">设计</option>
+          <option value="开发">开发</option>
+          <option value="内容">内容</option>
+        </select>
+        <button class="add" type="submit">添加</button>
+        <button class="cancel" id="cancel" type="button">取消</button>
+      </div>
+    </form>
+    <div class="cards" id="cards-0">
+      <article class="card" tabindex="0">
+        <div class="card-top"><span class="tag design">设计</span><span class="due">10.19</span></div>
+        <h3>雾岛咖啡 · 秋季杯贴</h3>
+        <p class="detail">两版方向：暖橙手写体 vs. 墨绿烫金。等客户周四看完打样再定。</p>
+        <div class="card-foot"><span class="who"><i>岚</i>阿岚</span><button class="advance" type="button">推进</button></div>
+      </article>
+      <article class="card" tabindex="0">
+        <div class="card-top"><span class="tag dev">开发</span><span class="due">10.21</span></div>
+        <h3>站点导航 · 移动端折叠</h3>
+        <p class="detail">把二级菜单收进抽屉，保留当前页高亮。需要补一条键盘操作的验收。</p>
+        <div class="card-foot"><span class="who"><i>周</i>老周</span><button class="advance" type="button">推进</button></div>
+      </article>
+      <article class="card" tabindex="0">
+        <div class="card-top"><span class="tag content">内容</span><span class="due">10.22</span></div>
+        <h3>秋季刊 · 目录页文案</h3>
+        <p class="detail">八篇文章各写一句导语，控制在 28 字内，语气不要像电商促销。</p>
+        <div class="card-foot"><span class="who"><i>陈</i>小陈</span><button class="advance" type="button">推进</button></div>
+      </article>
+    </div>
+  </section>
+
+  <section class="col" data-col="1" aria-label="进行中">
+    <div class="col-head"><i></i><b>进行中</b><span class="count">0</span></div>
+    <div class="cards" id="cards-1">
+      <article class="card" tabindex="0">
+        <div class="card-top"><span class="tag design">设计</span><span class="due">今天</span></div>
+        <h3>「潮汐」展览 · 主视觉</h3>
+        <p class="detail">海面用纸的纤维纹理，标题压在手写潮汐线上。已出到第三稿。</p>
+        <div class="card-foot"><span class="who"><i>岚</i>阿岚</span><button class="advance" type="button">推进</button></div>
+      </article>
+      <article class="card" tabindex="0">
+        <div class="card-top"><span class="tag dev">开发</span><span class="due">10.20</span></div>
+        <h3>会员中心 · 空态重写</h3>
+        <p class="detail">旧的空态只有一句「暂无数据」，这次要给出下一步动作和一句人话。</p>
+        <div class="card-foot"><span class="who"><i>周</i>老周</span><button class="advance" type="button">推进</button></div>
+      </article>
+      <article class="card" tabindex="0">
+        <div class="card-top"><span class="tag content">内容</span><span class="due">10.19</span></div>
+        <h3>采访提纲 · 独立书店店主</h3>
+        <p class="detail">问题从「为什么开」挪到「为什么还开着」，少一点浪漫，多一点账本。</p>
+        <div class="card-foot"><span class="who"><i>陈</i>小陈</span><button class="advance" type="button">推进</button></div>
+      </article>
+    </div>
+  </section>
+
+  <section class="col" data-col="2" aria-label="待审">
+    <div class="col-head"><i></i><b>待审</b><span class="count">0</span></div>
+    <div class="cards" id="cards-2">
+      <article class="card" tabindex="0">
+        <div class="card-top"><span class="tag design">设计</span><span class="due">10.18</span></div>
+        <h3>雾岛咖啡 · 袋型刀版</h3>
+        <p class="detail">工厂确认了挂耳袋尺寸，旧刀版作废。等阿岚复核出血线。</p>
+        <div class="card-foot"><span class="who"><i>岚</i>阿岚</span><button class="advance" type="button">推进</button></div>
+      </article>
+      <article class="card" tabindex="0">
+        <div class="card-top"><span class="tag dev">开发</span><span class="due">10.18</span></div>
+        <h3>结账页 · 支付方式排序</h3>
+        <p class="detail">默认选中上次使用的方式，但不再默认勾选「记住」。等安全评审。</p>
+        <div class="card-foot"><span class="who"><i>周</i>老周</span><button class="advance" type="button">推进</button></div>
+      </article>
+    </div>
+  </section>
+
+  <section class="col" data-col="3" aria-label="已上线">
+    <div class="col-head"><i></i><b>已上线</b><span class="count">0</span></div>
+    <div class="cards" id="cards-3">
+      <article class="card" tabindex="0">
+        <div class="card-top"><span class="tag content">内容</span><span class="due">10.16</span></div>
+        <h3>秋季刊 · 封面故事上线</h3>
+        <p class="detail">阅读完成率 68%，比上一期高 9 个点。评论区在讨论那家凌晨开门的包子铺。</p>
+        <div class="card-foot"><span class="who"><i>陈</i>小陈</span><button class="advance" type="button" disabled>已上线</button></div>
+      </article>
+      <article class="card" tabindex="0">
+        <div class="card-top"><span class="tag dev">开发</span><span class="due">10.15</span></div>
+        <h3>站点 · 图片懒加载修复</h3>
+        <p class="detail">首屏不再等全部封面，LCP 从 3.4 s 降到 1.8 s。灰度 20%。</p>
+        <div class="card-foot"><span class="who"><i>周</i>老周</span><button class="advance" type="button" disabled>已上线</button></div>
+      </article>
+    </div>
+  </section>
+</main>
+
+<script>
+const columns = Array.from(document.querySelectorAll('.col'));
+const composer = document.getElementById('composer');
+const titleInput = document.getElementById('new-title');
+const typeSelect = document.getElementById('new-type');
+let picked = null;
+
+function countCards() {
+  columns.forEach(function (col) {
+    const count = col.querySelectorAll('.card').length;
+    col.querySelector('.count').textContent = count + ' 张';
+    col.querySelectorAll('.advance').forEach(function (button) {
+      const last = col.dataset.col === '3';
+      button.disabled = last;
+      button.textContent = last ? '已上线' : '推进';
+    });
+  });
+}
+
+function bindCard(card) {
+  card.addEventListener('click', function (event) {
+    if (event.target.closest('.advance')) return;
+    const open = card.classList.contains('expanded');
+    document.querySelectorAll('.card').forEach(function (item) { item.classList.remove('expanded', 'picked'); });
+    if (!open) {
+      card.classList.add('expanded', 'picked');
+      picked = card;
+    }
+  });
+  card.addEventListener('keydown', function (event) {
+    if (event.target !== card) return;
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      card.click();
+    }
+  });
+  const advance = card.querySelector('.advance');
+  advance.addEventListener('click', function (event) {
+    event.stopPropagation();
+    const current = card.closest('.col');
+    const index = Number(current.dataset.col);
+    if (index >= 3) return;
+    const target = document.getElementById('cards-' + (index + 1));
+    target.appendChild(card);
+    card.classList.remove('expanded', 'picked');
+    countCards();
+    const nextButton = card.querySelector('.advance');
+    if (nextButton && !nextButton.disabled) nextButton.focus();
+  });
+}
+
+document.querySelectorAll('.card').forEach(bindCard);
+
+document.getElementById('new').addEventListener('click', function () {
+  composer.hidden = false;
+  composer.classList.add('on');
+  titleInput.focus();
+});
+document.getElementById('cancel').addEventListener('click', function () {
+  composer.hidden = true;
+  composer.classList.remove('on');
+  titleInput.value = '';
+});
+
+composer.addEventListener('submit', function (event) {
+  event.preventDefault();
+  const title = titleInput.value.trim();
+  if (!title) { titleInput.focus(); return; }
+  const type = typeSelect.value;
+  const kind = type === '设计' ? 'design' : type === '开发' ? 'dev' : 'content';
+  const card = document.createElement('article');
+  card.className = 'card';
+  card.tabIndex = 0;
+  card.innerHTML = '<div class="card-top"><span class="tag ' + kind + '">' + type + '</span><span class="due">新</span></div>' +
+    '<h3></h3><p class="detail">刚建的任务。点开卡片补充背景，或直接推进到下一列。</p>' +
+    '<div class="card-foot"><span class="who"><i>岚</i>阿岚</span><button class="advance" type="button">推进</button></div>';
+  card.querySelector('h3').textContent = title;
+  document.getElementById('cards-0').appendChild(card);
+  bindCard(card);
+  titleInput.value = '';
+  composer.hidden = true;
+  composer.classList.remove('on');
+  countCards();
+  card.focus();
+});
+
+countCards();
+</script>
+</body>
+</html>

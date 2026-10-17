@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>幕间 · 正在播放</title>
+<style>
+:root{
+  --void:#12100e;--panel:#1b1815;--ink:#ede4d3;--amber:#d99a4e;--muted:#8a8176;
+  --line:#2e2a25;--red:#c4533f;--good:#7fae95;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--void);color:var(--ink);font:14px/1.6 "Avenir Next","PingFang SC","Microsoft YaHei",sans-serif;min-height:100vh}
+.top{display:flex;align-items:center;gap:20px;padding:16px 30px;border-bottom:1px solid var(--line)}
+.brand{font:600 18px/1 "Songti SC","Noto Serif SC",Georgia,serif;letter-spacing:.28em}
+.top nav{display:flex;gap:16px;margin-left:14px}
+.top nav a{color:var(--muted);text-decoration:none;font-size:11px}
+.top nav a.on{color:var(--ink);border-bottom:2px solid var(--amber);padding-bottom:4px}
+.top .right{margin-left:auto;display:flex;align-items:center;gap:12px;font:9px/1 ui-monospace,Consolas,monospace;color:var(--muted);letter-spacing:.08em}
+.avatar{width:28px;height:28px;border-radius:50%;background:#3a3229;color:var(--ink);display:grid;place-items:center;font:600 9px/1 ui-monospace,Consolas,monospace}
+main{max-width:1280px;margin:0 auto;padding:24px 28px 60px;display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:20px;align-items:start}
+.player{background:var(--panel);border:1px solid var(--line)}
+.screen{position:relative;aspect-ratio:16/9;background:
+  radial-gradient(500px 260px at 30% 35%,#5b4230 0%,transparent 60%),
+  linear-gradient(160deg,#2a2118,#131110 70%);overflow:hidden}
+.screen::before{content:"";position:absolute;left:12%;bottom:16%;width:180px;height:180px;border-radius:50%;background:radial-gradient(circle at 40% 36%,#e8b877,#b06a3a 55%,#5a3020);opacity:.9}
+.screen::after{content:"";position:absolute;left:0;right:0;bottom:22%;height:1px;background:#ede4d344;box-shadow:0 -44px 0 #ede4d322,0 44px 0 #ede4d311}
+.screen .grain{position:absolute;inset:0;background:repeating-linear-gradient(0deg,#ffffff04 0 1px,transparent 1px 4px);opacity:.6}
+.screen .caption{position:absolute;left:22px;bottom:16px;font:8.5px/1.6 ui-monospace,Consolas,monospace;color:#ede4d3aa;letter-spacing:.1em}
+.screen .big{position:absolute;inset:0;display:grid;place-items:center;z-index:3}
+.bigplay{width:64px;height:64px;border-radius:50%;border:1px solid #ede4d366;background:#12100e88;color:var(--ink);font-size:22px;cursor:pointer;backdrop-filter:blur(3px)}
+.bigplay:hover{background:#12100ecc}
+.screen.playing .big{display:none}
+.offline{position:absolute;inset:0;background:#0c0a09e6;display:none;place-items:center;z-index:4;text-align:center;padding:20px}
+.offline.on{display:grid}
+.offline .mark{width:52px;height:52px;border:1px solid var(--red);border-radius:50%;display:grid;place-items:center;color:var(--red);font-size:20px;margin:0 auto 12px}
+.offline h3{margin:0 0 4px;font:400 24px/1.3 "Songti SC",Georgia,serif}
+.offline p{margin:0 0 14px;font-size:10px;color:#b9a996;line-height:1.8}
+.offline button{height:36px;padding:0 16px;border:0;border-radius:999px;background:var(--amber);color:#1c1408;font:600 10px/1 "Avenir Next","PingFang SC",sans-serif;letter-spacing:.1em;cursor:pointer}
+.offline button:hover{background:#e8ad63}
+.info{padding:14px 18px 16px}
+.info .row{display:flex;align-items:baseline;gap:12px}
+.info h1{margin:0;font:400 26px/1.3 "Songti SC","Noto Serif SC",Georgia,serif}
+.info .ep{margin-left:auto;font:9px/1.5 ui-monospace,Consolas,monospace;color:var(--muted);letter-spacing:.08em}
+.info .meta{margin:4px 0 12px;font:9px/1.6 ui-monospace,Consolas,monospace;color:var(--muted);letter-spacing:.04em}
+.bar{display:flex;align-items:center;gap:10px}
+.bar button{border:0;background:none;color:var(--muted);font-size:14px;cursor:pointer;padding:4px}
+.bar button:hover{color:var(--ink)}
+.bar .play{width:38px;height:38px;border-radius:50%;background:var(--amber);color:#1c1408;font-size:14px}
+.bar .play:hover{background:#e8ad63}
+.track{flex:1;height:4px;background:#332d26;border-radius:2px;cursor:pointer;position:relative}
+.track i{display:block;height:100%;width:0;background:var(--amber);border-radius:2px}
+.track i::after{content:"";position:absolute;right:-4px;top:-4px;width:12px;height:12px;border-radius:50%;background:var(--ink)}
+.time{font:9px/1.5 ui-monospace,Consolas,monospace;color:var(--muted);letter-spacing:.04em;min-width:82px;text-align:right}
+.saved{display:flex;align-items:center;gap:7px;margin-top:10px;font:8.5px/1.5 ui-monospace,Consolas,monospace;color:#9a8f80;letter-spacing:.03em}
+.saved i{width:5px;height:5px;border-radius:50%;background:var(--good);font-style:normal}
+.saved b{color:var(--amber);font-weight:400}
+.saved button{margin-left:auto;border:1px solid #3a332b;background:transparent;color:#a99d8e;font:8px/1 ui-monospace,Consolas,monospace;padding:4px 7px;cursor:pointer}
+.saved button:hover{border-color:var(--red);color:var(--red)}
+.desc{margin:12px 0 0;font-size:11px;line-height:1.9;color:#9e9283;max-width:640px}
+.side{background:var(--panel);border:1px solid var(--line)}
+.side h2{margin:0;padding:12px 15px;border-bottom:1px solid var(--line);font:400 16px/1.3 "Songti SC",Georgia,serif;display:flex;align-items:baseline;gap:8px}
+.side h2 span{font:8px/1 ui-monospace,Consolas,monospace;color:var(--muted);letter-spacing:.08em}
+.qitem{display:flex;gap:10px;padding:10px 14px;border-bottom:1px solid #27231e;align-items:center}
+.qitem .thumb{width:54px;height:36px;border-radius:3px;flex:none;background:linear-gradient(150deg,#4a3829,#1a1512);position:relative;overflow:hidden}
+.qitem .thumb::after{content:"";position:absolute;right:8px;top:9px;width:14px;height:14px;border-radius:50%;background:#c98a4a;opacity:.7}
+.qitem b{display:block;font-size:11px;font-weight:600}
+.qitem span{display:block;font:8px/1.5 ui-monospace,Consolas,monospace;color:var(--muted)}
+.qitem button{margin-left:auto;border:1px solid #3a332b;background:transparent;color:#a99d8e;font:8px/1 ui-monospace,Consolas,monospace;padding:5px 8px;cursor:pointer}
+.qitem button:hover{border-color:var(--amber);color:var(--amber)}
+.qitem.now{background:#221d17}
+.qitem.now button{border-color:var(--amber);color:var(--amber)}
+.side .note{padding:10px 14px;font:8px/1.7 ui-monospace,Consolas,monospace;color:#6f665a;letter-spacing:.03em}
+.discover{background:var(--panel);border:1px solid var(--line);margin-top:20px;padding:14px 16px 16px}
+.discover h2{margin:0 0 10px;font:400 18px/1.3 "Songti SC",Georgia,serif}
+.dgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.dcard{border:1px solid #332d26;background:#171411;text-align:left;color:inherit;font:inherit;cursor:pointer;padding:0}
+.dcard:hover{border-color:var(--amber)}
+.dcard .still{height:86px;background:linear-gradient(160deg,#3c2f22,#151110);position:relative;overflow:hidden}
+.dcard .still::after{content:"";position:absolute;left:20%;bottom:16%;width:46px;height:46px;border-radius:50%;background:#c98a4a66}
+.dcard .txt{padding:8px 9px 9px}
+.dcard b{display:block;font:400 12px/1.4 "Songti SC",Georgia,serif}
+.dcard span{display:block;font:7.5px/1.5 ui-monospace,Consolas,monospace;color:var(--muted);margin-top:2px}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(8px);background:var(--ink);color:#1c1408;padding:8px 14px;border-radius:999px;font-size:10px;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;white-space:nowrap;z-index:9}
+.toast.show{opacity:1;transform:translateX(-50%)}
+:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+@media(max-width:1000px){
+  main{grid-template-columns:1fr}
+  .side{order:2}
+}
+@media(max-width:640px){
+  .top{padding:12px 16px}
+  .top nav{display:none}
+  main{padding:16px 14px 40px}
+  .info h1{font-size:21px}
+  .dgrid{grid-template-columns:1fr}
+  .time{min-width:70px}
+}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<header class="top"><div class="brand">幕间</div><nav aria-label="媒体导航"><a href="#discover" class="on">发现</a><a href="#queue">片单</a><a href="#history">历史</a></nav><div class="right"><span>片库 · 3 部</span><span class="avatar">林</span></div></header>
+
+<main>
+  <section>
+    <div class="player">
+      <div class="screen playing" id="screen">
+        <div class="grain" aria-hidden="true"></div>
+        <span class="caption">INTERMISSION / 35mm · 2026</span>
+        <div class="big"><button class="bigplay" id="bigplay" type="button" aria-label="播放">▶</button></div>
+        <div class="offline" id="offline"><div><div class="mark" aria-hidden="true">!</div><h3>网络中断。</h3><p id="offline-copy">播放已暂停，进度停在 00:00 · 已为你保留。</p><button id="reconnect" type="button">重新连接</button></div></div>
+      </div>
+      <div class="info">
+        <div class="row"><h1 id="title">雾中列车</h1><span class="ep" id="ep">EP. 01 / 03 · 42:00</span></div>
+        <p class="meta" id="meta">苏禾 · 纪录片 · 2026 · 中文字幕</p>
+        <div class="bar">
+          <button id="back10" type="button" aria-label="后退十秒">↺</button>
+          <button class="play" id="play" type="button" aria-label="暂停">❚❚</button>
+          <button id="fwd10" type="button" aria-label="前进十秒">↻</button>
+          <div class="track" id="track" role="slider" tabindex="0" aria-label="播放进度" aria-valuemin="0" aria-valuemax="2520" aria-valuenow="0"><i id="fill"></i></div>
+          <span class="time" id="time">00:00 / 42:00</span>
+        </div>
+        <div class="saved"><i></i><span>播放状态已保存 · 下次从这里继续</span><b id="saved-at">00:00</b><button id="offline-btn" type="button">模拟断网</button></div>
+        <p class="desc" id="desc">一列只在雾里停靠的火车，载着七个不愿到站的人。列车员说，只要有人愿意讲完自己的故事，车就会再开。</p>
+      </div>
+    </div>
+
+    <section class="discover" aria-label="发现内容">
+      <h2>继续发现</h2>
+      <div class="dgrid">
+        <button class="dcard" type="button" data-i="1"><span class="still" aria-hidden="true"></span><span class="txt"><b>夜航西飞</b><span>苏禾 · 38:20</span></span></button>
+        <button class="dcard" type="button" data-i="2"><span class="still" aria-hidden="true"></span><span class="txt"><b>凌晨四点</b><span>林见鹿 · 51:10</span></span></button>
+        <button class="dcard" type="button" data-i="0"><span class="still" aria-hidden="true"></span><span class="txt"><b>雾中列车</b><span>陈默 · 42:00</span></span></button>
+      </div>
+    </section>
+  </section>
+
+  <aside class="side">
+    <h2>片单 <span>UP NEXT · 3</span></h2>
+    <div id="queue">
+      <div class="qitem now" data-i="0"><span class="thumb" aria-hidden="true"></span><div><b>雾中列车</b><span>正在播放 · 42:00</span></div><button type="button">播放中</button></div>
+      <div class="qitem" data-i="1"><span class="thumb" aria-hidden="true"></span><div><b>夜航西飞</b><span>纪录片 · 38:20</span></div><button type="button">播放</button></div>
+      <div class="qitem" data-i="2"><span class="thumb" aria-hidden="true"></span><div><b>凌晨四点</b><span>纪录片 · 51:10</span></div><button type="button">播放</button></div>
+    </div>
+    <p class="note">片单会自动保存。离开页面后，下次打开会从上次停下的位置继续。</p>
+  </aside>
+</main>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+const films = [
+  { title: '雾中列车', ep: 'EP. 01 / 03 · 42:00', meta: '陈默 · 纪录片 · 2026 · 中文字幕', duration: 2520, desc: '一列只在雾里停靠的火车，载着七个不愿到站的人。列车员说，只要有人愿意讲完自己的故事，车就会再开。' },
+  { title: '夜航西飞', ep: 'EP. 02 / 03 · 38:20', meta: '苏禾 · 纪录片 · 2026 · 中文字幕', duration: 2300, desc: '从深夜的机场到清晨的海面，一次没有目的地的夜航。飞行员说，往西飞，天会亮得慢一点。' },
+  { title: '凌晨四点', ep: 'EP. 03 / 03 · 51:10', meta: '林见鹿 · 纪录片 · 2025 · 中文字幕', duration: 3070, desc: '环卫车经过安福路时，第一笼包子刚好上汽。我们跟了三条街，记录这座城市最安静的两个小时。' }
+];
+let index = 0;
+let elapsed = 0;
+let playing = true;
+let timer = null;
+let saved = 0;
+
+function fmt(value) {
+  const m = Math.floor(value / 60);
+  const s = Math.floor(value % 60);
+  return String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+}
+
+function render() {
+  const film = films[index];
+  document.getElementById('title').textContent = film.title;
+  document.getElementById('ep').textContent = film.ep;
+  document.getElementById('meta').textContent = film.meta;
+  document.getElementById('desc').textContent = film.desc;
+  document.getElementById('track').setAttribute('aria-valuemax', String(film.duration));
+  document.getElementById('saved-at').textContent = fmt(saved);
+  document.querySelectorAll('.qitem').forEach(function (row) {
+    const i = Number(row.dataset.i);
+    row.classList.toggle('now', i === index);
+    const button = row.querySelector('button');
+    button.textContent = i === index ? (playing ? '播放中' : '已暂停') : '播放';
+  });
+  renderTime();
+}
+
+function renderTime() {
+  const film = films[index];
+  document.getElementById('fill').style.width = (elapsed / film.duration * 100) + '%';
+  document.getElementById('time').textContent = fmt(elapsed) + ' / ' + fmt(film.duration);
+  document.getElementById('track').setAttribute('aria-valuenow', String(Math.floor(elapsed)));
+}
+
+function setPlaying(next) {
+  playing = next;
+  document.getElementById('screen').classList.toggle('playing', playing);
+  document.getElementById('play').textContent = playing ? '❚❚' : '▶';
+  document.getElementById('play').setAttribute('aria-label', playing ? '暂停' : '播放');
+  document.getElementById('bigplay').textContent = '▶';
+  document.getElementById('bigplay').setAttribute('aria-label', '播放');
+  document.querySelectorAll('.qitem').forEach(function (row) {
+    if (Number(row.dataset.i) === index) row.querySelector('button').textContent = playing ? '播放中' : '已暂停';
+  });
+}
+
+function tick() {
+  if (!playing) return;
+  elapsed += 1;
+  if (elapsed % 5 === 0) {
+    saved = elapsed;
+    document.getElementById('saved-at').textContent = fmt(saved);
+  }
+  if (elapsed >= films[index].duration) {
+    elapsed = films[index].duration;
+    setPlaying(false);
+  }
+  renderTime();
+}
+
+function select(next) {
+  index = next;
+  elapsed = 0;
+  saved = 0;
+  setPlaying(true);
+  render();
+}
+
+document.querySelectorAll('.dcard').forEach(function (card) {
+  card.addEventListener('click', function () {
+    select(Number(card.dataset.i));
+    document.getElementById('screen').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  });
+});
+document.querySelectorAll('.qitem button').forEach(function (button) {
+  button.addEventListener('click', function () {
+    const row = button.closest('.qitem');
+    select(Number(row.dataset.i));
+  });
+});
+
+document.getElementById('play').addEventListener('click', function () { setPlaying(!playing); });
+document.getElementById('bigplay').addEventListener('click', function () { setPlaying(true); });
+document.getElementById('back10').addEventListener('click', function () { elapsed = Math.max(0, elapsed - 10); renderTime(); });
+document.getElementById('fwd10').addEventListener('click', function () { elapsed = Math.min(films[index].duration, elapsed + 10); renderTime(); });
+document.getElementById('track').addEventListener('click', function (event) {
+  const rect = this.getBoundingClientRect();
+  elapsed = Math.min(films[index].duration, Math.max(0, (event.clientX - rect.left) / rect.width) * films[index].duration);
+  renderTime();
+});
+document.getElementById('track').addEventListener('keydown', function (event) {
+  if (event.key === 'ArrowRight') { elapsed = Math.min(films[index].duration, elapsed + 5); renderTime(); }
+  if (event.key === 'ArrowLeft') { elapsed = Math.max(0, elapsed - 5); renderTime(); }
+});
+
+document.getElementById('offline-btn').addEventListener('click', function () {
+  setPlaying(false);
+  saved = elapsed;
+  document.getElementById('offline-copy').textContent = '播放已暂停，进度停在 ' + fmt(saved) + ' · 已为你保留。';
+  document.getElementById('offline').classList.add('on');
+});
+
+document.getElementById('reconnect').addEventListener('click', function () {
+  const button = document.getElementById('reconnect');
+  button.disabled = true;
+  button.textContent = '正在重连…';
+  setTimeout(function () {
+    document.getElementById('offline').classList.remove('on');
+    button.disabled = false;
+    button.textContent = '重新连接';
+    elapsed = saved;
+    setPlaying(true);
+    render();
+    showToast('已从 ' + fmt(saved) + ' 继续播放。');
+  }, 900);
+});
+
+function showToast(text) {
+  const el = document.getElementById('toast');
+  el.textContent = text;
+  el.classList.add('show');
+  clearTimeout(showToast.timer);
+  showToast.timer = setTimeout(function () { el.classList.remove('show'); }, 2200);
+}
+
+render();
+setPlaying(true);
+timer = setInterval(tick, 1000);
+</script>
+</body>
+</html>

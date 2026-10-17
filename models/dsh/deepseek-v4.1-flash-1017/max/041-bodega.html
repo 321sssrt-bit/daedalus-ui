@@ -1,0 +1,329 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>仓 · 购物</title>
+<style>
+:root{
+  --cream:#f6f0e4;--paper:#fffaf1;--ink:#16201c;--tomato:#d24b35;--teal:#1f6f6a;
+  --mustard:#e0a63c;--line:#ded2bf;--muted:#7b7264;--good:#3f6b4f;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--cream);color:var(--ink);font:14px/1.6 "Avenir Next","PingFang SC","Microsoft YaHei",sans-serif;min-height:100vh}
+.top{display:flex;align-items:center;gap:20px;padding:16px 30px;border-bottom:1px solid var(--line);background:var(--paper)}
+.brand{display:flex;align-items:baseline;gap:9px;font:600 20px/1 "Songti SC","Noto Serif SC",Georgia,serif;letter-spacing:.22em}
+.brand small{font:9px/1 ui-monospace,Consolas,monospace;letter-spacing:.3em;color:var(--teal)}
+.top .right{margin-left:auto;display:flex;align-items:center;gap:14px;font:9px/1 ui-monospace,Consolas,monospace;color:var(--muted);letter-spacing:.06em}
+.cartbtn{height:32px;padding:0 12px;border:1px solid var(--ink);border-radius:999px;background:transparent;color:var(--ink);font:10px/1 "Avenir Next","PingFang SC",sans-serif;cursor:pointer}
+.cartbtn b{display:inline-grid;place-items:center;min-width:16px;height:16px;border-radius:50%;background:var(--tomato);color:#fff;font:9px/1 ui-monospace,Consolas,monospace;margin-left:5px}
+main{max-width:1280px;margin:0 auto;padding:26px 28px 60px;display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:22px;align-items:start}
+.hero{display:flex;align-items:flex-end;gap:18px;padding-bottom:18px;border-bottom:1px solid var(--ink);margin-bottom:16px}
+.hero h1{margin:0;font:400 38px/1.15 "Songti SC","Noto Serif SC",Georgia,serif}
+.hero p{margin:0 0 4px auto;max-width:280px;font:9px/1.8 ui-monospace,Consolas,monospace;color:var(--muted);letter-spacing:.04em;text-align:right}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.product{border:1px solid var(--line);background:var(--paper);text-align:left;font:inherit;color:inherit;cursor:pointer;padding:0;transition:border-color .15s}
+.product:hover{border-color:var(--teal)}
+.product.on{border-color:var(--ink);box-shadow:0 0 0 1px var(--ink) inset}
+.product .pic{height:128px;position:relative;overflow:hidden;border-bottom:1px solid var(--line);display:grid;place-items:center}
+.pic.c1{background:#e8dfcd}.pic.c2{background:#ead9c4}.pic.c3{background:#dee5da}.pic.c4{background:#efe1c9}
+.box{width:70px;height:64px;background:#8a5a3d;border-radius:3px;position:relative;box-shadow:0 10px 18px #4a342622}
+.box::before{content:"";position:absolute;left:0;right:0;top:18px;height:2px;background:#f6f0e4aa}
+.bread2{width:78px;height:50px;border-radius:48% 52% 44% 56%/60% 58% 42% 40%;background:linear-gradient(160deg,#d9a863,#b87a3e)}
+.bottle2{width:32px;height:82px;border-radius:5px;background:linear-gradient(90deg,#1f6f6a,#154b47);position:relative}
+.bottle2::before{content:"";position:absolute;left:9px;top:-14px;width:14px;height:16px;background:#154b47;border-radius:2px 2px 0 0}
+.jar2{width:54px;height:64px;border-radius:5px 5px 10px 10px;background:linear-gradient(180deg,#e3b459,#c38a2f)}
+.jar2::before{content:"";position:absolute;top:-8px;left:-3px;right:-3px;height:12px;background:#8b6a2e;border-radius:2px}
+.product .txt{padding:11px 12px 12px}
+.product h2{margin:0;font:400 17px/1.35 "Songti SC",Georgia,serif}
+.product .sub{font:8.5px/1.6 ui-monospace,Consolas,monospace;color:var(--muted);margin-top:2px}
+.product .price{display:flex;justify-content:space-between;align-items:center;margin-top:7px;font:10px/1 ui-monospace,Consolas,monospace}
+.product .price b{font:600 13px/1 "Avenir Next","PingFang SC",sans-serif;color:var(--tomato)}
+.product .price span{color:#9aa094}
+.detail{margin-top:14px;border:1px solid var(--ink);background:var(--paper);padding:16px 18px;display:none}
+.detail.on{display:block}
+.detail .head{display:flex;align-items:baseline;gap:10px}
+.detail h2{margin:0;font:400 24px/1.3 "Songti SC",Georgia,serif}
+.detail .stock{margin-left:auto;font:9px/1.5 ui-monospace,Consolas,monospace;color:var(--tomato);letter-spacing:.04em}
+.detail .desc{margin:6px 0 12px;font-size:11px;line-height:1.8;color:var(--muted)}
+.label{display:block;font:8.5px/1 ui-monospace,Consolas,monospace;color:#9a8f7c;letter-spacing:.16em;margin:10px 0 6px}
+.specs{display:flex;gap:6px;flex-wrap:wrap}
+.spec{height:34px;padding:0 11px;border:1px solid var(--line);border-radius:2px;background:transparent;color:#5e5546;font:10px/1 "Avenir Next","PingFang SC",sans-serif;cursor:pointer}
+.spec:hover{border-color:var(--teal)}
+.spec[aria-pressed="true"]{border-color:var(--ink);background:#fffdf7;box-shadow:0 0 0 1px var(--ink) inset}
+.spec:disabled{opacity:.45;cursor:not-allowed;text-decoration:line-through}
+.buyrow{display:flex;gap:10px;align-items:stretch;margin-top:14px}
+.qty{display:flex;align-items:center;border:1px solid var(--line);height:42px}
+.qty button{width:34px;height:100%;border:0;background:transparent;font-size:15px;cursor:pointer;color:var(--ink)}
+.qty button:hover{background:#efe6d6}
+.qty input{width:34px;height:100%;border:0;background:transparent;text-align:center;font:600 12px/1 ui-monospace,Consolas,monospace;outline:none}
+.add{flex:1;height:42px;border:0;border-radius:2px;background:var(--ink);color:var(--cream);font:600 11px/1 "Avenir Next","PingFang SC",sans-serif;letter-spacing:.1em;cursor:pointer}
+.add:hover{background:var(--teal)}
+.add:disabled{opacity:.45;cursor:not-allowed}
+.error{margin:10px 0 0;padding:8px 10px;border-left:3px solid var(--tomato);background:#f8e6df;font-size:11px;line-height:1.7;color:#8a3a28;display:none}
+.error.on{display:block}
+.cart{background:var(--paper);border:1px solid var(--line);position:sticky;top:18px}
+.cart h2{margin:0;padding:13px 16px;border-bottom:1px solid var(--line);font:400 18px/1.3 "Songti SC",Georgia,serif;display:flex;align-items:baseline;gap:8px}
+.cart h2 span{font:8.5px/1 ui-monospace,Consolas,monospace;color:var(--muted);letter-spacing:.06em}
+.cart .empty{padding:26px 16px;font-size:11px;color:var(--muted);line-height:1.8}
+.line{display:grid;grid-template-columns:1fr 54px 70px 24px;gap:8px;align-items:center;padding:10px 16px;border-bottom:1px solid #ece2d3;font-size:11px}
+.line .n b{display:block;font-size:11.5px}
+.line .n span{display:block;font:8px/1.5 ui-monospace,Consolas,monospace;color:var(--muted)}
+.line .q{font:9px/1.5 ui-monospace,Consolas,monospace;color:var(--muted);text-align:center}
+.line .p{font:600 11px/1 ui-monospace,Consolas,monospace;text-align:right}
+.line .x{border:0;background:none;color:#b3a691;cursor:pointer;font-size:11px}
+.line .x:hover{color:var(--tomato)}
+.totals{padding:12px 16px}
+.totals .r{display:flex;justify-content:space-between;padding:3px 0;font-size:11px;color:#5e5546}
+.totals .r b{font:10px/1.5 ui-monospace,Consolas,monospace;color:var(--ink)}
+.totals .big{display:flex;justify-content:space-between;align-items:baseline;border-top:1px solid var(--ink);margin-top:8px;padding-top:10px}
+.totals .big span{font-size:11px;color:var(--muted)}
+.totals .big b{font:400 28px/1 "Songti SC",Georgia,serif}
+.checkout{width:100%;height:44px;border:0;background:var(--tomato);color:#fff5ea;font:600 11px/1 "Avenir Next","PingFang SC",sans-serif;letter-spacing:.14em;cursor:pointer}
+.checkout:hover{background:#b33d29}
+.checkout:disabled{background:#d8c9b9;cursor:not-allowed}
+.modal{position:fixed;inset:0;background:#16201c99;display:none;place-items:center;padding:20px;z-index:20}
+.modal.on{display:grid}
+.modal .card{width:min(460px,100%);background:var(--paper);border:1px solid var(--ink);padding:22px 22px 18px}
+.modal h2{margin:0 0 4px;font:400 26px/1.3 "Songti SC",Georgia,serif}
+.modal .sub{margin:0 0 14px;font-size:10px;color:var(--muted)}
+.modal .rows{border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:8px 0;margin-bottom:12px}
+.modal .rows div{display:flex;justify-content:space-between;gap:10px;padding:3px 0;font-size:11px}
+.modal .rows b{font:10px/1.6 ui-monospace,Consolas,monospace}
+.modal .addr{font-size:10px;color:var(--muted);line-height:1.8;margin-bottom:14px}
+.modal .btns{display:flex;gap:8px}
+.modal .cancel{height:38px;padding:0 14px;border:1px solid var(--line);background:transparent;color:var(--muted);font-size:10px;cursor:pointer}
+.modal .submit{flex:1;height:38px;border:0;background:var(--teal);color:#f6f0e4;font:600 11px/1 "Avenir Next","PingFang SC",sans-serif;letter-spacing:.1em;cursor:pointer}
+.receipt{position:fixed;inset:0;background:#16201c99;display:none;place-items:center;padding:20px;z-index:30}
+.receipt.on{display:grid}
+.receipt .card{width:min(420px,100%);background:var(--paper);border:1px solid var(--ink);padding:28px 24px;text-align:center}
+.receipt .mark{width:54px;height:54px;border-radius:50%;border:1px solid var(--good);color:var(--good);display:grid;place-items:center;font-size:20px;margin:0 auto 14px}
+.receipt h2{margin:0 0 6px;font:400 28px/1.3 "Songti SC",Georgia,serif}
+.receipt p{margin:0 0 14px;font-size:11px;line-height:1.8;color:var(--muted)}
+.receipt .code{padding:7px 10px;border:1px dashed #cbbd9f;font:9px/1 ui-monospace,Consolas,monospace;color:var(--teal);letter-spacing:.06em;display:inline-block;margin-bottom:16px}
+.receipt button{height:36px;padding:0 16px;border:1px solid var(--line);background:transparent;color:var(--muted);font-size:10px;cursor:pointer}
+.receipt button:hover{border-color:var(--ink);color:var(--ink)}
+@media(max-width:1000px){
+  main{grid-template-columns:1fr}
+  .cart{position:static}
+}
+@media(max-width:620px){
+  .top{padding:12px 16px}
+  main{padding:18px 14px 40px}
+  .hero{flex-wrap:wrap}
+  .hero h1{font-size:30px}
+  .hero p{margin-left:0;text-align:left}
+  .grid{grid-template-columns:1fr}
+  .buyrow{flex-wrap:wrap}
+  .add{flex:1 1 100%}
+}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<header class="top"><div class="brand">仓<small>BODEGA</small></div><div class="right"><span>满 ¥300 免运费 · 明日送达</span><button class="cartbtn" id="jump" type="button">购物车 <b id="count">0</b></button></div></header>
+
+<main>
+  <section>
+    <div class="hero"><h1>今天想带点什么回去？</h1><p>选择商品 → 规格与数量 → 加入购物车 → 提交订单。库存会在提交前检查。</p></div>
+    <div class="grid" id="grid">
+      <button class="product on" type="button" data-id="coffee"><span class="pic c1"><span class="box" aria-hidden="true"></span></span><span class="txt"><h2>冷萃咖啡礼盒</h2><span class="sub">云南 · 6 瓶 / 12 瓶</span><span class="price"><b>¥128</b><span>仅剩 2 件</span></span></span></button>
+      <button class="product" type="button" data-id="bread"><span class="pic c2"><span class="bread2" aria-hidden="true"></span></span><span class="txt"><h2>手作酸面包</h2><span class="sub">临安 · 原味 / 核桃</span><span class="price"><b>¥42</b><span>余 12 只</span></span></span></button>
+      <button class="product" type="button" data-id="oil"><span class="pic c3"><span class="bottle2" aria-hidden="true"></span></span><span class="txt"><h2>初榨橄榄油</h2><span class="sub">大理 · 500 ml / 1 L</span><span class="price"><b>¥168</b><span>余 9 瓶</span></span></span></button>
+      <button class="product" type="button" data-id="honey"><span class="pic c4"><span class="jar2" aria-hidden="true"></span></span><span class="txt"><h2>百花蜜</h2><span class="sub">临安 · 380 g</span><span class="price"><b>¥74</b><span>余 20 罐</span></span></span></button>
+    </div>
+
+    <section class="detail on" id="detail" aria-live="polite">
+      <div class="head"><h2 id="d-name">冷萃咖啡礼盒</h2><span class="stock" id="d-stock">仅剩 2 件</span></div>
+      <p class="desc" id="d-desc">用云南小粒咖啡冷萃 18 小时，装进玻璃瓶。冷藏可放 10 天。</p>
+      <span class="label">规格</span><div class="specs" id="d-specs"></div>
+      <span class="label">数量</span>
+      <div class="buyrow"><div class="qty"><button type="button" id="minus" aria-label="减少数量">−</button><input id="qty" type="text" value="1" inputmode="numeric" aria-label="数量"><button type="button" id="plus" aria-label="增加数量">＋</button></div><button class="add" id="add" type="button">加入购物车</button></div>
+      <p class="error" id="error" role="alert"></p>
+    </section>
+  </section>
+
+  <aside class="cart" id="cart">
+    <h2>购物车 <span id="cart-sub">0 件</span></h2>
+    <div id="cart-lines"></div>
+    <div class="totals"><div class="r"><span>小计</span><b id="subtotal">¥0</b></div><div class="r"><span>运费</span><b id="shipping">—</b></div><div class="big"><span>合计</span><b id="total">¥0</b></div></div>
+    <button class="checkout" id="checkout" type="button" disabled>去结算</button>
+  </aside>
+</main>
+
+<div class="modal" id="modal">
+  <div class="card"><h2>确认订单</h2><p class="sub">提交前再看一眼。库存会在这时再次检查。</p><div class="rows" id="modal-rows"></div><p class="addr">收货人：林岸 · 138 0000 0000<br>上海市徐汇区安福路 322 号 3 楼</p><div class="btns"><button class="cancel" id="modal-cancel" type="button">再改改</button><button class="submit" id="submit" type="button">提交订单</button></div></div>
+</div>
+
+<div class="receipt" id="receipt">
+  <div class="card"><div class="mark" aria-hidden="true">✓</div><h2>下单成功。</h2><p id="receipt-copy">我们会在一小时内拣货，明日送达。</p><span class="code" id="order-no">BOD-20261017-041</span><p></p><button id="again" type="button">继续逛逛</button></div>
+</div>
+
+<script>
+const catalog = {
+  coffee: { name: '冷萃咖啡礼盒', price: 128, stock: 2, desc: '用云南小粒咖啡冷萃 18 小时，装进玻璃瓶。冷藏可放 10 天。', specs: [{ name: '6 瓶装', add: 0 }, { name: '12 瓶装', add: 60, soldOut: true }] },
+  bread: { name: '手作酸面包', price: 42, stock: 12, desc: '三年老面发酵，外壳脆、里面湿。当天吃不完可以切片冷冻。', specs: [{ name: '原味', add: 0 }, { name: '核桃', add: 6 }] },
+  oil: { name: '初榨橄榄油', price: 168, stock: 9, desc: '大理冷压，带一点青草和杏仁的苦味。淋在刚烤好的面包上。', specs: [{ name: '500 ml', add: 0 }, { name: '1 L', add: 120 }] },
+  honey: { name: '百花蜜', price: 74, stock: 20, desc: '春天的山花，颜色偏浅。冲水喝，或者涂在面包上。', specs: [{ name: '380 g', add: 0 }] }
+};
+let current = 'coffee';
+let specIndex = 0;
+let qty = 1;
+let cart = [];
+
+function money(value) { return '¥' + value.toLocaleString('en-US'); }
+
+function renderDetail() {
+  const item = catalog[current];
+  document.getElementById('d-name').textContent = item.name;
+  document.getElementById('d-stock').textContent = item.stock <= 3 ? '仅剩 ' + item.stock + ' 件' : '余 ' + item.stock + ' 件';
+  document.getElementById('d-desc').textContent = item.desc;
+  document.getElementById('d-specs').innerHTML = item.specs.map(function (spec, index) {
+    return '<button class="spec" type="button" data-i="' + index + '" aria-pressed="' + (index === specIndex) + '"' + (spec.soldOut ? ' disabled' : '') + '>' + spec.name + (spec.soldOut ? ' · 售罄' : '') + '</button>';
+  }).join('');
+  document.querySelectorAll('.spec').forEach(function (button) {
+    button.addEventListener('click', function () {
+      specIndex = Number(button.dataset.i);
+      document.getElementById('error').classList.remove('on');
+      renderDetail();
+    });
+  });
+  document.getElementById('qty').value = String(qty);
+  document.getElementById('error').classList.remove('on');
+}
+
+function unitPrice() {
+  const item = catalog[current];
+  return item.price + item.specs[specIndex].add;
+}
+
+function renderCart() {
+  const lines = document.getElementById('cart-lines');
+  if (!cart.length) {
+    lines.innerHTML = '<p class="empty">购物车还是空的。挑一件，选好规格再放进来。</p>';
+  } else {
+    lines.innerHTML = cart.map(function (row, index) {
+      return '<div class="line"><div class="n"><b>' + row.name + '</b><span>' + row.spec + ' · ' + money(row.price) + '</span></div><span class="q">×' + row.qty + '</span><span class="p">' + money(row.price * row.qty) + '</span><button class="x" type="button" data-i="' + index + '" aria-label="移除">✕</button></div>';
+    }).join('');
+    lines.querySelectorAll('.x').forEach(function (button) {
+      button.addEventListener('click', function () {
+        cart.splice(Number(button.dataset.i), 1);
+        renderCart();
+      });
+    });
+  }
+  const subtotal = cart.reduce(function (sum, row) { return sum + row.price * row.qty; }, 0);
+  const count = cart.reduce(function (sum, row) { return sum + row.qty; }, 0);
+  const shipping = subtotal >= 300 || subtotal === 0 ? 0 : 12;
+  document.getElementById('subtotal').textContent = money(subtotal);
+  document.getElementById('shipping').textContent = subtotal === 0 ? '—' : shipping ? money(shipping) : '免运费';
+  document.getElementById('total').textContent = money(subtotal + shipping);
+  document.getElementById('cart-sub').textContent = count + ' 件';
+  document.getElementById('count').textContent = String(count);
+  document.getElementById('checkout').disabled = count === 0;
+}
+
+document.querySelectorAll('.product').forEach(function (button) {
+  button.addEventListener('click', function () {
+    current = button.dataset.id;
+    specIndex = 0;
+    qty = 1;
+    document.querySelectorAll('.product').forEach(function (item) { item.classList.toggle('on', item === button); });
+    renderDetail();
+    document.getElementById('detail').scrollIntoView({ block: 'nearest' });
+  });
+});
+
+function setQty(next) {
+  qty = Math.max(1, Math.min(9, next));
+  document.getElementById('qty').value = String(qty);
+  document.getElementById('error').classList.remove('on');
+}
+document.getElementById('minus').addEventListener('click', function () { setQty(qty - 1); });
+document.getElementById('plus').addEventListener('click', function () { setQty(qty + 1); });
+document.getElementById('qty').addEventListener('change', function (event) {
+  setQty(parseInt(event.target.value.replace(/\D/g, ''), 10) || 1);
+});
+
+document.getElementById('add').addEventListener('click', function () {
+  const item = catalog[current];
+  const spec = item.specs[specIndex];
+  const error = document.getElementById('error');
+  if (spec.soldOut) {
+    error.textContent = '这个规格已经售罄。改选其他规格，或者减少数量再试。';
+    error.classList.add('on');
+    return;
+  }
+  if (qty > item.stock) {
+    error.textContent = '库存不足：「' + item.name + ' · ' + spec.name + '」仅剩 ' + item.stock + ' 件。请减少数量或改选其他规格。';
+    error.classList.add('on');
+    return;
+  }
+  const already = cart.filter(function (row) { return row.id === current && row.spec === spec.name; }).reduce(function (sum, row) { return sum + row.qty; }, 0);
+  if (already + qty > item.stock) {
+    error.textContent = '库存不足：购物车里已有 ' + already + ' 件「' + item.name + ' · ' + spec.name + '」，库存仅 ' + item.stock + ' 件。请减少数量。';
+    error.classList.add('on');
+    return;
+  }
+  const price = unitPrice();
+  const existing = cart.find(function (row) { return row.id === current && row.spec === spec.name; });
+  if (existing) {
+    existing.qty += qty;
+  } else {
+    cart.push({ id: current, name: item.name, spec: spec.name, price: price, qty: qty });
+  }
+  error.classList.remove('on');
+  renderCart();
+  document.getElementById('cart').scrollIntoView({ block: 'nearest' });
+});
+
+document.getElementById('checkout').addEventListener('click', function () {
+  if (!cart.length) return;
+  const subtotal = cart.reduce(function (sum, row) { return sum + row.price * row.qty; }, 0);
+  const shipping = subtotal >= 300 ? 0 : 12;
+  document.getElementById('modal-rows').innerHTML = cart.map(function (row) {
+    return '<div><span>' + row.name + ' · ' + row.spec + ' ×' + row.qty + '</span><b>' + money(row.price * row.qty) + '</b></div>';
+  }).join('') + '<div><span>运费</span><b>' + (shipping ? money(shipping) : '免运费') + '</b></div>' + '<div><span>总计</span><b>' + money(subtotal + shipping) + '</b></div>';
+  document.getElementById('modal').classList.add('on');
+});
+
+document.getElementById('modal-cancel').addEventListener('click', function () {
+  document.getElementById('modal').classList.remove('on');
+});
+
+document.getElementById('submit').addEventListener('click', function () {
+  const short = cart.find(function (row) { return catalog[row.id] && row.qty > catalog[row.id].stock; });
+  if (short) {
+    document.getElementById('modal').classList.remove('on');
+    document.getElementById('error').textContent = '库存发生变化：「' + short.name + '」现在只剩 ' + catalog[short.id].stock + ' 件，请回到购物车调整。';
+    document.getElementById('error').classList.add('on');
+    document.getElementById('detail').scrollIntoView({ block: 'center' });
+    return;
+  }
+  const button = document.getElementById('submit');
+  button.disabled = true;
+  button.textContent = '正在锁定库存…';
+  setTimeout(function () {
+    document.getElementById('modal').classList.remove('on');
+    document.getElementById('receipt').classList.add('on');
+    document.getElementById('receipt-copy').textContent = '共 ' + cart.reduce(function (sum, row) { return sum + row.qty; }, 0) + ' 件，我们会在 1 小时内拣货，明日送达。';
+    button.disabled = false;
+    button.textContent = '提交订单';
+  }, 900);
+});
+
+document.getElementById('again').addEventListener('click', function () {
+  cart = [];
+  renderCart();
+  document.getElementById('receipt').classList.remove('on');
+});
+
+document.getElementById('jump').addEventListener('click', function () {
+  document.getElementById('cart').scrollIntoView({ block: 'start' });
+});
+
+renderDetail();
+renderCart();
+</script>
+</body>
+</html>

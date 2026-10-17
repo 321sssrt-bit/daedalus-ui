@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>信号 · 故障</title>
+<style>
+:root{
+  --void:#0b0c0f;--panel:#141619;--ink:#e9e2d6;--red:#e05252;--amber:#f2a03c;
+  --muted:#767b85;--line:#262a32;--good:#7f9c88;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:radial-gradient(700px 500px at 50% 0%,#221114 0%,transparent 60%),#07080a;display:grid;place-items:center;padding:26px;font:14px/1.5 "Avenir Next","PingFang SC","Microsoft YaHei",sans-serif;color:var(--ink)}
+.phone{width:390px;height:844px;background:#050608;border-radius:48px;padding:10px;box-shadow:0 40px 90px #000000cc;position:relative;flex:none}
+.screen{width:100%;height:100%;background:var(--void);border-radius:39px;overflow:hidden;position:relative;display:flex;flex-direction:column}
+.notch{position:absolute;left:50%;top:8px;transform:translateX(-50%);width:110px;height:24px;background:#050608;border-radius:14px;z-index:7}
+.statusbar{height:42px;display:flex;align-items:flex-end;justify-content:space-between;padding:0 22px 5px;font:600 10px/1 ui-monospace,Consolas,monospace;color:#6c727c}
+.top{display:flex;align-items:center;gap:10px;padding:6px 18px 0}
+.brand{font:600 15px/1 "Songti SC","Noto Serif SC",Georgia,serif;letter-spacing:.26em}
+.top .status{margin-left:auto;display:flex;align-items:center;gap:6px;font:8px/1 ui-monospace,Consolas,monospace;color:#8a5560;letter-spacing:.08em}
+.top .status i{width:6px;height:6px;border-radius:50%;background:var(--red);font-style:normal;box-shadow:0 0 0 3px #e0525222}
+.top button{border:0;background:none;color:var(--muted);font-size:10px;cursor:pointer}
+main{flex:1;padding:16px 26px 0;display:flex;flex-direction:column}
+.scope{position:relative;height:170px;margin:6px 0 18px;display:flex;align-items:flex-end;justify-content:center;gap:7px;overflow:hidden}
+.scope i{display:block;width:14px;background:#2a2f38;border-radius:2px 2px 0 0}
+.scope i:nth-child(1){height:34px}
+.scope i:nth-child(2){height:66px}
+.scope i:nth-child(3){height:104px;background:var(--red)}
+.scope i:nth-child(4){height:80px}
+.scope i:nth-child(5){height:120px}
+.scope i:nth-child(6){height:52px}
+.scope i:nth-child(7){height:90px;background:#3a404b}
+.scope i:nth-child(8){height:28px}
+.scope::before{content:"";position:absolute;left:8%;right:8%;top:48%;height:1px;background:#e0525266;transform:rotate(-8deg)}
+.scope::after{content:"NO SIGNAL";position:absolute;left:50%;top:14px;transform:translateX(-50%);font:9px/1 ui-monospace,Consolas,monospace;letter-spacing:.32em;color:#6c3a3a}
+.kicker{margin:0 0 8px;font:600 9px/1 ui-monospace,Consolas,monospace;letter-spacing:.24em;color:var(--red)}
+h1{margin:0 0 10px;font:400 30px/1.25 "Songti SC","Noto Serif SC",Georgia,serif}
+.copy{margin:0 0 16px;font-size:11px;line-height:1.95;color:#9a948b}
+.code{display:flex;align-items:center;gap:9px;padding:10px 12px;border:1px solid var(--line);background:var(--panel);margin-bottom:14px}
+.code span{font:8px/1 ui-monospace,Consolas,monospace;color:var(--muted);letter-spacing:.1em}
+.code b{font:9px/1 ui-monospace,Consolas,monospace;color:var(--amber);letter-spacing:.04em}
+.code button{margin-left:auto;border:1px solid #3a3036;background:transparent;color:#9a8a84;font:8px/1 "Avenir Next","PingFang SC",sans-serif;padding:5px 8px;cursor:pointer}
+.code button:hover{border-color:var(--amber);color:var(--amber)}
+.attempt{margin:0 0 16px;font:8.5px/1.6 ui-monospace,Consolas,monospace;color:#6f665f;letter-spacing:.03em;min-height:14px}
+.actions{display:flex;flex-direction:column;gap:8px;margin-top:auto;padding-bottom:14px}
+.retry{height:44px;border:0;border-radius:999px;background:var(--red);color:#fff4ec;font:600 12px/1 "Avenir Next","PingFang SC",sans-serif;letter-spacing:.1em;cursor:pointer}
+.retry:hover{background:#c84242}
+.retry:disabled{opacity:.6;cursor:wait}
+.home{height:40px;border:1px solid var(--line);border-radius:999px;background:transparent;color:#9a948b;font:10px/1 "Avenir Next","PingFang SC",sans-serif;letter-spacing:.06em;cursor:pointer}
+.home:hover{border-color:#5a616c;color:var(--ink)}
+.foot{padding:10px 26px 20px;font:8px/1.7 ui-monospace,Consolas,monospace;color:#5c6169;letter-spacing:.03em;border-top:1px solid #1a1d22;text-align:center}
+.toast{position:absolute;left:50%;bottom:96px;transform:translateX(-50%) translateY(8px);background:var(--ink);color:var(--void);padding:8px 14px;border-radius:999px;font-size:10px;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;white-space:nowrap;z-index:8}
+.toast.show{opacity:1;transform:translateX(-50%)}
+@media(min-width:441px) and (max-height:900px){.phone{zoom:.86}}
+@media(max-width:440px){
+  body{padding:0;display:block;background:var(--void)}
+  .phone{width:100%;height:100svh;border-radius:0;padding:0;box-shadow:none;background:var(--void)}
+  .screen{border-radius:0;height:100svh}
+  .notch{display:none}
+  .statusbar{height:20px;padding:8px 18px 0}
+}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="notch" aria-hidden="true"></div>
+  <div class="screen">
+    <div class="statusbar"><span>21:12</span><span>——</span></div>
+    <div class="top"><span class="brand">信号</span><span class="status"><i></i>连接中断</span><button type="button" id="help">帮助</button></div>
+
+    <main>
+      <div class="scope" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+      <p class="kicker">CONNECTION LOST / E-503</p>
+      <h1>这条路暂时<br>走不通。</h1>
+      <p class="copy">不是你的问题。我们的服务在 21:08 出现了波动，工程师已经在处理。你刚才写的内容都还在，没有被丢掉。</p>
+
+      <div class="code"><span>错误编号</span><b>E-503 · TRACE 7F2A</b><button type="button" id="copy">复制</button></div>
+      <p class="attempt" id="attempt" aria-live="polite">还没有重试。可以先试一次，或者回首页等一会儿。</p>
+
+      <div class="actions"><button class="retry" id="retry" type="button">重试连接</button><button class="home" id="home" type="button">回首页</button></div>
+    </main>
+
+    <div class="foot">故障开始于 21:08 · 已持续 4 分钟<br>状态页每 30 秒更新一次，无需反复刷新</div>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  </div>
+</div>
+
+<script>
+let attempts = 0;
+const retry = document.getElementById('retry');
+const attempt = document.getElementById('attempt');
+
+retry.addEventListener('click', function () {
+  attempts += 1;
+  retry.disabled = true;
+  retry.textContent = '正在重连…';
+  attempt.textContent = '第 ' + attempts + ' 次重试 · 正在寻找可用线路…';
+  setTimeout(function () {
+    retry.disabled = false;
+    retry.textContent = '再试一次';
+    attempt.textContent = attempts >= 3
+      ? '第 ' + attempts + ' 次仍未接通。你的重试记录已发给值班工程师。'
+      : '第 ' + attempts + ' 次仍未接通。线路还在恢复，请稍后再试。';
+    showToast('还是没有连上，请再等一会儿。');
+  }, 1200);
+});
+
+document.getElementById('copy').addEventListener('click', function () {
+  const code = 'E-503 · TRACE 7F2A';
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(code).catch(function () {});
+  }
+  showToast('错误编号已复制。');
+});
+
+document.getElementById('home').addEventListener('click', function () {
+  showToast('已回到首页。刚才的草稿在「我的」里。');
+});
+
+document.getElementById('help').addEventListener('click', function () {
+  showToast('帮助中心已打开：搜索「E-503」。');
+});
+
+function showToast(text) {
+  const el = document.getElementById('toast');
+  el.textContent = text;
+  el.classList.add('show');
+  clearTimeout(showToast.timer);
+  showToast.timer = setTimeout(function () { el.classList.remove('show'); }, 2000);
+}
+</script>
+</body>
+</html>

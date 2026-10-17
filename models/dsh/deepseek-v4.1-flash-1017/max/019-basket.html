@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>篮子 · 购物车</title>
+<style>
+:root{
+  --cream:#f8f0dd;--paper:#fffaf0;--ink:#3b2d20;--mustard:#d9a441;--brown:#463424;
+  --red:#b23a2e;--green:#5b6b4a;--line:#ddcfb4;--muted:#8a7a62;
+}
+*{box-sizing:border-box}
+body{margin:0;background:
+  linear-gradient(180deg,#fbf5e8 0,#f8f0dd 40%,#f3e8d1 100%);
+  color:var(--ink);font:14px/1.65 "Avenir Next","PingFang SC","Microsoft YaHei",sans-serif;min-height:100vh}
+.top{display:flex;align-items:center;gap:20px;padding:18px 34px;border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:baseline;gap:8px;font:600 22px/1 "Songti SC","Noto Serif SC",Georgia,serif;letter-spacing:.24em}
+.brand small{font:9px/1 ui-monospace,Consolas,monospace;letter-spacing:.28em;color:var(--muted)}
+.steps{margin-left:auto;display:flex;align-items:center;gap:10px;font:10px/1 ui-monospace,Consolas,monospace;letter-spacing:.1em;color:var(--muted)}
+.steps b{color:var(--ink);font-weight:600}
+.steps i{width:26px;height:1px;background:var(--line);font-style:normal}
+main{max-width:1180px;margin:0 auto;padding:30px 34px 60px}
+.head{display:flex;align-items:baseline;gap:14px;margin-bottom:20px}
+.head h1{margin:0;font:400 40px/1.15 "Songti SC","Noto Serif SC",Georgia,serif}
+.head span{font:10px/1 ui-monospace,Consolas,monospace;color:var(--muted);letter-spacing:.1em}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 370px;gap:24px;align-items:start}
+.list{background:var(--paper);border:1px solid var(--line)}
+.list-head{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--line);font:9px/1 ui-monospace,Consolas,monospace;color:var(--muted);letter-spacing:.14em}
+.list-head span:last-child{margin-left:auto}
+.item{display:grid;grid-template-columns:92px minmax(0,1fr) 118px 104px 40px;gap:14px;align-items:center;padding:16px;border-bottom:1px solid #eadfc9;position:relative}
+.item:last-child{border-bottom:0}
+.thumb{width:92px;height:88px;display:grid;place-items:center;position:relative;overflow:hidden}
+.thumb.t1{background:#e9dfc9}.thumb.t2{background:#ead9be}.thumb.t3{background:#eee2d2}
+.mini-bowl{width:54px;height:28px;border-radius:0 0 28px 28px;background:linear-gradient(180deg,#b98a5b,#8f6238);box-shadow:inset 0 5px 0 #d8b48a}
+.mini-jar{width:36px;height:48px;border-radius:4px 4px 8px 8px;background:linear-gradient(180deg,#e3b459,#c38a2f)}
+.mini-towel{width:56px;height:40px;background:repeating-linear-gradient(0deg,#c9b28c 0 6px,#e3d3b4 6px 12px)}
+.item .name{margin:0 0 2px;font:400 18px/1.3 "Songti SC",Georgia,serif}
+.item .variant{margin:0;font:9px/1.7 ui-monospace,Consolas,monospace;color:var(--muted);letter-spacing:.05em}
+.item .unit{font:10px/1 ui-monospace,Consolas,monospace;color:#9c8b72;margin-top:6px;letter-spacing:.04em}
+.qty{display:flex;align-items:center;border:1px solid var(--line);height:34px;width:max-content}
+.qty button{width:30px;height:100%;border:0;background:transparent;color:var(--ink);font-size:14px;cursor:pointer}
+.qty button:hover{background:#f3ead8}
+.qty input{width:34px;height:100%;border:0;background:transparent;text-align:center;font:600 11px/1 ui-monospace,Consolas,monospace;color:var(--ink);outline:none}
+.line-total{font:400 18px/1 "Songti SC",Georgia,serif;text-align:right}
+.line-total small{display:block;font:9px/1.6 ui-monospace,Consolas,monospace;color:var(--muted);letter-spacing:.04em;margin-top:2px}
+.remove{width:28px;height:28px;border:0;border-radius:50%;background:transparent;color:#b3a48b;font-size:15px;cursor:pointer;line-height:1}
+.remove:hover{background:#f0e2ce;color:var(--red)}
+.summary{background:var(--paper);border:1px solid var(--line);padding:20px;position:sticky;top:20px}
+.summary h2{margin:0 0 14px;font:600 10px/1 ui-monospace,Consolas,monospace;letter-spacing:.2em;color:var(--muted)}
+.line{display:flex;justify-content:space-between;gap:10px;padding:6px 0;font-size:12px;color:#5d4f3d}
+.line b{font:600 12px/1.5 ui-monospace,Consolas,monospace;color:var(--ink)}
+.rule{height:1px;background:var(--line);margin:10px 0}
+.coupon{display:flex;gap:6px;margin:4px 0 10px}
+.coupon input{flex:1;height:34px;padding:0 10px;border:1px solid var(--line);background:#fffdf7;font:11px/1 ui-monospace,Consolas,monospace;color:var(--ink);outline:none;min-width:0}
+.coupon input:focus{border-color:var(--mustard)}
+.coupon button{height:34px;padding:0 12px;border:1px solid var(--brown);background:transparent;color:var(--brown);font-size:10px;letter-spacing:.06em;cursor:pointer}
+.coupon button:hover{background:var(--brown);color:var(--cream)}
+.total{display:flex;justify-content:space-between;align-items:baseline;padding:14px 0 6px;border-top:1px solid var(--ink);margin-top:8px}
+.total span{font-size:12px;color:var(--muted)}
+.total b{font:400 34px/1 "Songti SC",Georgia,serif}
+.ship-note{font:9px/1.7 ui-monospace,Consolas,monospace;color:#9c8b72;letter-spacing:.04em;margin:4px 0 14px}
+.checkout{width:100%;height:50px;border:0;border-radius:2px;background:var(--brown);color:var(--cream);font:600 12px/1 "Avenir Next","PingFang SC",sans-serif;letter-spacing:.16em;cursor:pointer;transition:background .15s}
+.checkout:hover{background:var(--mustard);color:#2e2418}
+.checkout:disabled{opacity:.6;cursor:wait}
+.trust{display:flex;gap:12px;margin-top:14px;font:9px/1.6 ui-monospace,Consolas,monospace;color:#a1927a;letter-spacing:.02em}
+.empty{display:none;grid-column:1/-1;padding:50px 20px;text-align:center;background:var(--paper);border:1px solid var(--line)}
+.empty.on{display:block}
+.empty b{display:block;font:400 26px/1.3 "Songti SC",Georgia,serif;margin-bottom:6px}
+.empty p{margin:0 0 16px;font-size:12px;color:var(--muted)}
+.empty button{height:38px;padding:0 16px;border:1px solid var(--ink);background:var(--ink);color:var(--cream);font-size:11px;cursor:pointer}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:var(--cream);padding:9px 16px;border-radius:2px;font-size:11px;opacity:0;pointer-events:none;transition:opacity .18s}
+.toast.show{opacity:1}
+:focus-visible{outline:2px solid var(--red);outline-offset:2px}
+@media(max-width:1000px){
+  .layout{grid-template-columns:1fr}
+  .summary{position:static}
+}
+@media(max-width:720px){
+  .top{padding:14px 16px;flex-wrap:wrap}
+  .steps{display:none}
+  main{padding:22px 16px 40px}
+  .head h1{font-size:32px}
+  .item{grid-template-columns:70px minmax(0,1fr) 88px;gap:10px;padding:12px}
+  .thumb{width:70px;height:70px}
+  .line-total{grid-column:2;text-align:left}
+  .remove{position:absolute;right:10px;top:10px}
+  .qty{grid-column:2;grid-row:2}
+  .list-head span:last-child{display:none}
+}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand">篮子<small>BASKET</small></div>
+  <div class="steps"><b>01 购物篮</b><i></i><span>02 配送</span><i></i><span>03 支付</span></div>
+</header>
+
+<main>
+  <div class="head"><h1>你的购物篮。</h1><span id="count">3 件 · 来自山货</span></div>
+
+  <div class="layout">
+    <section class="list" id="list" aria-label="购物篮商品">
+      <div class="list-head"><span>商品</span><span>数量与合计</span></div>
+
+      <article class="item" data-price="128">
+        <div class="thumb t1"><div class="mini-bowl" aria-hidden="true"></div></div>
+        <div><h2 class="name">粗陶饭碗</h2><p class="variant">景德镇 · 王师傅 · 直径 12 cm</p><p class="unit">¥128 / 只</p></div>
+        <div class="qty"><button type="button" class="minus" aria-label="减少粗陶饭碗数量">−</button><input type="text" value="2" inputmode="numeric" aria-label="粗陶饭碗数量"><button type="button" class="plus" aria-label="增加粗陶饭碗数量">＋</button></div>
+        <div class="line-total">¥256<small>2 × ¥128</small></div>
+        <button class="remove" type="button" aria-label="移除粗陶饭碗">✕</button>
+      </article>
+
+      <article class="item" data-price="74">
+        <div class="thumb t2"><div class="mini-jar" aria-hidden="true"></div></div>
+        <div><h2 class="name">百花蜜</h2><p class="variant">临安 · 成熟蜜 · 380 g</p><p class="unit">¥74 / 罐</p></div>
+        <div class="qty"><button type="button" class="minus" aria-label="减少百花蜜数量">−</button><input type="text" value="1" inputmode="numeric" aria-label="百花蜜数量"><button type="button" class="plus" aria-label="增加百花蜜数量">＋</button></div>
+        <div class="line-total">¥74<small>1 × ¥74</small></div>
+        <button class="remove" type="button" aria-label="移除百花蜜">✕</button>
+      </article>
+
+      <article class="item" data-price="86">
+        <div class="thumb t3"><div class="mini-towel" aria-hidden="true"></div></div>
+        <div><h2 class="name">亚麻茶巾</h2><p class="variant">大理 · 植物染 · 45 × 65 cm</p><p class="unit">¥86 / 条</p></div>
+        <div class="qty"><button type="button" class="minus" aria-label="减少亚麻茶巾数量">−</button><input type="text" value="1" inputmode="numeric" aria-label="亚麻茶巾数量"><button type="button" class="plus" aria-label="增加亚麻茶巾数量">＋</button></div>
+        <div class="line-total">¥86<small>1 × ¥86</small></div>
+        <button class="remove" type="button" aria-label="移除亚麻茶巾">✕</button>
+      </article>
+    </section>
+
+    <aside class="summary" id="summary" aria-label="订单摘要">
+      <h2>订单摘要</h2>
+      <div class="line"><span>商品小计</span><b id="subtotal">¥416</b></div>
+      <div class="line"><span>运费</span><b id="shipping">免运费</b></div>
+      <div class="rule"></div>
+      <div class="coupon"><input id="coupon" type="text" placeholder="优惠码 · 试试 SLOW10" aria-label="优惠码"><button id="apply" type="button">使用</button></div>
+      <div class="line" id="discount-line" hidden><span>优惠 SLOW10</span><b id="discount">−¥0</b></div>
+      <div class="total"><span>应付</span><b id="total">¥416</b></div>
+      <p class="ship-note" id="ship-note">满 ¥300 免运费 · 预计 10 月 20 日发出</p>
+      <button class="checkout" id="checkout" type="button">去结算 · ¥416</button>
+      <div class="trust"><span>破损包赔</span><span>·</span><span>7 天可退</span><span>·</span><span>支持微信 / 支付宝</span></div>
+    </aside>
+
+    <div class="empty" id="empty">
+      <b>篮子空了。</b><p>刚才的东西都被拿走了。要回去再逛逛吗？</p>
+      <button type="button" id="back">回去逛逛</button>
+    </div>
+  </div>
+</main>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+let discountRate = 0;
+let applied = false;
+
+function money(value) {
+  return '¥' + (Math.round(value * 100) / 100).toLocaleString('en-US');
+}
+
+function items() {
+  return Array.from(document.querySelectorAll('.item'));
+}
+
+function recalc() {
+  let subtotal = 0;
+  let count = 0;
+  items().forEach(function (item) {
+    const price = Number(item.dataset.price);
+    const qty = Math.max(1, Math.min(9, parseInt(item.querySelector('.qty input').value, 10) || 1));
+    item.querySelector('.qty input').value = String(qty);
+    const line = price * qty;
+    subtotal += line;
+    count += qty;
+    item.querySelector('.line-total').innerHTML = money(line) + '<small>' + qty + ' × ' + money(price) + '</small>';
+  });
+  const shipping = subtotal >= 300 || subtotal === 0 ? 0 : 12;
+  const discount = applied ? subtotal * discountRate : 0;
+  const total = subtotal + shipping - discount;
+  document.getElementById('subtotal').textContent = money(subtotal);
+  document.getElementById('shipping').textContent = shipping ? money(shipping) : '免运费';
+  document.getElementById('discount').textContent = '−' + money(discount);
+  document.getElementById('discount-line').hidden = !applied;
+  document.getElementById('total').textContent = money(total);
+  document.getElementById('checkout').textContent = '去结算 · ' + money(total);
+  document.getElementById('ship-note').textContent = subtotal >= 300 ? '满 ¥300 免运费 · 预计 10 月 20 日发出' : '再买 ' + money(300 - subtotal) + ' 可免运费';
+  document.getElementById('count').textContent = count + ' 件 · 来自山货';
+  document.getElementById('empty').classList.toggle('on', count === 0);
+  document.getElementById('list').style.display = count === 0 ? 'none' : '';
+  document.getElementById('summary').style.display = count === 0 ? 'none' : '';
+}
+
+items().forEach(function (item) {
+  const input = item.querySelector('.qty input');
+  const set = function (next) { input.value = String(next); recalc(); };
+  item.querySelector('.minus').addEventListener('click', function () { set(Math.max(1, (parseInt(input.value, 10) || 1) - 1)); });
+  item.querySelector('.plus').addEventListener('click', function () { set(Math.min(9, (parseInt(input.value, 10) || 1) + 1)); });
+  input.addEventListener('change', function () { set(Math.max(1, Math.min(9, parseInt(input.value, 10) || 1))); });
+  item.querySelector('.remove').addEventListener('click', function () {
+    const name = item.querySelector('.name').textContent;
+    item.remove();
+    recalc();
+    showToast('已从篮子里拿走「' + name + '」。');
+  });
+});
+
+document.getElementById('apply').addEventListener('click', function () {
+  const code = document.getElementById('coupon').value.trim().toUpperCase();
+  if (code === 'SLOW10') {
+    applied = true;
+    discountRate = 0.1;
+    recalc();
+    showToast('优惠码已生效，省下 10%。');
+  } else if (!code) {
+    showToast('先填一个优惠码。');
+  } else {
+    showToast('这个优惠码不在有效期内。');
+  }
+});
+
+document.getElementById('checkout').addEventListener('click', function () {
+  const button = document.getElementById('checkout');
+  button.disabled = true;
+  button.textContent = '正在锁定库存…';
+  setTimeout(function () {
+    button.textContent = '订单已锁定 · 前往支付';
+    button.disabled = false;
+    showToast('库存已为你保留 15 分钟。');
+  }, 900);
+});
+
+document.getElementById('back').addEventListener('click', function () {
+  showToast('正在带你回到山货首页。');
+});
+
+function showToast(text) {
+  const toast = document.getElementById('toast');
+  toast.textContent = text;
+  toast.classList.add('show');
+  clearTimeout(showToast.timer);
+  showToast.timer = setTimeout(function () { toast.classList.remove('show'); }, 2200);
+}
+
+recalc();
+</script>
+</body>
+</html>

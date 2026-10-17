@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>值守 · 通知中心</title>
+<style>
+:root{
+  --bg:#14161a;--panel:#1b1e24;--ink:#e8e6e1;--muted:#8f949d;--line:#2b2f37;
+  --orange:#f07a3c;--blue:#5b8def;--green:#4fb477;--amber:#d9a441;--red:#e05252;
+}
+*{box-sizing:border-box}
+body{margin:0;background:
+  radial-gradient(700px 400px at 50% -10%,#20242b 0%,transparent 65%),var(--bg);
+  color:var(--ink);font:14px/1.6 "Avenir Next","PingFang SC","Microsoft YaHei",sans-serif;min-height:100vh}
+.top{display:flex;align-items:center;gap:18px;padding:16px 30px;border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:baseline;gap:8px;font:600 15px/1 "Songti SC","Noto Serif SC",Georgia,serif;letter-spacing:.18em}
+.brand small{font:9px/1 ui-monospace,Consolas,monospace;letter-spacing:.3em;color:var(--orange)}
+.top nav{display:flex;gap:16px;margin-left:18px}
+.top nav a{color:var(--muted);text-decoration:none;font-size:11px}
+.top nav a.on{color:var(--ink);border-bottom:2px solid var(--orange);padding-bottom:4px}
+.top .right{margin-left:auto;display:flex;align-items:center;gap:12px;font:9px/1 ui-monospace,Consolas,monospace;color:var(--muted);letter-spacing:.08em}
+.status{display:flex;align-items:center;gap:6px}
+.status i{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 0 3px #4fb47722}
+.avatar{width:28px;height:28px;border-radius:50%;background:#2e333c;display:grid;place-items:center;font:600 9px/1 ui-monospace,Consolas,monospace;color:var(--ink)}
+.wrap{width:min(820px,calc(100% - 32px));margin:0 auto;padding:34px 0 70px}
+.head{display:flex;align-items:flex-end;gap:16px;margin-bottom:8px}
+.head h1{margin:0;font:400 38px/1.15 "Songti SC",Georgia,serif;letter-spacing:.01em}
+.head p{margin:6px 0 0;font:10px/1.6 ui-monospace,Consolas,monospace;color:var(--muted);letter-spacing:.1em}
+.head .actions{margin-left:auto;display:flex;gap:8px}
+.mark{height:34px;padding:0 14px;border:1px solid var(--line);border-radius:3px;background:transparent;color:var(--muted);font:11px/1 "Avenir Next","PingFang SC",sans-serif;cursor:pointer}
+.mark:hover{border-color:var(--orange);color:var(--orange)}
+.mark:disabled{opacity:.4;cursor:default;border-color:var(--line);color:var(--muted)}
+.tabs{display:flex;gap:2px;margin:22px 0 4px;border-bottom:1px solid var(--line)}
+.tabs button{height:34px;padding:0 14px;border:0;border-bottom:2px solid transparent;background:transparent;color:var(--muted);font:11px/1 "Avenir Next","PingFang SC",sans-serif;cursor:pointer}
+.tabs button[aria-pressed="true"]{color:var(--ink);border-bottom-color:var(--orange)}
+.tabs span{font:9px/1 ui-monospace,Consolas,monospace;margin-left:5px;color:var(--muted)}
+.feed{list-style:none;margin:0;padding:0;position:relative}
+.feed::before{content:"";position:absolute;left:15px;top:22px;bottom:22px;width:1px;background:linear-gradient(180deg,var(--orange),#2b2f37 30%,#2b2f37 80%,transparent)}
+.item{position:relative;padding-left:42px;border-bottom:1px solid var(--line)}
+.node{position:absolute;left:10px;top:26px;width:11px;height:11px;border-radius:50%;background:#2b2f37;border:2px solid var(--bg);z-index:2}
+.item.unread .node{background:var(--orange);box-shadow:0 0 0 3px #f07a3c22}
+.rowhead{display:flex;width:100%;gap:12px;padding:16px 8px 15px 0;border:0;background:transparent;color:inherit;text-align:left;cursor:pointer;font:inherit;align-items:flex-start}
+.rowhead:hover{background:#ffffff04}
+.icon{width:30px;height:30px;border-radius:4px;display:grid;place-items:center;font:600 12px/1 ui-monospace,Consolas,monospace;flex:none;margin-top:1px}
+.icon.incident{background:#f07a3c1f;color:var(--orange)}
+.icon.deploy{background:#5b8def1f;color:var(--blue)}
+.icon.member{background:#4fb4771f;color:var(--green)}
+.icon.billing{background:#d9a4411f;color:var(--amber)}
+.icon.security{background:#e052521f;color:var(--red)}
+.icon.system{background:#8f949d1f;color:var(--muted)}
+.body{flex:1;min-width:0}
+.meta{display:flex;align-items:center;gap:8px;margin:0 0 3px;font:9px/1.4 ui-monospace,Consolas,monospace;letter-spacing:.1em;color:#737982}
+.meta b{font-weight:600;color:var(--muted)}
+.meta .new{color:var(--orange)}
+.body h2{margin:0;font:600 14px/1.45 "Avenir Next","PingFang SC",sans-serif}
+.preview{margin:3px 0 0;font-size:12px;line-height:1.65;color:#9aa0a9;overflow:hidden;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--orange);flex:none;margin-top:8px}
+.item.read .dot{visibility:hidden}
+.item.read .body h2{font-weight:500;color:#c9c7c2}
+.more{display:none;padding:0 8px 18px 42px;margin-left:-42px}
+.item.open .more{display:block}
+.item.open{background:#191c21}
+.item.open .rowhead{padding-bottom:10px}
+.more p{margin:0 0 10px;font-size:12px;line-height:1.85;color:#a7acb4}
+.more .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:0 0 12px}
+.more .cell{padding:8px 10px;border:1px solid var(--line);background:#15171b}
+.more .cell span{display:block;font:8px/1.4 ui-monospace,Consolas,monospace;color:#737982;letter-spacing:.12em;margin-bottom:2px}
+.more .cell b{font:11px/1.5 ui-monospace,Consolas,monospace;font-weight:500;color:var(--ink)}
+.more .btns{display:flex;gap:6px}
+.more button{height:30px;padding:0 12px;border:1px solid var(--line);border-radius:3px;background:transparent;color:var(--muted);font:10px/1 "Avenir Next","PingFang SC",sans-serif;cursor:pointer}
+.more button:hover{border-color:var(--orange);color:var(--orange)}
+.more .primary{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+.more .primary:hover{background:var(--orange);border-color:var(--orange);color:#fff}
+.empty{display:none;padding:60px 0;text-align:center;color:var(--muted)}
+.empty.on{display:block}
+.empty b{display:block;font:400 26px/1.3 "Songti SC",Georgia,serif;color:var(--ink);margin-bottom:6px}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:8px 14px;border-radius:3px;font-size:11px;opacity:0;pointer-events:none;transition:opacity .18s,transform .18s}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(-3px)}
+:focus-visible{outline:2px solid var(--orange);outline-offset:2px}
+@media(max-width:620px){
+  .top{padding:12px 16px}
+  .top nav{display:none}
+  .wrap{padding:22px 16px 50px}
+  .head{flex-wrap:wrap}
+  .head .actions{width:100%;margin-left:0}
+  .mark{width:100%}
+  .feed::before{left:11px}
+  .item{padding-left:32px}
+  .node{left:6px}
+  .more{padding-left:0;margin-left:-32px}
+  .more .grid{grid-template-columns:1fr 1fr}
+  h1{font-size:30px}
+}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand">值守<small>PULSE</small></div>
+  <nav aria-label="控制台导航"><a href="#overview">总览</a><a href="#incidents">事故</a><a href="#notice" class="on">通知</a><a href="#team">团队</a></nav>
+  <div class="right"><span class="status"><i></i>所有系统正常</span><span>10.17 21:08</span><span class="avatar">周</span></div>
+</header>
+
+<main class="wrap">
+  <div class="head">
+    <div>
+      <h1>通知。</h1>
+      <p>INBOX / 过去 24 小时 · 6 条</p>
+    </div>
+    <div class="actions">
+      <button class="mark" id="all-read" type="button">全部标已读</button>
+    </div>
+  </div>
+
+  <div class="tabs" role="group" aria-label="通知筛选">
+    <button type="button" data-filter="all" aria-pressed="true">全部 <span>6</span></button>
+    <button type="button" data-filter="unread" aria-pressed="false">未读 <span id="unread-tab">3</span></button>
+  </div>
+
+  <ol class="feed" id="feed">
+    <li class="item unread" data-type="incident">
+      <span class="node" aria-hidden="true"></span>
+      <div class="rowhead" role="button" tabindex="0" aria-expanded="false">
+        <span class="icon incident" aria-hidden="true">!</span>
+        <div class="body"><div class="meta"><b>事故</b><span class="new">未读</span><span>2 分钟前</span></div>
+          <h2>支付回调延迟升高</h2>
+          <p class="preview">华东区回调队列积压 1,842 条，P95 延迟 4.2 s，已自动扩容。</p></div>
+        <span class="dot" aria-hidden="true"></span>
+      </div>
+      <div class="more">
+        <p>从 21:04 开始，支付回调的 P95 延迟从 380 ms 升到 4.2 s。自动扩容已触发，队列正在回落。目前没有订单丢失，重试队列正常。</p>
+        <div class="grid"><div class="cell"><span>影响服务</span><b>payments-api</b></div><div class="cell"><span>当前状态</span><b>缓解中</b></div><div class="cell"><span>值班人</span><b>周予安</b></div></div>
+        <div class="btns"><button class="primary" type="button">查看事件</button><button type="button">稍后处理</button></div>
+      </div>
+    </li>
+
+    <li class="item unread" data-type="deploy">
+      <span class="node" aria-hidden="true"></span>
+      <div class="rowhead" role="button" tabindex="0" aria-expanded="false">
+        <span class="icon deploy" aria-hidden="true">↑</span>
+        <div class="body"><div class="meta"><b>部署</b><span class="new">未读</span><span>28 分钟前</span></div>
+          <h2>v2.18.0 已发布到生产</h2>
+          <p class="preview">包含结账页性能优化与 3 个修复，灰度 100%，错误率未上升。</p></div>
+        <span class="dot" aria-hidden="true"></span>
+      </div>
+      <div class="more">
+        <p>本次发布共 17 个提交，主要改动为结账页首屏资源预加载与优惠券校验顺序。发布后 30 分钟错误率 0.02%，与基线持平。</p>
+        <div class="grid"><div class="cell"><span>版本</span><b>v2.18.0</b></div><div class="cell"><span>提交</span><b>a91f2c4</b></div><div class="cell"><span>发布人</span><b>老周</b></div></div>
+        <div class="btns"><button class="primary" type="button">查看发布记录</button><button type="button">回滚</button></div>
+      </div>
+    </li>
+
+    <li class="item" data-type="member">
+      <span class="node" aria-hidden="true"></span>
+      <div class="rowhead" role="button" tabindex="0" aria-expanded="false">
+        <span class="icon member" aria-hidden="true">＋</span>
+        <div class="body"><div class="meta"><b>成员</b><span>1 小时前</span></div>
+          <h2>林岸把你加入「秋季大促」</h2>
+          <p class="preview">角色：观察者。你可以在项目里查看排期与发布记录。</p></div>
+        <span class="dot" aria-hidden="true"></span>
+      </div>
+      <div class="more">
+        <p>林岸邀请你加入「秋季大促」项目，当前角色是观察者。如果需要编辑权限，可以让项目管理员在成员设置里升级。</p>
+        <div class="grid"><div class="cell"><span>项目</span><b>秋季大促</b></div><div class="cell"><span>角色</span><b>观察者</b></div><div class="cell"><span>邀请人</span><b>林岸</b></div></div>
+        <div class="btns"><button class="primary" type="button">进入项目</button><button type="button">回复林岸</button></div>
+      </div>
+    </li>
+
+    <li class="item unread" data-type="billing">
+      <span class="node" aria-hidden="true"></span>
+      <div class="rowhead" role="button" tabindex="0" aria-expanded="false">
+        <span class="icon billing" aria-hidden="true">¥</span>
+        <div class="body"><div class="meta"><b>账单</b><span class="new">未读</span><span>3 小时前</span></div>
+          <h2>本月账单已生成</h2>
+          <p class="preview">应付 ¥2,840.00，包含 12 个席位与 1.8 TB 流量。10 月 20 日自动扣款。</p></div>
+        <span class="dot" aria-hidden="true"></span>
+      </div>
+      <div class="more">
+        <p>账单周期 9 月 17 日至 10 月 16 日。席位从 10 个增加到 12 个，流量超出套餐 320 GB，按阶梯价计费。</p>
+        <div class="grid"><div class="cell"><span>应付</span><b>¥2,840.00</b></div><div class="cell"><span>扣款日</span><b>10.20</b></div><div class="cell"><span>支付方式</span><b>企业卡 · 6688</b></div></div>
+        <div class="btns"><button class="primary" type="button">查看账单</button><button type="button">下载发票</button></div>
+      </div>
+    </li>
+
+    <li class="item" data-type="security">
+      <span class="node" aria-hidden="true"></span>
+      <div class="rowhead" role="button" tabindex="0" aria-expanded="false">
+        <span class="icon security" aria-hidden="true">⌁</span>
+        <div class="body"><div class="meta"><b>安全</b><span>昨天 23:41</span></div>
+          <h2>新设备登录</h2>
+          <p class="preview">Chrome · macOS · 上海。如果这不是你，请立即修改密码并退出其他设备。</p></div>
+        <span class="dot" aria-hidden="true"></span>
+      </div>
+      <div class="more">
+        <p>登录 IP 位于上海，设备指纹与上次登录的 MacBook 一致。已通过二次验证，风险评分低。仍建议每月检查一次活跃设备。</p>
+        <div class="grid"><div class="cell"><span>设备</span><b>MacBook Pro</b></div><div class="cell"><span>地点</span><b>上海</b></div><div class="cell"><span>风险</span><b>低</b></div></div>
+        <div class="btns"><button class="primary" type="button">管理设备</button><button type="button">不是本人</button></div>
+      </div>
+    </li>
+
+    <li class="item" data-type="system">
+      <span class="node" aria-hidden="true"></span>
+      <div class="rowhead" role="button" tabindex="0" aria-expanded="false">
+        <span class="icon system" aria-hidden="true">i</span>
+        <div class="body"><div class="meta"><b>系统</b><span>昨天 18:00</span></div>
+          <h2>数据库维护窗口</h2>
+          <p class="preview">10 月 19 日 02:00–03:00 只读，期间下单不受影响，报表可能延迟。</p></div>
+        <span class="dot" aria-hidden="true"></span>
+      </div>
+      <div class="more">
+        <p>维护期间主库切到只读副本，写入会排队。下单、支付与消息队列不受影响；管理后台的导出与报表可能延迟 5–10 分钟。</p>
+        <div class="grid"><div class="cell"><span>开始</span><b>10.19 02:00</b></div><div class="cell"><span>结束</span><b>10.19 03:00</b></div><div class="cell"><span>影响</span><b>报表延迟</b></div></div>
+        <div class="btns"><button class="primary" type="button">加入日历</button><button type="button">知道了</button></div>
+      </div>
+    </li>
+  </ol>
+
+  <div class="empty" id="empty"><b>都读完了。</b>没有未读通知。新的动静会出现在这里。</div>
+</main>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+const items = Array.from(document.querySelectorAll('.item'));
+let filter = 'all';
+let toastTimer = null;
+
+function unreadCount() {
+  return items.filter(function (item) { return item.classList.contains('unread'); }).length;
+}
+
+function refresh() {
+  const count = unreadCount();
+  document.getElementById('unread-tab').textContent = String(count);
+  const button = document.getElementById('all-read');
+  button.disabled = count === 0;
+  document.getElementById('empty').classList.toggle('on', filter === 'unread' && count === 0);
+}
+
+function setFilter(next) {
+  filter = next;
+  document.querySelectorAll('.tabs button').forEach(function (button) {
+    button.setAttribute('aria-pressed', String(button.dataset.filter === next));
+  });
+  let shown = 0;
+  items.forEach(function (item) {
+    const visible = next === 'all' || item.classList.contains('unread');
+    item.style.display = visible ? '' : 'none';
+    if (visible) shown += 1;
+  });
+  document.getElementById('empty').classList.toggle('on', shown === 0);
+  refresh();
+}
+
+items.forEach(function (item) {
+  const head = item.querySelector('.rowhead');
+  head.addEventListener('click', function () {
+    const open = item.classList.contains('open');
+    items.forEach(function (other) {
+      other.classList.remove('open');
+      other.querySelector('.rowhead').setAttribute('aria-expanded', 'false');
+    });
+    if (!open) {
+      item.classList.add('open');
+      head.setAttribute('aria-expanded', 'true');
+      item.classList.remove('unread');
+      item.classList.add('read');
+      refresh();
+    }
+  });
+  head.addEventListener('keydown', function (event) {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      head.click();
+    }
+  });
+  item.querySelectorAll('.more button').forEach(function (button) {
+    button.addEventListener('click', function () {
+      showToast(button.textContent === '稍后处理' ? '已标记稍后处理，1 小时后再提醒。' : '已打开「' + item.querySelector('h2').textContent + '」。');
+      if (button.textContent === '稍后处理') item.classList.remove('open');
+    });
+  });
+});
+
+document.querySelectorAll('.tabs button').forEach(function (button) {
+  button.addEventListener('click', function () { setFilter(button.dataset.filter); });
+});
+
+document.getElementById('all-read').addEventListener('click', function () {
+  items.forEach(function (item) {
+    item.classList.remove('unread', 'open');
+    item.classList.add('read');
+    item.querySelector('.rowhead').setAttribute('aria-expanded', 'false');
+  });
+  refresh();
+  if (filter === 'unread') setFilter('unread');
+  showToast('全部 6 条通知已标为已读。');
+});
+
+function showToast(text) {
+  const toast = document.getElementById('toast');
+  toast.textContent = text;
+  toast.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function () { toast.classList.remove('show'); }, 2200);
+}
+
+refresh();
+</script>
+</body>
+</html>

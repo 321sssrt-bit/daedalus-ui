@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>收据 · 账单</title>
+<style>
+:root{
+  --paper:#f5f4ef;--card:#fffdf8;--ink:#1f2a24;--green:#2f6b4f;--gold:#d8a441;
+  --line:#d9d8cf;--muted:#7d837a;--soft:#eceee6;
+}
+*{box-sizing:border-box}
+body{margin:0;background:
+  radial-gradient(900px 400px at 100% 0%,#fbfaf5 0%,transparent 60%),var(--paper);
+  color:var(--ink);font:14px/1.65 "Avenir Next","PingFang SC","Microsoft YaHei",sans-serif;min-height:100vh}
+.top{display:flex;align-items:center;gap:18px;padding:16px 30px;border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:baseline;gap:8px;font:600 17px/1 "Songti SC","Noto Serif SC",Georgia,serif;letter-spacing:.2em}
+.brand small{font:9px/1 ui-monospace,Consolas,monospace;letter-spacing:.3em;color:var(--green)}
+.top nav{display:flex;gap:16px;margin-left:14px}
+.top nav a{color:var(--muted);text-decoration:none;font-size:11px}
+.top nav a.on{color:var(--ink);border-bottom:2px solid var(--green);padding-bottom:4px}
+.top .right{margin-left:auto;display:flex;align-items:center;gap:10px;font:9px/1 ui-monospace,Consolas,monospace;color:var(--muted);letter-spacing:.06em}
+.avatar{width:28px;height:28px;border-radius:50%;background:var(--green);color:#f6f4ea;display:grid;place-items:center;font:600 9px/1 ui-monospace,Consolas,monospace}
+main{max-width:1000px;margin:0 auto;padding:34px 28px 70px}
+.kicker{margin:0 0 8px;font:600 9px/1 ui-monospace,Consolas,monospace;letter-spacing:.26em;color:var(--green)}
+h1{margin:0 0 22px;font:400 36px/1.2 "Songti SC","Noto Serif SC",Georgia,serif}
+.plan{display:flex;align-items:center;gap:20px;padding:18px 20px;background:var(--green);color:#f4f2e8;margin-bottom:12px;position:relative;overflow:hidden}
+.plan::after{content:"";position:absolute;right:-40px;top:-60px;width:180px;height:180px;border:1px solid #ffffff22;border-radius:50%;box-shadow:0 0 0 24px #ffffff10,0 0 0 48px #ffffff08}
+.plan .cur{font:9px/1 ui-monospace,Consolas,monospace;letter-spacing:.16em;opacity:.7}
+.plan h2{margin:3px 0 2px;font:400 26px/1.3 "Songti SC",Georgia,serif}
+.plan p{margin:0;font:9px/1.6 ui-monospace,Consolas,monospace;opacity:.75;letter-spacing:.03em}
+.plan .price{margin-left:auto;text-align:right;position:relative;z-index:2}
+.plan .price b{display:block;font:400 30px/1.1 "Songti SC",Georgia,serif}
+.plan .price span{font:9px/1.6 ui-monospace,Consolas,monospace;opacity:.7}
+.plan button{position:relative;z-index:2;height:32px;padding:0 12px;border:1px solid #ffffff66;border-radius:2px;background:transparent;color:#f4f2e8;font:10px/1 "Avenir Next","PingFang SC",sans-serif;cursor:pointer;margin-left:14px}
+.plan button:hover{background:#ffffff14}
+.method{display:flex;align-items:center;gap:14px;padding:14px 18px;background:var(--card);border:1px solid var(--line);margin-bottom:22px;flex-wrap:wrap}
+.cardmark{width:54px;height:34px;border:1px solid var(--line);background:#f1efe6;display:grid;place-items:center;font:700 10px/1 ui-monospace,Consolas,monospace;color:#3a4a8a;letter-spacing:.06em}
+.method .who b{display:block;font-size:12px;font-weight:600;letter-spacing:.02em}
+.method .who span{display:block;font:9px/1.6 ui-monospace,Consolas,monospace;color:var(--muted);letter-spacing:.03em}
+.method .change{margin-left:auto;height:30px;padding:0 11px;border:1px solid var(--line);border-radius:2px;background:transparent;color:var(--muted);font:10px/1 "Avenir Next","PingFang SC",sans-serif;cursor:pointer}
+.method .change:hover{border-color:var(--green);color:var(--green)}
+.method-form{width:100%;display:none;border-top:1px solid var(--line);padding-top:12px;margin-top:2px}
+.method-form.on{display:block}
+.method-form label{display:flex;align-items:center;gap:9px;padding:8px 0;font-size:11px;color:#4d5a50;cursor:pointer}
+.method-form input{accent-color:var(--green)}
+.method-form label span{margin-left:auto;font:9px/1 ui-monospace,Consolas,monospace;color:var(--muted)}
+.method-form .save{height:30px;padding:0 12px;border:0;background:var(--green);color:#f4f2e8;font-size:10px;cursor:pointer;margin-top:6px}
+.invoices{background:var(--card);border:1px solid var(--line)}
+.inv-head{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--line)}
+.inv-head h2{margin:0;font:400 18px/1.3 "Songti SC",Georgia,serif}
+.inv-head span{font:9px/1 ui-monospace,Consolas,monospace;color:var(--muted);letter-spacing:.06em}
+.inv-head .sum{margin-left:auto;font:9px/1 ui-monospace,Consolas,monospace;color:var(--muted)}
+.row{display:grid;grid-template-columns:120px minmax(0,1fr) 100px 82px 110px;gap:12px;align-items:center;padding:13px 16px;border-bottom:1px solid #ebe8dd}
+.row:last-child{border-bottom:0}
+.row .date{font:9px/1.6 ui-monospace,Consolas,monospace;color:#8a9086;letter-spacing:.04em}
+.row .desc b{display:block;font-size:12px;font-weight:600}
+.row .desc span{font:9px/1.5 ui-monospace,Consolas,monospace;color:var(--muted)}
+.row .amt{font:600 13px/1 ui-monospace,Consolas,monospace;text-align:right}
+.row .state{font:9px/1 ui-monospace,Consolas,monospace;color:var(--green);letter-spacing:.06em}
+.row .state.refund{color:var(--gold)}
+.row .dl{height:28px;padding:0 10px;border:1px solid var(--line);background:transparent;color:var(--muted);font:9px/1 "Avenir Next","PingFang SC",sans-serif;cursor:pointer}
+.row .dl:hover{border-color:var(--green);color:var(--green)}
+.note{margin-top:16px;font:9px/1.8 ui-monospace,Consolas,monospace;color:#969b91;letter-spacing:.03em}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:var(--paper);padding:8px 14px;font-size:11px;opacity:0;pointer-events:none;transition:opacity .18s}
+.toast.show{opacity:1}
+:focus-visible{outline:2px solid var(--green);outline-offset:2px}
+@media(max-width:760px){
+  .top{padding:13px 16px}
+  .top nav{display:none}
+  main{padding:22px 14px 50px}
+  h1{font-size:30px}
+  .plan{flex-wrap:wrap}
+  .plan .price{margin-left:0;text-align:left;width:100%}
+  .plan button{margin-left:0}
+  .row{grid-template-columns:1fr 1fr;gap:6px}
+  .row .amt{text-align:left}
+  .row .dl{grid-column:1/-1;width:100%}
+  .row .desc{grid-column:1/-1}
+}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand">收据<small>RECEIPT</small></div>
+  <nav aria-label="账单导航"><a href="#plan" class="on">订阅</a><a href="#invoices">发票</a><a href="#usage">用量</a></nav>
+  <div class="right"><span>账户 · 林岸</span><span class="avatar">林</span></div>
+</header>
+
+<main>
+  <p class="kicker">BILLING / 账户</p>
+  <h1>账单与订阅。</h1>
+
+  <section class="plan">
+    <div>
+      <span class="cur">当前方案</span>
+      <h2>专业版 · 年付</h2>
+      <p>下次续费 2027.03.12 · 自动续费已开启</p>
+    </div>
+    <div class="price"><b>¥288</b><span>/ 年 · 含税</span></div>
+    <button id="change-plan" type="button">更换方案</button>
+    <button id="renew" type="button">管理续费</button>
+  </section>
+
+  <section class="method">
+    <div class="cardmark">VISA</div>
+    <div class="who"><b id="method-name">Visa •••• 6688</b><span id="method-meta">有效期 09 / 29 · 默认支付方式</span></div>
+    <button class="change" id="toggle-method" type="button">更换支付方式</button>
+    <div class="method-form" id="method-form">
+      <label><input type="radio" name="paymethod" value="Visa •••• 6688|有效期 09 / 29" checked>Visa •••• 6688 <span>尾号 6688</span></label>
+      <label><input type="radio" name="paymethod" value="银联 •••• 3021|有效期 03 / 28">银联 •••• 3021 <span>尾号 3021</span></label>
+      <label><input type="radio" name="paymethod" value="支付宝 · lan***@example.com|免密支付已开启">支付宝 <span>lan***@example.com</span></label>
+      <button class="save" id="save-method" type="button">保存支付方式</button>
+    </div>
+  </section>
+
+  <section class="invoices" id="invoices">
+    <div class="inv-head"><h2>发票记录</h2><span>5 笔</span><span class="sum">合计 ¥704.00</span></div>
+    <div class="row"><span class="date">2026.03.12</span><div class="desc"><b>专业版 · 年付</b><span>发票号 FP-2026-0312-88</span></div><span class="amt">¥288.00</span><span class="state">已支付</span><button class="dl" type="button" data-inv="FP-2026-0312-88">下载 PDF</button></div>
+    <div class="row"><span class="date">2025.03.12</span><div class="desc"><b>专业版 · 年付</b><span>发票号 FP-2025-0312-41</span></div><span class="amt">¥288.00</span><span class="state">已支付</span><button class="dl" type="button" data-inv="FP-2025-0312-41">下载 PDF</button></div>
+    <div class="row"><span class="date">2025.02.10</span><div class="desc"><b>基础版 · 月付</b><span>发票号 FP-2025-0210-07</span></div><span class="amt">¥68.00</span><span class="state">已支付</span><button class="dl" type="button" data-inv="FP-2025-0210-07">下载 PDF</button></div>
+    <div class="row"><span class="date">2024.12.02</span><div class="desc"><b>升级差价 · 专业版</b><span>发票号 FP-2024-1202-19</span></div><span class="amt">¥128.00</span><span class="state">已支付</span><button class="dl" type="button" data-inv="FP-2024-1202-19">下载 PDF</button></div>
+    <div class="row"><span class="date">2024.11.18</span><div class="desc"><b>退款 · 重复支付</b><span>退款单 RF-2024-1118-02</span></div><span class="amt">−¥68.00</span><span class="state refund">已退款</span><button class="dl" type="button" data-inv="RF-2024-1118-02">下载凭据</button></div>
+  </section>
+
+  <p class="note">发票抬头：上海页边工作室 · 纳税人识别号 91310000MA1K3XYZ9Q<br>如需修改抬头，请在下次扣款前 7 天联系我们。</p>
+</main>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+document.getElementById('toggle-method').addEventListener('click', function () {
+  document.getElementById('method-form').classList.toggle('on');
+});
+
+document.getElementById('save-method').addEventListener('click', function () {
+  const picked = document.querySelector('input[name="paymethod"]:checked');
+  if (!picked) return;
+  const parts = picked.value.split('|');
+  document.getElementById('method-name').textContent = parts[0];
+  document.getElementById('method-meta').textContent = parts[1] + ' · 默认支付方式';
+  document.getElementById('method-form').classList.remove('on');
+  toast('支付方式已更新为 ' + parts[0] + '。');
+});
+
+document.querySelectorAll('.dl').forEach(function (button) {
+  button.addEventListener('click', function () {
+    button.textContent = '准备中…';
+    setTimeout(function () {
+      button.textContent = '下载 PDF';
+      toast('发票 ' + button.dataset.inv + ' 已开始下载。');
+    }, 700);
+  });
+});
+
+document.getElementById('change-plan').addEventListener('click', function () {
+  toast('正在打开方案对比。当前专业版可随时升级或降级。');
+});
+document.getElementById('renew').addEventListener('click', function () {
+  toast('自动续费已开启。关闭后会保留到 2027.03.12。');
+});
+
+function toast(text) {
+  const el = document.getElementById('toast');
+  el.textContent = text;
+  el.classList.add('show');
+  clearTimeout(toast.timer);
+  toast.timer = setTimeout(function () { el.classList.remove('show'); }, 2200);
+}
+</script>
+</body>
+</html>

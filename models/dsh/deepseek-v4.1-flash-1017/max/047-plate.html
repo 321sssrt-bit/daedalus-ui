@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>版房 · 创作导出</title>
+<style>
+:root{
+  --paper:#f1efe9;--panel:#fbfaf6;--ink:#1a1a1a;--orange:#ff5a36;--cobalt:#2b4cff;
+  --olive:#6b7a4f;--line:#dbd7cd;--muted:#7c7a72;--red:#b23a2c;--good:#4f7a5e;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font:14px/1.6 "Avenir Next","PingFang SC","Microsoft YaHei",sans-serif;min-height:100vh}
+.top{display:flex;align-items:center;gap:18px;padding:14px 26px;border-bottom:1px solid var(--line);background:var(--panel)}
+.brand{font:600 17px/1 "Helvetica Neue","PingFang SC",sans-serif;letter-spacing:-.02em}
+.brand span{display:inline-block;width:9px;height:9px;background:var(--orange);margin-left:6px;vertical-align:2px}
+.top .doc{font:9px/1 ui-monospace,Consolas,monospace;color:var(--muted);letter-spacing:.06em}
+.top .right{margin-left:auto;display:flex;align-items:center;gap:12px;font:9px/1 ui-monospace,Consolas,monospace;color:var(--muted)}
+.top .right b{color:var(--good);font-weight:400}
+.top button{height:30px;padding:0 12px;border:1px solid var(--ink);background:var(--ink);color:var(--paper);font:10px/1 "Helvetica Neue","PingFang SC",sans-serif;cursor:pointer}
+.top button:hover{background:var(--orange);border-color:var(--orange)}
+.workspace{display:grid;grid-template-columns:286px minmax(0,1fr) 300px;gap:0;min-height:calc(100vh - 59px)}
+.panel{border-right:1px solid var(--line);padding:18px 18px 30px;background:var(--panel)}
+.panel h2{margin:0 0 10px;font:600 10px/1 ui-monospace,Consolas,monospace;letter-spacing:.18em;color:#8a877d}
+.group{margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid #e9e5da}
+.group:last-child{border-bottom:0}
+.field{display:flex;flex-direction:column;gap:4px;margin-bottom:9px}
+.field label{font:8px/1 ui-monospace,Consolas,monospace;color:#96938a;letter-spacing:.1em}
+.field input{height:32px;border:1px solid var(--line);background:#fff;color:var(--ink);font:11px/1 "Helvetica Neue","PingFang SC",sans-serif;padding:0 8px;outline:none}
+.field input:focus{border-color:var(--cobalt)}
+.align{display:flex;gap:5px}
+.align button{flex:1;height:30px;border:1px solid var(--line);background:transparent;color:var(--muted);font:9px/1 "Helvetica Neue","PingFang SC",sans-serif;cursor:pointer}
+.align button[aria-pressed="true"]{border-color:var(--ink);background:var(--ink);color:var(--paper)}
+.swatches{display:flex;gap:6px}
+.swatch{width:30px;height:30px;border-radius:50%;border:2px solid transparent;cursor:pointer;padding:0}
+.swatch[aria-pressed="true"]{border-color:var(--ink);box-shadow:0 0 0 2px #fff inset}
+.toggle{display:flex;align-items:center;gap:8px;font-size:10px;color:#5e5b52;margin-bottom:8px}
+.toggle input{accent-color:var(--ink);width:14px;height:14px}
+input[type="range"]{width:100%;accent-color:var(--orange)}
+.stage{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;background:
+  linear-gradient(90deg,#00000005 1px,transparent 1px) 0 0/24px 24px,
+  linear-gradient(180deg,#00000005 1px,transparent 1px) 0 0/24px 24px,#e9e6de;overflow:auto}
+.poster{width:420px;height:560px;background:#f7f2e6;position:relative;overflow:hidden;box-shadow:0 20px 50px #1a1a1a24;display:flex;flex-direction:column;padding:34px 34px 28px;text-align:center;align-items:center;justify-content:center}
+.poster.left{text-align:left;align-items:flex-start}
+.poster.right{text-align:right;align-items:flex-end}
+.poster .eyebrow{position:relative;z-index:2;margin:0 0 16px;font:9px/1.6 ui-monospace,Consolas,monospace;letter-spacing:.3em;color:#6f6a5d}
+.poster h1{position:relative;z-index:2;margin:0;font:400 54px/1.18 "Songti SC","Noto Serif SC",Georgia,serif;color:var(--ink);letter-spacing:.02em}
+.poster .sub{position:relative;z-index:2;margin:12px 0 0;font:9px/1.8 ui-monospace,Consolas,monospace;letter-spacing:.08em;color:#6f6a5d}
+.poster .circle{position:absolute;right:-70px;bottom:-60px;width:300px;height:300px;border-radius:50%;background:var(--orange);opacity:.92}
+.poster.left .circle{right:-90px;bottom:-70px}
+.poster.right .circle{left:-90px;right:auto}
+.poster .folio{position:absolute;left:34px;bottom:24px;font:8px/1.6 ui-monospace,Consolas,monospace;color:#8a8375;letter-spacing:.18em;z-index:2}
+.poster .grain{position:absolute;inset:0;pointer-events:none;background:
+  repeating-linear-gradient(115deg,#00000008 0 1px,transparent 1px 4px),
+  repeating-linear-gradient(25deg,#ffffff0a 0 2px,transparent 2px 6px);opacity:.55;z-index:3}
+.poster .grain.off{display:none}
+.stage-note{margin-top:12px;font:8.5px/1.6 ui-monospace,Consolas,monospace;color:#8a877d;letter-spacing:.06em}
+.export{border-left:1px solid var(--line);padding:18px 18px 30px;background:var(--panel);display:flex;flex-direction:column}
+.export h2{margin:0 0 10px;font:600 10px/1 ui-monospace,Consolas,monospace;letter-spacing:.18em;color:#8a877d}
+.format{display:grid;gap:6px;margin-bottom:12px}
+.fmt{display:flex;align-items:center;gap:8px;padding:9px 10px;border:1px solid var(--line);background:#fff;cursor:pointer}
+.fmt.on{border-color:var(--ink);box-shadow:0 0 0 1px var(--ink) inset}
+.fmt input{accent-color:var(--ink)}
+.fmt b{font-size:11px}
+.fmt span{display:block;font:8px/1.5 ui-monospace,Consolas,monospace;color:var(--muted)}
+.opt{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-top:1px solid #e9e5da;font-size:10px;color:#5e5b52}
+.opt select{height:28px;border:1px solid var(--line);background:#fff;font:10px/1 "Helvetica Neue","PingFang SC",sans-serif;color:var(--ink);padding:0 6px;outline:none}
+.opt input{accent-color:var(--ink)}
+.export-btn{margin-top:14px;height:42px;border:0;background:var(--orange);color:#1c1208;font:700 11px/1 "Helvetica Neue","PingFang SC",sans-serif;letter-spacing:.1em;cursor:pointer}
+.export-btn:hover{background:#ff704f}
+.export-btn:disabled{opacity:.6;cursor:wait}
+.error{margin-top:10px;padding:9px 10px;border-left:3px solid var(--red);background:#f8e6df;font-size:10px;line-height:1.7;color:#7d3a2a;display:none}
+.error.on{display:block}
+.result{margin-top:12px;border:1px dashed #c9c2b2;padding:12px;display:none}
+.result.on{display:block}
+.result b{display:block;font-size:11px}
+.result span{display:block;font:8px/1.7 ui-monospace,Consolas,monospace;color:var(--muted);margin-top:2px;word-break:break-all}
+.result button{margin-top:8px;height:28px;padding:0 9px;border:1px solid var(--line);background:transparent;color:#5e5b52;font-size:9px;cursor:pointer}
+.result button:hover{border-color:var(--ink);color:var(--ink)}
+.export .note{margin-top:auto;padding-top:16px;font:8px/1.7 ui-monospace,Consolas,monospace;color:#a29e94;letter-spacing:.02em}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(8px);background:var(--ink);color:var(--paper);padding:8px 14px;font-size:10px;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;white-space:nowrap;z-index:9}
+.toast.show{opacity:1;transform:translateX(-50%)}
+:focus-visible{outline:2px solid var(--cobalt);outline-offset:2px}
+@media(max-width:1100px){
+  .workspace{grid-template-columns:250px minmax(0,1fr)}
+  .export{grid-column:1/-1;border-left:0;border-top:1px solid var(--line);display:grid;grid-template-columns:1fr 1fr;gap:0 20px}
+  .export h2,.export .note{grid-column:1/-1}
+}
+@media(max-width:760px){
+  .workspace{grid-template-columns:1fr}
+  .panel{border-right:0;border-bottom:1px solid var(--line)}
+  .poster{width:min(420px,84vw);height:auto;aspect-ratio:3/4}
+  .poster h1{font-size:40px}
+  .export{grid-template-columns:1fr}
+  .top .doc{display:none}
+}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<header class="top"><div class="brand">版房<span></span></div><span class="doc">项目 / 夜航西飞 · 海报 03</span><div class="right"><span>自动保存 <b>已同步</b></span><button id="preview-btn" type="button">预览成品</button></div></header>
+
+<div class="workspace">
+  <aside class="panel">
+    <div class="group"><h2>CONTENT / 内容</h2>
+      <div class="field"><label for="title">主标题</label><input id="title" type="text" value="夜航西飞" maxlength="12"></div>
+      <div class="field"><label for="sub">副标题</label><input id="sub" type="text" value="苏禾 × 夜航 · 10.24 暗房" maxlength="30"></div>
+      <div class="field"><label for="eyebrow">眉题</label><input id="eyebrow" type="text" value="LIVE SESSION / 2026" maxlength="26"></div>
+    </div>
+    <div class="group"><h2>ALIGN / 版式</h2><div class="align"><button type="button" data-align="left" aria-pressed="false">左</button><button type="button" data-align="center" aria-pressed="true">中</button><button type="button" data-align="right" aria-pressed="false">右</button></div></div>
+    <div class="group"><h2>COLOR / 主色</h2><div class="swatches"><button class="swatch" type="button" data-color="#ff5a36" style="background:#ff5a36" aria-label="橙" aria-pressed="true"></button><button class="swatch" type="button" data-color="#2b4cff" style="background:#2b4cff" aria-label="钴蓝" aria-pressed="false"></button><button class="swatch" type="button" data-color="#6b7a4f" style="background:#6b7a4f" aria-label="橄榄" aria-pressed="false"></button><button class="swatch" type="button" data-color="#c9a45c" style="background:#c9a45c" aria-label="黄铜" aria-pressed="false"></button></div></div>
+    <div class="group"><h2>TEXTURE / 纹理</h2><label class="toggle"><input id="grain-on" type="checkbox" checked>颗粒纹理</label><input id="grain-range" type="range" min="0" max="100" value="55" aria-label="颗粒强度"></div>
+  </aside>
+
+  <section class="stage">
+    <div class="poster center" id="poster">
+      <p class="eyebrow" id="p-eyebrow">LIVE SESSION / 2026</p>
+      <h1 id="p-title">夜航西飞</h1>
+      <p class="sub" id="p-sub">苏禾 × 夜航 · 10.24 暗房</p>
+      <div class="circle" aria-hidden="true"></div>
+      <span class="folio">POSTER 03 / 420 × 560</span>
+      <div class="grain" id="grain" style="opacity:.55"></div>
+    </div>
+    <p class="stage-note">实时预览 · 导出前请检查字体与出血</p>
+  </section>
+
+  <aside class="export">
+    <h2>EXPORT / 导出</h2>
+    <div class="format">
+      <label class="fmt on"><input type="radio" name="fmt" value="pdf" checked><div><b>PDF</b><span>印刷用 · 保留矢量与纹理</span></div></label>
+      <label class="fmt"><input type="radio" name="fmt" value="png"><div><b>PNG</b><span>社交媒体 · 透明背景可选</span></div></label>
+      <label class="fmt"><input type="radio" name="fmt" value="svg"><div><b>SVG</b><span>网页用 · 不支持位图纹理</span></div></label>
+    </div>
+    <div class="opt"><span>尺寸</span><select id="scale"><option value="1">420 × 560</option><option value="2">840 × 1120</option><option value="3">1260 × 1680</option></select></div>
+    <div class="opt"><span>包含出血</span><input id="bleed" type="checkbox"></div>
+    <button class="export-btn" id="export" type="button">导出为 PDF</button>
+    <p class="error" id="error" role="alert"></p>
+    <div class="result" id="result"><b id="r-name">nightflight.pdf</b><span id="r-meta">1.2 MB · 420 × 560</span><button id="download" type="button">下载文件</button></div>
+    <p class="note">导出会保留当前图层与颜色。颗粒纹理以位图嵌入，不适合直接用于大幅面的 SVG。</p>
+  </aside>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+let fmt = 'pdf';
+let grainOn = true;
+let accent = '#ff5a36';
+let align = 'center';
+
+document.getElementById('title').addEventListener('input', function (e) { document.getElementById('p-title').textContent = e.target.value || '未命名'; });
+document.getElementById('sub').addEventListener('input', function (e) { document.getElementById('p-sub').textContent = e.target.value; });
+document.getElementById('eyebrow').addEventListener('input', function (e) { document.getElementById('p-eyebrow').textContent = e.target.value; });
+
+document.querySelectorAll('.align button').forEach(function (button) {
+  button.addEventListener('click', function () {
+    align = button.dataset.align;
+    document.querySelectorAll('.align button').forEach(function (item) { item.setAttribute('aria-pressed', String(item === button)); });
+    const poster = document.getElementById('poster');
+    poster.classList.remove('left', 'center', 'right');
+    poster.classList.add(align);
+  });
+});
+
+document.querySelectorAll('.swatch').forEach(function (button) {
+  button.addEventListener('click', function () {
+    accent = button.dataset.color;
+    document.querySelectorAll('.swatch').forEach(function (item) { item.setAttribute('aria-pressed', String(item === button)); });
+    document.getElementById('poster').style.setProperty('--orange', accent);
+    document.querySelector('.poster .circle').style.background = accent;
+  });
+});
+
+document.getElementById('grain-on').addEventListener('change', function (e) {
+  grainOn = e.target.checked;
+  document.getElementById('grain').classList.toggle('off', !grainOn);
+});
+
+document.getElementById('grain-range').addEventListener('input', function (e) {
+  document.getElementById('grain').style.opacity = String(e.target.value / 100);
+});
+
+document.querySelectorAll('input[name="fmt"]').forEach(function (radio) {
+  radio.addEventListener('change', function () {
+    fmt = radio.value;
+    document.querySelectorAll('.fmt').forEach(function (label) { label.classList.toggle('on', label.querySelector('input').checked); });
+    document.getElementById('export').textContent = '导出为 ' + fmt.toUpperCase();
+    document.getElementById('error').classList.remove('on');
+    document.getElementById('result').classList.remove('on');
+  });
+});
+
+document.getElementById('export').addEventListener('click', function () {
+  const error = document.getElementById('error');
+  if (fmt === 'svg' && grainOn) {
+    error.textContent = '无法导出 SVG：当前作品含颗粒纹理，SVG 不支持位图纹理。请改用 PDF / PNG，或关闭颗粒后重试。';
+    error.classList.add('on');
+    document.getElementById('result').classList.remove('on');
+    return;
+  }
+  error.classList.remove('on');
+  const button = document.getElementById('export');
+  button.disabled = true;
+  button.textContent = '正在排版…';
+  setTimeout(function () {
+    const scale = document.getElementById('scale').value;
+    const size = { '1': '420 × 560', '2': '840 × 1120', '3': '1260 × 1680' }[scale];
+    const mb = { pdf: '1.2 MB', png: '2.8 MB', svg: '86 KB' }[fmt];
+    document.getElementById('r-name').textContent = 'nightflight-' + size.replace(/ /g, '') + '.' + fmt;
+    document.getElementById('r-meta').textContent = mb + ' · ' + size + (document.getElementById('bleed').checked ? ' · 含 3 mm 出血' : ' · 无出血');
+    document.getElementById('result').classList.add('on');
+    button.disabled = false;
+    button.textContent = '导出为 ' + fmt.toUpperCase();
+    button.textContent = '再次导出';
+  }, 900);
+});
+
+document.getElementById('download').addEventListener('click', function () { showToast('文件已开始下载（示意）。'); });
+document.getElementById('preview-btn').addEventListener('click', function () { showToast('全屏预览已打开，按 Esc 退出。'); });
+
+function showToast(text) {
+  const el = document.getElementById('toast');
+  el.textContent = text;
+  el.classList.add('show');
+  clearTimeout(showToast.timer);
+  showToast.timer = setTimeout(function () { el.classList.remove('show'); }, 2200);
+}
+</script>
+</body>
+</html>

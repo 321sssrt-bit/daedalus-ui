@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>灯塔 · 位置权限</title>
+<style>
+:root{
+  --night:#101b33;--dusk:#3b3560;--lav:#b9a7e8;--paper:#f6f3fb;--ink:#1b1f2e;
+  --rose:#e58f7e;--mint:#9fd8c4;--muted:#6e7188;--line:#e4dfef;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--night);color:var(--ink);font:15px/1.65 "Avenir Next","PingFang SC","Microsoft YaHei",sans-serif;overflow-x:hidden}
+.scene{position:fixed;inset:0;background:linear-gradient(180deg,#0e1730 0%,#26305a 42%,#5b5182 70%,#8a7398 88%,#2a2a46 100%);overflow:hidden}
+.stars{position:absolute;inset:0;background:
+  radial-gradient(1.2px 1.2px at 12% 18%,#fff9 50%,transparent 51%),
+  radial-gradient(1px 1px at 28% 9%,#fff7 50%,transparent 51%),
+  radial-gradient(1.4px 1.4px at 44% 22%,#fff8 50%,transparent 51%),
+  radial-gradient(1px 1px at 62% 12%,#fff6 50%,transparent 51%),
+  radial-gradient(1.2px 1.2px at 76% 26%,#fff8 50%,transparent 51%),
+  radial-gradient(1px 1px at 88% 8%,#fff7 50%,transparent 51%),
+  radial-gradient(1.1px 1.1px at 8% 40%,#fff5 50%,transparent 51%),
+  radial-gradient(1px 1px at 34% 34%,#fff5 50%,transparent 51%)}
+.moon{position:absolute;right:12%;top:9%;width:110px;height:110px;border-radius:50%;background:radial-gradient(circle at 38% 36%,#fff7e3,#e7d9c4 62%,#cbbba4);box-shadow:0 0 80px #fff3d84d}
+.sea{position:absolute;left:0;right:0;bottom:0;height:26%;background:linear-gradient(180deg,#1a2542,#0c1425)}
+.sea::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(180deg,#ffffff0f 0 1px,transparent 1px 9px);opacity:.5}
+.horizon{position:absolute;left:0;right:0;bottom:26%;height:1px;background:#d9c9ff33}
+.tower{position:absolute;left:7%;bottom:26%;width:86px;height:240px;background:repeating-linear-gradient(180deg,#f4ecdf 0 26px,#c94f45 26px 52px);clip-path:polygon(28% 0,72% 0,100% 100%,0 100%);box-shadow:0 10px 40px #0004}
+.lamp{position:absolute;left:7%;bottom:calc(26% + 226px);width:86px;height:38px;background:#f4ecdf;clip-path:polygon(18% 0,82% 0,100% 100%,0 100%);display:grid;place-items:center}
+.lamp::after{content:"";width:20px;height:20px;border-radius:50%;background:#ffe9a8;box-shadow:0 0 30px #ffe9a8}
+.beam{position:absolute;left:calc(7% + 48px);bottom:calc(26% + 220px);width:520px;height:150px;background:linear-gradient(90deg,#ffe9a866,transparent 85%);clip-path:polygon(0 42%,100% 0,100% 100%,0 58%);transform-origin:0 50%;transform:rotate(-9deg);filter:blur(1px)}
+.beam.b2{transform:rotate(16deg) scaleX(.6);opacity:.4}
+.house{position:absolute;left:2%;bottom:26%;width:52px;height:34px;background:#0b1120;border-radius:2px}
+.sheet{position:relative;z-index:3;width:min(560px,calc(100% - 32px));margin:clamp(24px,7vh,64px) auto;background:var(--paper);border-radius:28px;box-shadow:0 40px 120px #05091299,0 0 0 1px #ffffff14;padding:34px 36px 30px}
+.sheet-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:22px}
+.app{display:flex;align-items:center;gap:12px}
+.app-icon{width:46px;height:46px;border-radius:12px;background:var(--night);display:grid;place-items:center;position:relative;overflow:hidden}
+.app-icon::before{content:"";width:12px;height:26px;background:repeating-linear-gradient(180deg,#f6f3fb 0 5px,#c94f45 5px 10px);clip-path:polygon(26% 0,74% 0,100% 100%,0 100%)}
+.app-icon::after{content:"";position:absolute;top:9px;width:22px;height:22px;border-radius:50%;background:#ffe9a833;box-shadow:0 0 14px #ffe9a8}
+.app b{display:block;font-size:13px;letter-spacing:.02em}
+.app span{font:10px/1.6 ui-monospace,Consolas,monospace;letter-spacing:.14em;color:var(--muted)}
+.close{width:32px;height:32px;border:1px solid var(--line);border-radius:50%;background:transparent;color:var(--muted);font-size:14px;cursor:pointer;line-height:1}
+.close:hover{color:var(--ink);border-color:#bdb4d2}
+.kicker{margin:0 0 10px;font:600 10px/1 ui-monospace,Consolas,monospace;letter-spacing:.28em;color:var(--dusk)}
+h1{margin:0 0 12px;font:400 34px/1.3 "Songti SC","Noto Serif SC",Georgia,serif;letter-spacing:.01em}
+.lede{margin:0 0 20px;color:var(--muted);font-size:13px;line-height:1.95}
+.reasons{list-style:none;margin:0 0 22px;padding:16px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);display:grid;gap:11px}
+.reasons li{display:flex;gap:11px;align-items:flex-start;font-size:12px;line-height:1.7;color:#4d5268}
+.reasons i{width:18px;height:18px;border-radius:50%;background:#ece7f7;color:var(--dusk);font:600 9px/18px ui-monospace,Consolas,monospace;text-align:center;flex:none;font-style:normal}
+.options{display:grid;gap:8px;margin-bottom:22px}
+.option{display:flex;gap:12px;align-items:center;padding:13px 14px;border:1px solid var(--line);border-radius:12px;background:#fff;cursor:pointer;transition:border-color .15s,background .15s}
+.option:hover{border-color:#c3b8df}
+.option.selected{border-color:var(--dusk);background:#f3effc;box-shadow:0 0 0 1px var(--dusk) inset}
+.option input{position:absolute;opacity:0;pointer-events:none}
+.dot{width:18px;height:18px;border-radius:50%;border:1px solid #b9b0cc;display:grid;place-items:center;flex:none}
+.option.selected .dot{border-color:var(--dusk)}
+.option.selected .dot::after{content:"";width:9px;height:9px;border-radius:50%;background:var(--dusk)}
+.option b{display:block;font-size:13px;font-weight:600;margin-bottom:2px}
+.option span{font-size:11px;color:var(--muted);line-height:1.6}
+.continue{width:100%;height:48px;border:0;border-radius:12px;background:var(--night);color:#f6f3fb;font:600 13px/1 "Avenir Next","PingFang SC",sans-serif;letter-spacing:.12em;cursor:pointer;transition:background .16s}
+.continue:hover{background:#1d2c50}
+.foot{margin:14px 0 0;text-align:center;font:10px/1.7 ui-monospace,Consolas,monospace;color:#9b96ad;letter-spacing:.04em}
+.result{display:none;text-align:left;padding-top:6px}
+.result.on{display:block}
+.result .glyph{width:58px;height:58px;border-radius:50%;display:grid;place-items:center;font-size:22px;margin-bottom:20px}
+.result.granted .glyph{background:#e2f3ec;color:#2f7a61}
+.result.denied .glyph{background:#f7e6e2;color:#a14b3c}
+.result h2{margin:0 0 10px;font:400 28px/1.3 "Songti SC",Georgia,serif}
+.result p{margin:0 0 8px;font-size:12px;line-height:1.9;color:var(--muted)}
+.result .scope{display:inline-block;margin:12px 0 20px;padding:6px 11px;border-radius:6px;border:1px dashed #cfc6e3;font:11px/1 ui-monospace,Consolas,monospace;color:var(--dusk)}
+.result button{height:42px;padding:0 18px;border:1px solid var(--line);border-radius:999px;background:transparent;color:var(--ink);font-size:12px;cursor:pointer}
+.result button:hover{border-color:var(--dusk)}
+:focus-visible{outline:2px solid var(--rose);outline-offset:3px}
+@media(max-width:640px){
+  .sheet{margin:16px auto;padding:24px 22px 22px;border-radius:22px}
+  h1{font-size:27px}
+  .moon{width:78px;height:78px;right:8%;top:6%}
+  .tower{transform:scale(.8);transform-origin:bottom left;left:3%}
+  .lamp{transform:scale(.8);transform-origin:bottom left;left:3%}
+  .beam{display:none}
+}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="scene" aria-hidden="true">
+  <div class="stars"></div>
+  <div class="moon"></div>
+  <div class="beam"></div>
+  <div class="beam b2"></div>
+  <div class="house"></div>
+  <div class="tower"></div>
+  <div class="lamp"></div>
+  <div class="horizon"></div>
+  <div class="sea"></div>
+</div>
+
+<main class="sheet" aria-labelledby="perm-title">
+  <div class="sheet-top">
+    <div class="app"><span class="app-icon" aria-hidden="true"></span><div><b>灯塔 LIGHTHOUSE</b><span>海岸天气与潮汐</span></div></div>
+    <button class="close" id="close" type="button" aria-label="关闭权限请求">✕</button>
+  </div>
+
+  <div id="ask">
+    <p class="kicker">PERMISSION / LOCATION</p>
+    <h1 id="perm-title">让灯塔知道，<br>你在哪一片海岸。</h1>
+    <p class="lede">灯塔需要读取你的大致位置，才能显示附近的潮汐、日落和今晚的风。位置只在这一刻使用，不会写进你的日记。</p>
+    <ul class="reasons">
+      <li><i>01</i><span>显示你所在海岸未来 12 小时的潮汐与日落时间。</span></li>
+      <li><i>02</i><span>只读取城市级的大致位置，不记录精确坐标。</span></li>
+      <li><i>03</i><span>随时可以在系统设置里关闭，不影响已保存的日记。</span></li>
+    </ul>
+
+    <div class="options" role="radiogroup" aria-label="位置权限范围">
+      <label class="option selected" data-value="once">
+        <input type="radio" name="scope" value="once" checked>
+        <span class="dot" aria-hidden="true"></span>
+        <span><b>仅此一次</b><span>只为这一次潮汐查询读取位置，离开后失效。</span></span>
+      </label>
+      <label class="option" data-value="while">
+        <input type="radio" name="scope" value="while">
+        <span class="dot" aria-hidden="true"></span>
+        <span><b>使用期间允许</b><span>在灯塔打开时持续更新海况，切到后台即停止。</span></span>
+      </label>
+      <label class="option" data-value="deny">
+        <input type="radio" name="scope" value="deny">
+        <span class="dot" aria-hidden="true"></span>
+        <span><b>不允许</b><span>仍可手动输入城市，查看公共潮汐表。</span></span>
+      </label>
+    </div>
+
+    <button class="continue" id="continue" type="button">继续</button>
+    <p class="foot">系统会记住你的选择 · 可随时在「设置 · 隐私」中更改</p>
+  </div>
+
+  <div class="result" id="result">
+    <div class="glyph" id="glyph" aria-hidden="true">✓</div>
+    <h2 id="result-title">灯塔已点亮。</h2>
+    <p id="result-copy">正在读取你附近的海岸线。潮汐表会在几秒内出现在首页。</p>
+    <span class="scope" id="result-scope">范围 · 仅此一次</span>
+    <div><button id="undo" type="button">返回修改</button></div>
+  </div>
+</main>
+
+<script>
+const options = Array.from(document.querySelectorAll('.option'));
+const result = document.getElementById('result');
+let choice = 'once';
+
+options.forEach(function (option) {
+  option.addEventListener('click', function () {
+    choice = option.dataset.value;
+    options.forEach(function (item) {
+      item.classList.toggle('selected', item === option);
+      item.querySelector('input').checked = item === option;
+    });
+  });
+});
+
+function resolve(value) {
+  const granted = value !== 'deny';
+  result.className = 'result on ' + (granted ? 'granted' : 'denied');
+  document.getElementById('glyph').textContent = granted ? '✓' : '—';
+  document.getElementById('result-title').textContent = granted ? '灯塔已点亮。' : '已保持关闭。';
+  document.getElementById('result-copy').textContent = granted
+    ? '正在读取你附近的海岸线。潮汐表会在几秒内出现在首页，日记里不会出现坐标。'
+    : '灯塔不会读取你的位置。你仍然可以手动选择城市，查看公共潮汐与日落时间。';
+  document.getElementById('result-scope').textContent = '范围 · ' + (value === 'once' ? '仅此一次' : value === 'while' ? '使用期间' : '未授权');
+  document.getElementById('ask').hidden = true;
+  result.classList.add('on');
+  document.getElementById('close').hidden = true;
+  document.getElementById('undo').focus();
+}
+
+document.getElementById('continue').addEventListener('click', function () { resolve(choice); });
+document.getElementById('close').addEventListener('click', function () { resolve('deny'); });
+document.getElementById('undo').addEventListener('click', function () {
+  result.className = 'result';
+  document.getElementById('ask').hidden = false;
+  document.getElementById('close').hidden = false;
+  document.getElementById('continue').focus();
+});
+</script>
+</body>
+</html>

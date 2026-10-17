@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>协作 · 任务与权限</title>
+<style>
+:root{
+  --paper:#f3f2ee;--card:#fffdf8;--ink:#1d2433;--indigo:#3b4a7a;--mint:#9fc4bb;
+  --amber:#d9a441;--line:#d9d6cd;--muted:#7d7f83;--red:#b4503c;--good:#4f7a5e;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font:14px/1.6 "Avenir Next","PingFang SC","Microsoft YaHei",sans-serif;min-height:100vh}
+.top{display:flex;align-items:center;gap:18px;padding:15px 28px;border-bottom:1px solid var(--line);background:var(--card)}
+.brand{font:600 17px/1 "Songti SC","Noto Serif SC",Georgia,serif;letter-spacing:.2em}
+.top nav{display:flex;gap:16px;margin-left:14px}
+.top nav a{color:var(--muted);text-decoration:none;font-size:11px}
+.top nav a.on{color:var(--ink);border-bottom:2px solid var(--indigo);padding-bottom:4px}
+.top .right{margin-left:auto;display:flex;align-items:center;gap:10px;font:9px/1 ui-monospace,Consolas,monospace;color:var(--muted);letter-spacing:.06em}
+.avatar{width:28px;height:28px;border-radius:6px;background:var(--indigo);color:#f4f1e6;display:grid;place-items:center;font:600 9px/1 ui-monospace,Consolas,monospace}
+main{max-width:1280px;margin:0 auto;padding:24px 26px 50px;display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:18px;align-items:start}
+.head{display:flex;align-items:flex-end;gap:14px;margin-bottom:14px}
+.head h1{margin:0;font:400 32px/1.2 "Songti SC","Noto Serif SC",Georgia,serif}
+.head p{margin:0 0 3px auto;font:9px/1.7 ui-monospace,Consolas,monospace;color:var(--muted);letter-spacing:.04em;text-align:right}
+.new{height:34px;padding:0 13px;border:0;border-radius:2px;background:var(--indigo);color:#f4f1e6;font:10px/1 "Avenir Next","PingFang SC",sans-serif;letter-spacing:.08em;cursor:pointer}
+.new:hover{background:#2e3b63}
+.board{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.col{background:#ecebe5;border:1px solid var(--line);padding:9px;min-height:430px}
+.col h2{margin:0 0 8px;font:9px/1 ui-monospace,Consolas,monospace;color:#8c8d8e;letter-spacing:.16em;display:flex;justify-content:space-between}
+.col h2 span{color:#b0aeaa}
+.card{display:block;width:100%;text-align:left;border:1px solid var(--line);background:var(--card);padding:10px 10px 9px;margin-bottom:8px;cursor:pointer;font:inherit;color:inherit}
+.card:hover{border-color:var(--indigo)}
+.card.on{border-color:var(--indigo);box-shadow:0 0 0 1px var(--indigo) inset}
+.card .t{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:600;line-height:1.45}
+.card .t em{font-style:normal;font-size:9px;color:var(--red)}
+.card .who{display:flex;align-items:center;gap:6px;margin-top:6px;font:8px/1.5 ui-monospace,Consolas,monospace;color:#9a9a98}
+.card .who i{width:16px;height:16px;border-radius:50%;background:#dfe2dc;display:grid;place-items:center;font:600 7px/1 ui-monospace,Consolas,monospace;color:#4d554e;font-style:normal}
+.card .tag{display:inline-block;margin-top:6px;padding:2px 5px;border:1px solid #e3d6b8;background:#faf1da;font:7.5px/1.4 ui-monospace,Consolas,monospace;color:#8a6a24;letter-spacing:.02em}
+.detail{background:var(--card);border:1px solid var(--line);position:sticky;top:18px}
+.detail .empty{padding:40px 22px;font-size:11px;line-height:1.9;color:var(--muted);text-align:center}
+.detail-inner{padding:16px 18px 18px}
+.detail .kicker{margin:0 0 6px;font:8px/1 ui-monospace,Consolas,monospace;color:var(--muted);letter-spacing:.18em}
+.detail h2{margin:0 0 4px;font:400 22px/1.35 "Songti SC",Georgia,serif}
+.detail .desc{margin:0 0 12px;font-size:11px;line-height:1.8;color:#6f7073}
+.detail .row{display:flex;align-items:center;gap:8px;padding:7px 0;border-top:1px solid #eee9df;font-size:10px}
+.detail .row span{color:#8a8b8c;width:60px;flex:none}
+.detail .row select,.detail .row input{flex:1;height:30px;border:1px solid var(--line);background:#fffdf8;color:var(--ink);font:10px/1 "Avenir Next","PingFang SC",sans-serif;padding:0 7px;outline:none}
+.detail .row select:focus,.detail .row input:focus{border-color:var(--indigo)}
+.advance{margin-top:12px;width:100%;height:36px;border:0;border-radius:2px;background:var(--indigo);color:#f4f1e6;font:600 10px/1 "Avenir Next","PingFang SC",sans-serif;letter-spacing:.1em;cursor:pointer}
+.advance:hover{background:#2e3b63}
+.advance.locked{background:#b9b3a8}
+.alert{margin-top:10px;padding:9px 10px;border-left:3px solid var(--red);background:#f8e6df;font-size:10px;line-height:1.7;color:#7d3a2a;display:none}
+.alert.on{display:block}
+.alert button{margin-top:6px;height:26px;padding:0 9px;border:1px solid #d8b3a7;background:transparent;color:#7d3a2a;font-size:9px;cursor:pointer}
+.alert button:hover{background:#f1d5cb}
+.log{margin-top:14px;border-top:1px solid var(--line);padding-top:10px}
+.log h3{margin:0 0 6px;font:8px/1 ui-monospace,Consolas,monospace;color:#9a9a98;letter-spacing:.18em}
+.log ul{list-style:none;margin:0;padding:0;max-height:150px;overflow-y:auto}
+.log li{display:flex;gap:8px;padding:4px 0;font-size:9.5px;line-height:1.6;color:#6f7073}
+.log li b{font:8px/1.6 ui-monospace,Consolas,monospace;color:#a3a29d;font-weight:400;flex:none}
+.form{padding:16px 18px 18px;display:none}
+.form.on{display:block}
+.form h2{margin:0 0 10px;font:400 20px/1.3 "Songti SC",Georgia,serif}
+.field{display:flex;flex-direction:column;gap:4px;margin-bottom:9px}
+.field label{font:8px/1 ui-monospace,Consolas,monospace;color:#8a8b8c;letter-spacing:.12em}
+.field input,.field select{height:32px;border:1px solid var(--line);background:#fffdf8;color:var(--ink);font:11px/1 "Avenir Next","PingFang SC",sans-serif;padding:0 8px;outline:none}
+.field input:focus,.field select:focus{border-color:var(--indigo)}
+.form .btns{display:flex;gap:7px;margin-top:10px}
+.form .btns button{height:32px;padding:0 12px;font-size:10px;cursor:pointer}
+.form .cancel{border:1px solid var(--line);background:transparent;color:var(--muted)}
+.form .create{border:0;background:var(--indigo);color:#f4f1e6;flex:1;letter-spacing:.08em}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(8px);background:var(--ink);color:#f4f1e6;padding:8px 14px;border-radius:2px;font-size:10px;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;white-space:nowrap;z-index:9}
+.toast.show{opacity:1;transform:translateX(-50%)}
+:focus-visible{outline:2px solid var(--indigo);outline-offset:2px}
+@media(max-width:1020px){
+  main{grid-template-columns:1fr}
+  .detail{position:static}
+}
+@media(max-width:700px){
+  .top{padding:12px 16px}
+  .top nav{display:none}
+  main{padding:16px 14px 40px}
+  .board{grid-template-columns:1fr}
+  .col{min-height:0}
+  .head{flex-wrap:wrap}
+  .head p{margin-left:0;text-align:left}
+}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<header class="top"><div class="brand">协作</div><nav aria-label="协作导航"><a href="#board" class="on">任务</a><a href="#team">成员</a><a href="#log">活动</a></nav><div class="right"><span>秋季大促 · 6 人</span><span class="avatar">林</span></div></header>
+
+<main>
+  <section>
+    <div class="head"><h1>本周任务。</h1><p>拖动不做，点开卡片推进<br>所有变更都会写进活动记录</p><button class="new" id="new" type="button">＋ 新建任务</button></div>
+    <div class="board">
+      <div class="col" data-col="todo"><h2>待办 <span id="n-todo">0</span></h2><div id="col-todo"></div></div>
+      <div class="col" data-col="doing"><h2>进行中 <span id="n-doing">0</span></h2><div id="col-doing"></div></div>
+      <div class="col" data-col="done"><h2>已完成 <span id="n-done">0</span></h2><div id="col-done"></div></div>
+    </div>
+  </section>
+
+  <aside class="detail" id="detail">
+    <div class="empty" id="empty">从左边选一张卡片，查看负责人、状态和活动记录。<br>「预算复核」是一张受限任务，可以试着推进它。</div>
+    <div class="detail-inner" id="detail-inner" hidden>
+      <p class="kicker" id="d-kicker">TASK / 01</p>
+      <h2 id="d-title">—</h2>
+      <p class="desc" id="d-desc">—</p>
+      <div class="row"><span>负责人</span><select id="d-owner"><option>林岸</option><option>陈默</option><option>顾青</option></select></div>
+      <div class="row"><span>状态</span><span id="d-status" style="width:auto">待办</span></div>
+      <div class="row"><span>截止</span><span id="d-due" style="width:auto">10.20</span></div>
+      <button class="advance" id="advance" type="button">推进到「进行中」</button>
+      <div class="alert" id="alert" role="alert"></div>
+      <div class="log"><h3>ACTIVITY / 活动记录</h3><ul id="log-list"></ul></div>
+    </div>
+    <div class="form" id="form">
+      <h2>新建任务</h2>
+      <div class="field"><label for="f-title">标题</label><input id="f-title" type="text" placeholder="例如：整理结账页的异常状态" maxlength="30"></div>
+      <div class="field"><label for="f-owner">负责人</label><select id="f-owner"><option>林岸</option><option>陈默</option><option>顾青</option></select></div>
+      <div class="field"><label for="f-due">截止</label><input id="f-due" type="text" value="10.22" maxlength="5"></div>
+      <div class="btns"><button class="cancel" id="cancel" type="button">取消</button><button class="create" id="create" type="button">创建任务</button></div>
+    </div>
+  </aside>
+</main>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+const tasks = [
+  { id: 1, title: '整理结账页的异常状态', owner: '林岸', status: 'todo', due: '10.20', desc: '把库存、支付失败、地址缺失三种状态写成可复用的组件说明。', locked: false },
+  { id: 2, title: '联系印刷厂确认首印', owner: '顾青', status: 'todo', due: '10.21', desc: '确认 1,200 册的纸张与交期，顺便问一下加急费用。', locked: false },
+  { id: 3, title: '预算复核 · Q4 投放', owner: '陈默', status: 'doing', due: '10.19', desc: '这张任务属于财务工作区。当前角色只能查看，不能推进状态。', locked: true },
+  { id: 4, title: '会员中心空态文案', owner: '林岸', status: 'doing', due: '10.23', desc: '替换掉「暂无数据」，给出一个可执行的下一步。', locked: false },
+  { id: 5, title: '秋季刊目录校对', owner: '陈默', status: 'done', due: '10.16', desc: '作者名、页码与栏目已核对两遍。', locked: false }
+];
+const owners = { 林岸: '林', 陈默: '陈', 顾青: '顾' };
+const statusName = { todo: '待办', doing: '进行中', done: '已完成' };
+const nextName = { todo: '进行中', doing: '已完成' };
+let selected = null;
+let log = [
+  { time: '09:12', text: '顾青创建了「联系印刷厂确认首印」' },
+  { time: '09:40', text: '林岸把「会员中心空态文案」推进到进行中' }
+];
+
+function renderBoard() {
+  ['todo', 'doing', 'done'].forEach(function (col) {
+    const box = document.getElementById('col-' + col);
+    box.innerHTML = '';
+    const list = tasks.filter(function (task) { return task.status === col; });
+    document.getElementById('n-' + col).textContent = String(list.length);
+    list.forEach(function (task) {
+      const card = document.createElement('button');
+      card.type = 'button';
+      card.className = 'card' + (selected === task.id ? ' on' : '');
+      card.dataset.id = String(task.id);
+      card.innerHTML = '<span class="t"><span></span>' + (task.locked ? '<em>受限</em>' : '') + '</span>' +
+        '<span class="who"><i>' + owners[task.owner] + '</i>' + task.owner + ' · ' + task.due + '</span>' +
+        (task.locked ? '<span class="tag">需要 finance:write</span>' : '');
+      card.querySelector('.t span').textContent = task.title;
+      card.addEventListener('click', function () { selectTask(task.id); });
+      box.appendChild(card);
+    });
+  });
+}
+
+function renderDetail() {
+  const task = tasks.find(function (item) { return item.id === selected; });
+  const empty = document.getElementById('empty');
+  const inner = document.getElementById('detail-inner');
+  if (!task) {
+    empty.hidden = false;
+    inner.hidden = true;
+    return;
+  }
+  empty.hidden = true;
+  inner.hidden = false;
+  document.getElementById('d-kicker').textContent = 'TASK / ' + String(task.id).padStart(2, '0');
+  document.getElementById('d-title').textContent = task.title;
+  document.getElementById('d-desc').textContent = task.desc;
+  document.getElementById('d-owner').value = task.owner;
+  document.getElementById('d-status').textContent = statusName[task.status];
+  document.getElementById('d-due').textContent = task.due;
+  const advance = document.getElementById('advance');
+  if (task.status === 'done') {
+    advance.textContent = '已经完成';
+    advance.disabled = true;
+    advance.classList.remove('locked');
+  } else {
+    advance.textContent = '推进到「' + nextName[task.status] + '」';
+    advance.disabled = false;
+    advance.classList.toggle('locked', task.locked);
+  }
+  document.getElementById('alert').classList.remove('on');
+  renderLog();
+}
+
+function renderLog() {
+  document.getElementById('log-list').innerHTML = log.slice(-8).reverse().map(function (row) {
+    return '<li><b>' + row.time + '</b><span>' + row.text + '</span></li>';
+  }).join('');
+}
+
+function selectTask(id) {
+  selected = id;
+  document.getElementById('form').classList.remove('on');
+  renderBoard();
+  renderDetail();
+}
+
+function stamp() {
+  const d = new Date();
+  return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+}
+
+document.getElementById('advance').addEventListener('click', function () {
+  const task = tasks.find(function (item) { return item.id === selected; });
+  if (!task || task.status === 'done') return;
+  if (task.locked) {
+    const alert = document.getElementById('alert');
+    alert.innerHTML = '<b>权限不足：</b>推进这张任务需要财务工作区的 <code>finance:write</code> 权限。这次变更没有写入。<button type="button" id="request">申请访问权限</button>';
+    alert.classList.add('on');
+    document.getElementById('request').addEventListener('click', function () {
+      this.textContent = '申请已发送 · 等待管理员';
+      this.disabled = true;
+      log.push({ time: stamp(), text: '林岸申请了「预算复核 · Q4 投放」的访问权限' });
+      renderLog();
+      showToast('申请已发给财务工作区管理员。');
+    });
+    return;
+  }
+  task.status = task.status === 'todo' ? 'doing' : 'done';
+  log.push({ time: stamp(), text: '林岸把「' + task.title + '」推进到' + statusName[task.status] });
+  renderBoard();
+  renderDetail();
+  showToast('已推进到「' + statusName[task.status] + '」。');
+});
+
+document.getElementById('d-owner').addEventListener('change', function (event) {
+  const task = tasks.find(function (item) { return item.id === selected; });
+  if (!task) return;
+  task.owner = event.target.value;
+  log.push({ time: stamp(), text: '林岸把「' + task.title + '」的负责人改为' + task.owner });
+  renderBoard();
+  renderLog();
+  showToast('负责人已更新。');
+});
+
+document.getElementById('new').addEventListener('click', function () {
+  document.getElementById('empty').hidden = true;
+  document.getElementById('detail-inner').hidden = true;
+  document.getElementById('form').classList.add('on');
+  document.getElementById('f-title').focus();
+});
+document.getElementById('cancel').addEventListener('click', function () {
+  document.getElementById('form').classList.remove('on');
+  document.getElementById('empty').hidden = false;
+  document.getElementById('f-title').value = '';
+});
+document.getElementById('create').addEventListener('click', function () {
+  const title = document.getElementById('f-title').value.trim();
+  if (!title) { document.getElementById('f-title').focus(); showToast('先给任务起个名字。'); return; }
+  const id = Math.max.apply(null, tasks.map(function (task) { return task.id; })) + 1;
+  tasks.push({ id: id, title: title, owner: document.getElementById('f-owner').value, status: 'todo', due: document.getElementById('f-due').value || '10.25', desc: '新建任务。点开卡片可以补充背景，或推进到下一列。', locked: false });
+  log.push({ time: stamp(), text: '林岸创建了「' + title + '」' });
+  document.getElementById('f-title').value = '';
+  document.getElementById('form').classList.remove('on');
+  selected = id;
+  renderBoard();
+  renderDetail();
+  showToast('任务已创建，落在「待办」。');
+});
+
+function showToast(text) {
+  const el = document.getElementById('toast');
+  el.textContent = text;
+  el.classList.add('show');
+  clearTimeout(showToast.timer);
+  showToast.timer = setTimeout(function () { el.classList.remove('show'); }, 2200);
+}
+
+renderBoard();
+</script>
+</body>
+</html>

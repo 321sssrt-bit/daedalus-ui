@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>投递 · 文件上传</title>
+<style>
+:root{
+  --sky:#eef3f7;--card:#ffffff;--ink:#182630;--blue:#3a6f8f;--orange:#e2673f;
+  --line:#cfdce5;--muted:#6f8190;--good:#3f7a5e;--soft:#e3edf3;
+}
+*{box-sizing:border-box}
+body{margin:0;background:
+  radial-gradient(700px 400px at 100% 0%,#ffffff 0%,transparent 55%),var(--sky);
+  color:var(--ink);font:14px/1.65 "Avenir Next","PingFang SC","Microsoft YaHei",sans-serif;min-height:100vh}
+.top{display:flex;align-items:center;gap:18px;padding:15px 30px;border-bottom:1px solid var(--line);background:#f7fafc}
+.brand{display:flex;align-items:baseline;gap:8px;font:600 16px/1 "Songti SC","Noto Serif SC",Georgia,serif;letter-spacing:.2em}
+.brand small{font:9px/1 ui-monospace,Consolas,monospace;letter-spacing:.3em;color:var(--orange)}
+.top nav{display:flex;gap:16px;margin-left:14px}
+.top nav a{color:var(--muted);text-decoration:none;font-size:11px}
+.top nav a.on{color:var(--ink);border-bottom:2px solid var(--blue);padding-bottom:4px}
+.top .right{margin-left:auto;display:flex;align-items:center;gap:12px;font:9px/1 ui-monospace,Consolas,monospace;color:var(--muted);letter-spacing:.06em}
+.avatar{width:28px;height:28px;border-radius:50%;background:var(--blue);color:#fff;display:grid;place-items:center;font:600 9px/1 ui-monospace,Consolas,monospace}
+main{max-width:900px;margin:0 auto;padding:32px 26px 70px}
+.kicker{margin:0 0 8px;font:600 9px/1 ui-monospace,Consolas,monospace;letter-spacing:.26em;color:var(--orange)}
+h1{margin:0 0 8px;font:400 36px/1.18 "Songti SC","Noto Serif SC",Georgia,serif}
+.lede{margin:0 0 22px;max-width:520px;font-size:12px;line-height:1.9;color:var(--muted)}
+.drop{position:relative;border:1.5px dashed #9fb8c8;background:#f9fcfe;padding:34px 20px 30px;text-align:center;transition:border-color .15s,background .15s}
+.drop.over{border-color:var(--orange);background:#fff6f1}
+.drop .mark{width:52px;height:52px;margin:0 auto 12px;border-radius:50%;background:var(--soft);color:var(--blue);display:grid;place-items:center;font-size:22px}
+.drop b{display:block;font:400 20px/1.3 "Songti SC",Georgia,serif;margin-bottom:3px}
+.drop p{margin:0 0 12px;font-size:11px;color:var(--muted)}
+.pick{height:34px;padding:0 14px;border:1px solid var(--blue);border-radius:2px;background:var(--blue);color:#fff;font:10px/1 "Avenir Next","PingFang SC",sans-serif;letter-spacing:.08em;cursor:pointer}
+.pick:hover{background:#2d5c78}
+.hint{position:absolute;left:14px;bottom:9px;font:8px/1.4 ui-monospace,Consolas,monospace;color:#9db0bc;letter-spacing:.06em}
+.corner{position:absolute;width:9px;height:9px;border-color:#9fb8c8;border-style:solid}
+.corner.tl{left:6px;top:6px;border-width:1px 0 0 1px}
+.corner.tr{right:6px;top:6px;border-width:1px 1px 0 0}
+.corner.bl{left:6px;bottom:6px;border-width:0 0 1px 1px}
+.corner.br{right:6px;bottom:6px;border-width:0 1px 1px 0}
+.queue{margin-top:18px;background:var(--card);border:1px solid var(--line)}
+.queue-head{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--line)}
+.queue-head h2{margin:0;font:400 18px/1.3 "Songti SC",Georgia,serif}
+.queue-head span{font:9px/1 ui-monospace,Consolas,monospace;color:var(--muted);letter-spacing:.04em}
+.queue-head .sum{margin-left:auto;font:9px/1 ui-monospace,Consolas,monospace;color:var(--muted)}
+.frow{display:grid;grid-template-columns:40px minmax(0,1fr) 100px 92px 28px;gap:12px;align-items:center;padding:12px 16px;border-bottom:1px solid #edf2f5}
+.frow:last-child{border-bottom:0}
+.ficon{width:36px;height:40px;border:1px solid var(--line);background:#f4f8fa;display:grid;place-items:center;font:700 8px/1 ui-monospace,Consolas,monospace;color:var(--blue);letter-spacing:.04em}
+.frow .name{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.frow .meta{display:flex;gap:8px;align-items:center;margin-top:2px;font:8.5px/1.5 ui-monospace,Consolas,monospace;color:var(--muted);letter-spacing:.03em}
+.bar{height:4px;background:#e8eff4;border-radius:2px;overflow:hidden;margin-top:6px}
+.bar i{display:block;height:100%;width:0;background:var(--blue);transition:width .2s}
+.state{font:8.5px/1.4 ui-monospace,Consolas,monospace;letter-spacing:.06em;color:var(--muted);text-align:right}
+.state.doing{color:var(--orange)}
+.state.done{color:var(--good)}
+.size{font:9px/1.4 ui-monospace,Consolas,monospace;color:var(--muted);text-align:right;letter-spacing:.02em}
+.remove{width:26px;height:26px;border:0;border-radius:50%;background:transparent;color:#a8b6c0;font-size:13px;cursor:pointer;line-height:1}
+.remove:hover{background:#f7e9e4;color:var(--orange)}
+.remove:disabled{opacity:.3;cursor:default}
+.queue-foot{display:flex;align-items:center;gap:12px;padding:12px 16px;border-top:1px solid var(--line);background:#fbfdfe}
+.queue-foot .total{font:9px/1.6 ui-monospace,Consolas,monospace;color:var(--muted);letter-spacing:.04em}
+.queue-foot .note{font:8px/1.6 ui-monospace,Consolas,monospace;color:#a8b6c0}
+.start{margin-left:auto;height:38px;padding:0 18px;border:1px solid var(--orange);background:var(--orange);color:#fff;font:600 11px/1 "Avenir Next","PingFang SC",sans-serif;letter-spacing:.1em;cursor:pointer}
+.start:hover{background:#c9532f}
+.start:disabled{opacity:.5;cursor:default}
+.start.done{background:var(--good);border-color:var(--good)}
+.empty{padding:26px 16px;text-align:center;font-size:11px;color:var(--muted)}
+.note-line{margin-top:14px;font:8.5px/1.8 ui-monospace,Consolas,monospace;color:#98a9b4;letter-spacing:.03em}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:8px 14px;font-size:11px;opacity:0;pointer-events:none;transition:opacity .18s}
+.toast.show{opacity:1}
+:focus-visible{outline:2px solid var(--orange);outline-offset:2px}
+@media(max-width:700px){
+  .top{padding:13px 16px}
+  .top nav{display:none}
+  main{padding:22px 14px 50px}
+  h1{font-size:29px}
+  .drop{padding:26px 14px 26px}
+  .hint{position:static;display:block;margin-top:10px}
+  .frow{grid-template-columns:36px minmax(0,1fr) 26px;gap:10px}
+  .frow .size{display:none}
+  .state{grid-column:2;text-align:left}
+  .bar{grid-column:2}
+  .queue-foot{flex-wrap:wrap}
+  .start{width:100%;margin-left:0}
+}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand">投递<small>DROP</small></div>
+  <nav aria-label="上传导航"><a href="#upload" class="on">上传</a><a href="#history">历史</a><a href="#specs">印前规范</a></nav>
+  <div class="right"><span>印刷工作台 · 顾青</span><span class="avatar">顾</span></div>
+</header>
+
+<main>
+  <p class="kicker">UPLOAD / 印刷文件</p>
+  <h1>把文件交给我们。</h1>
+  <p class="lede">支持 PDF、ZIP 与 JPG，单个文件不超过 200 MB。上传后我们会检查出血、字体与色彩模式，有问题的文件会退回给你。</p>
+
+  <section class="drop" id="drop" aria-label="拖放上传区">
+    <span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
+    <div class="mark" aria-hidden="true">↓</div>
+    <b>拖放文件到这里</b>
+    <p>或从电脑里选择，支持多选</p>
+    <button class="pick" id="pick" type="button">选择文件</button>
+    <input id="file" type="file" multiple hidden>
+    <span class="hint">PDF / ZIP / JPG · 单文件 ≤ 200 MB</span>
+  </section>
+
+  <section class="queue" aria-label="文件队列">
+    <div class="queue-head"><h2>待处理</h2><span id="summary">3 个文件</span><span class="sum" id="sum-size">36.1 MB</span></div>
+    <div id="list"></div>
+    <div class="queue-foot">
+      <span class="total" id="total">共 3 个文件 · 36.1 MB</span>
+      <span class="note">开始后请保持页面打开</span>
+      <button class="start" id="start" type="button">开始处理</button>
+    </div>
+  </section>
+
+  <p class="note-line">上传即表示你拥有这些文件的使用权。我们会在 30 天后自动删除原始文件。<br>大型文件建议使用顺丰寄送硬盘，地址见印前规范。</p>
+</main>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+let files = [
+  { id: 1, name: '封面_终稿_2026.pdf', size: 24.8, ext: 'PDF', state: 'ready', progress: 0 },
+  { id: 2, name: '内页_字体包.zip', size: 8.2, ext: 'ZIP', state: 'ready', progress: 0 },
+  { id: 3, name: '授权书_扫描.jpg', size: 3.1, ext: 'JPG', state: 'ready', progress: 0 }
+];
+let nextId = 4;
+let processing = false;
+
+function totalSize() {
+  return files.reduce(function (sum, file) { return sum + file.size; }, 0);
+}
+
+function render() {
+  const list = document.getElementById('list');
+  list.innerHTML = '';
+  if (!files.length) {
+    list.innerHTML = '<p class="empty">还没有文件。把封面、内页或授权书拖进来。</p>';
+  }
+  files.forEach(function (file) {
+    const row = document.createElement('div');
+    row.className = 'frow';
+    row.innerHTML = '<div class="ficon">' + file.ext + '</div>' +
+      '<div><div class="name"></div><div class="meta"><span>' + file.size.toFixed(1) + ' MB</span><span>·</span><span>等待处理</span></div><div class="bar"><i></i></div></div>' +
+      '<div class="state">' + (file.state === 'done' ? '已完成' : file.state === 'doing' ? '处理中' : '待处理') + '</div>' +
+      '<div class="size">' + (file.state === 'done' ? '已检查' : '未检查') + '</div>' +
+      '<button class="remove" type="button" aria-label="移除文件">✕</button>';
+    row.querySelector('.name').textContent = file.name;
+    if (file.state === 'doing') row.querySelector('.state').classList.add('doing');
+    if (file.state === 'done') row.querySelector('.state').classList.add('done');
+    row.querySelector('.bar i').style.width = file.progress + '%';
+    row.querySelector('.remove').disabled = processing;
+    row.querySelector('.remove').addEventListener('click', function () {
+      files = files.filter(function (item) { return item.id !== file.id; });
+      render();
+      toast('已移除「' + file.name + '」。');
+    });
+    list.appendChild(row);
+  });
+  const count = files.length;
+  const size = totalSize();
+  document.getElementById('summary').textContent = count + ' 个文件';
+  document.getElementById('sum-size').textContent = size.toFixed(1) + ' MB';
+  document.getElementById('total').textContent = '共 ' + count + ' 个文件 · ' + size.toFixed(1) + ' MB';
+  const button = document.getElementById('start');
+  button.disabled = processing || count === 0;
+  if (!processing) {
+    button.textContent = count === 0 ? '请先添加文件' : '开始处理';
+    button.classList.remove('done');
+  }
+}
+
+function addFiles(fileList) {
+  Array.from(fileList).forEach(function (file) {
+    const ext = (file.name.split('.').pop() || 'FILE').toUpperCase().slice(0, 3);
+    files.push({ id: nextId, name: file.name, size: file.size / (1024 * 1024), ext: ext, state: 'ready', progress: 0 });
+    nextId += 1;
+  });
+  render();
+  if (fileList.length) toast('已加入 ' + fileList.length + ' 个文件。');
+}
+
+document.getElementById('pick').addEventListener('click', function () {
+  document.getElementById('file').click();
+});
+document.getElementById('file').addEventListener('change', function (event) {
+  addFiles(event.target.files);
+  event.target.value = '';
+});
+
+const drop = document.getElementById('drop');
+['dragenter', 'dragover'].forEach(function (name) {
+  drop.addEventListener(name, function (event) {
+    event.preventDefault();
+    drop.classList.add('over');
+  });
+});
+['dragleave', 'drop'].forEach(function (name) {
+  drop.addEventListener(name, function (event) {
+    event.preventDefault();
+    drop.classList.remove('over');
+  });
+});
+drop.addEventListener('drop', function (event) {
+  if (event.dataTransfer && event.dataTransfer.files.length) addFiles(event.dataTransfer.files);
+});
+
+document.getElementById('start').addEventListener('click', function () {
+  if (processing || !files.length) return;
+  processing = true;
+  const button = document.getElementById('start');
+  button.disabled = true;
+  button.textContent = '正在检查…';
+  render();
+  files.forEach(function (file) { file.state = 'doing'; });
+  render();
+  let done = 0;
+  files.forEach(function (file, index) {
+    const timer = setInterval(function () {
+      file.progress = Math.min(100, file.progress + 8 + Math.random() * 10);
+      const rows = document.querySelectorAll('.frow');
+      const row = rows[index];
+      if (row) row.querySelector('.bar i').style.width = file.progress + '%';
+      if (file.progress >= 100) {
+        clearInterval(timer);
+        file.state = 'done';
+        done += 1;
+        render();
+        if (done === files.length) {
+          processing = false;
+          button.classList.add('done');
+          button.textContent = '全部完成';
+          document.getElementById('summary').textContent = files.length + ' 个文件 · 已检查';
+          toast('文件都检查完了，可以进入拼版。');
+        }
+      }
+    }, 130 + index * 40);
+  });
+});
+
+function toast(text) {
+  const el = document.getElementById('toast');
+  el.textContent = text;
+  el.classList.add('show');
+  clearTimeout(toast.timer);
+  toast.timer = setTimeout(function () { el.classList.remove('show'); }, 2200);
+}
+
+render();
+</script>
+</body>
+</html>

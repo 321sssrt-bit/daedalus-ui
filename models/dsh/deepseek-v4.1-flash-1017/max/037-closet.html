@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>衣橱 · 空列表</title>
+<style>
+:root{
+  --lav:#f1ecfa;--screen:#faf8ff;--ink:#211b2e;--purple:#7c6aa8;--pink:#e7a3b8;
+  --line:#ded4ee;--muted:#857c98;--white:#ffffff;--deep:#3a2f52;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:radial-gradient(700px 500px at 50% 0%,#f7f2ff 0%,transparent 60%),#ded3ef;display:grid;place-items:center;padding:26px;font:14px/1.5 "Avenir Next","PingFang SC","Microsoft YaHei",sans-serif;color:var(--ink)}
+.phone{width:390px;height:844px;background:#2a2238;border-radius:48px;padding:10px;box-shadow:0 40px 90px #2a223844;position:relative;flex:none}
+.screen{width:100%;height:100%;background:var(--screen);border-radius:39px;overflow:hidden;position:relative;display:flex;flex-direction:column}
+.notch{position:absolute;left:50%;top:8px;transform:translateX(-50%);width:110px;height:24px;background:#2a2238;border-radius:14px;z-index:7}
+.statusbar{height:42px;display:flex;align-items:flex-end;justify-content:space-between;padding:0 22px 5px;font:600 10px/1 ui-monospace,Consolas,monospace;color:#8d80a3}
+.head{padding:4px 20px 10px}
+.head .row{display:flex;align-items:center;gap:10px}
+.head h1{margin:0;font:400 26px/1.2 "Songti SC","Noto Serif SC",Georgia,serif}
+.head .search{margin-left:auto;width:30px;height:30px;border:1px solid var(--line);border-radius:50%;background:#fff;color:var(--muted);font-size:12px;cursor:pointer}
+.tabs{display:flex;gap:4px;padding:0 20px 10px}
+.tabs button{height:28px;padding:0 11px;border:1px solid var(--line);border-radius:999px;background:transparent;color:var(--muted);font:10px/1 "Avenir Next","PingFang SC",sans-serif;cursor:pointer}
+.tabs button[aria-pressed="true"]{background:var(--deep);border-color:var(--deep);color:#faf8ff}
+.empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 34px;text-align:center}
+.hanger{position:relative;width:170px;height:150px;margin-bottom:22px}
+.hanger .hook{position:absolute;left:50%;top:0;width:34px;height:38px;border:2px solid var(--purple);border-bottom:0;border-radius:18px 18px 0 0;transform:translateX(-50%)}
+.hanger .bar{position:absolute;left:14px;right:14px;top:36px;height:2px;background:var(--purple);transform:rotate(-4deg)}
+.hanger .dress{position:absolute;left:50%;top:34px;width:104px;height:104px;transform:translateX(-50%) rotate(-4deg);background:
+  linear-gradient(180deg,var(--pink),#d98ba4);clip-path:polygon(32% 0,68% 0,100% 44%,78% 54%,86% 100%,14% 100%,22% 54%,0 44%)}
+.hanger .tag{position:absolute;right:4px;bottom:8px;padding:3px 6px;border:1px solid #cbbfe0;background:#fff;font:8px/1 ui-monospace,Consolas,monospace;color:#8d80a3;transform:rotate(6deg)}
+.empty h2{margin:0 0 6px;font:400 23px/1.35 "Songti SC",Georgia,serif}
+.empty p{margin:0 0 20px;font-size:11px;line-height:1.9;color:var(--muted);max-width:270px}
+.add{height:44px;padding:0 22px;border:0;border-radius:999px;background:var(--deep);color:#faf8ff;font:600 12px/1 "Avenir Next","PingFang SC",sans-serif;letter-spacing:.08em;cursor:pointer}
+.add:hover{background:var(--purple)}
+.import{margin-top:10px;height:36px;border:0;background:none;color:var(--muted);font:10px/1 "Avenir Next","PingFang SC",sans-serif;text-decoration:underline;text-underline-offset:4px;cursor:pointer}
+.list{display:none;flex:1;overflow-y:auto;padding:4px 20px 90px}
+.list.on{display:block}
+.item{display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--line);align-items:center}
+.item .garment{width:64px;height:76px;border-radius:8px;background:linear-gradient(180deg,#f3d7e0,#e7a3b8);position:relative;flex:none}
+.item .garment::before{content:"";position:absolute;left:50%;top:8px;width:18px;height:60px;background:#d98ba4;clip-path:polygon(20% 0,80% 0,100% 30%,70% 40%,80% 100%,20% 100%,30% 40%,0 30%);transform:translateX(-50%)}
+.item b{display:block;font-size:12px}
+.item span{display:block;font:8.5px/1.6 ui-monospace,Consolas,monospace;color:var(--muted)}
+.item em{margin-left:auto;font:8px/1 ui-monospace,Consolas,monospace;color:#a99dc0;font-style:normal}
+.bottom{position:absolute;left:0;right:0;bottom:0;height:70px;background:#fffffff5;border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-around;padding:0 10px 6px;backdrop-filter:blur(8px)}
+.tab{display:flex;flex-direction:column;align-items:center;gap:3px;border:0;background:none;color:#a99dc0;font:8px/1 "Avenir Next","PingFang SC",sans-serif;cursor:pointer;padding:6px 10px}
+.tab i{font-style:normal;font-size:15px}
+.tab.on{color:var(--purple)}
+.sheet{position:absolute;left:0;right:0;bottom:0;background:#fff;border-radius:22px 22px 0 0;padding:18px 20px 22px;transform:translateY(110%);transition:transform .24s ease;z-index:10;box-shadow:0 -20px 50px #2a22381f}
+.sheet.on{transform:translateY(0)}
+.scrim{position:absolute;inset:0;background:#2a223855;opacity:0;pointer-events:none;transition:opacity .2s;z-index:9}
+.scrim.on{opacity:1;pointer-events:auto}
+.sheet h3{margin:0 0 2px;font:400 21px/1.3 "Songti SC",Georgia,serif}
+.sheet p{margin:0 0 14px;font-size:10px;color:var(--muted);line-height:1.7}
+.sheet label{display:block;font:8.5px/1.6 ui-monospace,Consolas,monospace;color:var(--muted);letter-spacing:.1em;margin-bottom:4px}
+.sheet input,.sheet select{width:100%;height:40px;border:1px solid var(--line);border-radius:8px;background:#faf8ff;color:var(--ink);font:12px/1 "Avenir Next","PingFang SC",sans-serif;padding:0 10px;outline:none;margin-bottom:10px}
+.sheet input:focus,.sheet select:focus{border-color:var(--purple)}
+.sheet .go{width:100%;height:42px;border:0;border-radius:999px;background:var(--deep);color:#faf8ff;font:600 11px/1 "Avenir Next","PingFang SC",sans-serif;letter-spacing:.08em;cursor:pointer}
+.sheet .close{position:absolute;right:14px;top:12px;width:26px;height:26px;border:1px solid var(--line);border-radius:50%;background:#fff;color:var(--muted);cursor:pointer;line-height:1}
+.toast{position:absolute;left:50%;bottom:84px;transform:translateX(-50%) translateY(8px);background:var(--deep);color:#faf8ff;padding:8px 14px;border-radius:999px;font-size:10px;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;white-space:nowrap;z-index:11}
+.toast.show{opacity:1;transform:translateX(-50%)}
+@media(min-width:441px) and (max-height:900px){.phone{zoom:.86}}
+@media(max-width:440px){
+  body{padding:0;display:block;background:var(--screen)}
+  .phone{width:100%;height:100svh;border-radius:0;padding:0;box-shadow:none;background:var(--screen)}
+  .screen{border-radius:0;height:100svh}
+  .notch{display:none}
+  .statusbar{height:20px;padding:8px 18px 0}
+}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="notch" aria-hidden="true"></div>
+  <div class="screen">
+    <div class="statusbar"><span>9:41</span><span>——</span></div>
+    <div class="head"><div class="row"><h1>我的衣橱</h1><button class="search" type="button" aria-label="搜索">⌕</button></div></div>
+    <div class="tabs" role="group" aria-label="衣物分类">
+      <button type="button" aria-pressed="true">全部 <span id="count">0</span></button>
+      <button type="button" aria-pressed="false">上装</button>
+      <button type="button" aria-pressed="false">下装</button>
+      <button type="button" aria-pressed="false">鞋包</button>
+    </div>
+
+    <div class="empty" id="empty">
+      <div class="hanger" aria-hidden="true"><span class="hook"></span><span class="bar"></span><span class="dress"></span><span class="tag">NEW</span></div>
+      <h2>衣橱还是空的。</h2>
+      <p>从第一件开始，慢慢就会有搭配。拍一张照片，或者手动填名称和颜色。</p>
+      <button class="add" id="add" type="button">＋ 添加第一件</button>
+      <button class="import" id="import" type="button">从照片导入</button>
+    </div>
+
+    <div class="list" id="list" aria-label="衣物列表"></div>
+
+    <nav class="bottom" aria-label="底部导航">
+      <button class="tab on" type="button"><i>▤</i>衣橱</button>
+      <button class="tab" type="button"><i>✦</i>搭配</button>
+      <button class="tab" type="button"><i>◷</i>日历</button>
+      <button class="tab" type="button"><i>○</i>我的</button>
+    </nav>
+
+    <div class="scrim" id="scrim"></div>
+    <div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title">
+      <button class="close" id="close" type="button" aria-label="关闭">✕</button>
+      <h3 id="sheet-title">添加一件</h3>
+      <p>先填名称和分类，颜色和照片可以以后补。</p>
+      <label for="name">名称</label>
+      <input id="name" type="text" placeholder="例如：米色风衣" maxlength="20">
+      <label for="cat">分类</label>
+      <select id="cat"><option>上装</option><option>下装</option><option>鞋包</option></select>
+      <button class="go" id="save" type="button">放进衣橱</button>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  </div>
+</div>
+
+<script>
+let total = 0;
+const sheet = document.getElementById('sheet');
+const scrim = document.getElementById('scrim');
+const list = document.getElementById('list');
+
+function openSheet() {
+  sheet.classList.add('on');
+  scrim.classList.add('on');
+  document.getElementById('name').focus();
+}
+function closeSheet() {
+  sheet.classList.remove('on');
+  scrim.classList.remove('on');
+}
+document.getElementById('add').addEventListener('click', openSheet);
+document.getElementById('close').addEventListener('click', closeSheet);
+scrim.addEventListener('click', closeSheet);
+document.getElementById('import').addEventListener('click', function () { toast('相册已打开，选一张衣物平铺图。'); });
+
+document.getElementById('save').addEventListener('click', function () {
+  const name = document.getElementById('name').value.trim();
+  if (!name) { document.getElementById('name').focus(); toast('先给它一个名字。'); return; }
+  const cat = document.getElementById('cat').value;
+  total += 1;
+  const item = document.createElement('div');
+  item.className = 'item';
+  item.innerHTML = '<div class="garment"></div><div><b></b><span></span></div><em>刚刚</em>';
+  item.querySelector('b').textContent = name;
+  item.querySelector('span').textContent = cat + ' · 待补颜色与照片';
+  list.appendChild(item);
+  document.getElementById('empty').style.display = 'none';
+  list.classList.add('on');
+  document.getElementById('count').textContent = String(total);
+  document.getElementById('name').value = '';
+  closeSheet();
+  toast('「' + name + '」已经放进衣橱。');
+});
+
+document.querySelectorAll('.tabs button').forEach(function (button) {
+  button.addEventListener('click', function () {
+    document.querySelectorAll('.tabs button').forEach(function (item) { item.setAttribute('aria-pressed', String(item === button)); });
+  });
+});
+document.querySelectorAll('.tab').forEach(function (button) {
+  button.addEventListener('click', function () {
+    document.querySelectorAll('.tab').forEach(function (item) { item.classList.toggle('on', item === button); });
+  });
+});
+
+function toast(text) {
+  const el = document.getElementById('toast');
+  el.textContent = text;
+  el.classList.add('show');
+  clearTimeout(toast.timer);
+  toast.timer = setTimeout(function () { el.classList.remove('show'); }, 2000);
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>巷口 · 社区</title>
+<style>
+:root{
+  --cream:#f3efe4;--card:#fffdf6;--ink:#23372c;--green:#4f7a5e;--mustard:#e7b45c;
+  --line:#d9d2c2;--muted:#8a8272;--red:#c4533f;--good:#4f7a5e;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:radial-gradient(700px 500px at 50% 0%,#e9e3d3 0%,transparent 60%),#cfc8b8;display:grid;place-items:center;padding:26px;font:14px/1.5 "Avenir Next","PingFang SC","Microsoft YaHei",sans-serif;color:var(--ink)}
+.phone{width:390px;height:844px;background:#2b332c;border-radius:48px;padding:10px;box-shadow:0 40px 90px #2b332c55;position:relative;flex:none}
+.screen{width:100%;height:100%;background:var(--cream);border-radius:39px;overflow:hidden;position:relative;display:flex;flex-direction:column}
+.notch{position:absolute;left:50%;top:8px;transform:translateX(-50%);width:110px;height:24px;background:#2b332c;border-radius:14px;z-index:9}
+.statusbar{height:42px;display:flex;align-items:flex-end;justify-content:space-between;padding:0 22px 5px;font:600 10px/1 ui-monospace,Consolas,monospace;color:#8d8a7a}
+.view{flex:1;display:flex;flex-direction:column;min-height:0}
+.view[hidden]{display:none}
+.top{display:flex;align-items:center;gap:10px;padding:4px 18px 8px}
+.top h1{margin:0;font:400 24px/1.3 "Songti SC","Noto Serif SC",Georgia,serif}
+.top .loc{margin-left:auto;font:8.5px/1.5 ui-monospace,Consolas,monospace;color:var(--muted);letter-spacing:.06em}
+.feed{flex:1;overflow-y:auto;padding:2px 14px 90px;scrollbar-width:none}
+.feed::-webkit-scrollbar{display:none}
+.post{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 13px 11px;margin-bottom:10px}
+.post .ph{display:flex;align-items:center;gap:9px;margin-bottom:8px}
+.post .ava{width:32px;height:32px;border-radius:50%;background:#d9e4d5;color:#3c5a45;display:grid;place-items:center;font:400 12px/1 "Songti SC",Georgia,serif;flex:none}
+.post:nth-child(2) .ava{background:#f0dcc6;color:#7a5636}
+.post:nth-child(3) .ava{background:#d9dfea;color:#41556e}
+.post .who b{display:block;font-size:11px;font-weight:600}
+.post .who span{display:block;font:8px/1.5 ui-monospace,Consolas,monospace;color:#a29a89}
+.post .vis{margin-left:auto;padding:2px 6px;border:1px solid var(--line);border-radius:999px;font:7.5px/1.4 ui-monospace,Consolas,monospace;color:#8a8272}
+.post p{margin:0;font-size:12px;line-height:1.8;color:#3a453c}
+.post .pic{height:120px;margin:9px 0 3px;border-radius:8px;background:linear-gradient(150deg,#c9bda2,#8d7a5c);position:relative;overflow:hidden}
+.post .pic::after{content:"";position:absolute;left:18%;top:20%;width:34%;height:60%;background:#e9dfc9;opacity:.6;transform:rotate(-6deg)}
+.post .foot{display:flex;gap:14px;margin-top:9px;font:8.5px/1.5 ui-monospace,Consolas,monospace;color:#8a8272}
+.post .foot button{border:0;background:none;color:inherit;font:inherit;cursor:pointer;padding:0}
+.post .foot button:hover{color:var(--green)}
+.post .foot button.on{color:var(--red)}
+.compose-fab{position:absolute;right:18px;bottom:22px;height:44px;padding:0 18px;border:0;border-radius:999px;background:var(--green);color:#f6f2e6;font:600 11px/1 "Avenir Next","PingFang SC",sans-serif;letter-spacing:.08em;cursor:pointer;box-shadow:0 10px 24px #2b332c33;z-index:6}
+.compose-fab:hover{background:#3c6449}
+.composer{padding:2px 18px 20px;display:flex;flex-direction:column;height:100%}
+.composer .bar{display:flex;align-items:center;gap:10px;padding:4px 0 12px;border-bottom:1px solid var(--line)}
+.composer .bar button{border:0;background:none;color:var(--green);font-size:12px;cursor:pointer}
+.composer .bar h2{margin:0;font:400 20px/1.3 "Songti SC",Georgia,serif}
+.composer .bar .fail{margin-left:auto;height:26px;padding:0 9px;border:1px solid var(--line);border-radius:999px;background:transparent;color:var(--muted);font:8px/1 ui-monospace,Consolas,monospace;cursor:pointer}
+.composer .bar .fail.on{border-color:var(--red);color:var(--red);background:#f8e4df}
+.editor{flex:1;padding-top:12px;display:flex;flex-direction:column}
+.editor textarea{width:100%;min-height:180px;border:0;background:transparent;color:var(--ink);font:14px/1.9 "Avenir Next","PingFang SC",sans-serif;outline:none;resize:none;flex:none}
+.editor textarea::placeholder{color:#a9a192}
+.vis-label{margin:8px 0 6px;font:8.5px/1 ui-monospace,Consolas,monospace;color:#9a9282;letter-spacing:.16em}
+.vis{display:flex;gap:6px;flex-wrap:wrap}
+.vis button{height:30px;padding:0 10px;border:1px solid var(--line);border-radius:999px;background:transparent;color:#7f7768;font:9.5px/1 "Avenir Next","PingFang SC",sans-serif;cursor:pointer}
+.vis button[aria-pressed="true"]{border-color:var(--ink);background:var(--ink);color:var(--cream)}
+.counter{margin-top:10px;font:8.5px/1.5 ui-monospace,Consolas,monospace;color:#a29a89}
+.error{margin:8px 0 0;padding:8px 10px;border-left:3px solid var(--red);background:#f8e4df;font-size:10px;line-height:1.7;color:#8a3a2c;display:none}
+.error.on{display:block}
+.composer .actions{margin-top:auto;display:flex;gap:8px;padding-top:12px}
+.save{height:40px;padding:0 14px;border:1px solid var(--line);background:transparent;color:var(--muted);font-size:10px;cursor:pointer}
+.publish{flex:1;height:40px;border:0;border-radius:999px;background:var(--green);color:#f6f2e6;font:600 11px/1 "Avenir Next","PingFang SC",sans-serif;letter-spacing:.1em;cursor:pointer}
+.publish:hover{background:#3c6449}
+.publish:disabled{opacity:.6;cursor:wait}
+.toast{position:absolute;left:50%;bottom:88px;transform:translateX(-50%) translateY(8px);background:var(--ink);color:var(--cream);padding:8px 14px;border-radius:999px;font-size:10px;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;white-space:nowrap;z-index:8}
+.toast.show{opacity:1;transform:translateX(-50%)}
+@media(min-width:441px) and (max-height:900px){.phone{zoom:.86}}
+@media(max-width:440px){
+  body{padding:0;display:block;background:var(--cream)}
+  .phone{width:100%;height:100svh;border-radius:0;padding:0;box-shadow:none;background:var(--cream)}
+  .screen{border-radius:0;height:100svh}
+  .notch{display:none}
+  .statusbar{height:20px;padding:8px 18px 0}
+}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="notch" aria-hidden="true"></div>
+  <div class="screen">
+    <div class="statusbar"><span>19:20</span><span>——</span></div>
+
+    <section class="view" id="feed-view">
+      <div class="top"><h1>巷口</h1><span class="loc">安福路 · 3 条新动态</span></div>
+      <div class="feed" id="feed">
+        <article class="post"><div class="ph"><span class="ava">岚</span><div class="who"><b>阿岚</b><span>12 分钟前 · 二楼窗台</span></div><span class="vis">仅邻居</span></div><p>今天把薄荷分了第三盆，放在楼道口，谁要谁拿。记得晒太阳。</p><div class="foot"><button type="button">♡ 12</button><button type="button">回复 3</button><button type="button">收藏</button></div></article>
+        <article class="post"><div class="ph"><span class="ava">何</span><div class="who"><b>老何</b><span>1 小时前 · 旧书店</span></div><span class="vis">公开</span></div><p>门口黑板还留着「全场五折，欢迎来坐」。最后一周，茶管够。</p><div class="pic" aria-hidden="true"></div><div class="foot"><button type="button">♡ 38</button><button type="button">回复 9</button><button type="button">收藏</button></div></article>
+        <article class="post"><div class="ph"><span class="ava">陈</span><div class="who"><b>陈默</b><span>昨天 · 巷口</span></div><span class="vis">公开</span></div><p>问一下，附近有没有晚上十点后还开着的打印店？急。</p><div class="foot"><button type="button">♡ 4</button><button type="button">回复 6</button><button type="button">收藏</button></div></article>
+      </div>
+      <button class="compose-fab" id="new-post" type="button">＋ 发一条</button>
+    </section>
+
+    <section class="view" id="compose-view" hidden>
+      <div class="composer">
+        <div class="bar"><button type="button" id="cancel">取消</button><h2>发一条</h2><button class="fail" id="fail" type="button" aria-pressed="false">模拟发布失败</button></div>
+        <div class="editor">
+          <textarea id="text" placeholder="跟邻居说点什么…" maxlength="280"></textarea>
+          <span class="vis-label">谁能看见</span>
+          <div class="vis" role="group" aria-label="可见范围"><button type="button" aria-pressed="false" data-vis="公开">公开</button><button type="button" aria-pressed="true" data-vis="仅邻居">仅邻居</button><button type="button" aria-pressed="false" data-vis="仅自己">仅自己</button></div>
+          <span class="counter" id="counter">0 / 280 · 草稿未保存</span>
+          <p class="error" id="error" role="alert"></p>
+        </div>
+        <div class="actions"><button class="save" id="draft" type="button">存草稿</button><button class="publish" id="publish" type="button">发布</button></div>
+      </div>
+    </section>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  </div>
+</div>
+
+<script>
+let visibility = '仅邻居';
+let failNext = false;
+let draftText = '';
+let draftVisibility = '仅邻居';
+
+const text = document.getElementById('text');
+const counter = document.getElementById('counter');
+
+function updateCounter() {
+  counter.textContent = text.value.length + ' / 280 · ' + (text.value ? '未发布' : '草稿未保存');
+}
+
+text.addEventListener('input', updateCounter);
+
+document.querySelectorAll('.vis button').forEach(function (button) {
+  button.addEventListener('click', function () {
+    visibility = button.dataset.vis;
+    document.querySelectorAll('.vis button').forEach(function (item) { item.setAttribute('aria-pressed', String(item === button)); });
+  });
+});
+
+document.getElementById('fail').addEventListener('click', function () {
+  failNext = !failNext;
+  this.classList.toggle('on', failNext);
+  this.setAttribute('aria-pressed', String(failNext));
+  showToast(failNext ? '已开启模拟：下一次发布会失败。' : '模拟已关闭，可以正常发布。');
+});
+
+document.getElementById('new-post').addEventListener('click', function () {
+  document.getElementById('feed-view').hidden = true;
+  document.getElementById('compose-view').hidden = false;
+  text.value = draftText;
+  visibility = draftVisibility;
+  document.querySelectorAll('.vis button').forEach(function (item) { item.setAttribute('aria-pressed', String(item.dataset.vis === visibility)); });
+  updateCounter();
+  text.focus();
+});
+
+document.getElementById('cancel').addEventListener('click', function () {
+  draftText = text.value;
+  draftVisibility = visibility;
+  document.getElementById('error').classList.remove('on');
+  document.getElementById('compose-view').hidden = true;
+  document.getElementById('feed-view').hidden = false;
+  showToast(draftText ? '已保存到草稿箱。' : '还没有写东西。');
+});
+
+document.getElementById('draft').addEventListener('click', function () {
+  draftText = text.value;
+  draftVisibility = visibility;
+  counter.textContent = text.value.length + ' / 280 · 草稿已保存';
+  showToast('草稿已保存，可以在「我的」里继续。');
+});
+
+document.getElementById('publish').addEventListener('click', function () {
+  const error = document.getElementById('error');
+  if (!text.value.trim()) {
+    error.textContent = '先写一句话再发布。';
+    error.classList.add('on');
+    text.focus();
+    return;
+  }
+  const button = document.getElementById('publish');
+  button.disabled = true;
+  button.textContent = '发布中…';
+  setTimeout(function () {
+    button.disabled = false;
+    button.textContent = '发布';
+    if (failNext) {
+      draftText = text.value;
+      draftVisibility = visibility;
+      error.textContent = '发布未完成：网络在最后一刻断了。草稿与可见范围都已保留，可以关闭模拟后重试。';
+      error.classList.add('on');
+      counter.textContent = text.value.length + ' / 280 · 草稿已保留';
+      return;
+    }
+    error.classList.remove('on');
+    const post = document.createElement('article');
+    post.className = 'post';
+    post.innerHTML = '<div class="ph"><span class="ava">林</span><div class="who"><b>林岸</b><span>刚刚 · 巷口</span></div><span class="vis"></span></div><p></p><div class="foot"><button type="button">♡ 0</button><button type="button">回复 0</button><button type="button">收藏</button></div>';
+    post.querySelector('p').textContent = text.value.trim();
+    post.querySelector('.vis').textContent = visibility;
+    document.getElementById('feed').prepend(post);
+    bindFoot(post);
+    text.value = '';
+    draftText = '';
+    updateCounter();
+    document.getElementById('compose-view').hidden = true;
+    document.getElementById('feed-view').hidden = false;
+    showToast('已发布 · ' + visibility + '可见。');
+  }, 700);
+});
+
+function bindFoot(root) {
+  root.querySelectorAll('.foot button').forEach(function (button) {
+    if (button.dataset.bound) return;
+    button.dataset.bound = '1';
+    button.addEventListener('click', function () {
+      if (button.textContent.indexOf('♡') !== 0 && button.textContent.indexOf('♥') !== 0) return;
+      const on = button.classList.toggle('on');
+      const count = Number(button.textContent.split(' ')[1]) + (on ? 1 : -1);
+      button.textContent = (on ? '♥ ' : '♡ ') + count;
+    });
+  });
+}
+
+bindFoot(document);
+
+function showToast(textValue) {
+  const el = document.getElementById('toast');
+  el.textContent = textValue;
+  el.classList.add('show');
+  clearTimeout(showToast.timer);
+  showToast.timer = setTimeout(function () { el.classList.remove('show'); }, 2200);
+}
+
+updateCounter();
+</script>
+</body>
+</html>

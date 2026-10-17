@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>黑胶 · 正在播放</title>
+<style>
+:root{
+  --bg:#0f0d0c;--panel:#1b1714;--ink:#f3e7d6;--orange:#e08a4a;--muted:#8a7a6c;
+  --line:#332a24;--deep:#241d18;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:radial-gradient(700px 500px at 50% 0%,#2a2019 0%,transparent 60%),#0b0a09;display:grid;place-items:center;padding:26px;font:14px/1.5 "Avenir Next","PingFang SC","Microsoft YaHei",sans-serif;color:var(--ink)}
+.phone{width:390px;height:844px;background:#080706;border-radius:48px;padding:10px;box-shadow:0 40px 90px #000000aa;flex:none;position:relative}
+.screen{width:100%;height:100%;background:
+  radial-gradient(500px 380px at 50% 18%,#221b16 0%,transparent 70%),var(--bg);
+  border-radius:39px;overflow:hidden;position:relative;display:flex;flex-direction:column}
+.notch{position:absolute;left:50%;top:8px;transform:translateX(-50%);width:110px;height:24px;background:#080706;border-radius:14px;z-index:6}
+.statusbar{height:44px;display:flex;align-items:flex-end;justify-content:space-between;padding:0 22px 6px;font:600 10px/1 ui-monospace,Consolas,monospace;color:#9b8a7a}
+.statusbar .icons{display:flex;gap:4px}
+.statusbar i{display:block;width:13px;height:8px;border:1px solid #9b8a7a;border-radius:2px}
+.head{display:flex;align-items:center;gap:10px;padding:6px 18px 10px}
+.head button{width:32px;height:32px;border:1px solid var(--line);border-radius:50%;background:transparent;color:var(--muted);font-size:14px;cursor:pointer;line-height:1}
+.head button:hover{color:var(--ink);border-color:#5a493c}
+.head .now{margin:0 auto;text-align:center}
+.head .now b{display:block;font:600 9px/1.4 ui-monospace,Consolas,monospace;letter-spacing:.2em;color:var(--orange)}
+.head .now span{display:block;font:8px/1.5 ui-monospace,Consolas,monospace;color:var(--muted);letter-spacing:.04em}
+.stage{flex:1;display:flex;align-items:center;justify-content:center;padding:4px 0 2px;position:relative}
+.vinyl{width:292px;height:292px;border-radius:50%;position:relative;background:
+  repeating-radial-gradient(circle at 50% 50%,#1c1815 0 2px,#0f0d0b 2px 5px);
+  box-shadow:0 24px 50px #00000088,inset 0 0 0 1px #3a2f27;display:grid;place-items:center;animation:spin 22s linear infinite;animation-play-state:paused}
+.vinyl.playing{animation-play-state:running}
+.vinyl::after{content:"";position:absolute;width:8px;height:8px;border-radius:50%;background:#0b0a09;box-shadow:0 0 0 1px #5a493c}
+.label{width:96px;height:96px;border-radius:50%;background:radial-gradient(circle at 38% 34%,#f0a86a,#d0743a 70%,#a8542a);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;box-shadow:inset 0 0 0 1px #ffffff22}
+.label b{font:400 12px/1.3 "Songti SC",Georgia,serif;color:#2a1a10}
+.label span{font:6.5px/1.6 ui-monospace,Consolas,monospace;color:#5d3a25;letter-spacing:.12em}
+@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+.meta{text-align:center;padding:8px 26px 0}
+.meta h1{margin:0;font:400 30px/1.3 "Songti SC","Noto Serif SC",Georgia,serif;letter-spacing:.02em}
+.meta p{margin:3px 0 0;font:9px/1.6 ui-monospace,Consolas,monospace;color:var(--muted);letter-spacing:.1em}
+.time{display:flex;justify-content:space-between;padding:16px 26px 4px;font:9px/1 ui-monospace,Consolas,monospace;color:var(--muted);letter-spacing:.04em}
+.progress{height:4px;margin:0 26px;background:#332a24;border-radius:2px;cursor:pointer;position:relative}
+.progress i{display:block;height:100%;width:0;background:var(--orange);border-radius:2px;position:relative}
+.progress i::after{content:"";position:absolute;right:-4px;top:-3px;width:10px;height:10px;border-radius:50%;background:var(--ink);box-shadow:0 0 0 2px #e08a4a55}
+.controls{display:flex;align-items:center;justify-content:space-between;padding:18px 30px 8px}
+.controls button{border:0;background:none;color:var(--muted);font-size:18px;cursor:pointer;line-height:1;padding:6px}
+.controls button:hover{color:var(--ink)}
+.controls .small{font-size:13px;letter-spacing:.1em}
+.play{width:66px;height:66px;border-radius:50%;background:var(--orange);color:#1b1008;font-size:22px;display:grid;place-items:center;box-shadow:0 12px 28px #e08a4a33}
+.play:hover{background:#f0a05e;color:#1b1008}
+.next-up{margin:12px 24px 0;padding:12px 14px;border:1px solid var(--line);border-radius:10px;background:#151210;display:flex;align-items:center;gap:10px}
+.next-up .cover{width:34px;height:34px;border-radius:6px;background:linear-gradient(150deg,#6f4a34,#2a1d15);flex:none}
+.next-up b{display:block;font-size:10px;font-weight:600}
+.next-up span{display:block;font:8px/1.5 ui-monospace,Consolas,monospace;color:var(--muted)}
+.next-up em{margin-left:auto;font:8px/1 ui-monospace,Consolas,monospace;color:var(--orange);font-style:normal;letter-spacing:.1em}
+.bottom{height:66px;display:flex;align-items:center;justify-content:space-around;border-top:1px solid var(--line);margin-top:auto;padding-bottom:6px}
+.bottom button{border:0;background:none;color:#6f6054;font:8px/1 "Avenir Next","PingFang SC",sans-serif;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer}
+.bottom button i{font-style:normal;font-size:15px}
+.bottom button.on{color:var(--orange)}
+@media(min-width:441px) and (max-height:900px){.phone{zoom:.86}}
+@media(max-width:440px){
+  body{padding:0;display:block;background:var(--bg)}
+  .phone{width:100%;height:100svh;border-radius:0;padding:0;box-shadow:none;background:var(--bg)}
+  .screen{border-radius:0;height:100svh}
+  .notch{display:none}
+  .statusbar{height:20px;padding:8px 18px 0}
+  .vinyl{width:250px;height:250px}
+}
+@media(prefers-reduced-motion:reduce){
+  *{transition:none!important;animation:none!important}
+  .vinyl{animation:none!important}
+}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="notch" aria-hidden="true"></div>
+  <div class="screen">
+    <div class="statusbar"><span>9:41</span><span class="icons"><i></i><i></i><i></i></span></div>
+
+    <div class="head"><button type="button" aria-label="收起播放器">⌄</button><div class="now"><b>NOW PLAYING</b><span>黑胶试听 · SIDE A</span></div><button type="button" aria-label="更多">⋯</button></div>
+
+    <div class="stage">
+      <div class="vinyl playing" id="vinyl">
+        <div class="label"><b id="label-title">夜航西飞</b><span id="label-sub">SIDE A · 01</span></div>
+      </div>
+    </div>
+
+    <div class="meta"><h1 id="title">夜航西飞</h1><p id="artist">苏禾 & 夜航 · 2026</p></div>
+
+    <div class="time"><span id="elapsed">0:00</span><span id="duration">4:12</span></div>
+    <div class="progress" id="progress" role="slider" tabindex="0" aria-label="播放进度" aria-valuemin="0" aria-valuemax="252" aria-valuenow="0"><i id="fill"></i></div>
+
+    <div class="controls">
+      <button class="small" type="button" aria-label="随机播放" id="shuffle">⤨</button>
+      <button type="button" aria-label="上一首" id="prev">◀◀</button>
+      <button class="play" id="play" type="button" aria-label="暂停">❚❚</button>
+      <button type="button" aria-label="下一首" id="next">▶▶</button>
+      <button class="small" type="button" aria-label="循环" id="repeat">↻</button>
+    </div>
+
+    <div class="next-up"><span class="cover" aria-hidden="true"></span><div><b id="up-title">雾中列车</b><span>下一首 · 陈默</span></div><em>UP NEXT</em></div>
+
+    <nav class="bottom" aria-label="播放器导航">
+      <button class="on" type="button"><i>♪</i>正在播放</button>
+      <button type="button"><i>≡</i>播放列表</button>
+      <button type="button"><i>◌</i>发现</button>
+      <button type="button"><i>○</i>我的</button>
+    </nav>
+  </div>
+</div>
+
+<script>
+const tracks = [
+  { title: '夜航西飞', artist: '苏禾 & 夜航 · 2026', duration: 252, label: '夜航西飞', side: 'SIDE A · 01', next: '雾中列车' },
+  { title: '雾中列车', artist: '陈默 · 2026', duration: 228, label: '雾中列车', side: 'SIDE A · 02', next: '凌晨四点' },
+  { title: '凌晨四点', artist: '林见鹿 · 2025', duration: 306, label: '凌晨四点', side: 'SIDE B · 01', next: '夜航西飞' }
+];
+let index = 0;
+let playing = true;
+let elapsed = 0;
+let timer = null;
+
+function fmt(value) {
+  const m = Math.floor(value / 60);
+  const s = Math.floor(value % 60);
+  return m + ':' + String(s).padStart(2, '0');
+}
+
+function renderTrack() {
+  const track = tracks[index];
+  document.getElementById('title').textContent = track.title;
+  document.getElementById('artist').textContent = track.artist;
+  document.getElementById('label-title').textContent = track.label;
+  document.getElementById('label-sub').textContent = track.side;
+  document.getElementById('duration').textContent = fmt(track.duration);
+  document.getElementById('up-title').textContent = track.next;
+  document.getElementById('progress').setAttribute('aria-valuemax', String(track.duration));
+  elapsed = 0;
+  renderTime();
+}
+
+function renderTime() {
+  const track = tracks[index];
+  document.getElementById('elapsed').textContent = fmt(elapsed);
+  document.getElementById('fill').style.width = (elapsed / track.duration * 100) + '%';
+  document.getElementById('progress').setAttribute('aria-valuenow', String(Math.floor(elapsed)));
+}
+
+function tick() {
+  if (!playing) return;
+  elapsed += 1;
+  if (elapsed >= tracks[index].duration) {
+    next();
+    return;
+  }
+  renderTime();
+}
+
+function start() {
+  clearInterval(timer);
+  timer = setInterval(tick, 1000);
+}
+
+function setPlaying(next) {
+  playing = next;
+  const button = document.getElementById('play');
+  button.textContent = playing ? '❚❚' : '▶';
+  button.setAttribute('aria-label', playing ? '暂停' : '播放');
+  document.getElementById('vinyl').classList.toggle('playing', playing);
+}
+
+function next() {
+  index = (index + 1) % tracks.length;
+  renderTrack();
+  setPlaying(true);
+}
+
+function prev() {
+  index = (index - 1 + tracks.length) % tracks.length;
+  renderTrack();
+  setPlaying(true);
+}
+
+document.getElementById('play').addEventListener('click', function () {
+  setPlaying(!playing);
+});
+document.getElementById('next').addEventListener('click', next);
+document.getElementById('prev').addEventListener('click', prev);
+document.getElementById('shuffle').addEventListener('click', function () {
+  index = Math.floor(Math.random() * tracks.length);
+  renderTrack();
+  setPlaying(true);
+});
+document.getElementById('repeat').addEventListener('click', function () {
+  this.classList.toggle('on');
+  this.style.color = this.classList.contains('on') ? '#e08a4a' : '';
+});
+
+document.getElementById('progress').addEventListener('click', function (event) {
+  const rect = this.getBoundingClientRect();
+  const ratio = Math.min(1, Math.max(0, (event.clientX - rect.left) / rect.width));
+  elapsed = ratio * tracks[index].duration;
+  renderTime();
+});
+document.getElementById('progress').addEventListener('keydown', function (event) {
+  if (event.key === 'ArrowRight') { elapsed = Math.min(tracks[index].duration, elapsed + 5); renderTime(); }
+  if (event.key === 'ArrowLeft') { elapsed = Math.max(0, elapsed - 5); renderTime(); }
+});
+
+document.querySelectorAll('.bottom button').forEach(function (button) {
+  button.addEventListener('click', function () {
+    document.querySelectorAll('.bottom button').forEach(function (item) { item.classList.toggle('on', item === button); });
+  });
+});
+
+renderTrack();
+setPlaying(true);
+start();
+</script>
+</body>
+</html>

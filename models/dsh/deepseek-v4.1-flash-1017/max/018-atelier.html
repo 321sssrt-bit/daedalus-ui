@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>器 · 商品详情</title>
+<style>
+:root{
+  --ivory:#f4efe6;--stage:#ebe4d7;--ink:#25231f;--clay:#b56b4a;--sage:#8a9a83;
+  --line:#d8cfc0;--muted:#6f6a60;--white:#fffdf8;
+}
+*{box-sizing:border-box}
+html,body{min-height:100%}
+body{margin:0;background:var(--ivory);color:var(--ink);font:14px/1.65 "Avenir Next","PingFang SC","Microsoft YaHei",sans-serif}
+.top{display:flex;align-items:center;gap:20px;padding:16px 30px;border-bottom:1px solid var(--line)}
+.brand{font:600 19px/1 "Songti SC","Noto Serif SC",Georgia,serif;letter-spacing:.26em}
+.crumb{font:10px/1.5 ui-monospace,Consolas,monospace;color:var(--muted);letter-spacing:.06em}
+.crumb b{color:var(--ink);font-weight:400}
+.top .right{margin-left:auto;display:flex;align-items:center;gap:16px;font:10px/1 ui-monospace,Consolas,monospace;color:var(--muted);letter-spacing:.08em}
+.cart{height:30px;padding:0 11px;border:1px solid var(--ink);border-radius:999px;background:transparent;color:var(--ink);font:10px/1 "Avenir Next","PingFang SC",sans-serif;cursor:pointer}
+.cart:hover{background:var(--ink);color:var(--ivory)}
+.stage-wrap{display:grid;grid-template-columns:1.08fr .92fr;min-height:calc(100vh - 58px)}
+.stage{position:relative;background:
+  repeating-linear-gradient(90deg,#00000005 0 1px,transparent 1px 96px),
+  repeating-linear-gradient(0deg,#00000005 0 1px,transparent 1px 96px),var(--stage);
+  display:flex;align-items:center;justify-content:center;overflow:hidden;padding:40px}
+.stage .counter{position:absolute;left:24px;top:20px;font:10px/1 ui-monospace,Consolas,monospace;color:#918877;letter-spacing:.14em}
+.stage .note{position:absolute;right:24px;bottom:20px;font:9px/1.6 ui-monospace,Consolas,monospace;color:#918877;letter-spacing:.06em;text-align:right}
+.object{display:flex;flex-direction:column;align-items:center}
+.vase{position:relative;width:190px;height:300px;filter:drop-shadow(0 40px 30px #4a3d2c2e)}
+.vase .body{position:absolute;left:0;bottom:0;width:190px;height:230px;border-radius:48% 48% 30% 30%/58% 58% 18% 18%;background:linear-gradient(100deg,#fffdf7 0%,#ede4d2 45%,#d9cbb2 100%)}
+.vase .body::after{content:"";position:absolute;left:22px;top:18px;width:30px;height:160px;background:linear-gradient(180deg,#ffffffaa,transparent);border-radius:50%;opacity:.6}
+.vase .neck{position:absolute;left:52px;top:0;width:86px;height:82px;border-radius:10px 10px 0 0;background:linear-gradient(100deg,#f8f1e2,#d9cbb2)}
+.vase .lip{position:absolute;left:42px;top:0;width:106px;height:16px;border-radius:8px;background:#e8dcc6;box-shadow:inset 0 3px 0 #ffffff88}
+.vase .line{position:absolute;left:30px;right:30px;bottom:64px;height:1px;background:#b9a88766;box-shadow:0 12px 0 #b9a88744}
+.plinth{width:280px;height:16px;background:#d8ccb6;margin-top:-6px;box-shadow:0 18px 30px #4a3d2c1f}
+.thumbs{position:absolute;left:50%;bottom:24px;transform:translateX(-50%);display:flex;gap:8px}
+.thumb{width:52px;height:64px;border:1px solid #c9bda7;background:#f6f0e3;display:grid;place-items:center;cursor:pointer;padding:0}
+.thumb i{display:block;width:22px;height:34px;border-radius:40% 40% 24% 24%/50% 50% 16% 16%;background:linear-gradient(100deg,#fdf8ec,#cfc0a6)}
+.thumb:nth-child(2) i{width:28px;height:40px}
+.thumb:nth-child(3) i{width:34px;height:46px}
+.thumb[aria-pressed="true"]{border-color:var(--ink);box-shadow:0 0 0 1px var(--ink) inset}
+.detail{padding:44px 52px 38px;display:flex;flex-direction:column;background:var(--ivory)}
+.kicker{margin:0 0 12px;font:600 10px/1 ui-monospace,Consolas,monospace;letter-spacing:.26em;color:var(--clay)}
+h1{margin:0;font:400 40px/1.25 "Songti SC","Noto Serif SC",Georgia,serif;letter-spacing:.02em}
+.sub{margin:6px 0 18px;font:10px/1.7 ui-monospace,Consolas,monospace;color:var(--muted);letter-spacing:.08em}
+.price-row{display:flex;align-items:baseline;gap:14px;padding-bottom:18px;border-bottom:1px solid var(--line)}
+.price{font:400 30px/1 "Songti SC",Georgia,serif}
+.price small{font:11px/1 ui-monospace,Consolas,monospace;color:var(--muted);letter-spacing:.04em;margin-left:4px}
+.stock{font:10px/1 ui-monospace,Consolas,monospace;color:var(--sage);letter-spacing:.08em}
+.desc{margin:18px 0 0;font-size:13px;line-height:1.95;color:#514c43;max-width:440px}
+.label{display:block;margin:22px 0 8px;font:10px/1 ui-monospace,Consolas,monospace;color:var(--muted);letter-spacing:.16em}
+.sizes{display:flex;gap:8px}
+.size{height:40px;padding:0 14px;border:1px solid var(--line);border-radius:2px;background:transparent;color:var(--muted);font:11px/1 "Avenir Next","PingFang SC",sans-serif;cursor:pointer;text-align:left}
+.size b{display:block;font-size:12px;color:var(--ink);font-weight:600}
+.size span{display:block;font:9px/1.5 ui-monospace,Consolas,monospace;color:#a19886;margin-top:2px}
+.size:hover{border-color:var(--clay)}
+.size[aria-pressed="true"]{border-color:var(--ink);background:#fffdf7;box-shadow:0 0 0 1px var(--ink) inset}
+.size[aria-pressed="true"] span{color:var(--muted)}
+.row{display:flex;gap:10px;margin-top:24px;align-items:stretch}
+.qty{display:flex;align-items:center;border:1px solid var(--line);height:50px}
+.qty button{width:38px;height:100%;border:0;background:transparent;color:var(--ink);font-size:16px;cursor:pointer}
+.qty button:hover{background:#e9e1d2}
+.qty input{width:38px;height:100%;border:0;background:transparent;text-align:center;font:600 13px/1 ui-monospace,Consolas,monospace;color:var(--ink);outline:none}
+.buy{flex:1;height:50px;border:0;border-radius:2px;background:var(--ink);color:var(--ivory);font:600 12px/1 "Avenir Next","PingFang SC",sans-serif;letter-spacing:.12em;cursor:pointer;transition:background .15s}
+.buy:hover{background:var(--clay)}
+.buy.added{background:var(--sage)}
+.ship{margin:14px 0 0;font:9px/1.7 ui-monospace,Consolas,monospace;color:#938a79;letter-spacing:.04em}
+.accordion{margin-top:26px;border-top:1px solid var(--line)}
+.acc{border-bottom:1px solid var(--line)}
+.acc button{display:flex;width:100%;align-items:center;gap:10px;padding:13px 0;border:0;background:transparent;color:var(--ink);font:12px/1.4 "Avenir Next","PingFang SC",sans-serif;text-align:left;cursor:pointer}
+.acc button span{margin-left:auto;font:14px/1 ui-monospace,Consolas,monospace;color:var(--muted)}
+.acc .panel{display:none;padding:0 0 14px;font-size:12px;line-height:1.9;color:var(--muted)}
+.acc.open .panel{display:block}
+.acc.open button span{transform:rotate(45deg)}
+.acc button:hover{color:var(--clay)}
+:focus-visible{outline:2px solid var(--clay);outline-offset:3px}
+@media(max-width:980px){
+  .stage-wrap{grid-template-columns:1fr}
+  .stage{min-height:420px}
+  .detail{padding:30px 24px 30px}
+  .top{padding:14px 18px}
+}
+@media(max-width:560px){
+  h1{font-size:31px}
+  .vase{transform:scale(.82)}
+  .stage{min-height:350px;padding:20px}
+  .thumbs{bottom:14px}
+  .row{flex-wrap:wrap}
+  .qty{height:46px}
+  .buy{height:46px;flex:1 1 100%}
+  .sizes{flex-wrap:wrap}
+  .size{flex:1 1 30%}
+}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand">器</div>
+  <div class="crumb">商店 / 陶器 / <b>白瓷梅瓶</b></div>
+  <div class="right"><span>顺丰包邮 · 7 天可退</span><button class="cart" id="cart" type="button">购物车 · 0</button></div>
+</header>
+
+<div class="stage-wrap">
+  <section class="stage" aria-label="商品图">
+    <span class="counter">01 / 03 · 白瓷</span>
+    <div class="object">
+      <div class="vase" aria-hidden="true">
+        <div class="neck"></div><div class="lip"></div><div class="body"><div class="line"></div></div>
+      </div>
+      <div class="plinth" aria-hidden="true"></div>
+    </div>
+    <div class="thumbs" role="group" aria-label="商品图切换">
+      <button class="thumb" type="button" aria-pressed="false" aria-label="侧面"><i></i></button>
+      <button class="thumb" type="button" aria-pressed="true" aria-label="正面"><i></i></button>
+      <button class="thumb" type="button" aria-pressed="false" aria-label="俯视"><i></i></button>
+    </div>
+    <p class="note">手作 · 每只釉色略有不同<br>景德镇 · 2026 秋</p>
+  </section>
+
+  <section class="detail">
+    <p class="kicker">HANDTHROWN / 手作白瓷</p>
+    <h1>白瓷梅瓶</h1>
+    <p class="sub">王师傅 · 景德镇 · 第 9 窑</p>
+
+    <div class="price-row"><span class="price" id="price">¥880<small>含包装与运费</small></span><span class="stock">本月余 12 只</span></div>
+
+    <p class="desc">拉坯成形，施一层薄薄的影青釉。瓶身留了一道手工修坯的浅痕，不是瑕疵。插一枝枯枝、一把野花，或者什么都不插。</p>
+
+    <span class="label" id="size-label">尺寸</span>
+    <div class="sizes" role="group" aria-labelledby="size-label">
+      <button class="size" type="button" data-price="680" data-size="小" aria-pressed="false"><b>小 · 18 cm</b><span>¥680</span></button>
+      <button class="size" type="button" data-price="880" data-size="中" aria-pressed="true"><b>中 · 26 cm</b><span>¥880</span></button>
+      <button class="size" type="button" data-price="1180" data-size="大" aria-pressed="false"><b>大 · 34 cm</b><span>¥1,180</span></button>
+    </div>
+
+    <span class="label">数量</span>
+    <div class="row">
+      <div class="qty"><button type="button" id="minus" aria-label="减少数量">−</button><input id="qty" type="text" inputmode="numeric" value="1" aria-label="数量"><button type="button" id="plus" aria-label="增加数量">＋</button></div>
+      <button class="buy" id="buy" type="button">加入购物车 · ¥880</button>
+    </div>
+    <p class="ship" id="ship">预计 10 月 20 日发出 · 易碎品木架包装 · 破损包赔</p>
+
+    <div class="accordion">
+      <div class="acc"><button type="button" aria-expanded="false">关于这只瓶子<span>＋</span></button><div class="panel">高 26 cm，口径 5 cm，底径 8 cm。影青釉在光下偏一点青，胎体较薄，建议手洗。每只重量在 620–680 g 之间。</div></div>
+      <div class="acc"><button type="button" aria-expanded="false">配送与包装<span>＋</span></button><div class="panel">顺丰陆运，木架加珍珠棉，易碎包赔。下午三点前下单当天发出，偏远地区可能顺延一天。</div></div>
+      <div class="acc"><button type="button" aria-expanded="false">养护<span>＋</span></button><div class="panel">避免骤冷骤热，不要放进洗碗机。长期不用时，用软布擦干，放在通风处，不要用塑料袋密封。</div></div>
+    </div>
+  </section>
+</div>
+
+<script>
+let sizePrice = 880;
+let quantity = 1;
+let cartCount = 0;
+
+function money(value) {
+  return '¥' + value.toLocaleString('en-US');
+}
+
+function renderPrice() {
+  document.getElementById('price').innerHTML = money(sizePrice) + '<small>含包装与运费</small>';
+  document.getElementById('buy').textContent = '加入购物车 · ' + money(sizePrice * quantity);
+}
+
+document.querySelectorAll('.size').forEach(function (button) {
+  button.addEventListener('click', function () {
+    sizePrice = Number(button.dataset.price);
+    document.querySelectorAll('.size').forEach(function (item) { item.setAttribute('aria-pressed', String(item === button)); });
+    renderPrice();
+  });
+});
+
+function setQty(next) {
+  quantity = Math.min(9, Math.max(1, next));
+  document.getElementById('qty').value = String(quantity);
+  renderPrice();
+}
+
+document.getElementById('minus').addEventListener('click', function () { setQty(quantity - 1); });
+document.getElementById('plus').addEventListener('click', function () { setQty(quantity + 1); });
+document.getElementById('qty').addEventListener('change', function (event) {
+  const parsed = parseInt(event.target.value.replace(/\D/g, ''), 10);
+  setQty(Number.isFinite(parsed) ? parsed : 1);
+});
+
+document.querySelectorAll('.thumb').forEach(function (button) {
+  button.addEventListener('click', function () {
+    document.querySelectorAll('.thumb').forEach(function (item) { item.setAttribute('aria-pressed', String(item === button)); });
+  });
+});
+
+document.querySelectorAll('.acc button').forEach(function (button) {
+  button.addEventListener('click', function () {
+    const acc = button.parentElement;
+    const open = acc.classList.toggle('open');
+    button.setAttribute('aria-expanded', String(open));
+    button.querySelector('span').textContent = open ? '＋' : '＋';
+  });
+});
+
+document.getElementById('buy').addEventListener('click', function () {
+  cartCount += quantity;
+  const button = document.getElementById('buy');
+  button.textContent = '已加入 · ' + cartCount + ' 件';
+  button.classList.add('added');
+  document.getElementById('cart').textContent = '购物车 · ' + cartCount;
+  document.getElementById('ship').textContent = '已加入购物车。确认尺寸后可在购物车一起结算。';
+  setTimeout(function () {
+    button.classList.remove('added');
+    renderPrice();
+  }, 1600);
+});
+
+document.getElementById('cart').addEventListener('click', function () {
+  document.getElementById('ship').textContent = cartCount ? '购物车里有 ' + cartCount + ' 件，合计 ' + money(sizePrice * cartCount) + '。' : '购物车还是空的。';
+});
+
+renderPrice();
+</script>
+</body>
+</html>

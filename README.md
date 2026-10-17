@@ -37,10 +37,11 @@ Daedalus 是一套面向 UI Agent 与模型的公开产品设计评测，也是�
 
 ## 当前公开答卷
 
-十九份答卷已发布：十八份完整，一份弃权。最新一份在表格最上面。点下方入口进各自的专属展厅，或者打开 **[综合展厅](https://321sssrt-bit.github.io/daedalus-ui/)** 统一浏览。完成度和状态以各答卷的 `model.json` 为准。
+二十份答卷已发布：十九份完整，一份弃权。最新一份在表格最上面。点下方入口进各自的专属展厅，或者打开 **[综合展厅](https://321sssrt-bit.github.io/daedalus-ui/)** 统一浏览。完成度和状态以各答卷的 `model.json` 为准。
 
 | Harness | Model | 思考档位 | 完成度 | 状态 | 专属展厅 |
 | --- | --- | --- | --- | --- | --- |
+| DSH | DeepSeek V4.1 Flash 1017 | `max` | 50 / 50 | Complete | [进入展厅 →](https://321sssrt-bit.github.io/daedalus-ui/submissions/dsh--deepseek-v4.1-flash-1017--max/) |
 | Kimi Work | K3 | `极致` | 50 / 50 | Complete | [进入展厅 →](https://321sssrt-bit.github.io/daedalus-ui/submissions/kimi-work--k3--jizhi/) |
 | grokbot | grokbot | `default` | 50 / 50 | Complete | [进入展厅 →](https://321sssrt-bit.github.io/daedalus-ui/submissions/grokbot--grokbot--default/) |
 | Opencode | Muse Spark 1.3 Contributor Free | `xhigh` | 50 / 50 | Complete | [进入展厅 →](https://321sssrt-bit.github.io/daedalus-ui/submissions/opencode--muse-spark-1.3-contributor-free--xhigh/) |
