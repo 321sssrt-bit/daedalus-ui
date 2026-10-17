@@ -452,6 +452,8 @@ def _json_for_script(value: Any) -> str:
     return json.dumps(value, ensure_ascii=False, separators=(",", ":")).replace("<", "\\u003c")
 
 
+FAVICON_LINK = """<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23242424'/%3E%3Ctext x='32' y='44' font-family='system-ui' font-size='36' font-weight='700' text-anchor='middle' fill='%23f5f5f3'%3ED%3C/text%3E%3C/svg%3E">"""
+
 GALLERY_CSS = """
 :root{color-scheme:light;--paper:#f5f5f3;--ink:#242424;--muted:#71716b;--line:#deded8;--accent:#a12a2f;--dock-height:53px;--header-height:49px}
 *{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:13px/1.4 system-ui,"Microsoft YaHei",sans-serif;overflow:hidden}
@@ -461,7 +463,7 @@ GALLERY_CSS = """
 button,select,a.open,summary{font:inherit;line-height:20px;min-height:36px;border:1px solid var(--line);border-radius:6px;padding:7px 10px;background:#fff;color:inherit;text-decoration:none;cursor:pointer}button,a.open,summary{display:inline-flex;align-items:center;justify-content:center}summary{list-style:none}summary::-webkit-details-marker{display:none}button:focus-visible,select:focus-visible,a.open:focus-visible,summary:focus-visible{outline:3px solid #a12a2f88;outline-offset:2px}button:disabled{opacity:.45;cursor:default}.project-info summary{border:0;background:transparent;padding-inline:0}
 .filters{display:flex;gap:10px;min-width:0}.filters label{flex:1}.filters select{flex:1;width:0}#browse-filters{grid-column:2/4}.pair-picker{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:6px;min-width:0}.pair-picker select{flex:1;width:0}#swap-pair{font-size:16px;padding-inline:8px}.browse-note{font-size:12px}.reader-open .page-top{visibility:hidden}main{height:calc(100dvh - var(--header-height) - var(--dock-height));min-height:0;padding:8px;display:flex;flex-direction:column;gap:8px;overflow:auto;overscroll-behavior:contain}
 .notice{flex:none;border:1px solid var(--accent);padding:8px 12px;border-radius:6px;background:#fff}.range{color:var(--accent);font:700 11px/1 ui-monospace,Consolas,monospace;letter-spacing:.04em;flex:none}
-article{position:relative;min-width:0;min-height:0;border:1px solid var(--line);border-radius:6px;background:#fff}.preview{position:relative;flex:1;min-height:0;width:100%;overflow:hidden;background:#e9e9e5;border-radius:5px}.preview iframe{position:absolute;width:1280px;height:800px;border:0;transform:scale(.25);transform-origin:0 0;pointer-events:none}
+article{position:relative;min-width:0;min-height:0;border:1px solid var(--line);border-radius:6px;background:#fff}.preview{position:relative;flex:1;min-height:0;width:100%;overflow:hidden;background:#e9e9e5;border-radius:5px}.preview iframe{position:absolute;width:1280px;height:800px;border:0;transform:scale(.25);transform-origin:0 0;pointer-events:none;opacity:0;transition:opacity .18s ease}.preview.ready iframe{opacity:1}.preview.loading::after{content:"";position:absolute;inset:0;z-index:2;background:linear-gradient(100deg,#e9e9e5 20%,#f4f4f1 42%,#e9e9e5 64%);background-size:200% 100%;animation:preview-shimmer 1.2s linear infinite;pointer-events:none}.preview.failed::after{content:"预览加载失败，请用「独立打开」";position:absolute;inset:0;z-index:2;display:grid;place-items:center;padding:24px;text-align:center;color:var(--muted);background:#e9e9e5;font-size:12px}@keyframes preview-shimmer{to{background-position:-200% 0}}
 .view-tools{display:flex;align-items:center;gap:6px;flex:none}.piece-tools{position:relative;flex:none}.piece-tools summary{font-size:12px;min-height:28px;line-height:18px;padding:4px 8px}.piece-tools .meta{position:absolute;right:0;top:calc(100% + 6px);z-index:40;width:270px;max-width:calc(100vw - 24px);padding:8px;border:1px solid var(--line);border-radius:8px;background:#fff;box-shadow:0 8px 28px #0002}.meta>div:not(.actions),.meta>h2,.meta>p{display:none}.actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}.actions>*{min-height:36px;font-size:12px}.empty{padding:40px 16px;text-align:center;color:var(--muted)}
 .current-submission{min-width:0;max-width:38%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted);font-size:11px}.meta>.piece-owner{display:block;margin:8px 0 0;padding-top:8px;border-top:1px solid var(--line);overflow-wrap:anywhere;color:var(--muted);font-size:11px}
 .compare-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:minmax(0,1fr);gap:8px;flex:1;min-height:0}.compare-card{display:flex;flex-direction:column;min-height:0}.compare-card .preview iframe{pointer-events:auto}.compare-card .identity{display:flex;align-items:center;gap:6px;flex:none;height:36px;padding:3px 6px;border-bottom:1px solid var(--line);font-size:12px;color:var(--muted)}.identity-name{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.missing{flex:1;min-height:120px;display:grid;place-items:center;padding:24px;text-align:center;color:var(--muted)}.single-card{flex:1;min-height:0}.expand-view{font-size:12px;min-height:28px;line-height:18px;padding:4px 8px}
@@ -512,6 +514,16 @@ const questionProgress=document.querySelector("#question-progress");
 let mode="browse";
 let browseIndex=0;
 let readerOpener=null;
+let readerToken=0;
+const textCache=new Map();
+const jsonCache=new Map();
+const prefetchedDocs=new Set();
+async function loadText(url){if(!textCache.has(url))textCache.set(url,fetch(url).then(response=>{if(!response.ok)throw new Error(`HTTP ${response.status}`);return response.text()}).catch(error=>{textCache.delete(url);throw error}));return textCache.get(url)}
+async function loadJson(url){if(!jsonCache.has(url))jsonCache.set(url,fetch(url).then(response=>{if(!response.ok)throw new Error(`HTTP ${response.status}`);return response.json()}).catch(error=>{jsonCache.delete(url);throw error}));return jsonCache.get(url)}
+function prefetchDocument(url){if(!url||prefetchedDocs.has(url))return;prefetchedDocs.add(url);const link=node("link");link.rel="prefetch";link.as="document";link.href=url;document.head.append(link)}
+function prefetchReader(piece){if(!piece)return;loadText(piece.specUrl).catch(()=>{});loadText(piece.intentUrl).catch(()=>{})}
+const whenIdle=window.requestIdleCallback?fn=>window.requestIdleCallback(fn,{timeout:1500}):fn=>setTimeout(fn,200);
+function renderReaderText(text){readerContent.textContent=text;readerContent.scrollTop=0;updateReaderProgress()}
 const dockSizer=new ResizeObserver(()=>{document.documentElement.style.setProperty("--dock-height",`${controlDock.getBoundingClientRect().height}px`);document.documentElement.style.setProperty("--header-height",`${pageHeader.getBoundingClientRect().height}px`)});
 dockSizer.observe(controlDock);dockSizer.observe(pageHeader);
 const previewSizer=new ResizeObserver(entries=>{for(const entry of entries){const scale=Math.min(entry.contentRect.width/1280,entry.contentRect.height/800),frame=entry.target.firstElementChild;frame.style.transform=`scale(${scale})`;frame.style.left=`${(entry.contentRect.width-1280*scale)/2}px`;frame.style.top=`${(entry.contentRect.height-800*scale)/2}px`}});
@@ -527,9 +539,9 @@ function updateQuestionNavigation(index,total){previousQuestion.disabled=index<=
 function stepQuestion(offset){if(mode==="compare"){const index=DATA.prototypeTasks.findIndex(task=>task.id===prototypeSelect.value),task=DATA.prototypeTasks[index+offset];if(!task)return;prototypeSelect.value=task.id}else{const index=browseIndex+offset;if(index<0||index>=browseEntries().length)return;browseIndex=index}render();window.scrollTo({top:0,behavior:"auto"});const button=offset>0?nextQuestion:previousQuestion;(button.disabled?(offset>0?previousQuestion:nextQuestion):button).focus({preventScroll:true})}
 function updateReaderProgress(){const maximum=readerContent.scrollHeight-readerContent.clientHeight;const percent=maximum<=0?100:Math.round(readerContent.scrollTop/maximum*100);readerProgress.textContent=`阅读进度 ${percent}%`;readerProgress.setAttribute("aria-valuenow",String(percent))}
 function scrollReaderByKeyboard(event){let top=null;const page=Math.max(80,Math.round(readerContent.clientHeight*.82));if(event.key==="PageDown")top=readerContent.scrollTop+page;else if(event.key==="PageUp")top=readerContent.scrollTop-page;else if(event.key==="ArrowDown")top=readerContent.scrollTop+48;else if(event.key==="ArrowUp")top=readerContent.scrollTop-48;else if(event.key==="Home")top=0;else if(event.key==="End")top=readerContent.scrollHeight;if(top===null)return;event.preventDefault();readerContent.scrollTo({top,behavior:"auto"})}
-function showReader(piece,kind,opener){const normative=kind==="spec",menu=opener.closest?.("details");readerOpener=menu?menu.querySelector("summary"):opener;if(menu)menu.open=false;readerKind.textContent=normative?"复现规范 · 规范性":"设计意图 · 非规范性";readerTitle.textContent=`${piece.id} ${piece.title}`;readerNote.textContent=normative?"用于复现和验收：布局、令牌、组件状态、响应式与核心流程。":"用于理解取舍：适用场景、非目标与辅助复刻提示词；不替代正式规范。";readerExport.textContent=normative?"导出此规范":"导出此意图";readerExport.href=normative?piece.specUrl:piece.intentUrl;readerExport.download=`${piece.id}-${piece.slug}.${normative?"spec.md":"intent.md"}`;readerContent.textContent=normative?piece.spec:piece.intent;readerContent.setAttribute("aria-label",`${piece.id} ${piece.title} ${normative?"复现规范正文":"设计意图正文"}`);readerOverlay.hidden=false;document.body.classList.add("reader-open");pageHeader.inert=true;controlDock.inert=true;app.inert=true;pageTop.inert=true;readerContent.scrollTop=0;updateReaderProgress();readerContent.focus()}
-function closeReader(){if(readerOverlay.hidden)return;readerOverlay.hidden=true;document.body.classList.remove("reader-open");pageHeader.inert=false;controlDock.inert=false;app.inert=false;pageTop.inert=false;const opener=readerOpener;readerOpener=null;opener?.focus()}
-function cardFor(piece,compare=false){const card=node("article",undefined,compare?"compare-card":"");const preview=node("div",undefined,"preview");const frame=node("iframe");frame.setAttribute("sandbox","allow-scripts");frame.loading=compare?"eager":"lazy";frame.tabIndex=compare?0:-1;frame.title=`${piece.id} ${piece.title}`;frame.src=piece.url;preview.append(frame);previewSizer.observe(preview);card.append(preview);const meta=node("div",undefined,"meta");meta.append(node("div",piece.id),node("h2",piece.title),node("p",piece.scene));const actions=node("div",undefined,"actions");const open=node("a","独立打开","open");open.href=piece.url;open.target="_blank";open.rel="noopener noreferrer";actions.append(open);const spec=node("button","查看规范");spec.type="button";spec.onclick=()=>showReader(piece,"spec",spec);actions.append(spec);const intent=node("button","设计意图");intent.type="button";intent.onclick=()=>showReader(piece,"intent",intent);actions.append(intent);const archive=node("a","导出方案","open");archive.href=piece.archiveUrl;archive.download=`${piece.id}-${piece.slug}-方案档案.html`;actions.append(archive);meta.append(actions);card.append(meta);return card}
+async function showReader(piece,kind,opener){const token=++readerToken;const normative=kind==="spec",menu=opener.closest?.("details");readerOpener=menu?menu.querySelector("summary"):opener;if(menu)menu.open=false;readerKind.textContent=normative?"复现规范 · 规范性":"设计意图 · 非规范性";readerTitle.textContent=`${piece.id} ${piece.title}`;readerNote.textContent=normative?"用于复现和验收：布局、令牌、组件状态、响应式与核心流程。":"用于理解取舍：适用场景、非目标与辅助复刻提示词；不替代正式规范。";readerExport.textContent=normative?"导出此规范":"导出此意图";readerExport.href=normative?piece.specUrl:piece.intentUrl;readerExport.download=`${piece.id}-${piece.slug}.${normative?"spec.md":"intent.md"}`;readerContent.setAttribute("aria-label",`${piece.id} ${piece.title} ${normative?"复现规范正文":"设计意图正文"}`);readerOverlay.hidden=false;document.body.classList.add("reader-open");pageHeader.inert=true;controlDock.inert=true;app.inert=true;pageTop.inert=true;readerContent.focus();const inline=normative?piece.spec:piece.intent;if(inline!==undefined){renderReaderText(inline);return}renderReaderText("载入中…");try{const text=await loadText(normative?piece.specUrl:piece.intentUrl);if(token===readerToken)renderReaderText(text)}catch(error){if(token===readerToken)renderReaderText("规范载入失败：请用右上角“导出此规范”直接下载，或关闭后重试。")}}
+function closeReader(){if(readerOverlay.hidden)return;readerToken++;readerOverlay.hidden=true;document.body.classList.remove("reader-open");pageHeader.inert=false;controlDock.inert=false;app.inert=false;pageTop.inert=false;const opener=readerOpener;readerOpener=null;opener?.focus()}
+function cardFor(piece,compare=false){const card=node("article",undefined,compare?"compare-card":"");const preview=node("div",undefined,"preview loading");preview.setAttribute("aria-busy","true");const frame=node("iframe");frame.setAttribute("sandbox","allow-scripts");frame.loading=compare?"eager":"lazy";frame.tabIndex=compare?0:-1;frame.title=`${piece.id} ${piece.title}`;frame.addEventListener("load",()=>{preview.classList.remove("loading");preview.classList.add("ready");preview.removeAttribute("aria-busy")});frame.addEventListener("error",()=>{preview.classList.remove("loading");preview.classList.add("failed");preview.removeAttribute("aria-busy")});frame.src=piece.url;preview.append(frame);previewSizer.observe(preview);card.append(preview);const meta=node("div",undefined,"meta");meta.append(node("div",piece.id),node("h2",piece.title),node("p",piece.scene));const actions=node("div",undefined,"actions");const open=node("a","独立打开","open");open.href=piece.url;open.target="_blank";open.rel="noopener noreferrer";actions.append(open);const spec=node("button","查看规范");spec.type="button";spec.onclick=()=>showReader(piece,"spec",spec);actions.append(spec);const intent=node("button","设计意图");intent.type="button";intent.onclick=()=>showReader(piece,"intent",intent);actions.append(intent);const archive=node("a","导出方案","open");archive.href=piece.archiveUrl;archive.download=`${piece.id}-${piece.slug}-方案档案.html`;actions.append(archive);meta.append(actions);card.append(meta);return card}
 function viewTools(card,meta){const tools=node("div",undefined,"view-tools"),menu=node("details",undefined,"piece-tools"),summary=node("summary","资料 ▾"),expand=node("button","放大","expand-view"),exit=node("button","退出全屏 · Esc","leave-fullscreen");menu.append(summary,meta);expand.type=exit.type="button";expand.hidden=typeof card.requestFullscreen!=="function";expand.setAttribute("aria-label","全屏放大当前作品");expand.onclick=()=>card.requestFullscreen().catch(()=>{expand.textContent="全屏未获允许"});exit.onclick=()=>document.exitFullscreen();card.append(exit);tools.append(expand,menu);return tools}
 function renderBrowse(){
   const entries=browseEntries();
@@ -541,6 +553,7 @@ function renderBrowse(){
   for(const missing of chosenRows())if(missing.status==="forfeited"&&!browsePieces(missing).length)app.append(forfeitNotice(missing));
   if(sub.status==="forfeited")app.append(forfeitNotice(sub));
   const card=cardFor(piece,true),meta=card.children[1];card.className="compare-card single-card";meta.append(node("p",`${sub.displayName} · ${identity}`,"piece-owner"));workspaceHeading.append(viewTools(card,meta));app.append(card);
+  whenIdle(()=>{prefetchDocument(entries[browseIndex+1]?.piece.url);prefetchDocument(entries[browseIndex-1]?.piece.url);prefetchReader(piece)});
 }
 function renderCompare(){
   const taskId=prototypeSelect?.value||DATA.prototypeTasks[0]?.id;
@@ -558,11 +571,12 @@ function renderCompare(){
     grid.append(card);
   }
   app.append(grid);
+  for(const sub of rows){const piece=sub.pieces.find(item=>item.id===taskId);if(piece)whenIdle(()=>prefetchReader(piece))}
   if(rows.length<2)app.append(node("p",rows.length?"当前只有一份登记答卷，至少两份才能进行 Battle 对比。":"暂无登记答卷，至少两份才能进行 Battle 对比。","notice"));
 }
 function handbook(title,entries){const sections=entries.map(entry=>`<section><h2>${escapeHtml(entry.heading)}</h2><pre>${escapeHtml(entry.spec)}</pre></section>`).join("\n");return `<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml(title)}</title><style>body{margin:0;background:#f4efe3;color:#201d18;font:15px/1.6 system-ui,"Microsoft YaHei",sans-serif}main{width:min(900px,calc(100% - 32px));margin:auto;padding:40px 0 80px}h1{font-size:32px}p{color:#736b5f}section{background:#fff;border:1px solid #d9d0c0;border-radius:14px;padding:20px;margin:14px 0}h2{font-size:18px}pre{white-space:pre-wrap;overflow-wrap:anywhere;font:13px/1.65 ui-monospace,Consolas,monospace}</style></head><body><main><h1>${escapeHtml(title)}</h1><p>由 Daedalus 展厅一键导出，可离线阅读。</p>${sections}</main></body></html>`}
 function download(filename,text,mime){const blob=new Blob([text],{type:`${mime};charset=utf-8`});const url=URL.createObjectURL(blob);const link=node("a");link.href=url;link.download=filename;document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),2000)}
-function exportSpecs(){let entries=[];let title="";let filename="";if(mode==="compare"){const taskId=prototypeSelect.value;const task=DATA.prototypeTasks.find(item=>item.id===taskId);for(const sub of compareRows()){const piece=sub.pieces.find(item=>item.id===taskId);if(piece)entries.push({heading:`${taskId} ${piece.title} · ${sub.displayName}`,spec:piece.spec})}title=`${taskId} ${task?.title||"产品原型"} · 同题规范对比`;filename=`Daedalus-${taskId}-同题规范对比.html`}else{const rows=chosenRows();for(const sub of rows){for(const piece of browsePieces(sub))entries.push({heading:`${piece.id} ${piece.title}${rows.length>1?` · ${sub.displayName}`:""}`,spec:piece.spec})}const scope=DATA.categories.find(item=>item.id===categorySelect.value)?.label||"50 题";title=rows.length===1?`${rows[0].displayName} · ${scope}制作规范`:`Daedalus · 全部答卷 · ${scope}制作规范`;filename=`Daedalus-${rows.length===1?rows[0].key:"全部答卷"}-${categorySelect.value||"50题"}规范.html`}if(!entries.length){const old=exportButton.textContent;exportButton.textContent="没有可导出的规范";setTimeout(()=>exportButton.textContent=old,1600);return}download(filename,handbook(title,entries),"text/html")}
+async function exportSpecs(){let entries=[];let rows=[];let title="";let filename="";if(mode==="compare"){const taskId=prototypeSelect.value;const task=DATA.prototypeTasks.find(item=>item.id===taskId);rows=compareRows();for(const sub of rows){const piece=sub.pieces.find(item=>item.id===taskId);if(piece)entries.push({sub,piece,heading:`${taskId} ${piece.title} · ${sub.displayName}`})}title=`${taskId} ${task?.title||"产品原型"} · 同题规范对比`;filename=`Daedalus-${taskId}-同题规范对比.html`}else{rows=chosenRows();for(const sub of rows){for(const piece of browsePieces(sub))entries.push({sub,piece,heading:`${piece.id} ${piece.title}${rows.length>1?` · ${sub.displayName}`:""}`})}const scope=DATA.categories.find(item=>item.id===categorySelect.value)?.label||"50 题";title=rows.length===1?`${rows[0].displayName} · ${scope}制作规范`:`Daedalus · 全部答卷 · ${scope}制作规范`;filename=`Daedalus-${rows.length===1?rows[0].key:"全部答卷"}-${categorySelect.value||"50题"}规范.html`}if(!entries.length){const old=exportButton.textContent;exportButton.textContent="没有可导出的规范";setTimeout(()=>exportButton.textContent=old,1600);return}const allInline=entries.every(entry=>entry.piece.spec!==undefined);if(allInline){download(filename,handbook(title,entries.map(entry=>({heading:entry.heading,spec:entry.piece.spec}))),"text/html");return}const previous=exportButton.textContent;exportButton.disabled=true;exportButton.textContent="正在整理规范…";try{const bundles=new Map();const keys=[...new Set(rows.map(row=>row.key))];await Promise.all(keys.map(async key=>{const row=rows.find(item=>item.key===key);try{bundles.set(key,row.bundleUrl?await loadJson(row.bundleUrl):{})}catch(error){bundles.set(key,{})}}));const sections=await Promise.all(entries.map(async entry=>{let spec=entry.piece.spec??bundles.get(entry.sub.key)?.[entry.piece.id];if(spec===undefined)spec=await loadText(entry.piece.specUrl);return{heading:entry.heading,spec}}));download(filename,handbook(title,sections),"text/html")}catch(error){exportButton.textContent="导出失败，请重试";setTimeout(()=>{exportButton.textContent=previous},1600);return}finally{exportButton.disabled=false}exportButton.textContent=previous}
 function render(){previewSizer.disconnect();app.replaceChildren();app.scrollTop=0;workspaceHeading.replaceChildren();if(mode==="compare")renderCompare();else renderBrowse();exportButton.textContent=mode==="compare"?"导出本题对比规范":categorySelect.value?"导出当前分区规范":"一键导出规范";browseNote.hidden=mode!=="browse";browseNote.textContent=`共 ${DATA.submissions.length} 份答卷 · 当前范围 ${chosenRows().length} 份答卷、${browseEntries().length} 件作品 · 每次展示一题，可直接操作。`}
 function setMode(next){mode=next;browseButton.setAttribute("aria-pressed",String(next==="browse"));compareButton.setAttribute("aria-pressed",String(next==="compare"));browseFilters.hidden=next!=="browse";prototypePicker.hidden=next!=="compare";pairPicker.hidden=next!=="compare";render()}
 if(answerSelect&&!answerPicker.hidden&&DATA.submissions.length)answerSelect.value=DATA.submissions[0].key;
@@ -596,7 +610,16 @@ def _gallery_document(payload: dict[str, Any], *, locked: bool = False) -> str:
     )
     left_options = options or '<option value="">暂无答卷</option>'
     right_options = options if len(payload["submissions"]) > 1 else '<option value="">暂无其他答卷</option>'
-    return f"""<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Daedalus · Product UI Model Gallery</title><style>{GALLERY_CSS}</style></head><body>
+    first_answer = next(
+        (submission["pieces"][0]["url"] for submission in payload["submissions"] if submission["pieces"]),
+        "",
+    )
+    prefetch_link = (
+        f'<link rel="prefetch" as="document" href="{html.escape(first_answer, quote=True)}">'
+        if first_answer
+        else ""
+    )
+    return f"""<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Daedalus · Product UI Model Gallery</title>{FAVICON_LINK}{prefetch_link}<style>{GALLERY_CSS}</style></head><body>
 <header class="project-header"><details class="project-info"><summary aria-label="Daedalus 项目介绍">Daedalus</summary><div class="project-description"><strong>50 道产品 UI 题的公开答卷展厅</strong><p>同一道题，看见不同的产品品味。001–040 页面设计，041–050 连续产品原型。</p><p id="browse-note" class="browse-note" role="status"></p></div></details><div id="workspace-heading" class="workspace-heading"></div><nav id="question-pager" class="question-pager" aria-label="逐题浏览" hidden><button id="previous-question" type="button">← 上一题</button><span id="question-progress" role="status" aria-live="polite"></span><button id="next-question" type="button">下一题 →</button></nav></header><main></main>
 <footer class="toolbar" aria-label="展厅选择与操作">
 <div class="mode-switch" role="group" aria-label="展厅模式"><button id="browse-mode" type="button" aria-pressed="true">逐题浏览</button><button id="compare-mode" type="button" aria-pressed="false">对比 041–050</button></div>
@@ -627,7 +650,7 @@ def _piece_archive_document(
     return f"""<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{html.escape(piece["id"])} {html.escape(title)} · 方案档案</title><style>:root{{--paper:#f4efe3;--ink:#201d18;--muted:#736b5f;--line:#d9d0c0;--accent:#a12a2f}}*{{box-sizing:border-box}}body{{margin:0;background:var(--paper);color:var(--ink);font:15px/1.6 system-ui,"Microsoft YaHei",sans-serif}}main{{width:min(1100px,calc(100% - 32px));margin:auto;padding:36px 0 80px}}.identity,.note{{color:var(--muted)}}.actions{{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0}}a{{display:inline-block;border:1px solid var(--ink);border-radius:999px;padding:8px 14px;background:var(--ink);color:#fff;text-decoration:none}}.preview,.document{{background:#fff;border:1px solid var(--line);border-radius:14px;margin-top:18px;overflow:hidden}}.preview-head,.document{{padding:20px}}.preview-head{{border-bottom:1px solid var(--line)}}.preview iframe{{display:block;width:100%;height:min(720px,70vh);border:0}}h1{{margin-bottom:4px}}h2{{margin:0 0 8px;font-size:20px}}pre{{white-space:pre-wrap;overflow-wrap:anywhere;font:13px/1.7 ui-monospace,Consolas,"Microsoft YaHei",monospace}}@media(max-width:640px){{.preview iframe{{height:68vh}}}}</style></head><body><main><div class="identity">{html.escape(identity)}</div><h1>{html.escape(piece["id"])} {html.escape(title)}</h1><p class="note">{html.escape(brief["scene"])}</p><div class="actions"><a href="{raw_download}" download="{html.escape(answer_name, quote=True)}">导出原始 H5（完整运行）</a></div><section class="preview"><div class="preview-head"><h2>安全预览</h2><div class="note">预览限制存储、弹窗和跨页面能力；需要完整复现时，请导出上方原始 H5 后独立打开。</div></div><iframe sandbox="allow-scripts" title="{html.escape(title, quote=True)}" srcdoc="{html.escape(source_html, quote=True)}"></iframe></section><section class="document"><h2>复现规范</h2><pre>{html.escape(source_spec)}</pre></section><section class="document"><h2>设计意图</h2><pre>{html.escape(source_intent)}</pre></section></main></body></html>"""
 
 
-def _build_payload(validation: Validation, site: Path) -> dict[str, Any]:
+def _build_payload(validation: Validation, site: Path) -> tuple[dict[str, Any], dict[str, dict[str, dict[str, str]]]]:
     catalog = validation.catalog or {}
     briefs = catalog.get("briefs", [])
     catalog_by_id = {item["id"]: item for item in briefs}
@@ -648,12 +671,17 @@ def _build_payload(validation: Validation, site: Path) -> dict[str, Any]:
             else:
                 categories.append({"id": category_id, "label": category_id, "range": [brief["id"], brief["id"]]})
     rows = []
+    texts: dict[str, dict[str, dict[str, str]]] = {}
+    exports_dir = site / "exports"
+    exports_dir.mkdir(parents=True, exist_ok=True)
     for item in validation.submissions:
         entry, manifest, folder = item["entry"], item["manifest"], item["folder"]
         key = "--".join((entry["harness"], entry["model"], entry["reasoningEffort"]))
         answer_dir = site / "answers" / key
         answer_dir.mkdir(parents=True, exist_ok=True)
         pieces = []
+        piece_texts: dict[str, dict[str, str]] = {}
+        specs: dict[str, str] = {}
         for piece in manifest["pieces"]:
             source_html = folder / PurePosixPath(piece["file"])
             source_spec = folder / PurePosixPath(piece["spec"])
@@ -678,6 +706,8 @@ def _build_payload(validation: Validation, site: Path) -> dict[str, Any]:
                 source_intent=intent_text,
             )
             (answer_dir / target_archive_name).write_text(archive_html, encoding="utf-8")
+            specs[piece["id"]] = spec_text
+            piece_texts[piece["id"]] = {"spec": spec_text, "intent": intent_text}
             pieces.append(
                 {
                     "id": piece["id"],
@@ -685,14 +715,17 @@ def _build_payload(validation: Validation, site: Path) -> dict[str, Any]:
                     "title": piece.get("title") or brief["title"],
                     "scene": brief["scene"],
                     "category": brief["category"],
-                    "spec": spec_text,
-                    "intent": intent_text,
                     "url": f"answers/{key}/{target_name}",
                     "specUrl": f"answers/{key}/{target_spec_name}",
                     "intentUrl": f"answers/{key}/{target_intent_name}",
                     "archiveUrl": f"answers/{key}/{target_archive_name}",
                 }
             )
+        (exports_dir / f"{key}-specs.json").write_text(
+            json.dumps(specs, ensure_ascii=False, separators=(",", ":")),
+            encoding="utf-8",
+        )
+        texts[key] = piece_texts
         rows.append(
             {
                 "key": key,
@@ -702,6 +735,7 @@ def _build_payload(validation: Validation, site: Path) -> dict[str, Any]:
                 "displayName": entry.get("displayName") or manifest.get("displayName") or key,
                 "status": manifest["status"],
                 "forfeitReason": (manifest.get("forfeit") or {}).get("reason", ""),
+                "bundleUrl": f"exports/{key}-specs.json",
                 "pieces": pieces,
             }
         )
@@ -710,18 +744,37 @@ def _build_payload(validation: Validation, site: Path) -> dict[str, Any]:
         for brief in briefs
         if brief["id"] in PROTOTYPE_IDS
     ]
-    return {"schemaVersion": 1, "catalogCount": 50, "categories": categories, "prototypeTasks": prototype_tasks, "submissions": rows}
+    return {"schemaVersion": 1, "catalogCount": 50, "categories": categories, "prototypeTasks": prototype_tasks, "submissions": rows}, texts
 
 
-def _zip_tree(source: Path, destination: Path, *, prefix: str = "") -> None:
+def _payload_with_texts(payload: dict[str, Any], texts: dict[str, dict[str, dict[str, str]]]) -> dict[str, Any]:
+    full = json.loads(json.dumps(payload, ensure_ascii=False))
+    for submission in full["submissions"]:
+        for piece in submission["pieces"]:
+            body = texts[submission["key"]][piece["id"]]
+            piece["spec"] = body["spec"]
+            piece["intent"] = body["intent"]
+    return full
+
+
+def _zip_tree(
+    source: Path,
+    destination: Path,
+    *,
+    prefix: str = "",
+    overrides: dict[str, bytes] | None = None,
+) -> None:
+    overrides = overrides or {}
     destination.parent.mkdir(parents=True, exist_ok=True)
     with zipfile.ZipFile(destination, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=9) as archive:
         for path in sorted(item for item in source.rglob("*") if item.is_file() and item != destination):
-            name = PurePosixPath(prefix, path.relative_to(source).as_posix()).as_posix()
+            relative = path.relative_to(source).as_posix()
+            name = PurePosixPath(prefix, relative).as_posix()
             info = zipfile.ZipInfo(name, date_time=(1980, 1, 1, 0, 0, 0))
             info.compress_type = zipfile.ZIP_DEFLATED
             info.external_attr = 0o100644 << 16
-            archive.writestr(info, path.read_bytes())
+            body = overrides.get(relative)
+            archive.writestr(info, body if body is not None else path.read_bytes())
 
 
 def _enable_windows_acl_inheritance(path: Path) -> None:
@@ -856,12 +909,14 @@ def build_repository(root: Path, output: Path) -> tuple[Validation, dict[str, An
     try:
         site = stage / "site"
         site.mkdir()
-        payload = _build_payload(validation, site)
+        payload, texts = _build_payload(validation, site)
         (site / "index.html").write_text(_gallery_document(payload), encoding="utf-8")
+        overrides: dict[str, bytes] = {}
         for submission in payload["submissions"]:
             solo_dir = site / "submissions" / submission["key"]
             solo_dir.mkdir(parents=True)
             solo_submission = dict(submission)
+            solo_submission["bundleUrl"] = "../../" + submission["bundleUrl"]
             solo_submission["pieces"] = [
                 dict(
                     piece,
@@ -881,7 +936,16 @@ def build_repository(root: Path, output: Path) -> tuple[Validation, dict[str, An
             }
             solo_html = _gallery_document(solo_payload, locked=True)
             (solo_dir / "index.html").write_text(solo_html, encoding="utf-8")
-        _zip_tree(site, stage / "daedalus-offline-gallery.zip", prefix="daedalus-gallery")
+            overrides[f"submissions/{submission['key']}/index.html"] = _gallery_document(
+                _payload_with_texts(solo_payload, texts), locked=True
+            ).encode("utf-8")
+        overrides["index.html"] = _gallery_document(_payload_with_texts(payload, texts)).encode("utf-8")
+        _zip_tree(
+            site,
+            stage / "daedalus-offline-gallery.zip",
+            prefix="daedalus-gallery",
+            overrides=overrides,
+        )
         receipt.update(
             {
                 "site": "site/index.html",

@@ -290,7 +290,31 @@ class LifecycleTests(unittest.TestCase):
                 payload = json.loads(page.split("window.DAEDALUS_DATA=", 1)[1].split(";</script>", 1)[0])
                 for submission in payload["submissions"]:
                     self.assertTrue(all("html" not in piece for piece in submission["pieces"]))
+                    self.assertTrue(all("spec" not in piece and "intent" not in piece for piece in submission["pieces"]))
+                    self.assertTrue(submission["bundleUrl"].endswith("-specs.json"))
+            bundle = json.loads((root / "dist" / "site" / "exports" / "codex--gpt-5.6-sol--xhigh-specs.json").read_text(encoding="utf-8"))
+            self.assertEqual(bundle["001"], valid_spec("001", "001-scheme-001.html"))
             self.assertTrue((root / "dist" / "daedalus-offline-gallery.zip").is_file())
+
+    def test_online_index_is_slim_and_offline_zip_inlines_text(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            make_repo(root, submission="complete")
+            completed, receipt = self.run_cli(root, "build", "--output", "dist")
+            self.assertEqual(completed.returncode, 0, completed.stdout)
+            self.assertTrue(receipt["ok"])
+            gallery = (root / "dist" / "site" / "index.html").read_text(encoding="utf-8")
+            self.assertLess(len(gallery.encode("utf-8")), 600_000)
+            self.assertIn('rel="icon"', gallery)
+            self.assertIn("function loadText", gallery)
+            self.assertIn('rel="prefetch"', gallery)
+            self.assertNotIn("## 规范元数据", gallery)
+            with zipfile.ZipFile(root / "dist" / "daedalus-offline-gallery.zip") as archive:
+                offline = archive.read("daedalus-gallery/index.html").decode("utf-8")
+            payload = json.loads(offline.split("window.DAEDALUS_DATA=", 1)[1].split(";</script>", 1)[0])
+            pieces = [piece for submission in payload["submissions"] for piece in submission["pieces"]]
+            self.assertTrue(pieces)
+            self.assertTrue(all(piece.get("spec") and piece.get("intent") for piece in pieces))
 
     @unittest.skipUnless(os.name == "nt", "Windows ACL regression")
     def test_build_output_inherits_parent_acl_on_windows(self) -> None:
@@ -335,7 +359,9 @@ class LifecycleTests(unittest.TestCase):
             self.assertIn('id="reader-export"', gallery)
             self.assertIn('id="reader-progress"', gallery)
             self.assertIn('id="reader-content" class="reader-content" tabindex="0"', gallery)
-            self.assertIn("function showReader", gallery)
+            self.assertIn("async function showReader", gallery)
+            self.assertIn("载入中", gallery)
+            self.assertIn("function loadText", gallery)
             self.assertIn("function closeReader", gallery)
             self.assertIn("导出方案", gallery)
             self.assertIn("archive.href=piece.archiveUrl", gallery)
