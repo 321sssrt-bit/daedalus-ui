@@ -436,7 +436,8 @@ const tallFrame={style:{}};observers[1].callback([{target:{firstElementChild:tal
 assert.equal(tallFrame.style.top,"200px","letterboxing must be balanced above and below the canvas");
 const textTree=element=>element.textContent+element.children.map(textTree).join(" ");
 const select=(id,value)=>{elements[id].value=value;elements[id].dispatch("change",{});};
-const preview=context.cardFor(sample("001","pages","alpha")).children[0].children[0];
+const previewCard=context.cardFor(sample("001","pages","alpha"));context.startPreview(previewCard);
+const preview=previewCard.children[0].children[0];
 assert.equal(preview.src,"answers/alpha/001.html");
 assert.equal(preview.srcdoc,undefined);
 assert.equal(preview.loading,"lazy");
