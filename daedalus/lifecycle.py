@@ -520,7 +520,7 @@ const jsonCache=new Map();
 const prefetchedDocs=new Set();
 async function loadText(url){if(!textCache.has(url))textCache.set(url,fetch(url).then(response=>{if(!response.ok)throw new Error(`HTTP ${response.status}`);return response.text()}).catch(error=>{textCache.delete(url);throw error}));return textCache.get(url)}
 async function loadJson(url){if(!jsonCache.has(url))jsonCache.set(url,fetch(url).then(response=>{if(!response.ok)throw new Error(`HTTP ${response.status}`);return response.json()}).catch(error=>{jsonCache.delete(url);throw error}));return jsonCache.get(url)}
-function prefetchDocument(url){if(!url||prefetchedDocs.has(url))return;prefetchedDocs.add(url);fetch(url,{priority:"low"}).then(response=>response.ok?response.text():"").catch(()=>{})}
+function prefetchDocument(url){if(!url||prefetchedDocs.has(url))return;prefetchedDocs.add(url);const frame=node("iframe");frame.setAttribute("sandbox","allow-scripts");frame.setAttribute("aria-hidden","true");frame.tabIndex=-1;frame.style.cssText="position:fixed;left:-10000px;top:0;width:320px;height:200px;pointer-events:none";const clean=()=>frame.remove();frame.addEventListener("load",()=>{frame.addEventListener("load",()=>setTimeout(clean,0),{once:true});frame.src=url},{once:true});frame.addEventListener("error",()=>{prefetchedDocs.delete(url);clean()},{once:true});document.body.append(frame);frame.src="about:blank";setTimeout(clean,8000)}
 function prefetchReader(piece){if(!piece)return;loadText(piece.specUrl).catch(()=>{});loadText(piece.intentUrl).catch(()=>{})}
 const whenIdle=window.requestIdleCallback?fn=>window.requestIdleCallback(fn,{timeout:1500}):fn=>setTimeout(fn,200);
 function renderReaderText(text){readerContent.textContent=text;readerContent.scrollTop=0;updateReaderProgress()}
@@ -613,16 +613,7 @@ def _gallery_document(payload: dict[str, Any], *, locked: bool = False) -> str:
     )
     left_options = options or '<option value="">暂无答卷</option>'
     right_options = options if len(payload["submissions"]) > 1 else '<option value="">暂无其他答卷</option>'
-    first_answer = next(
-        (submission["pieces"][0]["url"] for submission in payload["submissions"] if submission["pieces"]),
-        "",
-    )
-    prefetch_link = (
-        f'<link rel="prefetch" as="document" href="{html.escape(first_answer, quote=True)}">'
-        if first_answer
-        else ""
-    )
-    return f"""<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Daedalus · Product UI Model Gallery</title>{FAVICON_LINK}{prefetch_link}<style>{GALLERY_CSS}</style></head><body>
+    return f"""<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Daedalus · Product UI Model Gallery</title>{FAVICON_LINK}<style>{GALLERY_CSS}</style></head><body>
 <header class="project-header"><details class="project-info"><summary aria-label="Daedalus 项目介绍">Daedalus</summary><div class="project-description"><strong>50 道产品 UI 题的公开答卷展厅</strong><p>同一道题，看见不同的产品品味。001–040 页面设计，041–050 连续产品原型。</p><p id="browse-note" class="browse-note" role="status"></p></div></details><div id="workspace-heading" class="workspace-heading"></div><nav id="question-pager" class="question-pager" aria-label="逐题浏览" hidden><button id="previous-question" type="button">← 上一题</button><span id="question-progress" role="status" aria-live="polite"></span><button id="next-question" type="button">下一题 →</button></nav></header><main></main>
 <footer class="toolbar" aria-label="展厅选择与操作">
 <div class="mode-switch" role="group" aria-label="展厅模式"><button id="browse-mode" type="button" aria-pressed="true">逐题浏览</button><button id="compare-mode" type="button" aria-pressed="false">对比 041–050</button></div>

@@ -307,7 +307,7 @@ class LifecycleTests(unittest.TestCase):
             self.assertLess(len(gallery.encode("utf-8")), 600_000)
             self.assertIn('rel="icon"', gallery)
             self.assertIn("function loadText", gallery)
-            self.assertIn('rel="prefetch"', gallery)
+            self.assertIn("function prefetchDocument", gallery)
             self.assertNotIn("## 规范元数据", gallery)
             with zipfile.ZipFile(root / "dist" / "daedalus-offline-gallery.zip") as archive:
                 offline = archive.read("daedalus-gallery/index.html").decode("utf-8")
