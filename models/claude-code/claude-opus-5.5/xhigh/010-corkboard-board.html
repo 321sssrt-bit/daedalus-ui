@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>纸飞机工作室 · 选题看板</title>
+<style>
+:root{
+  --cork:#c8a172;--cork-dark:#a98256;--frame:#5b3d22;--kraft:#e9d8b8;--ink:#2b2118;--muted:#6e5a44;
+  --note-y:#fff1a8;--note-p:#ffd3d8;--note-b:#cfe8ff;--note-g:#d6f2c4;--pin:#d6402f;--tape:#f3ead2cc;
+  --hand:"Kaiti SC","STKaiti","KaiTi",serif;
+  --sans:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%}
+body{font:14px/1.55 var(--sans);color:var(--ink);background:#3a2817;
+  background-image:repeating-linear-gradient(90deg,#3a2817 0 18px,#402c1a 18px 36px)}
+.top{display:flex;align-items:center;gap:20px;padding:18px 40px;color:#f3e6cf}
+.top h1{margin:0;font:700 22px var(--hand);letter-spacing:.04em}
+.top .meta{font-size:13px;color:#cdb795}
+.top .people{display:flex;margin-left:auto}
+.top .people span{width:32px;height:32px;border-radius:50%;border:2px solid #3a2817;margin-left:-8px;display:grid;place-items:center;font-size:13px;font-weight:700;color:var(--ink)}
+.add{height:40px;padding:0 18px;border-radius:6px;border:0;background:var(--note-y);color:var(--ink);font:700 14px var(--sans);cursor:pointer;box-shadow:0 3px 0 #b49a3e,0 6px 12px #0006;transition:transform .1s,box-shadow .1s}
+.add:hover{transform:translateY(-1px)}
+.add:active{transform:translateY(2px);box-shadow:0 1px 0 #b49a3e,0 2px 4px #0006}
+.add:focus-visible,.note:focus-visible,.move:focus-visible,.mini:focus-visible{outline:3px solid #ffffff;outline-offset:3px}
+.board{margin:0 40px 40px;padding:28px;border:14px solid var(--frame);border-radius:6px;
+  background-color:var(--cork);background-image:radial-gradient(#b48c5e 1px,transparent 1.4px),radial-gradient(#d9b88b 1px,transparent 1.4px);background-size:7px 7px,11px 11px;background-position:0 0,3px 5px;
+  box-shadow:inset 0 0 40px #6b4a2a99,0 20px 40px #0008;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:24px;min-height:600px}
+.col{display:flex;flex-direction:column;gap:16px;min-height:200px;padding:6px 6px 24px;border-radius:6px;transition:background .15s}
+.col.over{background:#ffffff26;outline:2px dashed #fff8;outline-offset:-2px}
+.label{align-self:flex-start;position:relative;padding:8px 18px 8px 14px;background:var(--kraft);font:700 17px var(--hand);transform:rotate(-1.5deg);box-shadow:0 2px 4px #0004}
+.label::before{content:'';position:absolute;left:50%;top:-9px;width:46px;height:18px;margin-left:-23px;background:var(--tape);transform:rotate(3deg)}
+.label b{font:600 12px var(--sans);color:var(--muted);margin-left:8px}
+.note{position:relative;padding:18px 16px 14px;border-radius:2px;cursor:grab;box-shadow:0 1px 1px #0002,0 8px 14px -6px #0007;transition:transform .15s,box-shadow .15s;user-select:none}
+.note:nth-child(odd){transform:rotate(-1.2deg)}
+.note:nth-child(even){transform:rotate(1deg)}
+.note:hover{transform:rotate(0) translateY(-3px);box-shadow:0 2px 2px #0002,0 14px 22px -6px #0008;z-index:2}
+.note.dragging{opacity:.45;cursor:grabbing}
+.note::before{content:'';position:absolute;top:-6px;left:50%;width:14px;height:14px;margin-left:-7px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#ff8a7a,var(--pin) 60%,#8f2116);box-shadow:1px 3px 3px #0006}
+.y{background:var(--note-y)}.p{background:var(--note-p)}.b{background:var(--note-b)}.g{background:var(--note-g)}
+.note h3{margin:0 0 6px;font:700 17px/1.35 var(--hand)}
+.note p{margin:0 0 10px;font-size:12px;color:var(--muted)}
+.note .foot{display:flex;align-items:center;justify-content:space-between;font-size:12px;color:var(--muted)}
+.note .who{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:700;color:var(--ink);border:1.5px solid #0002}
+.note .due.late{color:#b4321f;font-weight:700}
+.note .tags{display:flex;gap:6px;margin-bottom:8px}
+.note .tags span{font-size:11px;padding:0 6px;border:1px solid #0003;border-radius:3px}
+.move{position:absolute;right:8px;top:8px;width:26px;height:26px;border-radius:50%;border:0;background:#0000000f;cursor:pointer;font-size:14px;color:var(--muted);opacity:0;transition:opacity .15s}
+.note:hover .move,.note:focus-within .move{opacity:1}
+.menu{position:absolute;right:6px;top:36px;background:#fffdf6;border-radius:6px;box-shadow:0 10px 24px #0005;padding:6px;z-index:10;display:grid;min-width:120px}
+.menu button{border:0;background:none;text-align:left;padding:7px 10px;font:13px var(--sans);border-radius:4px;cursor:pointer;color:var(--ink)}
+.menu button:hover{background:#f1e6cf}
+.menu button:disabled{color:#b8a98e;cursor:default;background:none}
+.ghost-note{border:2px dashed #fff9;border-radius:4px;color:#fff;font:600 13px var(--sans);text-align:center;padding:14px;background:none;cursor:pointer}
+.ghost-note:hover{background:#ffffff1f}
+.draft{padding:14px;background:var(--note-y);box-shadow:0 8px 14px -6px #0007;border-radius:2px}
+.draft input,.draft select{width:100%;border:0;border-bottom:1.5px solid #0003;background:transparent;font:700 16px var(--hand);padding:4px 0;outline:none;color:var(--ink)}
+.draft select{font:13px var(--sans);margin-top:8px}
+.draft .row{display:flex;gap:8px;justify-content:flex-end;margin-top:10px}
+.mini{height:30px;padding:0 12px;border-radius:4px;border:1px solid #0003;background:#fffdf6;font:600 12px var(--sans);cursor:pointer}
+.mini.ok{background:var(--ink);color:#fff8e1;border-color:var(--ink)}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(30px);opacity:0;background:#fffdf6;padding:10px 16px;border-radius:6px;box-shadow:0 10px 30px #0006;font-size:13px;transition:all .25s}
+.toast.show{opacity:1;transform:translateX(-50%)}
+@media (max-width:1100px){.board{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:640px){.board{grid-template-columns:1fr;margin:0 12px 24px;border-width:8px;padding:16px}.top{padding:16px;flex-wrap:wrap}.top .meta{display:none}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.note,.note:nth-child(odd),.note:nth-child(even){transform:none}}
+</style>
+</head>
+<body>
+<header class="top">
+  <h1>纸飞机工作室 · 十一月选题墙</h1>
+  <span class="meta">拖动便签换列，或点便签右上角 ⋯ 移动</span>
+  <div class="people"><span style="background:#fff1a8">苏</span><span style="background:#ffd3d8">韩</span><span style="background:#cfe8ff">乔</span><span style="background:#d6f2c4">默</span></div>
+  <button class="add" type="button" id="addTop">＋ 贴一张新选题</button>
+</header>
+<main class="board" id="board"></main>
+<div class="toast" id="toast" role="status"></div>
+<script>
+const cols=[['idea','灵感池'],['write','撰写中'],['review','待审校'],['done','已发布']];
+let notes=[
+ {c:'idea',t:'城市夜班公交地图',d:'跟 4 条夜班线各坐一趟，画一张手绘线路图',w:'苏',k:'y',due:'11/08',g:['图解']},
+ {c:'idea',t:'菜市场里的二十四节气',d:'每个节气拍一次同一个摊位',w:'默',k:'g',due:'11/20',g:['摄影','长期']},
+ {c:'idea',t:'旧书店老板访谈',d:'',w:'乔',k:'b',due:'11/15',g:['访谈']},
+ {c:'write',t:'一碗面的成本拆解',d:'面粉、汤底、房租、人工，算到每一分钱',w:'韩',k:'p',due:'11/03',g:['数据'],late:true},
+ {c:'write',t:'为什么城市里鸽子越来越少',d:'已约到鸟类学会的周老师',w:'苏',k:'y',due:'11/06',g:['科普']},
+ {c:'write',t:'地铁口的修鞋摊',d:'初稿 3200 字，缺两张配图',w:'默',k:'g',due:'11/07',g:['人物']},
+ {c:'review',t:'深夜便利店观察笔记',d:'等法务确认店名能否出现',w:'乔',k:'b',due:'11/02',g:['随笔'],late:true},
+ {c:'review',t:'十个本地人才知道的小公园',d:'',w:'韩',k:'p',due:'11/05',g:['清单']},
+ {c:'done',t:'外卖骑手的一天',d:'阅读 4.2 万 · 转发 1,830',w:'苏',k:'y',due:'10/28',g:['人物']},
+ {c:'done',t:'老小区加装电梯这一年',d:'阅读 2.8 万',w:'默',k:'g',due:'10/21',g:['调查']}
+];
+const colors={'苏':'#fff1a8','韩':'#ffd3d8','乔':'#cfe8ff','默':'#d6f2c4'};
+let drag=null,drafting=null;
+const board=document.getElementById('board');
+function render(){
+  board.innerHTML=cols.map(([k,n])=>{
+    const list=notes.map((x,i)=>[x,i]).filter(([x])=>x.c===k);
+    return '<section class="col" data-c="'+k+'" aria-label="'+n+'"><div class="label">'+n+'<b>'+list.length+'</b></div>'+
+      list.map(([x,i])=>'<article class="note '+x.k+'" draggable="true" tabindex="0" data-i="'+i+'" aria-label="'+x.t+'"><button class="move" type="button" aria-label="移动到其他列">⋯</button>'+
+        '<div class="tags">'+x.g.map(g=>'<span>'+g+'</span>').join('')+'</div><h3>'+x.t+'</h3>'+(x.d?'<p>'+x.d+'</p>':'')+
+        '<div class="foot"><span class="due'+(x.late&&k!=='done'?' late':'')+'">'+(x.late&&k!=='done'?'已逾期 ':'截稿 ')+x.due+'</span><span class="who" style="background:'+colors[x.w]+'">'+x.w+'</span></div></article>').join('')+
+      (drafting===k?'<form class="draft" data-c="'+k+'"><input placeholder="选题标题" maxlength="20" required aria-label="选题标题"><select aria-label="负责人"><option>苏</option><option>韩</option><option>乔</option><option>默</option></select><div class="row"><button class="mini" type="button" data-x>取消</button><button class="mini ok" type="submit">贴上</button></div></form>':'<button class="ghost-note" type="button" data-new="'+k+'">＋ 新便签</button>')+
+      '</section>';
+  }).join('');
+  bind();
+}
+function toast(t){const e=document.getElementById('toast');e.textContent=t;e.classList.add('show');clearTimeout(toast.h);toast.h=setTimeout(()=>e.classList.remove('show'),2200)}
+function moveTo(i,c){const from=notes[i].c;if(from===c)return;notes[i].c=c;render();toast('「'+notes[i].t+'」→ '+cols.find(x=>x[0]===c)[1])}
+function bind(){
+  board.querySelectorAll('.note').forEach(n=>{
+    n.addEventListener('dragstart',e=>{drag=+n.dataset.i;n.classList.add('dragging');e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',n.dataset.i)});
+    n.addEventListener('dragend',()=>{n.classList.remove('dragging');board.querySelectorAll('.over').forEach(c=>c.classList.remove('over'))});
+    n.querySelector('.move').addEventListener('click',e=>{e.stopPropagation();openMenu(n)});
+    n.addEventListener('keydown',e=>{if(e.key==='Enter'){openMenu(n)}if(e.key==='ArrowRight'||e.key==='ArrowLeft'){const i=+n.dataset.i,ci=cols.findIndex(c=>c[0]===notes[i].c)+(e.key==='ArrowRight'?1:-1);if(cols[ci]){moveTo(i,cols[ci][0]);board.querySelector('.note[data-i="'+i+'"]').focus()}}});
+  });
+  board.querySelectorAll('.col').forEach(c=>{
+    c.addEventListener('dragover',e=>{e.preventDefault();c.classList.add('over')});
+    c.addEventListener('dragleave',e=>{if(!c.contains(e.relatedTarget))c.classList.remove('over')});
+    c.addEventListener('drop',e=>{e.preventDefault();c.classList.remove('over');if(drag!==null)moveTo(drag,c.dataset.c);drag=null});
+  });
+  board.querySelectorAll('[data-new]').forEach(b=>b.onclick=()=>{drafting=b.dataset.new;render();board.querySelector('.draft input').focus()});
+  const f=board.querySelector('.draft');
+  if(f){f.querySelector('[data-x]').onclick=()=>{drafting=null;render()};
+    f.onsubmit=e=>{e.preventDefault();const t=f.querySelector('input').value.trim();if(!t){f.querySelector('input').focus();return}
+      const w=f.querySelector('select').value;notes.push({c:f.dataset.c,t,d:'',w,k:{'苏':'y','韩':'p','乔':'b','默':'g'}[w],due:'11/30',g:['新']});drafting=null;render();toast('已贴上「'+t+'」')}}
+}
+function openMenu(n){
+  document.querySelectorAll('.menu').forEach(m=>m.remove());
+  const i=+n.dataset.i,m=document.createElement('div');m.className='menu';m.setAttribute('role','menu');
+  m.innerHTML=cols.map(([k,l])=>'<button type="button" role="menuitem" data-to="'+k+'" '+(notes[i].c===k?'disabled':'')+'>移到「'+l+'」</button>').join('');
+  n.append(m);m.querySelector('button:not(:disabled)').focus();
+  m.addEventListener('click',e=>{const b=e.target.closest('[data-to]');if(b){e.stopPropagation();moveTo(i,b.dataset.to)}});
+}
+document.addEventListener('click',e=>{if(!e.target.closest('.menu,.move'))document.querySelectorAll('.menu').forEach(m=>m.remove())});
+document.getElementById('addTop').onclick=()=>{drafting='idea';render();board.querySelector('.draft input').focus()};
+render();
+</script>
+</body>
+</html>

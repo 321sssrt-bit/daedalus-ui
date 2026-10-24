@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KAI 75 · 铝坨坨机械键盘</title>
+<style>
+:root{
+  --bg:#141414;--panel:#1d1d1d;--panel-2:#262626;--line:#333333;--text:#f2f2f2;--muted:#9a9a9a;--lime:#c6ff3d;--lime-dk:#a4dd14;--warn:#ff8a3d;
+  --sans:"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Helvetica Neue",sans-serif;
+  --mono:"SF Mono","Menlo","Consolas",monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--text);font:14px/1.6 var(--sans)}
+.top{display:flex;align-items:center;gap:28px;padding:16px 40px;border-bottom:1px solid var(--line)}
+.logo{font:900 20px var(--sans);letter-spacing:.08em}
+.logo span{color:var(--lime)}
+.top nav{display:flex;gap:22px;font-size:13px;color:var(--muted)}
+.top nav a{color:inherit;text-decoration:none}
+.top nav a:hover{color:var(--text)}
+.top .cart{margin-left:auto;font-size:13px;display:flex;align-items:center;gap:8px}
+.top .cart b{background:var(--lime);color:#000;border-radius:999px;min-width:20px;height:20px;display:inline-grid;place-items:center;font-size:12px}
+.crumb{padding:14px 40px 0;font-size:12px;color:var(--muted)}
+.wrap{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:48px;padding:18px 40px 56px;max-width:1360px}
+.stage{position:relative;background:radial-gradient(120% 90% at 50% 20%,#2a2a2a,#161616 70%);border:1px solid var(--line);border-radius:20px;height:480px;display:grid;place-items:center;overflow:hidden}
+.stage .glow{position:absolute;width:420px;height:120px;border-radius:50%;background:var(--accent-glow,#c6ff3d33);filter:blur(50px);bottom:60px;transition:background .3s}
+.stage svg{width:88%;position:relative;transform:perspective(900px) rotateX(28deg);transition:transform .4s}
+.stage:hover svg{transform:perspective(900px) rotateX(18deg)}
+.stage .drop{position:absolute;left:20px;top:18px;font:700 12px var(--mono);letter-spacing:.12em;color:#000;background:var(--lime);padding:4px 10px;border-radius:4px}
+.stage .sound{position:absolute;right:20px;top:18px;font:12px var(--mono);color:var(--muted);display:flex;align-items:center;gap:8px}
+.stage .sound i{display:flex;gap:2px;align-items:flex-end;height:14px}
+.stage .sound i b{width:3px;background:var(--lime);border-radius:1px}
+.thumbs{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:12px}
+.thumbs button{height:74px;border-radius:12px;border:1px solid var(--line);background:var(--panel);color:var(--muted);font:12px var(--sans);cursor:pointer}
+.thumbs button[aria-pressed="true"]{border-color:var(--lime);color:var(--text)}
+.info h1{font:800 40px/1.1 var(--sans);margin:0 0 6px;letter-spacing:-.02em}
+.info .tagline{color:var(--muted);margin:0 0 14px}
+.rating{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--muted);margin-bottom:18px}
+.rating b{color:var(--lime);letter-spacing:2px}
+.priceRow{display:flex;align-items:baseline;gap:12px;padding:16px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin-bottom:22px}
+.price{font:800 40px/1 var(--sans);letter-spacing:-.02em}
+.price small{font-size:20px;margin-right:2px}
+.was{color:var(--muted);text-decoration:line-through}
+.save{font:700 12px var(--sans);color:#000;background:var(--lime);padding:2px 8px;border-radius:4px}
+.opt{margin-bottom:20px}
+.opt h3{display:flex;justify-content:space-between;font:600 13px var(--sans);margin:0 0 10px}
+.opt h3 span{font-weight:400;color:var(--muted)}
+.swatches{display:flex;gap:12px}
+.sw{width:56px;height:56px;border-radius:14px;border:2px solid var(--line);cursor:pointer;padding:6px;background:var(--panel)}
+.sw i{display:block;width:100%;height:100%;border-radius:8px}
+.sw[aria-pressed="true"]{border-color:var(--lime);box-shadow:0 0 0 3px #c6ff3d33}
+.chips{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.chip{border:1.5px solid var(--line);border-radius:12px;background:var(--panel);color:var(--text);padding:10px 12px;text-align:left;cursor:pointer;font:13px var(--sans);position:relative}
+.chip b{display:flex;align-items:center;gap:6px;font-size:14px}
+.chip b i{width:10px;height:10px;border-radius:2px}
+.chip small{display:block;color:var(--muted);font-size:12px}
+.chip:hover{border-color:#555555}
+.chip[aria-pressed="true"]{border-color:var(--lime);background:#c6ff3d0f}
+.chip:disabled{opacity:.4;cursor:not-allowed}
+.chip .stock{position:absolute;right:8px;top:8px;font-size:10px;color:var(--warn)}
+.chips.two{grid-template-columns:repeat(2,1fr)}
+.qty{display:flex;align-items:center;gap:14px}
+.stepper{display:flex;align-items:center;border:1.5px solid var(--line);border-radius:12px;overflow:hidden}
+.stepper button{width:44px;height:44px;border:0;background:var(--panel);color:var(--text);font:18px var(--sans);cursor:pointer}
+.stepper button:hover{background:var(--panel-2)}
+.stepper button:disabled{color:#555555;cursor:not-allowed}
+.stepper output{width:48px;text-align:center;font:700 16px var(--mono)}
+.qty .left{font-size:12px;color:var(--warn)}
+.actions{display:grid;grid-template-columns:1fr auto;gap:10px;margin:24px 0 16px}
+.buy{height:58px;border:0;border-radius:14px;background:var(--lime);color:#000;font:800 17px var(--sans);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:background .15s,transform .1s}
+.buy:hover{background:var(--lime-dk)}
+.buy:active{transform:scale(.99)}
+.buy span{font:600 13px var(--mono);opacity:.7}
+.addc{height:58px;padding:0 20px;border-radius:14px;border:1.5px solid var(--line);background:transparent;color:var(--text);font:600 14px var(--sans);cursor:pointer}
+.addc:hover{border-color:var(--text)}
+.buy:focus-visible,.addc:focus-visible,.sw:focus-visible,.chip:focus-visible,.stepper button:focus-visible,.thumbs button:focus-visible,summary:focus-visible{outline:2px solid var(--lime);outline-offset:3px}
+.ship{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;font-size:12px;color:var(--muted)}
+.ship div{background:var(--panel);border-radius:10px;padding:10px 12px}
+.ship b{display:block;color:var(--text);font-size:13px}
+details{border-top:1px solid var(--line);margin-top:18px}
+summary{cursor:pointer;padding:14px 0;font-weight:600;list-style:none;display:flex;justify-content:space-between}
+summary::-webkit-details-marker{display:none}
+summary::after{content:'+';color:var(--lime);font-size:18px;line-height:1}
+details[open] summary::after{content:'−'}
+details table{width:100%;border-collapse:collapse;font-size:13px;margin-bottom:12px}
+details td{padding:7px 0;border-bottom:1px solid var(--line)}
+details td:first-child{color:var(--muted);width:40%}
+.toast{position:fixed;left:50%;bottom:28px;transform:translate(-50%,20px);opacity:0;background:var(--lime);color:#000;padding:12px 18px;border-radius:12px;font:600 14px var(--sans);transition:all .25s}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+@media (max-width:1060px){.wrap{grid-template-columns:1fr}.stage{height:380px}}
+@media (max-width:640px){.top{padding:14px 20px}.top nav{display:none}.wrap,.crumb{padding-left:20px;padding-right:20px}.chips{grid-template-columns:1fr}.ship{grid-template-columns:1fr}.info h1{font-size:30px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}.stage svg,.stage:hover svg{transform:perspective(900px) rotateX(24deg)}}
+</style>
+</head>
+<body>
+<header class="top"><div class="logo">KAI<span>/</span>LAB</div><nav><a href="#kb">键盘</a><a href="#caps">键帽</a><a href="#switch">轴体</a><a href="#lab">改装实验室</a></nav><div class="cart">购物车 <b id="cartN">0</b></div></header>
+<div class="crumb">键盘 / 75% 配列 / KAI 75</div>
+<main class="wrap">
+  <section>
+    <div class="stage">
+      <span class="drop">第 3 批 · 限量 800 台</span>
+      <span class="sound" id="sound">敲击声 <i><b style="height:6px"></b><b style="height:10px"></b><b style="height:14px"></b></i></span>
+      <div class="glow" id="glow"></div>
+      <svg id="kb" viewBox="0 0 640 260" aria-label="键盘预览"></svg>
+    </div>
+    <div class="thumbs" role="group" aria-label="视角"><button type="button" aria-pressed="true" data-a="28">俯视</button><button type="button" aria-pressed="false" data-a="8">正面</button><button type="button" aria-pressed="false" data-a="48">侧倾</button><button type="button" aria-pressed="false" data-a="0">平铺</button></div>
+  </section>
+  <section class="info">
+    <h1>KAI 75</h1>
+    <p class="tagline">6063 铝合金 CNC 外壳 · Gasket 结构 · 三模连接 · 热插拔</p>
+    <div class="rating"><b>★★★★★</b>4.9 · 2,318 条评价 · 92% 用户选择了茶轴</div>
+    <div class="priceRow"><span class="price" id="price"><small>¥</small>899</span><span class="was" id="was">¥1,099</span><span class="save" id="save">省 ¥200</span></div>
+    <div class="opt"><h3>配色 <span id="cwName">墨岩 · 黑灰配荧光绿</span></h3><div class="swatches" id="cws"></div></div>
+    <div class="opt"><h3>轴体 <span>可热插拔更换</span></h3><div class="chips" id="sws"></div></div>
+    <div class="opt"><h3>配列 <span id="layoutNote">84 键 · 带旋钮</span></h3><div class="chips two" id="lays"></div></div>
+    <div class="opt qty"><div class="stepper"><button type="button" id="minus" aria-label="减少">−</button><output id="q">1</output><button type="button" id="plus" aria-label="增加">＋</button></div><span class="left" id="left">此配置仅剩 12 台 · 每人限购 2 台</span></div>
+    <div class="actions"><button class="buy" type="button" id="buy">立即购买 <span id="total">¥899</span></button><button class="addc" type="button" id="addc">加入购物车</button></div>
+    <div class="ship"><div><b>次日达</b>上海仓 · 16:00 前下单</div><div><b>1 年质保</b>轴体 3 年包换</div><div><b>7 天无理由</b>未拆封可退</div></div>
+    <details><summary>规格参数</summary><table><tbody><tr><td>外壳</td><td>6063 铝 · 阳极氧化</td></tr><tr><td>定位板</td><td>PC · 半刀</td></tr><tr><td>连接</td><td>有线 / 2.4G / 蓝牙 5.1</td></tr><tr><td>电池</td><td>4000 mAh · 约 200 小时</td></tr><tr><td>重量</td><td id="weight">1.86 kg</td></tr></tbody></table></details>
+    <details><summary>包装清单</summary><table><tbody><tr><td>主机</td><td>× 1</td></tr><tr><td>Type-C 编织线</td><td>× 1</td></tr><tr><td>拔键 / 拔轴器</td><td>各 × 1</td></tr></tbody></table></details>
+  </section>
+</main>
+<div class="toast" id="toast" role="status"></div>
+<script>
+const cws=[{n:'墨岩 · 黑灰配荧光绿',c:['#2b2b2b','#3a3a3a','#c6ff3d','#1d1d1d'],g:'#c6ff3d33'},{n:'雾港 · 灰白配蓝',c:['#d9dbe0','#b8bcc6','#4f7cff','#9aa0ab'],g:'#4f7cff33'},{n:'晚霞 · 米白配橙',c:['#efe7da','#d8cbb6','#ff7a3d','#b39f86'],g:'#ff7a3d33'}];
+const sws=[{n:'红轴',t:'线性 · 45g',c:'#e5484d',s:[6,8,9],stock:40},{n:'茶轴',t:'段落 · 55g',c:'#a0703f',s:[8,12,10],stock:12},{n:'青轴',t:'有声 · 60g',c:'#3fa7e5',s:[12,14,14],stock:0}];
+const lays=[{n:'75%',t:'84 键 · 带旋钮',p:899,w:'1.86 kg'},{n:'65%',t:'68 键 · 更小巧',p:799,w:'1.52 kg'}];
+let cw=0,sw=1,ly=0,q=1,cart=0;
+function kb(){
+  const c=cws[cw].c,cols=ly===0?15:14,rows=ly===0?6:5,u=36,gap=4,W=cols*(u+gap)+28,H=rows*(u+gap)+28;
+  let h='<rect x="0" y="0" width="'+W+'" height="'+H+'" rx="18" fill="'+c[3]+'"/><rect x="8" y="8" width="'+(W-16)+'" height="'+(H-16)+'" rx="12" fill="#00000033"/>';
+  for(let r=0;r<rows;r++)for(let k=0;k<cols;k++){
+    let x=14+k*(u+gap),y=14+r*(u+gap),w=u,fill=c[0];
+    if(r===rows-1&&k>=4&&k<=8){if(k>4)continue;w=u*5+gap*4;fill=c[1]}
+    if((r===0&&k===0)||(r===rows-1&&k===cols-1))fill=c[2];
+    if(k===cols-1&&r>0&&r<rows-1)fill=c[1];
+    if(ly===0&&r===0&&k===cols-1){h+='<circle cx="'+(x+u/2)+'" cy="'+(y+u/2)+'" r="'+(u/2-2)+'" fill="'+c[2]+'"/><circle cx="'+(x+u/2)+'" cy="'+(y+u/2)+'" r="6" fill="#00000044"/>';continue}
+    h+='<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+u+'" rx="6" fill="'+fill+'"/><rect x="'+(x+4)+'" y="'+(y+3)+'" width="'+(w-8)+'" height="'+(u-10)+'" rx="4" fill="#ffffff14"/>';
+  }
+  const svg=document.getElementById('kb');svg.setAttribute('viewBox','0 0 '+W+' '+H);svg.innerHTML=h;
+  document.getElementById('glow').style.setProperty('--accent-glow',cws[cw].g);
+}
+function chipList(el,list,cur,on,extra){
+  el.innerHTML=list.map((o,i)=>'<button type="button" class="chip" aria-pressed="'+(i===cur)+'" data-i="'+i+'" '+(o.stock===0?'disabled':'')+'><b>'+(o.c?'<i style="background:'+o.c+'"></i>':'')+o.n+'</b><small>'+o.t+'</small>'+(o.stock===0?'<span class="stock">本批售罄</span>':o.stock&&o.stock<20?'<span class="stock">仅剩 '+o.stock+'</span>':'')+'</button>').join('');
+  el.querySelectorAll('.chip').forEach(b=>b.onclick=()=>on(+b.dataset.i));
+}
+function render(){
+  document.getElementById('cws').innerHTML=cws.map((o,i)=>'<button type="button" class="sw" aria-pressed="'+(i===cw)+'" data-i="'+i+'" aria-label="'+o.n+'"><i style="background:linear-gradient(135deg,'+o.c[0]+' 50%,'+o.c[2]+' 50%)"></i></button>').join('');
+  document.querySelectorAll('.sw').forEach(b=>b.onclick=()=>{cw=+b.dataset.i;render()});
+  document.getElementById('cwName').textContent=cws[cw].n;
+  chipList(document.getElementById('sws'),sws,sw,i=>{sw=i;render()});
+  chipList(document.getElementById('lays'),lays,ly,i=>{ly=i;render()});
+  const p=lays[ly].p,stock=sws[sw].stock,max=Math.min(2,stock);
+  q=Math.min(q,max);
+  document.getElementById('price').innerHTML='<small>¥</small>'+p;document.getElementById('was').textContent='¥'+(p+200).toLocaleString();
+  document.getElementById('layoutNote').textContent=lays[ly].t;document.getElementById('weight').textContent=lays[ly].w;
+  document.getElementById('q').textContent=q;document.getElementById('minus').disabled=q<=1;document.getElementById('plus').disabled=q>=max;
+  document.getElementById('total').textContent='¥'+(p*q).toLocaleString();
+  document.getElementById('left').textContent=stock<20?'此配置仅剩 '+stock+' 台 · 每人限购 2 台':'现货充足 · 每人限购 2 台';
+  const s=sws[sw].s;document.querySelectorAll('#sound i b').forEach((b,k)=>b.style.height=s[k]+'px');
+  document.getElementById('sound').firstChild.textContent=sw===2?'敲击声 · 清脆 ':sw===1?'敲击声 · 适中 ':'敲击声 · 安静 ';
+  kb();
+}
+function toast(t){const e=document.getElementById('toast');e.textContent=t;e.classList.add('show');clearTimeout(toast.h);toast.h=setTimeout(()=>e.classList.remove('show'),2400)}
+document.getElementById('minus').onclick=()=>{q--;render()};
+document.getElementById('plus').onclick=()=>{q++;render()};
+document.getElementById('addc').onclick=()=>{cart+=q;document.getElementById('cartN').textContent=cart;toast('已加入购物车：KAI 75 · '+cws[cw].n.split(' ')[0]+' · '+sws[sw].n+' · '+lays[ly].n+' × '+q)};
+document.getElementById('buy').onclick=e=>{const b=e.currentTarget;b.innerHTML='正在锁定库存…';setTimeout(()=>{b.innerHTML='已锁定 15 分钟 · 前往结算 →'},700)};
+document.querySelectorAll('.thumbs button').forEach(b=>b.onclick=()=>{document.querySelectorAll('.thumbs button').forEach(x=>x.setAttribute('aria-pressed',x===b));document.getElementById('kb').style.transform='perspective(900px) rotateX('+b.dataset.a+'deg)'});
+render();
+</script>
+</body>
+</html>

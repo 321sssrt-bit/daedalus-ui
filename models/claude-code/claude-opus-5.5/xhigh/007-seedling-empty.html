@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>苗圃 · 我的花园</title>
+<style>
+:root{
+  --page:#eef1e8;--surface:#fbfcf8;--ink:#2c3a2e;--muted:#6d7a6a;--leaf:#5f8a5b;--leaf-deep:#466b43;--clay:#c97b5a;--line:#dbe2d3;--sun:#f1d58a;
+  --sans:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  --hand:"Kaiti SC","STKaiti","KaiTi",serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--page);color:var(--ink);font:15px/1.65 var(--sans)}
+.app{display:grid;grid-template-columns:232px minmax(0,1fr);min-height:100%}
+.side{padding:24px 16px;border-right:1px solid var(--line);display:flex;flex-direction:column;gap:4px}
+.logo{display:flex;align-items:center;gap:10px;font:700 19px var(--sans);padding:0 10px 22px}
+.logo svg{width:28px;height:28px}
+.nav{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:12px;color:var(--muted);text-decoration:none;font-size:14px}
+.nav:hover{background:#e2e8da;color:var(--ink)}
+.nav.on{background:var(--surface);color:var(--ink);font-weight:600;box-shadow:0 1px 2px #2c3a2e14}
+.nav i{width:18px;height:18px;border-radius:6px;border:1.6px solid currentColor;flex:none}
+.nav .n{margin-left:auto;font-size:12px;color:var(--muted)}
+.side .tip{margin-top:auto;padding:14px;border-radius:14px;background:#e3eadb;font-size:12px;color:var(--muted)}
+.side .tip b{display:block;font:15px var(--hand);color:var(--ink);margin-bottom:2px}
+.main{display:grid;grid-template-rows:68px 1fr}
+.bar{display:flex;align-items:center;justify-content:space-between;padding:0 40px;border-bottom:1px solid var(--line)}
+.bar h1{font:600 18px var(--sans);margin:0}
+.bar .weather{display:flex;gap:16px;font-size:13px;color:var(--muted);align-items:center}
+.bar .weather b{color:var(--ink);font-weight:600}
+.avatar{width:34px;height:34px;border-radius:50%;background:var(--sun);display:grid;place-items:center;font-weight:700;color:var(--ink)}
+.content{padding:40px;overflow:auto}
+.empty{max-width:760px;margin:0 auto;text-align:center;padding-top:8px}
+.empty svg.art{width:260px;height:220px;display:block;margin:0 auto 8px}
+.empty .hello{font:22px var(--hand);color:var(--leaf);margin:0}
+.empty h2{font:700 34px/1.3 var(--sans);margin:4px 0 12px;letter-spacing:-.01em}
+.empty p.desc{color:var(--muted);margin:0 auto 30px;max-width:460px}
+.actions{display:flex;justify-content:center;gap:12px}
+.btn{height:50px;padding:0 26px;border-radius:999px;font:600 16px var(--sans);cursor:pointer;display:inline-flex;align-items:center;gap:8px;transition:background .15s,transform .12s,box-shadow .15s}
+.primary{background:var(--leaf);color:#fff;border:0;box-shadow:0 6px 16px #5f8a5b47}
+.primary:hover{background:var(--leaf-deep);transform:translateY(-1px)}
+.primary:active{transform:translateY(1px)}
+.secondary{background:transparent;color:var(--ink);border:1.5px solid #b9c5ae}
+.secondary:hover{background:var(--surface);border-color:var(--leaf)}
+.btn:focus-visible,.nav:focus-visible,.chip:focus-visible,.x:focus-visible{outline:3px solid var(--sun);outline-offset:3px}
+.how{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:48px;text-align:left}
+.how div{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:18px 18px 16px}
+.how b{display:block;font-size:14px;margin:8px 0 2px}
+.how span{font-size:13px;color:var(--muted)}
+.how em{font:normal 26px/1 var(--hand);color:var(--clay)}
+.garden{display:none;max-width:980px;margin:0 auto}
+.garden.show{display:block;animation:grow .5s ease-out}
+.banner{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-radius:14px;background:#fbf3dc;border:1px dashed #e0c26b;font-size:13px;margin-bottom:20px}
+.banner button{border:0;background:none;color:var(--leaf-deep);font:600 13px var(--sans);cursor:pointer;text-decoration:underline}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.plant{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:18px;display:flex;gap:14px;align-items:center}
+.plant .pot{width:64px;height:64px;border-radius:16px;background:#e3eadb;display:grid;place-items:center;flex:none}
+.plant h3{margin:0;font-size:16px}
+.plant small{color:var(--muted);display:block}
+.plant .due{margin-top:6px;display:inline-block;font-size:12px;padding:2px 10px;border-radius:999px;background:#e3eadb;color:var(--leaf-deep)}
+.plant .due.soon{background:#f6e2d6;color:#9a4f30}
+.add-more{border:1.5px dashed #b9c5ae;border-radius:20px;display:grid;place-items:center;color:var(--muted);cursor:pointer;background:none;font:600 14px var(--sans);min-height:100px}
+.add-more:hover{border-color:var(--leaf);color:var(--leaf-deep)}
+dialog{border:0;border-radius:24px;padding:0;width:440px;max-width:calc(100% - 32px);background:var(--surface);color:var(--ink);box-shadow:0 30px 80px #2c3a2e40}
+dialog::backdrop{background:#2c3a2e59}
+.dlg{padding:26px}
+.dlg h3{margin:0 0 4px;font-size:20px}
+.dlg p{margin:0 0 18px;color:var(--muted);font-size:13px}
+.dlg label{display:block;font-size:13px;font-weight:600;margin:14px 0 6px}
+.dlg input[type=text]{width:100%;height:44px;border-radius:12px;border:1.5px solid var(--line);background:#fff;padding:0 14px;font:15px var(--sans);outline:none;color:var(--ink)}
+.dlg input[type=text]:focus{border-color:var(--leaf);box-shadow:0 0 0 4px #5f8a5b26}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{height:34px;padding:0 14px;border-radius:999px;border:1.5px solid var(--line);background:#fff;font:14px var(--sans);cursor:pointer;color:var(--ink)}
+.chip[aria-pressed="true"]{background:var(--leaf);border-color:var(--leaf);color:#fff}
+.range{display:flex;align-items:center;gap:12px}
+.range input{flex:1;accent-color:var(--leaf)}
+.range b{min-width:64px;text-align:right;font-size:14px}
+.dlg .row{display:flex;justify-content:flex-end;gap:10px;margin-top:24px}
+.x{position:absolute;top:16px;right:16px;width:32px;height:32px;border-radius:50%;border:0;background:#eef1e8;cursor:pointer;font-size:16px;color:var(--muted)}
+.err{color:#b4532f;font-size:12px;margin-top:6px;display:none}
+.err.show{display:block}
+@keyframes grow{from{opacity:0;transform:translateY(10px) scale(.98)}to{opacity:1;transform:none}}
+@keyframes sway{0%,100%{transform:rotate(-2deg)}50%{transform:rotate(2deg)}}
+.leafs{transform-origin:130px 150px;animation:sway 5s ease-in-out infinite}
+@media (max-width:980px){.app{grid-template-columns:1fr}.side{display:none}.how,.grid{grid-template-columns:1fr 1fr}.bar{padding:0 24px}.content{padding:28px 24px}}
+@media (max-width:640px){.how,.grid{grid-template-columns:1fr}.actions{flex-direction:column}.bar .weather span{display:none}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="side">
+    <div class="logo"><svg viewBox="0 0 28 28"><circle cx="14" cy="14" r="14" fill="#5f8a5b"/><path d="M14 21V12M14 14c-4 0-6-2-6-6 4 0 6 2 6 6zm0 0c0-4 2-6 6-6 0 4-2 6-6 6z" stroke="#fbfcf8" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg>苗圃</div>
+    <a class="nav on" href="#garden"><i></i>我的花园<span class="n" id="count">0</span></a>
+    <a class="nav" href="#calendar"><i></i>浇水日历</a>
+    <a class="nav" href="#journal"><i></i>生长日记</a>
+    <a class="nav" href="#explore"><i></i>植物百科</a>
+    <a class="nav" href="#settings"><i></i>设置</a>
+    <div class="tip"><b>小提示</b>多数室内植物死于浇水太勤，而不是太少。</div>
+  </aside>
+  <section class="main">
+    <header class="bar">
+      <h1>我的花园</h1>
+      <div class="weather"><span>杭州 · 今日 <b>22°C</b> 湿度 <b>64%</b></span><span>适合给喜湿植物喷雾</span><div class="avatar">禾</div></div>
+    </header>
+    <div class="content">
+      <section class="empty" id="empty">
+        <svg class="art" viewBox="0 0 260 220" aria-hidden="true">
+          <ellipse cx="130" cy="200" rx="96" ry="10" fill="#dbe2d3"/>
+          <circle cx="206" cy="46" r="22" fill="#f1d58a"/>
+          <path d="M80 140h100l-12 58H92z" fill="#c97b5a"/>
+          <rect x="74" y="132" width="112" height="14" rx="3" fill="#b5694a"/>
+          <path d="M84 132c10-6 22-6 30 0s24 6 32 0 22-6 30 0" stroke="#8a5a3c" stroke-width="2" fill="none" stroke-dasharray="4 5"/>
+          <g class="leafs">
+            <path d="M130 132V86" stroke="#466b43" stroke-width="4" stroke-linecap="round"/>
+            <path d="M130 100c-26 2-38-12-40-34 24-2 38 10 40 34z" fill="#5f8a5b"/>
+            <path d="M130 92c22-4 36-20 34-42-24 2-36 18-34 42z" fill="#7ea676"/>
+            <path d="M130 100c-14-8-22-16-30-30M130 92c10-12 18-22 26-36" stroke="#3b5a39" stroke-width="1.4" fill="none" opacity=".5"/>
+          </g>
+          <path d="M40 70c6-4 12-4 16 2M216 108c4-6 10-6 14-2" stroke="#9fb394" stroke-width="2" fill="none" stroke-linecap="round"/>
+        </svg>
+        <p class="hello">早上好，阿禾</p>
+        <h2>花园还空着，先种下第一株吧</h2>
+        <p class="desc">记下你家里的植物，苗圃会按品种和天气提醒你浇水、施肥和换盆，还会把每一次新叶记进生长日记。</p>
+        <div class="actions">
+          <button class="btn primary" type="button" id="plantBtn">＋ 种下第一株</button>
+          <button class="btn secondary" type="button" id="demoBtn">先逛逛示例花园</button>
+        </div>
+        <div class="how">
+          <div><em>一</em><b>拍照或手动添加</b><span>说出名字就行，品种可以以后再补。</span></div>
+          <div><em>二</em><b>收到恰好的提醒</b><span>结合本地天气，阴雨天自动推迟浇水。</span></div>
+          <div><em>三</em><b>看着它长大</b><span>每月生成一张对比照，记录新叶与开花。</span></div>
+        </div>
+      </section>
+      <section class="garden" id="garden" aria-live="polite">
+        <div class="banner" id="banner" hidden><span>这是示例花园，不会保存。准备好了就清空，种下你自己的植物。</span><button type="button" id="clearDemo">清空示例</button></div>
+        <div class="grid" id="grid"></div>
+      </section>
+    </div>
+  </section>
+</div>
+<dialog id="dlg" aria-labelledby="dlgT">
+  <form class="dlg" method="dialog" id="dlgForm" novalidate>
+    <button class="x" type="button" aria-label="关闭" id="close">✕</button>
+    <h3 id="dlgT">种下一株新植物</h3>
+    <p>只需要一个名字，其余都可以以后再改。</p>
+    <label for="pname">它叫什么</label>
+    <input type="text" id="pname" placeholder="例如：客厅的绿萝" maxlength="16">
+    <div class="err" id="perr">给它起个名字吧</div>
+    <label>品种</label>
+    <div class="chips" id="kinds"><button type="button" class="chip" aria-pressed="true">绿萝</button><button type="button" class="chip" aria-pressed="false">龟背竹</button><button type="button" class="chip" aria-pressed="false">多肉</button><button type="button" class="chip" aria-pressed="false">香草</button><button type="button" class="chip" aria-pressed="false">还不确定</button></div>
+    <label for="water">浇水间隔</label>
+    <div class="range"><input type="range" id="water" min="2" max="21" value="5"><b id="wv">每 5 天</b></div>
+    <div class="row"><button class="btn secondary" type="button" id="cancel">取消</button><button class="btn primary" type="submit">种下</button></div>
+  </form>
+</dialog>
+<script>
+const $=s=>document.querySelector(s);
+const dlg=$('#dlg'),empty=$('#empty'),garden=$('#garden'),grid=$('#grid'),banner=$('#banner');
+let plants=[],demo=false,kind='绿萝';
+const icon=c=>'<svg width="40" height="40" viewBox="0 0 40 40"><path d="M12 26h16l-2 10H14z" fill="#c97b5a"/><path d="M20 26V14" stroke="#466b43" stroke-width="2.4" stroke-linecap="round"/><path d="M20 18c-7 0-10-4-10-10 7 0 10 4 10 10zm0-2c0-6 3-9 9-9 0 6-3 9-9 9z" fill="'+c+'"/></svg>';
+function render(){
+  $('#count').textContent=plants.length;
+  const has=plants.length>0;empty.style.display=has?'none':'';garden.classList.toggle('show',has);banner.hidden=!demo;
+  grid.innerHTML=plants.map(p=>'<article class="plant"><div class="pot">'+icon(p.c)+'</div><div><h3>'+p.n+'</h3><small>'+p.k+' · 每 '+p.w+' 天浇水</small><span class="due'+(p.d<=1?' soon':'')+'">'+(p.d<=1?'今天该浇水了':p.d+' 天后浇水')+'</span></div></article>').join('')+(demo?'':'<button class="add-more" type="button" id="more">＋ 再种一株</button>');
+  const m=$('#more');if(m)m.onclick=open;
+}
+function open(){$('#pname').value='';$('#perr').classList.remove('show');dlg.showModal();$('#pname').focus()}
+$('#plantBtn').onclick=open;
+$('#demoBtn').onclick=()=>{demo=true;plants=[{n:'客厅的龟背竹',k:'龟背竹',w:7,d:2,c:'#5f8a5b'},{n:'窗台迷迭香',k:'香草',w:3,d:1,c:'#7ea676'},{n:'书桌上的熊童子',k:'多肉',w:14,d:9,c:'#9fb394'},{n:'卫生间的绿萝',k:'绿萝',w:5,d:4,c:'#5f8a5b'},{n:'阳台三角梅',k:'还不确定',w:4,d:0,c:'#466b43'}];render()};
+$('#clearDemo').onclick=()=>{demo=false;plants=[];render()};
+$('#close').onclick=$('#cancel').onclick=()=>dlg.close();
+document.querySelectorAll('#kinds .chip').forEach(c=>c.onclick=()=>{kind=c.textContent;document.querySelectorAll('#kinds .chip').forEach(x=>x.setAttribute('aria-pressed',x===c))});
+$('#water').oninput=e=>$('#wv').textContent='每 '+e.target.value+' 天';
+$('#pname').oninput=()=>$('#perr').classList.remove('show');
+$('#dlgForm').addEventListener('submit',e=>{
+  const n=$('#pname').value.trim();if(!n){e.preventDefault();$('#perr').classList.add('show');$('#pname').focus();return}
+  if(demo){demo=false;plants=[]}
+  const w=+$('#water').value;plants.push({n,k:kind,w,d:w,c:'#5f8a5b'});render();
+});
+render();
+</script>
+</body>
+</html>

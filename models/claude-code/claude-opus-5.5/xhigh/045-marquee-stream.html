@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>放映厅 · 纪录片与播客</title>
+<style>
+:root{
+  --maroon:#3a0f14;--maroon-2:#4e161c;--maroon-3:#62202a;--ink:#1d0709;--cream:#f6ead2;--muted:#cdb59a;--dim:#8f7564;--gold:#c9a35c;--gold-hi:#e8c77e;--bulb:#ffd56b;--line:#6b2a32;--ok:#7fd1a5;--bad:#ff7b6b;
+  --deco:"Copperplate","Copperplate Gothic Light","Futura","PingFang SC",serif;
+  --sans:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  --num:"Avenir Next","Helvetica Neue",sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--maroon);color:var(--cream);font:14px/1.55 var(--sans);
+  background-image:repeating-linear-gradient(90deg,#ffffff05 0 2px,transparent 2px 56px)}
+[hidden]{display:none!important}
+button{font-family:inherit}
+.top{display:flex;align-items:center;gap:26px;height:64px;padding:0 36px;border-bottom:1px solid var(--line);background:var(--ink);position:sticky;top:0;z-index:20}
+.logo{border:0;background:none;color:var(--gold-hi);font:700 20px var(--deco);letter-spacing:.18em;cursor:pointer;display:flex;align-items:center;gap:10px}
+.logo i{width:26px;height:26px;border:2px solid var(--gold);transform:rotate(45deg);display:grid;place-items:center}
+.logo i::after{content:'';width:8px;height:8px;background:var(--bulb)}
+.top nav{display:flex;gap:20px}
+.top nav button{border:0;background:none;color:var(--muted);font:14px var(--sans);cursor:pointer;padding:6px 0;border-bottom:2px solid transparent}
+.top nav button[aria-pressed="true"]{color:var(--cream);border-color:var(--gold)}
+.top .me{margin-left:auto;display:flex;align-items:center;gap:10px;color:var(--muted);font-size:13px}
+.top .me span{width:32px;height:32px;border-radius:50%;background:var(--gold);color:var(--ink);display:grid;place-items:center;font-weight:700}
+main{max-width:1240px;margin:0 auto;padding:22px 36px 56px}
+.marquee{position:relative;border:2px solid var(--gold);border-radius:6px;padding:22px 28px;margin-bottom:24px;background:linear-gradient(180deg,var(--maroon-3),var(--maroon-2));display:grid;grid-template-columns:1fr 300px;gap:24px;align-items:center;overflow:hidden}
+.marquee::before{content:'';position:absolute;inset:6px;border:1px solid #c9a35c66;border-radius:3px;pointer-events:none}
+.bulbs{position:absolute;left:0;right:0;height:8px;display:flex;justify-content:space-around;padding:0 10px}
+.bulbs.t{top:-4px}.bulbs.b{bottom:-4px}
+.bulbs i{width:8px;height:8px;border-radius:50%;background:var(--bulb);box-shadow:0 0 8px var(--bulb);animation:bulb 1.2s steps(1) infinite}
+.bulbs i:nth-child(even){animation-delay:.6s}
+.marquee small{font:700 12px var(--deco);letter-spacing:.3em;color:var(--gold-hi)}
+.marquee h1{margin:6px 0 8px;font:700 38px/1.15 var(--sans);letter-spacing:.02em}
+.marquee p{margin:0 0 16px;color:var(--muted);max-width:520px}
+.marquee .poster{height:180px;border-radius:4px;overflow:hidden;border:1px solid var(--gold)}
+.marquee .poster svg{width:100%;height:100%;display:block}
+.btn{height:44px;padding:0 20px;border-radius:4px;font:700 14px var(--sans);letter-spacing:.06em;cursor:pointer;border:1.5px solid var(--gold);background:transparent;color:var(--gold-hi);display:inline-flex;align-items:center;gap:8px}
+.btn:hover{background:#c9a35c22}
+.btn.pri{background:var(--bulb);border-color:var(--bulb);color:var(--ink)}
+.btn.pri:hover{background:var(--gold-hi)}
+.btn.sm{height:32px;padding:0 12px;font-size:12px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.sec{display:flex;align-items:baseline;justify-content:space-between;margin:22px 0 12px;border-bottom:1px solid var(--line);padding-bottom:8px}
+.sec h2{margin:0;font:700 15px var(--deco);letter-spacing:.24em;color:var(--gold-hi)}
+.sec span{font-size:12px;color:var(--dim)}
+.cont{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.cc{display:grid;grid-template-columns:120px 1fr;gap:12px;align-items:center;background:var(--maroon-2);border:1px solid var(--line);border-radius:6px;padding:10px;cursor:pointer;text-align:left;color:var(--cream);font:14px var(--sans)}
+.cc:hover{border-color:var(--gold)}
+.cc .th{height:68px;border-radius:3px;overflow:hidden}
+.cc .th svg{width:100%;height:100%;display:block}
+.cc b{display:block;font-size:14px}
+.cc small{color:var(--muted);font-size:12px}
+.cc .pb{height:4px;background:var(--line);border-radius:2px;margin-top:6px;overflow:hidden}
+.cc .pb i{display:block;height:100%;background:var(--bulb)}
+.grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:16px}
+.show{background:none;border:0;padding:0;text-align:left;cursor:pointer;color:var(--cream);font:14px var(--sans)}
+.show .po{aspect-ratio:2/3;border-radius:4px;overflow:hidden;border:1px solid var(--line);position:relative;transition:transform .2s,border-color .2s}
+.show:hover .po{transform:translateY(-4px);border-color:var(--gold)}
+.show .po svg{width:100%;height:100%;display:block}
+.show .po .kind{position:absolute;left:8px;top:8px;font:700 10px var(--deco);letter-spacing:.14em;background:var(--ink);color:var(--gold-hi);padding:2px 6px}
+.show b{display:block;margin-top:8px;font-size:14px}
+.show small{color:var(--muted);font-size:12px}
+.player{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:22px;align-items:start}
+.screen{position:relative;aspect-ratio:16/9;border:2px solid var(--gold);border-radius:6px;overflow:hidden;background:#000}
+.screen svg.art{width:100%;height:100%;display:block;transition:filter .3s}
+.screen.paused svg.art{filter:brightness(.55)}
+.screen .bigplay{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:84px;height:84px;border-radius:50%;border:2px solid var(--bulb);background:#1d0709b3;color:var(--bulb);font-size:30px;cursor:pointer;display:grid;place-items:center}
+.screen .sub{position:absolute;left:0;right:0;bottom:16px;text-align:center;font-size:16px;text-shadow:0 2px 6px #000}
+.screen .sub span{background:#0009;padding:3px 10px;border-radius:3px}
+.net{position:absolute;inset:0;background:#1d0709d9;display:grid;place-items:center;text-align:center;padding:20px;animation:fade .25s}
+.net .box{max-width:380px}
+.net .ic{width:58px;height:58px;border-radius:50%;border:2px solid var(--bad);color:var(--bad);display:grid;place-items:center;margin:0 auto 12px;font-size:24px}
+.net h3{margin:0 0 6px;font:700 20px var(--sans)}
+.net p{margin:0 0 14px;color:var(--muted);font-size:13px}
+.net p b{color:var(--bulb);font-family:var(--num)}
+.net .spin{width:22px;height:22px;border:3px solid #ffd56b44;border-top-color:var(--bulb);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 10px}
+.controls{margin-top:12px;background:var(--maroon-2);border:1px solid var(--line);border-radius:6px;padding:12px 14px}
+.seek{display:grid;grid-template-columns:52px 1fr 52px;gap:10px;align-items:center;font:12px var(--num);color:var(--muted)}
+.seek input{width:100%;appearance:none;-webkit-appearance:none;height:5px;border-radius:3px;background:linear-gradient(90deg,var(--bulb) var(--p,0%),var(--line) var(--p,0%));outline:none;cursor:pointer;margin:0}
+.seek input::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--cream);border:3px solid var(--bulb)}
+.seek input::-moz-range-thumb{width:12px;height:12px;border-radius:50%;background:var(--cream);border:3px solid var(--bulb)}
+.seek input:disabled{cursor:not-allowed;opacity:.6}
+.crow{display:flex;align-items:center;gap:8px;margin-top:10px}
+.cb{height:38px;min-width:38px;border-radius:4px;border:1px solid var(--line);background:var(--maroon);color:var(--cream);font:14px var(--sans);cursor:pointer;padding:0 10px}
+.cb:hover:not(:disabled){border-color:var(--gold)}
+.cb.play{background:var(--bulb);color:var(--ink);border-color:var(--bulb);min-width:54px;font-size:16px}
+.cb:disabled{opacity:.4;cursor:not-allowed}
+.cb[aria-pressed="true"]{border-color:var(--gold);color:var(--gold-hi)}
+.crow .sp{flex:1}
+.cb.sim{border-style:dashed;border-color:var(--bad);color:var(--bad)}
+.saved{font-size:12px;color:var(--dim);margin-top:8px;display:flex;align-items:center;gap:6px}
+.saved i{width:7px;height:7px;border-radius:50%;background:var(--ok)}
+.saved.warn i{background:var(--bad)}
+.meta h1{margin:14px 0 4px;font:700 24px var(--sans)}
+.meta p{margin:0;color:var(--muted);max-width:720px}
+.queue{background:var(--maroon-2);border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.queue header{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid var(--line)}
+.queue h2{margin:0;font:700 13px var(--deco);letter-spacing:.24em;color:var(--gold-hi)}
+.queue header span{font-size:12px;color:var(--dim)}
+.qi{display:grid;grid-template-columns:22px 64px 1fr auto;gap:10px;align-items:center;padding:10px 12px;border-bottom:1px solid #6b2a3266}
+.qi:last-child{border-bottom:0}
+.qi.now{background:#ffd56b14}
+.qi .n{font:700 12px var(--num);color:var(--dim);text-align:center}
+.qi.now .n{color:var(--bulb)}
+.qi .th{height:40px;border-radius:3px;overflow:hidden}
+.qi .th svg{width:100%;height:100%;display:block}
+.qi b{display:block;font-size:13px;line-height:1.35}
+.qi small{color:var(--muted);font-size:11px}
+.qi .ops{display:flex;gap:2px}
+.qi .ops button{width:26px;height:26px;border:0;background:none;color:var(--muted);cursor:pointer;border-radius:3px;font-size:12px}
+.qi .ops button:hover:not(:disabled){background:#ffffff14;color:var(--cream)}
+.qi .ops button:disabled{opacity:.3;cursor:default}
+.qadd{padding:10px 12px;border-top:1px solid var(--line);display:flex;gap:6px;flex-wrap:wrap}
+.qadd button{border:1px dashed var(--line);background:none;color:var(--muted);border-radius:999px;padding:4px 10px;font:12px var(--sans);cursor:pointer}
+.qadd button:hover{border-color:var(--gold);color:var(--gold-hi)}
+.logo:focus-visible,.top nav button:focus-visible,.btn:focus-visible,.cc:focus-visible,.show:focus-visible,.cb:focus-visible,.bigplay:focus-visible,.qi button:focus-visible,.qadd button:focus-visible,.seek input:focus-visible{outline:2px solid var(--bulb);outline-offset:2px}
+@keyframes bulb{50%{opacity:.35;box-shadow:none}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes fade{from{opacity:0}}
+@media (max-width:1100px){.grid{grid-template-columns:repeat(4,minmax(0,1fr))}.player{grid-template-columns:1fr}.cont{grid-template-columns:1fr 1fr}}
+@media (max-width:760px){.marquee{grid-template-columns:1fr}.marquee .poster{display:none}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.cont{grid-template-columns:1fr}.top nav{display:none}main{padding:18px 16px 40px}.top{padding:0 16px}.crow{flex-wrap:wrap}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<header class="top">
+  <button class="logo" type="button" id="home"><i></i>放映厅</button>
+  <nav aria-label="频道"><button type="button" aria-pressed="true">今晚放映</button><button type="button" aria-pressed="false">纪录片</button><button type="button" aria-pressed="false">播客</button><button type="button" aria-pressed="false">我的片单</button></nav>
+  <div class="me">会员至 2027.03 <span>宁</span></div>
+</header>
+<main id="app" aria-live="polite"></main>
+<script>
+const PAL=[['#62202a','#c9a35c','#ffd56b'],['#1f3a4a','#7fb3c8','#f6ead2'],['#2f2a1f','#c98b3c','#f2d38a'],['#203226','#7fb08a','#e9e2c8'],['#3b2340','#c48bd0','#f2e1f5'],['#4a1f1a','#e2734f','#ffd2a6'],['#1d2a3b','#8fa7d6','#e7ecf7']];
+function art(k,w,h){const p=PAL[k%PAL.length];w=w||320;h=h||180;return '<svg class="art" viewBox="0 0 320 180" preserveAspectRatio="xMidYMid slice"><rect width="320" height="180" fill="'+p[0]+'"/><circle cx="'+(220+k*7%60)+'" cy="64" r="38" fill="'+p[2]+'" opacity=".9"/><path d="M0 150 L'+(60+k*9%40)+' 90 L140 140 L210 70 L320 150 V180 H0Z" fill="'+p[1]+'"/><path d="M0 165 Q160 130 320 165 V180 H0Z" fill="#00000055"/><g stroke="'+p[2]+'" stroke-width="1" opacity=".35"><path d="M20 20h40M20 28h28"/></g></svg>'}
+function poster(k,title){const p=PAL[k%PAL.length];return '<svg viewBox="0 0 200 300" preserveAspectRatio="xMidYMid slice"><rect width="200" height="300" fill="'+p[0]+'"/><rect x="12" y="12" width="176" height="276" fill="none" stroke="'+p[1]+'" stroke-width="1.5"/><path d="M12 60h176M12 240h176" stroke="'+p[1]+'" stroke-width="1"/><circle cx="100" cy="140" r="54" fill="'+p[2]+'" opacity=".85"/><path d="M30 220 L80 150 L110 190 L140 140 L170 220Z" fill="'+p[1]+'"/><text x="100" y="270" text-anchor="middle" font-size="15" fill="'+p[2]+'" font-family="PingFang SC,sans-serif" font-weight="700">'+title+'</text><text x="100" y="42" text-anchor="middle" font-size="10" letter-spacing="4" fill="'+p[1]+'" font-family="Copperplate,Futura,serif">FANGYING</text></svg>'}
+const shows=[
+ {t:'长江之源',k:0,kind:'纪录片',ep:'第 1 集 · 冰川的呼吸',dur:52*60,d:'跟随科考队上溯格拉丹东雪山，记录一滴融水如何成为一条大河的起点。',subs:['冰川每年退缩约 7 米','科考队在海拔 5,400 米扎营','这滴水，要走 6,300 公里才能入海']},
+ {t:'深夜电台',k:1,kind:'播客',ep:'EP.42 · 失眠者的城市地图',dur:38*60,d:'主播和三位夜班工作者聊城市在凌晨两点的样子。',subs:['凌晨两点，城市只剩下便利店和出租车','夜班护士说她最喜欢五点的天色']},
+ {t:'手艺人',k:2,kind:'纪录片',ep:'第 3 集 · 竹编的温度',dur:45*60,d:'浙西山村里最后的竹编匠人，和他想学手艺的城市女儿。',subs:['一只竹篮要劈 200 根篾片','"手上有了，心里才有"']},
+ {t:'菜市场经济学',k:3,kind:'播客',ep:'EP.17 · 一棵白菜的旅程',dur:41*60,d:'从山东寿光到你家冰箱，一棵白菜经过了几双手？',subs:['批发市场凌晨三点最热闹','每一层中间商赚走几毛钱']},
+ {t:'星空下的牧场',k:4,kind:'纪录片',ep:'第 2 集 · 转场',dur:49*60,d:'哈萨克牧民一家的秋季转场，三天两夜，一千只羊。',subs:['转场要翻过两座山口','夜里在毡房外数星星']},
+ {t:'城市考古',k:5,kind:'纪录片',ep:'第 1 集 · 地铁下的宋城',dur:47*60,d:'修地铁时挖出了一条南宋御街，考古队只有 90 天。',subs:['距地表 3.2 米的砖砌路面','90 天后，这里将被回填']},
+ {t:'慢读书',k:6,kind:'播客',ep:'EP.88 ·《额尔古纳河右岸》',dur:56*60,d:'两位主播共读迟子建，聊森林里的告别与生长。',subs:['"我是雨和雪的老熟人"','这本书我们读了三个晚上']}
+];
+const S={v:'home',cur:0,pos:{},playing:false,queue:[2,4,6],net:'ok',speed:1,savedAt:null,timer:null,saveTimer:null};
+S.pos[1]=14*60+22;S.pos[3]=31*60+5;
+const $=s=>document.getElementById(s),app=$('app');
+const mmss=s=>{s=Math.floor(s);const h=Math.floor(s/3600),m=Math.floor(s%3600/60),x=s%60;return (h?h+':'+String(m).padStart(2,'0'):m)+':'+String(x).padStart(2,'0')};
+function vHome(){
+  const cont=Object.keys(S.pos).map(Number).filter(i=>S.pos[i]>0);
+  return '<section class="marquee"><div class="bulbs t" aria-hidden="true">'+'<i></i>'.repeat(24)+'</div><div class="bulbs b" aria-hidden="true">'+'<i></i>'.repeat(24)+'</div>'+
+   '<div><small>NOW SHOWING · 今晚放映</small><h1>长江之源</h1><p>'+shows[0].d+' 4K 修复版，今晚 20:00 首映。</p><button class="btn pri" type="button" data-play="0">▶ 开始观看</button> <button class="btn" type="button" data-addq="0">＋ 加入队列</button></div><div class="poster">'+art(0)+'</div></section>'+
+   (cont.length?'<div class="sec"><h2>继续观看</h2><span>播放进度已自动保存</span></div><div class="cont">'+cont.map(i=>{const s=shows[i];return '<button class="cc" type="button" data-play="'+i+'"><div class="th">'+art(s.k)+'</div><span><b>'+s.t+'</b><small>'+s.ep+' · 看到 '+mmss(S.pos[i])+'</small><div class="pb"><i style="width:'+(S.pos[i]/s.dur*100)+'%"></i></div></span></button>'}).join('')+'</div>':'')+
+   '<div class="sec"><h2>本周片单</h2><span>'+shows.length+' 部</span></div><div class="grid">'+shows.map((s,i)=>'<button class="show" type="button" data-play="'+i+'"><div class="po">'+poster(s.k,s.t)+'<span class="kind">'+s.kind+'</span></div><b>'+s.t+'</b><small>'+s.ep+'</small></button>').join('')+'</div>';
+}
+function vPlayer(){
+  const s=shows[S.cur],p=S.pos[S.cur]||0,sub=s.subs[Math.floor(p/20)%s.subs.length];
+  return '<div class="player"><div><div class="screen'+(S.playing?'':' paused')+'" id="screen">'+art(s.k)+
+   (S.playing||S.net!=='ok'?'':'<button class="bigplay" type="button" id="big" aria-label="播放">▶</button>')+
+   (S.playing?'<div class="sub"><span>'+sub+'</span></div>':'')+
+   (S.net==='down'?'<div class="net" role="alert"><div class="box"><div class="ic">⚡</div><h3>网络连接中断</h3><p>播放已在 <b>'+mmss(p)+'</b> 暂停，进度已保留。恢复网络后会从这里继续。</p><button class="btn pri" type="button" id="reconnect">重新连接</button></div></div>':'')+
+   (S.net==='retry'?'<div class="net" role="status"><div class="box"><div class="spin"></div><h3>正在重新连接…</h3><p>将从 <b>'+mmss(p)+'</b> 继续播放</p></div></div>':'')+'</div>'+
+   '<div class="controls"><div class="seek"><span id="cur">'+mmss(p)+'</span><input type="range" id="seek" min="0" max="'+s.dur+'" value="'+p+'" aria-label="播放进度" '+(S.net!=='ok'?'disabled':'')+' style="--p:'+(p/s.dur*100)+'%"><span>'+mmss(s.dur)+'</span></div>'+
+   '<div class="crow"><button class="cb" type="button" id="back15" aria-label="后退 15 秒" '+(S.net!=='ok'?'disabled':'')+'>↺15</button><button class="cb play" type="button" id="play" aria-label="'+(S.playing?'暂停':'播放')+'" '+(S.net!=='ok'?'disabled':'')+'>'+(S.playing?'❚❚':'▶')+'</button><button class="cb" type="button" id="fwd30" aria-label="快进 30 秒" '+(S.net!=='ok'?'disabled':'')+'>30↻</button><button class="cb" type="button" id="next" '+(S.queue.length&&S.net==='ok'?'':'disabled')+'>下一个 ⏭</button>'+
+   '<button class="cb" type="button" id="speed" aria-label="播放速度">'+S.speed+'×</button><span class="sp"></span><button class="cb sim" type="button" id="sim" '+(S.net!=='ok'||!S.playing?'disabled':'')+' title="播放中可用">⚡ 演示：模拟网络中断</button></div>'+
+   '<div class="saved'+(S.net!=='ok'?' warn':'')+'" id="saved"><i></i>'+(S.net!=='ok'?'离线 · 进度已保留在 '+mmss(p):S.savedAt!==null?'播放状态已保存：'+s.t+' · '+mmss(S.savedAt):'播放状态会每 5 秒自动保存')+'</div></div>'+
+   '<div class="meta"><h1>'+s.t+' · '+s.ep+'</h1><p>'+s.d+'</p></div></div>'+
+   '<aside class="queue" aria-label="播放队列"><header><h2>接下来</h2><span>'+S.queue.length+' 个</span></header>'+
+   '<div class="qi now"><span class="n">▶</span><div class="th">'+art(s.k)+'</div><span><b>'+s.t+'</b><small>正在播放 · '+mmss(p)+' / '+mmss(s.dur)+'</small></span><span></span></div>'+
+   S.queue.map((qi,j)=>{const q=shows[qi];return '<div class="qi"><span class="n">'+(j+1)+'</span><div class="th">'+art(q.k)+'</div><span><b>'+q.t+'</b><small>'+q.ep+' · '+mmss(q.dur)+'</small></span><span class="ops"><button type="button" data-up="'+j+'" aria-label="上移 '+q.t+'" '+(j===0?'disabled':'')+'>▲</button><button type="button" data-down="'+j+'" aria-label="下移 '+q.t+'" '+(j===S.queue.length-1?'disabled':'')+'>▼</button><button type="button" data-del="'+j+'" aria-label="移出 '+q.t+'">✕</button></span></div>'}).join('')+
+   '<div class="qadd"><span style="font-size:12px;color:#8f7564;width:100%">加入队列：</span>'+shows.map((q,i)=>i!==S.cur&&!S.queue.includes(i)?'<button type="button" data-addq="'+i+'">＋ '+q.t+'</button>':'').join('')+'</div></aside></div>';
+}
+function render(){app.innerHTML=S.v==='home'?vHome():vPlayer();bind()}
+function soft(){if(S.v!=='player')return;const s=shows[S.cur],p=S.pos[S.cur]||0,i=$('seek');if(!i)return;
+  i.value=p;i.style.setProperty('--p',(p/s.dur*100)+'%');$('cur').textContent=mmss(p);
+  const sub=document.querySelector('.sub span');if(sub)sub.textContent=s.subs[Math.floor(p/20)%s.subs.length];
+  const qs=document.querySelector('.qi.now small');if(qs)qs.textContent='正在播放 · '+mmss(p)+' / '+mmss(s.dur)}
+function save(){S.savedAt=S.pos[S.cur]||0;const el=$('saved');if(el&&S.net==='ok')el.innerHTML='<i></i>播放状态已保存：'+shows[S.cur].t+' · '+mmss(S.savedAt)}
+function setPlay(on){S.playing=on;clearInterval(S.timer);clearInterval(S.saveTimer);
+  if(on){S.timer=setInterval(()=>{S.pos[S.cur]=Math.min(shows[S.cur].dur,(S.pos[S.cur]||0)+S.speed);if(S.pos[S.cur]>=shows[S.cur].dur){playNext();return}soft()},1000);S.saveTimer=setInterval(save,5000)}
+  else save();render()}
+function playNext(){if(!S.queue.length){setPlay(false);return}S.pos[S.cur]=0;S.cur=S.queue.shift();S.pos[S.cur]=S.pos[S.cur]||0;setPlay(true)}
+function open(i){S.cur=i;S.v='player';S.pos[i]=S.pos[i]||0;S.queue=S.queue.filter(q=>q!==i);S.net='ok';setPlay(true);window.scrollTo({top:0})}
+function bind(){
+  app.querySelectorAll('[data-play]').forEach(b=>b.onclick=()=>open(+b.dataset.play));
+  app.querySelectorAll('[data-addq]').forEach(b=>b.onclick=()=>{const i=+b.dataset.addq;if(!S.queue.includes(i)&&!(S.v==='player'&&i===S.cur))S.queue.push(i);if(S.v==='home'){b.textContent='✓ 已加入队列';b.disabled=true}else render()});
+  const pl=$('play');if(pl)pl.onclick=()=>setPlay(!S.playing);
+  const big=$('big');if(big)big.onclick=()=>setPlay(true);
+  const sk=$('seek');if(sk)sk.oninput=()=>{S.pos[S.cur]=+sk.value;soft()};if(sk)sk.onchange=save;
+  const b15=$('back15');if(b15)b15.onclick=()=>{S.pos[S.cur]=Math.max(0,(S.pos[S.cur]||0)-15);soft();save()};
+  const f30=$('fwd30');if(f30)f30.onclick=()=>{S.pos[S.cur]=Math.min(shows[S.cur].dur-1,(S.pos[S.cur]||0)+30);soft();save()};
+  const nx=$('next');if(nx)nx.onclick=playNext;
+  const sp=$('speed');if(sp)sp.onclick=()=>{S.speed=S.speed===1?1.5:S.speed===1.5?2:1;sp.textContent=S.speed+'×'};
+  const sim=$('sim');if(sim)sim.onclick=()=>{S.net='down';S.playing=false;clearInterval(S.timer);clearInterval(S.saveTimer);S.savedAt=S.pos[S.cur];render();const r=$('reconnect');r&&r.focus()};
+  const rc=$('reconnect');if(rc)rc.onclick=()=>{S.net='retry';render();setTimeout(()=>{S.net='ok';setPlay(true)},1200)};
+  app.querySelectorAll('[data-up]').forEach(b=>b.onclick=()=>{const j=+b.dataset.up;[S.queue[j-1],S.queue[j]]=[S.queue[j],S.queue[j-1]];render()});
+  app.querySelectorAll('[data-down]').forEach(b=>b.onclick=()=>{const j=+b.dataset.down;[S.queue[j+1],S.queue[j]]=[S.queue[j],S.queue[j+1]];render()});
+  app.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{S.queue.splice(+b.dataset.del,1);render()});
+}
+$('home').onclick=()=>{if(S.playing){S.playing=false;clearInterval(S.timer);clearInterval(S.saveTimer);save()}S.v='home';S.net='ok';render()};
+document.addEventListener('keydown',e=>{if(S.v==='player'&&e.code==='Space'&&!['BUTTON','INPUT'].includes(e.target.tagName)&&S.net==='ok'){e.preventDefault();setPlay(!S.playing)}});
+render();
+</script>
+</body>
+</html>

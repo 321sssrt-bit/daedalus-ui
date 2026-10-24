@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>驿站调度台 · 今日总览</title>
+<style>
+:root{
+  --page:#0a1020;--panel:#0f1830;--panel-2:#13203d;--line:#1d2b4a;--text:#dbe4f5;--muted:#7686a6;--dim:#4a5a7c;
+  --cyan:#38d6ff;--green:#36d399;--amber:#f6b93b;--red:#ff5c6c;--violet:#9c8cff;
+  --mono:"SF Mono","Menlo","Consolas",monospace;
+  --sans:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--page);color:var(--text);font:13px/1.45 var(--sans);overflow:hidden}
+.app{display:grid;grid-template-columns:64px minmax(0,1fr);height:100vh;min-height:640px}
+.rail{background:#070c18;border-right:1px solid var(--line);display:flex;flex-direction:column;align-items:center;padding:14px 0;gap:6px}
+.rail .logo{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,var(--cyan),#2a6bff);display:grid;place-items:center;font:700 15px var(--sans);color:#06101f;margin-bottom:14px}
+.rail button{width:44px;height:44px;border-radius:10px;border:0;background:none;color:var(--muted);cursor:pointer;display:grid;place-items:center;position:relative}
+.rail button svg{width:20px;height:20px}
+.rail button:hover{background:#ffffff0d;color:var(--text)}
+.rail button[aria-current="page"]{background:#38d6ff1a;color:var(--cyan)}
+.rail button[aria-current="page"]::before{content:'';position:absolute;left:-10px;top:10px;bottom:10px;width:3px;border-radius:2px;background:var(--cyan)}
+.rail button:focus-visible,.seg button:focus-visible,.row:focus-visible,.tb button:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+.rail .tip{position:absolute;left:54px;background:#000;color:#fff;font-size:12px;padding:3px 8px;border-radius:5px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .12s;z-index:5}
+.rail button:hover .tip{opacity:1}
+.main{display:grid;grid-template-rows:52px minmax(0,1fr);min-width:0}
+.tb{display:flex;align-items:center;gap:16px;padding:0 20px;border-bottom:1px solid var(--line);background:var(--panel)}
+.tb h1{font:600 15px var(--sans);margin:0;white-space:nowrap}
+.tb .crumb{color:var(--muted);font-size:12px;white-space:nowrap}
+.tb .clock{margin-left:auto;font:500 13px var(--mono);color:var(--text);white-space:nowrap}
+.tb .live{display:flex;align-items:center;gap:6px;color:var(--green);font-size:12px;white-space:nowrap}
+.tb .live i{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 1.6s infinite}
+.tb button{height:30px;padding:0 12px;border-radius:7px;border:1px solid var(--line);background:var(--panel-2);color:var(--text);font:12px var(--sans);cursor:pointer;white-space:nowrap}
+.tb button:hover{border-color:var(--cyan)}
+.grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));grid-template-rows:auto minmax(0,1fr);gap:12px;padding:14px 16px 16px;min-height:0;overflow:auto}
+.kpi{grid-column:span 2;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.kpi .k{color:var(--muted);font-size:12px;display:flex;justify-content:space-between}
+.kpi .v{font:600 26px/1.15 var(--mono);letter-spacing:-.02em}
+.kpi .d{font:11px var(--mono);color:var(--muted)}
+.kpi .d.up{color:var(--green)}.kpi .d.dn{color:var(--red)}
+.kpi svg{width:100%;height:26px;margin-top:4px}
+.box{background:var(--panel);border:1px solid var(--line);border-radius:10px;min-height:0;display:flex;flex-direction:column;min-width:0}
+.box>header{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--line)}
+.box>header h2{font:600 13px var(--sans);margin:0}
+.box>header .count{font:11px var(--mono);color:var(--muted);background:var(--panel-2);padding:1px 7px;border-radius:999px}
+.seg{margin-left:auto;display:flex;background:var(--page);border-radius:7px;padding:2px;border:1px solid var(--line)}
+.seg button{border:0;background:none;color:var(--muted);font:12px var(--sans);padding:3px 10px;border-radius:5px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--panel-2);color:var(--text)}
+.queue{grid-column:span 7}
+.tbl{overflow:auto;min-height:0;flex:1}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{position:sticky;top:0;background:var(--panel);text-align:left;font-weight:500;color:var(--dim);padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:7px 10px;border-bottom:1px solid #16223f;white-space:nowrap}
+td.mono{font-family:var(--mono)}
+tr.row{cursor:pointer}
+tr.row:hover td{background:#ffffff06}
+tr.row[aria-selected="true"] td{background:#38d6ff12}
+tr.row[aria-selected="true"] td:first-child{box-shadow:inset 3px 0 0 var(--cyan)}
+.tag{display:inline-flex;align-items:center;gap:5px;padding:1px 8px;border-radius:999px;font-size:11px}
+.tag::before{content:'';width:6px;height:6px;border-radius:50%;background:currentColor}
+.t-ok{color:var(--green);background:#36d39914}.t-run{color:var(--cyan);background:#38d6ff14}.t-warn{color:var(--amber);background:#f6b93b14}.t-bad{color:var(--red);background:#ff5c6c14}
+.eta{display:flex;align-items:center;gap:8px}
+.eta .bar{width:64px;height:4px;border-radius:2px;background:var(--line);overflow:hidden}
+.eta .bar i{display:block;height:100%;background:var(--cyan)}
+.side{grid-column:span 5;display:grid;grid-template-rows:minmax(0,1.1fr) minmax(0,1fr);gap:12px;min-height:0}
+.map{position:relative;flex:1;min-height:0;overflow:hidden}
+.map svg{width:100%;height:100%;display:block}
+.detail{padding:12px 14px;display:grid;grid-template-columns:1fr 1fr;gap:8px 16px;font-size:12px;overflow:auto}
+.detail dt{color:var(--dim)}
+.detail dd{margin:0;font-family:var(--mono);color:var(--text)}
+.detail .wide{grid-column:1/-1}
+.timeline{grid-column:1/-1;margin:4px 0 0;padding:0;list-style:none;display:grid;gap:6px}
+.timeline li{display:grid;grid-template-columns:44px 10px 1fr;gap:8px;align-items:center;color:var(--muted)}
+.timeline li i{width:8px;height:8px;border-radius:50%;border:2px solid var(--dim)}
+.timeline li.done i{background:var(--cyan);border-color:var(--cyan)}
+.timeline li.done{color:var(--text)}
+.timeline b{font:11px var(--mono);color:var(--dim)}
+.alert{margin:0 14px 12px;padding:8px 10px;border-radius:8px;background:#ff5c6c14;border:1px solid #ff5c6c40;color:#ffb3bb;font-size:12px;display:none}
+.alert.show{display:block}
+@keyframes pulse{50%{opacity:.35}}
+@keyframes dash{to{stroke-dashoffset:-20}}
+.route{stroke-dasharray:4 6;animation:dash 1.2s linear infinite}
+@media (max-width:1180px){.kpi{grid-column:span 4}.queue,.side{grid-column:1/-1}.side{grid-template-rows:280px auto}body{overflow:auto}.app{height:auto}.grid{overflow:visible}.tbl{max-height:420px}}
+@media (max-width:760px){.kpi{grid-column:span 6}.tb .crumb,.tb .live{display:none}.app{grid-template-columns:1fr}.rail{display:none}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="app">
+  <nav class="rail" aria-label="主导航">
+    <div class="logo">驿</div>
+    <button aria-current="page" aria-label="总览"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="2.5" y="2.5" width="6" height="6" rx="1.5"/><rect x="11.5" y="2.5" width="6" height="6" rx="1.5"/><rect x="2.5" y="11.5" width="6" height="6" rx="1.5"/><rect x="11.5" y="11.5" width="6" height="6" rx="1.5"/></svg><span class="tip">总览</span></button>
+    <button aria-label="运单"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 5h14M3 10h14M3 15h9"/></svg><span class="tip">运单</span></button>
+    <button aria-label="车辆"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M2 13V6h10v7M12 9h3l3 3v1H2"/><circle cx="6" cy="15" r="1.6"/><circle cx="14" cy="15" r="1.6"/></svg><span class="tip">车辆</span></button>
+    <button aria-label="站点"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M10 18s6-5.2 6-10a6 6 0 1 0-12 0c0 4.8 6 10 6 10z"/><circle cx="10" cy="8" r="2"/></svg><span class="tip">站点</span></button>
+    <button aria-label="异常"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M10 3l8 14H2z"/><path d="M10 8v4M10 14.5v.5"/></svg><span class="tip">异常工单</span></button>
+    <button aria-label="报表"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 17V9M8 17V4M13 17v-6M18 17V7"/></svg><span class="tip">报表</span></button>
+  </nav>
+  <section class="main">
+    <header class="tb">
+      <h1>今日总览</h1><span class="crumb">华东干线 · 杭州转运中心</span>
+      <span class="live"><i></i>实时同步</span>
+      <span class="clock" id="clock">10/23 周五 14:32:08</span>
+      <button type="button" id="shift">交接班报告</button>
+    </header>
+    <div class="grid">
+      <div class="kpi"><span class="k">在途车辆<span>辆</span></span><span class="v">186</span><span class="d up">▲ 12 较昨日同时</span><svg viewBox="0 0 120 26" preserveAspectRatio="none"><polyline points="0,20 15,18 30,19 45,14 60,15 75,10 90,11 105,7 120,5" fill="none" stroke="#38d6ff" stroke-width="1.6"/></svg></div>
+      <div class="kpi"><span class="k">今日签收<span>单</span></span><span class="v">4,812</span><span class="d up">▲ 6.4%</span><svg viewBox="0 0 120 26" preserveAspectRatio="none"><polyline points="0,22 15,20 30,17 45,18 60,13 75,12 90,9 105,8 120,6" fill="none" stroke="#36d399" stroke-width="1.6"/></svg></div>
+      <div class="kpi"><span class="k">准点率<span>%</span></span><span class="v">96.2</span><span class="d dn">▼ 0.8 pt</span><svg viewBox="0 0 120 26" preserveAspectRatio="none"><polyline points="0,6 15,7 30,6 45,8 60,7 75,10 90,9 105,12 120,11" fill="none" stroke="#f6b93b" stroke-width="1.6"/></svg></div>
+      <div class="kpi"><span class="k">待派运单<span>单</span></span><span class="v">327</span><span class="d">预计 16:00 前清空</span><svg viewBox="0 0 120 26" preserveAspectRatio="none"><polyline points="0,4 15,6 30,8 45,9 60,12 75,14 90,16 105,19 120,21" fill="none" stroke="#9c8cff" stroke-width="1.6"/></svg></div>
+      <div class="kpi"><span class="k">异常工单<span>件</span></span><span class="v" style="color:#ff5c6c">9</span><span class="d dn">▲ 3 需立即处理</span><svg viewBox="0 0 120 26" preserveAspectRatio="none"><polyline points="0,22 15,21 30,22 45,18 60,19 75,16 90,12 105,13 120,9" fill="none" stroke="#ff5c6c" stroke-width="1.6"/></svg></div>
+      <div class="kpi"><span class="k">司机在岗<span>人</span></span><span class="v">212<span style="font-size:14px;color:#7686a6"> / 240</span></span><span class="d">28 人休息中</span><svg viewBox="0 0 120 26" preserveAspectRatio="none"><polyline points="0,14 15,12 30,11 45,10 60,10 75,9 90,9 105,8 120,8" fill="none" stroke="#7686a6" stroke-width="1.6"/></svg></div>
+      <section class="box queue">
+        <header><h2>发车队列</h2><span class="count" id="qcount">12</span>
+          <div class="seg" role="group" aria-label="筛选"><button type="button" aria-pressed="true" data-f="all">全部</button><button type="button" aria-pressed="false" data-f="warn">延误风险</button><button type="button" aria-pressed="false" data-f="run">在途</button><button type="button" aria-pressed="false" data-f="wait">待发</button></div>
+        </header>
+        <div class="tbl"><table><thead><tr><th>车次</th><th>线路</th><th>司机</th><th>货量</th><th>状态</th><th>预计到达</th></tr></thead><tbody id="rows"></tbody></table></div>
+      </section>
+      <div class="side">
+        <section class="box">
+          <header><h2>线路态势</h2><span class="count">杭州 → 6 方向</span></header>
+          <div class="map">
+            <svg viewBox="0 0 400 220" preserveAspectRatio="xMidYMid meet" aria-label="线路示意图">
+              <defs><pattern id="g" width="20" height="20" patternUnits="userSpaceOnUse"><path d="M20 0H0V20" fill="none" stroke="#16223f" stroke-width="1"/></pattern></defs>
+              <rect width="400" height="220" fill="url(#g)"/>
+              <g fill="none" stroke-width="2">
+                <path class="route" d="M200 120 L80 60" stroke="#38d6ff"/><path class="route" d="M200 120 L330 50" stroke="#38d6ff"/>
+                <path class="route" d="M200 120 L360 150" stroke="#f6b93b"/><path class="route" d="M200 120 L110 190" stroke="#38d6ff"/>
+                <path class="route" d="M200 120 L250 200" stroke="#ff5c6c"/><path class="route" d="M200 120 L40 130" stroke="#36d399"/>
+              </g>
+              <g font-size="10" fill="#7686a6" font-family="PingFang SC, sans-serif">
+                <circle cx="80" cy="60" r="4" fill="#38d6ff"/><text x="62" y="50">南京</text>
+                <circle cx="330" cy="50" r="4" fill="#38d6ff"/><text x="316" y="40">上海</text>
+                <circle cx="360" cy="150" r="4" fill="#f6b93b"/><text x="346" y="168">宁波</text>
+                <circle cx="110" cy="190" r="4" fill="#38d6ff"/><text x="96" y="208">金华</text>
+                <circle cx="250" cy="200" r="4" fill="#ff5c6c"/><text x="260" y="204" fill="#ff5c6c">温州 · 拥堵</text>
+                <circle cx="40" cy="130" r="4" fill="#36d399"/><text x="24" y="148">合肥</text>
+              </g>
+              <circle cx="200" cy="120" r="9" fill="#0a1020" stroke="#38d6ff" stroke-width="2"/><circle cx="200" cy="120" r="3" fill="#38d6ff"/>
+              <text x="212" y="116" font-size="11" fill="#dbe4f5" font-family="PingFang SC, sans-serif">杭州转运中心</text>
+            </svg>
+          </div>
+        </section>
+        <section class="box">
+          <header><h2>车次详情</h2><span class="count" id="dId">—</span></header>
+          <div class="alert" id="dAlert"></div>
+          <dl class="detail" id="detail"></dl>
+        </section>
+      </div>
+    </div>
+  </section>
+</div>
+<script>
+const data=[
+ ['HZ-NJ-0412','杭州 → 南京','王立军','18.6 t','run','在途','16:40',62],
+ ['HZ-WZ-0388','杭州 → 温州','赵敏','14.2 t','warn','延误风险','17:55',41,'G15 甬台温段拥堵 9 km，预计晚到 35 分钟'],
+ ['HZ-SH-0421','杭州 → 上海','陈浩','21.0 t','run','在途','15:20',78],
+ ['HZ-NB-0405','杭州 → 宁波','周婷','9.8 t','warn','延误风险','16:05',55,'卸货口 3 号排队，前方 4 车'],
+ ['HZ-HF-0399','杭州 → 合肥','李强','16.4 t','ok','已到达','14:10',100],
+ ['HZ-JH-0430','杭州 → 金华','孙悦','7.5 t','wait','待发车','18:30',0],
+ ['HZ-SH-0433','杭州 → 上海','马骁','19.2 t','wait','待发车','18:50',0],
+ ['HZ-NJ-0417','杭州 → 南京','吴凡','12.0 t','run','在途','17:10',33],
+ ['HZ-WZ-0391','杭州 → 温州','郑峰','15.7 t','bad','车辆故障','—',28,'左后轮胎压告警，已派救援车，ETA 25 分钟'],
+ ['HZ-NB-0409','杭州 → 宁波','钱多','11.3 t','ok','已到达','13:52',100],
+ ['HZ-HF-0402','杭州 → 合肥','冯雪','17.9 t','run','在途','16:25',70],
+ ['HZ-JH-0436','杭州 → 金华','褚洋','6.4 t','wait','待发车','19:10',0]
+];
+const cls={run:'t-run',warn:'t-warn',ok:'t-ok',wait:'t-ok',bad:'t-bad'};
+let filter='all',sel=1;
+function render(){
+  const rows=data.map((r,i)=>[r,i]).filter(([r])=>filter==='all'||(filter==='warn'?['warn','bad'].includes(r[4]):r[4]===filter));
+  document.getElementById('qcount').textContent=rows.length;
+  document.getElementById('rows').innerHTML=rows.map(([r,i])=>'<tr class="row" tabindex="0" data-i="'+i+'" aria-selected="'+(i===sel)+'"><td class="mono">'+r[0]+'</td><td>'+r[1]+'</td><td>'+r[2]+'</td><td class="mono">'+r[3]+'</td><td><span class="tag '+(r[4]==='wait'?'':cls[r[4]])+'" style="'+(r[4]==='wait'?'color:#7686a6;background:#7686a614':'')+'">'+r[5]+'</span></td><td><span class="eta"><span class="bar"><i style="width:'+r[7]+'%;'+(r[4]==='warn'?'background:#f6b93b':r[4]==='bad'?'background:#ff5c6c':r[4]==='ok'?'background:#36d399':'')+'"></i></span><span class="mono">'+r[6]+'</span></span></td></tr>').join('');
+  document.querySelectorAll('tr.row').forEach(tr=>{tr.onclick=()=>{sel=+tr.dataset.i;render()};tr.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();tr.click()}}});
+  detail();
+}
+function detail(){
+  const r=data[sel];document.getElementById('dId').textContent=r[0];
+  const a=document.getElementById('dAlert');a.textContent=r[8]?'⚠ '+r[8]:'';a.classList.toggle('show',!!r[8]);
+  const steps=[['13:05','装车完成'],['13:40','出站'],['15:10','途经中转'],[r[6],'到达']];const doneN=r[7]>=100?4:r[7]>50?3:r[7]>0?2:0;
+  document.getElementById('detail').innerHTML='<div><dt>线路</dt><dd>'+r[1]+'</dd></div><div><dt>司机</dt><dd>'+r[2]+' · 138****'+(4100+sel*37)+'</dd></div><div><dt>货量</dt><dd>'+r[3]+' / 32 票</dd></div><div><dt>完成度</dt><dd>'+r[7]+'%</dd></div>'+
+  '<ul class="timeline">'+steps.map((s,k)=>'<li class="'+(k<doneN?'done':'')+'"><b>'+s[0]+'</b><i></i>'+s[1]+'</li>').join('')+'</ul>';
+}
+document.querySelectorAll('.seg button').forEach(b=>b.onclick=()=>{filter=b.dataset.f;document.querySelectorAll('.seg button').forEach(x=>x.setAttribute('aria-pressed',x===b));render()});
+document.getElementById('shift').onclick=e=>{e.target.textContent='报告已生成 ✓';setTimeout(()=>e.target.textContent='交接班报告',1800)};
+let t=new Date(2026,9,23,14,32,8);setInterval(()=>{t=new Date(t.getTime()+1000);const p=n=>String(n).padStart(2,'0');document.getElementById('clock').textContent='10/23 周五 '+p(t.getHours())+':'+p(t.getMinutes())+':'+p(t.getSeconds())},1000);
+render();
+</script>
+</body>
+</html>

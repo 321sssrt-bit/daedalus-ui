@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>慢邮局 · 确认发送</title>
+<style>
+:root{
+  --desk:#d9e2e6;--paper:#fbf6ea;--ink:#1f2a44;--muted:#6a7186;--red:#d23c3c;--blue:#2353a6;--line:#e2d9c3;--stamp:#2f7d6d;--ok:#2f7d6d;
+  --serif:"Songti SC","STSong","Georgia",serif;
+  --type:"American Typewriter","Courier New","PingFang SC",monospace;
+  --sans:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%}
+body{background:var(--desk);color:var(--ink);font:15px/1.6 var(--sans);
+  background-image:radial-gradient(#c6d1d6 1px,transparent 1.2px);background-size:14px 14px}
+.top{display:flex;align-items:center;gap:14px;padding:16px 40px}
+.top b{font:700 18px var(--serif);letter-spacing:.1em}
+.top .crumb{font-size:13px;color:var(--muted)}
+.stage{display:grid;place-items:center;padding:8px 24px 48px}
+.env{position:relative;width:860px;max-width:100%;background:var(--paper);padding:14px;box-shadow:0 18px 40px #1f2a4426;transition:transform .7s cubic-bezier(.6,-0.2,.4,1),opacity .7s}
+.env::before{content:'';position:absolute;inset:0;padding:10px;background:repeating-linear-gradient(-45deg,var(--red) 0 18px,var(--paper) 18px 26px,var(--blue) 26px 44px,var(--paper) 44px 52px);
+  -webkit-mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0);mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0);pointer-events:none}
+.env.fly{transform:translate(120%,-30%) rotate(14deg);opacity:0}
+.in{position:relative;padding:30px 40px 30px;display:grid;grid-template-columns:minmax(0,1fr) 220px;gap:24px 36px}
+.par{grid-column:1/-1;display:flex;align-items:center;gap:12px;font:13px var(--type);color:var(--blue);letter-spacing:.2em}
+.par i{flex:1;height:0;border-top:1.5px dashed var(--line)}
+h1{margin:0 0 8px;font:700 30px/1.3 var(--serif)}
+.cons{font-size:15px;margin:0 0 20px;padding:12px 14px;border-left:4px solid var(--red);background:#d23c3c0d}
+.cons b{color:var(--red)}
+.addr{display:grid;grid-template-columns:68px 1fr;gap:6px 14px;font:14px var(--type);margin:0 0 20px}
+.addr dt{color:var(--muted)}
+.addr dd{margin:0;border-bottom:1px solid var(--line);padding-bottom:4px}
+.when{display:flex;gap:8px;margin-bottom:20px}
+.when button{height:36px;padding:0 14px;border:1.5px solid var(--ink);background:transparent;font:13px var(--sans);color:var(--ink);cursor:pointer}
+.when button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.when input{height:36px;border:1.5px solid var(--ink);background:transparent;padding:0 8px;font:13px var(--type);color:var(--ink)}
+.checks{display:grid;gap:8px;margin-bottom:22px}
+.ck{display:flex;gap:10px;align-items:flex-start;cursor:pointer;font-size:14px}
+.ck input{appearance:none;width:20px;height:20px;border:1.5px solid var(--ink);background:#fff;margin:1px 0 0;flex:none;display:grid;place-items:center;cursor:pointer}
+.ck input:checked{background:var(--blue);border-color:var(--blue)}
+.ck input:checked::after{content:'✓';color:#fff;font:700 13px/1 var(--sans)}
+.ck input:focus-visible{outline:2px solid var(--red);outline-offset:2px}
+.ck small{display:block;color:var(--muted);font-size:12px}
+.type{margin-bottom:22px}
+.type label{display:block;font-size:13px;margin-bottom:6px}
+.type label b{font-family:var(--type);background:#fff;border:1px dashed var(--ink);padding:0 6px}
+.type input{width:220px;height:42px;border:1.5px solid var(--ink);background:#fff;padding:0 12px;font:16px var(--type);letter-spacing:.1em;outline:none;color:var(--ink)}
+.type input:focus{border-color:var(--blue);box-shadow:3px 3px 0 var(--blue)}
+.type input.ok{border-color:var(--ok);box-shadow:3px 3px 0 var(--ok)}
+.type .hint{font-size:12px;color:var(--muted);margin-top:6px;min-height:18px}
+.acts{display:flex;gap:12px;align-items:center}
+.btn{height:50px;padding:0 24px;font:700 15px var(--sans);cursor:pointer;letter-spacing:.06em;transition:transform .1s,box-shadow .1s}
+.go{border:0;background:var(--red);color:#fff;box-shadow:4px 4px 0 var(--ink)}
+.go:hover:not(:disabled){transform:translate(-1px,-1px);box-shadow:5px 5px 0 var(--ink)}
+.go:active:not(:disabled){transform:translate(3px,3px);box-shadow:1px 1px 0 var(--ink)}
+.go:disabled{background:#d9b9b4;box-shadow:none;cursor:not-allowed;color:#fff8}
+.back{border:1.5px solid var(--ink);background:transparent;color:var(--ink)}
+.back:hover{background:#1f2a440d}
+.btn:focus-visible,.when button:focus-visible{outline:3px solid var(--blue);outline-offset:3px}
+.lock{font-size:12px;color:var(--muted)}
+.side{display:flex;flex-direction:column;align-items:center;gap:16px}
+.stampimg{width:150px;height:180px;background:var(--paper);padding:6px;position:relative;border:6px dotted var(--desk);box-shadow:0 2px 4px #0002}
+.stampimg .art{width:100%;height:100%;background:linear-gradient(180deg,#f3c26b 0 45%,#2f7d6d 45% 70%,#2353a6 70%);display:flex;flex-direction:column;justify-content:space-between;padding:10px;color:#fff;font:700 12px var(--serif)}
+.stampimg .art b{font:700 30px var(--type);text-align:right}
+.post{width:150px;height:150px;border:2.5px solid var(--stamp);border-radius:50%;display:grid;place-items:center;text-align:center;color:var(--stamp);font:700 13px/1.4 var(--type);transform:rotate(-12deg);opacity:.75;position:relative}
+.post::before,.post::after{content:'';position:absolute;left:-60px;right:-60px;height:0;border-top:2px solid var(--stamp);top:40%}
+.post::after{top:60%}
+.preview{width:100%;font-size:12px;color:var(--muted);text-align:center}
+.preview button{border:0;background:none;color:var(--blue);text-decoration:underline;cursor:pointer;font:12px var(--sans)}
+.done{display:none;position:absolute;inset:0;place-items:center;text-align:center}
+.done.show{display:grid}
+.done .card{background:var(--paper);padding:34px 40px;box-shadow:0 18px 40px #1f2a4426;max-width:440px}
+.done h2{margin:0 0 6px;font:700 26px var(--serif)}
+.done .bar{height:8px;background:var(--line);margin:16px 0 6px}
+.done .bar i{display:block;height:100%;background:var(--blue);width:0;transition:width .3s}
+.done p{margin:0;color:var(--muted);font-size:13px}
+@media (max-width:820px){.in{grid-template-columns:1fr;padding:22px 20px}.side{flex-direction:row;justify-content:center;flex-wrap:wrap}.stampimg{width:110px;height:132px}.post{width:110px;height:110px}.acts{flex-wrap:wrap}.top{padding:14px 20px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}.env.fly{transform:none;opacity:0}}
+</style>
+</head>
+<body>
+<header class="top"><b>慢邮局</b><span class="crumb">《周末慢读》 / 第 128 期 / 发送</span></header>
+<main class="stage" style="position:relative">
+  <article class="env" id="env" aria-labelledby="t">
+    <div class="in">
+      <div class="par">PAR AVION · 航空 · 第 128 期<i></i>NEWSLETTER</div>
+      <section>
+        <h1 id="t">这一封寄出去，就收不回来了</h1>
+        <p class="cons">发送后，《周末慢读》第 128 期会进入 <b>12,480 位订阅者</b>的收件箱。邮件<b>无法撤回，也不能再修改</b>；如果发现错字，只能另发一封更正。</p>
+        <dl class="addr"><dt>寄件人</dt><dd>慢读编辑部 &lt;hello@manduread.cn&gt;</dd><dt>收件人</dt><dd>全部订阅者 · 已排除 312 位退订</dd><dt>标题</dt><dd>在雨天读一本关于海的书</dd><dt>附件</dt><dd>无 · 正文 2,860 字 · 4 张图片</dd></dl>
+        <div class="when" role="group" aria-label="发送时间"><button type="button" aria-pressed="true" data-w="now">立即发送</button><button type="button" aria-pressed="false" data-w="later">定时发送</button><input type="time" id="at" value="20:00" aria-label="定时发送时间" hidden></div>
+        <div class="checks">
+          <label class="ck"><input type="checkbox" data-c><span>我已给自己的测试邮箱发过一封预览<small>上次预览：今天 13:58 · hello@manduread.cn</small></span></label>
+          <label class="ck"><input type="checkbox" data-c><span>正文里的 6 个链接都点开检查过了</span></label>
+        </div>
+        <div class="type"><label for="confirmIn">请输入期号 <b>128</b> 确认是这一期</label><input id="confirmIn" inputmode="numeric" maxlength="3" autocomplete="off" placeholder="___"><div class="hint" id="hint">完成上面两项并输入期号后，才能发送</div></div>
+        <div class="acts"><button class="btn go" type="button" id="go" disabled>确认发送给 12,480 人</button><button class="btn back" type="button" id="back">返回修改</button></div>
+      </section>
+      <aside class="side">
+        <div class="stampimg" aria-hidden="true"><div class="art"><span>慢读邮政</span><b>128</b></div></div>
+        <div class="post" id="post">慢邮局<br>2026·10·23<br>待寄出</div>
+        <div class="preview">不放心？<button type="button" id="pv">再看一眼正文预览</button></div>
+      </aside>
+    </div>
+  </article>
+  <div class="done" id="done" role="status"><div class="card"><h2 id="doneT">信已寄出</h2><p id="doneP">正在投递中…</p><div class="bar"><i id="bar"></i></div><p id="cnt">0 / 12,480 已送达</p></div></div>
+</main>
+<script>
+const checks=[...document.querySelectorAll('[data-c]')],inp=document.getElementById('confirmIn'),go=document.getElementById('go'),hint=document.getElementById('hint');
+let when='now';
+function sync(){
+  const all=checks.every(c=>c.checked),num=inp.value.trim()==='128';
+  inp.classList.toggle('ok',num);
+  go.disabled=!(all&&num);
+  hint.textContent=go.disabled?(inp.value&&!num?'期号不对，这一期是 128':'完成上面两项并输入期号后，才能发送'):'✓ 已确认。按下按钮后将'+(when==='now'?'立即':'在今天 '+document.getElementById('at').value+' ')+'寄出';
+  hint.style.color=go.disabled&&inp.value&&!num?'#d23c3c':go.disabled?'':'#2f7d6d';
+  go.textContent=when==='now'?'确认发送给 12,480 人':'确认定时 '+document.getElementById('at').value+' 发送';
+}
+checks.forEach(c=>c.onchange=sync);inp.oninput=()=>{inp.value=inp.value.replace(/\D/g,'');sync()};
+document.querySelectorAll('[data-w]').forEach(b=>b.onclick=()=>{when=b.dataset.w;document.querySelectorAll('[data-w]').forEach(x=>x.setAttribute('aria-pressed',x===b));document.getElementById('at').hidden=when!=='later';sync()});
+document.getElementById('at').oninput=sync;
+document.getElementById('back').onclick=e=>{e.target.textContent='正在返回编辑器…'};
+document.getElementById('pv').onclick=e=>{e.target.textContent='预览已在新窗口打开（演示）'};
+go.onclick=()=>{
+  if(go.disabled)return;
+  document.getElementById('post').innerHTML='慢邮局<br>2026·10·23<br>已寄出';
+  document.getElementById('env').classList.add('fly');
+  setTimeout(()=>{document.getElementById('done').classList.add('show');
+    if(when==='later'){document.getElementById('doneT').textContent='已放进邮筒';document.getElementById('doneP').textContent='将在今天 '+document.getElementById('at').value+' 自动寄出，之前可在「定时任务」中取消。';document.getElementById('bar').parentElement.hidden=true;document.getElementById('cnt').hidden=true;return}
+    let n=0;const t=setInterval(()=>{n=Math.min(12480,n+Math.round(800+Math.random()*900));document.getElementById('bar').style.width=(n/12480*100)+'%';document.getElementById('cnt').textContent=n.toLocaleString('en-US')+' / 12,480 已送达';
+      if(n>=12480){clearInterval(t);document.getElementById('doneP').textContent='全部投递完成 · 打开率稍后可在「数据」中查看'}},300)},matchMedia('(prefers-reduced-motion:reduce)').matches?0:650);
+};
+sync();
+</script>
+</body>
+</html>

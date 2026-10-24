@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>砖厂共享空间 · 周排期</title>
+<style>
+:root{
+  --paper:#ffffff;--ink:#000000;--muted:#555555;--hi:#ffe500;--blue:#2f5bff;--orange:#ff6b1a;--pink:#ff7ac6;--mint:#3ddc97;--wash:#f3f3f3;
+  --mono:"SF Mono","Menlo","Consolas",monospace;
+  --sans:"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Helvetica Neue",sans-serif;
+  --hour:46px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%}
+body{background:var(--paper);color:var(--ink);font:14px/1.4 var(--sans)}
+.top{display:grid;grid-template-columns:auto 1fr auto;align-items:stretch;border-bottom:3px solid var(--ink)}
+.brand{padding:14px 22px;border-right:3px solid var(--ink);font:900 20px/1 var(--sans);display:flex;align-items:center;gap:8px;letter-spacing:-.02em}
+.brand i{width:18px;height:18px;background:var(--ink);display:block;box-shadow:4px 4px 0 var(--hi)}
+.range{display:flex;align-items:center;gap:18px;padding:0 22px;background:var(--hi)}
+.range h1{margin:0;font:900 40px/1 var(--sans);letter-spacing:-.04em}
+.range .wk{font:700 13px var(--mono);border:2px solid var(--ink);padding:3px 8px;background:var(--paper)}
+.navs{display:flex}
+.navs button{border:0;border-left:3px solid var(--ink);background:var(--paper);font:800 15px var(--sans);padding:0 20px;cursor:pointer;min-width:64px}
+.navs button:hover{background:var(--ink);color:var(--hi)}
+.navs button:focus-visible,.ev:focus-visible,.filters button:focus-visible,.drawer button:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+.bar2{display:flex;align-items:center;gap:10px;padding:10px 22px;border-bottom:3px solid var(--ink);flex-wrap:wrap}
+.bar2 b{font:800 13px var(--sans);margin-right:4px}
+.filters{display:flex;gap:8px;flex-wrap:wrap}
+.filters button{border:2px solid var(--ink);background:var(--paper);font:700 13px var(--sans);padding:4px 10px;cursor:pointer;display:flex;align-items:center;gap:6px;box-shadow:2px 2px 0 var(--ink)}
+.filters button i{width:10px;height:10px;border:2px solid var(--ink)}
+.filters button[aria-pressed="false"]{box-shadow:none;opacity:.45;text-decoration:line-through}
+.bar2 .sum{margin-left:auto;font:700 12px var(--mono)}
+.cal{display:grid;grid-template-columns:64px repeat(7,minmax(0,1fr));position:relative}
+.dh{height:44px;border-bottom:3px solid var(--ink);border-left:2px solid var(--ink);padding:8px 10px;display:flex;align-items:baseline;gap:8px;background:var(--paper);position:sticky;top:0;z-index:3}
+.dh:first-child{border-left:0}
+.dh b{font:900 26px/1 var(--sans);letter-spacing:-.03em}
+.dh span{font:700 12px var(--mono);color:var(--muted)}
+.dh.today{background:var(--ink);color:var(--paper)}
+.dh.today span{color:var(--hi)}
+.times{position:relative}
+.times div{height:var(--hour);font:700 11px var(--mono);text-align:right;padding:2px 8px 0 0;color:var(--muted);border-top:1px solid var(--ink)}
+.day{position:relative;border-left:2px solid var(--ink);background-image:repeating-linear-gradient(180deg,var(--ink) 0 1px,transparent 1px var(--hour));background-color:var(--paper)}
+.day.today{background-color:#fffbd6}
+.day.weekend{background-color:var(--wash)}
+.ev{position:absolute;left:5px;right:5px;border:2.5px solid var(--ink);padding:5px 7px;font-size:12px;cursor:pointer;overflow:hidden;box-shadow:4px 4px 0 var(--ink);transition:transform .1s,box-shadow .1s;text-align:left;font-family:var(--sans);color:var(--ink)}
+.ev:hover{transform:translate(-2px,-2px);box-shadow:6px 6px 0 var(--ink);z-index:2}
+.ev[aria-pressed="true"]{outline:3px solid var(--ink);outline-offset:3px;z-index:2}
+.ev b{display:block;font:800 13px/1.25 var(--sans)}
+.ev span{font:700 11px var(--mono)}
+.c-meet{background:var(--blue);color:#fff}
+.c-work{background:var(--orange)}
+.c-event{background:var(--pink)}
+.c-book{background:var(--mint)}
+.now{position:absolute;left:64px;right:0;height:0;border-top:3px solid var(--orange);z-index:4;pointer-events:none}
+.now::before{content:attr(data-t);position:absolute;left:-62px;top:-11px;background:var(--orange);color:var(--ink);font:800 11px var(--mono);padding:2px 5px;border:2px solid var(--ink)}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:380px;max-width:100%;background:var(--paper);border-left:3px solid var(--ink);transform:translateX(105%);transition:transform .22s cubic-bezier(.3,.7,.2,1);z-index:10;display:flex;flex-direction:column}
+.drawer.open{transform:none;box-shadow:-8px 0 0 var(--ink)}
+.dtop{padding:20px 22px 18px;border-bottom:3px solid var(--ink)}
+.dtop .cat{display:inline-block;font:800 12px var(--mono);border:2px solid var(--ink);padding:2px 8px;margin-bottom:10px}
+.dtop h2{margin:0;font:900 28px/1.15 var(--sans);letter-spacing:-.03em}
+.dbody{padding:18px 22px;flex:1;overflow:auto}
+.dbody dl{margin:0;display:grid;grid-template-columns:72px 1fr;gap:10px 12px;font-size:14px}
+.dbody dt{font:800 12px var(--mono);color:var(--muted);padding-top:2px}
+.dbody dd{margin:0;font-weight:600}
+.people{display:flex;gap:6px;flex-wrap:wrap}
+.people span{border:2px solid var(--ink);padding:1px 8px;font-size:12px;font-weight:700;background:var(--wash)}
+.dbody p{margin:18px 0 0;padding:12px;border:2px dashed var(--ink);font-size:13px;line-height:1.6}
+.dfoot{display:grid;grid-template-columns:1fr 1fr;border-top:3px solid var(--ink)}
+.dfoot button{height:56px;border:0;font:800 15px var(--sans);cursor:pointer;background:var(--paper)}
+.dfoot button:first-child{border-right:3px solid var(--ink)}
+.dfoot button.go{background:var(--hi)}
+.dfoot button:hover{background:var(--ink);color:var(--hi)}
+.close{position:absolute;top:16px;right:16px;width:36px;height:36px;border:2.5px solid var(--ink);background:var(--paper);font:900 16px var(--sans);cursor:pointer}
+.close:hover{background:var(--ink);color:var(--paper)}
+@media (max-width:1024px){.cal{grid-template-columns:52px repeat(7,minmax(84px,1fr));overflow-x:auto}.range h1{font-size:28px}.now{left:52px}.drawer{width:340px}}
+@media (max-width:760px){.top{grid-template-columns:1fr auto}.brand{display:none}.range{gap:10px;padding:10px 16px}.range h1{font-size:22px}.wrap{overflow-x:auto}.cal{min-width:760px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand"><i></i>砖厂空间</div>
+  <div class="range"><h1 id="range">10.19 — 10.25</h1><span class="wk" id="wk">2026 · 第 43 周</span></div>
+  <nav class="navs" aria-label="切换周"><button type="button" id="prev" aria-label="上一周">←</button><button type="button" id="today">本周</button><button type="button" id="next" aria-label="下一周">→</button></nav>
+</header>
+<div class="bar2">
+  <b>显示</b>
+  <div class="filters" id="filters">
+    <button type="button" aria-pressed="true" data-c="meet"><i style="background:#2f5bff"></i>会议室</button>
+    <button type="button" aria-pressed="true" data-c="work"><i style="background:#ff6b1a"></i>工作坊</button>
+    <button type="button" aria-pressed="true" data-c="event"><i style="background:#ff7ac6"></i>社区活动</button>
+    <button type="button" aria-pressed="true" data-c="book"><i style="background:#3ddc97"></i>工位预订</button>
+  </div>
+  <span class="sum" id="sum"></span>
+</div>
+<div class="wrap"><div class="cal" id="cal"></div></div>
+<aside class="drawer" id="drawer" aria-hidden="true" aria-labelledby="dTitle">
+  <button class="close" type="button" id="close" aria-label="关闭详情">✕</button>
+  <div class="dtop"><span class="cat" id="dCat"></span><h2 id="dTitle"></h2></div>
+  <div class="dbody"><dl id="dList"></dl><p id="dNote"></p></div>
+  <div class="dfoot"><button type="button" id="dCopy">复制邀请</button><button type="button" class="go" id="dJoin">我要参加</button></div>
+</aside>
+<script>
+const START=8,END=20,days=['一','二','三','四','五','六','日'];
+const catName={meet:'会议室',work:'工作坊',event:'社区活动',book:'工位预订'};
+const base=[
+ [0,9,10.5,'meet','产品评审 · 小红楼','A 会议室','光年科技 · 6 人','需要投影和白板笔，请提前 10 分钟开空调。'],
+ [0,13,17,'book','固定工位 × 4','二层开放区','设计师合作社','整周固定，钥匙已在前台登记。'],
+ [1,10,12,'work','丝网印刷入门','一层工坊','讲师 阿柒 · 12 人报名','自带一件纯色 T 恤，墨水与网版由空间提供。'],
+ [1,14,15.5,'meet','投资人路演彩排','B 会议室','栗子工作室 · 3 人','需要麦克风一支。'],
+ [2,9.5,11,'meet','周会','A 会议室','砖厂运营组 · 8 人','回顾上周活动数据，确认双十一市集摊位。'],
+ [2,15,18,'event','独立出版物交换会','中庭','社区 · 约 40 人','带上你的 zine，换一本别人的。现场有咖啡车。'],
+ [3,11,12.5,'work','摄影布光小课','影棚','讲师 老秦 · 8 人报名','只需带相机，灯具由空间提供。'],
+ [3,14,16,'meet','客户访谈','C 电话间','一苇咨询 · 2 人','需要安静，门口挂勿扰牌。'],
+ [4,9,12,'book','临时工位 × 2','二层开放区','个人会员','上午半天。'],
+ [4,13.5,15,'meet','季度复盘','A 会议室','光年科技 · 10 人','需要 HDMI 转接头。'],
+ [4,17,19.5,'event','周五啤酒时间','屋顶露台','全体会员','今晚有本地精酿品牌试饮，凭会员卡领一杯。'],
+ [5,10,13,'work','手冲咖啡工作坊','厨房吧台','讲师 小满 · 10 人报名','学会三种冲煮比例，豆子可带走。'],
+ [5,14,17,'event','跳蚤市场','中庭','社区 · 约 80 人','摊位已满，欢迎来逛。'],
+ [6,15,16.5,'work','木工：做一只托盘','一层工坊','讲师 大熊 · 6 人报名','需穿不怕脏的衣服，现场提供护目镜。']
+];
+let week=0,shown={meet:1,work:1,event:1,book:1},sel=null;
+const cal=document.getElementById('cal');
+const pad=n=>String(n).padStart(2,'0'),hhmm=h=>pad(Math.floor(h))+':'+pad(Math.round(h%1*60));
+function dateOf(d){const t=new Date(2026,9,19+week*7+d);return t}
+function render(){
+  const s=dateOf(0),e=dateOf(6);
+  document.getElementById('range').textContent=pad(s.getMonth()+1)+'.'+pad(s.getDate())+' — '+pad(e.getMonth()+1)+'.'+pad(e.getDate());
+  document.getElementById('wk').textContent='2026 · 第 '+(43+week)+' 周';
+  const evs=base.map((x,i)=>({x,i,d:(x[0]+(week===0?0:Math.abs(week)*3))%7,s:x[1]+(week%2?1:0),e:x[2]+(week%2?1:0)})).filter(o=>o.e<=END);
+  let h='<div class="dh"></div>';
+  for(let d=0;d<7;d++){const t=dateOf(d),today=week===0&&d===4;h+='<div class="dh'+(today?' today':'')+'"><b>'+pad(t.getDate())+'</b><span>周'+days[d]+(today?' · 今天':'')+'</span></div>'}
+  h+='<div class="times">'+Array.from({length:END-START},(_,i)=>'<div>'+pad(START+i)+':00</div>').join('')+'</div>';
+  let count=0;
+  for(let d=0;d<7;d++){
+    h+='<div class="day'+(week===0&&d===4?' today':'')+(d>4?' weekend':'')+'" style="height:calc(var(--hour)*'+(END-START)+')">';
+    evs.filter(o=>o.d===d&&shown[o.x[3]]).forEach(o=>{count++;const top='calc(var(--hour)*'+(o.s-START)+' + 3px)',ht='calc(var(--hour)*'+(o.e-o.s)+' - 6px)';
+      h+='<button type="button" class="ev c-'+o.x[3]+'" style="top:'+top+';height:'+ht+'" data-i="'+o.i+'" data-d="'+d+'" data-s="'+o.s+'" data-e="'+o.e+'" aria-pressed="'+(sel===o.i)+'"><b>'+o.x[4]+'</b><span>'+hhmm(o.s)+'–'+hhmm(o.e)+'</span></button>'});
+    h+='</div>';
+  }
+  if(week===0)h+='<div class="now" data-t="14:32" style="top:calc(var(--hour)*'+(14.53-START)+' + 44px)"></div>';
+  cal.innerHTML=h;
+  document.getElementById('sum').textContent='本周 '+count+' 项 · 会议室占用率 '+(62+week*3)+'%';
+  cal.querySelectorAll('.ev').forEach(b=>b.onclick=()=>open(b));
+}
+function open(b){
+  const x=base[+b.dataset.i];sel=+b.dataset.i;
+  cal.querySelectorAll('.ev').forEach(e=>e.setAttribute('aria-pressed',e===b));
+  const t=dateOf(+b.dataset.d),c=document.getElementById('dCat');
+  c.textContent=catName[x[3]];c.className='cat c-'+x[3];
+  document.getElementById('dTitle').textContent=x[4];
+  document.getElementById('dList').innerHTML='<dt>时间</dt><dd>'+(t.getMonth()+1)+' 月 '+t.getDate()+' 日 周'+days[+b.dataset.d]+' · '+hhmm(+b.dataset.s)+'–'+hhmm(+b.dataset.e)+'</dd><dt>地点</dt><dd>'+x[5]+'</dd><dt>发起</dt><dd>'+x[6]+'</dd><dt>参与</dt><dd><div class="people"><span>林</span><span>阿柒</span><span>Mika</span><span>+3</span></div></dd>';
+  document.getElementById('dNote').textContent='备注：'+x[7];
+  document.getElementById('dJoin').textContent=x[3]==='book'?'续订一周':'我要参加';
+  const d=document.getElementById('drawer');d.classList.add('open');d.setAttribute('aria-hidden','false');document.getElementById('close').focus();
+}
+function close(){const d=document.getElementById('drawer');d.classList.remove('open');d.setAttribute('aria-hidden','true');sel=null;cal.querySelectorAll('.ev').forEach(e=>e.setAttribute('aria-pressed','false'))}
+document.getElementById('close').onclick=close;
+document.addEventListener('keydown',e=>{if(e.key==='Escape')close()});
+document.getElementById('dJoin').onclick=e=>{e.target.textContent='已加入 ✓'};
+document.getElementById('dCopy').onclick=e=>{e.target.textContent='已复制';setTimeout(()=>e.target.textContent='复制邀请',1400)};
+document.getElementById('prev').onclick=()=>{week--;close();render()};
+document.getElementById('next').onclick=()=>{week++;close();render()};
+document.getElementById('today').onclick=()=>{week=0;close();render()};
+document.querySelectorAll('#filters button').forEach(b=>b.onclick=()=>{const c=b.dataset.c;shown[c]=!shown[c];b.setAttribute('aria-pressed',!!shown[c]);render()});
+render();
+</script>
+</body>
+</html>

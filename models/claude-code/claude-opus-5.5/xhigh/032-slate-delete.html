@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>棱镜数据平台 · 删除工作区</title>
+<style>
+:root{
+  --bg:#14181d;--slate:#1c2128;--slate-2:#232a33;--line:#2e3742;--text:#e6e9ee;--muted:#8b95a3;--faint:#5c6673;--red:#e5484d;--red-dk:#b8363a;--red-bg:#e5484d14;--safe:#e6e9ee;--amber:#f0b847;
+  --sans:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",-apple-system,sans-serif;
+  --mono:"SF Mono","JetBrains Mono","Menlo","Consolas",monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%}
+body{background:var(--bg);color:var(--text);font:14px/1.6 var(--sans)}
+.top{height:52px;display:flex;align-items:center;gap:14px;padding:0 28px;border-bottom:1px solid var(--line)}
+.top .logo{width:22px;height:22px;background:linear-gradient(135deg,#7aa2ff,#b28cff);clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%)}
+.top b{font-weight:600}
+.top .crumb{color:var(--muted);font-size:13px}
+.top .crumb span{color:var(--text)}
+.wrap{max-width:1080px;margin:0 auto;padding:36px 24px 64px}
+.cols{display:grid;grid-template-columns:minmax(0,1fr) 400px;gap:28px;align-items:start}
+.rightcol .panel{position:sticky;top:20px}
+.warn-ic{width:52px;height:52px;border-radius:14px;background:var(--red-bg);border:1px solid #e5484d40;display:grid;place-items:center;margin-bottom:18px}
+h1{margin:0 0 8px;font:600 28px/1.3 var(--sans)}
+h1 code{font:600 24px var(--mono);color:var(--red);background:var(--red-bg);padding:0 8px;border-radius:6px}
+.lede{color:var(--muted);margin:0 0 26px;font-size:15px}
+.panel{background:var(--slate);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.lose h2{margin:0;padding:16px 20px;font:600 14px var(--sans);border-bottom:1px solid var(--line);display:flex;justify-content:space-between}
+.lose h2 span{font:12px var(--mono);color:var(--red)}
+.lose ul{list-style:none;margin:0;padding:6px 0}
+.lose li{display:grid;grid-template-columns:36px 1fr auto;gap:12px;align-items:center;padding:10px 20px}
+.lose li i{width:32px;height:32px;border-radius:8px;background:var(--slate-2);display:grid;place-items:center;font-style:normal;font-size:15px}
+.lose li b{display:block;font-weight:500}
+.lose li small{color:var(--muted);font-size:12px}
+.lose li .n{font:600 15px var(--mono);color:var(--text)}
+.lose .note{margin:0;padding:12px 20px;background:#f0b8470f;border-top:1px solid var(--line);color:#d9c08a;font-size:13px;display:flex;gap:10px;align-items:center}
+.lose .note button{margin-left:auto;border:1px solid #f0b84766;background:transparent;color:var(--amber);border-radius:8px;height:30px;padding:0 12px;font:600 12px var(--sans);cursor:pointer;white-space:nowrap}
+.lose .note button:hover{background:#f0b8471a}
+.confirm{padding:20px;background:var(--slate-2)}
+.confirm label{display:block;font-size:13px;color:var(--muted);margin-bottom:8px}
+.confirm label code{font:600 13px var(--mono);color:var(--text);background:var(--bg);border:1px solid var(--line);padding:1px 6px;border-radius:5px;user-select:all}
+.confirm input{width:100%;height:46px;border-radius:10px;border:1.5px solid var(--line);background:var(--bg);color:var(--text);font:15px var(--mono);padding:0 14px;outline:none;transition:border-color .15s,box-shadow .15s}
+.confirm input:focus{border-color:#7aa2ff;box-shadow:0 0 0 3px #7aa2ff26}
+.confirm input.match{border-color:var(--red);box-shadow:0 0 0 3px #e5484d26}
+.confirm .hint{font-size:12px;margin-top:8px;min-height:18px;color:var(--faint)}
+.confirm .hint.ok{color:var(--red)}
+.ack{display:flex;gap:10px;align-items:flex-start;margin-top:12px;font-size:13px;color:var(--muted);cursor:pointer}
+.ack input{width:16px;height:16px;margin-top:3px;accent-color:var(--red)}
+.acts{display:flex;flex-direction:column;gap:10px;align-items:stretch;margin-top:20px}
+.cancel{height:54px;border:0;border-radius:12px;background:var(--safe);color:var(--bg);font:700 16px var(--sans);cursor:pointer;transition:background .15s}
+.cancel:hover{background:#ffffff}
+.del{height:44px;padding:0 18px;align-self:center;border-radius:10px;border:1.5px solid var(--red);background:transparent;color:var(--red);font:600 14px var(--sans);cursor:pointer;transition:background .15s,color .15s;white-space:nowrap}
+.del:hover:not(:disabled){background:var(--red);color:#fff}
+.del:disabled{border-color:var(--line);color:var(--faint);cursor:not-allowed}
+.cancel:focus-visible,.del:focus-visible,.note button:focus-visible{outline:3px solid #7aa2ff;outline-offset:3px}
+.fine{margin:14px 0 0;font-size:12px;color:var(--faint)}
+.state{display:none;text-align:center;padding:40px 24px}
+.state.show{display:block}
+.ring{width:84px;height:84px;margin:0 auto 18px;position:relative}
+.ring svg{width:84px;height:84px;transform:rotate(-90deg)}
+.ring circle{fill:none;stroke-width:6}
+.ring .bg{stroke:var(--line)}
+.ring .fg{stroke:var(--red);stroke-linecap:round;stroke-dasharray:238.8;transition:stroke-dashoffset 1s linear}
+.ring b{position:absolute;inset:0;display:grid;place-items:center;font:600 26px var(--mono)}
+.state h2{margin:0 0 6px;font:600 22px var(--sans)}
+.state p{margin:0 0 20px;color:var(--muted)}
+.state .cancel{flex:none;width:260px}
+@media (max-width:980px){.cols{grid-template-columns:1fr}.rightcol .panel{position:static}}
+@media (max-width:600px){.del{height:46px;align-self:stretch}.lose li{grid-template-columns:32px 1fr}.lose li .n{grid-column:2}.lose .note{flex-wrap:wrap}.lose .note button{margin-left:0}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<header class="top"><i class="logo"></i><b>棱镜</b><span class="crumb">工作区设置 / 危险操作 / <span>删除工作区</span></span></header>
+<main class="wrap">
+  <section id="form">
+    <div class="warn-ic"><svg width="26" height="26" viewBox="0 0 26 26" fill="none" stroke="#e5484d" stroke-width="2"><path d="M13 3l11 19H2z" stroke-linejoin="round"/><path d="M13 10v5M13 18.5v.5" stroke-linecap="round"/></svg></div>
+    <h1>永久删除工作区 <code>prism-analytics</code></h1>
+    <p class="lede">删除后，工作区内的全部数据会在 24 小时内从所有节点清除，<b style="color:#e6e9ee">无法恢复，客服也无法找回</b>。</p>
+    <div class="cols">
+      <div class="panel">
+        <div class="lose">
+          <h2>你将失去<span>不可恢复</span></h2>
+          <ul>
+            <li><i>🗄</i><span><b>数据库与数据表</b><small>3 个数据库 · 184 张表 · 约 2.3 TB</small></span><span class="n">184</span></li>
+            <li><i>📊</i><span><b>看板与报表</b><small>含 12 个已对外分享的公开链接，删除后立即失效</small></span><span class="n">67</span></li>
+            <li><i>⏱</i><span><b>定时任务与数据管道</b><small>每天 06:00 的同步任务将停止</small></span><span class="n">23</span></li>
+            <li><i>👥</i><span><b>成员与访问权限</b><small>18 位成员会被移出，API 密钥全部作废</small></span><span class="n">18</span></li>
+          </ul>
+          <p class="note">⚠ 建议先导出一份完整备份（约 40 分钟）<button type="button" id="export">导出备份</button></p>
+        </div>
+      </div>
+      <div class="rightcol">
+        <div class="panel">
+          <div class="confirm">
+            <label for="word">请输入工作区名称 <code>prism-analytics</code> 以确认</label>
+            <input id="word" autocomplete="off" spellcheck="false" placeholder="prism-analytics">
+            <div class="hint" id="hint">名称需完全一致，区分大小写</div>
+            <label class="ack"><input type="checkbox" id="ack"> 我了解删除后数据无法恢复，且本操作会通知全部 18 位成员</label>
+            <div class="acts"><button class="cancel" type="button" id="cancel">不删了，返回设置</button><button class="del" type="button" id="del" disabled>删除工作区</button></div>
+            <p class="fine">只有工作区所有者可以执行此操作 · 操作将记录在审计日志 · 当前账号：林砚（所有者）</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="state" id="count" aria-live="assertive">
+    <div class="ring"><svg viewBox="0 0 84 84"><circle class="bg" cx="42" cy="42" r="38"/><circle class="fg" id="fg" cx="42" cy="42" r="38"/></svg><b id="sec">10</b></div>
+    <h2>即将删除 prism-analytics</h2>
+    <p>倒计时结束后开始删除。在此之前仍可取消。</p>
+    <button class="cancel" type="button" id="abort">取消删除</button>
+  </section>
+  <section class="state" id="gone">
+    <h2>工作区已进入删除队列</h2>
+    <p>数据将在 24 小时内清除完毕，确认邮件已发送至 lin.yan@prism.io。</p>
+    <button class="cancel" type="button" id="home">回到工作区列表</button>
+  </section>
+</main>
+<script>
+const W='prism-analytics',word=document.getElementById('word'),ack=document.getElementById('ack'),del=document.getElementById('del'),hint=document.getElementById('hint');
+let t=null;
+function sync(){
+  const m=word.value===W;word.classList.toggle('match',m);
+  hint.className='hint'+(m?' ok':'');
+  hint.textContent=m?'名称一致。'+(ack.checked?'删除按钮已可用。':'请再勾选下方确认。'):word.value&&W.startsWith(word.value)?'继续输入…':word.value?'名称不一致，请检查拼写与大小写':'名称需完全一致，区分大小写';
+  del.disabled=!(m&&ack.checked);
+}
+word.oninput=sync;ack.onchange=sync;
+word.addEventListener('paste',e=>{e.preventDefault();hint.className='hint';hint.textContent='为防止误操作，请手动输入名称'});
+document.getElementById('cancel').onclick=e=>{e.target.textContent='已返回设置';word.value='';ack.checked=false;sync()};
+document.getElementById('export').onclick=e=>{e.target.textContent='备份已开始 · 完成后邮件通知';e.target.disabled=true};
+del.onclick=()=>{
+  if(del.disabled)return;
+  document.getElementById('form').style.display='none';const c=document.getElementById('count');c.classList.add('show');
+  let s=10;const fg=document.getElementById('fg');fg.style.strokeDashoffset=0;document.getElementById('abort').focus();
+  t=setInterval(()=>{s--;document.getElementById('sec').textContent=s;fg.style.strokeDashoffset=238.8*(1-s/10);
+    if(s<=0){clearInterval(t);c.classList.remove('show');document.getElementById('gone').classList.add('show')}},1000);
+};
+document.getElementById('abort').onclick=()=>{clearInterval(t);document.getElementById('count').classList.remove('show');document.getElementById('form').style.display='';word.value='';ack.checked=false;sync();hint.textContent='已取消删除，工作区保持原样'};
+document.getElementById('home').onclick=e=>{e.target.textContent='正在跳转…'};
+sync();
+</script>
+</body>
+</html>

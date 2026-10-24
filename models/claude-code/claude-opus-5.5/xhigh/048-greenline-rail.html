@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>青线出行 · 火车票</title>
+<style>
+:root{
+  --room:#d8dccb;--cream:#f6f1e1;--paper:#fffcf2;--green:#2f6b4f;--green-dk:#1f4a37;--green-soft:#e1ece3;--maroon:#8b2e2e;--mustard:#e2b13c;--ink:#1f2a24;--muted:#6f776f;--faint:#adb3a8;--line:#e3dccb;--bad:#c0392b;--bad-bg:#fbe9e5;--ok:#2f8a55;
+  --num:"Avenir Next","Helvetica Neue","PingFang SC",sans-serif;
+  --sans:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  --mono:"SF Mono","Menlo","Consolas",monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:linear-gradient(160deg,#e6e8da,var(--room));display:grid;place-items:center;font:15px/1.5 var(--sans);color:var(--ink)}
+[hidden]{display:none!important}
+button,input{font-family:inherit}
+.phone{width:390px;height:min(844px,calc(100vh - 32px));border-radius:52px;border:11px solid var(--green-dk);background:var(--cream);position:relative;overflow:hidden;box-shadow:0 30px 70px #1f4a3740}
+.notch{position:absolute;top:8px;left:50%;transform:translateX(-50%);width:118px;height:32px;border-radius:20px;background:var(--green-dk);z-index:30}
+.sb{position:absolute;top:16px;left:30px;right:26px;display:flex;justify-content:space-between;font:600 15px var(--num);z-index:25;color:var(--cream)}
+.sb span:last-child{font-size:12px;letter-spacing:2px}
+.view{position:absolute;inset:0;display:flex;flex-direction:column;animation:in .26s cubic-bezier(.2,.8,.2,1)}
+.view>*{flex-shrink:0}
+.hd{background:var(--green);color:var(--cream);padding:52px 18px 16px;position:relative}
+.hd::after{content:'';position:absolute;left:0;right:0;bottom:0;height:6px;background:repeating-linear-gradient(90deg,var(--maroon) 0 24px,var(--mustard) 24px 30px)}
+.hd .row{display:flex;align-items:center;gap:10px}
+.hd h1{margin:0;font:800 20px var(--sans)}
+.hd .back{width:36px;height:36px;border-radius:50%;border:0;background:#ffffff1f;color:var(--cream);font-size:18px;cursor:pointer}
+.hd .route{font:700 17px var(--sans)}
+.hd small{display:block;color:#cfe0d4;font-size:12px}
+.body{flex:1;flex-shrink:1;overflow-y:auto;padding:16px 16px 24px;scrollbar-width:none}
+.body::-webkit-scrollbar{display:none}
+.card{background:var(--paper);border-radius:22px;border:1px solid var(--line);padding:16px}
+.od{display:grid;grid-template-columns:1fr 44px 1fr;align-items:center;gap:6px;padding-bottom:14px;border-bottom:1px dashed var(--line)}
+.od button.st{border:0;background:none;text-align:left;cursor:pointer;padding:0;color:var(--ink)}
+.od button.st:last-of-type{text-align:right}
+.od small{display:block;color:var(--muted);font-size:12px}
+.od b{font:800 26px var(--sans)}
+.swap{width:44px;height:44px;border-radius:50%;border:1.5px solid var(--green);background:var(--paper);color:var(--green);font-size:18px;cursor:pointer;transition:transform .3s}
+.swap.spin{transform:rotate(180deg)}
+.dates{display:flex;gap:6px;margin:14px 0}
+.dates button{flex:1;border:1px solid var(--line);background:var(--cream);border-radius:14px;padding:6px 0;font:12px var(--sans);color:var(--muted);cursor:pointer}
+.dates button b{display:block;font:700 15px var(--num);color:var(--ink)}
+.dates button[aria-pressed="true"]{background:var(--green);border-color:var(--green);color:#cfe0d4}
+.dates button[aria-pressed="true"] b{color:var(--cream)}
+.opts{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.opts label{display:flex;align-items:center;gap:6px;font-size:13px;background:var(--cream);border-radius:999px;padding:6px 12px;cursor:pointer}
+.opts input{accent-color:var(--green)}
+.cta{width:100%;height:54px;border:0;border-radius:18px;background:var(--green);color:var(--cream);font:800 17px var(--sans);cursor:pointer;box-shadow:0 6px 0 var(--green-dk)}
+.cta:active{transform:translateY(3px);box-shadow:0 3px 0 var(--green-dk)}
+.cta:disabled{background:var(--faint);box-shadow:none;cursor:not-allowed}
+.cta.alt{background:var(--mustard);color:var(--ink);box-shadow:0 6px 0 #b48a26}
+.recent{margin-top:18px}
+.recent h2{margin:0 0 8px;font:700 14px var(--sans);color:var(--muted)}
+.recent button{display:flex;justify-content:space-between;width:100%;border:0;background:var(--paper);border-radius:14px;padding:12px 14px;margin-bottom:8px;font:14px var(--sans);color:var(--ink);cursor:pointer;border:1px solid var(--line)}
+.recent button small{color:var(--muted)}
+.filters{display:flex;gap:6px;margin-bottom:10px;overflow-x:auto;scrollbar-width:none}
+.filters button{flex:none;border:1px solid var(--line);background:var(--paper);border-radius:999px;padding:5px 12px;font:12px var(--sans);color:var(--muted);cursor:pointer}
+.filters button[aria-pressed="true"]{background:var(--ink);color:var(--cream);border-color:var(--ink)}
+.train{width:100%;text-align:left;border:1px solid var(--line);background:var(--paper);border-radius:20px;padding:12px 14px;margin-bottom:10px;cursor:pointer;color:var(--ink);font:14px var(--sans);display:block}
+.train:hover:not(:disabled){border-color:var(--green)}
+.train:disabled{opacity:.55;cursor:not-allowed}
+.train.risk{border:1.5px dashed var(--mustard)}
+.train .tl{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:10px}
+.train .tm{font:800 22px var(--num)}
+.train .tm small{display:block;font:12px var(--sans);color:var(--muted);font-weight:400}
+.train .mid{text-align:center;font-size:12px;color:var(--muted)}
+.train .mid b{display:block;font:700 13px var(--mono);color:var(--green)}
+.train .mid i{display:block;height:2px;background:repeating-linear-gradient(90deg,var(--faint) 0 6px,transparent 6px 10px);margin:3px 0}
+.train .seats{display:flex;gap:10px;margin-top:8px;font-size:12px;color:var(--muted);flex-wrap:wrap}
+.train .seats b{color:var(--ink);font-family:var(--num)}
+.train .seats .no{color:var(--faint);text-decoration:line-through}
+.train .warn{margin-top:8px;font-size:12px;color:#8a6212;background:#fbf1d6;border-radius:10px;padding:4px 8px;display:inline-block}
+.keep{font-size:12px;color:var(--muted);margin-bottom:10px;background:var(--green-soft);border-radius:12px;padding:8px 10px}
+.keep b{color:var(--green-dk)}
+.cls{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+.cls button{border:1.5px solid var(--line);background:var(--paper);border-radius:14px;padding:8px 6px;font:12px var(--sans);color:var(--muted);cursor:pointer}
+.cls button b{display:block;font:700 14px var(--sans);color:var(--ink)}
+.cls button[aria-pressed="true"]{border-color:var(--green);background:var(--green-soft)}
+.cls button:disabled{opacity:.45;cursor:not-allowed}
+.car{background:var(--paper);border:1px solid var(--line);border-radius:26px 26px 18px 18px;padding:14px 14px 12px}
+.car .cap{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:8px}
+.car .cap b{color:var(--ink)}
+.legend{display:flex;gap:12px;font-size:11px;color:var(--muted);margin-bottom:8px}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:4px;vertical-align:-2px;margin-right:4px}
+.seatgrid{display:grid;grid-template-columns:28px repeat(3,1fr) 18px repeat(2,1fr);gap:6px;align-items:center}
+.seatgrid .rn{font:11px var(--mono);color:var(--faint);text-align:center}
+.seatgrid .hd2{font:11px var(--mono);color:var(--muted);text-align:center}
+.seat{height:34px;border-radius:9px 9px 6px 6px;border:1.5px solid #b9d0c0;background:var(--green-soft);cursor:pointer;font:600 11px var(--mono);color:var(--green-dk)}
+.seat:disabled{background:#e6e2d6;border-color:#e6e2d6;color:transparent;cursor:not-allowed}
+.seat[aria-pressed="true"]{background:var(--green);border-color:var(--green);color:var(--cream)}
+.seat.win{box-shadow:inset 3px 0 0 #9cc5d4}
+.foot{padding:12px 16px 26px;background:var(--paper);border-top:1px solid var(--line);display:flex;align-items:center;gap:12px}
+.foot .p{flex:1}
+.foot .p b{font:800 24px var(--num);color:var(--maroon)}
+.foot .p small{display:block;color:var(--muted);font-size:12px}
+.foot .cta{width:auto;flex:1.4}
+.sum dl{display:grid;grid-template-columns:auto 1fr;gap:10px 14px;margin:0;font-size:14px}
+.sum dt{color:var(--muted)}
+.sum dd{margin:0;text-align:right;font-weight:600}
+.err{display:grid;grid-template-columns:30px 1fr;gap:10px;background:var(--bad-bg);border:1.5px solid var(--bad);border-radius:18px;padding:12px 14px;margin-bottom:12px;animation:shake .35s}
+.err i{width:30px;height:30px;border-radius:50%;background:var(--bad);color:#fff;display:grid;place-items:center;font-style:normal;font-weight:800}
+.err b{display:block;color:var(--bad)}
+.err p{margin:2px 0 8px;font-size:13px}
+.err button{border:0;background:var(--ink);color:var(--cream);border-radius:999px;padding:6px 14px;font:700 13px var(--sans);cursor:pointer}
+.ticket{background:var(--paper);border-radius:22px;border:2px solid var(--green);overflow:hidden;position:relative}
+.ticket .tt{background:var(--green);color:var(--cream);padding:12px 16px;display:flex;justify-content:space-between;font:700 13px var(--sans)}
+.ticket .tt span{font:700 13px var(--mono)}
+.ticket .tm2{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:16px;gap:8px}
+.ticket .tm2 b{display:block;font:800 26px var(--sans)}
+.ticket .tm2 small{color:var(--muted);font:13px var(--num)}
+.ticket .tm2 .r{text-align:right}
+.ticket .tm2 .no{text-align:center;font:700 14px var(--mono);color:var(--green)}
+.ticket .tm2 .no i{display:block;width:70px;height:2px;background:var(--green);margin:4px auto;position:relative}
+.ticket .tm2 .no i::after{content:'▶';position:absolute;right:-6px;top:-7px;font-size:10px;color:var(--green)}
+.ticket .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:0 16px 14px}
+.ticket .grid small{display:block;color:var(--muted);font-size:11px}
+.ticket .grid b{font:700 15px var(--sans)}
+.ticket .perf{border-top:2px dashed var(--line);margin:0 12px;position:relative}
+.ticket .perf::before,.ticket .perf::after{content:'';position:absolute;top:-12px;width:22px;height:22px;border-radius:50%;background:var(--cream);border:2px solid var(--green)}
+.ticket .perf::before{left:-25px}.ticket .perf::after{right:-25px}
+.ticket .stub{display:grid;grid-template-columns:84px 1fr;gap:12px;padding:14px 16px;align-items:center}
+.qr{width:84px;height:84px;display:grid;grid-template-columns:repeat(9,1fr);gap:1px;padding:5px;border:2px solid var(--ink);border-radius:8px}
+.qr i{background:var(--ink)}.qr i.w{background:transparent}
+.ticket .stub small{display:block;color:var(--muted);font-size:11px}
+.ticket .stub b{font:700 14px var(--mono)}
+.ok{text-align:center;margin-bottom:12px}
+.ok i{width:52px;height:52px;border-radius:50%;background:var(--ok);color:#fff;display:grid;place-items:center;margin:0 auto 6px;font-size:24px;font-style:normal;animation:pop .45s cubic-bezier(.2,1.5,.4,1)}
+.ok b{font:800 20px var(--sans)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.two button{height:48px;border-radius:16px;border:1.5px solid var(--green);background:var(--paper);color:var(--green-dk);font:700 15px var(--sans);cursor:pointer}
+.back:focus-visible,.st:focus-visible,.swap:focus-visible,.dates button:focus-visible,.cta:focus-visible,.recent button:focus-visible,.filters button:focus-visible,.train:focus-visible,.cls button:focus-visible,.seat:focus-visible,.err button:focus-visible,.two button:focus-visible,.opts label:focus-within{outline:3px solid var(--mustard);outline-offset:2px}
+@keyframes in{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:none}}
+@keyframes shake{20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+@keyframes pop{from{transform:scale(.3)}to{transform:scale(1)}}
+@media (max-width:500px){body{display:block;background:var(--cream)}.phone{width:100%;height:100vh;height:100dvh;border:0;border-radius:0;box-shadow:none}.notch{display:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="notch" aria-hidden="true"></div>
+  <div class="sb" aria-hidden="true"><span>9:41</span><span>▂▄▆ ▮▮▮</span></div>
+  <div id="root"></div>
+</div>
+<script>
+const CITIES=['杭州东','上海虹桥','南京南','宁波','黄山北'];
+const DAYS=[['今天','10/23'],['明天','10/24'],['周六','10/25'],['周日','10/26']];
+function trains(from,to){
+  const base=[
+   {no:'G7311',d:'07:42',a:'08:41',dur:'59分',p:[73,117,0],left:[2,5,0],risk:true,riskCls:0},
+   {no:'G7535',d:'08:15',a:'09:20',dur:'1时05分',p:[73,117,219],left:[46,12,3]},
+   {no:'G1503',d:'09:06',a:'10:02',dur:'56分',p:[73,117,219],left:[0,0,0]},
+   {no:'D3125',d:'09:48',a:'11:10',dur:'1时22分',p:[49,79,0],left:[88,20,0]},
+   {no:'G7319',d:'10:30',a:'11:28',dur:'58分',p:[73,117,219],left:[31,8,1]}
+  ];return base.map(t=>({...t,from,to}))}
+const CLS=['二等座','一等座','商务座'];
+const S={v:'search',from:'杭州东',to:'上海虹桥',day:1,stu:false,hs:true,list:[],ti:null,cls:0,seat:null,err:null,filt:'all',taken:{},order:null};
+const $=s=>document.getElementById(s),root=$('root');
+function header(title,sub,back){return '<header class="hd"><div class="row">'+(back?'<button class="back" type="button" data-go="'+back+'" aria-label="返回">‹</button>':'')+'<div><h1>'+title+'</h1>'+(sub?'<small>'+sub+'</small>':'')+'</div></div></header>'}
+function vSearch(){return '<section class="view">'+header('青线出行','火车票 · 高铁动车 · 0 手续费')+'<div class="body"><div class="card">'+
+ '<div class="od"><button class="st" type="button" data-pick="from"><small>出发</small><b>'+S.from.replace(/东|南|北/,'')+'</b><small>'+S.from+'</small></button><button class="swap" type="button" id="swap" aria-label="交换出发与到达">⇄</button><button class="st" type="button" data-pick="to"><small>到达</small><b>'+S.to.replace(/虹桥|东|南|北/,'')+'</b><small>'+S.to+'</small></button></div>'+
+ '<div class="dates" role="group" aria-label="出发日期">'+DAYS.map((d,i)=>'<button type="button" data-day="'+i+'" aria-pressed="'+(S.day===i)+'">'+d[0]+'<b>'+d[1]+'</b></button>').join('')+'</div>'+
+ '<div class="opts"><label><input type="checkbox" id="hs" '+(S.hs?'checked':'')+'>只看高铁动车</label><label><input type="checkbox" id="stu" '+(S.stu?'checked':'')+'>学生票</label></div>'+
+ '<button class="cta" type="button" id="search">查询车次</button></div>'+
+ '<div class="recent"><h2>最近搜索</h2><button type="button" data-recent="杭州东|上海虹桥">杭州东 → 上海虹桥 <small>上周五</small></button><button type="button" data-recent="杭州东|黄山北">杭州东 → 黄山北 <small>国庆</small></button></div></div></section>'}
+function vResults(){
+  const L=S.list.filter(t=>S.filt==='all'||(S.filt==='am'?t.d<'09:00':t.left.some(n=>n>0)));
+  return '<section class="view">'+header(S.from+' → '+S.to,DAYS[S.day][1]+' '+DAYS[S.day][0]+' · '+(S.stu?'学生票 · ':'')+S.list.length+' 趟','search')+'<div class="body">'+
+  (S.err?'<div class="keep">已为你保留路线：<b>'+S.from+' → '+S.to+' · '+DAYS[S.day][1]+'</b>，请改选其他车次或座位</div>':'')+
+  '<div class="filters" role="group" aria-label="筛选"><button type="button" data-filt="all" aria-pressed="'+(S.filt==='all')+'">全部</button><button type="button" data-filt="am" aria-pressed="'+(S.filt==='am')+'">9 点前出发</button><button type="button" data-filt="has" aria-pressed="'+(S.filt==='has')+'">只看有票</button></div>'+
+  L.map(t=>{const i=S.list.indexOf(t),none=t.left.every(n=>n===0);
+   return '<button class="train'+(t.risk&&t.left[t.riskCls]?' risk':'')+'" type="button" data-ti="'+i+'" '+(none?'disabled':'')+'><div class="tl"><span class="tm">'+t.d+'<small>'+t.from+'</small></span><span class="mid"><b>'+t.no+'</b><i></i>'+t.dur+'</span><span class="tm" style="text-align:right">'+t.a+'<small>'+t.to+'</small></span></div>'+
+   '<div class="seats">'+CLS.map((c,k)=>t.p[k]?(t.left[k]?'<span>'+c+' <b>¥'+(S.stu&&k===0?Math.round(t.p[k]*.75):t.p[k])+'</b> · '+(t.left[k]<10?'剩 '+t.left[k]+' 张':'有票')+'</span>':'<span class="no">'+c+' 售罄</span>'):'').join('')+'</div>'+
+   (t.risk&&t.left[t.riskCls]?'<div class="warn">⚠ 二等座余票紧张 · 确认订单时会再次校验，可能售罄</div>':'')+(none?'<div class="warn" style="color:#7a7f78;background:#ece9df">全部售罄 · 可预约候补</div>':'')+'</button>'}).join('')+'</div></section>'}
+function seatMap(t){
+  const rows=[6,7,8,9,10,11,12];let h='<div class="seatgrid"><span></span>'+['A','B','C'].map(c=>'<span class="hd2">'+c+'</span>').join('')+'<span></span>'+['D','F'].map(c=>'<span class="hd2">'+c+'</span>').join('');
+  rows.forEach(r=>{h+='<span class="rn">'+String(r).padStart(2,'0')+'</span>';['A','B','C','gap','D','F'].forEach(c=>{if(c==='gap'){h+='<span></span>';return}
+   const id=String(r).padStart(2,'0')+c,full=((r*7+c.charCodeAt(0))%5<2)||S.taken[t.no+id];
+   h+='<button class="seat'+(c==='A'||c==='F'?' win':'')+'" type="button" data-seat="'+id+'" aria-pressed="'+(S.seat===id)+'" '+(full?'disabled aria-label="'+id+' 已售"':'aria-label="'+id+(c==='A'||c==='F'?' 靠窗':'')+'"')+'>'+id+'</button>'})});
+  return h+'</div>'}
+function price(){const t=S.list[S.ti];return S.stu&&S.cls===0?Math.round(t.p[0]*.75):t.p[S.cls]}
+function vSeat(){const t=S.list[S.ti];
+ return '<section class="view">'+header(t.no+' · '+t.d+' → '+t.a,S.from+' → '+S.to+' · '+DAYS[S.day][1],'results')+'<div class="body">'+
+ '<div class="cls" role="group" aria-label="席别">'+CLS.map((c,k)=>'<button type="button" data-cls="'+k+'" aria-pressed="'+(S.cls===k)+'" '+(!t.p[k]||!t.left[k]?'disabled':'')+'><b>'+c+'</b>'+(t.p[k]?'¥'+t.p[k]+' · '+(t.left[k]?'剩 '+t.left[k]:'售罄'):'无')+'</button>').join('')+'</div>'+
+ '<div class="car"><div class="cap"><span><b>'+(S.cls===0?'05':'02')+' 车厢</b> · '+CLS[S.cls]+'</span><span>车头方向 ▲</span></div><div class="legend"><span><i style="background:#e1ece3;border:1.5px solid #b9d0c0"></i>可选</span><span><i style="background:#2f6b4f"></i>已选</span><span><i style="background:#e6e2d6"></i>已售</span><span><i style="box-shadow:inset 3px 0 0 #9cc5d4;background:#e1ece3"></i>靠窗</span></div>'+seatMap(t)+'</div>'+
+ (t.risk&&S.cls===t.riskCls&&t.left[t.riskCls]?'<div class="warn" style="margin-top:10px;font-size:12px;color:#8a6212;background:#fbf1d6;border-radius:10px;padding:6px 10px">⚠ 本车次二等座余票紧张，确认订单时会再次校验</div>':'')+'</div>'+
+ '<div class="foot"><span class="p"><b>¥'+price()+'</b><small>'+(S.seat?'座位 '+S.seat+(S.stu&&S.cls===0?' · 学生 7.5 折':''):'请选择座位')+'</small></span><button class="cta" type="button" id="toConfirm" '+(S.seat?'':'disabled')+'>下一步</button></div></section>'}
+function vConfirm(){const t=S.list[S.ti];
+ return '<section class="view">'+header('确认订单',t.no+' · '+DAYS[S.day][1]+' '+t.d,'seat')+'<div class="body">'+
+ (S.err?'<div class="err" role="alert"><i>!</i><div><b>'+S.err.title+'</b><p>'+S.err.msg+'</p><button type="button" id="reselect">返回结果改选</button></div></div>':'')+
+ '<div class="card sum"><dl><dt>车次</dt><dd>'+t.no+' · '+t.d+' → '+t.a+'</dd><dt>区间</dt><dd>'+S.from+' → '+S.to+'</dd><dt>日期</dt><dd>2026-'+DAYS[S.day][1].replace('/','-')+' '+DAYS[S.day][0]+'</dd><dt>席位</dt><dd>'+CLS[S.cls]+' · '+(S.cls===0?'05':'02')+' 车 '+S.seat+'</dd><dt>乘车人</dt><dd>沈宁 · 身份证 3301**********2207'+(S.stu?' · 学生':'')+'</dd><dt>票价</dt><dd style="color:#8b2e2e;font:800 18px var(--num)">¥'+price()+'</dd></dl></div>'+
+ '<p style="font-size:12px;color:#6f776f;margin:12px 4px">提交后请在 30 分钟内完成支付，开车前 25 分钟停止检票。</p></div>'+
+ '<div class="foot"><span class="p"><b>¥'+price()+'</b><small>含保险 ¥0 · 无手续费</small></span><button class="cta alt" type="button" id="submit" '+(S.err?'disabled':'')+'>'+(S.err?'该座位不可售':'提交并支付')+'</button></div></section>'}
+function vTicket(){const o=S.order;
+ return '<section class="view">'+header('行程凭证','订单已出票 · 已发送短信')+'<div class="body"><div class="ok"><i>✓</i><b>出票成功</b></div>'+
+ '<article class="ticket" aria-label="电子客票"><div class="tt">电子客票 · 青线出行<span>'+o.no+'</span></div><div class="tm2"><span><b>'+o.d+'</b><small>'+o.from+'</small></span><span class="no">'+o.train+'<i></i>'+o.dur+'</span><span class="r"><b>'+o.a+'</b><small>'+o.to+'</small></span></div>'+
+ '<div class="grid"><div><small>日期</small><b>'+o.date+'</b></div><div><small>车厢座位</small><b>'+o.car+' 车 '+o.seat+'</b></div><div><small>席别</small><b>'+o.cls+'</b></div><div><small>乘车人</small><b>沈宁</b></div><div><small>票价</small><b>¥'+o.price+'</b></div><div><small>检票口</small><b>A12</b></div></div>'+
+ '<div class="perf" aria-hidden="true"></div><div class="stub"><div class="qr" aria-label="检票码">'+Array.from({length:81},(_,i)=>'<i class="'+((i*13+(i%9)*5)%7<3?'w':'')+'"></i>').join('')+'</div><div><small>订单号</small><b>'+o.no+'</b><small style="margin-top:6px">刷身份证或扫码检票 · 开车前 25 分钟停止检票</small></div></div></article>'+
+ '<div class="two"><button type="button" id="cal">＋ 加入日历</button><button type="button" id="again">再订一张</button></div></div></section>'}
+function render(){root.innerHTML={search:vSearch,results:vResults,seat:vSeat,confirm:vConfirm,ticket:vTicket}[S.v]();bind()}
+function go(v){S.v=v;render()}
+function bind(){
+  root.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>{const g=b.dataset.go;if(g==='search')S.err=null;go(g)});
+  const sw=$('swap');if(sw)sw.onclick=()=>{[S.from,S.to]=[S.to,S.from];render();$('swap').classList.add('spin')};
+  root.querySelectorAll('[data-pick]').forEach(b=>b.onclick=()=>{const k=b.dataset.pick,i=CITIES.indexOf(S[k]);let n=(i+1)%CITIES.length;if(CITIES[n]===S[k==='from'?'to':'from'])n=(n+1)%CITIES.length;S[k]=CITIES[n];render()});
+  root.querySelectorAll('[data-day]').forEach(b=>b.onclick=()=>{S.day=+b.dataset.day;render()});
+  const hs=$('hs');if(hs)hs.onchange=()=>S.hs=hs.checked;const stu=$('stu');if(stu)stu.onchange=()=>S.stu=stu.checked;
+  const se=$('search');if(se)se.onclick=()=>{se.textContent='正在查询…';setTimeout(()=>{S.list=trains(S.from,S.to);S.filt='all';S.err=null;go('results')},500)};
+  root.querySelectorAll('[data-recent]').forEach(b=>b.onclick=()=>{[S.from,S.to]=b.dataset.recent.split('|');render()});
+  root.querySelectorAll('[data-filt]').forEach(b=>b.onclick=()=>{S.filt=b.dataset.filt;render()});
+  root.querySelectorAll('[data-ti]').forEach(b=>b.onclick=()=>{S.ti=+b.dataset.ti;const t=S.list[S.ti];S.cls=t.left.findIndex(n=>n>0);S.seat=null;go('seat')});
+  root.querySelectorAll('[data-cls]').forEach(b=>b.onclick=()=>{S.cls=+b.dataset.cls;S.seat=null;render()});
+  root.querySelectorAll('[data-seat]').forEach(b=>b.onclick=()=>{S.seat=b.dataset.seat;render()});
+  const tc=$('toConfirm');if(tc)tc.onclick=()=>{S.err=null;go('confirm')};
+  const sb=$('submit');if(sb)sb.onclick=()=>{sb.disabled=true;sb.textContent='正在锁座…';
+    setTimeout(()=>{const t=S.list[S.ti];
+      if(t.risk&&S.cls===t.riskCls&&t.left[S.cls]){t.left[S.cls]=0;S.taken[t.no+S.seat]=1;
+        S.err={title:t.no+' '+CLS[S.cls]+'已售罄',msg:'就在刚才，'+(S.cls===0?'05':'02')+' 车 '+S.seat+' 及本车次剩余'+CLS[S.cls]+'已被抢完，订单未生成，也不会扣款。你的路线和日期都已保留。'};render();return}
+      const t2=S.list[S.ti];S.order={no:'E'+'2610'+String(Math.floor(Math.random()*9e5)+1e5)+'A',train:t2.no,d:t2.d,a:t2.a,dur:t2.dur,from:S.from,to:S.to,date:DAYS[S.day][1]+' '+DAYS[S.day][0],car:S.cls===0?'05':'02',seat:S.seat,cls:CLS[S.cls],price:price()};
+      t2.left[S.cls]=Math.max(0,t2.left[S.cls]-1);S.taken[t2.no+S.seat]=1;S.err=null;go('ticket')},900)};
+  const rs=$('reselect');if(rs)rs.onclick=()=>{S.filt='has';go('results')};
+  const cal=$('cal');if(cal)cal.onclick=()=>{cal.textContent='✓ 已加入日历'};
+  const ag=$('again');if(ag)ag.onclick=()=>{S.err=null;go('search')};
+}
+render();
+</script>
+</body>
+</html>

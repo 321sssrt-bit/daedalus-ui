@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>仁和医院信息平台 · 角色与权限</title>
+<style>
+:root{
+  --bg:#f2f8f7;--panel:#ffffff;--ink:#12312e;--muted:#5f7b78;--faint:#94aba8;--line:#d5e6e3;--teal:#0f8b80;--teal-dk:#0a6c63;--mint:#c8efe8;--mint-2:#e6f7f4;--red:#d64545;--amber:#d9932b;
+  --sans:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  --mono:"SF Mono","Menlo","Consolas",monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:13px/1.5 var(--sans)}
+.top{height:54px;display:flex;align-items:center;gap:16px;padding:0 24px;background:var(--panel);border-bottom:1px solid var(--line)}
+.top .logo{display:flex;align-items:center;gap:8px;font:700 15px var(--sans)}
+.top .logo i{width:26px;height:26px;border-radius:7px;background:var(--teal);position:relative}
+.top .logo i::before,.top .logo i::after{content:'';position:absolute;background:#fff;left:50%;top:50%;transform:translate(-50%,-50%)}
+.top .logo i::before{width:14px;height:4px}.top .logo i::after{width:4px;height:14px}
+.top .crumb{color:var(--muted)}
+.top .crumb b{color:var(--ink)}
+.top .user{margin-left:auto;font-size:12px;color:var(--muted)}
+.layout{display:grid;grid-template-columns:240px minmax(0,1fr) 300px;gap:16px;padding:16px 24px 24px;align-items:start}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px}
+.panel>header{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid var(--line)}
+.panel h2{margin:0;font:600 14px var(--sans)}
+.roles{padding:8px}
+.role{display:grid;grid-template-columns:34px 1fr auto;gap:10px;align-items:center;width:100%;padding:9px 10px;border-radius:8px;border:0;background:none;cursor:pointer;text-align:left;font:13px var(--sans);color:var(--ink)}
+.role:hover{background:var(--mint-2)}
+.role[aria-selected="true"]{background:var(--mint);box-shadow:inset 3px 0 0 var(--teal)}
+.role i{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;font:700 13px var(--sans);font-style:normal;color:#fff}
+.role b{display:block;font-weight:600}
+.role small{color:var(--muted);font-size:11px}
+.role .n{font:11px var(--mono);color:var(--muted)}
+.role .dirty{width:7px;height:7px;border-radius:50%;background:var(--amber)}
+.add{margin:4px 8px 10px;width:calc(100% - 16px);height:34px;border:1px dashed var(--line);border-radius:8px;background:none;color:var(--teal);font:600 12px var(--sans);cursor:pointer}
+.add:hover{border-color:var(--teal);background:var(--mint-2)}
+.mx header .meta{font-size:12px;color:var(--muted)}
+.mx header .meta b{color:var(--teal);font-family:var(--mono)}
+.tblwrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+th{font:600 12px var(--sans);color:var(--muted);padding:10px 12px;text-align:center;border-bottom:1px solid var(--line);background:#f8fcfb;white-space:nowrap}
+th:first-child{text-align:left}
+td{padding:9px 12px;border-bottom:1px solid #e8f2f0;text-align:center}
+td:first-child{text-align:left}
+td:first-child b{display:block;font-weight:600}
+td:first-child small{color:var(--muted);font-size:11px}
+tr:hover td{background:#fbfefd}
+tr.sens td:first-child b::after{content:'敏感';margin-left:6px;font:600 10px var(--sans);color:var(--red);border:1px solid #f1c3c3;border-radius:4px;padding:0 4px;vertical-align:1px}
+.cb{appearance:none;width:22px;height:22px;border-radius:6px;border:1.5px solid #b9d3cf;background:#fff;cursor:pointer;display:inline-grid;place-items:center;margin:0;transition:background .12s,border-color .12s}
+.cb:hover{border-color:var(--teal)}
+.cb:checked{background:var(--teal);border-color:var(--teal)}
+.cb:checked::after{content:'';width:10px;height:6px;border-left:2px solid #fff;border-bottom:2px solid #fff;transform:rotate(-45deg) translate(1px,-1px)}
+.cb:disabled{background:#eef3f2;border-color:#dbe7e5;cursor:not-allowed}
+.cb:disabled:checked{background:#9cc9c3;border-color:#9cc9c3}
+.cb.changed{box-shadow:0 0 0 3px #d9932b55}
+.cb:focus-visible,.role:focus-visible,.btn:focus-visible,.seg button:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
+.foot{display:flex;align-items:center;gap:10px;padding:12px 14px;border-top:1px solid var(--line);background:#f8fcfb;border-radius:0 0 10px 10px}
+.foot .msg{font-size:12px;color:var(--muted)}
+.foot .msg b{color:var(--amber)}
+.foot .sp{flex:1}
+.btn{height:34px;padding:0 16px;border-radius:8px;font:600 13px var(--sans);cursor:pointer;border:1px solid var(--line);background:var(--panel);color:var(--ink)}
+.btn:hover{border-color:var(--teal)}
+.btn.pri{background:var(--teal);border-color:var(--teal);color:#fff}
+.btn.pri:hover{background:var(--teal-dk)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.pv{position:sticky;top:16px}
+.pv .who{padding:12px 14px;border-bottom:1px solid var(--line);font-size:12px;color:var(--muted)}
+.pv .who b{color:var(--ink)}
+.seg{display:flex;background:var(--bg);border-radius:8px;padding:3px;margin:12px 14px 0}
+.seg button{flex:1;border:0;background:none;height:28px;border-radius:6px;font:12px var(--sans);color:var(--muted);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--panel);color:var(--ink);box-shadow:0 1px 2px #12312e1f;font-weight:600}
+.screen{margin:12px 14px 14px;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.screen .sb{height:28px;background:var(--teal);display:flex;align-items:center;padding:0 10px;color:#fff;font-size:11px;gap:6px}
+.screen .sb i{width:6px;height:6px;border-radius:50%;background:#ffffff99}
+.menu{display:grid;gap:2px;padding:8px}
+.mi{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:7px;font-size:12px}
+.mi.ok{background:var(--mint-2)}
+.mi.ro{color:var(--muted)}
+.mi.no{color:var(--faint);text-decoration:line-through}
+.mi span{margin-left:auto;font:10px var(--mono)}
+.mi.ok span{color:var(--teal)}
+.mi.no span{color:var(--red);text-decoration:none}
+.legend{display:flex;gap:12px;padding:0 14px 14px;font-size:11px;color:var(--muted)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:4px;vertical-align:-1px}
+.toast{position:fixed;left:50%;top:70px;transform:translate(-50%,-10px);opacity:0;background:var(--ink);color:#fff;padding:9px 16px;border-radius:8px;font-size:12px;transition:all .2s}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+@media (max-width:1180px){.layout{grid-template-columns:220px minmax(0,1fr)}.pv{grid-column:1/-1;position:static}}
+@media (max-width:760px){.layout{grid-template-columns:1fr;padding:12px}.top .crumb{display:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<header class="top"><div class="logo"><i></i>仁和医院信息平台</div><span class="crumb">系统管理 / <b>角色与权限</b></span><span class="user">信息科 · 管理员 吴桐</span></header>
+<div class="layout">
+  <aside class="panel">
+    <header><h2>角色</h2><span style="font:11px var(--mono);color:#5f7b78">5</span></header>
+    <div class="roles" id="roles" role="listbox" aria-label="角色列表"></div>
+    <button class="add" type="button">＋ 新建角色</button>
+  </aside>
+  <section class="panel mx">
+    <header><h2 id="mxTitle">主任医师 · 权限清单</h2><span class="meta" id="mxMeta"></span></header>
+    <div class="tblwrap"><table><thead><tr><th>功能模块</th><th>查看</th><th>新建 / 编辑</th><th>审批 / 签名</th><th>导出</th></tr></thead><tbody id="mx"></tbody></table></div>
+    <div class="foot"><span class="msg" id="msg">所有修改会记入审计日志</span><span class="sp"></span><button class="btn" type="button" id="reset" disabled>撤销修改</button><button class="btn pri" type="button" id="save" disabled>保存权限</button></div>
+  </section>
+  <aside class="panel pv" aria-live="polite">
+    <header><h2>切换预览</h2><span style="font-size:11px;color:#5f7b78">以该角色登录看到的菜单</span></header>
+    <div class="seg" role="group" aria-label="预览模式"><button type="button" aria-pressed="true" data-v="cur">修改后</button><button type="button" aria-pressed="false" data-v="saved">已保存</button></div>
+    <div class="screen"><div class="sb"><i></i><i></i><i></i><span id="pvRole" style="margin-left:6px"></span></div><div class="menu" id="menu"></div></div>
+    <div class="legend"><span><i style="background:#c8efe8"></i>可操作</span><span><i style="background:#e8f2f0"></i>仅查看</span><span><i style="background:#fbe3e3"></i>不可见</span></div>
+  </aside>
+</div>
+<div class="toast" id="toast" role="status"></div>
+<script>
+const mods=[['电子病历','门诊与住院病历',0],['医嘱与处方','开立、修改、作废',1],['检验检查','申请单与报告',0],['药房发药','核对与发放',0],['护理记录','体征、护理评估',0],['排班管理','医护排班与调班',0],['费用结算','收费、退费、对账',1],['患者隐私信息','身份证号、联系方式',1]];
+const acts=['查看','编辑','审批','导出'];
+const roles=[
+ {n:'主任医师',d:'科室负责人',c:'#0f8b80',p:[[1,1,1,1],[1,1,1,0],[1,1,1,0],[1,0,0,0],[1,0,0,0],[1,1,1,0],[1,0,0,0],[1,0,0,0]]},
+ {n:'住院医师',d:'临床一线',c:'#3a7bd5',p:[[1,1,0,0],[1,1,0,0],[1,1,0,0],[1,0,0,0],[1,0,0,0],[1,0,0,0],[0,0,0,0],[1,0,0,0]]},
+ {n:'护士长',d:'护理管理',c:'#c45ab3',p:[[1,0,0,0],[1,0,0,0],[1,0,0,0],[1,0,0,0],[1,1,1,1],[1,1,1,0],[0,0,0,0],[1,0,0,0]]},
+ {n:'药剂师',d:'药房',c:'#d9932b',p:[[0,0,0,0],[1,0,1,0],[0,0,0,0],[1,1,1,1],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]]},
+ {n:'挂号收费员',d:'门诊前台',c:'#5f7b78',p:[[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[1,1,0,1],[1,1,0,0]]}
+];
+roles.forEach(r=>r.saved=r.p.map(x=>x.slice()));
+let cur=0,view='cur';
+function diff(r){let n=0;r.p.forEach((row,i)=>row.forEach((v,j)=>{if(v!==r.saved[i][j])n++}));return n}
+function count(p){return p.flat().filter(Boolean).length}
+function renderRoles(){
+  document.getElementById('roles').innerHTML=roles.map((r,i)=>'<button class="role" type="button" role="option" aria-selected="'+(i===cur)+'" data-i="'+i+'"><i style="background:'+r.c+'">'+r.n[0]+'</i><span><b>'+r.n+'</b><small>'+r.d+'</small></span>'+(diff(r)?'<span class="dirty" title="有未保存修改"></span>':'<span class="n">'+count(r.saved)+' 项</span>')+'</button>').join('');
+  document.querySelectorAll('.role').forEach(b=>b.onclick=()=>{cur=+b.dataset.i;render()});
+}
+function renderMx(){
+  const r=roles[cur];
+  document.getElementById('mxTitle').textContent=r.n+' · 权限清单';
+  document.getElementById('mxMeta').innerHTML='已授予 <b>'+count(r.p)+'</b> / 32 项';
+  document.getElementById('mx').innerHTML=mods.map((m,i)=>'<tr class="'+(m[2]?'sens':'')+'"><td><b>'+m[0]+'</b><small>'+m[1]+'</small></td>'+acts.map((a,j)=>'<td><input class="cb'+(r.p[i][j]!==r.saved[i][j]?' changed':'')+'" type="checkbox" data-i="'+i+'" data-j="'+j+'" aria-label="'+r.n+' '+m[0]+' '+a+'" '+(r.p[i][j]?'checked':'')+(j>0&&!r.p[i][0]?' disabled':'')+'></td>').join('')+'</tr>').join('');
+  document.querySelectorAll('#mx .cb').forEach(c=>c.onchange=()=>{const i=+c.dataset.i,j=+c.dataset.j;r.p[i][j]=c.checked?1:0;if(j===0&&!c.checked)r.p[i]=[0,0,0,0];render()});
+  const d=diff(r);
+  document.getElementById('msg').innerHTML=d?'<b>'+d+' 项修改未保存</b> · 涉及敏感模块的变更需信息科主任复核':'所有修改会记入审计日志';
+  document.getElementById('save').disabled=!d;document.getElementById('reset').disabled=!d;
+}
+function renderPv(){
+  const r=roles[cur],p=view==='cur'?r.p:r.saved;
+  document.getElementById('pvRole').textContent=r.n+' · 工作站';
+  document.getElementById('menu').innerHTML=mods.map((m,i)=>{const row=p[i],cls=!row[0]?'no':(row[1]||row[2]?'ok':'ro'),lab=!row[0]?'隐藏':row[2]?'可审批':row[1]?'可编辑':'只读';
+    return '<div class="mi '+cls+'">'+m[0]+'<span>'+lab+'</span></div>'}).join('');
+}
+function render(){renderRoles();renderMx();renderPv()}
+function toast(t){const e=document.getElementById('toast');e.textContent=t;e.classList.add('show');clearTimeout(toast.h);toast.h=setTimeout(()=>e.classList.remove('show'),2400)}
+document.getElementById('save').onclick=()=>{const r=roles[cur],d=diff(r);r.saved=r.p.map(x=>x.slice());render();toast('已保存「'+r.n+'」的 '+d+' 项权限变更 · 审计编号 AU-1023-'+(4400+d))};
+document.getElementById('reset').onclick=()=>{const r=roles[cur];r.p=r.saved.map(x=>x.slice());render()};
+document.querySelectorAll('[data-v]').forEach(b=>b.onclick=()=>{view=b.dataset.v;document.querySelectorAll('[data-v]').forEach(x=>x.setAttribute('aria-pressed',x===b));renderPv()});
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>墨册书库 · 登录</title>
+<style>
+:root{
+  --page:#f3ede1;--surface:#fbf8f1;--ink:#1d1a16;--muted:#7a6f60;--line:#d9cfbd;
+  --seal:#b8352a;--seal-deep:#8f261d;--focus:#c9a46a;--ok:#3f6b4a;
+  --serif:"Songti SC","STSong","Noto Serif SC","SimSun",serif;
+  --sans:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--page);color:var(--ink);font:15px/1.6 var(--sans);
+  background-image:repeating-linear-gradient(0deg,transparent 0 31px,#e8dfcf 31px 32px);}
+.shell{min-height:100%;display:grid;grid-template-columns:520px minmax(0,1fr);}
+.cover{position:relative;border-right:1px solid var(--line);padding:56px 64px;display:flex;gap:40px;overflow:hidden;background:linear-gradient(180deg,#efe6d4,#f3ede1)}
+.cover .title{writing-mode:vertical-rl;font:700 104px/1 var(--serif);letter-spacing:.12em;margin:0;color:var(--ink)}
+.cover .verse{writing-mode:vertical-rl;font:17px/2.1 var(--serif);color:var(--muted);margin:8px 0 0;letter-spacing:.2em}
+.seal{position:absolute;left:64px;bottom:56px;width:84px;height:84px;border:3px solid var(--seal);border-radius:6px;color:var(--seal);display:grid;grid-template-columns:1fr 1fr;place-items:center;font:700 26px/1 var(--serif);transform:rotate(-4deg);padding:6px}
+.cover .meta{position:absolute;right:40px;bottom:56px;font-size:12px;color:var(--muted);text-align:right;line-height:1.9}
+.panel{display:flex;align-items:center;justify-content:center;padding:48px 24px}
+.card{width:420px;max-width:100%}
+.eyebrow{font-size:12px;letter-spacing:.32em;color:var(--seal);margin:0 0 10px}
+h1{font:600 32px/1.25 var(--serif);margin:0 0 6px}
+.lede{color:var(--muted);margin:0 0 28px}
+.tabs{display:flex;gap:28px;border-bottom:1px solid var(--line);margin-bottom:24px}
+.tab{appearance:none;background:none;border:0;padding:0 0 10px;font:15px var(--sans);color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px}
+.tab[aria-selected="true"]{color:var(--ink);border-color:var(--ink);font-weight:600}
+.tab:focus-visible,.link:focus-visible,.btn:focus-visible,.peek:focus-visible,.send:focus-visible{outline:2px solid var(--focus);outline-offset:3px}
+.field{margin-bottom:18px}
+.field label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
+.control{display:flex;align-items:center;height:48px;border:1px solid var(--line);background:var(--surface);border-radius:2px;transition:border-color .15s}
+.control:hover{border-color:#bfb19a}
+.control:focus-within{border-color:var(--ink);box-shadow:0 0 0 3px #c9a46a40}
+.control input{flex:1;min-width:0;border:0;background:none;height:100%;padding:0 14px;font:16px var(--sans);color:var(--ink);outline:none}
+.control input::placeholder{color:#a99d8a}
+.field.bad .control{border-color:var(--seal)}
+.err{display:none;color:var(--seal);font-size:12px;margin-top:6px}
+.field.bad .err{display:block}
+.peek,.send{appearance:none;border:0;background:none;color:var(--muted);font:13px var(--sans);padding:0 14px;cursor:pointer;height:100%;white-space:nowrap}
+.send{border-left:1px solid var(--line);color:var(--ink)}
+.send:disabled{color:#a99d8a;cursor:default}
+.row{display:flex;justify-content:space-between;align-items:center;margin:4px 0 26px;font-size:13px}
+.check{display:flex;align-items:center;gap:8px;color:var(--muted);cursor:pointer}
+.check input{accent-color:var(--ink);width:16px;height:16px}
+.link{color:var(--seal);text-decoration:none;border-bottom:1px solid #b8352a55;background:none;border-top:0;border-left:0;border-right:0;padding:0;font:inherit;cursor:pointer}
+.link:hover{color:var(--seal-deep);border-bottom-color:var(--seal-deep)}
+.btn{width:100%;height:52px;border:0;border-radius:2px;background:var(--ink);color:#f3ede1;font:600 16px/1 var(--sans);letter-spacing:.3em;cursor:pointer;transition:background .15s,transform .1s}
+.btn:hover{background:#000}
+.btn:active{transform:translateY(1px)}
+.btn:disabled{background:#8a8072;cursor:progress}
+.btn.done{background:var(--ok)}
+.help{margin-top:22px;border:1px dashed var(--line);padding:16px 18px;font-size:13px;color:var(--muted);display:none;background:#fbf8f1cc}
+.help.open{display:block;animation:rise .25s ease-out}
+.help strong{color:var(--ink);font-weight:600}
+.help ol{margin:8px 0 0;padding-left:18px}
+.foot{margin-top:28px;font-size:13px;color:var(--muted)}
+.notice{margin:0 0 18px;padding:10px 14px;border-left:3px solid var(--seal);background:#b8352a10;font-size:13px;display:none}
+.notice.show{display:block}
+[hidden]{display:none!important}
+@keyframes rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@media (max-width:900px){
+  .shell{grid-template-columns:1fr}
+  .cover{padding:28px 32px;min-height:0;border-right:0;border-bottom:1px solid var(--line);gap:20px;align-items:center}
+  .cover .title{writing-mode:horizontal-tb;font-size:56px}
+  .cover .verse{writing-mode:horizontal-tb;margin:0;font-size:14px;line-height:1.8}
+  .seal{position:static;width:60px;height:60px;font-size:18px;margin-left:auto;flex:none}
+  .cover .meta{display:none}
+  .panel{padding:40px 24px 56px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="shell">
+  <aside class="cover" aria-label="墨册书库">
+    <h2 class="title">墨册</h2>
+    <p class="verse">读书不觉已春深<br>一寸光阴一寸金</p>
+    <div class="seal" aria-hidden="true"><span>书</span><span>墨</span><span>库</span><span>藏</span></div>
+    <div class="meta">馆藏 128,406 册<br>今日开放 08:30 – 21:00</div>
+  </aside>
+  <main class="panel">
+    <form class="card" novalidate>
+      <p class="eyebrow">读者通道</p>
+      <h1>回到你的书架</h1>
+      <p class="lede">登录后可续借、查看批注与预约到馆座位。</p>
+      <div class="notice" role="alert"></div>
+      <div class="tabs" role="tablist">
+        <button type="button" class="tab" role="tab" aria-selected="true" data-mode="pwd">密码登录</button>
+        <button type="button" class="tab" role="tab" aria-selected="false" data-mode="code">短信验证码</button>
+      </div>
+      <div class="field" data-f="account">
+        <label for="account">借阅证号或手机号</label>
+        <div class="control"><input id="account" autocomplete="username" placeholder="例如 2031 0042 或 138 0000 0000"></div>
+        <div class="err">请填写借阅证号或手机号</div>
+      </div>
+      <div class="field" data-f="pwd">
+        <label for="pwd">密码</label>
+        <div class="control"><input id="pwd" type="password" autocomplete="current-password" placeholder="至少 8 位"><button type="button" class="peek" aria-pressed="false">显示</button></div>
+        <div class="err">密码至少 8 位</div>
+      </div>
+      <div class="field" data-f="code" hidden>
+        <label for="code">验证码</label>
+        <div class="control"><input id="code" inputmode="numeric" maxlength="6" placeholder="6 位数字"><button type="button" class="send">获取验证码</button></div>
+        <div class="err">请输入 6 位验证码</div>
+      </div>
+      <div class="row">
+        <label class="check"><input type="checkbox" checked> 在这台电脑上保持登录 14 天</label>
+        <button type="button" class="link" aria-expanded="false" aria-controls="help">忘记密码？</button>
+      </div>
+      <button class="btn" type="submit">进入书库</button>
+      <div class="help" id="help">
+        <strong>找不到密码也没关系</strong>
+        <ol>
+          <li>切换到「短信验证码」，用绑定的手机号直接登录；</li>
+          <li>或到 <button type="button" class="link" data-reset>重设密码</button> 页面，通过邮箱接收链接；</li>
+          <li>手机号已停用？带上借阅证到一楼服务台，馆员当场为你更换。</li>
+        </ol>
+      </div>
+      <p class="foot">还没有借阅证？ <a class="link" href="#apply">在线办理，三分钟</a></p>
+    </form>
+  </main>
+</div>
+<script>
+const form=document.querySelector('form'),tabs=[...document.querySelectorAll('.tab')];
+const fPwd=form.querySelector('[data-f="pwd"]'),fCode=form.querySelector('[data-f="code"]');
+const notice=form.querySelector('.notice'),btn=form.querySelector('.btn');
+let mode='pwd',timer=null;
+tabs.forEach(t=>t.addEventListener('click',()=>{
+  mode=t.dataset.mode;tabs.forEach(x=>x.setAttribute('aria-selected',x===t));
+  fPwd.hidden=mode!=='pwd';fCode.hidden=mode!=='code';clearBad();
+}));
+form.querySelector('.peek').addEventListener('click',e=>{
+  const i=document.getElementById('pwd'),show=i.type==='password';
+  i.type=show?'text':'password';e.target.textContent=show?'隐藏':'显示';e.target.setAttribute('aria-pressed',show);
+});
+const send=form.querySelector('.send');
+send.addEventListener('click',()=>{
+  if(!document.getElementById('account').value.trim()){bad('account');return}
+  let s=60;send.disabled=true;send.textContent=s+' 秒后重发';
+  timer=setInterval(()=>{s--;send.textContent=s+' 秒后重发';if(s<=0){clearInterval(timer);send.disabled=false;send.textContent='重新获取'}},1000);
+  show('验证码已发送到尾号 0000 的手机，5 分钟内有效。');
+});
+const helpBtn=form.querySelector('[aria-controls="help"]'),help=document.getElementById('help');
+helpBtn.addEventListener('click',()=>{const o=help.classList.toggle('open');helpBtn.setAttribute('aria-expanded',o)});
+form.querySelector('[data-reset]').addEventListener('click',()=>show('重设链接已准备好：输入账号后，我们会把链接发到你登记的邮箱。'));
+function bad(name){form.querySelector('[data-f="'+name+'"]').classList.add('bad')}
+function clearBad(){form.querySelectorAll('.bad').forEach(f=>f.classList.remove('bad'));notice.classList.remove('show')}
+function show(msg){notice.textContent=msg;notice.classList.add('show')}
+form.querySelectorAll('input').forEach(i=>i.addEventListener('input',()=>i.closest('.field')?.classList.remove('bad')));
+form.addEventListener('submit',e=>{
+  e.preventDefault();clearBad();let ok=true;
+  if(!document.getElementById('account').value.trim()){bad('account');ok=false}
+  if(mode==='pwd'&&document.getElementById('pwd').value.length<8){bad('pwd');ok=false}
+  if(mode==='code'&&!/^\d{6}$/.test(document.getElementById('code').value)){bad('code');ok=false}
+  if(!ok)return;
+  btn.disabled=true;btn.textContent='核对中…';
+  setTimeout(()=>{btn.disabled=false;btn.classList.add('done');btn.textContent='欢迎回来';show('登录成功，正在打开你的书架。')},900);
+});
+</script>
+</body>
+</html>

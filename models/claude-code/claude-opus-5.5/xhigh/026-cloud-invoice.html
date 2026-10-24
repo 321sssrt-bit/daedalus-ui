@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>云栈控制台 · 费用与账单</title>
+<style>
+:root{
+  --bg:#eef2f6;--panel:#ffffff;--ink:#0f1b2d;--muted:#5b6b80;--faint:#8a99ab;--line:#d9e1ea;--head:#f6f8fb;
+  --blue:#1f6feb;--blue-dk:#1557c0;--teal:#0ea5a3;--warn:#d97706;--red:#dc2626;--ok:#16a34a;
+  --mono:"SF Mono","JetBrains Mono","Menlo","Consolas",monospace;
+  --sans:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",-apple-system,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:13px/1.5 var(--sans)}
+.bar{height:48px;background:var(--ink);color:#c9d4e2;display:flex;align-items:center;gap:22px;padding:0 20px;font-size:13px}
+.bar b{color:#fff;font:700 15px var(--sans);display:flex;align-items:center;gap:8px}
+.bar b i{width:20px;height:20px;border-radius:5px;background:linear-gradient(135deg,var(--blue),var(--teal))}
+.bar a{color:inherit;text-decoration:none}
+.bar a:hover{color:#fff}
+.bar .proj{margin-left:auto;font:12px var(--mono);border:1px solid #2b3a52;border-radius:6px;padding:4px 10px}
+.sub{background:var(--panel);border-bottom:1px solid var(--line);padding:0 28px;display:flex;align-items:flex-end;gap:28px;height:96px}
+.sub .t{padding-bottom:14px}
+.sub h1{margin:0;font:600 22px var(--sans)}
+.sub p{margin:2px 0 0;color:var(--muted);font-size:12px}
+.tabs{display:flex;gap:4px;margin-left:24px}
+.tabs button{border:0;background:none;padding:10px 12px 12px;font:13px var(--sans);color:var(--muted);cursor:pointer;border-bottom:2px solid transparent}
+.tabs button[aria-selected="true"]{color:var(--ink);border-color:var(--blue);font-weight:600}
+.tabs button:hover{color:var(--ink)}
+.main{padding:20px 28px 40px;display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:16px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:8px}
+.card>header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--line)}
+.card h2{margin:0;font:600 14px var(--sans)}
+.plan{grid-column:span 4;padding-bottom:16px}
+.plan .body{padding:16px}
+.plan .name{display:flex;align-items:center;gap:10px}
+.plan .name b{font:600 20px var(--sans)}
+.badge{font:600 11px var(--mono);padding:2px 8px;border-radius:4px;background:#e6f0ff;color:var(--blue-dk)}
+.badge.ok{background:#dcfce7;color:#15803d}
+.badge.warn{background:#fef3c7;color:#b45309}
+.badge.due{background:#fee2e2;color:#b91c1c}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin-top:14px;font-size:12px}
+.kv dt{color:var(--muted)}
+.kv dd{margin:0;font-family:var(--mono);text-align:right}
+.btn{height:32px;padding:0 12px;border-radius:6px;font:600 12px var(--sans);cursor:pointer;border:1px solid var(--line);background:var(--panel);color:var(--ink);display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.btn:hover{border-color:#b7c4d3;background:var(--head)}
+.btn.pri{background:var(--blue);border-color:var(--blue);color:#fff}
+.btn.pri:hover{background:var(--blue-dk)}
+.btn:focus-visible,.tabs button:focus-visible,.seg button:focus-visible,.pm:focus-visible,.x:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.plan .acts{display:flex;gap:8px;margin-top:16px}
+.est{grid-column:span 4}
+.est .body{padding:16px}
+.est .big{font:600 34px/1.1 var(--mono);letter-spacing:-.02em}
+.est .big small{font-size:16px;color:var(--muted);margin-left:4px}
+.est .trend{font-size:12px;color:var(--muted);margin:4px 0 14px}
+.est .trend b{color:var(--warn);font-family:var(--mono)}
+.budget{height:10px;border-radius:5px;background:#e8edf3;position:relative;overflow:visible}
+.budget i{position:absolute;left:0;top:0;bottom:0;border-radius:5px;background:linear-gradient(90deg,var(--teal),var(--blue))}
+.budget s{position:absolute;top:0;bottom:0;left:var(--proj);border-radius:0 5px 5px 0;background:repeating-linear-gradient(45deg,#1f6feb55 0 3px,transparent 3px 6px);text-decoration:none}
+.budget em{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--red);left:100%}
+.blabel{display:flex;justify-content:space-between;font:11px var(--mono);color:var(--muted);margin-top:6px}
+.pay{grid-column:span 4}
+.pay .body{padding:16px;display:flex;flex-direction:column;gap:12px}
+.cardvis{height:96px;border-radius:10px;background:linear-gradient(135deg,#1c2b44,#0f1b2d 60%,#173e5c);color:#fff;padding:14px 16px;display:flex;flex-direction:column;justify-content:space-between;font-family:var(--mono)}
+.cardvis span{font-size:11px;color:#9fb3cc}
+.cardvis b{font-size:16px;letter-spacing:.14em;font-weight:500}
+.pay .row{display:flex;justify-content:space-between;font-size:12px;color:var(--muted)}
+.pay .row b{color:var(--ink);font-family:var(--mono);font-weight:500}
+.usage{grid-column:span 12}
+.meters{display:grid;grid-template-columns:repeat(4,1fr)}
+.meter{padding:14px 16px;border-right:1px solid var(--line)}
+.meter:last-child{border-right:0}
+.meter .k{font-size:12px;color:var(--muted);display:flex;justify-content:space-between}
+.meter .v{font:600 18px var(--mono);margin:2px 0 8px}
+.meter .v small{font-size:12px;color:var(--muted);font-weight:400}
+.meter .track{height:6px;border-radius:3px;background:#e8edf3;overflow:hidden}
+.meter .track i{display:block;height:100%;background:var(--blue)}
+.meter .track i.hot{background:var(--warn)}
+.meter .c{font:11px var(--mono);color:var(--faint);margin-top:6px}
+.inv{grid-column:span 12}
+.seg{display:flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.seg button{border:0;border-right:1px solid var(--line);background:var(--panel);padding:5px 12px;font:12px var(--sans);color:var(--muted);cursor:pointer}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{background:var(--head);color:var(--ink);font-weight:600}
+table{width:100%;border-collapse:collapse}
+th{background:var(--head);text-align:left;font:600 12px var(--sans);color:var(--muted);padding:9px 16px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:11px 16px;border-bottom:1px solid #edf1f5;white-space:nowrap}
+td.m,th.m{font-family:var(--mono);text-align:right}
+td.id{font-family:var(--mono);color:var(--blue-dk)}
+tr:hover td{background:#f9fbfd}
+tr:last-child td{border-bottom:0}
+.dl{border:0;background:none;color:var(--blue);font:600 12px var(--sans);cursor:pointer;padding:0 6px}
+.dl:hover{text-decoration:underline}
+.dl:disabled{color:var(--faint);cursor:default;text-decoration:none}
+dialog{border:1px solid var(--line);border-radius:10px;padding:0;width:460px;max-width:calc(100% - 32px);box-shadow:0 24px 60px #0f1b2d40}
+dialog::backdrop{background:#0f1b2d59}
+.dlg header{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-bottom:1px solid var(--line)}
+.dlg h3{margin:0;font:600 15px var(--sans)}
+.x{border:0;background:none;font-size:16px;cursor:pointer;color:var(--muted);width:28px;height:28px;border-radius:6px}
+.x:hover{background:var(--head)}
+.dlg .b{padding:16px 18px;display:grid;gap:8px}
+.pm{display:grid;grid-template-columns:36px 1fr auto;gap:12px;align-items:center;border:1px solid var(--line);border-radius:8px;padding:12px;background:var(--panel);cursor:pointer;text-align:left;font:13px var(--sans);color:var(--ink)}
+.pm:hover{border-color:#b7c4d3}
+.pm[aria-pressed="true"]{border-color:var(--blue);box-shadow:0 0 0 3px #1f6feb22}
+.pm i{width:36px;height:24px;border-radius:4px;display:grid;place-items:center;font:700 10px var(--sans);color:#fff;font-style:normal}
+.pm small{display:block;color:var(--muted);font-size:11px}
+.dlg footer{display:flex;justify-content:flex-end;gap:8px;padding:12px 18px;border-top:1px solid var(--line);background:var(--head);border-radius:0 0 10px 10px}
+.toast{position:fixed;right:20px;bottom:20px;background:var(--ink);color:#fff;padding:10px 14px;border-radius:8px;font-size:12px;opacity:0;transform:translateY(10px);transition:all .2s}
+.toast.show{opacity:1;transform:none}
+@media (max-width:1100px){.plan,.est,.pay{grid-column:span 6}.pay{grid-column:span 12}.meters{grid-template-columns:repeat(2,1fr)}.meter:nth-child(2){border-right:0}.meter:nth-child(-n+2){border-bottom:1px solid var(--line)}}
+@media (max-width:760px){.plan,.est,.pay{grid-column:span 12}.sub{height:auto;flex-direction:column;align-items:flex-start;gap:4px;padding-top:16px}.tabs{margin-left:0;overflow-x:auto;max-width:100%}.main{padding:16px}.bar a{display:none}.inv .tblwrap{overflow-x:auto}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<header class="bar"><b><i></i>云栈</b><a href="#console">控制台</a><a href="#products">产品</a><a href="#docs">文档</a><a href="#support">工单</a><span class="proj">项目 · lumen-prod ▾</span></header>
+<div class="sub"><div class="t"><h1>费用与账单</h1><p>主账号 9827-4410-35 · 结算币种 人民币</p></div>
+  <div class="tabs" role="tablist"><button type="button" role="tab" aria-selected="true">账单概览</button><button type="button" role="tab" aria-selected="false">费用明细</button><button type="button" role="tab" aria-selected="false">发票管理</button><button type="button" role="tab" aria-selected="false">预算告警</button></div></div>
+<main class="main">
+  <section class="card plan">
+    <header><h2>当前方案</h2><span class="badge ok">生效中</span></header>
+    <div class="body">
+      <div class="name"><b>专业版</b><span class="badge">按量 + 包年资源</span></div>
+      <dl class="kv"><dt>包年资源</dt><dd>4 × c7.xlarge</dd><dt>到期日</dt><dd>2027-03-15</dd><dt>折扣</dt><dd>企业协议 8.5 折</dd><dt>信用额度</dt><dd>¥ 50,000.00</dd></dl>
+      <div class="acts"><button class="btn pri" type="button" id="upgrade">升级到企业版</button><button class="btn" type="button">续费</button></div>
+    </div>
+  </section>
+  <section class="card est">
+    <header><h2>本月费用</h2><span style="font:11px var(--mono);color:#8a99ab">10/01 – 10/23</span></header>
+    <div class="body">
+      <div class="big">¥ 18,426.70<small>已出账</small></div>
+      <div class="trend">按当前用量预计月底 <b>¥ 24,830</b> · 较上月 +12.4%</div>
+      <div class="budget" style="--proj:62%"><i style="width:62%"></i><s style="width:21%"></s><em title="月预算"></em></div>
+      <div class="blabel"><span>已用 62%</span><span>预计 83%</span><span>预算 ¥30,000</span></div>
+    </div>
+  </section>
+  <section class="card pay">
+    <header><h2>支付方式</h2><button class="btn" type="button" id="changePm">更换支付方式</button></header>
+    <div class="body">
+      <div class="cardvis" id="pmVis"><span id="pmName">对公账户 · 自动扣款</span><b id="pmNo">招商银行 •••• 0918</b></div>
+      <div class="row"><span>扣款日</span><b>每月 3 日</b></div>
+      <div class="row"><span>账户余额</span><b>¥ 6,240.18</b></div>
+    </div>
+  </section>
+  <section class="card usage">
+    <header><h2>本月用量</h2><span style="font-size:12px;color:#5b6b80">数据每小时更新 · 最近 14:00</span></header>
+    <div class="meters">
+      <div class="meter"><div class="k"><span>云服务器 vCPU·时</span><span>¥ 9,812</span></div><div class="v">11,284 <small>/ 16,000</small></div><div class="track"><i style="width:70%"></i></div><div class="c">¥0.87 / vCPU·时</div></div>
+      <div class="meter"><div class="k"><span>对象存储</span><span>¥ 2,140</span></div><div class="v">18.6 TB <small>/ 20 TB</small></div><div class="track"><i class="hot" style="width:93%"></i></div><div class="c">超出部分 ¥0.12 / GB·月</div></div>
+      <div class="meter"><div class="k"><span>公网流量</span><span>¥ 5,320</span></div><div class="v">6.65 TB</div><div class="track"><i style="width:55%"></i></div><div class="c">¥0.80 / GB · 阶梯计价</div></div>
+      <div class="meter"><div class="k"><span>数据库 RDS</span><span>¥ 1,154</span></div><div class="v">2 实例</div><div class="track"><i style="width:40%"></i></div><div class="c">mysql 8.0 · 高可用版</div></div>
+    </div>
+  </section>
+  <section class="card inv">
+    <header><h2>账单记录</h2><div style="display:flex;gap:10px;align-items:center"><div class="seg" role="group" aria-label="时间范围"><button type="button" aria-pressed="true" data-r="6">近 6 个月</button><button type="button" aria-pressed="false" data-r="12">近 12 个月</button></div><button class="btn" type="button" id="dlAll">⤓ 导出 CSV</button></div></header>
+    <div class="tblwrap"><table><thead><tr><th>账单编号</th><th>账期</th><th>出账日</th><th class="m">应付金额</th><th>状态</th><th>发票</th><th></th></tr></thead><tbody id="rows"></tbody></table></div>
+  </section>
+</main>
+<dialog id="dlg"><div class="dlg"><header><h3>更换支付方式</h3><button class="x" type="button" aria-label="关闭" data-close>✕</button></header>
+  <div class="b" id="pms"></div>
+  <footer><button class="btn" type="button" data-close>取消</button><button class="btn pri" type="button" id="pmSave">设为默认</button></footer></div></dialog>
+<div class="toast" id="toast" role="status"></div>
+<script>
+const bills=[
+ ['INV-2026-09-3381','2026-09','2026-10-03',21734.40,'待支付',0],
+ ['INV-2026-08-2914','2026-08','2026-09-03',19810.25,'已支付',1],
+ ['INV-2026-07-2470','2026-07','2026-08-03',18402.00,'已支付',1],
+ ['INV-2026-06-2011','2026-06','2026-07-03',17955.80,'已支付',2],
+ ['INV-2026-05-1655','2026-05','2026-06-03',16230.15,'已支付',2],
+ ['INV-2026-04-1302','2026-04','2026-05-03',15884.60,'已退款 ¥320',2],
+ ['INV-2026-03-0988','2026-03','2026-04-03',14710.00,'已支付',2],
+ ['INV-2026-02-0701','2026-02','2026-03-03',13262.35,'已支付',2]
+];
+const pms=[['对公账户 · 自动扣款','招商银行 •••• 0918','#c81e1e','招行','默认 · 每月 3 日自动扣款'],['企业支付宝','lumen-finance@ali','#1677ff','支付','扫码或免密代扣'],['信用卡','VISA •••• 4407','#1a1f71','VISA','财务部 · 李昕 名下']];
+let range=6,pmSel=0,pmCur=0;
+const fmt=n=>'¥ '+n.toLocaleString('en-US',{minimumFractionDigits:2});
+function rows(){
+  document.getElementById('rows').innerHTML=bills.slice(0,range===6?6:8).map((b,i)=>{
+    const st=b[4]==='待支付'?'<span class="badge due">待支付 · 11/03 前</span>':b[4].startsWith('已退款')?'<span class="badge warn">'+b[4]+'</span>':'<span class="badge ok">已支付</span>';
+    const inv=b[5]===0?'—':b[5]===1?'<button class="dl" type="button" data-inv="'+i+'">申请发票</button>':'<span style="color:#16a34a">已开具</span>';
+    return '<tr><td class="id">'+b[0]+'</td><td>'+b[1]+'</td><td>'+b[2]+'</td><td class="m">'+fmt(b[3])+'</td><td>'+st+'</td><td>'+inv+'</td><td style="text-align:right">'+(b[4]==='待支付'?'<button class="btn pri" type="button" data-pay="'+i+'">立即支付</button>':'')+'<button class="dl" type="button" data-dl="'+i+'">下载 PDF</button></td></tr>'}).join('');
+  document.querySelectorAll('[data-dl]').forEach(b=>b.onclick=()=>toast('已生成 '+bills[+b.dataset.dl][0]+'.pdf（模拟下载）'));
+  document.querySelectorAll('[data-inv]').forEach(b=>b.onclick=()=>{bills[+b.dataset.inv][5]=2;rows();toast('发票申请已提交，预计 1 个工作日内开具')});
+  document.querySelectorAll('[data-pay]').forEach(b=>b.onclick=()=>{b.disabled=true;b.textContent='扣款中…';setTimeout(()=>{bills[+b.dataset.pay][4]='已支付';bills[+b.dataset.pay][5]=1;rows();toast('已从 '+pms[pmCur][1]+' 扣款 '+fmt(bills[+b.dataset.pay][3]))},900)});
+}
+function toast(t){const e=document.getElementById('toast');e.textContent=t;e.classList.add('show');clearTimeout(toast.h);toast.h=setTimeout(()=>e.classList.remove('show'),2600)}
+document.querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>{range=+b.dataset.r;document.querySelectorAll('[data-r]').forEach(x=>x.setAttribute('aria-pressed',x===b));rows()});
+document.getElementById('dlAll').onclick=()=>toast('已导出 '+(range===6?6:8)+' 条账单记录（模拟）');
+const dlg=document.getElementById('dlg');
+function drawPms(){document.getElementById('pms').innerHTML=pms.map((p,i)=>'<button class="pm" type="button" aria-pressed="'+(i===pmSel)+'" data-i="'+i+'"><i style="background:'+p[2]+'">'+p[3]+'</i><span>'+p[1]+'<small>'+p[0]+' · '+p[4]+'</small></span><span>'+(i===pmCur?'<span class="badge">当前</span>':'')+'</span></button>').join('')+'<button class="btn" type="button" style="justify-self:start">＋ 添加新的支付方式</button>';
+  document.querySelectorAll('.pm').forEach(b=>b.onclick=()=>{pmSel=+b.dataset.i;drawPms()})}
+document.getElementById('changePm').onclick=()=>{pmSel=pmCur;drawPms();dlg.showModal()};
+dlg.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>dlg.close());
+document.getElementById('pmSave').onclick=()=>{pmCur=pmSel;document.getElementById('pmName').textContent=pms[pmCur][0];document.getElementById('pmNo').textContent=pms[pmCur][1];dlg.close();toast('默认支付方式已更新为 '+pms[pmCur][1])};
+document.getElementById('upgrade').onclick=e=>{e.target.textContent='已提交升级申请'};
+rows();
+</script>
+</body>
+</html>

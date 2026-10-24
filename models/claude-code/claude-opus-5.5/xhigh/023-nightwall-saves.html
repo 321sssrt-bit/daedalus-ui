@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>夜廊 · 我的收藏</title>
+<style>
+:root{
+  --wall:#161616;--card:#212121;--card-2:#2a2a2a;--text:#ece8e1;--muted:#8e8a83;--line:#303030;--accent:#b8a1ff;--accent-dk:#9479f5;--danger:#ff7b72;
+  --serif:"Baskerville","Songti SC","STSong",serif;
+  --sans:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  --mono:"SF Mono","Menlo","Consolas",monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--wall);color:var(--text);font:14px/1.55 var(--sans)}
+.top{display:flex;align-items:flex-end;gap:28px;padding:32px 48px 20px}
+.top h1{margin:0;font:400 54px/1 var(--serif);letter-spacing:-.01em}
+.top h1 i{font-style:italic;color:var(--accent)}
+.top .meta{font:12px var(--mono);color:var(--muted);padding-bottom:6px;letter-spacing:.06em}
+.top .search{margin-left:auto;position:relative}
+.top input{width:260px;height:40px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--text);padding:0 16px;font:13px var(--sans);outline:none}
+.top input:focus{border-color:var(--accent)}
+.bar{display:flex;align-items:center;gap:10px;padding:0 48px 22px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.cat{height:34px;padding:0 16px;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--muted);font:13px var(--sans);cursor:pointer;display:inline-flex;align-items:center;gap:8px}
+.cat b{font:11px var(--mono);color:#5f5c57}
+.cat:hover{color:var(--text);border-color:#4a4a4a}
+.cat[aria-pressed="true"]{background:var(--text);color:var(--wall);border-color:var(--text)}
+.cat[aria-pressed="true"] b{color:#6d6a64}
+.sort{margin-left:auto;display:flex;gap:4px;font:12px var(--mono)}
+.sort button{border:0;background:none;color:var(--muted);cursor:pointer;padding:4px 8px;font:12px var(--mono)}
+.sort button[aria-pressed="true"]{color:var(--accent)}
+.cat:focus-visible,.sort button:focus-visible,.card:focus-within,.undo button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.wall{columns:4 260px;column-gap:20px;padding:28px 48px 64px}
+.card{break-inside:avoid;margin:0 0 20px;background:var(--card);border-radius:6px;overflow:hidden;position:relative;transition:transform .2s,opacity .25s}
+.card:hover{transform:translateY(-3px)}
+.card.gone{opacity:0;transform:scale(.96)}
+.media{position:relative}
+.media .ph{display:block;width:100%}
+.label{padding:12px 14px 14px}
+.label b{display:block;font-size:14px;font-weight:600;line-height:1.4}
+.label .src{display:flex;justify-content:space-between;margin-top:6px;font:11px var(--mono);color:var(--muted)}
+.tag{position:absolute;left:10px;top:10px;font:10px var(--mono);letter-spacing:.1em;background:#000000a6;color:var(--text);padding:3px 8px;border-radius:999px}
+.acts{position:absolute;right:8px;top:8px;display:flex;gap:6px;opacity:0;transition:opacity .15s}
+.card:hover .acts,.card:focus-within .acts{opacity:1}
+.acts button{width:32px;height:32px;border-radius:50%;border:0;background:#000000b3;color:var(--text);cursor:pointer;font-size:14px;display:grid;place-items:center}
+.acts button:hover{background:var(--danger);color:#160505}
+.acts button.pin:hover{background:var(--accent);color:var(--wall)}
+.card.pinned{box-shadow:0 0 0 2px var(--accent)}
+.card.pinned .tag{background:var(--accent);color:var(--wall)}
+.quote{padding:44px 20px 22px;font:italic 20px/1.5 var(--serif);color:var(--text);background:var(--card-2)}
+.quote small{display:block;margin-top:10px;font:12px var(--sans);font-style:normal;color:var(--muted)}
+.type{padding:44px 20px 26px;background:#efe9df;color:#1b1b1b;font:400 68px/0.95 var(--serif)}
+.type small{display:block;font:11px var(--mono);margin-top:12px;color:#6d665c}
+.palette{display:grid;grid-template-columns:repeat(5,1fr);height:120px}
+.article{padding:42px 18px 4px}
+.article h4{margin:0 0 6px;font:600 17px/1.45 var(--sans)}
+.article p{margin:0;color:var(--muted);font-size:13px}
+.empty{column-span:all;text-align:center;padding:80px 20px;color:var(--muted)}
+.empty b{display:block;font:italic 30px var(--serif);color:var(--text);margin-bottom:6px}
+.undo{position:fixed;left:50%;bottom:24px;transform:translate(-50%,24px);opacity:0;background:var(--text);color:var(--wall);padding:10px 12px 10px 18px;border-radius:999px;display:flex;gap:14px;align-items:center;font-size:13px;transition:all .25s;pointer-events:none;z-index:10}
+.undo.show{opacity:1;transform:translate(-50%,0);pointer-events:auto}
+.undo button{border:0;background:var(--wall);color:var(--text);border-radius:999px;padding:6px 14px;font:600 12px var(--sans);cursor:pointer}
+@media (max-width:860px){.top{flex-wrap:wrap;padding:24px 20px 16px}.top h1{font-size:40px}.top .search{margin-left:0;width:100%}.top input{width:100%}.bar{padding:0 20px 16px}.wall{columns:2 160px;padding:20px;column-gap:14px}.sort{margin-left:0}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<header class="top">
+  <h1>我的<i>收藏</i></h1>
+  <span class="meta" id="meta"></span>
+  <label class="search"><input id="q" type="search" placeholder="搜索收藏的标题或来源" aria-label="搜索收藏"></label>
+</header>
+<div class="bar"><div id="cats" style="display:flex;gap:10px;flex-wrap:wrap" role="group" aria-label="分类"></div>
+  <div class="sort" role="group" aria-label="排序"><button type="button" aria-pressed="true" data-s="new">最近收藏</button><button type="button" aria-pressed="false" data-s="old">最早收藏</button></div></div>
+<main class="wall" id="wall" aria-live="polite"></main>
+<div class="undo" id="undo" role="status"><span id="ut"></span><button type="button" id="ub">撤销</button></div>
+<script>
+const items=[
+ {c:'摄影',t:'清晨六点的巴黎屋顶',s:'Unsplash · 摄影师 Léa',d:'3 天前',k:0,h:'<svg class="ph" viewBox="0 0 300 380"><defs><linearGradient id="g1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f4b393"/><stop offset="1" stop-color="#6d5a8c"/></linearGradient></defs><rect width="300" height="380" fill="url(#g1)"/><path d="M0 260l40-30 30 20 40-40 30 30 50-50 40 40 30-20 40 30v140H0z" fill="#2a2440"/><circle cx="210" cy="120" r="34" fill="#ffd8b0"/></svg>'},
+ {c:'文章',t:'',s:'',d:'5 天前',k:1,h:'<div class="article"><h4>为什么好的界面会"消失"</h4><p>当工具足够顺手时，人会忘记它的存在。本文从门把手讲到文字编辑器……</p></div>',lt:'为什么好的界面会"消失"',ls:'少数派 · 12 分钟阅读'},
+ {c:'配色',t:'苔藓与锈',s:'自建色板 · 5 色',d:'1 周前',k:2,h:'<div class="palette"><i style="background:#2f3e2e"></i><i style="background:#5c6b3c"></i><i style="background:#a9a26b"></i><i style="background:#b8622f"></i><i style="background:#e9dcc2"></i></div>'},
+ {c:'字体',t:'Baskerville 斜体',s:'字体样张 · 衬线',d:'1 周前',k:3,h:'<div class="type"><i>Aa</i> 永<small>BASKERVILLE ITALIC · 1757</small></div>'},
+ {c:'建筑',t:'光之教堂的十字窗',s:'建筑档案 · 安藤忠雄',d:'2 周前',k:4,h:'<svg class="ph" viewBox="0 0 300 240"><rect width="300" height="240" fill="#1a1a1a"/><rect x="140" y="30" width="20" height="180" fill="#fff3d6"/><rect x="70" y="100" width="160" height="20" fill="#fff3d6"/><rect x="0" y="0" width="300" height="240" fill="#00000000" stroke="#2a2a2a" stroke-width="20"/></svg>'},
+ {c:'文章',t:'',s:'',d:'2 周前',k:5,h:'<div class="quote">"留白不是没有东西，是给东西留出呼吸的地方。"<small>— 原研哉《设计中的设计》摘录</small></div>',lt:'原研哉谈留白',ls:'读书笔记 · 摘录'},
+ {c:'摄影',t:'京都雨后的苔寺',s:'个人相册 · 2025.06',d:'3 周前',k:6,h:'<svg class="ph" viewBox="0 0 300 300"><rect width="300" height="300" fill="#24331f"/><ellipse cx="80" cy="220" rx="110" ry="60" fill="#3f5a2c"/><ellipse cx="230" cy="250" rx="100" ry="50" fill="#56743a"/><path d="M150 0v180" stroke="#141c11" stroke-width="14"/><circle cx="150" cy="60" r="70" fill="#7d9a52" opacity=".6"/></svg>'},
+ {c:'建筑',t:'混凝土楼梯的阴影',s:'Pinterest · 收集',d:'1 个月前',k:7,h:'<svg class="ph" viewBox="0 0 300 360"><rect width="300" height="360" fill="#bdb6aa"/><path d="M0 360V280h60v-50h60v-50h60v-50h60V80h60v280z" fill="#8f877a"/><path d="M60 280h240M120 230h180M180 180h120M240 130h60" stroke="#6f685d" stroke-width="2"/></svg>'},
+ {c:'配色',t:'午夜霓虹',s:'自建色板 · 5 色',d:'1 个月前',k:8,h:'<div class="palette"><i style="background:#0f0c29"></i><i style="background:#302b63"></i><i style="background:#b8a1ff"></i><i style="background:#ff6ec7"></i><i style="background:#ffe66d"></i></div>'},
+ {c:'字体',t:'思源宋体 Heavy',s:'字体样张 · 中文',d:'2 个月前',k:9,h:'<div class="type" style="background:#1f1f1f;color:#ece8e1;font-weight:900">山水<small style="color:#8e8a83">SOURCE HAN SERIF · HEAVY</small></div>'}
+];
+let cat='全部',sort='new',q='',removed=null;
+const cats=['全部','摄影','建筑','字体','配色','文章'];
+function renderCats(){const live=items.filter(i=>!i.x);
+  document.getElementById('cats').innerHTML=cats.map(c=>'<button class="cat" type="button" aria-pressed="'+(c===cat)+'">'+c+' <b>'+(c==='全部'?live.length:live.filter(i=>i.c===c).length)+'</b></button>').join('');
+  document.querySelectorAll('.cat').forEach(b=>b.onclick=()=>{cat=b.firstChild.textContent.trim();render()});
+  document.getElementById('meta').textContent=live.length+' 件 · 6 个分类 · 最近同步 14:32';
+}
+function title(i){return i.t||i.lt}
+function render(){
+  renderCats();
+  let v=items.filter(i=>!i.x&&(cat==='全部'||i.c===cat)&&(!q||(title(i)+(i.s||i.ls)).includes(q)));
+  v.sort((a,b)=>sort==='new'?a.k-b.k:b.k-a.k);v.sort((a,b)=>(b.pin?1:0)-(a.pin?1:0));
+  const W=document.getElementById('wall');
+  W.innerHTML=v.length?v.map(i=>'<article class="card'+(i.pin?' pinned':'')+'" data-k="'+i.k+'"><div class="media">'+i.h+'<span class="tag">'+(i.pin?'置顶 · ':'')+i.c+'</span><div class="acts"><button class="pin" type="button" aria-label="置顶 '+title(i)+'">'+(i.pin?'★':'☆')+'</button><button class="rm" type="button" aria-label="取消收藏 '+title(i)+'">✕</button></div></div><div class="label"><b>'+title(i)+'</b><div class="src"><span>'+(i.s||i.ls)+'</span><span>'+i.d+'</span></div></div></article>').join(''):
+    '<div class="empty"><b>这里还空着</b>'+(q?'没有找到「'+q+'」相关的收藏。':'这个分类下还没有收藏，浏览时点 ☆ 就能存进来。')+'</div>';
+  W.querySelectorAll('.card').forEach(c=>{const it=items.find(i=>i.k===+c.dataset.k);
+    c.querySelector('.rm').onclick=()=>{c.classList.add('gone');setTimeout(()=>{it.x=1;removed=it;render();toast('已从收藏中移除「'+title(it)+'」')},matchMedia('(prefers-reduced-motion:reduce)').matches?0:220)};
+    c.querySelector('.pin').onclick=()=>{it.pin=!it.pin;render()};
+  });
+}
+function toast(t){document.getElementById('ut').textContent=t;const u=document.getElementById('undo');u.classList.add('show');clearTimeout(toast.h);toast.h=setTimeout(()=>u.classList.remove('show'),5000)}
+document.getElementById('ub').onclick=()=>{if(removed){removed.x=0;removed=null;render()}document.getElementById('undo').classList.remove('show')};
+document.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>{sort=b.dataset.s;document.querySelectorAll('[data-s]').forEach(x=>x.setAttribute('aria-pressed',x===b));render()});
+document.getElementById('q').oninput=e=>{q=e.target.value.trim();render()};
+render();
+</script>
+</body>
+</html>

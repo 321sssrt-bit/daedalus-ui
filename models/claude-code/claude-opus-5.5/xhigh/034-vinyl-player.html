@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>唱盘 · 正在播放</title>
+<style>
+:root{
+  --room:#2a1a12;--top:#c4501b;--mid:#7a2e10;--bottom:#2b130a;--cream:#fbe9d0;--muted:#e0b993;--dim:#a87956;--accent:#ffb347;--groove:#141010;--label:#f2c14e;
+  --serif:"Baskerville","Songti SC","STSong",serif;
+  --num:"Avenir Next","Helvetica Neue","PingFang SC",sans-serif;
+  --sans:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:radial-gradient(circle at 50% 30%,#4a2c1c,var(--room));display:grid;place-items:center;font:14px/1.5 var(--sans);color:var(--cream)}
+.phone{width:390px;height:min(844px,calc(100vh - 32px));border-radius:52px;border:11px solid #140a05;position:relative;overflow:hidden;box-shadow:0 30px 80px #000a;
+  background:linear-gradient(180deg,var(--top) 0%,var(--mid) 46%,var(--bottom) 100%);transition:background .6s}
+.notch{position:absolute;top:8px;left:50%;transform:translateX(-50%);width:118px;height:32px;border-radius:20px;background:#140a05;z-index:20}
+.grain{position:absolute;inset:0;opacity:.12;mix-blend-mode:overlay;pointer-events:none}
+.screen{position:absolute;inset:0;display:flex;flex-direction:column;padding:54px 24px 30px;overflow-y:auto;scrollbar-width:none}
+.screen::-webkit-scrollbar{display:none}
+.screen>*{flex-shrink:0}
+.sb{position:absolute;top:16px;left:30px;right:26px;display:flex;justify-content:space-between;font:600 15px var(--num)}
+.sb span:last-child{font-size:12px;letter-spacing:2px}
+.bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.bar button{width:40px;height:40px;border-radius:50%;border:0;background:#ffffff14;color:var(--cream);font-size:16px;cursor:pointer}
+.bar .src{text-align:center;font-size:11px;color:var(--muted);letter-spacing:.14em}
+.bar .src b{display:block;font:600 13px var(--sans);color:var(--cream);letter-spacing:0}
+.deck{position:relative;height:330px;display:grid;place-items:center;margin:6px 0 10px}
+.record{width:300px;height:300px;border-radius:50%;position:relative;
+  background:repeating-radial-gradient(circle,var(--groove) 0 2px,#221a18 2px 3px),var(--groove);
+  box-shadow:0 18px 40px #0009,inset 0 0 0 2px #2c2220;animation:spin 3.2s linear infinite;animation-play-state:paused}
+.record.on{animation-play-state:running}
+.record::before{content:'';position:absolute;inset:0;border-radius:50%;background:conic-gradient(from 30deg,transparent 0 12%,#ffffff1f 15%,transparent 20% 60%,#ffffff14 64%,transparent 70%)}
+.label{position:absolute;inset:96px;border-radius:50%;background:var(--label);display:grid;place-items:center;text-align:center;color:#3b1d0b;transition:background .6s}
+.label b{font:700 13px/1.2 var(--serif);display:block;padding:0 10px}
+.label small{font:9px var(--num);letter-spacing:.2em}
+.label::after{content:'';position:absolute;width:10px;height:10px;border-radius:50%;background:#140a05;left:50%;top:50%;transform:translate(-50%,-50%)}
+.arm{position:absolute;right:6px;top:0;width:90px;height:190px;transform-origin:72px 18px;transform:rotate(-24deg);transition:transform .7s cubic-bezier(.3,.7,.2,1);pointer-events:none}
+.arm.on{transform:rotate(-4deg)}
+.meta{display:flex;align-items:flex-end;justify-content:space-between;gap:10px}
+.meta h1{margin:0;font:700 26px/1.2 var(--serif)}
+.meta p{margin:4px 0 0;color:var(--muted);font-size:14px}
+.like{width:44px;height:44px;border-radius:50%;border:1.5px solid #ffffff33;background:transparent;color:var(--cream);font-size:18px;cursor:pointer;flex:none}
+.like[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#3b1d0b}
+.prog{margin:22px 0 8px}
+.prog input{width:100%;appearance:none;-webkit-appearance:none;height:4px;border-radius:2px;background:linear-gradient(90deg,var(--accent) var(--p,0%),#ffffff33 var(--p,0%));outline:none;cursor:pointer;margin:0}
+.prog input::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--cream);box-shadow:0 2px 6px #0006}
+.prog input::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:var(--cream);border:0}
+.times{display:flex;justify-content:space-between;font:12px var(--num);color:var(--muted);margin-top:8px}
+.ctrl{display:flex;align-items:center;justify-content:space-between;margin:14px 0 18px}
+.ctrl button{border:0;background:none;color:var(--cream);cursor:pointer;display:grid;place-items:center}
+.ctrl .s{width:40px;height:40px;font-size:16px;color:var(--dim)}
+.ctrl .s[aria-pressed="true"]{color:var(--accent)}
+.ctrl .n{width:56px;height:56px;font-size:24px}
+.ctrl .play{width:78px;height:78px;border-radius:50%;background:var(--cream);color:#3b1d0b;font-size:28px;box-shadow:0 10px 24px #0007;transition:transform .12s}
+.ctrl .play:active{transform:scale(.94)}
+.ctrl button:focus-visible,.bar button:focus-visible,.like:focus-visible,.prog input:focus-visible,.foot button:focus-visible,.qrow:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.foot{display:flex;justify-content:space-between;align-items:center;margin-top:auto;font-size:12px;color:var(--muted)}
+.foot button{border:0;background:#ffffff14;color:var(--cream);border-radius:999px;padding:8px 14px;font:13px var(--sans);cursor:pointer}
+.queue{position:absolute;left:0;right:0;bottom:0;background:#2b130af2;-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);border-radius:26px 26px 0 0;padding:12px 20px 26px;transform:translateY(105%);transition:transform .3s cubic-bezier(.2,.8,.2,1);z-index:10;max-height:62%;overflow:auto}
+.queue.on{transform:none}
+.queue .grab{width:40px;height:5px;border-radius:3px;background:#ffffff33;margin:0 auto 12px}
+.queue h2{margin:0 0 10px;font:700 16px var(--sans);display:flex;justify-content:space-between}
+.queue h2 small{font:12px var(--sans);color:var(--muted)}
+.qrow{display:grid;grid-template-columns:44px 1fr auto;gap:12px;align-items:center;width:100%;padding:8px 6px;border:0;background:none;border-radius:12px;color:var(--cream);text-align:left;cursor:pointer;font:14px var(--sans)}
+.qrow:hover{background:#ffffff0f}
+.qrow i{width:44px;height:44px;border-radius:50%;background:repeating-radial-gradient(circle,#141010 0 2px,#221a18 2px 3px);position:relative}
+.qrow i::after{content:'';position:absolute;inset:14px;border-radius:50%;background:var(--c)}
+.qrow small{display:block;color:var(--muted);font-size:12px}
+.qrow .d{font:12px var(--num);color:var(--muted)}
+.qrow.now{background:#ffffff14}
+.qrow.now b{color:var(--accent)}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media (max-width:500px){body{display:block}.phone{width:100%;height:100vh;height:100dvh;border:0;border-radius:0}.notch{display:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}.record{animation:none!important}}
+</style>
+</head>
+<body>
+<div class="phone" id="phone">
+  <div class="notch" aria-hidden="true"></div>
+  <svg class="grain" aria-hidden="true" width="100%" height="100%"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency=".8" numOctaves="2"/></filter><rect width="100%" height="100%" filter="url(#n)"/></svg>
+  <main class="screen">
+    <div class="sb" aria-hidden="true"><span>9:41</span><span>▂▄▆ ▮▮▮</span></div>
+    <div class="bar"><button type="button" aria-label="收起">⌄</button><div class="src">正在播放 · 专辑<b id="album">夏夜电台</b></div><button type="button" aria-label="更多">⋯</button></div>
+    <div class="deck">
+      <div class="record" id="rec"><div class="label" id="lab"><div><small>SIDE A</small><b id="labT">夏夜电台</b><small id="labN">33⅓ RPM</small></div></div></div>
+      <svg class="arm" id="arm" viewBox="0 0 90 190" aria-hidden="true"><circle cx="72" cy="18" r="14" fill="#d8c3a5"/><circle cx="72" cy="18" r="6" fill="#5a4636"/><path d="M72 18 L60 150 L40 172" stroke="#d8c3a5" stroke-width="5" fill="none" stroke-linecap="round"/><rect x="28" y="166" width="22" height="14" rx="3" fill="#5a4636" transform="rotate(30 39 173)"/></svg>
+    </div>
+    <div class="meta"><div><h1 id="title">晚风吹过海边</h1><p id="artist">海边乐队 · 2026</p></div><button class="like" type="button" id="like" aria-pressed="false" aria-label="喜欢">♡</button></div>
+    <div class="prog"><input type="range" id="seek" min="0" max="243" value="72" aria-label="播放进度"><div class="times"><span id="cur">1:12</span><span id="dur">4:03</span></div></div>
+    <div class="ctrl">
+      <button class="s" type="button" id="shuf" aria-pressed="false" aria-label="随机播放">⇄</button>
+      <button class="n" type="button" id="prev" aria-label="上一首">⏮</button>
+      <button class="play" type="button" id="play" aria-label="播放">▶</button>
+      <button class="n" type="button" id="next" aria-label="下一首">⏭</button>
+      <button class="s" type="button" id="rep" aria-pressed="false" aria-label="单曲循环">↻</button>
+    </div>
+    <div class="foot"><span>🎧 AirPods · 客厅音箱</span><button type="button" id="qBtn">播放队列 ☰</button></div>
+  </main>
+  <section class="queue" id="queue" aria-label="播放队列"><div class="grab"></div><h2>接下来播放 <small id="qn"></small></h2><div id="ql"></div></section>
+</div>
+<script>
+const tracks=[
+ {t:'晚风吹过海边',a:'海边乐队',al:'夏夜电台',d:243,c:['#c4501b','#7a2e10','#2b130a'],l:'#f2c14e'},
+ {t:'旧城磁带',a:'海边乐队',al:'夏夜电台',d:198,c:['#b2863a','#5c3d17','#1f1409'],l:'#e86a3a'},
+ {t:'凌晨两点的便利店',a:'林间收音机',al:'失眠的人',d:226,c:['#3e6e8e','#1f3a4f','#0e1820'],l:'#f4d58d'},
+ {t:'葡萄藤下',a:'午后合唱团',al:'葡萄藤下',d:184,c:['#7c4a8a','#3d2347','#170d1c'],l:'#9be3c3'},
+ {t:'公路电影',a:'海边乐队',al:'夏夜电台',d:261,c:['#a4462f','#4f1f15','#1c0b07'],l:'#f7e6a8'}
+];
+let i=0,pos=72,playing=false,timer=null,shuf=false,rep=false;
+const $=s=>document.getElementById(s),mmss=s=>Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0');
+function load(k,keep){i=(k+tracks.length)%tracks.length;const t=tracks[i];if(!keep)pos=0;
+  $('title').textContent=t.t;$('artist').textContent=t.a+' · 2026';$('album').textContent=t.al;$('labT').textContent=t.al;
+  $('phone').style.background='linear-gradient(180deg,'+t.c[0]+' 0%,'+t.c[1]+' 46%,'+t.c[2]+' 100%)';$('lab').style.background=t.l;
+  $('seek').max=t.d;$('dur').textContent=mmss(t.d);upd();queue()}
+function upd(){$('seek').value=pos;$('cur').textContent=mmss(pos);$('seek').style.setProperty('--p',(pos/tracks[i].d*100)+'%')}
+function setPlay(p){playing=p;$('play').textContent=p?'❚❚':'▶';$('play').setAttribute('aria-label',p?'暂停':'播放');$('rec').classList.toggle('on',p);$('arm').classList.toggle('on',p);
+  clearInterval(timer);if(p)timer=setInterval(()=>{pos++;if(pos>=tracks[i].d){if(rep)pos=0;else{load(shuf?i+2:i+1);}}upd()},1000)}
+function queue(){const order=[0,1,2,3,4].map(k=>(i+k)%tracks.length);$('qn').textContent='共 '+tracks.length+' 首 · '+(shuf?'随机':'顺序');
+  $('ql').innerHTML=order.map((k,n)=>'<button class="qrow'+(n===0?' now':'')+'" type="button" data-k="'+k+'" style="--c:'+tracks[k].l+'"><i></i><span><b>'+tracks[k].t+'</b><small>'+tracks[k].a+(n===0?' · 正在播放':'')+'</small></span><span class="d">'+mmss(tracks[k].d)+'</span></button>').join('');
+  document.querySelectorAll('.qrow').forEach(b=>b.onclick=()=>{load(+b.dataset.k);setPlay(true);$('queue').classList.remove('on')})}
+$('play').onclick=()=>setPlay(!playing);
+$('next').onclick=()=>{load(shuf?i+2:i+1);if(playing)setPlay(true)};
+$('prev').onclick=()=>{if(pos>3){pos=0;upd()}else{load(i-1);if(playing)setPlay(true)}};
+$('seek').oninput=e=>{pos=+e.target.value;upd()};
+$('like').onclick=e=>{const on=e.currentTarget.getAttribute('aria-pressed')!=='true';e.currentTarget.setAttribute('aria-pressed',on);e.currentTarget.textContent=on?'♥':'♡'};
+$('shuf').onclick=e=>{shuf=!shuf;e.currentTarget.setAttribute('aria-pressed',shuf);queue()};
+$('rep').onclick=e=>{rep=!rep;e.currentTarget.setAttribute('aria-pressed',rep)};
+$('qBtn').onclick=()=>$('queue').classList.toggle('on');
+document.addEventListener('keydown',e=>{if(e.key==='Escape')$('queue').classList.remove('on');if(e.code==='Space'&&e.target.tagName!=='BUTTON'&&e.target.tagName!=='INPUT'){e.preventDefault();setPlay(!playing)}});
+load(0,true);setPlay(true);
+</script>
+</body>
+</html>

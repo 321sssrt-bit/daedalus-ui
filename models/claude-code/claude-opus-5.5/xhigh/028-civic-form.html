@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>云川人才居住证 · 在线填报</title>
+<style>
+:root{
+  --desk:#e7ebe8;--paper:#fdfdfb;--ink:#1a2a2a;--muted:#5d6b6a;--rule:#9aa8a6;--grid:#dfe5e3;--gov:#1d5c57;--gov-dk:#134440;--stamp:#c0392b;--hint:#f4f7f2;--ok:#2e7d4f;
+  --serif:"Songti SC","STSong","SimSun",serif;
+  --sans:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  --mono:"SF Mono","Menlo","Consolas",monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--desk);color:var(--ink);font:14px/1.6 var(--sans)}
+.gov{background:var(--gov);color:#e8f1ef;display:flex;align-items:center;gap:14px;padding:12px 36px}
+.gov .emb{width:32px;height:32px;border-radius:50%;border:2px solid #e8f1ef;display:grid;place-items:center;font:700 14px var(--serif)}
+.gov b{font:700 17px var(--serif);letter-spacing:.08em}
+.gov span{font-size:12px;opacity:.8}
+.gov .r{margin-left:auto;font-size:12px}
+.layout{display:grid;grid-template-columns:260px minmax(0,1fr);gap:28px;max-width:1200px;margin:0 auto;padding:28px 36px 64px;align-items:start}
+.toc{position:sticky;top:20px;background:var(--paper);border:1px solid var(--rule);padding:18px 0}
+.toc h2{font:700 13px var(--serif);letter-spacing:.2em;margin:0 18px 10px;color:var(--muted)}
+.toc a{display:grid;grid-template-columns:26px 1fr auto;gap:8px;align-items:center;padding:9px 18px;color:var(--ink);text-decoration:none;font-size:14px;border-left:3px solid transparent}
+.toc a:hover{background:var(--hint)}
+.toc a.on{border-left-color:var(--gov);background:#eef4f2;font-weight:600}
+.toc a i{width:22px;height:22px;border:1.5px solid var(--rule);border-radius:50%;display:grid;place-items:center;font:600 11px var(--mono);font-style:normal}
+.toc a.done i{background:var(--ok);border-color:var(--ok);color:#fff}
+.toc a.err i{background:var(--stamp);border-color:var(--stamp);color:#fff}
+.toc a small{font:11px var(--mono);color:var(--muted)}
+.toc .prog{margin:14px 18px 0;padding-top:12px;border-top:1px dashed var(--rule);font-size:12px;color:var(--muted)}
+.toc .bar{height:6px;background:var(--grid);margin-top:6px}
+.toc .bar i{display:block;height:100%;background:var(--gov);transition:width .3s}
+.toc .acts{display:grid;gap:8px;margin:14px 18px 0}
+.sheet{background:var(--paper);border:1px solid var(--rule);box-shadow:0 2px 0 #c9d1cf,0 10px 30px #1a2a2a14;padding:36px 44px 40px;position:relative}
+.sheet::before{content:'';position:absolute;inset:8px;border:1px solid var(--grid);pointer-events:none}
+.head{display:grid;grid-template-columns:1fr auto;gap:20px;border-bottom:2px solid var(--ink);padding-bottom:14px;margin-bottom:8px}
+.head h1{margin:0;font:700 26px var(--serif);letter-spacing:.06em}
+.head p{margin:4px 0 0;color:var(--muted);font-size:12px}
+.head .no{text-align:right;font:12px var(--mono);color:var(--muted)}
+.head .no b{display:block;font-size:15px;color:var(--ink)}
+.req-note{font-size:12px;color:var(--muted);margin:10px 0 0}
+.req-note em,.req{color:var(--stamp);font-style:normal;font-weight:700}
+.sec{padding-top:26px;scroll-margin-top:16px}
+.sec h3{display:flex;align-items:baseline;gap:12px;font:700 18px var(--serif);margin:0 0 4px}
+.sec h3 span{font:600 12px var(--mono);color:#fff;background:var(--gov);padding:2px 8px}
+.sec .desc{font-size:12px;color:var(--muted);margin:0 0 14px}
+.grid{display:grid;grid-template-columns:repeat(6,1fr);border-top:1px solid var(--rule);border-left:1px solid var(--rule)}
+.cell{border-right:1px solid var(--rule);border-bottom:1px solid var(--rule);padding:6px 10px 8px;display:flex;flex-direction:column;gap:2px;position:relative}
+.cell label,.cell .lab{font-size:11px;color:var(--muted);display:flex;gap:4px}
+.c2{grid-column:span 2}.c3{grid-column:span 3}.c4{grid-column:span 4}.c6{grid-column:span 6}
+.cell input,.cell select,.cell textarea{border:0;background:transparent;font:15px var(--sans);color:var(--ink);padding:2px 0;outline:none;width:100%}
+.cell textarea{resize:vertical;min-height:56px;font-size:14px}
+.cell:focus-within{background:#f2f8f6;box-shadow:inset 0 -2px 0 var(--gov)}
+.cell.bad{background:#fdf1ef;box-shadow:inset 0 -2px 0 var(--stamp)}
+.cell .e{display:none;font-size:11px;color:var(--stamp)}
+.cell.bad .e{display:block}
+.radios{display:flex;gap:16px;padding-top:2px}
+.radios label{font-size:14px;color:var(--ink);display:flex;align-items:center;gap:6px;cursor:pointer}
+.radios input{width:auto;accent-color:var(--gov)}
+.photo{grid-row:span 2;align-items:center;justify-content:center;text-align:center;background:repeating-linear-gradient(45deg,#f5f7f6 0 6px,#eef2f0 6px 12px);cursor:pointer}
+.photo b{font:700 13px var(--serif);color:var(--muted)}
+.photo small{font-size:10px;color:var(--muted)}
+.photo.ok{background:#e8f3ee}
+.photo.ok b{color:var(--ok)}
+.photo:focus-visible{outline:2px solid var(--gov);outline-offset:-2px}
+.tip{grid-column:span 6;background:var(--hint);border-bottom:1px solid var(--rule);border-right:1px solid var(--rule);padding:8px 10px;font-size:12px;color:var(--muted)}
+.decl{display:flex;gap:10px;align-items:flex-start;font-size:13px;margin-top:14px;padding:12px 14px;border:1px dashed var(--rule)}
+.decl input{accent-color:var(--gov);margin-top:4px;width:16px;height:16px}
+.decl.bad{border-color:var(--stamp);background:#fdf1ef}
+.btn{height:42px;padding:0 18px;font:600 14px var(--sans);cursor:pointer;border-radius:2px;letter-spacing:.06em}
+.btn.pri{background:var(--gov);color:#fff;border:1px solid var(--gov)}
+.btn.pri:hover{background:var(--gov-dk)}
+.btn.sec{background:var(--paper);color:var(--gov);border:1px solid var(--gov)}
+.btn.sec:hover{background:#eef4f2}
+.btn:focus-visible,.toc a:focus-visible{outline:2px solid var(--stamp);outline-offset:2px}
+.saved{font-size:11px;color:var(--muted);text-align:center}
+.foot{display:flex;justify-content:space-between;align-items:center;margin-top:28px;padding-top:16px;border-top:2px solid var(--ink)}
+.foot .sig{font:13px var(--serif);color:var(--muted)}
+.stampbox{position:absolute;right:48px;top:110px;width:120px;height:120px;border:4px double var(--stamp);border-radius:50%;color:var(--stamp);display:none;place-items:center;text-align:center;font:700 16px/1.3 var(--serif);transform:rotate(-14deg);opacity:.85}
+.stampbox.show{display:grid;animation:stamp .35s ease-out}
+@keyframes stamp{from{transform:rotate(-14deg) scale(1.6);opacity:0}to{transform:rotate(-14deg) scale(1);opacity:.85}}
+@media (max-width:1000px){.layout{grid-template-columns:1fr;padding:20px 16px 48px}.toc{position:static}.sheet{padding:24px 18px}}
+@media (max-width:640px){.grid{grid-template-columns:repeat(2,1fr)}.c2,.c3,.c4,.c6,.tip{grid-column:span 2}.photo{grid-row:auto;min-height:90px}.head{grid-template-columns:1fr}.head .no{text-align:left}.gov span{display:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<header class="gov"><span class="emb">川</span><b>云川市政务服务</b><span>人才服务中心</span><span class="r">在线填报 · 预计用时 15 分钟</span></header>
+<div class="layout">
+  <nav class="toc" aria-label="表单章节">
+    <h2>填 报 目 录</h2>
+    <a href="#s1" data-s="1"><i>1</i>申请人基本信息<small></small></a>
+    <a href="#s2" data-s="2"><i>2</i>学历与职业<small></small></a>
+    <a href="#s3" data-s="3"><i>3</i>居住与社保<small></small></a>
+    <a href="#s4" data-s="4"><i>4</i>声明与确认<small></small></a>
+    <div class="prog">必填完成度 <b id="pct">0%</b><div class="bar"><i id="bar" style="width:0%"></i></div></div>
+    <div class="acts"><button class="btn sec" type="button" id="draft">保存草稿</button><button class="btn pri" type="button" id="submit">提交申请</button><span class="saved" id="saved">尚未保存</span></div>
+  </nav>
+  <form class="sheet" id="form" novalidate>
+    <div class="stampbox" id="stamp">已受理<br><small style="font-size:11px">2026.10.23</small></div>
+    <div class="head"><div><h1>云川市人才居住证申请表</h1><p>依据《云川市居住证管理办法》第十二条制定 · 表 C-03（2026 版）</p></div><div class="no">受理编号<b id="appNo">待生成</b></div></div>
+    <p class="req-note">带 <em>*</em> 的为必填项。所有信息仅用于本次审核，按《个人信息保护法》保管。</p>
+
+    <section class="sec" id="s1" data-sec="1">
+      <h3><span>第一节</span>申请人基本信息</h3><p class="desc">请与身份证件信息保持一致。</p>
+      <div class="grid">
+        <div class="cell c2"><label for="f1">姓名 <span class="req">*</span></label><input id="f1" data-req placeholder="与证件一致"><span class="e">请填写姓名</span></div>
+        <div class="cell c2"><span class="lab">性别 <span class="req">*</span></span><div class="radios"><label><input type="radio" name="sex" data-req> 男</label><label><input type="radio" name="sex"> 女</label></div><span class="e">请选择性别</span></div>
+        <button class="cell photo" type="button" id="photo"><b>二寸证件照</b><small>白底 · 点击上传</small></button>
+        <div class="cell c2"><label for="f2">出生日期 <span class="req">*</span></label><input id="f2" type="date" data-req><span class="e">请选择出生日期</span></div>
+        <div class="cell c2"><label for="f3">民族</label><select id="f3"><option>汉族</option><option>回族</option><option>满族</option><option>其他</option></select></div>
+        <div class="cell c3"><label for="f4">居民身份证号 <span class="req">*</span></label><input id="f4" data-req data-rule="id" maxlength="18" placeholder="18 位"><span class="e">身份证号应为 18 位，最后一位可为 X</span></div>
+        <div class="cell c3"><label for="f5">手机号码 <span class="req">*</span></label><input id="f5" data-req data-rule="phone" inputmode="numeric" maxlength="11"><span class="e">请填写 11 位手机号</span></div>
+      </div>
+    </section>
+
+    <section class="sec" id="s2" data-sec="2">
+      <h3><span>第二节</span>学历与职业</h3><p class="desc">最高学历需与学信网认证报告一致。</p>
+      <div class="grid">
+        <div class="cell c2"><label for="g1">最高学历 <span class="req">*</span></label><select id="g1" data-req><option value="">请选择</option><option>本科</option><option>硕士研究生</option><option>博士研究生</option></select><span class="e">请选择最高学历</span></div>
+        <div class="cell c4"><label for="g2">毕业院校 <span class="req">*</span></label><input id="g2" data-req><span class="e">请填写毕业院校</span></div>
+        <div class="cell c3"><label for="g3">现工作单位 <span class="req">*</span></label><input id="g3" data-req placeholder="与劳动合同一致"><span class="e">请填写工作单位</span></div>
+        <div class="cell c3"><label for="g4">统一社会信用代码</label><input id="g4" maxlength="18" style="font-family:var(--mono)"></div>
+        <div class="cell c3"><label for="g5">职务 / 岗位</label><input id="g5"></div>
+        <div class="cell c3"><label for="g6">专业技术职称</label><select id="g6"><option>无</option><option>初级</option><option>中级</option><option>高级</option></select></div>
+        <div class="tip">提示：持有中级及以上职称，可在第三节免填社保缴纳月数。</div>
+      </div>
+    </section>
+
+    <section class="sec" id="s3" data-sec="3">
+      <h3><span>第三节</span>居住与社保</h3><p class="desc">居住地址应与房屋租赁备案或产权证明一致。</p>
+      <div class="grid">
+        <div class="cell c2"><label for="h1">居住区 <span class="req">*</span></label><select id="h1" data-req><option value="">请选择</option><option>江湾区</option><option>临溪区</option><option>北塘区</option><option>新港区</option><option>枫林区</option></select><span class="e">请选择居住区</span></div>
+        <div class="cell c4"><label for="h2">详细地址 <span class="req">*</span></label><input id="h2" data-req placeholder="街道、门牌号、室号"><span class="e">请填写详细地址</span></div>
+        <div class="cell c2"><span class="lab">居住性质 <span class="req">*</span></span><div class="radios"><label><input type="radio" name="house" data-req> 租赁</label><label><input type="radio" name="house"> 自有</label></div><span class="e">请选择居住性质</span></div>
+        <div class="cell c2"><label for="h3">本市社保缴纳月数</label><input id="h3" type="number" min="0" max="600" placeholder="例如 18"></div>
+        <div class="cell c2"><label for="h4">随迁子女人数</label><input id="h4" type="number" min="0" max="5" value="0"></div>
+        <div class="cell c6"><label for="h5">补充说明</label><textarea id="h5" placeholder="如有特殊情况（如异地社保转入），请在此说明"></textarea></div>
+      </div>
+    </section>
+
+    <section class="sec" id="s4" data-sec="4">
+      <h3><span>第四节</span>声明与确认</h3><p class="desc">提交后进入人工审核，审核期间不可修改。</p>
+      <label class="decl" id="decl"><input type="checkbox" id="agree" data-req> <span><span class="req">*</span> 本人承诺所填信息真实、准确、完整。如有虚假，愿承担相应法律责任，并同意有关部门依法核查。</span></label>
+      <div class="foot"><span class="sig">申请人签名：（提交即视为电子签名）</span><span style="font:12px var(--mono);color:#5d6b6a">第 1 页 / 共 1 页</span></div>
+    </section>
+  </form>
+</div>
+<script>
+const form=document.getElementById('form'),toc=[...document.querySelectorAll('.toc a')];
+const reqs=()=>[...form.querySelectorAll('[data-req]')];
+function filled(el){if(el.type==='radio')return !!form.querySelector('[name="'+el.name+'"]:checked');if(el.type==='checkbox')return el.checked;return el.value.trim()!==''}
+function valid(el){if(!filled(el))return false;const r=el.dataset.rule;if(r==='id')return /^\d{17}[\dXx]$/.test(el.value.trim());if(r==='phone')return /^1\d{10}$/.test(el.value.trim());return true}
+function progress(){
+  const all=reqs(),ok=all.filter(valid).length,p=Math.round(ok/all.length*100);
+  document.getElementById('pct').textContent=p+'%';document.getElementById('bar').style.width=p+'%';
+  toc.forEach(a=>{const sec=form.querySelector('[data-sec="'+a.dataset.s+'"]'),r=[...sec.querySelectorAll('[data-req]')],k=r.filter(valid).length;
+    a.querySelector('small').textContent=k+'/'+r.length;a.classList.toggle('done',k===r.length);});
+}
+form.addEventListener('input',e=>{const c=e.target.closest('.cell');if(c)c.classList.remove('bad');if(e.target.id==='agree')document.getElementById('decl').classList.remove('bad');progress();document.getElementById('saved').textContent='有未保存的修改'});
+form.addEventListener('change',progress);
+document.getElementById('photo').onclick=e=>{const b=e.currentTarget;b.classList.add('ok');b.innerHTML='<b>✓ 照片已上传</b><small>zhengjianzhao.jpg · 86 KB</small>'};
+document.getElementById('draft').onclick=()=>{document.getElementById('saved').textContent='✓ 草稿已保存 · 14:32 · 可在 30 天内继续填写'};
+document.getElementById('submit').onclick=()=>{
+  let first=null;toc.forEach(a=>a.classList.remove('err'));
+  reqs().forEach(el=>{if(valid(el))return;const c=el.closest('.cell');if(c)c.classList.add('bad');if(el.id==='agree')document.getElementById('decl').classList.add('bad');
+    const sec=el.closest('[data-sec]');toc.find(a=>a.dataset.s===sec.dataset.sec).classList.add('err');first=first||el});
+  if(first){first.closest('.cell,.decl').scrollIntoView({behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth',block:'center'});if(first.focus)first.focus({preventScroll:true});document.getElementById('saved').textContent='还有必填项未完成，已标红';return}
+  document.getElementById('appNo').textContent='RC2026-1023-07718';document.getElementById('stamp').classList.add('show');
+  document.getElementById('submit').disabled=true;document.getElementById('submit').textContent='已提交';document.getElementById('saved').textContent='预计 10 个工作日内完成审核，结果将短信通知';
+};
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)toc.forEach(a=>a.classList.toggle('on',a.dataset.s===e.target.dataset.sec))}),{rootMargin:'-40% 0px -55% 0px'});
+form.querySelectorAll('[data-sec]').forEach(s=>io.observe(s));
+toc[0].classList.add('on');progress();
+</script>
+</body>
+</html>

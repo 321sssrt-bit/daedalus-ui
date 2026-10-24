@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>石子 · 同城兴趣社区</title>
+<style>
+:root{
+  --room:#e4ded2;--bg:#f4f1ea;--card:#fffdf9;--ink:#2a2a28;--muted:#7c776d;--faint:#b5afa3;--line:#e8e2d6;
+  --tangerine:#ff8a3d;--tangerine-dk:#e8712a;--sage:#9cb59a;--clay:#d9a58a;--slate:#8fa3b8;--sand:#e9d9b8;--ok:#4f9a6a;--bad:#d9534f;--bad-bg:#fbeceb;
+  --sans:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  --num:"Avenir Next","Helvetica Neue",sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:linear-gradient(160deg,#efe9df,var(--room));display:grid;place-items:center;font:15px/1.55 var(--sans);color:var(--ink)}
+[hidden]{display:none!important}
+button{font-family:inherit}
+.phone{width:390px;height:min(844px,calc(100vh - 32px));border-radius:54px;border:11px solid #2a2a28;background:var(--bg);position:relative;overflow:hidden;box-shadow:0 30px 70px #2a2a2833}
+.notch{position:absolute;top:8px;left:50%;transform:translateX(-50%);width:118px;height:32px;border-radius:20px;background:#2a2a28;z-index:30}
+.sb{position:absolute;top:16px;left:30px;right:26px;display:flex;justify-content:space-between;font:600 15px var(--num);z-index:25}
+.sb span:last-child{font-size:12px;letter-spacing:2px}
+.view{position:absolute;inset:0;display:flex;flex-direction:column;animation:in .26s cubic-bezier(.2,.8,.2,1)}
+.view>*{flex-shrink:0}
+.fh{padding:54px 18px 8px;display:flex;align-items:center;justify-content:space-between}
+.fh h1{margin:0;font:900 26px var(--sans);display:flex;align-items:center;gap:8px}
+.fh h1 i{width:26px;height:20px;border-radius:50%;background:var(--sage);display:inline-block;transform:rotate(-12deg)}
+.fh .city{font-size:13px;color:var(--muted);background:var(--card);border-radius:999px;padding:5px 12px}
+.tabs{display:flex;gap:6px;padding:4px 18px 10px}
+.tabs button{border:0;background:none;padding:6px 14px;border-radius:999px;font:600 14px var(--sans);color:var(--muted);cursor:pointer}
+.tabs button[aria-pressed="true"]{background:var(--ink);color:var(--card)}
+.feed{flex:1;flex-shrink:1;overflow-y:auto;padding:4px 14px 100px;scrollbar-width:none;display:flex;flex-direction:column;gap:12px}
+.feed::-webkit-scrollbar{display:none}
+.post{background:var(--card);border-radius:28px;padding:14px 14px 10px;box-shadow:0 2px 0 var(--line)}
+.post.fresh{box-shadow:0 0 0 2.5px var(--tangerine);animation:glow 1.6s ease-out}
+.ph{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.av{width:38px;height:38px;border-radius:44% 56% 52% 48%;display:grid;place-items:center;font:800 15px var(--sans);color:#fff;flex:none}
+.ph b{display:block;font-size:14px}
+.ph small{color:var(--muted);font-size:12px}
+.vis{margin-left:auto;font-size:11px;color:var(--muted);background:var(--bg);border-radius:999px;padding:3px 9px;white-space:nowrap}
+.post p{margin:0 0 10px;font-size:15px;line-height:1.65}
+.post .topic{color:var(--tangerine-dk);font-weight:600}
+.img{height:170px;border-radius:22px;margin-bottom:8px;position:relative;overflow:hidden}
+.img svg{width:100%;height:100%;display:block}
+.acts{display:flex;gap:4px}
+.acts button{border:0;background:none;display:flex;align-items:center;gap:5px;font:13px var(--num);color:var(--muted);padding:6px 10px;border-radius:999px;cursor:pointer}
+.acts button:hover{background:var(--bg)}
+.acts button[aria-pressed="true"]{color:var(--tangerine-dk)}
+.fab{position:absolute;right:20px;bottom:98px;width:60px;height:60px;border-radius:44% 56% 50% 50%;border:0;background:var(--tangerine);color:#fff;font:300 32px var(--num);cursor:pointer;box-shadow:0 10px 24px #ff8a3d66;z-index:6;transition:transform .15s}
+.fab:hover{transform:rotate(8deg) scale(1.05)}
+.tabbar{position:absolute;left:0;right:0;bottom:0;height:82px;background:var(--card);border-radius:28px 28px 0 0;display:grid;grid-template-columns:repeat(4,1fr);padding:10px 8px 22px;z-index:5;box-shadow:0 -2px 0 var(--line)}
+.tabbar button{border:0;background:none;color:var(--faint);font:11px var(--sans);display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer}
+.tabbar button svg{width:24px;height:24px}
+.tabbar button[aria-current="page"]{color:var(--ink);font-weight:700}
+.toast{position:absolute;left:16px;right:16px;top:58px;z-index:40;background:var(--ink);color:var(--card);border-radius:20px;padding:12px 16px;font-size:13px;display:flex;align-items:center;gap:10px;animation:drop .3s cubic-bezier(.2,.8,.2,1)}
+.toast i{width:22px;height:22px;border-radius:50%;background:var(--ok);display:grid;place-items:center;font-style:normal;font-size:12px;flex:none}
+.ch{padding:52px 14px 8px;display:flex;align-items:center;justify-content:space-between}
+.ch button.x{border:0;background:none;font:15px var(--sans);color:var(--muted);cursor:pointer;padding:8px}
+.ch h2{margin:0;font:800 17px var(--sans)}
+.pub{height:38px;padding:0 18px;border-radius:999px;border:0;background:var(--tangerine);color:#fff;font:800 15px var(--sans);cursor:pointer}
+.pub:disabled{background:var(--faint);cursor:not-allowed}
+.cbody{flex:1;flex-shrink:1;overflow-y:auto;padding:4px 18px 20px;scrollbar-width:none}
+.me{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.me b{font-size:14px}
+.me small{display:block;font-size:12px;color:var(--muted)}
+.ta{width:100%;min-height:150px;border:0;background:var(--card);border-radius:24px;padding:14px 16px;font:16px/1.7 var(--sans);color:var(--ink);resize:none;outline:none}
+.ta:focus{box-shadow:0 0 0 2px var(--tangerine)}
+.ta::placeholder{color:var(--faint)}
+.cnt{text-align:right;font:12px var(--num);color:var(--muted);margin:6px 4px 12px}
+.cnt.over{color:var(--bad)}
+.lbl{font:700 13px var(--sans);margin:14px 2px 8px;display:flex;justify-content:space-between}
+.lbl span{font-weight:400;color:var(--muted)}
+.pics{display:flex;gap:8px}
+.pic{width:76px;height:76px;border-radius:20px;border:2px dashed var(--faint);background:none;cursor:pointer;overflow:hidden;padding:0;position:relative;color:var(--muted);font-size:24px}
+.pic svg{width:100%;height:100%;display:block}
+.pic[aria-pressed="true"]{border:3px solid var(--tangerine)}
+.pic[aria-pressed="true"]::after{content:'✓';position:absolute;right:4px;top:4px;width:18px;height:18px;border-radius:50%;background:var(--tangerine);color:#fff;font-size:11px;display:grid;place-items:center}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{border:0;background:var(--card);border-radius:999px;padding:6px 12px;font:13px var(--sans);color:var(--ink);cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--card)}
+.visset{display:grid;gap:8px}
+.vopt{display:grid;grid-template-columns:36px 1fr 22px;gap:10px;align-items:center;background:var(--card);border:2px solid transparent;border-radius:20px;padding:10px 12px;cursor:pointer;text-align:left;font:14px var(--sans);color:var(--ink)}
+.vopt i{width:36px;height:36px;border-radius:12px;display:grid;place-items:center;font-style:normal;font-size:16px}
+.vopt small{display:block;color:var(--muted);font-size:12px}
+.vopt .rd{width:20px;height:20px;border-radius:50%;border:2px solid var(--faint)}
+.vopt[aria-checked="true"]{border-color:var(--ink)}
+.vopt[aria-checked="true"] .rd{border:6px solid var(--ink)}
+.demo{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:16px;padding:10px 12px;border-radius:18px;border:1.5px dashed #d9a58a;background:#fbf1ea;font-size:13px}
+.demo small{display:block;color:var(--muted);font-size:11px}
+.sw{width:44px;height:26px;border-radius:13px;border:0;background:var(--faint);position:relative;cursor:pointer;flex:none;transition:background .2s}
+.sw::after{content:'';position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:transform .2s}
+.sw[aria-checked="true"]{background:var(--bad)}
+.sw[aria-checked="true"]::after{transform:translateX(18px)}
+.err{display:grid;grid-template-columns:30px 1fr;gap:10px;background:var(--bad-bg);border:1.5px solid var(--bad);border-radius:20px;padding:12px 14px;margin-bottom:12px;animation:shake .35s}
+.err i{width:30px;height:30px;border-radius:50%;background:var(--bad);color:#fff;display:grid;place-items:center;font-style:normal;font-weight:800}
+.err b{display:block;color:var(--bad)}
+.err p{margin:2px 0 8px;font-size:13px}
+.err button{border:0;background:var(--ink);color:var(--card);border-radius:999px;padding:6px 14px;font:700 13px var(--sans);cursor:pointer}
+.saved{font-size:12px;color:var(--muted);text-align:center;margin-top:10px}
+.post:focus-visible,.acts button:focus-visible,.fab:focus-visible,.tabbar button:focus-visible,.tabs button:focus-visible,.pub:focus-visible,.x:focus-visible,.pic:focus-visible,.chip:focus-visible,.vopt:focus-visible,.sw:focus-visible,.err button:focus-visible{outline:3px solid var(--slate);outline-offset:2px}
+@keyframes in{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes drop{from{opacity:0;transform:translateY(-14px)}to{opacity:1;transform:none}}
+@keyframes glow{0%{box-shadow:0 0 0 8px #ff8a3d55}100%{box-shadow:0 0 0 2.5px #ff8a3d}}
+@keyframes shake{20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+@media (max-width:500px){body{display:block;background:var(--bg)}.phone{width:100%;height:100vh;height:100dvh;border:0;border-radius:0;box-shadow:none}.notch{display:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="notch" aria-hidden="true"></div>
+  <div class="sb" aria-hidden="true"><span>9:41</span><span>▂▄▆ ▮▮▮</span></div>
+  <div id="root"></div>
+</div>
+<script>
+const ART=[
+ '<svg viewBox="0 0 320 170" preserveAspectRatio="xMidYMid slice"><rect width="320" height="170" fill="#e9d9b8"/><circle cx="250" cy="50" r="26" fill="#ff8a3d"/><path d="M0 130q80-50 160 0t160 0v40H0z" fill="#9cb59a"/><path d="M0 150q80-30 160 0t160 0v20H0z" fill="#7a9a78"/></svg>',
+ '<svg viewBox="0 0 320 170" preserveAspectRatio="xMidYMid slice"><rect width="320" height="170" fill="#8fa3b8"/><rect x="40" y="60" width="70" height="110" rx="8" fill="#d9a58a"/><rect x="130" y="30" width="60" height="140" rx="8" fill="#e9d9b8"/><rect x="210" y="80" width="80" height="90" rx="8" fill="#9cb59a"/><circle cx="80" cy="40" r="14" fill="#fffdf9"/></svg>',
+ '<svg viewBox="0 0 320 170" preserveAspectRatio="xMidYMid slice"><rect width="320" height="170" fill="#d9a58a"/><ellipse cx="160" cy="120" rx="110" ry="34" fill="#fffdf9"/><ellipse cx="160" cy="112" rx="86" ry="22" fill="#e9d9b8"/><circle cx="130" cy="106" r="12" fill="#ff8a3d"/><circle cx="170" cy="104" r="10" fill="#9cb59a"/><circle cx="196" cy="112" r="9" fill="#8fa3b8"/></svg>'
+];
+const VIS={pub:['🌍','公开','所有人可见，会出现在同城推荐','#e9d9b8'],fans:['👥','仅关注我的人','不进入推荐与搜索','#d6e4d5'],circle:['🫧','仅「周末爬山」圈子','只有圈内 46 位成员可见','#dfe6ee'],me:['🔒','仅自己','相当于私人笔记','#f2e2d8']};
+let posts=[
+ {n:'阿岚',c:'#9cb59a',t:'10 分钟前 · 西湖区',v:'pub',txt:'早上六点爬了宝石山，城市还没醒，雾在湖面上慢慢散开。<span class="topic">#周末爬山</span>',img:0,lk:128,cm:24,lked:false},
+ {n:'老周的咖啡车',c:'#d9a58a',t:'32 分钟前 · 滨江',v:'pub',txt:'今天车停在星光大道北门，桂花拿铁最后 20 杯，带自己的杯子减 3 块 ☕',img:2,lk:76,cm:9,lked:true},
+ {n:'Mika',c:'#8fa3b8',t:'1 小时前 · 拱墅区',v:'fans',txt:'在大运河边发现一排很老的仓库，墙上的颜色像被雨水调过一样。',img:1,lk:203,cm:31,lked:false}
+];
+const S={v:'feed',tab:'near',draft:{txt:'',img:-1,topic:'',vis:'pub'},fail:false,err:false,toast:''};
+const $=s=>document.getElementById(s),root=$('root');
+function postHtml(p,i){const vv=VIS[p.v];return '<article class="post'+(p.fresh?' fresh':'')+'" tabindex="-1"><div class="ph"><span class="av" style="background:'+p.c+'">'+p.n[0]+'</span><span><b>'+p.n+'</b><small>'+p.t+'</small></span><span class="vis">'+vv[0]+' '+vv[1]+'</span></div><p>'+p.txt+'</p>'+(p.img>=0?'<div class="img">'+ART[p.img]+'</div>':'')+
+  '<div class="acts"><button type="button" data-like="'+i+'" aria-pressed="'+p.lked+'">'+(p.lked?'♥':'♡')+' '+p.lk+'</button><button type="button">💬 '+p.cm+'</button><button type="button">↗ 分享</button></div></article>'}
+function vFeed(){return '<section class="view"><div class="fh"><h1><i></i>石子</h1><span class="city">📍 杭州</span></div>'+
+ '<div class="tabs" role="group" aria-label="动态分类"><button type="button" data-tab="near" aria-pressed="'+(S.tab==='near')+'">同城</button><button type="button" data-tab="follow" aria-pressed="'+(S.tab==='follow')+'">关注</button><button type="button" data-tab="circle" aria-pressed="'+(S.tab==='circle')+'">圈子</button></div>'+
+ '<div class="feed" id="feed" aria-live="polite">'+posts.map(postHtml).join('')+'</div>'+
+ '<button class="fab" type="button" id="new" aria-label="写一条新动态">＋</button>'+
+ '<nav class="tabbar" aria-label="底部导航"><button type="button" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M4 11l8-6 8 6v8a1 1 0 0 1-1 1h-4v-5h-6v5H5a1 1 0 0 1-1-1z"/></svg>动态</button><button type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="12" cy="12" r="8"/><path d="M15 9l-2 5-4 1 2-5z"/></svg>发现</button><button type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M4 6h16v10H9l-5 4z"/></svg>消息</button><button type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg>我</button></nav>'+
+ (S.toast?'<div class="toast" role="status"><i>✓</i>'+S.toast+'</div>':'')+'</section>'}
+function vCompose(){const d=S.draft,len=d.txt.trim().length;
+ return '<section class="view"><div class="ch"><button class="x" type="button" id="close">取消</button><h2>新动态</h2><button class="pub" type="button" id="pub" '+(len&&len<=300?'':'disabled')+'>发布</button></div>'+
+ '<div class="cbody">'+(S.err?'<div class="err" role="alert"><i>!</i><div><b>发布未完成</b><p>网络开小差了，你的文字、图片、话题和可见范围（'+VIS[d.vis][1]+'）都已保留在草稿里。</p><button type="button" id="retry">重新发布</button></div></div>':'')+
+ '<div class="me"><span class="av" style="background:#ff8a3d">宁</span><span><b>沈宁</b><small>发布到 '+VIS[d.vis][0]+' '+VIS[d.vis][1]+'</small></span></div>'+
+ '<textarea class="ta" id="ta" placeholder="分享身边的新鲜事…" aria-label="动态内容" maxlength="320">'+d.txt+'</textarea><div class="cnt'+(len>300?' over':'')+'" id="cnt">'+len+' / 300</div>'+
+ '<div class="lbl">配图 <span>选一张</span></div><div class="pics" role="group" aria-label="配图">'+ART.map((a,i)=>'<button class="pic" type="button" data-img="'+i+'" aria-pressed="'+(d.img===i)+'" aria-label="配图 '+(i+1)+'">'+a+'</button>').join('')+'<button class="pic" type="button" data-img="-1" aria-pressed="false" aria-label="不配图">∅</button></div>'+
+ '<div class="lbl">话题</div><div class="chips" role="group" aria-label="话题">'+['#周末爬山','#城市散步','#咖啡地图','#今日份美食'].map(t=>'<button class="chip" type="button" data-topic="'+t+'" aria-pressed="'+(d.topic===t)+'">'+t+'</button>').join('')+'</div>'+
+ '<div class="lbl">谁可以看 <span>发布后也可修改</span></div><div class="visset" role="radiogroup" aria-label="可见范围">'+Object.entries(VIS).map(([k,v])=>'<button class="vopt" type="button" role="radio" data-vis="'+k+'" aria-checked="'+(d.vis===k)+'"><i style="background:'+v[3]+'">'+v[0]+'</i><span>'+v[1]+'<small>'+v[2]+'</small></span><span class="rd"></span></button>').join('')+'</div>'+
+ '<div class="demo"><span>演示：让本次发布失败<small>打开后点「发布」会模拟网络中断</small></span><button class="sw" type="button" role="switch" id="failSw" aria-checked="'+S.fail+'" aria-label="让本次发布失败"></button></div>'+
+ '<div class="saved" id="saved">'+(d.txt?'草稿已自动保存':'')+'</div></div></section>'}
+function render(){root.innerHTML=S.v==='feed'?vFeed():vCompose();bind()}
+function publish(btn){
+  const d=S.draft;btn.disabled=true;btn.textContent='发布中…';
+  setTimeout(()=>{
+    if(S.fail){S.err=true;render();return}
+    const txt=d.txt.trim().replace(/</g,'&lt;')+(d.topic?' <span class="topic">'+d.topic+'</span>':'');
+    posts.forEach(p=>p.fresh=false);
+    posts.unshift({n:'沈宁',c:'#ff8a3d',t:'刚刚 · 西湖区',v:d.vis,txt,img:d.img,lk:0,cm:0,lked:false,fresh:true});
+    S.draft={txt:'',img:-1,topic:'',vis:'pub'};S.err=false;S.fail=false;S.toast='发布成功 · '+VIS[posts[0].v][1];S.v='feed';render();
+    clearTimeout(publish.h);publish.h=setTimeout(()=>{S.toast='';const t=document.querySelector('.toast');t&&t.remove()},2600);
+  },900);
+}
+function bind(){
+  root.querySelectorAll('[data-like]').forEach(b=>b.onclick=()=>{const p=posts[+b.dataset.like];p.lked=!p.lked;p.lk+=p.lked?1:-1;b.setAttribute('aria-pressed',p.lked);b.textContent=(p.lked?'♥':'♡')+' '+p.lk});
+  root.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{S.tab=b.dataset.tab;root.querySelectorAll('[data-tab]').forEach(x=>x.setAttribute('aria-pressed',x===b))});
+  const nw=$('new');if(nw)nw.onclick=()=>{S.v='compose';S.toast='';render();$('ta').focus()};
+  const cl=$('close');if(cl)cl.onclick=()=>{S.v='feed';S.err=false;render()};
+  const ta=$('ta');if(ta)ta.oninput=()=>{S.draft.txt=ta.value;const len=ta.value.trim().length;$('cnt').textContent=len+' / 300';$('cnt').className='cnt'+(len>300?' over':'');$('pub').disabled=!len||len>300;$('saved').textContent=ta.value?'草稿已自动保存':''};
+  root.querySelectorAll('[data-img]').forEach(b=>b.onclick=()=>{S.draft.img=+b.dataset.img;render()});
+  root.querySelectorAll('[data-topic]').forEach(b=>b.onclick=()=>{S.draft.topic=S.draft.topic===b.dataset.topic?'':b.dataset.topic;render()});
+  root.querySelectorAll('[data-vis]').forEach(b=>b.onclick=()=>{S.draft.vis=b.dataset.vis;render()});
+  const sw=$('failSw');if(sw)sw.onclick=()=>{S.fail=!S.fail;sw.setAttribute('aria-checked',S.fail)};
+  const pb=$('pub');if(pb)pb.onclick=()=>publish(pb);
+  const rt=$('retry');if(rt)rt.onclick=()=>{if(S.fail){S.fail=false;const s=$('failSw');s&&s.setAttribute('aria-checked','false')}publish($('pub'))};
+}
+render();
+</script>
+</body>
+</html>

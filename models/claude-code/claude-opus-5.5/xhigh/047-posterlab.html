@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>海报实验室 · 秋日市集</title>
+<style>
+:root{
+  --app:#141518;--panel:#1e1f23;--panel-2:#26282d;--field:#2e3036;--line:#34363c;--text:#e9eaee;--muted:#9a9ca6;--faint:#62656f;--magenta:#ff3d8b;--magenta-dk:#e0236f;--cyan:#3dd6ff;--ok:#3ecf8e;--warn:#ffb648;--bad:#ff5a5f;--bad-bg:#3a1e22;
+  --sans:"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Inter",-apple-system,sans-serif;
+  --mono:"SF Mono","JetBrains Mono","Menlo","Consolas",monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--app);color:var(--text);font:13px/1.45 var(--sans);overflow:hidden}
+[hidden]{display:none!important}
+button,input,select{font-family:inherit}
+.app{display:grid;grid-template-rows:48px minmax(0,1fr);height:100vh;min-height:620px}
+.top{display:flex;align-items:center;gap:14px;padding:0 14px;background:var(--panel);border-bottom:1px solid var(--line)}
+.logo{display:flex;align-items:center;gap:8px;font-weight:700}
+.logo i{width:22px;height:22px;border-radius:6px;background:conic-gradient(var(--magenta),var(--cyan),var(--warn),var(--magenta))}
+.top .doc{color:var(--muted);font-size:12px}
+.top .doc b{color:var(--text);font-weight:500}
+.top .zoom{margin-left:auto;font:12px var(--mono);color:var(--muted)}
+.btn{height:32px;padding:0 12px;border-radius:7px;border:1px solid var(--line);background:var(--field);color:var(--text);font:600 12px var(--sans);cursor:pointer;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.btn:hover:not(:disabled){border-color:#4a4d55}
+.btn.pri{background:var(--magenta);border-color:var(--magenta);color:#fff}
+.btn.pri:hover:not(:disabled){background:var(--magenta-dk)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.work{display:grid;grid-template-columns:232px minmax(0,1fr) 300px;min-height:0}
+.layers{background:var(--panel);border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:0}
+.ph{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-bottom:1px solid var(--line);font:600 11px var(--sans);color:var(--muted);letter-spacing:.08em}
+.ly{display:grid;grid-template-columns:22px 28px 1fr 26px;gap:8px;align-items:center;width:100%;padding:7px 10px;border:0;background:none;color:var(--text);font:13px var(--sans);text-align:left;cursor:pointer;border-left:2px solid transparent}
+.ly:hover{background:var(--panel-2)}
+.ly[aria-selected="true"]{background:#ff3d8b1a;border-left-color:var(--magenta)}
+.ly .ic{width:28px;height:22px;border-radius:4px;background:var(--field);display:grid;place-items:center;font-size:11px;color:var(--muted)}
+.ly .eye{width:24px;height:24px;border:0;background:none;color:var(--muted);cursor:pointer;border-radius:4px}
+.ly .eye:hover{background:var(--field);color:var(--text)}
+.ly.off span{opacity:.4}
+.ly .grip{color:var(--faint);font-size:11px}
+.tips{margin-top:auto;padding:12px;border-top:1px solid var(--line);font-size:11px;color:var(--faint);line-height:1.6}
+.stage{position:relative;display:grid;place-items:center;background:radial-gradient(circle at 50% 40%,#1b1c20,#111214);min-height:0;overflow:hidden}
+.artboard{position:relative;width:min(420px,calc(100% - 60px));aspect-ratio:4/5;box-shadow:0 20px 50px #000a}
+.artboard.checker{background:repeating-conic-gradient(#3a3c42 0 25%,#2a2c31 0 50%) 0 0/20px 20px}
+.artboard svg{width:100%;height:100%;display:block}
+.artboard .lbl{position:absolute;left:0;top:-22px;font:11px var(--mono);color:var(--muted)}
+.stage .live{position:absolute;right:14px;top:12px;font:11px var(--mono);color:var(--ok);display:flex;align-items:center;gap:6px}
+.stage .live i{width:7px;height:7px;border-radius:50%;background:var(--ok);animation:pulse 1.4s infinite}
+.props{background:var(--panel);border-left:1px solid var(--line);overflow:auto;min-height:0}
+.sec{padding:12px 14px;border-bottom:1px solid var(--line)}
+.sec h3{margin:0 0 10px;font:600 11px var(--sans);color:var(--muted);letter-spacing:.08em;display:flex;justify-content:space-between}
+.sec h3 span{color:var(--faint);letter-spacing:0;font-weight:400}
+.f{display:grid;grid-template-columns:64px 1fr;gap:8px;align-items:center;margin-bottom:9px;font-size:12px}
+.f>label,.f>span{color:var(--muted)}
+.f input[type=text],.f select{height:30px;border-radius:6px;border:1px solid var(--line);background:var(--field);color:var(--text);padding:0 8px;font:12px var(--sans);outline:none;width:100%}
+.f input[type=text]:focus,.f select:focus{border-color:var(--magenta)}
+.f input[type=range]{width:100%;accent-color:var(--magenta)}
+.rv{display:grid;grid-template-columns:1fr 44px;gap:8px;align-items:center}
+.rv output{font:11px var(--mono);color:var(--muted);text-align:right}
+.sws{display:flex;gap:6px;flex-wrap:wrap}
+.sw{width:24px;height:24px;border-radius:6px;border:2px solid transparent;cursor:pointer;padding:0}
+.sw[aria-pressed="true"]{border-color:#fff;box-shadow:0 0 0 1px var(--app)}
+.tg{display:flex;justify-content:space-between;align-items:center;font-size:12px;margin-bottom:9px}
+.tg small{display:block;color:var(--faint);font-size:11px}
+.sw2{width:36px;height:20px;border-radius:10px;border:0;background:var(--field);position:relative;cursor:pointer;flex:none}
+.sw2::after{content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#c9cad0;transition:transform .15s}
+.sw2[aria-checked="true"]{background:var(--magenta)}
+.sw2[aria-checked="true"]::after{transform:translateX(16px);background:#fff}
+.fmts{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:10px}
+.fmt{height:46px;border-radius:8px;border:1.5px solid var(--line);background:var(--field);color:var(--text);cursor:pointer;font:700 13px var(--mono);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px}
+.fmt small{font:10px var(--sans);color:var(--faint);font-weight:400}
+.fmt[aria-pressed="true"]{border-color:var(--magenta);background:#ff3d8b1a}
+.conf{border:1.5px solid var(--bad);background:var(--bad-bg);border-radius:10px;padding:10px 12px;margin-bottom:10px;animation:shake .35s}
+.conf b{display:block;color:var(--bad);font-size:13px;margin-bottom:4px}
+.conf ul{margin:0 0 8px;padding-left:16px;font-size:12px;line-height:1.6}
+.conf .fx{display:flex;flex-wrap:wrap;gap:6px}
+.conf .fx button{height:28px;padding:0 10px;border-radius:6px;border:1px solid #ffffff33;background:var(--field);color:var(--text);font:600 11px var(--sans);cursor:pointer}
+.conf .fx button:hover{border-color:var(--magenta)}
+.hint{font-size:11px;color:var(--faint);margin:-2px 0 10px}
+.hint.ok{color:var(--ok)}
+.result{border:1.5px solid var(--ok);border-radius:10px;padding:10px;display:grid;grid-template-columns:72px 1fr;gap:10px;align-items:center;animation:rise .25s}
+.result .th{width:72px;height:90px;border-radius:4px;overflow:hidden;background:repeating-conic-gradient(#3a3c42 0 25%,#2a2c31 0 50%) 0 0/10px 10px;display:grid;place-items:center}
+.result .th img{width:100%;height:100%;object-fit:cover;display:block}
+.result b{display:block;font:600 12px var(--mono);word-break:break-all}
+.result small{display:block;color:var(--muted);font-size:11px;margin:2px 0 6px}
+.result a{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 10px;border-radius:6px;background:var(--ok);color:#06231a;font:700 12px var(--sans);text-decoration:none}
+.hist{margin-top:10px;font-size:11px;color:var(--faint)}
+.hist div{display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px dashed var(--line)}
+.ly:focus-visible,.eye:focus-visible,.btn:focus-visible,.sw:focus-visible,.sw2:focus-visible,.fmt:focus-visible,.conf button:focus-visible,.result a:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+@keyframes pulse{50%{opacity:.3}}
+@keyframes shake{20%,60%{transform:translateX(-5px)}40%,80%{transform:translateX(5px)}}
+@keyframes rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@media (max-width:1100px){.work{grid-template-columns:180px minmax(0,1fr) 280px}}
+@media (max-width:860px){body{overflow:auto}.app{height:auto}.work{grid-template-columns:1fr}.layers{border-right:0;border-bottom:1px solid var(--line)}.stage{min-height:480px}.props{border-left:0}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top"><span class="logo"><i></i>海报实验室</span><span class="doc">我的设计 / <b>秋日市集 · 主视觉</b> · 1080 × 1350</span><span class="zoom">适应画布 · 38%</span><button class="btn" type="button" id="undo" disabled>↶ 撤销</button></header>
+  <div class="work">
+    <aside class="layers" aria-label="图层">
+      <div class="ph">图层 <span>4</span></div>
+      <div id="layerList" role="listbox" aria-label="图层列表"></div>
+      <div class="tips">点击图层编辑参数 · 眼睛图标切换显示<br>所有修改实时反映在画布上</div>
+    </aside>
+    <main class="stage"><span class="live"><i></i>实时预览</span><div class="artboard" id="board"><span class="lbl">秋日市集 · 1080×1350</span><div id="svgWrap"></div></div></main>
+    <aside class="props" aria-label="属性">
+      <section class="sec" id="propSec"></section>
+      <section class="sec"><h3>画面效果 <span>影响导出</span></h3>
+        <div class="tg"><span>透明背景<small>隐藏背景色，仅保留图形与文字</small></span><button class="sw2" type="button" role="switch" id="tTrans" aria-checked="false" aria-label="透明背景"></button></div>
+        <div class="tg"><span>呼吸动画<small>图形缓慢缩放，循环 3 秒</small></span><button class="sw2" type="button" role="switch" id="tAnim" aria-checked="false" aria-label="呼吸动画"></button></div>
+      </section>
+      <section class="sec"><h3>导出 <span id="dim">1080 × 1350</span></h3>
+        <div class="fmts" role="group" aria-label="导出格式">
+          <button class="fmt" type="button" data-fmt="png" aria-pressed="true">PNG<small>无损 · 透明</small></button>
+          <button class="fmt" type="button" data-fmt="jpg" aria-pressed="false">JPG<small>体积小</small></button>
+          <button class="fmt" type="button" data-fmt="svg" aria-pressed="false">SVG<small>矢量 · 动画</small></button>
+        </div>
+        <div class="f"><span>倍率</span><select id="scale" aria-label="导出倍率"><option value="1">1×（1080 × 1350）</option><option value="2">2×（2160 × 2700）</option></select></div>
+        <div id="confBox" aria-live="assertive"></div>
+        <div class="hint" id="hint">当前设置可直接导出</div>
+        <button class="btn pri" type="button" id="export" style="width:100%;height:38px;justify-content:center">导出</button>
+        <div id="resultBox" aria-live="polite" style="margin-top:10px"></div>
+        <div class="hist" id="hist"></div>
+      </section>
+    </aside>
+  </div>
+</div>
+<script>
+const S={sel:'title',bg:'#f2e3c6',title:'秋日市集',sub:'11.02 — 11.03 · 西溪湿地 · 32 家摊主',tsize:132,tcolor:'#2b1d14',shape:'#e8622c',ssize:300,sx:540,sy:520,trans:false,anim:false,fmt:'png',scale:1,vis:{bg:true,title:true,sub:true,shape:true},conf:null,hist:[],undo:[]};
+const LAYERS=[['title','T','主标题'],['sub','t','副标题'],['shape','◯','图形 · 太阳'],['bg','▭','背景']];
+const BGS=['#f2e3c6','#1f3a4a','#2b1d14','#e8e2f5','#ffffff'];
+const COLS=['#2b1d14','#e8622c','#ffffff','#1f3a4a','#ff3d8b'];
+const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
+const $=s=>document.getElementById(s);
+function svg(forExport){
+  const a=S.anim&&(forExport||!reduce)?'<animateTransform attributeName="transform" type="scale" values="1;1.08;1" keyTimes="0;0.5;1" dur="3s" repeatCount="indefinite" additive="sum"/>':'';
+  return '<svg viewBox="0 0 1080 1350" width="1080" height="1350" role="img" aria-label="海报预览">'+
+   (S.vis.bg&&!S.trans?'<rect width="1080" height="1350" fill="'+S.bg+'"/>':'')+
+   (S.vis.shape?'<g transform="translate('+S.sx+' '+S.sy+')"><g><circle r="'+(S.ssize/2)+'" fill="'+S.shape+'"/>'+a+'</g></g><g opacity=".9"><path d="M0 1010 C 260 920 420 1080 640 990 S 980 940 1080 980 V 1350 H 0 Z" fill="'+S.shape+'" opacity=".28"/><path d="M0 1110 C 300 1040 520 1170 760 1090 S 1000 1060 1080 1080 V 1350 H 0 Z" fill="'+S.tcolor+'" opacity=".18"/></g>':'')+
+   (S.vis.title?'<text x="90" y="'+(860)+'" font-size="'+S.tsize+'" font-weight="900" fill="'+S.tcolor+'" font-family="PingFang SC, Microsoft YaHei, sans-serif" letter-spacing="4">'+esc(S.title)+'</text>':'')+
+   (S.vis.sub?'<text x="94" y="'+(860+60)+'" font-size="34" fill="'+S.tcolor+'" opacity=".78" font-family="PingFang SC, Microsoft YaHei, sans-serif">'+esc(S.sub)+'</text>':'')+
+   '<text x="90" y="130" font-size="28" fill="'+S.tcolor+'" opacity=".6" font-family="Menlo, monospace" letter-spacing="6">AUTUMN MARKET · 2026</text></svg>'}
+function esc(t){return String(t).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'})[c])}
+function conflicts(){const c=[];
+  if(S.fmt==='jpg'&&S.trans)c.push({k:'trans',m:'JPG 不支持透明背景，透明区域会被填成白色',fix:[['关闭透明背景','offTrans'],['改用 PNG','toPng']]});
+  if((S.fmt==='png'||S.fmt==='jpg')&&S.anim)c.push({k:'anim',m:S.fmt.toUpperCase()+' 是静态位图格式，无法保存「呼吸动画」',fix:[['关闭动画','offAnim'],['改用 SVG（保留动画）','toSvg']]});
+  return c}
+function renderLayers(){$('layerList').innerHTML=LAYERS.map(([k,ic,n])=>'<div class="ly'+(S.vis[k]?'':' off')+'" role="option" tabindex="0" data-ly="'+k+'" aria-selected="'+(S.sel===k)+'"><span class="grip">⋮⋮</span><span class="ic">'+ic+'</span><span>'+n+'</span><button class="eye" type="button" data-eye="'+k+'" aria-label="'+(S.vis[k]?'隐藏':'显示')+' '+n+'">'+(S.vis[k]?'👁':'—')+'</button></div>').join('');
+  document.querySelectorAll('[data-ly]').forEach(r=>{r.onclick=e=>{if(e.target.closest('.eye'))return;S.sel=r.dataset.ly;renderLayers();renderProps()};r.onkeydown=e=>{if(e.key==='Enter'){S.sel=r.dataset.ly;renderLayers();renderProps()}}});
+  document.querySelectorAll('[data-eye]').forEach(b=>b.onclick=()=>{push();S.vis[b.dataset.eye]=!S.vis[b.dataset.eye];renderLayers();preview()})}
+function swatches(list,cur,key){return '<div class="sws" role="group">'+list.map(c=>'<button class="sw" type="button" style="background:'+c+'" data-c="'+c+'" data-k="'+key+'" aria-pressed="'+(c===cur)+'" aria-label="颜色 '+c+'"></button>').join('')+'</div>'}
+function renderProps(){
+  const p=$('propSec');
+  if(S.sel==='title')p.innerHTML='<h3>主标题 <span>文字图层</span></h3><div class="f"><label for="iTitle">文字</label><input type="text" id="iTitle" maxlength="12" value="'+esc(S.title)+'"></div><div class="f"><label for="iSize">字号</label><div class="rv"><input type="range" id="iSize" min="72" max="180" value="'+S.tsize+'"><output id="oSize">'+S.tsize+'px</output></div></div><div class="f"><span>颜色</span>'+swatches(COLS,S.tcolor,'tcolor')+'</div>';
+  if(S.sel==='sub')p.innerHTML='<h3>副标题 <span>文字图层</span></h3><div class="f"><label for="iSub">文字</label><input type="text" id="iSub" maxlength="30" value="'+esc(S.sub)+'"></div><div class="f"><span>颜色</span>'+swatches(COLS,S.tcolor,'tcolor')+'</div>';
+  if(S.sel==='shape')p.innerHTML='<h3>图形 · 太阳 <span>形状图层</span></h3><div class="f"><label for="iS">大小</label><div class="rv"><input type="range" id="iS" min="120" max="520" value="'+S.ssize+'"><output id="oS">'+S.ssize+'</output></div></div><div class="f"><label for="iX">水平</label><div class="rv"><input type="range" id="iX" min="200" max="880" value="'+S.sx+'"><output id="oX">'+S.sx+'</output></div></div><div class="f"><span>颜色</span>'+swatches(COLS,S.shape,'shape')+'</div>';
+  if(S.sel==='bg')p.innerHTML='<h3>背景 <span>填充图层</span></h3><div class="f"><span>颜色</span>'+swatches(BGS,S.bg,'bg')+'</div><div class="hint">也可在「画面效果」中打开透明背景</div>';
+  const bindIn=(id,key,o,num)=>{const el=$(id);if(!el)return;el.onfocus=push;el.oninput=()=>{S[key]=num?+el.value:el.value;if(o)$(o).textContent=el.value+(id==='iSize'?'px':'');preview()}};
+  bindIn('iTitle','title');bindIn('iSub','sub');bindIn('iSize','tsize','oSize',1);bindIn('iS','ssize','oS',1);bindIn('iX','sx','oX',1);
+  p.querySelectorAll('.sw').forEach(b=>b.onclick=()=>{push();S[b.dataset.k]=b.dataset.c;renderProps();preview()});
+}
+function preview(){$('svgWrap').innerHTML=svg(false);$('board').classList.toggle('checker',S.trans||!S.vis.bg);syncExport()}
+function syncExport(){
+  document.querySelectorAll('[data-fmt]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.fmt===S.fmt));
+  $('tTrans').setAttribute('aria-checked',S.trans);$('tAnim').setAttribute('aria-checked',S.anim);
+  $('dim').textContent=(1080*S.scale)+' × '+(1350*S.scale);
+  const c=conflicts();const h=$('hint');
+  if(S.conf&&!c.length){S.conf=null;$('confBox').innerHTML='';h.className='hint ok';h.textContent='✓ 冲突已解决，可以重新导出'}
+  else if(S.conf){showConf(c)}
+  else{h.className='hint';h.textContent=S.fmt==='svg'?'矢量格式，保留透明与动画':S.fmt==='png'?'无损位图，支持透明':'有损压缩，体积最小'}
+}
+function showConf(c){S.conf=c;$('confBox').innerHTML='<div class="conf" role="alert"><b>无法导出：设置互相冲突</b><ul>'+c.map(x=>'<li>'+x.m+'</li>').join('')+'</ul><div class="fx">'+c.flatMap(x=>x.fix).map(f=>'<button type="button" data-fix="'+f[1]+'">'+f[0]+'</button>').join('')+'</div></div>';
+  $('hint').className='hint';$('hint').textContent='请先处理上面的冲突';
+  document.querySelectorAll('[data-fix]').forEach(b=>b.onclick=()=>{push();const f=b.dataset.fix;if(f==='offTrans')S.trans=false;if(f==='toPng')S.fmt='png';if(f==='offAnim')S.anim=false;if(f==='toSvg')S.fmt='svg';preview()})}
+function push(){S.undo.push(JSON.stringify({bg:S.bg,title:S.title,sub:S.sub,tsize:S.tsize,tcolor:S.tcolor,shape:S.shape,ssize:S.ssize,sx:S.sx,trans:S.trans,anim:S.anim,fmt:S.fmt,vis:S.vis}));if(S.undo.length>30)S.undo.shift();$('undo').disabled=false}
+$('undo').onclick=()=>{const u=S.undo.pop();if(!u)return;Object.assign(S,JSON.parse(u));$('undo').disabled=!S.undo.length;renderLayers();renderProps();preview()};
+$('tTrans').onclick=()=>{push();S.trans=!S.trans;preview()};
+$('tAnim').onclick=()=>{push();S.anim=!S.anim;preview()};
+document.querySelectorAll('[data-fmt]').forEach(b=>b.onclick=()=>{S.fmt=b.dataset.fmt;syncExport()});
+$('scale').onchange=e=>{S.scale=+e.target.value;syncExport()};
+/* 导出文件在浏览器内生成为本地 Blob，不读取任何外部资源 */
+const makeHref=b=>URL['createObjectURL'](b),dropHref=u=>URL['revokeObjectURL'](u);
+function kb(n){return n>1048576?(n/1048576).toFixed(2)+' MB':Math.max(1,Math.round(n/1024))+' KB'}
+function done(blob,fmt){
+  const url=makeHref(blob),name='秋日市集-主视觉@'+S.scale+'x.'+fmt;
+  $('resultBox').innerHTML='<div class="result"><div class="th" id="thumb"></div><div><b>'+name+'</b><small>'+(1080*S.scale)+' × '+(1350*S.scale)+' · '+kb(blob.size)+(S.anim&&fmt==='svg'?' · 含动画':'')+(S.trans&&fmt!=='jpg'?' · 透明':'')+'</small><a id="dl" download="'+name+'">⤓ 下载文件</a></div></div>';
+  $('dl').href=url;const im=new Image();im.alt='导出结果预览';im.src=url;$('thumb').append(im);
+  S.hist.unshift([name,kb(blob.size)]);$('hist').innerHTML=S.hist.slice(0,3).map(h=>'<div><span>'+h[0]+'</span><span>'+h[1]+'</span></div>').join('');
+  const b=$('export');b.disabled=false;b.textContent='再次导出';$('hint').className='hint ok';$('hint').textContent='✓ 导出完成';
+}
+$('export').onclick=()=>{
+  const c=conflicts();$('resultBox').innerHTML='';
+  if(c.length){showConf(c);return}
+  const b=$('export');b.disabled=true;b.textContent='正在导出…';
+  const holder=document.createElement('div');holder.innerHTML=svg(true);const el=holder.firstChild;
+  const str=new XMLSerializer().serializeToString(el);
+  const svgBlob=new Blob([str],{type:'image/svg+xml'});
+  if(S.fmt==='svg'){setTimeout(()=>done(svgBlob,'svg'),400);return}
+  const img=new Image(),u=makeHref(svgBlob);
+  img.onload=()=>{const cv=document.createElement('canvas');cv.width=1080*S.scale;cv.height=1350*S.scale;const g=cv.getContext('2d');
+    if(S.fmt==='jpg'){g.fillStyle='#ffffff';g.fillRect(0,0,cv.width,cv.height)}
+    g.drawImage(img,0,0,cv.width,cv.height);dropHref(u);
+    cv.toBlob(bl=>{if(bl)done(bl,S.fmt);else{b.disabled=false;b.textContent='导出';$('hint').textContent='浏览器未能生成文件，请改用 SVG'}},S.fmt==='jpg'?'image/jpeg':'image/png',.92)};
+  img.onerror=()=>{b.disabled=false;b.textContent='导出';$('hint').textContent='渲染失败，请改用 SVG 导出'};
+  img.src=u;
+};
+renderLayers();renderProps();preview();
+</script>
+</body>
+</html>

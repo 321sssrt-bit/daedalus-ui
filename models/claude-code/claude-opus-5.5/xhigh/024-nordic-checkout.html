@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>木隅家居 · 确认订单</title>
+<style>
+:root{
+  --page:#f6f5f2;--card:#ffffff;--ink:#2d2d2a;--muted:#86847d;--line:#e6e3dc;--oak:#c9a77c;--oak-dk:#a8865b;--sage:#8d9a8f;--sage-bg:#eef1ee;--focus:#5b6f61;--bad:#c4563e;
+  --sans:"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Avenir Next",sans-serif;
+  --light:"Avenir Next","Helvetica Neue","PingFang SC",sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--page);color:var(--ink);font:15px/1.6 var(--sans)}
+.top{display:flex;align-items:center;justify-content:space-between;padding:22px 56px;border-bottom:1px solid var(--line);background:var(--page)}
+.logo{font:300 22px var(--light);letter-spacing:.32em}
+.logo b{font-weight:600}
+.steps{display:flex;gap:28px;font-size:13px;color:var(--muted);list-style:none;margin:0;padding:0}
+.steps li{display:flex;align-items:center;gap:8px}
+.steps i{width:22px;height:22px;border-radius:50%;border:1px solid var(--line);display:grid;place-items:center;font:12px var(--light);font-style:normal}
+.steps li.done i{background:var(--sage);border-color:var(--sage);color:#fff}
+.steps li.on{color:var(--ink)}
+.steps li.on i{border-color:var(--ink);background:var(--ink);color:#fff}
+.secure{font-size:12px;color:var(--muted)}
+.wrap{max-width:1180px;margin:0 auto;padding:32px 56px 64px;display:grid;grid-template-columns:minmax(0,1fr) 420px;gap:56px;align-items:start}
+h1{font:300 34px/1.2 var(--light);margin:0 0 20px;letter-spacing:.02em}
+section.blk{padding:0 0 20px;margin-bottom:20px;border-bottom:1px solid var(--line)}
+.blk h2{font:600 13px var(--sans);letter-spacing:.16em;color:var(--muted);margin:0 0 14px}
+.addr{display:flex;justify-content:space-between;align-items:flex-start;background:var(--card);border:1px solid var(--line);border-radius:4px;padding:14px 18px}
+.addr b{font-weight:600}
+.addr p{margin:4px 0 0;color:var(--muted);font-size:14px}
+.link{border:0;background:none;color:var(--ink);font:14px var(--sans);text-decoration:underline;text-underline-offset:4px;cursor:pointer;padding:0}
+.link:hover{color:var(--oak-dk)}
+.opts{display:grid;gap:8px}
+.opt{display:grid;grid-template-columns:22px 40px 1fr auto;gap:14px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:4px;padding:11px 16px;cursor:pointer;transition:border-color .15s}
+.opt:hover{border-color:#cfcbc2}
+.opt input{appearance:none;width:20px;height:20px;border-radius:50%;border:1.5px solid #bdb9b0;margin:0;display:grid;place-items:center;cursor:pointer}
+.opt input:checked{border-color:var(--ink)}
+.opt input:checked::after{content:'';width:10px;height:10px;border-radius:50%;background:var(--ink)}
+.opt input:focus-visible{outline:2px solid var(--focus);outline-offset:3px}
+.opt:has(input:checked){border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.opt .ic{width:40px;height:28px;border-radius:4px;display:grid;place-items:center;font:700 11px var(--sans);color:#fff}
+.opt b{font-weight:600;display:block;font-size:15px}
+.opt small{color:var(--muted);font-size:13px}
+.opt .r{font-size:13px;color:var(--muted)}
+.cardform{display:none;grid-template-columns:2fr 1fr 1fr;gap:10px;margin-top:10px;padding:16px 18px;background:var(--card);border:1px solid var(--line);border-radius:4px}
+.cardform.show{display:grid}
+.cardform label{font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:4px}
+.cardform input{height:42px;border:1px solid var(--line);border-radius:3px;padding:0 12px;font:15px var(--light);outline:none;color:var(--ink);letter-spacing:.06em}
+.cardform input:focus{border-color:var(--focus);box-shadow:0 0 0 3px #5b6f6122}
+.cardform .bad input{border-color:var(--bad)}
+.cardform .hint{grid-column:1/-1;font-size:12px;color:var(--muted)}
+.inv{display:flex;align-items:center;justify-content:space-between}
+.switch{width:46px;height:26px;border-radius:13px;border:0;background:#d6d3cb;position:relative;cursor:pointer;transition:background .2s}
+.switch::after{content:'';position:absolute;left:3px;top:3px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 3px #0003;transition:transform .2s}
+.switch[aria-checked="true"]{background:var(--sage)}
+.switch[aria-checked="true"]::after{transform:translateX(20px)}
+.switch:focus-visible,.pay:focus-visible,.link:focus-visible{outline:2px solid var(--focus);outline-offset:3px}
+.invbox{display:none;margin-top:12px}
+.invbox.show{display:block}
+.invbox input{width:100%;height:42px;border:1px solid var(--line);border-radius:3px;padding:0 12px;font:14px var(--sans);outline:none;background:var(--card)}
+.invbox input:focus{border-color:var(--focus)}
+.summary{position:sticky;top:24px;background:var(--card);border:1px solid var(--line);border-radius:4px;padding:28px}
+.summary h2{font:600 13px var(--sans);letter-spacing:.16em;color:var(--muted);margin:0 0 18px;display:flex;justify-content:space-between}
+.line{display:grid;grid-template-columns:72px 1fr auto;gap:14px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)}
+.thumb{width:72px;height:72px;background:var(--page);border-radius:3px;display:grid;place-items:center}
+.thumb svg{width:52px;height:52px}
+.line b{font-weight:600;display:block;font-size:14px}
+.line small{color:var(--muted);font-size:12px}
+.line .p{font:500 15px var(--light)}
+.rows{padding:16px 0;border-bottom:1px solid var(--line);display:grid;gap:8px;font-size:14px}
+.rows div{display:flex;justify-content:space-between}
+.rows .off{color:var(--sage)}
+.rows span:first-child{color:var(--muted)}
+.amount{display:flex;justify-content:space-between;align-items:baseline;padding:20px 0 6px}
+.amount span{font-size:14px}
+.amount b{font:300 44px/1 var(--light);letter-spacing:-.01em}
+.amount b small{font-size:20px;margin-right:4px}
+.inst{font-size:12px;color:var(--muted);text-align:right;margin-bottom:18px}
+.pay{width:100%;height:58px;border:0;border-radius:3px;background:var(--ink);color:#fff;font:600 16px var(--sans);letter-spacing:.08em;cursor:pointer;transition:background .15s}
+.pay:hover{background:#000000}
+.pay:disabled{background:#a9a69e;cursor:progress}
+.pay.ok{background:var(--sage)}
+.fine{font-size:12px;color:var(--muted);margin:12px 0 0;text-align:center}
+.done{display:none;text-align:center;padding:12px 0}
+.done.show{display:block}
+.done .tick{width:56px;height:56px;border-radius:50%;background:var(--sage-bg);display:grid;place-items:center;margin:0 auto 10px}
+@media (max-width:1040px){.wrap{grid-template-columns:1fr;gap:32px}.summary{position:static}.steps{display:none}}
+@media (max-width:620px){.wrap,.top{padding-left:20px;padding-right:20px}.cardform{grid-template-columns:1fr 1fr}.cardform label:first-child{grid-column:1/-1}.opt{grid-template-columns:22px 36px 1fr}.opt .r{display:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="logo"><b>木隅</b> MUYU</div>
+  <ol class="steps"><li class="done"><i>✓</i>购物袋</li><li class="done"><i>✓</i>配送信息</li><li class="on"><i>3</i>支付</li></ol>
+  <span class="secure">🔒 支付信息加密传输</span>
+</header>
+<main class="wrap">
+  <div>
+    <h1>付款前，最后看一眼</h1>
+    <section class="blk">
+      <h2>送 至</h2>
+      <div class="addr"><div><b>周屿 · 139 **** 2207</b><p>杭州市西湖区 文三路 478 号 华星时代广场 B 座 1602</p><p>电梯可达 · 需预约上门时间</p></div><button class="link" type="button">修改</button></div>
+    </section>
+    <section class="blk">
+      <h2>配 送 与 安 装</h2>
+      <div class="opts" id="ship">
+        <label class="opt"><input type="radio" name="ship" value="0" checked><span class="ic" style="background:#8d9a8f">送</span><span><b>标准配送 · 免费</b><small>预计 10 月 29 日 – 31 日送达</small></span><span class="r">¥0</span></label>
+        <label class="opt"><input type="radio" name="ship" value="120"><span class="ic" style="background:#c9a77c">装</span><span><b>送货 + 上门安装</b><small>师傅送货当天完成组装，带走包装</small></span><span class="r">¥120</span></label>
+      </div>
+    </section>
+    <section class="blk">
+      <h2>支 付 方 式</h2>
+      <div class="opts" id="payOpts">
+        <label class="opt"><input type="radio" name="pay" value="wx" checked><span class="ic" style="background:#2aae67">微信</span><span><b>微信支付</b><small>跳转微信完成付款</small></span><span class="r">推荐</span></label>
+        <label class="opt"><input type="radio" name="pay" value="ali"><span class="ic" style="background:#1677ff">支付</span><span><b>支付宝</b><small>可选花呗分期 3 / 6 / 12 期</small></span><span class="r">分期免息</span></label>
+        <label class="opt"><input type="radio" name="pay" value="card"><span class="ic" style="background:#2d2d2a">卡</span><span><b>银行卡</b><small>支持储蓄卡与信用卡</small></span><span class="r">银联</span></label>
+      </div>
+      <div class="cardform" id="cardform">
+        <label>卡号<input inputmode="numeric" id="cardNo" placeholder="0000 0000 0000 0000" maxlength="19" autocomplete="off"></label>
+        <label>有效期<input id="exp" placeholder="MM/YY" maxlength="5" autocomplete="off"></label>
+        <label>安全码<input id="cvv" inputmode="numeric" placeholder="3 位" maxlength="3" autocomplete="off"></label>
+        <span class="hint">演示页面 · 不会保存或发送任何卡号信息</span>
+      </div>
+    </section>
+    <section class="blk" style="border:0">
+      <div class="inv"><div><h2 style="margin:0">开 具 发 票</h2><small style="color:#86847d">电子普通发票，付款后发送至邮箱</small></div><button class="switch" type="button" role="switch" aria-checked="false" id="inv" aria-label="开具发票"></button></div>
+      <div class="invbox" id="invbox"><input placeholder="发票抬头：个人 或 公司名称" aria-label="发票抬头"></div>
+    </section>
+  </div>
+  <aside class="summary" aria-live="polite">
+    <div id="sumBody">
+      <h2>订 单 摘 要 <span>3 件</span></h2>
+      <div class="line"><div class="thumb"><svg viewBox="0 0 52 52"><path d="M12 22h28v8H12z" fill="#c9a77c"/><path d="M14 30l-3 16M38 30l3 16M18 30l-1 16M34 30l1 16" stroke="#a8865b" stroke-width="2.5"/><path d="M14 22V8h24v14" stroke="#c9a77c" stroke-width="3" fill="none"/></svg></div><div><b>Hygge 橡木餐椅</b><small>白橡木 · 亚麻灰坐垫 × 2</small></div><span class="p">¥2,780</span></div>
+      <div class="line"><div class="thumb"><svg viewBox="0 0 52 52"><path d="M16 8h20l6 16H10z" fill="#e6e3dc"/><path d="M26 24v18M18 44h16" stroke="#2d2d2a" stroke-width="2.5"/></svg></div><div><b>Lys 落地阅读灯</b><small>哑光炭黑 · 暖白 2700K × 1</small></div><span class="p">¥1,290</span></div>
+      <div class="rows" id="rows"></div>
+      <div class="amount"><span>应付金额</span><b id="amt"></b></div>
+      <div class="inst" id="inst"></div>
+      <button class="pay" type="button" id="pay"></button>
+      <p class="fine">点击即表示同意《购买须知》· 30 天无理由退换</p>
+    </div>
+    <div class="done" id="done"><div class="tick"><svg width="26" height="26" viewBox="0 0 26 26"><path d="M5 13l5 5 11-11" stroke="#5b6f61" stroke-width="2.5" fill="none"/></svg></div><h2 style="font:300 26px var(--light);margin:0 0 6px">付款成功</h2><p style="color:#86847d;margin:0">订单 MY20261023-0418 · 我们会在发货前短信通知你</p></div>
+  </aside>
+</main>
+<script>
+const SUB=4070,DISC=200;
+const $=s=>document.querySelector(s);
+const fmt=n=>'¥'+n.toLocaleString('en-US');
+function state(){return{ship:+document.querySelector('[name=ship]:checked').value,pay:document.querySelector('[name=pay]:checked').value}}
+function render(){
+  const s=state(),total=SUB-DISC+s.ship;
+  $('#rows').innerHTML='<div><span>商品小计</span><span>'+fmt(SUB)+'</span></div><div class="off"><span>秋季家居节 · 满 3000 减</span><span>-'+fmt(DISC)+'</span></div><div><span>配送与安装</span><span>'+(s.ship?fmt(s.ship):'免费')+'</span></div>';
+  $('#amt').innerHTML='<small>¥</small>'+total.toLocaleString('en-US');
+  $('#inst').textContent=s.pay==='ali'?'或花呗 12 期免息 · 每期 '+fmt(Math.round(total/12)):'已含增值税';
+  const name={wx:'微信支付',ali:'支付宝',card:'银行卡'}[s.pay];
+  $('#pay').textContent='用'+name+'支付 '+fmt(total);
+  $('#cardform').classList.toggle('show',s.pay==='card');
+}
+document.querySelectorAll('input[type=radio]').forEach(r=>r.onchange=render);
+$('#cardNo').oninput=e=>{e.target.value=e.target.value.replace(/\D/g,'').slice(0,16).replace(/(\d{4})(?=\d)/g,'$1 ');e.target.parentElement.classList.remove('bad')};
+$('#exp').oninput=e=>{let v=e.target.value.replace(/\D/g,'').slice(0,4);if(v.length>2)v=v.slice(0,2)+'/'+v.slice(2);e.target.value=v;e.target.parentElement.classList.remove('bad')};
+$('#cvv').oninput=e=>{e.target.value=e.target.value.replace(/\D/g,'');e.target.parentElement.classList.remove('bad')};
+$('#inv').onclick=e=>{const on=e.currentTarget.getAttribute('aria-checked')!=='true';e.currentTarget.setAttribute('aria-checked',on);$('#invbox').classList.toggle('show',on)};
+$('#pay').onclick=()=>{
+  if(state().pay==='card'){let ok=true;
+    if($('#cardNo').value.replace(/\s/g,'').length<16){$('#cardNo').parentElement.classList.add('bad');ok=false}
+    if(!/^(0[1-9]|1[0-2])\/\d\d$/.test($('#exp').value)){$('#exp').parentElement.classList.add('bad');ok=false}
+    if($('#cvv').value.length<3){$('#cvv').parentElement.classList.add('bad');ok=false}
+    if(!ok)return}
+  const b=$('#pay');b.disabled=true;b.textContent='正在确认付款…';
+  setTimeout(()=>{$('#sumBody').style.display='none';$('#done').classList.add('show')},1100);
+};
+render();
+</script>
+</body>
+</html>

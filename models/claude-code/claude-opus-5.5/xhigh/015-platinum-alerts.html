@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>方舟 OS · 通知中心</title>
+<style>
+:root{
+  --desk:#5d7fa8;--desk-2:#56769d;--plat:#dddddd;--plat-hi:#ffffff;--plat-lo:#999999;--plat-dk:#555555;--ink:#000000;--muted:#444444;
+  --sel:#3d5cbf;--sel-ink:#ffffff;--red:#cc0000;--amber:#e8a000;--green:#2f8f3a;--paper:#ffffff;
+  --ui:"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Geneva",sans-serif;
+  --mono:"Monaco","Menlo","Consolas",monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font:12px/1.45 var(--ui);color:var(--ink);background-color:var(--desk);overflow:hidden;
+  background-image:linear-gradient(45deg,var(--desk-2) 25%,transparent 25%,transparent 75%,var(--desk-2) 75%),linear-gradient(45deg,var(--desk-2) 25%,transparent 25%,transparent 75%,var(--desk-2) 75%);background-size:4px 4px;background-position:0 0,2px 2px}
+.menubar{height:24px;background:var(--plat);border-bottom:1px solid var(--ink);display:flex;align-items:center;gap:18px;padding:0 12px;font-weight:600}
+.menubar .apple{width:16px;height:16px;border-radius:4px;background:conic-gradient(#e94a3d 0 25%,#f5b400 0 50%,#3caa4c 0 75%,#2d6fd6 0)}
+.menubar span{cursor:default}
+.menubar .r{margin-left:auto;display:flex;gap:14px;font-weight:400;align-items:center}
+.menubar .bell{position:relative;border:0;background:none;font:600 12px var(--ui);cursor:pointer;padding:0 4px;height:22px}
+.menubar .bell[aria-expanded="true"]{background:var(--sel);color:var(--sel-ink)}
+.menubar .badge{position:absolute;top:1px;right:-6px;background:var(--red);color:#fff;border-radius:7px;font:700 9px/13px var(--ui);min-width:13px;padding:0 3px}
+.icons{position:absolute;right:20px;top:44px;display:grid;gap:22px;justify-items:center}
+.icon{width:76px;text-align:center;color:#fff;font-size:11px;text-shadow:1px 1px 0 #0008}
+.icon i{display:block;width:40px;height:34px;margin:0 auto 4px;background:var(--plat);border:1px solid var(--ink);box-shadow:inset 1px 1px 0 var(--plat-hi),inset -1px -1px 0 var(--plat-lo)}
+.icon:nth-child(2) i{height:40px;width:32px;background:var(--paper)}
+.icon:nth-child(3) i{border-radius:0 0 6px 6px;background:#bfbfbf}
+.win{position:absolute;left:50%;top:52px;transform:translateX(-50%);width:780px;max-width:calc(100% - 24px);height:calc(100% - 84px);max-height:620px;background:var(--plat);border:1px solid var(--ink);box-shadow:2px 2px 0 #0006;display:flex;flex-direction:column}
+.title{height:22px;display:flex;align-items:center;gap:8px;padding:0 6px;border-bottom:1px solid var(--ink);
+  background:repeating-linear-gradient(180deg,var(--plat-hi) 0 1px,var(--plat-lo) 1px 2px,var(--plat) 2px 3px);background-clip:content-box}
+.title b{background:var(--plat);padding:0 10px;margin:0 auto;font-weight:700;font-size:12px}
+.box{width:13px;height:13px;border:1px solid var(--ink);background:var(--plat);box-shadow:inset 1px 1px 0 var(--plat-hi),inset -1px -1px 0 var(--plat-lo);flex:none}
+.tool{display:flex;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--plat-lo);box-shadow:0 1px 0 var(--plat-hi)}
+.btn{height:22px;padding:0 12px;font:12px var(--ui);color:var(--ink);background:var(--plat);border:1px solid var(--ink);border-radius:4px;box-shadow:inset 1px 1px 0 var(--plat-hi),inset -1px -1px 0 var(--plat-lo);cursor:pointer;white-space:nowrap}
+.btn:active,.btn[aria-pressed="true"]{background:#9a9a9a;box-shadow:inset 1px 1px 0 var(--plat-dk),inset -1px -1px 0 var(--plat-hi);color:#fff}
+.btn:disabled{color:var(--plat-lo);cursor:default}
+.btn.def{box-shadow:0 0 0 2px var(--plat),0 0 0 3px var(--ink),inset 1px 1px 0 var(--plat-hi),inset -1px -1px 0 var(--plat-lo);margin:0 4px}
+.btn:focus-visible,.row:focus-visible,.tri:focus-visible{outline:2px dotted var(--ink);outline-offset:1px}
+.seg{display:flex}
+.seg .btn{border-radius:0;margin-left:-1px}
+.seg .btn:first-child{border-radius:4px 0 0 4px;margin-left:0}
+.seg .btn:last-child{border-radius:0 4px 4px 0}
+.tool .sp{flex:1}
+.tool .count{color:var(--muted)}
+.list{flex:1;margin:10px;background:var(--paper);border:1px solid var(--ink);box-shadow:inset 1px 1px 0 var(--plat-lo);overflow:auto}
+.head{display:grid;grid-template-columns:22px 26px 1fr 120px 86px;position:sticky;top:0;background:var(--plat);border-bottom:1px solid var(--ink);font-weight:600;z-index:1}
+.head span{padding:3px 6px;border-right:1px solid var(--plat-lo)}
+.row{display:grid;grid-template-columns:22px 26px 1fr 120px 86px;align-items:center;border-bottom:1px solid #e6e6e6;cursor:default;outline:none}
+.row:nth-of-type(even){background:#f4f4f8}
+.row>span{padding:5px 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row.unread .t{font-weight:700}
+.row .dot{width:7px;height:7px;border-radius:50%;background:var(--sel);margin:auto}
+.row:not(.unread) .dot{background:transparent;border:1px solid #bbbbbb}
+.row[aria-selected="true"]{background:var(--sel);color:var(--sel-ink)}
+.row[aria-selected="true"] .src,.row[aria-selected="true"] time{color:#dde4ff}
+.tri{border:0;background:none;padding:0;width:14px;height:14px;cursor:pointer;font-size:10px;line-height:1;color:inherit;transition:transform .12s}
+.tri[aria-expanded="true"]{transform:rotate(90deg)}
+.ic{width:16px;height:16px;display:block;margin:auto}
+.src{color:var(--muted)}
+time{font-family:var(--mono);font-size:11px;color:var(--muted)}
+.more{grid-column:1/-1;padding:10px 12px 12px 54px;background:#fffbe6;border-top:1px dashed #b9a24a;color:var(--ink);font-size:12px;display:none}
+.row.open+.more{display:block}
+.more p{margin:0 0 8px;max-width:560px}
+.more .acts{display:flex;gap:8px}
+.status{height:20px;border-top:1px solid var(--plat-lo);box-shadow:inset 0 1px 0 var(--plat-hi);display:flex;align-items:center;padding:0 10px;color:var(--muted);font-size:11px;gap:16px}
+.alert{position:absolute;left:50%;top:40%;transform:translate(-50%,-50%);width:380px;background:var(--plat);border:1px solid var(--ink);box-shadow:2px 2px 0 #0006,inset 2px 2px 0 var(--plat-hi);padding:16px;display:none;gap:14px;z-index:20}
+.alert.show{display:grid;grid-template-columns:40px 1fr}
+.alert .acts{grid-column:2;display:flex;justify-content:flex-end;gap:8px;margin-top:8px}
+@media (max-width:860px){.icons{display:none}.head,.row{grid-template-columns:22px 26px 1fr 86px}.head span:nth-child(4),.row .src{display:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="menubar"><i class="apple" aria-hidden="true"></i><span>访达</span><span>文件</span><span>编辑</span><span>显示</span><span>特别</span>
+  <div class="r"><button class="bell" type="button" id="bell" aria-expanded="true">通知<span class="badge" id="badge">5</span></button><span id="clock">下午 2:32</span></div></div>
+<div class="icons" aria-hidden="true"><div class="icon"><i></i>方舟 HD</div><div class="icon"><i></i>季度报告.doc</div><div class="icon"><i></i>废纸篓</div></div>
+<section class="win" id="win" role="dialog" aria-labelledby="wt">
+  <div class="title"><span class="box" aria-hidden="true"></span><b id="wt">通知中心</b><span class="box" aria-hidden="true"></span></div>
+  <div class="tool">
+    <div class="seg" role="group" aria-label="显示"><button class="btn" type="button" aria-pressed="true" data-f="all">全部</button><button class="btn" type="button" aria-pressed="false" data-f="unread">未读</button><button class="btn" type="button" aria-pressed="false" data-f="urgent">需处理</button></div>
+    <span class="count" id="count"></span><span class="sp"></span>
+    <button class="btn" type="button" id="toggle">标为已读</button>
+    <button class="btn def" type="button" id="allRead">全部标为已读</button>
+  </div>
+  <div class="list" role="listbox" aria-label="通知列表" id="list">
+    <div class="head" aria-hidden="true"><span></span><span></span><span>内容</span><span>来源</span><span>时间</span></div>
+  </div>
+  <div class="status"><span id="st1">8 条通知</span><span>勿扰模式：关</span><span>上次同步 下午 2:32</span></div>
+</section>
+<div class="alert" id="alert" role="alertdialog" aria-labelledby="at">
+  <svg width="40" height="40" viewBox="0 0 40 40"><path d="M20 3l17 32H3z" fill="#e8a000" stroke="#000000" stroke-width="1.5"/><path d="M20 14v11M20 29v2" stroke="#000000" stroke-width="3"/></svg>
+  <div><b id="at">要把所有未读通知标为已读吗？</b><p style="margin:6px 0 0">未读的「磁盘空间不足」和「备份失败」仍会保留在「需处理」中。</p></div>
+  <div class="acts"><button class="btn" type="button" id="cancel">取消</button><button class="btn def" type="button" id="ok">标为已读</button></div>
+</div>
+<script>
+const icons={
+ sys:'<svg class="ic" viewBox="0 0 16 16"><rect x="1" y="2" width="14" height="10" fill="#dddddd" stroke="#000000"/><rect x="3" y="4" width="10" height="6" fill="#3d5cbf"/><path d="M5 14h6" stroke="#000000"/></svg>',
+ warn:'<svg class="ic" viewBox="0 0 16 16"><path d="M8 1l7 13H1z" fill="#e8a000" stroke="#000000"/><path d="M8 6v4M8 11.5v1" stroke="#000000" stroke-width="1.5"/></svg>',
+ err:'<svg class="ic" viewBox="0 0 16 16"><circle cx="8" cy="8" r="7" fill="#cc0000" stroke="#000000"/><path d="M5 5l6 6M11 5l-6 6" stroke="#ffffff" stroke-width="1.6"/></svg>',
+ msg:'<svg class="ic" viewBox="0 0 16 16"><path d="M1 2h14v9H6l-3 3v-3H1z" fill="#ffffff" stroke="#000000"/><path d="M4 5h8M4 8h5" stroke="#000000"/></svg>',
+ cal:'<svg class="ic" viewBox="0 0 16 16"><rect x="1" y="2" width="14" height="13" fill="#ffffff" stroke="#000000"/><rect x="1" y="2" width="14" height="4" fill="#cc0000" stroke="#000000"/><text x="8" y="13.5" font-size="7" text-anchor="middle" font-family="Monaco,monospace">23</text></svg>',
+ ok:'<svg class="ic" viewBox="0 0 16 16"><circle cx="8" cy="8" r="7" fill="#2f8f3a" stroke="#000000"/><path d="M4.5 8.5l2.5 2.5 4.5-5" stroke="#ffffff" stroke-width="1.8" fill="none"/></svg>'
+};
+const items=[
+ {k:'warn',t:'磁盘空间不足：「方舟 HD」仅剩 1.2 GB',s:'系统',time:'下午 2:28',u:1,urgent:1,d:'剩余空间低于 5%，部分程序可能无法存盘。「下载」文件夹中有 6.4 GB 的安装包可以清理。',a:['打开存储管理','稍后提醒']},
+ {k:'msg',t:'林以安：季度报告第 3 页的图表数据好像对不上',s:'信使',time:'下午 2:15',u:1,d:'「第 3 页柱状图里华南区是 412 万，但附表写的是 398 万，你看下是哪个对？我下班前要交给财务。」',a:['回复','打开季度报告.doc']},
+ {k:'err',t:'夜间备份失败：网络磁盘「档案柜」无法连接',s:'时光备份',time:'下午 1:02',u:1,urgent:1,d:'已连续 2 晚备份失败，最近一次成功备份是 10 月 20 日。请检查网络磁盘是否开机，或改为备份到外接硬盘。',a:['立即重试','更换备份磁盘']},
+ {k:'cal',t:'15:00 产品周会 · 3B 会议室（28 分钟后）',s:'日程',time:'下午 12:32',u:1,d:'参会：周岚、Mika、陈越等 6 人。议程：上线复盘 / Q4 排期 / 招聘进展。',a:['查看日程','提前 5 分钟再提醒']},
+ {k:'sys',t:'方舟 OS 8.6.1 更新已下载，重新启动后安装',s:'软件更新',time:'上午 11:40',u:1,d:'此更新修复了打印队列偶尔卡住的问题，并改进了网络磁盘的稳定性。安装约需 6 分钟。',a:['现在重新启动','今晚安装']},
+ {k:'ok',t:'「季度报告.doc」已打印完成（12 页）',s:'打印中心',time:'上午 10:58',u:0,d:'打印机：三楼 激光打印机 · 双面 · 黑白。请到打印机旁领取。',a:['查看打印记录']},
+ {k:'msg',t:'周岚 共享了文件夹「双十一视觉稿」给你',s:'文件共享',time:'上午 9:20',u:0,d:'权限：可编辑。文件夹内含 48 个文件，共 1.8 GB。',a:['打开文件夹']},
+ {k:'sys',t:'已自动连接到无线网络「Ark-Office-5G」',s:'网络',time:'上午 8:47',u:0,d:'信号强度：良好。IP 地址 10.0.12.84。',a:['网络设置']}
+];
+let f='all',sel=0,open=-1;
+const list=document.getElementById('list');
+function render(){
+  const v=items.map((x,i)=>[x,i]).filter(([x])=>f==='all'||(f==='unread'?x.u:x.urgent));
+  list.querySelectorAll('.row,.more').forEach(e=>e.remove());
+  v.forEach(([x,i])=>{
+    const r=document.createElement('div');r.className='row'+(x.u?' unread':'')+(open===i?' open':'');r.tabIndex=0;r.setAttribute('role','option');r.setAttribute('aria-selected',i===sel);r.dataset.i=i;
+    r.innerHTML='<span><button class="tri" type="button" aria-expanded="'+(open===i)+'" aria-label="展开详情">▶</button></span><span>'+icons[x.k]+'</span><span class="t">'+x.t+'</span><span class="src">'+x.s+'</span><span><time>'+x.time+'</time></span>';
+    const m=document.createElement('div');m.className='more';m.innerHTML='<p>'+x.d+'</p><div class="acts">'+x.a.map((a,k)=>'<button class="btn'+(k===0?' def':'')+'" type="button">'+a+'</button>').join('')+'</div>';
+    m.querySelectorAll('.btn').forEach(b=>b.onclick=()=>{b.textContent='✓ '+b.textContent.replace('✓ ','');x.u=0;x.urgent=0;render()});
+    r.onclick=e=>{sel=i;if(e.target.closest('.tri')){open=open===i?-1:i;x.u=0}render()};
+    r.ondblclick=()=>{sel=i;open=open===i?-1:i;x.u=0;render()};
+    r.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();open=open===i?-1:i;x.u=0;sel=i;render();focusSel()}if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();const k=v.findIndex(z=>z[1]===i)+(e.key==='ArrowDown'?1:-1);if(v[k]){sel=v[k][1];render();focusSel()}}};
+    list.append(r,m);
+  });
+  const unread=items.filter(x=>x.u).length;
+  document.getElementById('badge').textContent=unread;document.getElementById('badge').style.display=unread?'':'none';
+  document.getElementById('count').textContent=v.length+' 条 · '+unread+' 未读';
+  document.getElementById('st1').textContent=items.length+' 条通知';
+  document.getElementById('allRead').disabled=!unread;
+  const cur=items[sel];document.getElementById('toggle').textContent=cur&&cur.u?'标为已读':'标为未读';
+}
+function focusSel(){const r=list.querySelector('.row[data-i="'+sel+'"]');if(r)r.focus()}
+document.querySelectorAll('[data-f]').forEach(b=>b.onclick=()=>{f=b.dataset.f;document.querySelectorAll('[data-f]').forEach(x=>x.setAttribute('aria-pressed',x===b));render()});
+document.getElementById('toggle').onclick=()=>{items[sel].u=items[sel].u?0:1;render()};
+document.getElementById('allRead').onclick=()=>document.getElementById('alert').classList.add('show');
+document.getElementById('cancel').onclick=()=>document.getElementById('alert').classList.remove('show');
+document.getElementById('ok').onclick=()=>{items.forEach(x=>x.u=0);document.getElementById('alert').classList.remove('show');render()};
+document.getElementById('bell').onclick=e=>{const w=document.getElementById('win'),o=w.style.display==='none';w.style.display=o?'':'none';e.currentTarget.setAttribute('aria-expanded',o)};
+open=0;render();
+</script>
+</body>
+</html>

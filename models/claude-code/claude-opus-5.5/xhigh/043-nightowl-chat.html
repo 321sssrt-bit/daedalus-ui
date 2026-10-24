@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>夜枭 · 消息</title>
+<style>
+:root{
+  --room:#05070f;--bg:#0b1020;--bg-2:#121a30;--bg-3:#1a2440;--line:#222d4a;--text:#e8ecf8;--muted:#8691b3;--faint:#56608a;--moon:#8fb4ff;--moon-dk:#5d86e8;--me:#3b5bdb;--me-2:#4c6ef5;--ok:#58d6a4;--bad:#ff6b6b;--bad-bg:#3a1d26;--amber:#ffc46b;
+  --sans:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  --num:"Avenir Next","Helvetica Neue",sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:radial-gradient(circle at 70% 10%,#1a2440,var(--room) 60%);display:grid;place-items:center;font:15px/1.5 var(--sans);color:var(--text)}
+[hidden]{display:none!important}
+button{font-family:inherit}
+.phone{width:390px;height:min(844px,calc(100vh - 32px));border-radius:52px;border:11px solid #000000;background:var(--bg);position:relative;overflow:hidden;box-shadow:0 30px 80px #000c,0 0 0 1px #1a2440}
+.notch{position:absolute;top:8px;left:50%;transform:translateX(-50%);width:118px;height:32px;border-radius:20px;background:#000;z-index:30}
+.sb{position:absolute;top:16px;left:30px;right:26px;display:flex;justify-content:space-between;font:600 15px var(--num);z-index:25}
+.sb span:last-child{font-size:12px;letter-spacing:2px}
+.view{position:absolute;inset:0;display:flex;flex-direction:column;animation:in .25s cubic-bezier(.2,.8,.2,1)}
+.view>*{flex-shrink:0}
+.head{padding:54px 18px 10px;display:flex;align-items:center;justify-content:space-between}
+.head h1{margin:0;font:800 28px var(--sans)}
+.head .ib{width:38px;height:38px;border-radius:50%;border:0;background:var(--bg-2);color:var(--text);font-size:16px;cursor:pointer}
+.search{margin:0 18px 10px;height:40px;border-radius:12px;border:0;background:var(--bg-2);padding:0 14px;color:var(--text);font:14px var(--sans);outline:none}
+.search::placeholder{color:var(--faint)}
+.search:focus{box-shadow:0 0 0 2px var(--moon-dk)}
+.stories{display:flex;gap:12px;padding:0 18px 12px;overflow-x:auto;scrollbar-width:none}
+.stories span{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;color:var(--muted);flex:none}
+.stories i{width:52px;height:52px;border-radius:50%;display:grid;place-items:center;font:700 17px var(--sans);font-style:normal;color:#fff;box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--moon)}
+.list{flex:1;overflow-y:auto;padding:0 8px 90px;scrollbar-width:none;flex-shrink:1}
+.conv{display:grid;grid-template-columns:52px 1fr auto;gap:12px;align-items:center;width:100%;padding:10px;border:0;background:none;border-radius:16px;cursor:pointer;text-align:left;color:var(--text);font:15px var(--sans)}
+.conv:hover{background:var(--bg-2)}
+.av{width:52px;height:52px;border-radius:50%;display:grid;place-items:center;font:700 18px var(--sans);color:#fff;position:relative}
+.av.on::after{content:'';position:absolute;right:1px;bottom:1px;width:12px;height:12px;border-radius:50%;background:var(--ok);border:2.5px solid var(--bg)}
+.conv b{display:block;font-weight:600}
+.conv .pv{color:var(--muted);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px}
+.conv .pv.fail{color:var(--bad)}
+.conv .r{text-align:right;font:12px var(--num);color:var(--faint);display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+.conv .badge{min-width:20px;height:20px;border-radius:10px;background:var(--me-2);color:#fff;font:700 11px var(--num);display:grid;place-items:center;padding:0 6px}
+.tabbar{position:absolute;left:0;right:0;bottom:0;height:80px;background:#0b1020f0;-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(4,1fr);padding:8px 8px 20px;z-index:5}
+.tabbar button{border:0;background:none;color:var(--faint);font:11px var(--sans);display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer}
+.tabbar button svg{width:24px;height:24px}
+.tabbar button[aria-current="page"]{color:var(--moon)}
+.chathead{padding:50px 10px 10px;display:grid;grid-template-columns:40px 40px 1fr auto;gap:10px;align-items:center;border-bottom:1px solid var(--line);background:var(--bg)}
+.chathead .back{width:40px;height:40px;border:0;background:none;color:var(--moon);font-size:22px;cursor:pointer}
+.chathead .av{width:40px;height:40px;font-size:15px}
+.chathead b{display:block;font-weight:600}
+.chathead small{color:var(--ok);font-size:12px}
+.netsw{display:flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--bg-2);border-radius:999px;padding:5px 10px;font:12px var(--sans);color:var(--muted);cursor:pointer}
+.netsw i{width:8px;height:8px;border-radius:50%;background:var(--ok)}
+.netsw[aria-pressed="true"]{border-color:var(--bad);color:var(--bad);background:var(--bad-bg)}
+.netsw[aria-pressed="true"] i{background:var(--bad)}
+.msgs{flex:1;flex-shrink:1;overflow-y:auto;padding:14px 14px 8px;display:flex;flex-direction:column;gap:6px;scrollbar-width:none}
+.day{align-self:center;font:12px var(--sans);color:var(--faint);margin:8px 0}
+.row{display:flex;gap:8px;align-items:flex-end;max-width:84%}
+.row.me{align-self:flex-end;flex-direction:row-reverse}
+.bub{padding:9px 13px;border-radius:18px;background:var(--bg-3);font-size:15px;line-height:1.5;word-break:break-word;animation:pop .2s ease-out}
+.row.me .bub{background:linear-gradient(135deg,var(--me),var(--me-2));border-bottom-right-radius:6px}
+.row:not(.me) .bub{border-bottom-left-radius:6px}
+.row.fail .bub{background:var(--bad-bg);border:1px solid var(--bad);color:#ffd9d9}
+.st{font:11px var(--num);color:var(--faint);white-space:nowrap;display:flex;align-items:center;gap:3px;padding-bottom:2px}
+.st.read{color:var(--moon)}
+.st .spin{width:10px;height:10px;border-radius:50%;border:1.5px solid var(--faint);border-top-color:transparent;animation:spin .8s linear infinite}
+.retry{display:flex;align-items:center;gap:6px;border:0;background:var(--bad);color:#fff;border-radius:999px;padding:4px 10px;font:600 12px var(--sans);cursor:pointer}
+.failnote{align-self:flex-end;font-size:12px;color:var(--bad);margin:-2px 4px 4px 0}
+.banner{margin:8px 12px 0;padding:8px 12px;border-radius:12px;background:var(--bad-bg);border:1px solid #ff6b6b66;color:#ffc9c9;font-size:12px;display:flex;align-items:center;gap:8px}
+.banner b{color:var(--bad)}
+.composer{padding:8px 10px 24px;border-top:1px solid var(--line);background:var(--bg);display:grid;grid-template-columns:38px 1fr 44px;gap:8px;align-items:end}
+.composer .plus{width:38px;height:38px;border-radius:50%;border:0;background:var(--bg-2);color:var(--muted);font-size:20px;cursor:pointer}
+.composer textarea{min-height:40px;max-height:110px;border-radius:20px;border:1px solid var(--line);background:var(--bg-2);color:var(--text);padding:9px 14px;font:15px/1.4 var(--sans);resize:none;outline:none}
+.composer textarea:focus{border-color:var(--moon-dk)}
+.send{width:44px;height:40px;border-radius:20px;border:0;background:var(--me-2);color:#fff;font-size:18px;cursor:pointer}
+.send:disabled{background:var(--bg-3);color:var(--faint);cursor:not-allowed}
+.quick{display:flex;gap:6px;padding:0 10px 6px;overflow-x:auto;scrollbar-width:none}
+.quick button{flex:none;border:1px solid var(--line);background:var(--bg-2);color:var(--muted);border-radius:999px;padding:4px 10px;font:12px var(--sans);cursor:pointer}
+.conv:focus-visible,.back:focus-visible,.netsw:focus-visible,.send:focus-visible,.retry:focus-visible,.tabbar button:focus-visible,.quick button:focus-visible,.ib:focus-visible,.plus:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+@keyframes in{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:none}}
+@keyframes pop{from{opacity:0;transform:translateY(6px) scale(.98)}to{opacity:1;transform:none}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media (max-width:500px){body{display:block;background:var(--bg)}.phone{width:100%;height:100vh;height:100dvh;border:0;border-radius:0;box-shadow:none}.notch{display:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="notch" aria-hidden="true"></div>
+  <div class="sb" aria-hidden="true"><span>9:41</span><span>▂▄▆ ▮▮▮</span></div>
+  <div id="root"></div>
+</div>
+<script>
+const people={
+ lin:{n:'林小满',c:'#e8590c',on:true},chen:{n:'陈越',c:'#1098ad',on:false},fam:{n:'沈家群（6）',c:'#7048e8',on:false},zhou:{n:'周岚',c:'#d6336c',on:true},mika:{n:'Mika',c:'#37b24d',on:false}
+};
+const T=(h,m)=>String(h).padStart(2,'0')+':'+String(m).padStart(2,'0');
+const convs={
+ lin:[{me:0,t:'今晚还去看海边乐队吗？',at:'21:02'},{me:1,t:'去！我 7 点下班直接过去',at:'21:03',st:'read'},{me:0,t:'那我先去排队买周边 🎸',at:'21:05'},{me:0,t:'对了你记得带身份证，要刷证入场',at:'21:05'}],
+ chen:[{me:0,t:'周报模板我放共享盘了',at:'18:40'},{me:1,t:'收到，明早前补完',at:'18:42',st:'read'}],
+ fam:[{me:0,t:'【妈妈】周日回来吃饭吗？包饺子',at:'20:15'},{me:0,t:'【爸爸】顺便把你的旧自行车拿走',at:'20:16'}],
+ zhou:[{me:1,t:'设计稿我改好了，你看看',at:'17:20',st:'read'},{me:0,t:'好的，明天上午过一下',at:'17:31'}],
+ mika:[{me:0,t:'Thanks for the book! 已经看到第三章了',at:'昨天'}]
+};
+const unread={lin:2,fam:2,chen:0,zhou:0,mika:0};
+const order=['lin','fam','zhou','chen','mika'];
+const S={v:'list',cid:null,q:'',offline:false,draft:{}};
+let clock=21*60+6;
+const $=s=>document.getElementById(s),root=$('root');
+function last(cid){return convs[cid][convs[cid].length-1]}
+function vList(){
+  const ids=order.filter(id=>!S.q||people[id].n.includes(S.q)||convs[id].some(m=>m.t.includes(S.q)));
+  return '<section class="view"><div class="head"><h1>消息</h1><button class="ib" type="button" aria-label="新建会话">✎</button></div>'+
+  '<input class="search" id="q" placeholder="搜索联系人或聊天记录" value="'+S.q+'" aria-label="搜索">'+
+  '<div class="stories" aria-hidden="true">'+order.slice(0,5).map(id=>'<span><i style="background:'+people[id].c+'">'+people[id].n[0]+'</i>'+people[id].n.replace(/（.*）/,'')+'</span>').join('')+'</div>'+
+  '<div class="list" role="list">'+ids.map(id=>{const p=people[id],m=last(id),f=convs[id].some(x=>x.st==='fail');
+    return '<button class="conv" type="button" data-c="'+id+'" role="listitem"><span class="av'+(p.on?' on':'')+'" style="background:'+p.c+'">'+p.n[0]+'</span><span><b>'+p.n+'</b><span class="pv'+(f?' fail':'')+'">'+(f?'⚠ 有消息发送失败':(m.me?'我：':'')+m.t)+'</span></span><span class="r">'+m.at+(unread[id]?'<span class="badge">'+unread[id]+'</span>':'')+'</span></button>'}).join('')+'</div>'+
+  '<nav class="tabbar" aria-label="底部导航"><button type="button" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16v11H9l-5 4z"/></svg>消息</button><button type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3.5"/><path d="M2 20c1-4 4-6 7-6s6 2 7 6M17 11a3 3 0 1 0 0-6M22 20c-.5-3-2-4.5-4-5"/></svg>联系人</button><button type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18M3 12h18"/></svg>发现</button><button type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg>我</button></nav></section>';
+}
+function stHtml(m,i){
+  if(!m.me)return '';
+  if(m.st==='sending')return '<span class="st"><span class="spin"></span>发送中</span>';
+  if(m.st==='fail')return '<button class="retry" type="button" data-retry="'+i+'" aria-label="重试发送这条消息">↻ 重试</button>';
+  if(m.st==='read')return '<span class="st read">✓✓ 已读</span>';
+  return '<span class="st">✓ 已送达</span>';
+}
+function vChat(){
+  const p=people[S.cid],ms=convs[S.cid],failCount=ms.filter(m=>m.st==='fail').length;
+  return '<section class="view"><header class="chathead"><button class="back" type="button" id="back" aria-label="返回会话列表">‹</button><span class="av'+(p.on?' on':'')+'" style="background:'+p.c+'">'+p.n[0]+'</span><span><b>'+p.n+'</b><small style="'+(p.on?'':'color:#8691b3')+'">'+(p.on?'在线':'1 小时前在线')+'</small></span>'+
+  '<button class="netsw" type="button" id="net" aria-pressed="'+S.offline+'" title="演示：让下一条消息发送失败"><i></i>'+(S.offline?'已断网 · 点恢复':'演示：模拟断网')+'</button></header>'+
+  (S.offline?'<div class="banner" role="status"><b>⚠ 网络不可用</b>接下来发出的消息会失败，并保留在对话中可重试。</div>':'')+
+  '<div class="msgs" id="msgs" aria-live="polite"><div class="day">今天</div>'+ms.map((m,i)=>'<div class="row'+(m.me?' me':'')+(m.st==='fail'?' fail':'')+'">'+(m.me?'':'<span class="av" style="background:'+p.c+';width:28px;height:28px;font-size:11px">'+p.n[0]+'</span>')+'<div class="bub">'+m.t.replace(/</g,'&lt;')+'</div>'+stHtml(m,i)+'</div>'+(m.st==='fail'?'<div class="failnote">发送失败 · 内容已保留，点「重试」再次发送</div>':'')).join('')+'</div>'+
+  '<div class="quick" role="group" aria-label="快捷回复"><button type="button">好的👌</button><button type="button">我快到了</button><button type="button">证件带了</button></div>'+
+  '<div class="composer"><button class="plus" type="button" aria-label="更多">＋</button><textarea id="input" rows="1" placeholder="'+(S.offline?'当前离线，消息将发送失败':'发消息…')+'" aria-label="输入消息">'+(S.draft[S.cid]||'')+'</textarea><button class="send" type="button" id="send" aria-label="发送" '+((S.draft[S.cid]||'').trim()?'':'disabled')+'>↑</button></div></section>';
+}
+function render(){root.innerHTML=S.v==='list'?vList():vChat();bind();if(S.v==='chat'){const m=$('msgs');m.scrollTop=m.scrollHeight}}
+function send(text){
+  const ms=convs[S.cid];clock++;const m={me:1,t:text,at:T(Math.floor(clock/60),clock%60),st:'sending'};ms.push(m);S.draft[S.cid]='';render();
+  const fail=S.offline;
+  setTimeout(()=>{m.st=fail?'fail':'sent';rerenderMsgs();if(!fail)setTimeout(()=>{if(m.st==='sent'&&people[S.cid]&&people[S.cid].on){m.st='read';rerenderMsgs()}},1400)},900);
+}
+function rerenderMsgs(){if(S.v!=='chat')return;const box=$('msgs'),inp=$('input'),val=inp?inp.value:'',focused=document.activeElement===inp;render();if(focused){const ni=$('input');ni.value=val;ni.focus()}}
+function bind(){
+  root.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>{S.cid=b.dataset.c;unread[S.cid]=0;S.v='chat';render();$('input').focus()});
+  const q=$('q');if(q)q.oninput=()=>{S.q=q.value.trim();const pos=q.selectionStart;render();const nq=$('q');nq.focus();nq.setSelectionRange(pos,pos)};
+  const back=$('back');if(back)back.onclick=()=>{S.v='list';render()};
+  const net=$('net');if(net)net.onclick=()=>{S.offline=!S.offline;render();$('input').focus()};
+  const inp=$('input'),sb=$('send');
+  if(inp){const grow=()=>{inp.style.height='auto';inp.style.height=Math.min(110,inp.scrollHeight)+'px'};grow();
+    inp.oninput=()=>{S.draft[S.cid]=inp.value;sb.disabled=!inp.value.trim();grow()};
+    inp.onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();if(inp.value.trim())send(inp.value.trim())}};
+    sb.onclick=()=>{if(inp.value.trim())send(inp.value.trim())}}
+  root.querySelectorAll('.quick button').forEach(b=>b.onclick=()=>send(b.textContent));
+  root.querySelectorAll('[data-retry]').forEach(b=>b.onclick=()=>{const m=convs[S.cid][+b.dataset.retry];m.st='sending';render();
+    setTimeout(()=>{m.st=S.offline?'fail':'sent';rerenderMsgs();if(m.st==='sent')setTimeout(()=>{if(m.st==='sent'&&people[S.cid].on){m.st='read';rerenderMsgs()}},1400)},900)});
+}
+render();
+</script>
+</body>
+</html>

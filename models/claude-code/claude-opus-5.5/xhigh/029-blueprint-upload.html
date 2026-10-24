@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>造物工坊 · 上传打印文件</title>
+<style>
+:root{
+  --blue:#0b3c6f;--blue-2:#0e4a86;--line:#4f86c6;--line-faint:#2a5e98;--chalk:#e8f1fb;--dim:#9dbbe0;--cyan:#7fdbff;--yellow:#ffd65a;--red:#ff7a6b;--green:#7ee0a1;
+  --mono:"SF Mono","Menlo","Consolas",monospace;
+  --sans:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--blue);color:var(--chalk);font:14px/1.55 var(--sans);
+  background-image:linear-gradient(var(--line-faint) 1px,transparent 1px),linear-gradient(90deg,var(--line-faint) 1px,transparent 1px),linear-gradient(#1a5292 1px,transparent 1px),linear-gradient(90deg,#1a5292 1px,transparent 1px);
+  background-size:100px 100px,100px 100px,20px 20px,20px 20px}
+.top{display:flex;align-items:center;gap:18px;padding:16px 40px;border-bottom:1.5px solid var(--line)}
+.top b{font:700 16px var(--mono);letter-spacing:.12em}
+.top .steps{display:flex;gap:6px;font:12px var(--mono);color:var(--dim)}
+.top .steps span{padding:3px 10px;border:1px solid var(--line-faint)}
+.top .steps span.on{border-color:var(--chalk);color:var(--chalk)}
+.top .r{margin-left:auto;font:12px var(--mono);color:var(--dim)}
+.wrap{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:28px;padding:28px 40px 48px;max-width:1280px;margin:0 auto}
+h1{font:600 26px var(--sans);margin:0 0 4px}
+.lead{color:var(--dim);margin:0 0 20px}
+.drop{position:relative;border:2px dashed var(--line);background:#0b3c6fb3;padding:34px 24px;text-align:center;transition:background .15s,border-color .15s}
+.drop.over{background:#0e4a86e6;border-color:var(--cyan)}
+.drop::before,.drop::after{content:'';position:absolute;width:18px;height:18px;border:2px solid var(--chalk)}
+.drop::before{left:-6px;top:-6px;border-right:0;border-bottom:0}
+.drop::after{right:-6px;bottom:-6px;border-left:0;border-top:0}
+.drop svg{width:120px;height:80px;display:block;margin:0 auto 10px}
+.drop h2{margin:0 0 4px;font:600 17px var(--sans)}
+.drop p{margin:0 0 14px;color:var(--dim);font-size:13px}
+.pick{height:40px;padding:0 18px;border:1.5px solid var(--chalk);background:transparent;color:var(--chalk);font:600 14px var(--sans);cursor:pointer}
+.pick:hover{background:var(--chalk);color:var(--blue)}
+.drop .formats{margin-top:12px;font:11px var(--mono);color:var(--dim)}
+#file{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+.qh{display:flex;align-items:baseline;justify-content:space-between;margin:26px 0 8px;font:12px var(--mono);color:var(--dim);letter-spacing:.08em}
+.qh b{font:600 15px var(--sans);color:var(--chalk);letter-spacing:0}
+.queue{border:1.5px solid var(--line);background:#0b3c6fcc}
+.f{display:grid;grid-template-columns:64px minmax(0,1fr) 110px 150px 36px;gap:16px;align-items:center;padding:12px 16px;border-bottom:1px solid var(--line-faint)}
+.f:last-child{border-bottom:0}
+.thumb{width:64px;height:52px;border:1px solid var(--line);display:grid;place-items:center}
+.thumb svg{width:44px;height:40px}
+.f b{display:block;font:500 14px var(--mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.f small{color:var(--dim);font-size:12px}
+.size{font:13px var(--mono);color:var(--dim);text-align:right}
+.st{font:12px var(--mono)}
+.st .bar{height:4px;background:var(--line-faint);margin-top:6px;overflow:hidden}
+.st .bar i{display:block;height:100%;background:var(--cyan);transition:width .25s linear}
+.st.ok{color:var(--green)}.st.err{color:var(--red)}.st.wait{color:var(--dim)}.st.up{color:var(--cyan)}.st.proc{color:var(--yellow)}
+.del{width:32px;height:32px;border:1px solid var(--line-faint);background:transparent;color:var(--dim);cursor:pointer;font-size:14px}
+.del:hover{border-color:var(--red);color:var(--red)}
+.del:disabled{opacity:.35;cursor:not-allowed}
+.empty{padding:22px;text-align:center;color:var(--dim);font-size:13px}
+.side .card{border:1.5px solid var(--line);background:#0b3c6fe6;padding:18px;margin-bottom:16px;position:relative}
+.side h3{margin:0 0 12px;font:600 15px var(--sans);display:flex;justify-content:space-between}
+.side h3 small{font:11px var(--mono);color:var(--dim)}
+.opt{margin-bottom:12px}
+.opt label{display:block;font:12px var(--mono);color:var(--dim);margin-bottom:6px}
+.opt select{width:100%;height:38px;border:1px solid var(--line);background:var(--blue);color:var(--chalk);font:14px var(--sans);padding:0 10px;outline:none}
+.opt select:focus{border-color:var(--cyan)}
+.chips{display:flex;gap:6px}
+.chips button{flex:1;height:34px;border:1px solid var(--line);background:transparent;color:var(--dim);font:13px var(--mono);cursor:pointer}
+.chips button[aria-pressed="true"]{background:var(--chalk);color:var(--blue);border-color:var(--chalk)}
+.sum{display:grid;gap:6px;font:13px var(--mono);border-top:1px dashed var(--line);padding-top:12px;margin-top:4px}
+.sum div{display:flex;justify-content:space-between}
+.sum .tot{font-size:20px;color:var(--yellow);padding-top:6px}
+.go{width:100%;height:52px;border:0;background:var(--yellow);color:var(--blue);font:700 16px var(--sans);cursor:pointer;margin-top:14px;transition:filter .15s}
+.go:hover{filter:brightness(1.06)}
+.go:disabled{background:#4c6f99;color:#9dbbe0;cursor:not-allowed}
+.go:focus-visible,.pick:focus-visible,.del:focus-visible,.chips button:focus-visible,.retry:focus-visible{outline:2px solid var(--cyan);outline-offset:3px}
+.note{font-size:12px;color:var(--dim);margin:10px 0 0}
+.retry{border:0;background:none;color:var(--cyan);font:12px var(--mono);cursor:pointer;text-decoration:underline;padding:0;margin-left:6px}
+.stamp{position:absolute;right:10px;top:-12px;background:var(--blue);padding:0 8px;font:10px var(--mono);color:var(--dim);letter-spacing:.1em}
+@media (max-width:1060px){.wrap{grid-template-columns:1fr}}
+@media (max-width:680px){.wrap,.top{padding-left:16px;padding-right:16px}.top .steps{display:none}.f{grid-template-columns:52px 1fr 36px}.f .size{display:none}.f .st{grid-column:2/4}.thumb{width:52px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<header class="top"><b>造物工坊 ／ 3D PRINT</b><div class="steps"><span class="on">01 上传模型</span><span>02 选择材料</span><span>03 确认下单</span></div><span class="r">订单草稿 PRJ-2610-0458</span></header>
+<main class="wrap">
+  <section>
+    <h1>把模型交给我们</h1>
+    <p class="lead">我们会自动检查壁厚、悬垂和网格是否封闭，问题会在开始打印前告诉你。</p>
+    <div class="drop" id="drop">
+      <svg viewBox="0 0 120 80" aria-hidden="true"><g fill="none" stroke="#e8f1fb" stroke-width="1.5"><path d="M30 30l30-14 30 14-30 14z"/><path d="M30 30v26l30 14V44M90 30v26L60 70"/><path d="M60 16V4M54 10l6-6 6 6" stroke="#7fdbff"/></g><g stroke="#4f86c6" stroke-dasharray="3 3"><path d="M20 56h80M60 72v6"/></g></svg>
+      <h2>把 STL / OBJ / 3MF 文件拖到这里</h2>
+      <p>单个文件不超过 200 MB · 一次最多 10 个</p>
+      <button class="pick" type="button" id="pick">选择文件…</button> <button class="pick" type="button" id="sample" style="border-style:dashed">载入示例模型</button>
+      <input type="file" id="file" multiple accept=".stl,.obj,.3mf,.step" aria-label="选择模型文件">
+      <div class="formats">支持 .stl .obj .3mf .step · 单位默认 mm</div>
+    </div>
+    <div class="qh"><b>上传队列</b><span id="qmeta"></span></div>
+    <div class="queue" id="queue" aria-live="polite"></div>
+  </section>
+  <aside class="side">
+    <div class="card"><span class="stamp">SHEET 1/1</span>
+      <h3>打印参数 <small>全部文件统一</small></h3>
+      <div class="opt"><label for="mat">材料</label><select id="mat"><option value="1">PLA · 哑光白</option><option value="1.6">光敏树脂 · 高透</option><option value="2.4">尼龙 PA12 · 黑</option></select></div>
+      <div class="opt"><label>层厚</label><div class="chips" role="group" aria-label="层厚"><button type="button" aria-pressed="false" data-l="0.8">0.3 mm</button><button type="button" aria-pressed="true" data-l="1">0.2 mm</button><button type="button" aria-pressed="false" data-l="1.4">0.1 mm</button></div></div>
+      <div class="opt"><label>填充率</label><div class="chips" role="group" aria-label="填充率"><button type="button" aria-pressed="false" data-i="0.85">15%</button><button type="button" aria-pressed="true" data-i="1">30%</button><button type="button" aria-pressed="false" data-i="1.3">60%</button></div></div>
+      <div class="sum"><div><span>可打印文件</span><span id="sN">0 个</span></div><div><span>预计耗材</span><span id="sG">0 g</span></div><div><span>预计工时</span><span id="sH">0 h</span></div><div class="tot"><span>预估</span><span id="sP">¥0</span></div></div>
+      <button class="go" type="button" id="go" disabled>开始处理</button>
+      <p class="note" id="goNote">需要至少一个通过检查的文件</p>
+    </div>
+  </aside>
+</main>
+<script>
+const model=(k)=>({gear:'<svg viewBox="0 0 44 40"><circle cx="22" cy="20" r="11" fill="none" stroke="#e8f1fb" stroke-width="1.5"/><circle cx="22" cy="20" r="4" fill="none" stroke="#7fdbff"/><g stroke="#e8f1fb" stroke-width="3"><path d="M22 4v5M22 31v5M6 20h5M33 20h5M11 9l3 3M30 28l3 3M33 9l-3 3M14 28l-3 3"/></g></svg>',
+ vase:'<svg viewBox="0 0 44 40"><path d="M16 4h12c-2 6 8 10 6 22-1 8-6 10-12 10s-11-2-12-10c-2-12 8-16 6-22z" fill="none" stroke="#e8f1fb" stroke-width="1.5"/><path d="M12 22h20" stroke="#7fdbff" stroke-dasharray="2 2"/></svg>',
+ bracket:'<svg viewBox="0 0 44 40"><path d="M6 32V8h10v14h22v10z" fill="none" stroke="#e8f1fb" stroke-width="1.5"/><circle cx="11" cy="14" r="2" fill="none" stroke="#7fdbff"/><circle cx="32" cy="27" r="2" fill="none" stroke="#7fdbff"/></svg>',
+ cube:'<svg viewBox="0 0 44 40"><path d="M10 14l12-6 12 6-12 6zM10 14v14l12 6V20M34 14v14l-12 6" fill="none" stroke="#e8f1fb" stroke-width="1.5"/></svg>'})[k];
+let files=[
+ {n:'齿轮箱_外壳_v3.stl',k:'gear',size:18.4,g:46,h:3.2,st:'ok',msg:'检查通过 · 网格封闭'},
+ {n:'台灯底座_镂空.3mf',k:'vase',size:42.7,g:88,h:6.5,st:'warn',msg:'壁厚 0.6 mm 低于建议 0.8 mm'},
+ {n:'无人机支架_左.obj',k:'bracket',size:6.1,g:12,h:1.1,st:'up',p:42}
+];
+let L=1,I=1;
+const Q=document.getElementById('queue');
+function stHtml(f){
+  if(f.st==='up')return '<div class="st up">上传中 '+Math.round(f.p)+'%<div class="bar"><i style="width:'+f.p+'%"></i></div></div>';
+  if(f.st==='chk')return '<div class="st proc">检查网格…<div class="bar"><i style="width:100%;background:#ffd65a"></i></div></div>';
+  if(f.st==='ok')return '<div class="st ok">✓ '+f.msg+'</div>';
+  if(f.st==='warn')return '<div class="st proc">⚠ '+f.msg+'</div>';
+  if(f.st==='err')return '<div class="st err">✕ '+f.msg+'<button class="retry" type="button">重试</button></div>';
+  if(f.st==='proc')return '<div class="st proc">排队切片中…</div>';
+  return '<div class="st wait">等待</div>';
+}
+function render(){
+  Q.innerHTML=files.length?files.map((f,i)=>'<div class="f" data-i="'+i+'"><div class="thumb">'+model(f.k)+'</div><div><b>'+f.n+'</b><small>'+(f.st==='up'?'正在上传':f.st==='chk'?'几何检查中':f.g?'约 '+f.g+' g · '+f.h+' h':'—')+'</small></div><div class="size">'+f.size.toFixed(1)+' MB</div>'+stHtml(f)+'<button class="del" type="button" aria-label="删除 '+f.n+'" '+(f.st==='proc'?'disabled':'')+'>✕</button></div>').join(''):'<div class="empty">队列为空，拖入或选择模型文件开始。</div>';
+  Q.querySelectorAll('.f').forEach(r=>{const i=+r.dataset.i;r.querySelector('.del').onclick=()=>{files.splice(i,1);render()};const rt=r.querySelector('.retry');if(rt)rt.onclick=()=>{files[i].st='up';files[i].p=0;render()}});
+  const total=files.reduce((a,f)=>a+f.size,0);
+  document.getElementById('qmeta').textContent=files.length+' 个文件 · '+total.toFixed(1)+' MB';
+  const ok=files.filter(f=>['ok','warn','proc'].includes(f.st)),m=+document.getElementById('mat').value;
+  const g=ok.reduce((a,f)=>a+f.g,0)*I,h=ok.reduce((a,f)=>a+f.h,0)*L;
+  document.getElementById('sN').textContent=ok.length+' 个';document.getElementById('sG').textContent=Math.round(g)+' g';document.getElementById('sH').textContent=h.toFixed(1)+' h';
+  document.getElementById('sP').textContent='¥'+Math.round(g*0.32*m+h*6+ (ok.length?15:0));
+  const go=document.getElementById('go'),busy=files.some(f=>f.st==='proc');
+  go.disabled=!ok.length||busy;go.textContent=busy?'处理中…':'开始处理 '+ok.length+' 个文件';
+  document.getElementById('goNote').textContent=busy?'已进入切片队列，预计 6 分钟出报价':!ok.length?'需要至少一个通过检查的文件':files.some(f=>f.st==='warn')?'有 1 个文件存在警告，仍可打印但可能不牢固':'所有文件均已通过检查';
+}
+function tick(){let changed=false;files.forEach(f=>{if(f.st==='up'){f.p=Math.min(100,f.p+2+Math.random()*3);changed=true;if(f.p>=100){f.st='chk';setTimeout(()=>{if(f.n.includes('破损')){f.st='err';f.msg='网格不封闭，存在 3 处破洞'}else{f.st='ok';f.msg='检查通过';f.g=f.g||Math.round(f.size*2.4);f.h=f.h||+(f.size*0.18).toFixed(1)}render()},900)}}});if(changed)render()}
+setInterval(tick,matchMedia('(prefers-reduced-motion:reduce)').matches?600:300);
+function add(list){[...list].forEach(fl=>{const ext=fl.name.split('.').pop().toLowerCase(),okExt=['stl','obj','3mf','step'].includes(ext),mb=fl.size/1048576;
+  files.push({n:fl.name,k:['cube','gear','vase','bracket'][files.length%4],size:mb||1.2,g:0,h:0,st:okExt?(mb>200?'err':'up'):'err',p:0,msg:okExt?'超过 200 MB 上限':'不支持的格式 .'+ext})});render()}
+const drop=document.getElementById('drop');
+['dragenter','dragover'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add('over')}));
+['dragleave','drop'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove('over')}));
+drop.addEventListener('drop',e=>{if(e.dataTransfer.files.length)add(e.dataTransfer.files);else demo()});
+document.getElementById('pick').onclick=()=>document.getElementById('file').click();
+document.getElementById('sample').onclick=demo;
+document.getElementById('file').onchange=e=>{add(e.target.files);e.target.value=''};
+function demo(){files.push({n:'机械臂关节_破损.stl',k:'cube',size:9.8,g:0,h:0,st:'up',p:0});render()}
+document.getElementById('mat').onchange=render;
+document.querySelectorAll('[data-l]').forEach(b=>b.onclick=()=>{L=+b.dataset.l;document.querySelectorAll('[data-l]').forEach(x=>x.setAttribute('aria-pressed',x===b));render()});
+document.querySelectorAll('[data-i]').forEach(b=>{if(!b.closest('.chips'))return;b.onclick=()=>{I=+b.dataset.i;b.parentElement.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b));render()}});
+document.getElementById('go').onclick=()=>{files.forEach(f=>{if(f.st==='ok'||f.st==='warn')f.st='proc'});render()};
+render();
+</script>
+</body>
+</html>

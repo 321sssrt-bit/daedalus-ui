@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>途鸟物流 · 暂时无法查询</title>
+<style>
+:root{
+  --room:#2b2b2b;--yellow:#ffcc00;--yellow-2:#ffe066;--black:#111111;--asphalt:#262626;--white:#fffdf2;--muted:#6b6457;--orange:#ff6a13;--ok:#1f9d55;--line:#e8dfbf;
+  --display:"DIN Condensed","Avenir Next Condensed","Arial Narrow","PingFang SC",sans-serif;
+  --sans:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  --mono:"SF Mono","Menlo","Consolas",monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--room);background-image:repeating-linear-gradient(-45deg,#2b2b2b 0 22px,#303030 22px 44px);display:grid;place-items:center;font:15px/1.55 var(--sans);color:var(--black)}
+.phone{width:390px;height:min(844px,calc(100vh - 32px));border-radius:52px;border:11px solid var(--black);background:var(--yellow);position:relative;overflow:hidden;box-shadow:0 30px 70px #000a}
+.notch{position:absolute;top:8px;left:50%;transform:translateX(-50%);width:118px;height:32px;border-radius:20px;background:var(--black);z-index:20}
+.sb{position:absolute;top:16px;left:30px;right:26px;display:flex;justify-content:space-between;font:700 15px var(--sans);z-index:3}
+.sb span:last-child{font-size:12px;letter-spacing:2px}
+.scroll{position:absolute;inset:0;overflow-y:auto;padding:56px 22px 26px;display:flex;flex-direction:column;scrollbar-width:none}
+.scroll::-webkit-scrollbar{display:none}
+.scroll>*{flex-shrink:0}
+.top{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.top button{width:40px;height:40px;border-radius:50%;border:2.5px solid var(--black);background:transparent;font:700 17px var(--sans);cursor:pointer}
+.top b{font:700 15px var(--sans)}
+.scene{position:relative;height:170px;margin:-6px -22px 2px}
+.scene svg{width:100%;height:100%;display:block}
+.blink{animation:blink 1.1s steps(1) infinite}
+.code{display:inline-flex;align-items:center;gap:8px;background:var(--black);color:var(--yellow);font:700 13px var(--mono);padding:4px 10px;letter-spacing:.06em;align-self:flex-start}
+h1{margin:8px 0 4px;font:700 38px/1 var(--display);text-transform:uppercase;letter-spacing:.01em}
+.human{margin:0 0 12px;font-size:14px;line-height:1.65}
+.human b{background:var(--black);color:var(--yellow);padding:0 4px}
+.ticket{background:var(--white);border:2.5px solid var(--black);padding:12px 14px;display:grid;grid-template-columns:1fr auto;gap:2px 10px;align-items:center;margin-bottom:12px}
+.ticket small{color:var(--muted);font-size:12px}
+.ticket b{font:700 16px var(--mono);letter-spacing:.04em}
+.ticket button{grid-row:1/3;grid-column:2;height:34px;padding:0 12px;border:2px solid var(--black);background:var(--yellow);font:700 13px var(--sans);cursor:pointer}
+.ticket button:active{transform:translateY(1px)}
+.eta{display:flex;align-items:center;gap:10px;font-size:13px;margin-bottom:12px}
+.eta i{width:10px;height:10px;border-radius:50%;background:var(--orange);flex:none}
+.status{font-size:13px;min-height:20px;margin-bottom:10px;font-weight:600}
+.status.ok{color:var(--ok)}
+.acts{display:grid;gap:8px;margin-top:auto;position:sticky;bottom:-26px;background:var(--yellow);padding:12px 0 26px;margin-bottom:-26px;box-shadow:0 -14px 14px -6px var(--yellow)}
+.retry{height:56px;border:0;background:var(--black);color:var(--yellow);font:800 17px var(--sans);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 5px 0 #000000}
+.retry:active{transform:translateY(3px);box-shadow:0 2px 0 #000000}
+.retry:disabled{opacity:.7;cursor:progress}
+.retry .spin{width:18px;height:18px;border:3px solid #ffcc0055;border-top-color:var(--yellow);border-radius:50%;animation:spin .8s linear infinite;display:none}
+.retry.busy .spin{display:block}
+.home{height:52px;border:2.5px solid var(--black);background:transparent;font:700 16px var(--sans);cursor:pointer}
+.home:hover{background:var(--yellow-2)}
+.sub{border:0;background:none;font:600 13px var(--sans);text-decoration:underline;text-underline-offset:3px;cursor:pointer;padding:6px}
+.sub[aria-pressed="true"]{text-decoration:none;color:var(--ok)}
+.top button:focus-visible,.retry:focus-visible,.home:focus-visible,.sub:focus-visible,.ticket button:focus-visible,details summary:focus-visible{outline:3px solid var(--orange);outline-offset:3px}
+details{border-top:2px dashed var(--black);padding-top:8px;margin-bottom:12px;font-size:13px}
+summary{cursor:pointer;font-weight:700;list-style:none}
+summary::-webkit-details-marker{display:none}
+summary::after{content:' ＋'}
+details[open] summary::after{content:' －'}
+details ul{margin:8px 0 0;padding-left:18px;line-height:1.8}
+.result{display:none;background:var(--white);border:2.5px solid var(--black);padding:14px;margin-bottom:12px}
+.result.show{display:block}
+.result b{font:700 15px var(--sans)}
+.result ol{list-style:none;margin:10px 0 0;padding:0;border-left:3px solid var(--black)}
+.result li{padding:0 0 10px 14px;position:relative;font-size:13px}
+.result li::before{content:'';position:absolute;left:-7.5px;top:4px;width:12px;height:12px;border-radius:50%;background:var(--white);border:3px solid var(--black)}
+.result li:first-child::before{background:var(--ok);border-color:var(--ok)}
+.result li small{display:block;color:var(--muted)}
+@keyframes blink{50%{opacity:.15}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media (max-width:500px){body{display:block;background:var(--yellow)}.phone{width:100%;height:100vh;height:100dvh;border:0;border-radius:0;box-shadow:none}.notch{display:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}.blink,.retry .spin{animation:none!important}}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="notch" aria-hidden="true"></div>
+  <div class="sb" aria-hidden="true"><span>9:41</span><span>▂▄▆ ▮▮▮</span></div>
+  <main class="scroll">
+    <div class="top"><button type="button" aria-label="返回">←</button><b>查件 · YT 7781 0420 556</b><span style="width:40px"></span></div>
+    <div class="scene" aria-hidden="true">
+      <svg viewBox="0 0 390 250" preserveAspectRatio="xMidYMid slice">
+        <rect y="186" width="390" height="64" fill="#262626"/><path d="M0 218h40M70 218h40M140 218h40M210 218h40M280 218h40M350 218h40" stroke="#fffdf2" stroke-width="4"/>
+        <g><rect x="70" y="96" width="250" height="40" fill="#fffdf2" stroke="#111111" stroke-width="4"/>
+          <clipPath id="bar"><rect x="72" y="98" width="246" height="36"/></clipPath>
+          <g clip-path="url(#bar)" fill="#ff6a13"><path d="M60 140l40-50h26l-40 50zM120 140l40-50h26l-40 50zM180 140l40-50h26l-40 50zM240 140l40-50h26l-40 50zM300 140l40-50h26l-40 50z"/></g>
+          <rect x="96" y="136" width="10" height="56" fill="#111111"/><rect x="284" y="136" width="10" height="56" fill="#111111"/>
+          <rect x="84" y="186" width="34" height="8" fill="#111111"/><rect x="272" y="186" width="34" height="8" fill="#111111"/>
+          <circle class="blink" cx="101" cy="84" r="10" fill="#ff6a13" stroke="#111111" stroke-width="3"/><circle class="blink" cx="289" cy="84" r="10" fill="#ff6a13" stroke="#111111" stroke-width="3" style="animation-delay:.55s"/>
+          <rect x="97" y="88" width="8" height="10" fill="#111111"/><rect x="285" y="88" width="8" height="10" fill="#111111"/></g>
+        <g transform="translate(330 140)"><path d="M18 0l18 52H0z" fill="#ff6a13" stroke="#111111" stroke-width="3"/><path d="M8 28h20M4 40h28" stroke="#fffdf2" stroke-width="5"/><rect x="-6" y="50" width="48" height="8" fill="#111111"/></g>
+        <g transform="translate(20 150)"><path d="M14 0l14 40H0z" fill="#ff6a13" stroke="#111111" stroke-width="3"/><path d="M6 22h16" stroke="#fffdf2" stroke-width="4"/><rect x="-4" y="38" width="36" height="6" fill="#111111"/></g>
+        <text x="195" y="124" text-anchor="middle" font-family="DIN Condensed, Arial Narrow, sans-serif" font-size="24" font-weight="700" fill="#111111" letter-spacing="3">前方施工</text>
+      </svg>
+    </div>
+    <span class="code">ERR 503 · 物流轨迹服务</span>
+    <h1>这条路暂时走不通</h1>
+    <p class="human">不是你的网络问题。我们的<b>物流轨迹服务</b>正在紧急检修，你的包裹本身一切正常，仍在按计划运输。</p>
+    <div class="ticket"><small>故障工单号（联系客服时报给我们）</small><b id="tk">TK-1023-0471</b><button type="button" id="copy">复制</button></div>
+    <div class="eta"><i></i>预计 15:30 前恢复 · 已有 2,318 人在等</div>
+    <details><summary>现在还能做什么</summary><ul><li>寄件、预约取件不受影响</li><li>派送员仍会按原计划电话联系你</li><li>拨打 95XXX 转 2，报工单号可人工查件</li></ul></details>
+    <div class="result" id="result" aria-live="polite"><b>✓ 已恢复 · 包裹正在派送</b><ol><li>派送员 张师傅 正在为你派件<small>今天 14:31 · 杭州西湖文三路站</small></li><li>已到达 杭州西湖文三路站<small>今天 08:12</small></li><li>已从 杭州转运中心 发出<small>今天 05:40</small></li></ol></div>
+    <div class="status" id="status" role="status"></div>
+    <div class="acts">
+      <button class="retry" type="button" id="retry"><span class="spin"></span><span id="rt">重试一次</span></button>
+      <button class="home" type="button" id="home">回到首页</button>
+      <button class="sub" type="button" id="sub" aria-pressed="false">恢复后短信通知我</button>
+    </div>
+  </main>
+</div>
+<script>
+const $=s=>document.getElementById(s);let tries=0;
+$('copy').onclick=e=>{const b=e.currentTarget;try{navigator.clipboard&&navigator.clipboard.writeText($('tk').textContent)}catch(_){}b.textContent='已复制';setTimeout(()=>b.textContent='复制',1500)};
+$('retry').onclick=()=>{const b=$('retry');if(b.classList.contains('done')){$('result').scrollIntoView({behavior:'smooth',block:'center'});return}
+  tries++;b.disabled=true;b.classList.add('busy');$('rt').textContent='正在重新连接…';$('status').className='status';$('status').textContent='';
+  setTimeout(()=>{b.disabled=false;b.classList.remove('busy');
+    if(tries<2){$('rt').textContent='再试一次';$('status').textContent='还没修好（第 '+tries+' 次）。你可以稍后再来，或订阅恢复通知。'}
+    else{b.classList.add('done');$('rt').textContent='查看最新轨迹';$('status').className='status ok';$('status').textContent='服务已恢复，轨迹已更新。';$('result').classList.add('show');
+      document.querySelector('h1').textContent='路通了';document.querySelector('.code').textContent='OK 200 · 已恢复';document.querySelector('.eta').innerHTML='<i style="background:#1f9d55"></i>14:32 恢复 · 感谢耐心等待'}
+  },1300)};
+$('home').onclick=e=>{e.currentTarget.textContent='正在回到首页…'};
+$('sub').onclick=e=>{const b=e.currentTarget,on=b.getAttribute('aria-pressed')!=='true';b.setAttribute('aria-pressed',on);b.textContent=on?'✓ 恢复后会短信通知 138****6620':'恢复后短信通知我'};
+</script>
+</body>
+</html>

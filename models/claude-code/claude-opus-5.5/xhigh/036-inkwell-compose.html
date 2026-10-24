@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>墨水瓶 · 写一篇</title>
+<style>
+:root{
+  --room:#0d0b0a;--bg:#1a1714;--bg-2:#24201c;--line:#36302a;--text:#ede4d3;--muted:#9a8f80;--faint:#62584d;--amber:#e8a33d;--amber-dk:#c4842a;--red:#e2674f;--green:#8fbf7a;
+  --serif:"Songti SC","STSong","Georgia",serif;
+  --sans:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  --num:"Avenir Next","Helvetica Neue",sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:radial-gradient(circle at 50% 40%,#2a231d,var(--room));display:grid;place-items:center;font:15px/1.6 var(--sans);color:var(--text)}
+.phone{width:390px;height:min(844px,calc(100vh - 32px));border-radius:52px;border:11px solid #050404;background:var(--bg);position:relative;overflow:hidden;box-shadow:0 30px 80px #000c}
+.notch{position:absolute;top:8px;left:50%;transform:translateX(-50%);width:118px;height:32px;border-radius:20px;background:#050404;z-index:20}
+.sb{position:absolute;top:16px;left:30px;right:26px;display:flex;justify-content:space-between;font:600 15px var(--num);z-index:3}
+.sb span:last-child{font-size:12px;letter-spacing:2px}
+.bar{position:absolute;top:50px;left:0;right:0;height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 14px;border-bottom:1px solid var(--line);z-index:3;background:var(--bg)}
+.bar .x{border:0;background:none;color:var(--muted);font:15px var(--sans);cursor:pointer;padding:8px}
+.bar .st{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px}
+.bar .st i{width:6px;height:6px;border-radius:50%;background:var(--green)}
+.bar .st.dirty i{background:var(--amber)}
+.pub{height:34px;padding:0 16px;border-radius:999px;border:0;background:var(--amber);color:#1a1714;font:700 14px var(--sans);cursor:pointer}
+.pub:disabled{background:var(--line);color:var(--faint);cursor:not-allowed}
+.edit{position:absolute;top:102px;left:0;right:0;bottom:104px;overflow-y:auto;padding:18px 22px 20px;scrollbar-width:none}
+.edit::-webkit-scrollbar{display:none}
+.cover{height:120px;border-radius:14px;border:1.5px dashed var(--line);display:grid;place-items:center;color:var(--faint);font-size:13px;cursor:pointer;margin-bottom:16px;background:none;width:100%;font-family:var(--sans)}
+.cover.set{border:0;background:linear-gradient(135deg,#3a2c22,#1e2a2e);color:var(--text);position:relative;overflow:hidden}
+.cover.set::after{content:'';position:absolute;right:-20px;bottom:-30px;width:140px;height:140px;border-radius:50%;background:#e8a33d33}
+.title{width:100%;border:0;background:none;color:var(--text);font:700 26px/1.35 var(--serif);outline:none;resize:none;padding:0;min-height:36px}
+.title::placeholder,.body::placeholder{color:var(--faint)}
+.meta{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 14px}
+.chip{height:28px;padding:0 10px;border-radius:999px;border:1px solid var(--line);background:none;color:var(--muted);font:12px var(--sans);cursor:pointer}
+.chip[aria-pressed="true"]{border-color:var(--amber);color:var(--amber)}
+.body{width:100%;border:0;background:none;color:var(--text);font:17px/1.95 var(--serif);outline:none;resize:none;padding:0;min-height:320px;caret-color:var(--amber)}
+.err{font-size:12px;color:var(--red);min-height:18px}
+.foot{position:absolute;left:0;right:0;bottom:0;height:104px;background:var(--bg-2);border-top:1px solid var(--line);padding:10px 16px 26px;z-index:3}
+.tools{display:flex;gap:4px;margin-bottom:8px}
+.tools button{width:40px;height:34px;border-radius:8px;border:0;background:none;color:var(--muted);font:600 15px var(--serif);cursor:pointer}
+.tools button:hover{background:#ffffff0d;color:var(--text)}
+.tools .sp{flex:1}
+.count{font:12px var(--num);color:var(--muted);display:flex;align-items:center;gap:10px}
+.count b{color:var(--text);font-weight:600}
+.count.over b{color:var(--red)}
+.ring{width:22px;height:22px;transform:rotate(-90deg)}
+.ring circle{fill:none;stroke-width:3}
+.ring .bg{stroke:var(--line)}.ring .fg{stroke:var(--amber);stroke-dasharray:56.5;transition:stroke-dashoffset .2s}
+.draft{height:32px;padding:0 12px;border-radius:999px;border:1px solid var(--line);background:none;color:var(--text);font:13px var(--sans);cursor:pointer;margin-left:auto}
+.draft:hover{border-color:var(--muted)}
+.pub:focus-visible,.draft:focus-visible,.chip:focus-visible,.tools button:focus-visible,.x:focus-visible,.cover:focus-visible,.sheet button:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+.scrim{position:absolute;inset:0;background:#000000a6;opacity:0;pointer-events:none;transition:opacity .2s;z-index:10}
+.scrim.on{opacity:1;pointer-events:auto}
+.sheet{position:absolute;left:0;right:0;bottom:0;background:var(--bg-2);border-radius:26px 26px 0 0;padding:12px 20px 28px;transform:translateY(105%);transition:transform .28s cubic-bezier(.2,.8,.2,1);z-index:11}
+.sheet.on{transform:none}
+.grab{width:40px;height:5px;border-radius:3px;background:var(--line);margin:0 auto 14px}
+.sheet h3{margin:0 0 4px;font:700 18px var(--serif)}
+.sheet p{margin:0 0 14px;color:var(--muted);font-size:13px}
+.vis{display:grid;gap:8px;margin-bottom:16px}
+.vis label{display:flex;gap:12px;align-items:center;padding:12px 14px;border:1px solid var(--line);border-radius:14px;cursor:pointer;font-size:14px}
+.vis label:has(input:checked){border-color:var(--amber);background:#e8a33d14}
+.vis input{accent-color:var(--amber)}
+.vis small{display:block;color:var(--muted);font-size:12px}
+.sheet .btns{display:grid;grid-template-columns:1fr 2fr;gap:10px}
+.sheet .btns button{height:50px;border-radius:14px;font:700 15px var(--sans);cursor:pointer}
+.sheet .btns .c{border:1px solid var(--line);background:none;color:var(--text)}
+.sheet .btns .ok{border:0;background:var(--amber);color:#1a1714}
+.done{position:absolute;inset:0;background:var(--bg);z-index:12;display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:30px}
+.done.on{display:flex}
+.done .seal{width:96px;height:96px;border-radius:50%;border:2px solid var(--amber);display:grid;place-items:center;font:700 34px var(--serif);color:var(--amber);margin-bottom:18px;transform:rotate(-8deg)}
+.done h2{margin:0 0 6px;font:700 24px var(--serif)}
+.done p{margin:0 0 22px;color:var(--muted);font-size:14px}
+.done button{height:46px;padding:0 22px;border-radius:999px;border:1px solid var(--line);background:none;color:var(--text);font:14px var(--sans);cursor:pointer}
+@media (max-width:500px){body{display:block;background:var(--bg)}.phone{width:100%;height:100vh;height:100dvh;border:0;border-radius:0}.notch{display:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="notch" aria-hidden="true"></div>
+  <div class="sb" aria-hidden="true"><span>9:41</span><span>▂▄▆ ▮▮▮</span></div>
+  <header class="bar"><button class="x" type="button" id="close">取消</button><span class="st" id="st"><i></i>草稿已保存 14:32</span><button class="pub" type="button" id="pub">发布</button></header>
+  <main class="edit">
+    <button class="cover" type="button" id="cover">＋ 添加封面图（可选）</button>
+    <textarea class="title" id="title" rows="1" maxlength="40" placeholder="标题" aria-label="标题">外婆的旧缝纫机</textarea>
+    <div class="meta" role="group" aria-label="话题">
+      <button class="chip" type="button" aria-pressed="true">#家族记忆</button><button class="chip" type="button" aria-pressed="false">#散文</button><button class="chip" type="button" aria-pressed="false">#物件</button><button class="chip" type="button" aria-pressed="false">＋ 话题</button>
+    </div>
+    <textarea class="body" id="body" placeholder="从一个画面开始写……" aria-label="正文">外婆家的那台缝纫机是蝴蝶牌的，黑漆面上描着金色的花。小时候我最喜欢踩它的踏板，听皮带在轮子上嗒嗒地转，像一列很小的火车。
+
+外婆不让我碰针。她戴着老花镜，把我的校服裤脚一点点放长，说："你长得太快了，裤子都追不上你。"
+
+后来她的眼睛不好了，缝纫机就盖上了一块碎花布，在窗边一放就是十年。</textarea>
+    <div class="err" id="err" role="alert"></div>
+  </main>
+  <footer class="foot">
+    <div class="tools" role="toolbar" aria-label="格式">
+      <button type="button" data-w="**" aria-label="加粗">B</button><button type="button" data-w="「」" aria-label="引号">「」</button><button type="button" data-w="— " aria-label="破折号">—</button><button type="button" data-w="\n\n※\n\n" aria-label="分隔">※</button><span class="sp"></span>
+    </div>
+    <div class="count" id="count"><svg class="ring" viewBox="0 0 22 22"><circle class="bg" cx="11" cy="11" r="9"/><circle class="fg" id="fg" cx="11" cy="11" r="9"/></svg><span><b id="chars">0</b> / 2000 字 · 约 <span id="mins">1</span> 分钟读完</span><button class="draft" type="button" id="draft">存草稿</button></div>
+  </footer>
+  <div class="scrim" id="scrim"></div>
+  <section class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="shT">
+    <div class="grab"></div><h3 id="shT">发布《<span id="shTitle"></span>》</h3><p id="shMeta"></p>
+    <div class="vis"><label><input type="radio" name="vis" value="all" checked><span>所有人可见<small>会出现在首页推荐和话题页</small></span></label><label><input type="radio" name="vis" value="fans"><span>仅关注我的人<small>不进入推荐</small></span></label><label><input type="radio" name="vis" value="me"><span>仅自己<small>相当于私密日记</small></span></label></div>
+    <div class="btns"><button class="c" type="button" id="shCancel">再改改</button><button class="ok" type="button" id="shOk">确认发布</button></div>
+  </section>
+  <section class="done" id="done" aria-live="polite"><div class="seal">墨</div><h2>已发布</h2><p id="doneP">你的第 23 篇文章已经和读者见面了。</p><button type="button" id="again">写下一篇</button></section>
+</div>
+<script>
+const $=s=>document.getElementById(s),title=$('title'),body=$('body');
+const MAX=2000;
+function count(){const n=body.value.replace(/\s/g,'').length;$('chars').textContent=n;$('mins').textContent=Math.max(1,Math.round(n/400));
+  $('count').classList.toggle('over',n>MAX);$('fg').style.strokeDashoffset=56.5*(1-Math.min(1,n/MAX));$('fg').style.stroke=n>MAX?'#e2674f':'#e8a33d';
+  $('pub').disabled=!title.value.trim()||n<20||n>MAX;return n}
+function grow(el){el.style.height='auto';el.style.height=el.scrollHeight+'px'}
+let saveT=null;
+function dirty(){const s=$('st');s.className='st dirty';s.lastChild.textContent='正在编辑…';clearTimeout(saveT);saveT=setTimeout(()=>{const d=new Date();s.className='st';s.lastChild.textContent='已自动保存 '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')},1200);$('err').textContent=''}
+[title,body].forEach(el=>el.addEventListener('input',()=>{grow(el);count();dirty()}));
+document.querySelectorAll('.chip').forEach(c=>c.onclick=()=>{if(c.textContent.startsWith('＋')){c.textContent='#回忆';c.setAttribute('aria-pressed','true');return}c.setAttribute('aria-pressed',c.getAttribute('aria-pressed')!=='true')});
+document.querySelectorAll('[data-w]').forEach(b=>b.onclick=()=>{const w=b.dataset.w.replace(/\\n/g,'\n'),s=body.selectionStart,e=body.selectionEnd,sel=body.value.slice(s,e);
+  let ins=w==='**'?'**'+(sel||'重点')+'**':w==='「」'?'「'+(sel||'')+'」':w+sel;body.setRangeText(ins,s,e,'end');body.focus();grow(body);count();dirty()});
+$('cover').onclick=e=>{const c=e.currentTarget;c.classList.toggle('set');c.textContent=c.classList.contains('set')?'封面：窗边的缝纫机 · 点击移除':'＋ 添加封面图（可选）'};
+$('draft').onclick=()=>{clearTimeout(saveT);$('st').className='st';$('st').lastChild.textContent='已存入草稿箱 · 共 4 篇草稿'};
+$('close').onclick=()=>{$('st').lastChild.textContent='已保存为草稿，可稍后继续'};
+function openSheet(){const n=count();$('shTitle').textContent=title.value.trim();$('shMeta').textContent=n+' 字 · '+[...document.querySelectorAll('.chip[aria-pressed="true"]')].map(c=>c.textContent).join(' ')+($('cover').classList.contains('set')?' · 有封面':'');
+  $('sheet').classList.add('on');$('scrim').classList.add('on');$('shOk').focus()}
+function closeSheet(){$('sheet').classList.remove('on');$('scrim').classList.remove('on')}
+$('pub').onclick=()=>{const n=count();if(!title.value.trim()){$('err').textContent='还差一个标题';title.focus();return}if(n<20){$('err').textContent='正文至少 20 个字';body.focus();return}openSheet()};
+$('shCancel').onclick=closeSheet;$('scrim').onclick=closeSheet;
+$('shOk').onclick=()=>{const v=document.querySelector('[name=vis]:checked').value;closeSheet();$('doneP').textContent=v==='me'?'已存为仅自己可见的私密日记。':v==='fans'?'已推送给 1,284 位关注你的人。':'你的第 23 篇文章已经和读者见面了。';$('done').classList.add('on')};
+$('again').onclick=()=>{$('done').classList.remove('on');title.value='';body.value='';grow(title);grow(body);count();title.focus()};
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeSheet()});
+grow(title);grow(body);count();
+</script>
+</body>
+</html>

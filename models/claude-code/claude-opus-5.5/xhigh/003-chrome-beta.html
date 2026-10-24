@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ORBIT 内测 · 邀请验证</title>
+<style>
+:root{
+  --page:#dfe3ee;--chrome-hi:#f8f9fc;--chrome-lo:#9aa3b8;--ink:#1a1d2b;--muted:#5d6479;
+  --violet:#7b5cff;--cyan:#3ad4e6;--pink:#ff6ad5;--bad:#e5484d;--good:#10a37f;
+  --display:"Avenir Next","Futura","PingFang SC","Microsoft YaHei",sans-serif;
+  --sans:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%}
+body{font:15px/1.6 var(--sans);color:var(--ink);background:var(--page);overflow-x:hidden;position:relative}
+.blob{position:fixed;border-radius:50%;filter:blur(40px);opacity:.75;z-index:0;pointer-events:none}
+.b1{width:520px;height:520px;left:-140px;top:-160px;background:radial-gradient(circle,#c6b8ff,transparent 70%)}
+.b2{width:460px;height:460px;right:-120px;top:120px;background:radial-gradient(circle,#a6f2fb,transparent 70%)}
+.b3{width:420px;height:420px;left:38%;bottom:-220px;background:radial-gradient(circle,#ffc2ef,transparent 70%)}
+.top{position:relative;z-index:1;display:flex;justify-content:space-between;align-items:center;padding:24px 48px;font-size:13px;color:var(--muted)}
+.logo{font:800 18px/1 var(--display);letter-spacing:.18em;color:var(--ink);display:flex;align-items:center;gap:10px}
+.logo i{width:22px;height:22px;border-radius:50%;background:conic-gradient(from 30deg,var(--cyan),var(--violet),var(--pink),var(--cyan));box-shadow:inset 0 0 0 4px #f8f9fc}
+.stage{position:relative;z-index:1;max-width:980px;margin:0 auto;padding:24px 48px 64px;text-align:center}
+.batch{display:inline-flex;gap:8px;align-items:center;padding:6px 14px;border-radius:999px;background:#ffffffaa;border:1px solid #ffffff;font-size:12px;color:var(--muted);box-shadow:0 2px 10px #7b5cff1a}
+.batch b{color:var(--violet)}
+.word{font:900 112px/1 var(--display);letter-spacing:.04em;margin:18px 0 6px;
+  background:linear-gradient(180deg,#ffffff 0%,#c9cfe0 38%,#6c7590 52%,#e8ebf3 62%,#9aa3b8 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-stroke:1px #8890a8;filter:drop-shadow(0 6px 10px #1a1d2b26)}
+.tag{font-size:17px;color:var(--muted);margin:0 0 36px}
+.pass{position:relative;margin:0 auto;width:720px;max-width:100%;border-radius:28px;padding:3px;
+  background:linear-gradient(135deg,#ffffff,#9aa3b8 30%,#f8f9fc 50%,#9aa3b8 70%,#ffffff)}
+.pass-in{border-radius:25px;background:linear-gradient(180deg,#f8f9fcf2,#e6e9f2f2);padding:36px 44px 32px;text-align:left;display:grid;grid-template-columns:1fr auto;gap:8px 24px;align-items:end}
+.pass h1{grid-column:1/-1;font:700 22px/1.3 var(--sans);margin:0}
+.pass .sub{grid-column:1/-1;color:var(--muted);margin:0 0 18px;font-size:14px}
+.code{display:flex;align-items:center;gap:8px}
+.code input{width:52px;height:64px;border-radius:14px;border:1px solid #c3c9d8;background:linear-gradient(180deg,#ffffff,#eef0f6);box-shadow:inset 0 2px 4px #1a1d2b14,0 1px 0 #ffffff;
+  text-align:center;font:700 26px var(--display);color:var(--ink);text-transform:uppercase;outline:none;transition:border-color .15s,box-shadow .15s}
+.code input:hover{border-color:#9aa3b8}
+.code input:focus{border-color:var(--violet);box-shadow:0 0 0 4px #7b5cff2e,inset 0 2px 4px #1a1d2b14}
+.code .dash{width:14px;height:3px;border-radius:2px;background:var(--chrome-lo)}
+.pass.bad .code input{border-color:var(--bad);background:#fff5f5}
+.pass.bad .code{animation:shake .38s}
+.pass.ok .code input{border-color:var(--good);color:var(--good)}
+.btn{height:64px;padding:0 34px;white-space:nowrap;border:0;border-radius:18px;cursor:pointer;font:700 17px var(--sans);color:#fff;
+  background:linear-gradient(135deg,var(--violet),#5a8cff 55%,var(--cyan));box-shadow:0 8px 24px #7b5cff55,inset 0 1px 0 #ffffff66;transition:transform .12s,box-shadow .2s}
+.btn:hover{transform:translateY(-1px);box-shadow:0 12px 30px #7b5cff70,inset 0 1px 0 #ffffff66}
+.btn:active{transform:translateY(1px)}
+.btn:disabled{background:#b9bfcf;box-shadow:none;cursor:not-allowed;transform:none}
+.btn:focus-visible,.link:focus-visible,.letter:focus-visible{outline:3px solid var(--pink);outline-offset:3px}
+.msg{grid-column:1/-1;min-height:24px;font-size:13px;margin-top:10px;color:var(--muted)}
+.pass.bad .msg{color:var(--bad)}
+.pass.ok .msg{color:var(--good);font-weight:600}
+.perks{display:flex;justify-content:center;gap:14px;margin-top:28px;flex-wrap:wrap}
+.perk{padding:10px 16px;border-radius:14px;background:#ffffff8c;border:1px solid #ffffffcc;font-size:13px;color:var(--muted)}
+.perk b{color:var(--ink);margin-right:6px}
+.wait{margin-top:30px;font-size:14px;color:var(--muted)}
+.link{background:none;border:0;padding:0;font:inherit;color:var(--violet);font-weight:600;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.waitform{display:none;margin:14px auto 0;gap:8px;justify-content:center}
+.waitform.show{display:flex}
+.waitform input{height:44px;width:280px;border-radius:12px;border:1px solid #c3c9d8;padding:0 14px;font:15px var(--sans);background:#ffffffcc;outline:none}
+.waitform input:focus{border-color:var(--violet);box-shadow:0 0 0 4px #7b5cff2e}
+.waitform button{height:44px;border-radius:12px;border:1px solid var(--ink);background:var(--ink);color:#fff;padding:0 18px;font:600 14px var(--sans);cursor:pointer}
+.letter{position:absolute;right:-96px;top:-64px;width:200px;transform:rotate(7deg);background:#fff;border-radius:14px;padding:14px 16px;text-align:left;font-size:12px;color:var(--muted);box-shadow:0 14px 30px #1a1d2b26;cursor:pointer;border:0;font-family:var(--sans)}
+.letter b{display:block;color:var(--ink);font-size:13px;margin-bottom:4px}
+.letter .c{display:block;margin-top:8px;font:700 16px var(--display);letter-spacing:.12em;color:var(--violet);filter:blur(5px);transition:filter .2s}
+.letter.reveal .c{filter:none}
+.unlocked{display:none;margin-top:18px;padding:16px 18px;border-radius:16px;background:linear-gradient(135deg,#e7fbf5,#efeaff);text-align:left;grid-column:1/-1}
+.pass.ok .unlocked{display:block}
+@keyframes shake{20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+@media (max-width:1000px){.letter{position:static;transform:none;margin:0 auto 20px;width:auto;max-width:320px;display:block}.word{font-size:84px}}
+@media (max-width:780px){.pass-in{grid-template-columns:1fr;padding:28px 22px}.code input{width:38px;height:52px;font-size:20px}.btn{width:100%}.stage{padding:16px 20px 48px}.top{padding:20px}.word{font-size:64px}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.blob{display:none}}
+</style>
+</head>
+<body>
+<div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div>
+<header class="top"><div class="logo"><i></i>ORBIT</div><span>邀请制内测 · 仅限受邀者</span></header>
+<main class="stage">
+  <span class="batch">第 <b>07</b> 批 · 剩余席位 312 / 2000</span>
+  <div class="word" aria-hidden="true">ORBIT</div>
+  <p class="tag">随身 AI 录音胸针，内测期间免费使用全部云端转写。</p>
+  <section class="pass" id="pass" aria-live="polite">
+    <button type="button" class="letter" id="letter" aria-label="查看我的邀请函">
+      <b>来自 林舟 的邀请函</b>
+      “这个小东西帮我记下了上周所有会议，你也来试试。”
+      <span class="c">ORBT-0427</span>
+      <span style="display:block;margin-top:6px;font-size:11px">点一下显示邀请码</span>
+    </button>
+    <form class="pass-in" id="form" novalidate>
+      <h1>输入你的 8 位邀请码</h1>
+      <p class="sub">邀请码在邀请邮件或好友分享的卡片上，不区分大小写。</p>
+      <div class="code" role="group" aria-label="邀请码">
+        <input maxlength="1" aria-label="第 1 位" autocomplete="off"><input maxlength="1" aria-label="第 2 位"><input maxlength="1" aria-label="第 3 位"><input maxlength="1" aria-label="第 4 位">
+        <span class="dash"></span>
+        <input maxlength="1" aria-label="第 5 位"><input maxlength="1" aria-label="第 6 位"><input maxlength="1" aria-label="第 7 位"><input maxlength="1" aria-label="第 8 位">
+      </div>
+      <button class="btn" type="submit" disabled>核对邀请</button>
+      <div class="msg" id="msg">还可尝试 5 次</div>
+      <div class="unlocked"><b>欢迎加入第 07 批内测。</b> 你的席位已保留 48 小时，下一步：填写收货地址，我们会在 5 个工作日内寄出胸针。</div>
+    </form>
+  </section>
+  <div class="perks"><span class="perk"><b>∞</b>云端转写不限时</span><span class="perk"><b>1v1</b>产品经理直连群</span><span class="perk"><b>¥0</b>内测期间硬件押金</span></div>
+  <p class="wait">没有邀请码？ <button type="button" class="link" id="openWait" aria-expanded="false">加入候补名单</button></p>
+  <form class="waitform" id="waitform"><input type="email" placeholder="你的邮箱" aria-label="候补邮箱" required><button type="submit">排队</button></form>
+</main>
+<script>
+const boxes=[...document.querySelectorAll('.code input')],btn=document.querySelector('.btn'),pass=document.getElementById('pass'),msg=document.getElementById('msg');
+const VALID='ORBT0427';let left=5,lockT=null;
+function val(){return boxes.map(b=>b.value).join('').toUpperCase()}
+function sync(){btn.disabled=val().length<8||!!lockT;if(pass.classList.contains('bad')){pass.classList.remove('bad');msg.textContent='还可尝试 '+left+' 次'}}
+boxes.forEach((b,i)=>{
+  b.addEventListener('input',()=>{b.value=b.value.replace(/[^0-9a-z]/gi,'').toUpperCase();if(b.value&&i<7)boxes[i+1].focus();sync()});
+  b.addEventListener('keydown',e=>{if(e.key==='Backspace'&&!b.value&&i>0){boxes[i-1].focus();boxes[i-1].value='';sync()}if(e.key==='ArrowLeft'&&i>0)boxes[i-1].focus();if(e.key==='ArrowRight'&&i<7)boxes[i+1].focus()});
+  b.addEventListener('paste',e=>{e.preventDefault();const t=(e.clipboardData.getData('text')||'').replace(/[^0-9a-z]/gi,'').toUpperCase().slice(0,8);t.split('').forEach((c,k)=>boxes[k]&&(boxes[k].value=c));boxes[Math.min(t.length,7)].focus();sync()});
+});
+document.getElementById('form').addEventListener('submit',e=>{
+  e.preventDefault();if(btn.disabled)return;
+  btn.disabled=true;btn.textContent='核对中…';
+  setTimeout(()=>{
+    btn.textContent='核对邀请';
+    if(val()===VALID){pass.classList.add('ok');msg.textContent='✓ 邀请码有效 · 邀请人 林舟';btn.textContent='已解锁';boxes.forEach(b=>b.disabled=true);return}
+    left--;pass.classList.remove('bad');void pass.offsetWidth;pass.classList.add('bad');
+    if(left<=0){let s=30;lockT=setInterval(()=>{s--;msg.textContent='尝试次数过多，请 '+s+' 秒后再试';if(s<=0){clearInterval(lockT);lockT=null;left=5;msg.textContent='已解除限制，还可尝试 5 次';sync()}},1000);msg.textContent='尝试次数过多，请 30 秒后再试'}
+    else msg.textContent='这个邀请码无效或已被使用。请核对 0 与 O、1 与 I；还可尝试 '+left+' 次';
+    btn.disabled=true;
+  },700);
+});
+const letter=document.getElementById('letter');
+letter.addEventListener('click',()=>letter.classList.toggle('reveal'));
+const ow=document.getElementById('openWait'),wf=document.getElementById('waitform');
+ow.addEventListener('click',()=>{const o=wf.classList.toggle('show');ow.setAttribute('aria-expanded',o);if(o)wf.querySelector('input').focus()});
+wf.addEventListener('submit',e=>{e.preventDefault();wf.innerHTML='<span class="perk"><b>#4,182</b>你已在候补名单中，有空位时我们会发邮件通知你</span>'});
+</script>
+</body>
+</html>

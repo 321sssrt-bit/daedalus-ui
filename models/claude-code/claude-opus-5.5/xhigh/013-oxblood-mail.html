@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>青梧出版社 · 编辑收件箱</title>
+<style>
+:root{
+  --oxblood:#5a1a1f;--oxblood-2:#6e2329;--oxblood-3:#7f2c33;--cream:#f4ecdf;--paper:#fffaf2;--ink:#231b17;--muted:#7d6d60;
+  --gold:#c8a25a;--line:#e3d6c3;--unread:#a3262f;--side-text:#efdcc9;
+  --serif:"Songti SC","STSong","Georgia","SimSun",serif;
+  --sans:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font:14px/1.5 var(--sans);color:var(--ink);background:var(--cream);overflow:hidden}
+.app{display:grid;grid-template-columns:220px 380px minmax(0,1fr);height:100vh;min-height:600px}
+.side{background:var(--oxblood);color:var(--side-text);padding:22px 14px;display:flex;flex-direction:column;gap:2px}
+.side .brand{font:700 20px var(--serif);padding:0 10px 4px;color:#fff6ea;letter-spacing:.08em}
+.side .who{font-size:12px;color:#c9a99a;padding:0 10px 20px}
+.compose{margin:0 4px 18px;height:42px;border-radius:6px;border:1px solid var(--gold);background:transparent;color:#fff6ea;font:600 14px var(--sans);cursor:pointer;letter-spacing:.1em}
+.compose:hover{background:var(--gold);color:var(--oxblood)}
+.folder{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:6px;color:var(--side-text);text-decoration:none;font-size:14px;cursor:pointer;border:0;background:none;text-align:left;font-family:var(--sans)}
+.folder:hover{background:var(--oxblood-2)}
+.folder[aria-current="true"]{background:var(--oxblood-3);color:#fff}
+.folder .n{margin-left:auto;font-size:12px;color:var(--gold)}
+.folder i{width:6px;height:6px;border-radius:50%;flex:none}
+.side h4{font:600 11px var(--sans);letter-spacing:.2em;color:#b88f80;margin:20px 10px 6px}
+.list{border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:0;background:var(--cream)}
+.lhead{padding:18px 18px 10px;border-bottom:1px solid var(--line)}
+.lhead h1{font:700 22px var(--serif);margin:0 0 10px;display:flex;align-items:baseline;gap:10px}
+.lhead h1 small{font:12px var(--sans);color:var(--muted)}
+.search{width:100%;height:36px;border-radius:6px;border:1px solid var(--line);background:var(--paper);padding:0 12px;font:13px var(--sans);outline:none;color:var(--ink)}
+.search:focus{border-color:var(--oxblood);box-shadow:0 0 0 3px #5a1a1f1f}
+.tabs{display:flex;gap:4px;margin-top:10px}
+.tabs button{border:0;background:none;padding:5px 12px;border-radius:999px;font:13px var(--sans);color:var(--muted);cursor:pointer}
+.tabs button[aria-pressed="true"]{background:var(--oxblood);color:#fff6ea}
+.tabs button:hover:not([aria-pressed="true"]){background:#e9dccb}
+.items{overflow:auto;flex:1}
+.item{display:grid;grid-template-columns:10px 1fr auto;gap:4px 10px;padding:13px 18px 13px 12px;border-bottom:1px solid var(--line);cursor:pointer;position:relative;outline:none}
+.item:hover{background:#efe4d4}
+.item[aria-selected="true"]{background:var(--paper);box-shadow:inset 3px 0 0 var(--oxblood)}
+.item:focus-visible{box-shadow:inset 0 0 0 2px var(--oxblood)}
+.item .dot{width:7px;height:7px;border-radius:50%;margin-top:7px}
+.item.unread .dot{background:var(--unread)}
+.item .from{font-size:14px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item.unread .from,.item.unread .subj{font-weight:700}
+.item time{font-size:12px;color:var(--muted)}
+.item .subj{grid-column:2/4;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item .prev{grid-column:2/4;font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item .star{position:absolute;right:16px;bottom:12px;color:var(--gold);font-size:13px}
+.empty{padding:60px 24px;text-align:center;color:var(--muted);font:15px var(--serif)}
+.read{display:flex;flex-direction:column;min-height:0;background:var(--paper)}
+.rbar{display:flex;align-items:center;gap:6px;padding:12px 28px;border-bottom:1px solid var(--line)}
+.rbar button{height:32px;padding:0 12px;border-radius:6px;border:1px solid var(--line);background:var(--paper);font:13px var(--sans);color:var(--ink);cursor:pointer;display:flex;align-items:center;gap:6px}
+.rbar button:hover{border-color:var(--oxblood);color:var(--oxblood)}
+.rbar button[aria-pressed="true"]{background:#fbf1dd;border-color:var(--gold);color:#8a6a24}
+.rbar button:focus-visible,.folder:focus-visible,.compose:focus-visible,.tabs button:focus-visible,.send:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+#back{display:none}
+.rbar .sp{flex:1}
+.rbar .pos{font-size:12px;color:var(--muted)}
+.letter{overflow:auto;flex:1;padding:30px 56px 40px}
+.letter h2{font:700 28px/1.35 var(--serif);margin:0 0 16px;max-width:680px}
+.meta{display:flex;align-items:center;gap:12px;padding-bottom:18px;border-bottom:1px solid var(--line);margin-bottom:22px;max-width:680px}
+.av{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;font:700 16px var(--serif);color:#fff6ea;background:var(--oxblood-3);flex:none}
+.meta b{display:block;font-size:14px}
+.meta small{color:var(--muted);font-size:12px}
+.meta time{margin-left:auto;font-size:12px;color:var(--muted);white-space:nowrap}
+.body{font:16px/1.95 var(--serif);max-width:640px;color:#2e2520}
+.body p{margin:0 0 1em}
+.attach{display:flex;gap:10px;margin:22px 0;max-width:640px}
+.attach div{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:6px;padding:10px 14px;font-size:13px;background:var(--cream)}
+.attach i{width:28px;height:34px;background:var(--oxblood-3);border-radius:2px;display:grid;place-items:center;color:#fff6ea;font:700 9px var(--sans);font-style:normal}
+.attach small{display:block;color:var(--muted);font-size:11px}
+.reply{max-width:640px;border:1px solid var(--line);border-radius:8px;background:#fffdf8;margin-top:10px}
+.reply textarea{width:100%;min-height:80px;border:0;resize:vertical;background:transparent;padding:14px 16px;font:15px/1.7 var(--serif);color:var(--ink);outline:none}
+.reply:focus-within{border-color:var(--oxblood);box-shadow:0 0 0 3px #5a1a1f14}
+.reply .rf{display:flex;justify-content:space-between;align-items:center;padding:8px 10px 10px 16px;font-size:12px;color:var(--muted)}
+.send{height:34px;padding:0 18px;border:0;border-radius:6px;background:var(--oxblood);color:#fff6ea;font:600 13px var(--sans);cursor:pointer}
+.send:hover{background:var(--oxblood-3)}
+.send:disabled{background:#cdb8aa;cursor:not-allowed}
+.toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,20px);opacity:0;background:var(--ink);color:#fff6ea;padding:10px 16px;border-radius:6px;font-size:13px;display:flex;gap:16px;align-items:center;transition:all .25s;pointer-events:none}
+.toast.show{opacity:1;transform:translate(-50%,0);pointer-events:auto}
+.toast button{border:0;background:none;color:var(--gold);font:600 13px var(--sans);cursor:pointer}
+@media (max-width:1180px){.app{grid-template-columns:72px 340px minmax(0,1fr)}.side .brand,.side .who,.side h4,.folder span,.folder .n{display:none}.compose{font-size:0;height:40px}.compose::after{content:'✎';font-size:16px}.folder{justify-content:center}.letter{padding:24px 32px}}
+@media (max-width:820px){.app{grid-template-columns:1fr;grid-template-rows:auto 1fr}.side{display:none}.read{display:none}.app.reading .list{display:none}.app.reading .read{display:flex}body{overflow:auto}#back{display:flex}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <nav class="side" aria-label="邮箱文件夹">
+    <div class="brand">青梧出版社</div>
+    <div class="who">何砚 · 文学编辑部</div>
+    <button class="compose" type="button">写 信</button>
+    <button class="folder" aria-current="true" type="button"><i style="background:#c8a25a"></i><span>收件箱</span><b class="n" id="nIn">5</b></button>
+    <button class="folder" type="button"><i></i><span>星标</span><b class="n" id="nStar">2</b></button>
+    <button class="folder" type="button"><i></i><span>已发送</span></button>
+    <button class="folder" type="button"><i></i><span>草稿</span><b class="n">1</b></button>
+    <button class="folder" type="button"><i></i><span>已归档</span><b class="n" id="nArc">138</b></button>
+    <h4>书稿</h4>
+    <button class="folder" type="button"><i style="background:#e3a072"></i><span>《北方的河流》</span></button>
+    <button class="folder" type="button"><i style="background:#a6c3a1"></i><span>《盐与糖》</span></button>
+    <button class="folder" type="button"><i style="background:#b9a6d9"></i><span>年度诗选</span></button>
+  </nav>
+  <section class="list" aria-label="邮件列表">
+    <div class="lhead">
+      <h1>收件箱 <small id="lcount"></small></h1>
+      <input class="search" id="q" type="search" placeholder="搜索发件人、书名或关键词" aria-label="搜索邮件">
+      <div class="tabs" role="group" aria-label="过滤"><button type="button" aria-pressed="true" data-f="all">全部</button><button type="button" aria-pressed="false" data-f="unread">未读</button><button type="button" aria-pressed="false" data-f="star">星标</button></div>
+    </div>
+    <div class="items" id="items" role="listbox" aria-label="邮件"></div>
+  </section>
+  <section class="read" aria-label="阅读区">
+    <div class="rbar">
+      <button type="button" id="back">← 返回</button>
+      <button type="button" id="star" aria-pressed="false">☆ 星标</button>
+      <button type="button" id="archive">归档</button>
+      <button type="button" id="toggleRead">标为未读</button>
+      <span class="sp"></span><span class="pos" id="pos"></span>
+    </div>
+    <article class="letter" id="letter"></article>
+  </section>
+</div>
+<div class="toast" id="toast" role="status"><span id="tt"></span><button type="button" id="undo">撤销</button></div>
+<script>
+const mails=[
+ {f:'苏迟',e:'作者',t:'09:42',s:'《北方的河流》第三稿已发，改了结尾',p:'何老师好，按您上次的意见，我把最后一章重写了……',u:1,st:1,b:['何老师好：','按您上次的意见，我把最后一章重新写了一遍。原来父亲在渡口沉默离开的那一段，我改成了让他把那只旧怀表留在船舱里——不再解释，让读者自己去捡。','第七章删去了大约四千字，主要是母亲回忆插队的部分，我知道您觉得那里拖。不过有两段我实在舍不得，放在附件的「删余」里，您看要不要救回来一点。','封面的事，我更喜欢第二版那个灰蓝色的。','祝好，','苏迟'],a:[['DOC','北方的河流_第三稿.docx','412 KB'],['DOC','删余.docx','38 KB']]},
+ {f:'鸿印印务 · 刘经理',e:'印厂',t:'08:15',s:'《盐与糖》打样已出，周五前请确认色差',p:'打样寄出，顺丰单号 SF1420……封面专色偏暖约 3%',u:1,st:0,b:['何编辑：','《盐与糖》封面与内文打样已于昨晚寄出，顺丰单号 SF1420 3378 9021，预计今天下午送达。','需要提醒的是，封面的专色在这批纸上偏暖约 3%，我们拍了对比照片在附件里。如果能接受，周五前确认即可进机；若需调色，排期会顺延两个工作日。','刘明'],a:[['JPG','色差对比.jpg','2.1 MB']]},
+ {f:'林浅（封面设计）',e:'设计师',t:'昨天',s:'灰蓝版封面的书脊文字改好了',p:'书脊宽度按 18mm 重排，作者名改成竖排……',u:1,st:1,b:['何砚：','按 288 页、80 克纸算出来书脊是 18mm，我重新排了一下，作者名改成竖排，出版社标放在底部。','另外，腰封文案「一条河，流过三代人」我建议去掉逗号，读起来更像一句叹息。你觉得呢？','浅'],a:[['PDF','封面_灰蓝_v4.pdf','5.6 MB']]},
+ {f:'版权部 · 周以宁',e:'同事',t:'昨天',s:'年度诗选：还有 4 位作者未回授权书',p:'截至今天已收回 37 份，名单附后……',u:0,st:0,b:['何砚：','年度诗选授权书截至今天已收回 37 份，还有 4 位作者没有回复，名单附后。其中两位的联系方式可能已经失效，需要你帮忙通过作协再找一下。','下周三是最后期限，之后只能撤稿。','以宁'],a:[]},
+ {f:'读者来信 · 匿名',e:'读者',t:'周二',s:'谢谢你们出版了《雪线》',p:'我在高原工作了十一年，读到第 112 页时哭了……',u:1,st:0,b:['编辑老师：','我在高原的气象站工作了十一年。读到《雪线》第 112 页，那个人在风里数着氧气瓶的那一段时，我在宿舍里哭了。','不知道能不能转告作者，谢谢她写下了我们。','一个读者'],a:[]},
+ {f:'发行部 · 韩东',e:'同事',t:'周一',s:'十月首周销量简报',p:'《雪线》加印 8000 册已到仓，《盐与糖》预售 2,140 册……',u:0,st:0,b:['各位编辑：','十月首周简报：《雪线》加印 8000 册已到仓；《盐与糖》预售 2,140 册，豆瓣想读 6,800；《北方的河流》尚未开启预售。','韩东'],a:[]}
+];
+let f='all',sel=0,q='',last=null;
+const items=document.getElementById('items');
+function visible(){return mails.map((m,i)=>[m,i]).filter(([m])=>!m.arc&&(f==='all'||(f==='unread'?m.u:m.st))&&(!q||(m.f+m.s+m.p).includes(q)))}
+function renderList(){
+  const v=visible();
+  items.innerHTML=v.length?v.map(([m,i])=>'<div class="item'+(m.u?' unread':'')+'" role="option" tabindex="0" data-i="'+i+'" aria-selected="'+(i===sel)+'"><span class="dot"></span><span class="from">'+m.f+'</span><time>'+m.t+'</time><span class="subj">'+m.s+'</span><span class="prev">'+m.p+'</span>'+(m.st?'<span class="star">★</span>':'')+'</div>').join(''):'<div class="empty">这里没有符合条件的信。<br>喝口茶吧。</div>';
+  items.querySelectorAll('.item').forEach(el=>{el.onclick=()=>pick(+el.dataset.i);el.onkeydown=e=>{if(e.key==='Enter')pick(+el.dataset.i);if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();const n=e.key==='ArrowDown'?el.nextElementSibling:el.previousElementSibling;if(n&&n.dataset.i){pick(+n.dataset.i);items.querySelector('[data-i="'+n.dataset.i+'"]').focus()}}}});
+  const live=mails.filter(m=>!m.arc);
+  document.getElementById('lcount').textContent=live.length+' 封 · '+live.filter(m=>m.u).length+' 未读';
+  document.getElementById('nIn').textContent=live.filter(m=>m.u).length;
+  document.getElementById('nStar').textContent=live.filter(m=>m.st).length;
+}
+function renderRead(){
+  const m=mails[sel],L=document.getElementById('letter');
+  if(!m||m.arc){L.innerHTML='<div class="empty">选择左侧的一封信来阅读。</div>';return}
+  L.innerHTML='<h2>'+m.s+'</h2><div class="meta"><span class="av">'+m.f[0]+'</span><div><b>'+m.f+'</b><small>'+m.e+' · 发给 何砚</small></div><time>'+m.t+'</time></div><div class="body">'+m.b.map(x=>'<p>'+x+'</p>').join('')+'</div>'+
+   (m.a.length?'<div class="attach">'+m.a.map(a=>'<div><i>'+a[0]+'</i><span>'+a[1]+'<small>'+a[2]+'</small></span></div>').join('')+'</div>':'')+
+   '<div class="reply"><textarea placeholder="回复 '+m.f+'…" aria-label="回复内容"></textarea><div class="rf"><span>Ctrl + Enter 发送</span><button class="send" type="button" disabled>发送</button></div></div>';
+  const ta=L.querySelector('textarea'),sb=L.querySelector('.send');
+  ta.oninput=()=>sb.disabled=!ta.value.trim();
+  ta.onkeydown=e=>{if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)&&ta.value.trim())sb.click()};
+  sb.onclick=()=>{ta.value='';sb.disabled=true;toast('回复已发送给 '+m.f,false)};
+  const s=document.getElementById('star');s.setAttribute('aria-pressed',!!m.st);s.textContent=m.st?'★ 已星标':'☆ 星标';
+  document.getElementById('toggleRead').textContent=m.u?'标为已读':'标为未读';
+  const v=visible().map(x=>x[1]);document.getElementById('pos').textContent=(v.indexOf(sel)+1||'—')+' / '+v.length;
+}
+function pick(i){sel=i;mails[i].u=0;renderList();renderRead();document.getElementById('app').classList.add('reading')}
+function toast(t,undo){document.getElementById('tt').textContent=t;document.getElementById('undo').style.display=undo?'':'none';const e=document.getElementById('toast');e.classList.add('show');clearTimeout(toast.h);toast.h=setTimeout(()=>e.classList.remove('show'),4000)}
+document.getElementById('star').onclick=()=>{const m=mails[sel];if(!m||m.arc)return;m.st=m.st?0:1;renderList();renderRead()};
+document.getElementById('toggleRead').onclick=()=>{const m=mails[sel];if(!m||m.arc)return;m.u=m.u?0:1;renderList();renderRead()};
+document.getElementById('archive').onclick=()=>{const m=mails[sel];if(!m||m.arc)return;m.arc=1;last=sel;document.getElementById('nArc').textContent=139;
+  const v=visible();sel=v.length?v[0][1]:-1;renderList();renderRead();toast('已归档「'+m.s.slice(0,12)+'…」',true)};
+document.getElementById('undo').onclick=()=>{if(last===null)return;mails[last].arc=0;sel=last;last=null;document.getElementById('nArc').textContent=138;renderList();renderRead();document.getElementById('toast').classList.remove('show')};
+document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{f=b.dataset.f;document.querySelectorAll('.tabs button').forEach(x=>x.setAttribute('aria-pressed',x===b));renderList();renderRead()});
+document.getElementById('q').oninput=e=>{q=e.target.value.trim();renderList()};
+document.getElementById('back').onclick=()=>document.getElementById('app').classList.remove('reading');
+mails[0].u=0;renderList();renderRead();
+</script>
+</body>
+</html>

@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>方块白板 · 欢迎</title>
+<style>
+:root{
+  --paper:#f2ece0;--ink:#111111;--muted:#5b574f;--red:#e1352b;--yellow:#f4c20d;--blue:#1f4fa8;--line:#d8cfbd;
+  --geo:"Futura","Avenir Next","Century Gothic","PingFang SC",sans-serif;
+  --sans:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--paper);color:var(--ink);font:16px/1.65 var(--sans)}
+.app{height:100%;min-height:640px;display:grid;grid-template-columns:1fr 1fr}
+.art{position:relative;background:var(--ink);overflow:hidden}
+.shape{position:absolute;transition:all .6s cubic-bezier(.65,0,.35,1)}
+.s-circle{border-radius:50%;background:var(--red)}
+.s-square{background:var(--yellow)}
+.s-tri{width:0;height:0;border-left:solid transparent;border-right:solid transparent;border-bottom:solid var(--blue);background:none}
+.s-bar{background:var(--paper)}
+.s-half{border-radius:999px 999px 0 0;background:var(--blue)}
+.cursor{position:absolute;display:flex;align-items:center;gap:6px;font:600 12px var(--sans);transition:all .6s cubic-bezier(.65,0,.35,1);opacity:0}
+.cursor svg{width:18px;height:18px}
+.cursor span{padding:2px 8px;color:#fff}
+.side{display:grid;grid-template-rows:72px 1fr 96px;padding:0 clamp(28px,5vw,64px)}
+.bar{display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid var(--ink)}
+.logo{display:flex;align-items:center;gap:10px;font:700 18px var(--sans)}
+.logo i{display:grid;grid-template-columns:repeat(2,10px);gap:2px}
+.logo i b{width:10px;height:10px;background:var(--ink)}
+.logo i b:nth-child(1){background:var(--red);border-radius:50%}
+.logo i b:nth-child(4){background:var(--blue)}
+.skip{background:none;border:0;font:500 14px var(--sans);color:var(--muted);cursor:pointer;padding:8px 0;border-bottom:2px solid transparent}
+.skip:hover{color:var(--ink);border-bottom-color:var(--ink)}
+.body{display:flex;flex-direction:column;justify-content:center;max-width:480px}
+.num{font:700 160px/0.8 var(--geo);letter-spacing:-.04em;margin:0 0 28px;color:var(--ink);display:flex;align-items:flex-end;gap:16px}
+.num small{font:600 15px/1 var(--sans);letter-spacing:.2em;color:var(--muted);padding-bottom:12px}
+h1{font:800 40px/1.2 var(--sans);margin:0 0 16px;letter-spacing:-.01em}
+.desc{color:var(--muted);margin:0 0 28px;font-size:17px}
+.points{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.points li{display:flex;gap:12px;align-items:center;font-size:15px}
+.points li i{width:12px;height:12px;flex:none}
+.points li:nth-child(1) i{background:var(--red);border-radius:50%}
+.points li:nth-child(2) i{background:var(--yellow)}
+.points li:nth-child(3) i{width:0;height:0;border-left:7px solid transparent;border-right:7px solid transparent;border-bottom:12px solid var(--blue)}
+.tpls{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.tpl{border:2px solid var(--ink);background:var(--paper);padding:14px 12px 12px;text-align:left;cursor:pointer;font:600 14px var(--sans);display:grid;gap:10px;transition:transform .15s,box-shadow .15s}
+.tpl:hover{transform:translate(-2px,-2px);box-shadow:4px 4px 0 var(--ink)}
+.tpl[aria-pressed="true"]{background:var(--yellow);box-shadow:4px 4px 0 var(--ink);transform:translate(-2px,-2px)}
+.tpl .mini{height:56px;display:flex;gap:4px;align-items:flex-end}
+.tpl .mini b{flex:1;background:var(--ink)}
+.tpl small{font-weight:400;color:var(--muted);font-size:12px}
+.foot{display:flex;align-items:center;justify-content:space-between;border-top:2px solid var(--ink)}
+.dots{display:flex;gap:14px;align-items:center}
+.dot{width:18px;height:18px;border:2px solid var(--ink);background:none;padding:0;cursor:pointer}
+.dot:nth-child(1){border-radius:50%}
+.dot:nth-child(3){border-radius:999px 999px 0 0}
+.dot:nth-child(4){transform:rotate(45deg);width:15px;height:15px}
+.dot[aria-current="step"]{background:var(--ink)}
+.nav{display:flex;gap:12px}
+.btn{height:52px;padding:0 28px;white-space:nowrap;font:700 16px var(--sans);border:2px solid var(--ink);cursor:pointer;display:inline-flex;align-items:center;gap:10px;transition:transform .12s,box-shadow .12s,background .12s}
+.prev{background:transparent;color:var(--ink)}
+.prev:hover{background:#e6dece}
+.prev:disabled{opacity:.3;cursor:not-allowed}
+.next{background:var(--red);color:#fff;box-shadow:4px 4px 0 var(--ink)}
+.next:hover{transform:translate(-1px,-1px);box-shadow:5px 5px 0 var(--ink)}
+.next:active{transform:translate(3px,3px);box-shadow:1px 1px 0 var(--ink)}
+.next.go{background:var(--blue)}
+.btn:focus-visible,.skip:focus-visible,.dot:focus-visible,.tpl:focus-visible{outline:3px solid var(--yellow);outline-offset:3px}
+.fade{animation:in .45s ease-out}
+.done{position:fixed;inset:0;background:var(--paper);display:none;align-items:center;justify-content:center;flex-direction:column;gap:12px;text-align:center;z-index:5}
+.done.show{display:flex}
+.done h2{font:800 36px var(--sans);margin:0}
+.done p{color:var(--muted);margin:0 0 12px}
+@keyframes in{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:none}}
+@media (max-width:900px){
+  .app{grid-template-columns:1fr;grid-template-rows:280px 1fr;height:auto}
+  .side{padding:0 28px;grid-template-rows:64px auto 88px}
+  .body{padding:32px 0;max-width:none}
+  .num{font-size:96px}
+  h1{font-size:30px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="art" aria-hidden="true">
+    <div class="shape s-circle" data-n="c"></div>
+    <div class="shape s-square" data-n="s"></div>
+    <div class="shape s-tri" data-n="t"></div>
+    <div class="shape s-bar" data-n="b"></div>
+    <div class="shape s-half" data-n="h"></div>
+    <div class="cursor" data-n="u1"><svg viewBox="0 0 18 18"><path d="M2 2l12 5-5 2-2 5z" fill="#f4c20d" stroke="#111111" stroke-width="1.2"/></svg><span style="background:#e1352b">阿岚</span></div>
+    <div class="cursor" data-n="u2"><svg viewBox="0 0 18 18"><path d="M2 2l12 5-5 2-2 5z" fill="#f2ece0" stroke="#111111" stroke-width="1.2"/></svg><span style="background:#1f4fa8">老周</span></div>
+  </div>
+  <section class="side">
+    <header class="bar">
+      <div class="logo"><i><b></b><b></b><b></b><b></b></i>方块白板</div>
+      <button class="skip" type="button">跳过引导</button>
+    </header>
+    <div class="body" id="body" aria-live="polite"></div>
+    <footer class="foot">
+      <div class="dots" role="tablist" aria-label="引导步骤"></div>
+      <div class="nav">
+        <button class="btn prev" type="button">← 上一步</button>
+        <button class="btn next" type="button">下一步 →</button>
+      </div>
+    </footer>
+  </section>
+</div>
+<div class="done" role="dialog" aria-modal="true" aria-labelledby="doneT">
+  <h2 id="doneT">白板已准备好</h2>
+  <p id="doneP">正在为你打开「头脑风暴」模板…</p>
+  <button class="btn next" type="button" id="again">重新看一遍引导</button>
+</div>
+<script>
+const steps=[
+  {t:'一块没有边的白板',d:'方块是一张可以无限延伸的画布。会议记录、流程草图、产品路线图，都能先随手放上来，再慢慢理清。',p:['滚轮缩放，空格拖动画布','双击任意空白处直接打字','所有改动自动保存，不用找保存键'],
+   art:{c:[90,90,220,220],s:[340,200,180,180],t:[180,430,130],b:[60,620,480,14],h:[360,520,200,100],u1:null,u2:null}},
+  {t:'用形状说话',d:'圆是想法，方块是任务，三角是风险。拖出一条线，它们就有了关系；框选一片，就成了一个分组。',p:['按 S 放便签，按 L 拉连线','框选后按 G 合成分组','右键把便签一键转成任务'],
+   art:{c:[120,160,140,140],s:[300,140,140,140],t:[220,360,110],b:[190,220,120,10],h:[420,420,160,80],u1:null,u2:null}},
+  {t:'和团队画在同一张纸上',d:'邀请同事后，每个人的光标都会实时出现。谁在看哪里、在改什么，一眼就知道，不用再截图来回传。',p:['@某人，对方会收到提醒','跟随模式：一键看主讲人的视角','评论可以钉在任何一个形状上'],
+   art:{c:[80,300,180,180],s:[320,120,200,200],t:[340,420,120],b:[40,560,520,14],h:[100,80,180,90],u1:[300,360],u2:[180,200]}},
+  {t:'挑一个起手式',d:'选一个模板开始，也可以从空白画布起步。之后随时能在左上角菜单换模板。',p:null,tpl:true,
+   art:{c:[260,220,120,120],s:[120,200,120,120],t:[390,200,64],b:[120,360,340,10],h:[220,420,160,80],u1:[420,300],u2:[120,420]}}
+];
+const tpls=[['头脑风暴','便签墙 + 投票',[30,60,45,80]],['周会看板','三列推进',[70,70,70,30]],['空白画布','从零开始',[8,8,8,8]]];
+let i=0,tpl=0;
+const body=document.getElementById('body'),dots=document.querySelector('.dots'),prev=document.querySelector('.prev'),next=document.querySelector('.next');
+steps.forEach((s,k)=>{const b=document.createElement('button');b.className='dot';b.type='button';b.setAttribute('aria-label','第 '+(k+1)+' 步：'+s.t);b.onclick=()=>go(k);dots.append(b)});
+function place(){
+  const a=steps[i].art,box=document.querySelector('.art').getBoundingClientRect(),k=Math.min(box.width/600,box.height/720);
+  document.querySelectorAll('.art [data-n]').forEach(el=>{
+    const v=a[el.dataset.n];
+    if(el.classList.contains('cursor')){el.style.opacity=v?1:0;if(v){el.style.left=v[0]*k+'px';el.style.top=v[1]*k+'px'}return}
+    if(el.classList.contains('s-tri')){el.style.left=v[0]*k+'px';el.style.top=v[1]*k+'px';el.style.borderLeftWidth=v[2]*k+'px';el.style.borderRightWidth=v[2]*k+'px';el.style.borderBottomWidth=v[2]*1.7*k+'px';return}
+    el.style.left=v[0]*k+'px';el.style.top=v[1]*k+'px';el.style.width=v[2]*k+'px';el.style.height=v[3]*k+'px';
+  });
+}
+function render(){
+  const s=steps[i];
+  let h='<p class="num">0'+(i+1)+'<small>/ 04</small></p><h1>'+s.t+'</h1><p class="desc">'+s.d+'</p>';
+  if(s.p)h+='<ul class="points">'+s.p.map(x=>'<li><i></i>'+x+'</li>').join('')+'</ul>';
+  if(s.tpl)h+='<div class="tpls">'+tpls.map((t,k)=>'<button type="button" class="tpl" aria-pressed="'+(k===tpl)+'" data-k="'+k+'"><span class="mini">'+t[2].map(n=>'<b style="height:'+n+'%"></b>').join('')+'</span>'+t[0]+'<small>'+t[1]+'</small></button>').join('')+'</div>';
+  body.innerHTML=h;body.classList.remove('fade');void body.offsetWidth;body.classList.add('fade');
+  body.querySelectorAll('.tpl').forEach(b=>b.onclick=()=>{tpl=+b.dataset.k;render()});
+  [...dots.children].forEach((d,k)=>k===i?d.setAttribute('aria-current','step'):d.removeAttribute('aria-current'));
+  prev.disabled=i===0;
+  const last=i===steps.length-1;next.textContent=last?'开始用方块 ✓':'下一步 →';next.classList.toggle('go',last);
+  place();
+}
+function go(k){i=Math.max(0,Math.min(steps.length-1,k));render()}
+function finish(skipped){document.getElementById('doneP').textContent=skipped?'已跳过引导，为你打开一张空白画布。':'正在为你打开「'+tpls[tpl][0]+'」模板…';document.querySelector('.done').classList.add('show')}
+prev.onclick=()=>go(i-1);
+next.onclick=()=>i===steps.length-1?finish(false):go(i+1);
+document.querySelector('.skip').onclick=()=>finish(true);
+document.getElementById('again').onclick=()=>{document.querySelector('.done').classList.remove('show');go(0)};
+document.addEventListener('keydown',e=>{if(document.querySelector('.done.show'))return;if(e.key==='ArrowRight')next.click();if(e.key==='ArrowLeft'&&i>0)go(i-1)});
+addEventListener('resize',place);
+render();
+</script>
+</body>
+</html>

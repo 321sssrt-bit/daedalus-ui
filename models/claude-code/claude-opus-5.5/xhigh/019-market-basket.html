@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>早市到家 · 菜篮子</title>
+<style>
+:root{
+  --page:#fbf8ef;--crate:#f1e7cf;--green:#2f7d32;--green-dk:#1f5a23;--tag:#1f3d2a;--tomato:#e8553d;--yolk:#f6c343;--ink:#24301f;--muted:#7a7f6c;--line:#e4dcc5;--receipt:#ffffff;
+  --sans:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  --mono:"SF Mono","Menlo","Consolas",monospace;
+  --round:"Avenir Next","Arial Rounded MT Bold","PingFang SC",sans-serif;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0}
+body{background:var(--page);color:var(--ink);font:14px/1.55 var(--sans)}
+.top{display:flex;align-items:center;gap:20px;padding:16px 40px;background:var(--green);color:#fff}
+.logo{font:800 20px var(--round);display:flex;align-items:center;gap:8px}
+.logo i{width:28px;height:28px;border-radius:50%;background:var(--yolk);display:grid;place-items:center;font-style:normal;font-size:15px}
+.top .where{font-size:13px;opacity:.85}
+.top .eta{margin-left:auto;background:#ffffff22;padding:6px 12px;border-radius:999px;font-size:13px}
+.wrap{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:36px;padding:28px 40px 48px;max-width:1280px;margin:0 auto}
+h1{font:800 30px var(--round);margin:0 0 4px;display:flex;align-items:baseline;gap:12px}
+h1 small{font:14px var(--sans);color:var(--muted)}
+.free{margin:14px 0 20px;padding:12px 16px;border-radius:14px;background:var(--crate);display:grid;grid-template-columns:1fr auto;gap:8px 16px;align-items:center}
+.free p{margin:0;font-size:13px}
+.free p b{color:var(--tomato)}
+.free .bar{grid-column:1/-1;height:8px;border-radius:4px;background:#e2d5b4;overflow:hidden}
+.free .bar i{display:block;height:100%;background:var(--green);border-radius:4px;transition:width .3s}
+.free .ok{color:var(--green);font-weight:700}
+.list{display:flex;flex-direction:column;gap:12px}
+.row{display:grid;grid-template-columns:88px minmax(0,1fr) auto auto auto 36px;gap:18px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:18px;padding:12px 16px 12px 12px;transition:opacity .25s,transform .25s}
+.row.gone{opacity:0;transform:translateX(30px)}
+.pic{width:88px;height:72px;border-radius:12px;background:var(--crate);display:grid;place-items:center}
+.pic svg{width:56px;height:56px}
+.name b{display:block;font-size:16px}
+.name small{color:var(--muted);font-size:12px}
+.name .from{display:inline-block;margin-top:4px;font-size:11px;padding:1px 8px;border-radius:999px;background:#e9f3e3;color:var(--green-dk)}
+.tag{position:relative;background:var(--tag);color:#fff;padding:6px 12px 6px 18px;border-radius:4px 10px 10px 4px;font:700 15px var(--round);white-space:nowrap}
+.tag::before{content:'';position:absolute;left:6px;top:50%;width:6px;height:6px;margin-top:-3px;border-radius:50%;background:var(--page)}
+.tag small{font:11px var(--sans);opacity:.75;margin-left:2px}
+.step{display:flex;align-items:center;gap:0;border:1.5px solid var(--line);border-radius:999px;overflow:hidden;background:#fff}
+.step button{width:36px;height:36px;border:0;background:#fff;color:var(--green);font:700 18px var(--sans);cursor:pointer}
+.step button:hover{background:#eef6ea}
+.step button:disabled{color:#c9c4b3;cursor:not-allowed;background:#fff}
+.step output{min-width:64px;text-align:center;font:700 14px var(--mono)}
+.sub{min-width:84px;text-align:right;font:800 17px var(--round)}
+.sub small{display:block;font:11px var(--sans);color:var(--muted);font-weight:400}
+.del{width:36px;height:36px;border-radius:50%;border:0;background:transparent;color:var(--muted);cursor:pointer;font-size:16px}
+.del:hover{background:#fde8e4;color:var(--tomato)}
+.step button:focus-visible,.del:focus-visible,.go:focus-visible,.add:focus-visible,.coupon button:focus-visible{outline:3px solid var(--yolk);outline-offset:2px}
+.undo{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-radius:14px;border:1.5px dashed var(--tomato);color:var(--tomato);font-size:13px;background:#fff7f5}
+.undo button{border:0;background:var(--tomato);color:#fff;border-radius:999px;padding:5px 14px;font:600 13px var(--sans);cursor:pointer}
+.more h2{font:800 18px var(--round);margin:28px 0 12px}
+.sugg{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.sugg div{background:#fff;border:1px solid var(--line);border-radius:16px;padding:12px;display:flex;flex-direction:column;align-items:center;gap:6px;font-size:13px;text-align:center}
+.sugg svg{width:44px;height:44px}
+.sugg b{font:700 14px var(--round)}
+.add{border:1.5px solid var(--green);background:#fff;color:var(--green);border-radius:999px;padding:4px 14px;font:600 12px var(--sans);cursor:pointer}
+.add:hover{background:var(--green);color:#fff}
+.receipt{position:sticky;top:20px;align-self:start;background:var(--receipt);padding:26px 24px 30px;font:13px/1.8 var(--mono);color:#333333;box-shadow:0 10px 30px #4b3f1c1f;
+  -webkit-mask:linear-gradient(#000 0 0) top/100% calc(100% - 12px) no-repeat,conic-gradient(from -45deg at bottom,#0000,#000 1deg 89deg,#0000 90deg) bottom/16px 12px repeat-x;
+  mask:linear-gradient(#000 0 0) top/100% calc(100% - 12px) no-repeat,conic-gradient(from -45deg at bottom,#0000,#000 1deg 89deg,#0000 90deg) bottom/16px 12px repeat-x}
+.receipt h3{text-align:center;font:800 18px var(--round);margin:0;color:var(--ink)}
+.receipt .c{text-align:center;color:#888888;font-size:11px;margin-bottom:10px}
+.dash{border-top:1.5px dashed #bbbbbb;margin:10px 0}
+.ln{display:flex;justify-content:space-between;gap:12px}
+.ln span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ln.minus{color:var(--tomato)}
+.total{display:flex;justify-content:space-between;align-items:baseline;margin-top:6px}
+.total b{font:800 34px var(--round);color:var(--ink)}
+.coupon{display:flex;gap:6px;margin:12px 0 4px}
+.coupon input{flex:1;height:36px;border:1.5px solid var(--line);border-radius:10px;padding:0 10px;font:13px var(--mono);outline:none;text-transform:uppercase}
+.coupon input:focus{border-color:var(--green)}
+.coupon button{height:36px;border:0;border-radius:10px;background:var(--crate);font:600 13px var(--sans);cursor:pointer;padding:0 12px}
+.cmsg{font-size:11px;min-height:18px;color:var(--muted)}
+.cmsg.bad{color:var(--tomato)}.cmsg.ok{color:var(--green)}
+.go{width:100%;height:56px;margin-top:14px;border:0;border-radius:16px;background:var(--green);color:#fff;font:800 17px var(--round);cursor:pointer;box-shadow:0 6px 0 var(--green-dk);transition:transform .08s,box-shadow .08s}
+.go:hover{background:#358a38}
+.go:active{transform:translateY(4px);box-shadow:0 2px 0 var(--green-dk)}
+.go:disabled{background:#b9c2ad;box-shadow:0 6px 0 #9aa48e;cursor:not-allowed}
+.barcode{height:34px;margin-top:18px;background:repeating-linear-gradient(90deg,#333333 0 2px,transparent 2px 4px,#333333 4px 5px,transparent 5px 8px,#333333 8px 11px,transparent 11px 12px)}
+@media (max-width:1060px){.wrap{grid-template-columns:1fr}.receipt{position:static}.sugg{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:680px){.wrap{padding:20px 16px}.top{padding:14px 16px}.top .where{display:none}.row{grid-template-columns:64px 1fr auto;grid-template-areas:'p n d' 'p t t' 's s s';gap:8px 12px}.pic{width:64px;height:60px;grid-area:p}.name{grid-area:n}.del{grid-area:d}.tag{grid-area:t;justify-self:start}.step{grid-area:s;justify-self:start}.sub{grid-area:s;justify-self:end;align-self:center}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<header class="top"><div class="logo"><i>🥚</i>早市到家</div><span class="where">送至 · 静安区 康定路 1288 弄</span><span class="eta">最快 35 分钟送达</span></header>
+<main class="wrap">
+  <section>
+    <h1>菜篮子 <small id="cnt"></small></h1>
+    <div class="free" id="free"></div>
+    <div class="list" id="list" aria-live="polite"></div>
+    <div class="more"><h2>也许你还需要</h2><div class="sugg" id="sugg"></div></div>
+  </section>
+  <aside class="receipt" aria-label="结算小票">
+    <h3>早市到家</h3><div class="c">康定路店 · 2026-10-23 14:32</div>
+    <div class="dash"></div>
+    <div id="lines"></div>
+    <div class="dash"></div>
+    <div class="ln"><span>商品小计</span><span id="subtotal"></span></div>
+    <div class="ln"><span>配送费</span><span id="ship"></span></div>
+    <div class="ln minus" id="discRow" hidden><span>优惠券 FRESH10</span><span id="disc"></span></div>
+    <div class="coupon"><input id="code" placeholder="优惠码" aria-label="优惠码"><button type="button" id="apply">使用</button></div>
+    <div class="cmsg" id="cmsg">试试 FRESH10，满 ¥60 减 ¥10</div>
+    <div class="dash"></div>
+    <div class="total"><span>应付</span><b id="total"></b></div>
+    <button class="go" type="button" id="go">去结算</button>
+    <div class="barcode" aria-hidden="true"></div>
+  </aside>
+</main>
+<script>
+const ico={tomato:'<svg viewBox="0 0 56 56"><circle cx="28" cy="31" r="18" fill="#e8553d"/><path d="M20 15c4 4 12 4 16 0M28 13v6" stroke="#2f7d32" stroke-width="3" stroke-linecap="round"/><circle cx="22" cy="27" r="3" fill="#ffffff66"/></svg>',
+ egg:'<svg viewBox="0 0 56 56"><ellipse cx="22" cy="32" rx="11" ry="14" fill="#f3e2c3"/><ellipse cx="36" cy="30" rx="11" ry="14" fill="#fbefd8"/></svg>',
+ leaf:'<svg viewBox="0 0 56 56"><path d="M28 48C12 40 12 18 28 8c16 10 16 32 0 40z" fill="#4c9a43"/><path d="M28 48V12" stroke="#2f7d32" stroke-width="2.5"/></svg>',
+ fish:'<svg viewBox="0 0 56 56"><path d="M8 28c10-14 28-14 36 0-8 14-26 14-36 0z" fill="#8fb4c9"/><path d="M44 28l8-8v16z" fill="#6f98ae"/><circle cx="18" cy="26" r="2" fill="#24301f"/></svg>',
+ tofu:'<svg viewBox="0 0 56 56"><path d="M10 22l18-8 18 8v18l-18 8-18-8z" fill="#fbf6e6" stroke="#e4dcc5" stroke-width="2"/><path d="M10 22l18 8 18-8M28 30v18" stroke="#e4dcc5" stroke-width="2" fill="none"/></svg>',
+ corn:'<svg viewBox="0 0 56 56"><ellipse cx="28" cy="28" rx="9" ry="18" fill="#f6c343"/><path d="M19 30c-6 6-4 16 9 16M37 30c6 6 4 16-9 16" fill="#4c9a43"/></svg>',
+ milk:'<svg viewBox="0 0 56 56"><path d="M18 18l4-8h12l4 8v28H18z" fill="#ffffff" stroke="#8fb4c9" stroke-width="2"/><rect x="18" y="26" width="20" height="10" fill="#8fb4c9"/></svg>',
+ scallion:'<svg viewBox="0 0 56 56"><path d="M24 8v32M30 8v32M36 12v28" stroke="#4c9a43" stroke-width="4" stroke-linecap="round"/><path d="M22 40h16v8H22z" fill="#f4f1e4"/></svg>'};
+let items=[
+ {k:'tomato',n:'崇明番茄',s:'沙瓤 · 约 4–5 个/斤',f:'崇明岛 · 今晨 5:40 采摘',p:6.8,u:'斤',step:.5,q:1.5},
+ {k:'egg',n:'林下散养土鸡蛋',s:'10 枚装',f:'安吉 · 竹林散养',p:22,u:'盒',step:1,q:1},
+ {k:'leaf',n:'上海青',s:'嫩芯 · 去老叶',f:'奉贤 · 露天种植',p:4.5,u:'斤',step:.5,q:1},
+ {k:'fish',n:'鲜活鲈鱼',s:'约 1.2 斤/条 · 免费宰杀',f:'舟山 · 当日到港',p:36,u:'条',step:1,q:1},
+ {k:'tofu',n:'石磨老豆腐',s:'400g · 卤水点',f:'本地作坊 · 凌晨现做',p:5.5,u:'块',step:1,q:2}
+];
+const sugg=[{k:'scallion',n:'香葱',s:'炒番茄蛋必备',p:2,u:'把',step:1,f:'奉贤'},{k:'corn',n:'糯玉米',s:'2 根装',p:7.9,u:'袋',step:1,f:'云南'},{k:'milk',n:'巴氏鲜奶',s:'950ml',p:15.8,u:'瓶',step:1,f:'光明牧场'},{k:'egg',n:'咸鸭蛋',s:'6 枚',p:12.5,u:'盒',step:1,f:'高邮'}];
+let removed=null,coupon=false;
+const FREE=59,SHIP=6;
+const fmt=n=>'¥'+n.toFixed(2);
+function sum(){return items.reduce((a,i)=>a+i.p*i.q,0)}
+function render(){
+  const L=document.getElementById('list');
+  L.innerHTML=items.map((i,x)=>'<div class="row" data-x="'+x+'"><div class="pic">'+ico[i.k]+'</div><div class="name"><b>'+i.n+'</b><small>'+i.s+'</small><br><span class="from">'+i.f+'</span></div><span class="tag">¥'+i.p.toFixed(1)+'<small>/'+i.u+'</small></span><div class="step"><button type="button" data-a="-" aria-label="减少 '+i.n+'" '+(i.q<=i.step?'disabled':'')+'>−</button><output>'+(i.step<1?i.q.toFixed(1):i.q)+' '+i.u+'</output><button type="button" data-a="+" aria-label="增加 '+i.n+'" '+(i.q>=10?'disabled':'')+'>＋</button></div><div class="sub">'+fmt(i.p*i.q)+'<small>'+(i.step<1?'按称重':'')+'</small></div><button class="del" type="button" aria-label="删除 '+i.n+'">✕</button></div>').join('')+
+   (removed?'<div class="undo"><span>已移除「'+removed.i.n+'」</span><button type="button" id="undo">撤销</button></div>':'')+
+   (items.length?'':'<div class="undo" style="border-color:#2f7d32;color:#2f7d32;background:#f3f9ef"><span>菜篮子空了，去逛逛今天的早市吧。</span></div>');
+  L.querySelectorAll('.row').forEach(r=>{const x=+r.dataset.x,i=items[x];
+    r.querySelector('[data-a="-"]').onclick=()=>{i.q=Math.max(i.step,+(i.q-i.step).toFixed(1));render()};
+    r.querySelector('[data-a="+"]').onclick=()=>{i.q=Math.min(10,+(i.q+i.step).toFixed(1));render()};
+    r.querySelector('.del').onclick=()=>{r.classList.add('gone');setTimeout(()=>{removed={i,x};items.splice(x,1);render()},matchMedia('(prefers-reduced-motion:reduce)').matches?0:220)};
+  });
+  const u=document.getElementById('undo');if(u)u.onclick=()=>{items.splice(removed.x,0,removed.i);removed=null;render()};
+  const s=sum(),ship=s>=FREE||!items.length?0:SHIP;
+  if(coupon&&s<60){coupon=false;msg('小计不足 ¥60，优惠券已自动移除','bad')}
+  const disc=coupon?10:0,total=Math.max(0,s+ship-disc);
+  document.getElementById('cnt').textContent=items.length+' 种商品';
+  document.getElementById('free').innerHTML=s>=FREE?'<p class="ok">✓ 已免配送费，骑手会在 35 分钟内送到</p><span></span><div class="bar"><i style="width:100%"></i></div>':'<p>再买 <b>'+fmt(FREE-s)+'</b> 免配送费</p><span style="font-size:12px;color:#7a7f6c">满 ¥59 包邮</span><div class="bar"><i style="width:'+Math.min(100,s/FREE*100)+'%"></i></div>';
+  document.getElementById('lines').innerHTML=items.map(i=>'<div class="ln"><span>'+i.n+' ×'+(i.step<1?i.q.toFixed(1):i.q)+'</span><span>'+fmt(i.p*i.q)+'</span></div>').join('')||'<div class="ln"><span>（空）</span><span>¥0.00</span></div>';
+  document.getElementById('subtotal').textContent=fmt(s);
+  document.getElementById('ship').textContent=ship?fmt(ship):'免费';
+  document.getElementById('discRow').hidden=!coupon;document.getElementById('disc').textContent='-'+fmt(disc);
+  document.getElementById('total').textContent=fmt(total);
+  document.getElementById('go').disabled=!items.length;document.getElementById('go').textContent=items.length?'去结算 · '+fmt(total):'菜篮子是空的';
+}
+function msg(t,c){const e=document.getElementById('cmsg');e.textContent=t;e.className='cmsg '+(c||'')}
+document.getElementById('apply').onclick=()=>{const v=document.getElementById('code').value.trim().toUpperCase();
+  if(v!=='FRESH10'){msg('优惠码无效或已过期','bad');return}
+  if(sum()<60){msg('还差 '+fmt(60-sum())+' 可用此券','bad');return}
+  coupon=true;msg('✓ 已减 ¥10','ok');render()};
+document.getElementById('sugg').innerHTML=sugg.map((s,k)=>'<div>'+ico[s.k]+'<b>'+s.n+'</b><span style="color:#7a7f6c;font-size:12px">'+s.s+'</span><span>¥'+s.p+'/'+s.u+'</span><button class="add" type="button" data-k="'+k+'">＋ 加入</button></div>').join('');
+document.querySelectorAll('#sugg .add').forEach(b=>b.onclick=()=>{const s=sugg[+b.dataset.k],ex=items.find(i=>i.n===s.n);if(ex)ex.q++;else items.push({k:s.k,n:s.n,s:s.s,f:s.f,p:s.p,u:s.u,step:1,q:1});b.textContent='✓ 已加入';render()});
+document.getElementById('go').onclick=e=>{e.currentTarget.textContent='正在为你挑选最新鲜的…'};
+render();
+</script>
+</body>
+</html>
