@@ -1,0 +1,2074 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>青驿铁路 · 路线查询</title>
+  <style>
+    :root {
+      --page: #E8E3D7;
+      --cream: #F7F1E3;
+      --paper: #FFFBF2;
+      --teal: #0D5C56;
+      --teal-dark: #083E3B;
+      --teal-soft: #D8E7DE;
+      --red: #C9483A;
+      --red-soft: #F5DFD4;
+      --ink: #173A36;
+      --muted: #65746D;
+      --line: #C8C9B8;
+      --occupied: #E3E1D8;
+      --occupied-text: #858A82;
+      --shadow: 0 10px 30px rgba(8, 62, 59, 0.12);
+      --font: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      background: var(--page);
+      color: var(--ink);
+      font-family: var(--font);
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      min-height: 100svh;
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+    }
+
+    button,
+    input,
+    h1 {
+      min-width: 0;
+    }
+
+    :focus-visible {
+      outline: 3px solid var(--red);
+      outline-offset: 3px;
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+
+    svg {
+      display: block;
+      max-width: 100%;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    .phone {
+      width: 100%;
+      max-width: 390px;
+      margin: 0 auto;
+      position: relative;
+    }
+
+    .app {
+      width: 100%;
+      min-height: 100vh;
+      min-height: 100svh;
+      background: var(--cream);
+      overflow-x: hidden;
+    }
+
+    .app-top {
+      position: sticky;
+      top: 0;
+      z-index: 30;
+      background: var(--cream);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .app-header {
+      min-height: 68px;
+      padding: 14px 20px 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-mark {
+      width: 38px;
+      height: 38px;
+      flex: 0 0 38px;
+    }
+
+    .brand-name {
+      display: block;
+      color: var(--teal-dark);
+      font-size: 16px;
+      line-height: 1.2;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+    }
+
+    .brand-edition {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 9px;
+      line-height: 1;
+      letter-spacing: 0.16em;
+    }
+
+    .order-ledger {
+      flex: 0 0 auto;
+      padding: 7px 10px;
+      border: 1px solid var(--teal);
+      border-radius: 999px;
+      color: var(--teal);
+      font-size: 11px;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .flow-steps {
+      list-style: none;
+      margin: 0;
+      padding: 2px 20px 12px;
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 5px;
+    }
+
+    .flow-steps li {
+      padding-top: 7px;
+      border-top: 2px solid var(--line);
+      color: var(--muted);
+      text-align: center;
+      font-size: 10px;
+      line-height: 1.2;
+    }
+
+    .flow-steps li.done {
+      border-color: var(--teal);
+      color: var(--teal);
+    }
+
+    .flow-steps li.active {
+      border-color: var(--red);
+      color: var(--teal-dark);
+      font-weight: 800;
+    }
+
+    .step-index {
+      display: block;
+      margin-bottom: 3px;
+      font-size: 8px;
+      letter-spacing: 0.08em;
+    }
+
+    .screen {
+      padding: 22px 20px 32px;
+      animation: screen-in 180ms ease-out both;
+    }
+
+    .screen h1,
+    .screen h2,
+    .screen p {
+      margin-top: 0;
+    }
+
+    .screen h1:focus {
+      outline: none;
+    }
+
+    .eyebrow {
+      margin-bottom: 9px;
+      color: var(--red);
+      font-size: 10px;
+      line-height: 1.4;
+      font-weight: 800;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+
+    .hero {
+      position: relative;
+      padding: 20px 0 18px;
+      border-top: 2px solid var(--teal);
+      border-bottom: 1px solid var(--teal);
+    }
+
+    .hero h1 {
+      max-width: 260px;
+      margin-bottom: 12px;
+      color: var(--teal-dark);
+      font-size: 32px;
+      line-height: 1.16;
+      font-weight: 850;
+      letter-spacing: -0.04em;
+    }
+
+    .hero-copy {
+      max-width: 235px;
+      margin-bottom: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    .postmark {
+      position: absolute;
+      top: 18px;
+      right: 0;
+      width: 68px;
+      height: 68px;
+      display: grid;
+      place-items: center;
+      border: 2px solid var(--red);
+      border-radius: 50%;
+      color: var(--red);
+      text-align: center;
+      font-size: 11px;
+      line-height: 1.35;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      transform: rotate(9deg);
+    }
+
+    .postmark::after {
+      content: "048";
+      position: absolute;
+      bottom: 7px;
+      font-size: 8px;
+      letter-spacing: 0.2em;
+    }
+
+    .rail-motif {
+      width: 100%;
+      height: 40px;
+      margin-top: 14px;
+      color: var(--teal);
+    }
+
+    .search-panel {
+      margin-top: 24px;
+    }
+
+    .section-heading {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .section-heading h2 {
+      margin-bottom: 0;
+      color: var(--teal-dark);
+      font-size: 18px;
+      line-height: 1.35;
+    }
+
+    .section-heading span {
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .route-fields {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 40px minmax(0, 1fr);
+      align-items: end;
+      gap: 8px;
+    }
+
+    .field {
+      min-width: 0;
+    }
+
+    .field + .field-block,
+    .field-block + .field-block {
+      margin-top: 16px;
+    }
+
+    .field label {
+      display: block;
+      margin-bottom: 7px;
+      color: var(--ink);
+      font-size: 12px;
+      line-height: 1.4;
+      font-weight: 750;
+    }
+
+    .field input {
+      width: 100%;
+      height: 50px;
+      padding: 0 12px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--paper);
+      color: var(--teal-dark);
+      font-size: 16px;
+      font-weight: 700;
+      text-overflow: ellipsis;
+    }
+
+    .field input:hover {
+      border-color: var(--teal);
+    }
+
+    .field input:focus {
+      border-color: var(--teal);
+    }
+
+    .swap-button {
+      width: 40px;
+      height: 50px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: transparent;
+      color: var(--teal);
+      transition: background-color 150ms ease, border-color 150ms ease;
+    }
+
+    .swap-button:hover {
+      border-color: var(--teal);
+      background: var(--teal-soft);
+    }
+
+    .form-error {
+      margin: 14px 0 0;
+      padding: 11px 13px;
+      border-left: 3px solid var(--red);
+      background: var(--red-soft);
+      color: var(--red);
+      font-size: 12px;
+      line-height: 1.6;
+    }
+
+    .button {
+      width: 100%;
+      min-height: 50px;
+      padding: 13px 18px;
+      border: 1px solid transparent;
+      border-radius: 12px;
+      font-size: 15px;
+      line-height: 1.4;
+      font-weight: 800;
+      transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease, transform 150ms ease;
+    }
+
+    .button:active:not(:disabled) {
+      transform: translateY(1px);
+    }
+
+    .button-primary {
+      background: var(--teal);
+      color: var(--paper);
+      box-shadow: 0 3px 0 var(--teal-dark);
+    }
+
+    .button-primary:hover:not(:disabled) {
+      background: var(--teal-dark);
+    }
+
+    .button-primary:disabled {
+      background: var(--occupied);
+      color: var(--occupied-text);
+      box-shadow: none;
+    }
+
+    .button-secondary {
+      border-color: var(--teal);
+      background: transparent;
+      color: var(--teal);
+    }
+
+    .button-secondary:hover {
+      background: var(--teal-soft);
+    }
+
+    .button-light {
+      border-color: var(--cream);
+      background: var(--cream);
+      color: var(--teal-dark);
+    }
+
+    .button-light:hover {
+      background: var(--paper);
+    }
+
+    .search-submit {
+      margin-top: 20px;
+    }
+
+    .search-note,
+    .session-note {
+      margin: 14px 0 0;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.6;
+      text-align: center;
+    }
+
+    .session-note {
+      padding: 10px 12px;
+      border: 1px dashed var(--teal);
+      border-radius: 10px;
+      color: var(--teal);
+      text-align: left;
+    }
+
+    .screen-heading {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .screen-heading h1 {
+      margin-bottom: 4px;
+      color: var(--teal-dark);
+      font-size: 25px;
+      line-height: 1.25;
+      letter-spacing: -0.03em;
+    }
+
+    .screen-heading p {
+      margin-bottom: 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .text-button {
+      min-height: 44px;
+      flex: 0 0 auto;
+      padding: 8px 0 8px 10px;
+      border: 0;
+      background: transparent;
+      color: var(--teal);
+      font-size: 12px;
+      font-weight: 800;
+      text-decoration: underline;
+      text-underline-offset: 4px;
+    }
+
+    .text-button:hover {
+      color: var(--red);
+    }
+
+    .route-ribbon {
+      margin-bottom: 20px;
+      padding: 15px 16px;
+      border-radius: 14px;
+      background: var(--teal);
+      color: var(--cream);
+    }
+
+    .route-ribbon.compact {
+      padding: 12px 14px;
+    }
+
+    .route-caption {
+      display: block;
+      margin-bottom: 7px;
+      color: var(--teal-soft);
+      font-size: 9px;
+      line-height: 1.3;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+    }
+
+    .route-line {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      min-width: 0;
+      font-size: 17px;
+      line-height: 1.35;
+      font-weight: 850;
+    }
+
+    .route-line span {
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+
+    .route-arrow {
+      width: 24px;
+      height: 12px;
+      flex: 0 0 24px;
+    }
+
+    .route-date {
+      display: block;
+      margin-top: 6px;
+      color: var(--teal-soft);
+      font-size: 11px;
+      line-height: 1.5;
+    }
+
+    .train-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .train-option {
+      width: 100%;
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 15px;
+      background: var(--paper);
+      color: var(--ink);
+      text-align: left;
+      box-shadow: 0 2px 0 rgba(8, 62, 59, 0.06);
+      transition: border-color 150ms ease, transform 150ms ease, background-color 150ms ease;
+    }
+
+    .train-option:hover:not(:disabled) {
+      border-color: var(--teal);
+      transform: translateY(-1px);
+    }
+
+    .train-option.selected {
+      border: 2px solid var(--teal);
+      padding: 15px;
+      background: var(--teal-soft);
+    }
+
+    .train-option.drill {
+      border-color: var(--red);
+      border-style: dashed;
+    }
+
+    .train-option:disabled {
+      opacity: 0.6;
+    }
+
+    .train-top,
+    .train-bottom {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .train-number {
+      color: var(--teal-dark);
+      font-size: 20px;
+      line-height: 1.2;
+      font-weight: 850;
+      letter-spacing: 0.02em;
+    }
+
+    .train-badge {
+      padding: 4px 7px;
+      border-radius: 5px;
+      background: var(--teal-soft);
+      color: var(--teal);
+      font-size: 9px;
+      line-height: 1.35;
+      font-weight: 800;
+      text-align: right;
+    }
+
+    .train-badge.drill-badge {
+      background: var(--red-soft);
+      color: var(--red);
+    }
+
+    .train-times {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 86px minmax(0, 1fr);
+      align-items: center;
+      gap: 6px;
+      margin: 16px 0;
+    }
+
+    .train-time:last-child {
+      text-align: right;
+    }
+
+    .train-time strong {
+      display: block;
+      color: var(--teal-dark);
+      font-size: 24px;
+      line-height: 1.15;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .train-time span {
+      display: block;
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 10px;
+    }
+
+    .duration {
+      color: var(--muted);
+      text-align: center;
+      font-size: 9px;
+      line-height: 1.4;
+    }
+
+    .duration-track {
+      position: relative;
+      height: 9px;
+      margin-top: 5px;
+      border-top: 1px solid var(--teal);
+    }
+
+    .duration-track::before,
+    .duration-track::after {
+      content: "";
+      position: absolute;
+      top: -3px;
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--teal);
+    }
+
+    .duration-track::before {
+      left: 0;
+    }
+
+    .duration-track::after {
+      right: 0;
+    }
+
+    .train-price {
+      color: var(--teal-dark);
+      font-size: 21px;
+      line-height: 1;
+      font-weight: 850;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .train-price small {
+      margin-right: 2px;
+      font-size: 12px;
+    }
+
+    .availability {
+      color: var(--teal);
+      font-size: 11px;
+      line-height: 1.4;
+      font-weight: 750;
+      text-align: right;
+    }
+
+    .availability.low {
+      color: var(--red);
+    }
+
+    .back-row {
+      margin: -8px 0 10px;
+    }
+
+    .service-strip {
+      margin-bottom: 18px;
+      padding: 15px 16px;
+      border-top: 3px solid var(--teal);
+      border-bottom: 1px solid var(--line);
+      background: var(--paper);
+    }
+
+    .service-main {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .service-main strong {
+      color: var(--teal-dark);
+      font-size: 22px;
+      line-height: 1.2;
+    }
+
+    .service-main span {
+      color: var(--red);
+      font-size: 19px;
+      font-weight: 850;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .service-meta {
+      margin: 7px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .seat-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px 14px;
+      margin: 0 0 14px;
+      color: var(--muted);
+      font-size: 10px;
+      line-height: 1.4;
+    }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .legend-swatch {
+      width: 14px;
+      height: 14px;
+      border: 1px solid var(--teal);
+      border-radius: 4px 4px 2px 2px;
+      background: var(--paper);
+    }
+
+    .legend-swatch.selected {
+      background: var(--teal);
+    }
+
+    .legend-swatch.occupied {
+      border-color: var(--occupied-text);
+      background: var(--occupied);
+    }
+
+    .legend-swatch.drill {
+      border-color: var(--red);
+      border-style: dashed;
+    }
+
+    .coach {
+      padding: 17px 10px 19px;
+      border: 2px solid var(--teal);
+      border-radius: 22px 22px 14px 14px;
+      background: var(--paper);
+    }
+
+    .coach-heading {
+      margin: 0 0 15px;
+      padding-bottom: 11px;
+      border-bottom: 1px solid var(--line);
+      color: var(--teal-dark);
+      text-align: center;
+      font-size: 12px;
+      line-height: 1.4;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+    }
+
+    .seat-grid {
+      display: grid;
+      grid-template-columns: 38px 38px 20px 38px 38px 38px;
+      gap: 8px 6px;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .seat-column {
+      color: var(--muted);
+      text-align: center;
+      font-size: 9px;
+      line-height: 1.2;
+      font-weight: 700;
+    }
+
+    .aisle-space {
+      width: 20px;
+      height: 38px;
+      border-right: 1px dashed var(--line);
+      border-left: 1px dashed var(--line);
+    }
+
+    .seat {
+      width: 38px;
+      height: 38px;
+      padding: 0;
+      border: 1px solid var(--teal);
+      border-radius: 9px 9px 5px 5px;
+      background: var(--paper);
+      color: var(--teal);
+      font-size: 10px;
+      line-height: 1;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      transition: background-color 150ms ease, color 150ms ease, transform 150ms ease;
+    }
+
+    .seat:hover:not(:disabled) {
+      background: var(--teal-soft);
+      transform: translateY(-1px);
+    }
+
+    .seat.selected {
+      background: var(--teal);
+      color: var(--paper);
+      box-shadow: inset 0 -4px 0 var(--teal-dark);
+    }
+
+    .seat.occupied,
+    .seat:disabled {
+      border-color: var(--occupied-text);
+      background: var(--occupied);
+      color: var(--occupied-text);
+      opacity: 1;
+    }
+
+    .seat.drill {
+      border: 2px dashed var(--red);
+      color: var(--red);
+    }
+
+    .seat.drill.selected {
+      background: var(--red);
+      color: var(--paper);
+      box-shadow: none;
+    }
+
+    .seat-note {
+      min-height: 40px;
+      margin: 13px 2px 0;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.6;
+    }
+
+    .seat-note strong {
+      color: var(--teal-dark);
+    }
+
+    .seat-note .drill-copy {
+      color: var(--red);
+      font-weight: 750;
+    }
+
+    .action-dock {
+      position: sticky;
+      bottom: 0;
+      z-index: 20;
+      margin: 24px -20px -32px;
+      padding: 14px 20px calc(14px + env(safe-area-inset-bottom));
+      border-top: 1px solid var(--line);
+      background: var(--paper);
+      box-shadow: 0 -8px 20px rgba(8, 62, 59, 0.07);
+    }
+
+    .summary-line {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .summary-label {
+      min-width: 0;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.5;
+      overflow-wrap: anywhere;
+    }
+
+    .summary-total {
+      flex: 0 0 auto;
+      color: var(--teal-dark);
+      font-size: 22px;
+      line-height: 1.2;
+      font-weight: 850;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .ticket-panel {
+      position: relative;
+      margin-bottom: 18px;
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: var(--paper);
+      box-shadow: var(--shadow);
+    }
+
+    .ticket-kicker {
+      margin-bottom: 14px;
+      color: var(--red);
+      font-size: 9px;
+      line-height: 1.4;
+      font-weight: 850;
+      letter-spacing: 0.16em;
+    }
+
+    .confirm-train {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .confirm-train strong {
+      color: var(--teal-dark);
+      font-size: 25px;
+      line-height: 1.2;
+    }
+
+    .confirm-train span {
+      color: var(--teal);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .detail-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 15px 14px;
+      margin: 0;
+    }
+
+    .detail-grid div {
+      min-width: 0;
+    }
+
+    .detail-grid dt {
+      margin-bottom: 5px;
+      color: var(--muted);
+      font-size: 10px;
+      line-height: 1.4;
+    }
+
+    .detail-grid dd {
+      margin: 0;
+      color: var(--teal-dark);
+      font-size: 13px;
+      line-height: 1.5;
+      font-weight: 750;
+      overflow-wrap: anywhere;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .perforation {
+      position: relative;
+      margin: 18px -18px 16px;
+      border-top: 2px dashed var(--line);
+    }
+
+    .perforation::before,
+    .perforation::after {
+      content: "";
+      position: absolute;
+      top: -9px;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--cream);
+    }
+
+    .perforation::before {
+      left: -9px;
+    }
+
+    .perforation::after {
+      right: -9px;
+    }
+
+    .price-rows {
+      display: grid;
+      gap: 9px;
+    }
+
+    .price-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .price-row.total {
+      margin-top: 3px;
+      padding-top: 11px;
+      border-top: 1px solid var(--line);
+      color: var(--teal-dark);
+      font-weight: 800;
+    }
+
+    .price-row.total strong {
+      color: var(--red);
+      font-size: 23px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .order-invariants {
+      margin: 14px 0 0;
+      color: var(--muted);
+      font-size: 10px;
+      line-height: 1.7;
+    }
+
+    .drill-warning {
+      margin: 0 0 16px;
+      padding: 12px 14px;
+      border: 1px dashed var(--red);
+      border-radius: 10px;
+      background: var(--red-soft);
+      color: var(--red);
+      font-size: 12px;
+      line-height: 1.65;
+      font-weight: 700;
+    }
+
+    .confirm-feedback {
+      margin: 0 0 16px;
+      padding: 15px;
+      border: 1px solid var(--red);
+      border-radius: 12px;
+      background: var(--red-soft);
+    }
+
+    .confirm-feedback:focus {
+      outline: 3px solid var(--red);
+      outline-offset: 3px;
+    }
+
+    .confirm-feedback h2 {
+      margin-bottom: 7px;
+      color: var(--red);
+      font-size: 16px;
+      line-height: 1.4;
+    }
+
+    .confirm-feedback p {
+      margin-bottom: 12px;
+      color: var(--ink);
+      font-size: 12px;
+      line-height: 1.7;
+    }
+
+    .recovery-actions {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 9px;
+    }
+
+    .confirm-back {
+      margin-top: 10px;
+    }
+
+    .success-seal {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .success-icon {
+      width: 44px;
+      height: 44px;
+      flex: 0 0 44px;
+    }
+
+    .success-seal h1 {
+      margin-bottom: 3px;
+      color: var(--teal-dark);
+      font-size: 25px;
+      line-height: 1.25;
+    }
+
+    .success-seal p {
+      margin-bottom: 0;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.5;
+    }
+
+    .credential {
+      overflow: hidden;
+      border: 2px solid var(--teal);
+      border-radius: 18px;
+      background: var(--paper);
+      box-shadow: var(--shadow);
+    }
+
+    .credential-head {
+      padding: 17px 18px;
+      background: var(--teal);
+      color: var(--cream);
+    }
+
+    .credential-brand {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 15px;
+      font-size: 10px;
+      line-height: 1.4;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+    }
+
+    .credential-number {
+      display: block;
+      color: var(--teal-soft);
+      font-size: 9px;
+      line-height: 1.4;
+    }
+
+    .credential-number strong {
+      display: block;
+      margin-top: 4px;
+      color: var(--cream);
+      font-size: 15px;
+      line-height: 1.4;
+      letter-spacing: 0.03em;
+      font-variant-numeric: tabular-nums;
+      overflow-wrap: anywhere;
+    }
+
+    .credential-route {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 34px minmax(0, 1fr);
+      align-items: center;
+      gap: 8px;
+      padding: 20px 18px 16px;
+    }
+
+    .credential-station:last-child {
+      text-align: right;
+    }
+
+    .credential-station strong {
+      display: block;
+      color: var(--teal-dark);
+      font-size: 22px;
+      line-height: 1.25;
+      overflow-wrap: anywhere;
+    }
+
+    .credential-station span {
+      display: block;
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 9px;
+      letter-spacing: 0.1em;
+    }
+
+    .credential-arrow {
+      color: var(--red);
+    }
+
+    .credential-details {
+      padding: 0 18px 18px;
+    }
+
+    .credential-graphic {
+      padding: 16px 12px 12px;
+      border-top: 2px dashed var(--line);
+      background: var(--cream);
+    }
+
+    #ticket-graphic {
+      width: 100%;
+      height: auto;
+    }
+
+    #ticket-graphic text {
+      font-family: var(--font);
+    }
+
+    .ticket-note {
+      margin: 14px 0 20px;
+      color: var(--muted);
+      text-align: center;
+      font-size: 10px;
+      line-height: 1.6;
+    }
+
+    .ticket-actions {
+      display: grid;
+      gap: 10px;
+    }
+
+    @keyframes screen-in {
+      from {
+        opacity: 0.6;
+        transform: translateY(6px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media (min-width: 600px) {
+      body {
+        padding: 24px;
+      }
+
+      .phone {
+        width: 414px;
+        max-width: 414px;
+        padding: 11px;
+        border: 1px solid var(--teal-dark);
+        border-radius: 38px;
+        background: var(--teal-dark);
+        box-shadow: 0 22px 60px rgba(8, 62, 59, 0.2);
+      }
+
+      .app {
+        width: 390px;
+        height: 844px;
+        min-height: 0;
+        border-radius: 26px;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+      }
+    }
+
+    @media (max-width: 359px) {
+      .screen {
+        padding-right: 16px;
+        padding-left: 16px;
+      }
+
+      .app-header,
+      .flow-steps {
+        padding-right: 16px;
+        padding-left: 16px;
+      }
+
+      .route-fields {
+        grid-template-columns: minmax(0, 1fr) 36px minmax(0, 1fr);
+        gap: 6px;
+      }
+
+      .swap-button {
+        width: 36px;
+      }
+
+      .seat-grid {
+        grid-template-columns: 34px 34px 16px 34px 34px 34px;
+        gap: 7px 5px;
+      }
+
+      .seat {
+        width: 34px;
+        height: 36px;
+      }
+
+      .aisle-space {
+        width: 16px;
+        height: 36px;
+      }
+
+      .action-dock {
+        margin-right: -16px;
+        margin-left: -16px;
+        padding-right: 16px;
+        padding-left: 16px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="phone">
+    <div class="app" id="app">
+      <div class="app-top">
+        <header class="app-header">
+          <div class="brand" aria-label="青驿铁路">
+            <svg class="brand-mark" viewBox="0 0 40 40" aria-hidden="true">
+              <rect x="1" y="1" width="38" height="38" rx="11" fill="#0D5C56"/>
+              <path d="M11 9V31M29 9V31M11 14H29M11 21H29M11 28H29" fill="none" stroke="#F7F1E3" stroke-width="2"/>
+              <circle cx="20" cy="21" r="4" fill="#C9483A"/>
+            </svg>
+            <div>
+              <span class="brand-name">青驿铁路</span>
+              <span class="brand-edition">RAILWAY POST · 048</span>
+            </div>
+          </div>
+          <div class="order-ledger" aria-label="本次会话出票数量">票夹 <span id="order-count">0</span></div>
+        </header>
+        <ol class="flow-steps" id="flow-steps" aria-label="出票进度">
+          <li class="active" data-step="search" aria-current="step"><span class="step-index">01</span>路线</li>
+          <li data-step="results"><span class="step-index">02</span>班次</li>
+          <li data-step="seats"><span class="step-index">03</span>席位</li>
+          <li data-step="confirm"><span class="step-index">04</span>确认</li>
+          <li data-step="ticket"><span class="step-index">05</span>凭证</li>
+        </ol>
+      </div>
+
+      <main id="app-main">
+        <p class="sr-only" id="live-region" aria-live="polite" aria-atomic="true"></p>
+
+        <section class="screen" id="search-screen" data-screen="search" aria-labelledby="search-title">
+          <div class="hero">
+            <p class="eyebrow">Qing Yi Railway Post</p>
+            <h1 id="search-title" tabindex="-1">下一站，<br>沿青绿线抵达。</h1>
+            <p class="hero-copy">一张从查询到验票都在掌心完成的车票。路线、席位与票款，始终逐项对齐。</p>
+            <div class="postmark" aria-hidden="true">青驿<br>发行</div>
+            <svg class="rail-motif" viewBox="0 0 350 40" aria-hidden="true">
+              <path d="M0 13H350M0 27H350" fill="none" stroke="currentColor" stroke-width="2"/>
+              <path d="M12 7V33M42 7V33M72 7V33M102 7V33M132 7V33M162 7V33M192 7V33M222 7V33M252 7V33M282 7V33M312 7V33M342 7V33" fill="none" stroke="currentColor" stroke-width="3"/>
+              <path d="M147 20H203" fill="none" stroke="#C9483A" stroke-width="6"/>
+            </svg>
+          </div>
+
+          <form class="search-panel" id="search-form" novalidate>
+            <div class="section-heading">
+              <h2>填写行程</h2>
+              <span>单人 · 二等座</span>
+            </div>
+            <div class="route-fields">
+              <div class="field">
+                <label for="origin-input">出发地</label>
+                <input id="origin-input" name="origin" type="text" value="南京南" maxlength="12" autocomplete="off" required>
+              </div>
+              <button class="swap-button" id="swap-route" type="button" aria-label="交换出发地和目的地">
+                <svg width="21" height="21" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M7 4L3 8L7 12M3 8H17M17 12L21 16L17 20M21 16H7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </button>
+              <div class="field">
+                <label for="destination-input">目的地</label>
+                <input id="destination-input" name="destination" type="text" value="杭州东" maxlength="12" autocomplete="off" required>
+              </div>
+            </div>
+            <div class="field field-block">
+              <label for="date-input">出发日期</label>
+              <input id="date-input" name="date" type="date" value="2026-09-18" required>
+            </div>
+            <p class="form-error" id="search-error" role="status" aria-live="polite" hidden></p>
+            <button class="button button-primary search-submit" id="search-submit" type="submit">查询青驿班次</button>
+          </form>
+          <p class="session-note" id="search-history" hidden></p>
+          <p class="search-note">演示班次、票价与验票纹样仅用于原型体验</p>
+        </section>
+
+        <section class="screen" id="results-screen" data-screen="results" aria-labelledby="results-title" hidden>
+          <div class="screen-heading">
+            <div>
+              <p class="eyebrow">Timetable / 班次</p>
+              <h1 id="results-title" tabindex="-1">选择班次</h1>
+              <p id="results-count">共 4 班 · 单人二等座</p>
+            </div>
+            <button class="text-button" id="results-edit-search" type="button">修改路线</button>
+          </div>
+          <div class="route-ribbon">
+            <span class="route-caption">已保留查询条件</span>
+            <div class="route-line">
+              <span id="results-route-origin"></span>
+              <svg class="route-arrow" viewBox="0 0 24 12" aria-hidden="true"><path d="M1 6H22M18 2L22 6L18 10" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+              <span id="results-route-destination"></span>
+            </div>
+            <span class="route-date" id="results-route-date"></span>
+          </div>
+          <div class="train-list" id="train-list" aria-label="可选班次列表"></div>
+        </section>
+
+        <section class="screen" id="seats-screen" data-screen="seats" aria-labelledby="seats-title" hidden>
+          <div class="back-row">
+            <button class="text-button" id="seats-back-results" type="button">← 返回班次结果</button>
+          </div>
+          <div class="screen-heading">
+            <div>
+              <p class="eyebrow">Coach / 席位</p>
+              <h1 id="seats-title" tabindex="-1">选择座位</h1>
+              <p>07 车 · 二等座 · 每次选择 1 座</p>
+            </div>
+          </div>
+          <div class="route-ribbon compact">
+            <span class="route-caption">路线条件保持不变</span>
+            <div class="route-line">
+              <span id="seats-route-origin"></span>
+              <svg class="route-arrow" viewBox="0 0 24 12" aria-hidden="true"><path d="M1 6H22M18 2L22 6L18 10" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+              <span id="seats-route-destination"></span>
+            </div>
+            <span class="route-date" id="seats-route-date"></span>
+          </div>
+          <div class="service-strip">
+            <div class="service-main">
+              <strong id="service-number"></strong>
+              <span id="service-price"></span>
+            </div>
+            <p class="service-meta" id="service-meta"></p>
+          </div>
+          <div class="seat-legend" aria-label="座位状态图例">
+            <span class="legend-item"><span class="legend-swatch"></span>可选</span>
+            <span class="legend-item"><span class="legend-swatch selected"></span>已选</span>
+            <span class="legend-item"><span class="legend-swatch occupied"></span>不可选</span>
+            <span class="legend-item"><span class="legend-swatch drill"></span>售罄演练</span>
+          </div>
+          <div class="coach">
+            <h2 class="coach-heading">QING YI · 07 车</h2>
+            <div class="seat-grid" id="seat-map"></div>
+          </div>
+          <p class="seat-note" id="seat-selection-note"></p>
+          <div class="action-dock">
+            <div class="summary-line">
+              <span class="summary-label" id="seat-summary-label">尚未选择座位</span>
+              <strong class="summary-total" id="seat-summary-total">¥0.00</strong>
+            </div>
+            <button class="button button-primary" id="review-order" type="button" disabled>核对订单</button>
+          </div>
+        </section>
+
+        <section class="screen" id="confirm-screen" data-screen="confirm" aria-labelledby="confirm-title" hidden>
+          <div class="screen-heading">
+            <div>
+              <p class="eyebrow">Punch Ticket / 确认</p>
+              <h1 id="confirm-title" tabindex="-1">核对并出票</h1>
+              <p>出票前最后核对，失败不会扣减余票</p>
+            </div>
+          </div>
+          <div class="route-ribbon compact">
+            <span class="route-caption">本次订单路线</span>
+            <div class="route-line">
+              <span id="confirm-route-origin"></span>
+              <svg class="route-arrow" viewBox="0 0 24 12" aria-hidden="true"><path d="M1 6H22M18 2L22 6L18 10" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+              <span id="confirm-route-destination"></span>
+            </div>
+            <span class="route-date" id="confirm-route-date"></span>
+          </div>
+          <article class="ticket-panel" aria-label="订单摘要">
+            <p class="ticket-kicker">ORDER PROOF · 订单存根</p>
+            <div class="confirm-train">
+              <strong id="confirm-service"></strong>
+              <span>二等座</span>
+            </div>
+            <dl class="detail-grid">
+              <div><dt>出发时间</dt><dd id="confirm-depart"></dd></div>
+              <div><dt>到达时间</dt><dd id="confirm-arrive"></dd></div>
+              <div><dt>座位</dt><dd id="confirm-seat"></dd></div>
+              <div><dt>乘车人</dt><dd id="confirm-passenger">林舟 · 成人票</dd></div>
+            </dl>
+            <div class="perforation" aria-hidden="true"></div>
+            <div class="price-rows">
+              <div class="price-row"><span>二等座票价 × 1</span><span id="confirm-price"></span></div>
+              <div class="price-row"><span>服务费</span><span>¥0.00</span></div>
+              <div class="price-row total"><span>应付总额</span><strong id="confirm-total"></strong></div>
+            </div>
+            <p class="order-invariants"><span id="confirm-inventory"></span><br><span id="confirm-next-serial"></span></p>
+          </article>
+          <div class="drill-warning" id="drill-warning" hidden></div>
+          <div class="confirm-feedback" id="confirm-feedback" tabindex="-1" aria-live="assertive" hidden>
+            <h2 id="feedback-title"></h2>
+            <p id="feedback-message"></p>
+            <div class="recovery-actions">
+              <button class="button button-primary" id="error-change-seat" type="button">返回座位改选</button>
+              <button class="button button-secondary" id="error-change-train" type="button">返回结果改选班次</button>
+            </div>
+          </div>
+          <button class="button button-primary" id="confirm-submit" type="button">确认并出票</button>
+          <button class="button button-secondary confirm-back" id="confirm-back-seats" type="button">返回座位核对</button>
+        </section>
+
+        <section class="screen" id="ticket-screen" data-screen="ticket" aria-labelledby="ticket-title" hidden>
+          <div class="success-seal">
+            <svg class="success-icon" viewBox="0 0 44 44" aria-hidden="true">
+              <circle cx="22" cy="22" r="20" fill="#D8E7DE" stroke="#0D5C56" stroke-width="2"/>
+              <path d="M13 22L19 28L32 15" fill="none" stroke="#0D5C56" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <div>
+              <h1 id="ticket-title" tabindex="-1">出票成功</h1>
+              <p>行程已打孔入账，请核对下方凭证</p>
+            </div>
+          </div>
+          <article class="credential" aria-label="行程凭证">
+            <header class="credential-head">
+              <div class="credential-brand"><span>青驿铁路 · 行程凭证</span><span>二等座</span></div>
+              <span class="credential-number">凭证编号<strong id="ticket-number"></strong></span>
+            </header>
+            <div class="credential-route">
+              <div class="credential-station"><strong id="ticket-origin"></strong><span>出发站</span></div>
+              <svg class="credential-arrow" viewBox="0 0 34 20" aria-hidden="true"><path d="M1 10H31M25 4L31 10L25 16" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+              <div class="credential-station"><strong id="ticket-destination"></strong><span>到达站</span></div>
+            </div>
+            <div class="credential-details">
+              <dl class="detail-grid">
+                <div><dt>乘车日期</dt><dd id="ticket-date"></dd></div>
+                <div><dt>班次</dt><dd id="ticket-train"></dd></div>
+                <div><dt>出发 — 到达</dt><dd id="ticket-times"></dd></div>
+                <div><dt>座位</dt><dd id="ticket-seat"></dd></div>
+                <div><dt>乘客</dt><dd id="ticket-passenger">林舟 · 成人票</dd></div>
+                <div><dt>支付总额</dt><dd id="ticket-total"></dd></div>
+              </dl>
+            </div>
+            <div class="credential-graphic">
+              <svg id="ticket-graphic" viewBox="0 0 320 150" role="img" aria-labelledby="ticket-svg-title ticket-svg-desc">
+                <title id="ticket-svg-title">青驿铁路验票图形</title>
+                <desc id="ticket-svg-desc">包含路线、凭证编号与验票纹样的演示图形</desc>
+                <rect x="1" y="1" width="318" height="148" rx="14" fill="#FFFBF2" stroke="#0D5C56" stroke-width="2"/>
+                <path d="M215 10V140" fill="none" stroke="#C8C9B8" stroke-width="2" stroke-dasharray="5 5"/>
+                <text x="20" y="27" fill="#C9483A" font-size="9" font-weight="800" letter-spacing="1.5">QING YI RAIL</text>
+                <text id="svg-ticket-route" x="20" y="57" fill="#083E3B" font-size="14" font-weight="800"></text>
+                <text id="svg-ticket-meta" x="20" y="82" fill="#0D5C56" font-size="12" font-weight="700"></text>
+                <text id="svg-ticket-number" x="20" y="108" fill="#173A36" font-size="10"></text>
+                <path d="M20 124H187" fill="none" stroke="#0D5C56" stroke-width="2"/>
+                <path d="M27 119V130M42 119V130M57 119V130M72 119V130M87 119V130M102 119V130M117 119V130M132 119V130M147 119V130M162 119V130M177 119V130" fill="none" stroke="#0D5C56" stroke-width="2"/>
+                <g transform="translate(234 22)" fill="#0D5C56">
+                  <rect width="14" height="14"/><rect x="18" width="6" height="6"/><rect x="28" width="14" height="14"/>
+                  <rect y="18" width="6" height="6"/><rect x="10" y="18" width="12" height="12"/><rect x="30" y="18" width="6" height="12"/>
+                  <rect y="32" width="14" height="14"/><rect x="20" y="34" width="6" height="6"/><rect x="30" y="32" width="12" height="14"/>
+                  <rect x="38" y="18" width="10" height="6"/><rect x="18" y="46" width="12" height="6"/><rect x="38" y="36" width="10" height="10"/>
+                </g>
+                <text x="232" y="94" fill="#65746D" font-size="8">验票纹样 · 演示</text>
+                <text x="232" y="116" fill="#C9483A" font-size="10" font-weight="800">QY · 048</text>
+                <circle cx="267" cy="126" r="8" fill="none" stroke="#C9483A" stroke-width="2"/>
+              </svg>
+            </div>
+          </article>
+          <p class="ticket-note">本凭证为离线原型演示，不用于实际乘车或支付</p>
+          <div class="ticket-actions">
+            <button class="button button-primary" id="ticket-same-route" type="button">同路线再订一张</button>
+            <button class="button button-secondary" id="ticket-new-search" type="button">开始新查询</button>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    (() => {
+      "use strict";
+
+      const byId = (id) => document.getElementById(id);
+      const money = (cents) => `¥${(cents / 100).toFixed(2)}`;
+      const padSeat = (row, letter) => `${String(row).padStart(2, "0")}${letter}`;
+      const seatLetters = ["A", "B", "C", "D", "F"];
+
+      function makeSeats(occupied, drillSeat) {
+        const seats = [];
+        for (let row = 1; row <= 6; row += 1) {
+          seatLetters.forEach((letter) => {
+            const id = padSeat(row, letter);
+            seats.push({
+              id,
+              status: occupied.includes(id) ? "occupied" : id === drillSeat ? "drill" : "available"
+            });
+          });
+        }
+        return seats;
+      }
+
+      const trains = [
+        {
+          id: "G1827",
+          number: "G1827",
+          depart: "08:12",
+          arrive: "09:26",
+          duration: "1小时14分",
+          priceCents: 11750,
+          remaining: 12,
+          badge: "复兴号 · 有票",
+          drill: false,
+          drillSeat: "",
+          seats: makeSeats(["01B", "02D", "03A", "05F"], "")
+        },
+        {
+          id: "D5513",
+          number: "D5513",
+          depart: "09:05",
+          arrive: "10:43",
+          duration: "1小时38分",
+          priceCents: 9300,
+          remaining: 6,
+          badge: "动车组 · 有票",
+          drill: false,
+          drillSeat: "",
+          seats: makeSeats(["01A", "02C", "03D", "04B", "06F"], "")
+        },
+        {
+          id: "G7609",
+          number: "G7609",
+          depart: "10:28",
+          arrive: "11:36",
+          duration: "1小时08分",
+          priceCents: 12800,
+          remaining: 3,
+          badge: "含售罄演练座位",
+          drill: false,
+          drillSeat: "04C",
+          seats: makeSeats(["01F", "02A", "03C"], "04C")
+        },
+        {
+          id: "D9521",
+          number: "D9521",
+          depart: "11:46",
+          arrive: "13:19",
+          duration: "1小时33分",
+          priceCents: 8800,
+          remaining: 8,
+          badge: "售罄演练 · 选择后触发售罄检查",
+          drill: true,
+          drillSeat: "",
+          seats: makeSeats(["01C", "02F", "05A"], "")
+        }
+      ];
+
+      const state = {
+        screen: "search",
+        query: null,
+        selectedTrainId: null,
+        selectedSeatId: null,
+        orderSeq: 0,
+        orders: [],
+        lastOrder: null,
+        lastError: null
+      };
+
+      const screens = Array.from(document.querySelectorAll("[data-screen]"));
+      const stepNames = ["search", "results", "seats", "confirm", "ticket"];
+      const titles = {
+        search: "路线查询",
+        results: "选择班次",
+        seats: "选择座位",
+        confirm: "核对并出票",
+        ticket: "行程凭证"
+      };
+
+      function setText(id, value) {
+        byId(id).textContent = value;
+      }
+
+      function announce(message) {
+        const region = byId("live-region");
+        region.textContent = "";
+        window.setTimeout(() => {
+          region.textContent = message;
+        }, 20);
+      }
+
+      function formatDate(value) {
+        const [year, month, day] = value.split("-").map(Number);
+        const weekdays = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"];
+        const weekday = weekdays[new Date(Date.UTC(year, month - 1, day)).getUTCDay()];
+        return `${year}年${month}月${day}日 · ${weekday}`;
+      }
+
+      function credentialId(sequence, query = state.query) {
+        return `QY${query.date.replace(/-/g, "")}-${String(sequence).padStart(3, "0")}`;
+      }
+
+      function selectedTrain() {
+        return trains.find((train) => train.id === state.selectedTrainId) || null;
+      }
+
+      function selectedSeat() {
+        const train = selectedTrain();
+        return train ? train.seats.find((seat) => seat.id === state.selectedSeatId) || null : null;
+      }
+
+      function updateProgress(screenName) {
+        const activeIndex = stepNames.indexOf(screenName);
+        Array.from(byId("flow-steps").children).forEach((step, index) => {
+          step.classList.toggle("active", index === activeIndex);
+          step.classList.toggle("done", index < activeIndex);
+          if (index === activeIndex) {
+            step.setAttribute("aria-current", "step");
+          } else {
+            step.removeAttribute("aria-current");
+          }
+        });
+      }
+
+      function showScreen(screenName, moveFocus = true) {
+        state.screen = screenName;
+        screens.forEach((screen) => {
+          screen.hidden = screen.dataset.screen !== screenName;
+        });
+        updateProgress(screenName);
+        document.title = `青驿铁路 · ${titles[screenName]}`;
+        byId("app").scrollTop = 0;
+        window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+        if (moveFocus) {
+          window.requestAnimationFrame(() => {
+            const heading = byId(`${screenName}-screen`).querySelector("h1");
+            if (heading) heading.focus({ preventScroll: true });
+          });
+        }
+      }
+
+      function updateOrderCount() {
+        setText("order-count", String(state.orderSeq));
+      }
+
+      function renderSearchHistory() {
+        const history = byId("search-history");
+        history.hidden = state.orders.length === 0;
+        if (state.lastOrder) {
+          history.textContent = `票夹已保留 ${state.orderSeq} 张凭证；最近编号 ${state.lastOrder.id}。再次出票将沿用连续序号。`;
+        }
+      }
+
+      function fillRoute(prefix) {
+        setText(`${prefix}-route-origin`, state.query.origin);
+        setText(`${prefix}-route-destination`, state.query.destination);
+        setText(`${prefix}-route-date`, formatDate(state.query.date));
+      }
+
+      function renderResults() {
+        fillRoute("results");
+        setText("results-count", `共 ${trains.length} 班 · 单人二等座`);
+        byId("train-list").innerHTML = trains.map((train) => {
+          const selected = state.selectedTrainId === train.id;
+          const soldOut = train.remaining === 0;
+          const classes = ["train-option", selected ? "selected" : "", train.drill ? "drill" : ""].filter(Boolean).join(" ");
+          const availability = soldOut ? "已售罄" : `${train.remaining} 张有票`;
+          const badgeClass = train.drill || train.drillSeat ? "train-badge drill-badge" : "train-badge";
+          return `
+            <button class="${classes}" type="button" data-train="${train.id}" aria-pressed="${selected}" ${soldOut ? "disabled" : ""}>
+              <span class="train-top">
+                <span class="train-number">${train.number}</span>
+                <span class="${badgeClass}">${train.badge}</span>
+              </span>
+              <span class="train-times">
+                <span class="train-time"><strong>${train.depart}</strong><span>出发</span></span>
+                <span class="duration">${train.duration}<span class="duration-track" aria-hidden="true"></span></span>
+                <span class="train-time"><strong>${train.arrive}</strong><span>到达</span></span>
+              </span>
+              <span class="train-bottom">
+                <span class="train-price"><small>¥</small>${(train.priceCents / 100).toFixed(2)}</span>
+                <span class="availability ${train.remaining <= 3 ? "low" : ""}">${availability}<br>${selected ? "当前选择 · 点击继续" : "点击选择席位"}</span>
+              </span>
+            </button>`;
+        }).join("");
+      }
+
+      function renderSeats() {
+        const train = selectedTrain();
+        if (!train) return;
+        fillRoute("seats");
+        setText("service-number", `${train.number} 次`);
+        setText("service-price", money(train.priceCents));
+        setText("service-meta", `${train.depart} 出发 · ${train.arrive} 到达 · 历时 ${train.duration} · 当前余票 ${train.remaining} 张`);
+
+        const headings = ["A", "B", "走道", "C", "D", "F"];
+        let mapHtml = headings.map((heading) => `<span class="seat-column" aria-hidden="true">${heading}</span>`).join("");
+        for (let row = 1; row <= 6; row += 1) {
+          seatLetters.forEach((letter, index) => {
+            if (index === 2) mapHtml += '<span class="aisle-space" aria-hidden="true"></span>';
+            const id = padSeat(row, letter);
+            const seat = train.seats.find((item) => item.id === id);
+            const selected = state.selectedSeatId === id;
+            const occupied = seat.status === "occupied";
+            const drill = seat.status === "drill";
+            const classes = ["seat", occupied ? "occupied" : "", drill ? "drill" : "", selected ? "selected" : ""].filter(Boolean).join(" ");
+            const statusCopy = occupied ? "不可选，已占用" : drill ? "可选，售罄演练，确认时触发售罄检查" : "可选";
+            mapHtml += `<button class="${classes}" type="button" data-seat="${id}" aria-label="${id} 座，${statusCopy}" aria-pressed="${selected}" ${occupied ? "disabled" : ""}>${id}</button>`;
+          });
+        }
+        byId("seat-map").innerHTML = mapHtml;
+        byId("seat-map").setAttribute("role", "group");
+        byId("seat-map").setAttribute("aria-label", `${train.number} 次 07 车二等座座位图`);
+
+        const seat = selectedSeat();
+        const note = byId("seat-selection-note");
+        if (seat) {
+          const drillCopy = train.drill || seat.status === "drill"
+            ? `<span class="drill-copy">售罄演练：选择后将在确认时触发${train.drill ? "班次" : "座位"}售罄检查。</span>`
+            : "座位已锁定在本次核对中，出票成功后才会扣减余票。";
+          note.innerHTML = `<strong>已选 ${seat.id} · 二等座 · ${money(train.priceCents)}</strong><br>${drillCopy}`;
+          setText("seat-summary-label", `${train.number} · ${seat.id} · 林舟`);
+          setText("seat-summary-total", money(train.priceCents));
+        } else {
+          note.textContent = train.drill
+            ? "本班次标注为售罄演练：仍可选择座位，点击确认并出票时触发班次售罄检查。"
+            : "请选择 1 个座位；红色虚线座位为售罄演练，也可主动选择。";
+          setText("seat-summary-label", `${train.number} · 尚未选择座位`);
+          setText("seat-summary-total", money(0));
+        }
+        byId("review-order").disabled = !seat;
+      }
+
+      function renderConfirm() {
+        const train = selectedTrain();
+        const seat = selectedSeat();
+        if (!train || !seat) return;
+        fillRoute("confirm");
+        setText("confirm-service", `${train.number} 次`);
+        setText("confirm-depart", `${train.depart} · ${state.query.origin}`);
+        setText("confirm-arrive", `${train.arrive} · ${state.query.destination}`);
+        setText("confirm-seat", `${seat.id} · 07 车`);
+        setText("confirm-price", money(train.priceCents));
+        setText("confirm-total", money(train.priceCents));
+        setText("confirm-inventory", `当前余票 ${train.remaining} 张 · 失败不扣减`);
+        setText("confirm-next-serial", `下一凭证序号 ${String(state.orderSeq + 1).padStart(3, "0")} · 出票成功后占用`);
+        byId("confirm-submit").textContent = `确认并出票 · ${money(train.priceCents)}`;
+
+        const isDrill = train.drill || seat.status === "drill";
+        const warning = byId("drill-warning");
+        warning.hidden = !isDrill;
+        if (isDrill) {
+          warning.textContent = train.drill
+            ? `售罄演练已就绪：点击“确认并出票”将触发 ${train.number} 次班次售罄检查。`
+            : `售罄演练已就绪：点击“确认并出票”将触发 ${train.number} 次 ${seat.id} 座位售罄检查。`;
+        }
+
+        const feedback = byId("confirm-feedback");
+        const errorMatches = state.lastError && state.lastError.trainId === train.id && state.lastError.seatId === seat.id;
+        feedback.hidden = !errorMatches;
+        if (errorMatches) {
+          setText("feedback-title", state.lastError.kind === "train" ? "班次已售罄，未出票" : "座位已售罄，未出票");
+          setText("feedback-message", state.lastError.message);
+        }
+      }
+
+      function shortStation(value) {
+        return value.length > 5 ? `${value.slice(0, 5)}…` : value;
+      }
+
+      function renderTicket() {
+        const order = state.lastOrder;
+        if (!order) return;
+        setText("ticket-number", order.id);
+        setText("ticket-origin", order.query.origin);
+        setText("ticket-destination", order.query.destination);
+        setText("ticket-date", formatDate(order.query.date));
+        setText("ticket-train", `${order.trainNumber} 次`);
+        setText("ticket-times", `${order.depart} — ${order.arrive}`);
+        setText("ticket-seat", `${order.seatId} · 07 车`);
+        setText("ticket-total", money(order.priceCents));
+        setText("svg-ticket-route", `${shortStation(order.query.origin)} → ${shortStation(order.query.destination)}`);
+        setText("svg-ticket-meta", `${order.trainNumber} · ${order.seatId} · 二等座`);
+        setText("svg-ticket-number", order.id);
+      }
+
+      function showSearchError(message, focusId) {
+        const error = byId("search-error");
+        error.textContent = message;
+        error.hidden = false;
+        byId(focusId).focus();
+        announce(message);
+      }
+
+      function failConfirmation(kind) {
+        const train = selectedTrain();
+        const seat = selectedSeat();
+        const nextSerial = String(state.orderSeq + 1).padStart(3, "0");
+        const drillPrefix = train.drill || seat.status === "drill" ? "售罄演练检查：" : "";
+        const subject = kind === "train" ? `${train.number} 次班次已售罄` : `${train.number} 次 ${seat.id} 座已售罄`;
+        const message = `${drillPrefix}${subject}，无法生成行程凭证。余票仍为 ${train.remaining} 张，下一序号仍为 ${nextSerial}；路线、日期、班次结果和已选内容均已保留。`;
+        state.lastError = { kind, trainId: train.id, seatId: seat.id, message };
+        renderConfirm();
+        byId("confirm-feedback").focus();
+        announce(message);
+      }
+
+      function confirmOrder() {
+        const train = selectedTrain();
+        const seat = selectedSeat();
+        if (!train || !seat || !state.query) {
+          announce("请先选择班次和座位");
+          return;
+        }
+        if (train.drill || train.remaining <= 0) {
+          failConfirmation("train");
+          return;
+        }
+        if (seat.status === "drill" || seat.status === "occupied") {
+          failConfirmation("seat");
+          return;
+        }
+
+        const sequence = state.orderSeq + 1;
+        const order = {
+          id: credentialId(sequence),
+          sequence,
+          query: { ...state.query },
+          trainId: train.id,
+          trainNumber: train.number,
+          depart: train.depart,
+          arrive: train.arrive,
+          seatId: seat.id,
+          passenger: "林舟 · 成人票",
+          priceCents: train.priceCents
+        };
+        train.remaining -= 1;
+        seat.status = "occupied";
+        state.orderSeq = sequence;
+        state.orders.push(order);
+        state.lastOrder = order;
+        state.lastError = null;
+        updateOrderCount();
+        renderSearchHistory();
+        renderTicket();
+        showScreen("ticket");
+        announce(`出票成功，凭证编号 ${order.id}，${order.trainNumber} 次 ${order.seatId} 座，总额 ${money(order.priceCents)}`);
+      }
+
+      function selectTrain(trainId) {
+        const train = trains.find((item) => item.id === trainId);
+        if (!train || train.remaining <= 0) return;
+        if (state.selectedTrainId !== trainId) state.selectedSeatId = null;
+        state.selectedTrainId = trainId;
+        state.lastError = null;
+        renderSeats();
+        showScreen("seats");
+        announce(`已选择 ${train.number} 次，请选择座位`);
+      }
+
+      function returnToSeats() {
+        state.lastError = null;
+        renderSeats();
+        showScreen("seats");
+      }
+
+      function returnToResults() {
+        state.lastError = null;
+        renderResults();
+        showScreen("results");
+      }
+
+      byId("search-form").addEventListener("submit", (event) => {
+        event.preventDefault();
+        const origin = byId("origin-input").value.trim();
+        const destination = byId("destination-input").value.trim();
+        const date = byId("date-input").value;
+        if (!origin) {
+          showSearchError("请填写出发地后再查询。", "origin-input");
+          return;
+        }
+        if (!destination) {
+          showSearchError("请填写目的地后再查询。", "destination-input");
+          return;
+        }
+        if (!date) {
+          showSearchError("请选择出发日期后再查询。", "date-input");
+          return;
+        }
+        if (origin === destination) {
+          showSearchError("出发地和目的地不能相同，请修改其中一站。", "destination-input");
+          return;
+        }
+        byId("search-error").hidden = true;
+        state.query = { origin, destination, date };
+        state.selectedTrainId = null;
+        state.selectedSeatId = null;
+        state.lastError = null;
+        renderResults();
+        showScreen("results");
+        announce(`已保留 ${origin} 到 ${destination}，${formatDate(date)} 的查询条件，共找到 ${trains.length} 个班次`);
+      });
+
+      byId("search-form").addEventListener("input", () => {
+        byId("search-error").hidden = true;
+      });
+
+      byId("swap-route").addEventListener("click", () => {
+        const origin = byId("origin-input");
+        const destination = byId("destination-input");
+        const value = origin.value;
+        origin.value = destination.value;
+        destination.value = value;
+        byId("search-error").hidden = true;
+        announce("已交换出发地和目的地");
+      });
+
+      byId("train-list").addEventListener("click", (event) => {
+        const button = event.target.closest("[data-train]");
+        if (button) selectTrain(button.dataset.train);
+      });
+
+      byId("seat-map").addEventListener("click", (event) => {
+        const button = event.target.closest("[data-seat]");
+        if (!button || button.disabled) return;
+        state.selectedSeatId = button.dataset.seat;
+        state.lastError = null;
+        renderSeats();
+        const seat = selectedSeat();
+        const train = selectedTrain();
+        const nextButton = byId("seat-map").querySelector(`[data-seat="${seat.id}"]`);
+        if (nextButton) nextButton.focus({ preventScroll: true });
+        announce(`已选 ${seat.id} 座，订单总额 ${money(train.priceCents)}`);
+      });
+
+      byId("review-order").addEventListener("click", () => {
+        if (!selectedSeat()) return;
+        state.lastError = null;
+        renderConfirm();
+        showScreen("confirm");
+        announce("请核对订单并确认出票");
+      });
+
+      byId("confirm-submit").addEventListener("click", confirmOrder);
+      byId("results-edit-search").addEventListener("click", () => {
+        renderSearchHistory();
+        showScreen("search");
+      });
+      byId("seats-back-results").addEventListener("click", returnToResults);
+      byId("confirm-back-seats").addEventListener("click", returnToSeats);
+      byId("error-change-seat").addEventListener("click", returnToSeats);
+      byId("error-change-train").addEventListener("click", returnToResults);
+
+      byId("ticket-same-route").addEventListener("click", () => {
+        state.query = { ...state.lastOrder.query };
+        state.selectedTrainId = null;
+        state.selectedSeatId = null;
+        state.lastError = null;
+        renderResults();
+        showScreen("results");
+        announce(`已保留原路线，可开始新订单；下一凭证序号 ${String(state.orderSeq + 1).padStart(3, "0")}`);
+      });
+
+      byId("ticket-new-search").addEventListener("click", () => {
+        state.query = null;
+        state.selectedTrainId = null;
+        state.selectedSeatId = null;
+        state.lastError = null;
+        renderSearchHistory();
+        showScreen("search");
+        announce(`可以开始新查询，票夹已保留 ${state.orderSeq} 张凭证`);
+      });
+
+      updateOrderCount();
+      renderSearchHistory();
+      updateProgress("search");
+    })();
+  </script>
+</body>
+</html>

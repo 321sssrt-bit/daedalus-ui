@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>青桔零钱 · 钱包首页</title>
+  <style>
+    :root {
+      --yellow: #F3C94F;
+      --yellow-soft: #F8E7A7;
+      --cream: #FBF6E9;
+      --paper: #FFFDF7;
+      --ink: #20231C;
+      --muted: #716F61;
+      --line: #D8D0BB;
+      --green: #236547;
+      --red: #A43C2E;
+      --stage: #DCD5C6;
+      --white: #FFFFFF;
+    }
+    * { box-sizing: border-box; }
+    html { color-scheme: light; }
+    body {
+      margin: 0;
+      min-width: 320px;
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: grid;
+      place-items: center;
+      color: var(--ink);
+      background: var(--stage);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    button, input { font: inherit; }
+    button { color: inherit; cursor: pointer; }
+    button:focus-visible, input:focus-visible, summary:focus-visible {
+      outline: 3px solid var(--green);
+      outline-offset: 3px;
+    }
+    [hidden] { display: none !important; }
+    .stage { display: flex; align-items: center; justify-content: center; gap: 64px; width: 100%; padding: 16px 28px; }
+    .desk-note { width: 244px; padding-left: 23px; border-left: 2px solid var(--ink); }
+    .desk-kicker { margin: 0 0 18px; font-family: Consolas, "SFMono-Regular", monospace; font-size: 10px; font-weight: 700; letter-spacing: 2px; }
+    .desk-note h2 { margin: 0 0 17px; font-size: 32px; line-height: 1.3; letter-spacing: -1px; }
+    .desk-note > p { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.8; }
+    .desk-rule { display: flex; gap: 6px; margin-top: 25px; }
+    .desk-rule span { display: block; width: 30px; height: 7px; background: var(--ink); }
+    .desk-rule span:nth-child(2) { width: 52px; background: var(--yellow); border: 1px solid var(--ink); }
+    .desk-rule span:nth-child(3) { width: 12px; background: var(--green); }
+    .phone {
+      flex: 0 0 auto;
+      width: 404px;
+      height: min(860px, calc(100vh - 32px));
+      height: min(860px, calc(100dvh - 32px));
+      padding: 7px;
+      background: var(--ink);
+      border-radius: 40px;
+      box-shadow: 0 22px 55px #20231C2E, 0 0 0 1px #FFFFFF55;
+    }
+    .screen { position: relative; width: 100%; height: 100%; overflow: hidden; background: var(--cream); border-radius: 33px; }
+    .views { position: absolute; inset: 0; overflow-x: hidden; overflow-y: auto; padding-bottom: 91px; scrollbar-width: none; overscroll-behavior: contain; }
+    .views::-webkit-scrollbar { display: none; }
+    .view { min-height: 100%; }
+    .wallet-top { position: relative; min-height: 318px; padding: 20px 20px 28px; overflow: hidden; background: var(--yellow); border-bottom: 2px solid var(--ink); }
+    .wallet-top::after { content: ""; position: absolute; right: -48px; top: 72px; width: 155px; height: 155px; border: 1px solid #20231C1C; border-radius: 50%; box-shadow: 0 0 0 19px #20231C08, 0 0 0 39px #20231C08; pointer-events: none; }
+    .top-row { position: relative; z-index: 1; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+    .brand { display: flex; align-items: center; gap: 9px; }
+    .brand-coin { display: grid; place-items: center; width: 34px; height: 34px; background: var(--cream); border: 2px solid var(--ink); border-radius: 50%; box-shadow: 2px 2px 0 var(--ink); }
+    .brand-coin svg { width: 22px; height: 22px; }
+    .brand-text strong { display: block; font-size: 15px; letter-spacing: 1px; }
+    .brand-text span { display: block; margin-top: -2px; font-family: Consolas, "SFMono-Regular", monospace; font-size: 8px; letter-spacing: 1.5px; }
+    .icon-button { display: grid; place-items: center; width: 38px; height: 38px; padding: 0; background: #FFFDF760; border: 1.5px solid var(--ink); border-radius: 50%; transition: background-color 150ms ease, transform 150ms ease; }
+    .icon-button:hover { background: var(--paper); }
+    .icon-button:active { transform: translateY(1px); }
+    .icon-button svg { width: 19px; height: 19px; }
+    .notice-dot { position: absolute; right: 1px; top: 0; width: 8px; height: 8px; background: var(--red); border: 1.5px solid var(--yellow); border-radius: 50%; }
+    .balance-block { position: relative; z-index: 1; margin-top: 28px; }
+    .balance-label { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; font-size: 11px; font-weight: 600; }
+    .eye-button { display: grid; place-items: center; width: 29px; height: 25px; padding: 0; background: transparent; border: 0; border-radius: 4px; }
+    .eye-button:hover { background: #FFFDF75C; }
+    .eye-button svg { width: 18px; height: 18px; }
+    .balance { min-height: 54px; margin: 0; font-family: "Arial Rounded MT Bold", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-size: 44px; font-weight: 750; line-height: 1.15; letter-spacing: -1.7px; font-variant-numeric: tabular-nums; }
+    .balance .currency { margin-right: 4px; font-size: 24px; font-weight: 500; vertical-align: 6px; }
+    .balance-caption { margin: 6px 0 0; font-size: 10px; }
+    .balance-caption strong { border-bottom: 1px solid var(--ink); font-weight: 700; }
+    .quick-actions { position: relative; z-index: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 24px; }
+    .quick-action { display: flex; align-items: center; justify-content: center; gap: 9px; height: 55px; padding: 0 16px; border: 2px solid var(--ink); border-radius: 9px; font-size: 14px; font-weight: 800; box-shadow: 3px 3px 0 var(--ink); transition: transform 140ms ease, box-shadow 140ms ease, background-color 140ms ease; }
+    .quick-action svg { width: 21px; height: 21px; }
+    .quick-action.primary { color: var(--yellow); background: var(--ink); }
+    .quick-action.secondary { background: var(--cream); }
+    .quick-action:hover { background: var(--paper); color: var(--ink); }
+    .quick-action:active { transform: translate(3px, 3px); box-shadow: 0 0 0 var(--ink); }
+    .home-ledger { padding: 21px 20px 25px; background: var(--cream); }
+    .section-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 8px; }
+    .section-head h2, .section-head h3 { margin: 0; font-size: 17px; line-height: 1.3; }
+    .text-button { padding: 4px 0; color: var(--muted); background: transparent; border: 0; border-bottom: 1px solid currentColor; font-size: 11px; }
+    .text-button:hover { color: var(--ink); }
+    .transaction-list { border-top: 2px solid var(--ink); }
+    .transaction-item { border-bottom: 1px dashed var(--line); }
+    .transaction { display: grid; grid-template-columns: 39px minmax(0, 1fr) auto; gap: 11px; align-items: center; width: 100%; min-height: 67px; padding: 10px 0; background: transparent; border: 0; text-align: left; }
+    .transaction:hover { background: #F3C94F16; }
+    .transaction-icon { display: grid; place-items: center; width: 37px; height: 37px; background: var(--paper); border: 1.5px solid var(--ink); border-radius: 11px; }
+    .transaction-icon svg { width: 20px; height: 20px; }
+    .transaction-icon.income { background: #23654714; border-color: var(--green); color: var(--green); }
+    .transaction-main { min-width: 0; }
+    .transaction-main strong { display: block; overflow: hidden; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+    .transaction-main small { display: block; margin-top: 2px; color: var(--muted); font-size: 9px; }
+    .transaction-amount { font-family: Consolas, "SFMono-Regular", monospace; font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .transaction-amount.income { color: var(--green); }
+    .transaction-detail { margin: -2px 0 11px 50px; padding: 9px 11px; color: var(--muted); background: var(--paper); border-left: 2px solid var(--yellow); font-size: 10px; line-height: 1.7; }
+    .transaction-detail b { color: var(--ink); font-weight: 600; }
+    .saving-tip { display: grid; grid-template-columns: 34px 1fr; gap: 11px; margin-top: 19px; padding: 13px; background: var(--yellow-soft); border: 1.5px solid var(--ink); border-radius: 8px; }
+    .saving-tip svg { width: 30px; height: 30px; }
+    .saving-tip strong { display: block; font-size: 11px; }
+    .saving-tip p { margin: 2px 0 5px; color: var(--muted); font-size: 10px; }
+    .bottom-nav { position: absolute; left: 0; right: 0; bottom: 0; z-index: 12; display: grid; grid-template-columns: repeat(4, 1fr); height: 79px; padding: 7px 8px 8px; background: var(--paper); border-top: 2px solid var(--ink); }
+    .nav-button { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-width: 0; padding: 3px; color: var(--muted); background: transparent; border: 0; border-radius: 8px; font-size: 9px; transition: color 140ms ease, background-color 140ms ease; }
+    .nav-button svg { width: 22px; height: 22px; }
+    .nav-button:hover { color: var(--ink); background: var(--yellow-soft); }
+    .nav-button.selected { color: var(--ink); font-weight: 800; }
+    .nav-button.selected::before { content: ""; position: absolute; top: -9px; width: 29px; height: 4px; background: var(--yellow); border: 1px solid var(--ink); }
+    .sub-view { padding: 24px 20px 28px; background: var(--cream); }
+    .sub-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 26px; }
+    .sub-brand { font-family: Consolas, "SFMono-Regular", monospace; font-size: 9px; font-weight: 700; letter-spacing: 2px; }
+    .sub-page { color: var(--muted); font-size: 10px; }
+    .sub-kicker { margin: 0 0 6px; color: var(--green); font-size: 10px; font-weight: 800; letter-spacing: 1.5px; }
+    .sub-view h1 { margin: 0 0 8px; font-size: 28px; line-height: 1.25; letter-spacing: -1px; }
+    .sub-intro { margin: 0 0 22px; color: var(--muted); font-size: 11px; }
+    .bill-summary { display: grid; grid-template-columns: 1fr 1fr; margin-bottom: 20px; border: 2px solid var(--ink); background: var(--paper); box-shadow: 4px 4px 0 var(--yellow); }
+    .bill-summary div { padding: 13px 14px; }
+    .bill-summary div + div { border-left: 1px solid var(--ink); }
+    .bill-summary span { display: block; color: var(--muted); font-size: 9px; }
+    .bill-summary strong { display: block; margin-top: 4px; font-family: Consolas, "SFMono-Regular", monospace; font-size: 17px; }
+    .bill-summary strong.income { color: var(--green); }
+    .filters { display: flex; gap: 7px; margin-bottom: 14px; }
+    .filter-button { min-width: 62px; padding: 7px 13px; background: var(--paper); border: 1.5px solid var(--ink); border-radius: 999px; font-size: 11px; }
+    .filter-button:hover { background: var(--yellow-soft); }
+    .filter-button.selected { color: var(--yellow); background: var(--ink); }
+    .empty-filter { padding: 28px 10px; color: var(--muted); text-align: center; font-size: 12px; }
+    .saving-card { position: relative; padding: 22px 20px; overflow: hidden; background: var(--yellow); border: 2px solid var(--ink); box-shadow: 5px 5px 0 var(--ink); }
+    .saving-card::after { content: "存"; position: absolute; right: -5px; bottom: -38px; color: #20231C0D; font-family: "Songti SC", "SimSun", serif; font-size: 130px; font-weight: 900; }
+    .saving-card span { position: relative; z-index: 1; font-size: 10px; font-weight: 700; }
+    .saving-card strong { position: relative; z-index: 1; display: block; margin: 5px 0 2px; font-size: 37px; letter-spacing: -1px; }
+    .saving-card p { position: relative; z-index: 1; margin: 0; font-size: 10px; }
+    .setting-row { display: flex; align-items: center; justify-content: space-between; gap: 15px; padding: 19px 0; border-bottom: 1px solid var(--line); }
+    .setting-row strong { display: block; font-size: 13px; }
+    .setting-row small { display: block; margin-top: 3px; color: var(--muted); font-size: 10px; }
+    .switch { position: relative; flex: 0 0 auto; width: 47px; height: 27px; padding: 0; background: var(--line); border: 2px solid var(--ink); border-radius: 999px; }
+    .switch::after { content: ""; position: absolute; left: 3px; top: 3px; width: 17px; height: 17px; background: var(--paper); border: 1px solid var(--ink); border-radius: 50%; transition: transform 160ms ease; }
+    .switch[aria-checked="true"] { background: var(--yellow); }
+    .switch[aria-checked="true"]::after { transform: translateX(18px); }
+    .rule-details { margin-top: 19px; padding: 0 13px; background: var(--paper); border: 1px solid var(--line); }
+    .rule-details summary { padding: 12px 0; font-size: 11px; font-weight: 700; cursor: pointer; }
+    .rule-details p { margin: 0; padding: 0 0 13px; color: var(--muted); font-size: 10px; line-height: 1.8; }
+    .profile-card { display: flex; align-items: center; gap: 14px; padding: 18px 0 22px; border-bottom: 2px solid var(--ink); }
+    .avatar { display: grid; place-items: center; width: 58px; height: 58px; background: var(--yellow); border: 2px solid var(--ink); border-radius: 50%; box-shadow: 3px 3px 0 var(--ink); font-family: "Songti SC", "SimSun", serif; font-size: 25px; font-weight: 700; }
+    .profile-card h2 { margin: 0; font-size: 20px; }
+    .profile-card p { margin: 3px 0 0; color: var(--muted); font-size: 10px; }
+    .verified { display: inline-block; margin-left: 5px; padding: 1px 5px; color: var(--green); border: 1px solid var(--green); border-radius: 3px; font-size: 8px; vertical-align: 3px; }
+    .account-card { margin: 19px 0 5px; padding: 15px; background: var(--yellow-soft); border: 1.5px solid var(--ink); }
+    .account-card span { display: block; color: var(--muted); font-size: 9px; }
+    .account-card code { display: block; margin: 5px 0 11px; font-family: Consolas, "SFMono-Regular", monospace; font-size: 15px; font-weight: 700; letter-spacing: 1px; }
+    .sheet-backdrop { position: absolute; inset: 0; z-index: 30; background: #20231B99; }
+    .sheet { position: absolute; left: 0; right: 0; bottom: 0; max-height: 91%; padding: 12px 21px 25px; overflow-y: auto; color: var(--ink); background: var(--cream); border-top: 2px solid var(--ink); border-radius: 24px 24px 0 0; box-shadow: 0 -12px 30px #20231C26; animation: sheet-in 220ms cubic-bezier(.2,.8,.2,1); }
+    .sheet-handle { width: 38px; height: 4px; margin: 0 auto 17px; background: var(--line); border-radius: 999px; }
+    .sheet-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 15px; }
+    .sheet-kicker { margin: 0 0 3px; color: var(--green); font-family: Consolas, "SFMono-Regular", monospace; font-size: 9px; font-weight: 700; letter-spacing: 1.5px; }
+    .sheet h2 { margin: 0; font-size: 24px; line-height: 1.3; }
+    .close-button { display: grid; place-items: center; flex: 0 0 auto; width: 34px; height: 34px; padding: 0; background: var(--paper); border: 1.5px solid var(--ink); border-radius: 50%; font-size: 22px; line-height: 1; }
+    .close-button:hover { background: var(--yellow); }
+    .sheet-copy { margin: 9px 0 19px; color: var(--muted); font-size: 11px; }
+    .field-label { display: block; margin: 15px 0 8px; font-size: 11px; font-weight: 800; }
+    .recipients { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .recipient { position: relative; cursor: pointer; }
+    .recipient input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+    .recipient-card { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 11px 5px; background: var(--paper); border: 1.5px solid var(--line); border-radius: 8px; font-size: 10px; transition: border-color 140ms ease, background-color 140ms ease; }
+    .recipient-avatar { display: grid; place-items: center; width: 34px; height: 34px; background: var(--yellow-soft); border: 1px solid var(--ink); border-radius: 50%; font-size: 13px; font-weight: 800; }
+    .recipient input:checked + .recipient-card { background: var(--yellow); border-color: var(--ink); box-shadow: 2px 2px 0 var(--ink); }
+    .recipient input:focus-visible + .recipient-card { outline: 3px solid var(--green); outline-offset: 3px; }
+    .amount-wrap { position: relative; }
+    .amount-wrap span { position: absolute; left: 13px; top: 50%; font-size: 23px; font-weight: 700; transform: translateY(-50%); }
+    .amount-input { width: 100%; height: 57px; padding: 0 13px 0 38px; color: var(--ink); background: var(--paper); border: 2px solid var(--ink); border-radius: 7px; font-family: Consolas, "SFMono-Regular", monospace; font-size: 25px; font-weight: 700; }
+    .amount-input[aria-invalid="true"] { border-color: var(--red); background: #A43C2E0B; }
+    .field-error { min-height: 19px; margin: 5px 0 0; color: var(--red); font-size: 10px; }
+    .sheet-submit { width: 100%; min-height: 49px; margin-top: 13px; color: var(--yellow); background: var(--ink); border: 2px solid var(--ink); border-radius: 8px; font-size: 13px; font-weight: 800; box-shadow: 3px 3px 0 var(--yellow); }
+    .sheet-submit:hover { color: var(--ink); background: var(--yellow); }
+    .receive-card { padding: 18px; background: var(--yellow); border: 2px solid var(--ink); box-shadow: 4px 4px 0 var(--ink); text-align: center; }
+    .qr-code { display: block; width: 174px; height: 174px; margin: 0 auto 13px; padding: 9px; background: var(--paper); border: 2px solid var(--ink); }
+    .receive-card strong { display: block; font-size: 14px; }
+    .receive-card p { margin: 3px 0 0; font-size: 10px; }
+    .receive-account { margin: 18px 0 0; color: var(--muted); font-size: 10px; text-align: center; }
+    .receive-account code { color: var(--ink); font-family: Consolas, "SFMono-Regular", monospace; font-weight: 700; }
+    .notice-list { margin: 17px 0 0; padding: 0; list-style: none; }
+    .notice-list li { padding: 14px 0; border-top: 1px solid var(--line); }
+    .notice-list strong { display: block; font-size: 12px; }
+    .notice-list p { margin: 4px 0; color: var(--muted); font-size: 10px; line-height: 1.7; }
+    .notice-list time { color: var(--green); font-family: Consolas, "SFMono-Regular", monospace; font-size: 9px; }
+    .toast { position: absolute; left: 50%; bottom: 94px; z-index: 50; width: max-content; max-width: calc(100% - 36px); padding: 11px 15px; color: var(--yellow); background: var(--ink); border: 1px solid var(--yellow); border-radius: 7px; box-shadow: 3px 3px 0 #F3C94F66; font-size: 11px; font-weight: 700; text-align: center; opacity: 0; transform: translate(-50%, 10px); pointer-events: none; transition: opacity 160ms ease, transform 160ms ease; }
+    .toast.show { opacity: 1; transform: translate(-50%, 0); }
+    @keyframes sheet-in { from { transform: translateY(35px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    @media (max-width: 899px) { .desk-note { display: none; } .stage { padding: 16px; } }
+    @media (max-width: 520px) {
+      body { display: block; background: var(--cream); }
+      .stage { display: block; padding: 0; }
+      .phone { width: 100%; height: 100vh; height: 100dvh; padding: 0; border-radius: 0; box-shadow: none; }
+      .screen { border-radius: 0; }
+    }
+    @media (max-width: 350px) {
+      .wallet-top, .home-ledger, .sub-view { padding-left: 16px; padding-right: 16px; }
+      .balance { font-size: 39px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="stage">
+    <aside class="desk-note" aria-label="品牌说明">
+      <p class="desk-kicker">QINGJU / POCKET LEDGER</p>
+      <h2>把小日子，<br>记成明白账。</h2>
+      <p>收入有来处，花销有去处。<br>一只为日常小额收支设计的<br>暖黄色掌上账本。</p>
+      <div class="desk-rule" aria-hidden="true"><span></span><span></span><span></span></div>
+    </aside>
+
+    <div class="phone">
+      <main class="screen" aria-label="青桔零钱手机应用">
+        <div class="views" id="views">
+          <section class="view" id="homeView" aria-labelledby="homeTitle">
+            <div class="wallet-top">
+              <div class="top-row">
+                <div class="brand">
+                  <span class="brand-coin" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3v18M16.5 7.2c-.8-1.1-2.2-1.7-4.1-1.7-2.6 0-4.2 1.2-4.2 3 0 4.4 8.5 1.8 8.5 6.4 0 2-1.8 3.4-4.6 3.4-2.2 0-4-.8-5-2.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
+                  <div class="brand-text"><strong id="homeTitle">青桔零钱</strong><span>POCKET BANK</span></div>
+                </div>
+                <button class="icon-button" type="button" id="noticeButton" aria-label="查看 2 条账户通知">
+                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9a6 6 0 0 1 12 0c0 5 2 5.5 2 7H4c0-1.5 2-2 2-7ZM9.5 19c.5 1.2 1.3 1.8 2.5 1.8s2-.6 2.5-1.8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  <span class="notice-dot" aria-hidden="true"></span>
+                </button>
+              </div>
+
+              <div class="balance-block">
+                <div class="balance-label">可用余额（元）
+                  <button class="eye-button" type="button" id="balanceToggle" aria-label="隐藏余额" aria-pressed="false">
+                    <svg id="eyeIcon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M2.5 12s3.4-5.5 9.5-5.5 9.5 5.5 9.5 5.5-3.4 5.5-9.5 5.5S2.5 12 2.5 12Z" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="12" r="2.7" stroke="currentColor" stroke-width="1.6"/></svg>
+                  </button>
+                </div>
+                <p class="balance" id="balanceText"><span class="currency">¥</span>2,846.30</p>
+                <p class="balance-caption">昨日收益 <strong>+0.14 元</strong> · 零钱保障中</p>
+              </div>
+
+              <div class="quick-actions">
+                <button class="quick-action primary" type="button" id="transferButton">
+                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 8h13M14 4l4 4-4 4M19 16H6M10 12l-4 4 4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  转出
+                </button>
+                <button class="quick-action secondary" type="button" id="receiveButton">
+                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3v13M7 11l5 5 5-5M5 20h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  收款
+                </button>
+              </div>
+            </div>
+
+            <div class="home-ledger">
+              <div class="section-head"><h2>最近进出</h2><button class="text-button" type="button" data-go-view="bills">全部流水</button></div>
+              <div class="transaction-list" id="recentTransactions"></div>
+              <div class="saving-tip">
+                <svg viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M6 25 12 17l5 4 9-13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 8h6v6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <div><strong>本周少花了 46.80 元</strong><p>咖啡支出比上周少 2 笔，继续保持。</p><button class="text-button" type="button" data-go-view="bills">看看本周账单</button></div>
+              </div>
+            </div>
+          </section>
+
+          <section class="view sub-view" id="billsView" aria-labelledby="billsTitle" hidden>
+            <div class="sub-top"><span class="sub-brand">QINGJU / LEDGER</span><span class="sub-page">06 月账簿</span></div>
+            <p class="sub-kicker">每一笔，都有来处</p>
+            <h1 id="billsTitle">本月流水</h1>
+            <p class="sub-intro">点击任意一笔，可查看账户与分类详情。</p>
+            <div class="bill-summary"><div><span>本月支出（元）</span><strong id="expenseTotal">0.00</strong></div><div><span>本月收入（元）</span><strong class="income" id="incomeTotal">0.00</strong></div></div>
+            <div class="filters" role="group" aria-label="流水类型筛选">
+              <button class="filter-button selected" type="button" data-filter="all" aria-pressed="true">全部</button>
+              <button class="filter-button" type="button" data-filter="expense" aria-pressed="false">支出</button>
+              <button class="filter-button" type="button" data-filter="income" aria-pressed="false">收入</button>
+            </div>
+            <div class="transaction-list" id="allTransactions"></div>
+          </section>
+
+          <section class="view sub-view" id="benefitsView" aria-labelledby="benefitsTitle" hidden>
+            <div class="sub-top"><span class="sub-brand">QINGJU / HABIT</span><span class="sub-page">小额积攒</span></div>
+            <p class="sub-kicker">不费力气的零钱计划</p>
+            <h1 id="benefitsTitle">让零钱，慢慢长大</h1>
+            <p class="sub-intro">把每一次消费变成一次轻量储蓄，不设压力目标。</p>
+            <div class="saving-card"><span>笔笔攒已累计（元）</span><strong>128.60</strong><p>距离本月小目标还差 71.40 元</p></div>
+            <div class="setting-row"><div><strong>消费后自动存入 3 元</strong><small id="savingStatus">已开启 · 从零钱余额划入口袋</small></div><button class="switch" type="button" id="savingToggle" role="switch" aria-checked="true" aria-label="消费后自动存入 3 元"></button></div>
+            <details class="rule-details"><summary>笔笔攒怎么计算？</summary><p>每笔已完成的消费入账后，从零钱余额转入 3 元。余额不足时，该笔不转入，也不会产生欠款；积攒金额可随时转回零钱。</p></details>
+            <details class="rule-details"><summary>本月小目标</summary><p>本月目标为 200 元，已积累 128.60 元。目标仅用于自我记录，不影响零钱使用。</p></details>
+          </section>
+
+          <section class="view sub-view" id="profileView" aria-labelledby="profileTitle" hidden>
+            <div class="sub-top"><span class="sub-brand">QINGJU / MY ACCOUNT</span><span class="sub-page">个人账户</span></div>
+            <p class="sub-kicker">账户明白，用得安心</p>
+            <h1 id="profileTitle">我的零钱</h1>
+            <div class="profile-card"><div class="avatar" aria-hidden="true">禾</div><div><h2>许青禾<span class="verified">已实名</span></h2><p>青桔号 QJ-0826 · 账户保障中</p></div></div>
+            <div class="setting-row"><div><strong>首页显示余额</strong><small id="privacyStatus">已显示 · 点击首页小眼睛也可切换</small></div><button class="switch" type="button" id="privacyToggle" role="switch" aria-checked="true" aria-label="首页显示余额"></button></div>
+            <div class="account-card"><span>我的零钱收款账号</span><code>QJ 2025 0826</code><button class="text-button" type="button" id="copyAccount">复制收款账号</button></div>
+            <details class="rule-details"><summary>安全与单日限额</summary><p>单日转出限额为 5,000 元。当前设备已开启登录保护，转出操作仅在本机生效，不会向陌生账户自动付款。</p></details>
+          </section>
+        </div>
+
+        <nav class="bottom-nav" aria-label="主要导航">
+          <button class="nav-button selected" type="button" data-view="home" aria-current="page"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 7.5h16v11H4v-11ZM6 4.5h12M15 13h5v4h-5a2 2 0 0 1 0-4Z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg><span>零钱</span></button>
+          <button class="nav-button" type="button" data-view="bills"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2V3ZM9 8h6M9 12h6M9 16h4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg><span>账单</span></button>
+          <button class="nav-button" type="button" data-view="benefits"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 21c5-3.3 8-6.9 8-11a8 8 0 1 0-16 0c0 4.1 3 7.7 8 11Z" stroke="currentColor" stroke-width="1.7"/><path d="M12 5v9M8 9c2.5 0 4 1.2 4 3.5C9.5 12.5 8 11.3 8 9ZM16 8c-2.5 0-4 1.2-4 3.5 2.5 0 4-1.2 4-3.5Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg><span>权益</span></button>
+          <button class="nav-button" type="button" data-view="profile"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.7"/><path d="M4 21c.5-4.5 3.2-7 8-7s7.5 2.5 8 7" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg><span>我的</span></button>
+        </nav>
+
+        <div class="sheet-backdrop" id="sheetBackdrop" hidden>
+          <section class="sheet" id="transferSheet" role="dialog" aria-modal="true" aria-labelledby="transferTitle" hidden>
+            <div class="sheet-handle"></div>
+            <div class="sheet-head"><div><p class="sheet-kicker">TRANSFER / 零钱转出</p><h2 id="transferTitle">转出一笔零钱</h2></div><button class="close-button" type="button" data-close-sheet aria-label="关闭转出">×</button></div>
+            <p class="sheet-copy" id="availableText">可用余额 ¥2,846.30 · 预计即时到账</p>
+            <form id="transferForm" novalidate>
+              <span class="field-label" id="recipientLabel">选择收款人</span>
+              <div class="recipients" role="radiogroup" aria-labelledby="recipientLabel">
+                <label class="recipient"><input type="radio" name="recipient" value="林小满" checked><span class="recipient-card"><span class="recipient-avatar">林</span><span>林小满</span></span></label>
+                <label class="recipient"><input type="radio" name="recipient" value="周野"><span class="recipient-card"><span class="recipient-avatar">周</span><span>周野</span></span></label>
+                <label class="recipient"><input type="radio" name="recipient" value="妈妈"><span class="recipient-card"><span class="recipient-avatar">妈</span><span>妈妈</span></span></label>
+              </div>
+              <label class="field-label" for="amountInput">转出金额（元）</label>
+              <div class="amount-wrap"><span aria-hidden="true">¥</span><input class="amount-input" id="amountInput" type="number" min="0.01" step="0.01" inputmode="decimal" placeholder="0.00" aria-describedby="amountError"></div>
+              <p class="field-error" id="amountError" role="alert"></p>
+              <button class="sheet-submit" type="submit">确认转出</button>
+            </form>
+          </section>
+
+          <section class="sheet" id="receiveSheet" role="dialog" aria-modal="true" aria-labelledby="receiveTitle" hidden>
+            <div class="sheet-handle"></div>
+            <div class="sheet-head"><div><p class="sheet-kicker">RECEIVE / 零钱收款</p><h2 id="receiveTitle">收款，不必绕弯</h2></div><button class="close-button" type="button" data-close-sheet aria-label="关闭收款">×</button></div>
+            <p class="sheet-copy">请朋友扫描收款码，或将你的零钱账号发给对方。</p>
+            <div class="receive-card">
+              <svg class="qr-code" viewBox="0 0 160 160" role="img" aria-label="青桔零钱收款码图案">
+                <rect width="160" height="160" fill="#FFFDF7"/>
+                <g fill="#20231C">
+                  <path d="M8 8h42v42H8V8Zm7 7v28h28V15H15Zm7 7h14v14H22V22ZM110 8h42v42h-42V8Zm7 7v28h28V15h-28Zm7 7h14v14h-14V22ZM8 110h42v42H8v-42Zm7 7v28h28v-28H15Zm7 7h14v14H22v-14Z"/>
+                  <path d="M60 8h8v16h-8zM76 8h16v8H76zM60 32h16v8H60zM84 24h8v18h-8zM56 52h16v8H56zM80 48h8v16h-8zM96 52h16v8H96zM120 60h8v16h-8zM136 56h16v8h-16zM8 60h8v16H8zM24 56h8v8h-8zM40 60h16v8H40zM16 80h16v8H16zM40 76h8v16h-8zM56 72h8v8h-8zM68 64h16v8H68zM68 80h8v16h-8zM84 72h16v8H84zM92 88h8v8h-8zM104 72h8v16h-8zM120 84h16v8h-16zM144 72h8v24h-8zM56 92h16v8H56zM8 92h8v8H8zM28 92h16v8H28zM52 108h8v16h-8zM68 104h16v8H68zM88 104h8v16h-8zM104 96h16v8h-16zM128 104h24v8h-24zM60 128h16v8H60zM60 144h8v8h-8zM80 128h8v24h-8zM96 116h8v8h-8zM96 136h16v8H96zM112 112h8v16h-8zM120 136h8v16h-8zM136 120h16v8h-16zM144 140h8v12h-8z"/>
+                </g>
+                <circle cx="80" cy="80" r="11" fill="#F3C94F" stroke="#20231C" stroke-width="2"/>
+                <path d="M80 73v14M85 76c-1-1-2-1.5-4-1.5-2.5 0-4 1-4 2.7 0 3.8 8 1.6 8 5.6 0 1.8-1.7 3-4.5 3-2 0-3.7-.7-4.7-2" fill="none" stroke="#20231C" stroke-width="1.5" stroke-linecap="round"/>
+              </svg>
+              <strong>许青禾的青桔零钱</strong><p>收款将进入当前可用余额</p>
+            </div>
+            <p class="receive-account">零钱账号 <code>QJ 2025 0826</code></p>
+            <button class="sheet-submit" type="button" id="copyReceiveAccount">复制收款账号</button>
+          </section>
+
+          <section class="sheet" id="noticeSheet" role="dialog" aria-modal="true" aria-labelledby="noticeTitle" hidden>
+            <div class="sheet-handle"></div>
+            <div class="sheet-head"><div><p class="sheet-kicker">ACCOUNT NOTES</p><h2 id="noticeTitle">账户通知</h2></div><button class="close-button" type="button" data-close-sheet aria-label="关闭通知">×</button></div>
+            <ul class="notice-list">
+              <li><strong>昨日零钱收益已到账</strong><p>0.14 元收益已计入可用余额，可在流水中查看。</p><time>今天 07:30</time></li>
+              <li><strong>你的账户保障仍在生效</strong><p>本机登录保护与单日转出限额均正常。</p><time>昨天 21:10</time></li>
+            </ul>
+          </section>
+        </div>
+        <div class="toast" id="toast" role="status" aria-live="polite"></div>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    (() => {
+      let balance = 2846.30;
+      let balanceVisible = true;
+      let activeFilter = 'all';
+      let activeSheet = null;
+      let lastTrigger = null;
+      let toastTimer;
+      let transactionSequence = 10;
+      const transactions = [
+        { id: 1, title: '晨光咖啡', category: '餐饮咖啡', time: '今天 08:42', amount: -18, type: 'coffee', account: '零钱 · 0826' },
+        { id: 2, title: '林小满转入', category: '好友转账', time: '昨天 20:16', amount: 120, type: 'income', account: '零钱 · 0826' },
+        { id: 3, title: '城市地铁', category: '交通出行', time: '昨天 09:03', amount: -4, type: 'metro', account: '零钱 · 0826' },
+        { id: 4, title: '笔笔攒', category: '自动储蓄', time: '06-18 22:10', amount: -6, type: 'saving', account: '笔笔攒口袋' },
+        { id: 5, title: '联华超市', category: '日常采购', time: '06-17 18:26', amount: -86.50, type: 'market', account: '零钱 · 0826' },
+        { id: 6, title: '周野的红包', category: '红包收入', time: '06-16 12:08', amount: 66, type: 'income', account: '零钱 · 0826' }
+      ];
+      const views = document.getElementById('views');
+      const backdrop = document.getElementById('sheetBackdrop');
+      const toast = document.getElementById('toast');
+
+      function money(value, signed = false) {
+        const absolute = Math.abs(value).toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        if (!signed) return absolute;
+        return (value > 0 ? '+' : value < 0 ? '−' : '') + absolute;
+      }
+
+      function icon(type) {
+        const icons = {
+          coffee: '<path d="M5 8h11v7a4 4 0 0 1-4 4H9a4 4 0 0 1-4-4V8ZM16 9h2a2.5 2.5 0 0 1 0 5h-2M4 22h14"/>',
+          metro: '<rect x="5" y="3" width="14" height="15" rx="4"/><path d="M8 7h8M8 12h.1M16 12h.1M8 18l-2 3M16 18l2 3"/>',
+          saving: '<path d="M4 10c0-3 3-5 8-5s8 2 8 5v5c0 3-3 5-8 5s-8-2-8-5v-5ZM4 10c0 3 3 5 8 5s8-2 8-5M12 5V2M9 2h6"/>',
+          market: '<path d="M4 9h16l-2 11H6L4 9ZM8 9a4 4 0 0 1 8 0M8 13v3M12 13v3M16 13v3"/>',
+          income: '<path d="M12 3v14M7 12l5 5 5-5M5 21h14"/>',
+          transfer: '<path d="M5 8h13M14 4l4 4-4 4M19 16H6M10 12l-4 4 4 4"/>'
+        };
+        return '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><g stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">' + (icons[type] || icons.transfer) + '</g></svg>';
+      }
+
+      function transactionMarkup(item, location) {
+        const income = item.amount > 0;
+        const detailId = 'detail-' + location + '-' + item.id;
+        return '<div class="transaction-item" data-kind="' + (income ? 'income' : 'expense') + '">' +
+          '<button class="transaction" type="button" data-transaction="' + item.id + '" aria-expanded="false" aria-controls="' + detailId + '">' +
+          '<span class="transaction-icon ' + (income ? 'income' : '') + '">' + icon(item.type) + '</span>' +
+          '<span class="transaction-main"><strong>' + item.title + '</strong><small>' + item.time + ' · ' + item.category + '</small></span>' +
+          '<span class="transaction-amount ' + (income ? 'income' : '') + '">' + money(item.amount, true) + '</span></button>' +
+          '<div class="transaction-detail" id="' + detailId + '" hidden>分类：<b>' + item.category + '</b><br>账户：<b>' + item.account + '</b> · 流水号 QJ' + String(item.id).padStart(6, '0') + '</div></div>';
+      }
+
+      function renderTransactions() {
+        document.getElementById('recentTransactions').innerHTML = transactions.slice(0, 4).map(item => transactionMarkup(item, 'home')).join('');
+        const filtered = transactions.filter(item => activeFilter === 'all' || (activeFilter === 'income' ? item.amount > 0 : item.amount < 0));
+        document.getElementById('allTransactions').innerHTML = filtered.length ? filtered.map(item => transactionMarkup(item, 'bills')).join('') : '<p class="empty-filter">这个分类暂时没有流水。</p>';
+        const expense = transactions.filter(item => item.amount < 0).reduce((sum, item) => sum + Math.abs(item.amount), 0);
+        const income = transactions.filter(item => item.amount > 0).reduce((sum, item) => sum + item.amount, 0);
+        document.getElementById('expenseTotal').textContent = money(expense);
+        document.getElementById('incomeTotal').textContent = money(income);
+      }
+
+      function updateBalance() {
+        document.getElementById('balanceText').innerHTML = balanceVisible ? '<span class="currency">¥</span>' + money(balance) : '••••••';
+        document.getElementById('availableText').textContent = balanceVisible ? '可用余额 ¥' + money(balance) + ' · 预计即时到账' : '首页余额已隐藏 · 转出时将校验可用余额';
+        document.getElementById('balanceToggle').setAttribute('aria-pressed', String(!balanceVisible));
+        document.getElementById('balanceToggle').setAttribute('aria-label', balanceVisible ? '隐藏余额' : '显示余额');
+        document.getElementById('privacyToggle').setAttribute('aria-checked', String(balanceVisible));
+        document.getElementById('privacyStatus').textContent = balanceVisible ? '已显示 · 点击首页小眼睛也可切换' : '已隐藏 · 首页以圆点代替金额';
+      }
+
+      function notify(message) {
+        window.clearTimeout(toastTimer);
+        toast.textContent = message;
+        toast.classList.add('show');
+        toastTimer = window.setTimeout(() => toast.classList.remove('show'), 2800);
+      }
+
+      function showView(name) {
+        ['home', 'bills', 'benefits', 'profile'].forEach(viewName => {
+          document.getElementById(viewName + 'View').hidden = viewName !== name;
+        });
+        document.querySelectorAll('[data-view]').forEach(button => {
+          const selected = button.dataset.view === name;
+          button.classList.toggle('selected', selected);
+          if (selected) button.setAttribute('aria-current', 'page');
+          else button.removeAttribute('aria-current');
+        });
+        views.scrollTop = 0;
+      }
+
+      function openSheet(name, trigger) {
+        lastTrigger = trigger || document.activeElement;
+        activeSheet = name;
+        backdrop.hidden = false;
+        ['transfer', 'receive', 'notice'].forEach(sheetName => {
+          document.getElementById(sheetName + 'Sheet').hidden = sheetName !== name;
+        });
+        if (name === 'transfer') {
+          document.getElementById('amountInput').value = '';
+          document.getElementById('amountError').textContent = '';
+          document.getElementById('amountInput').setAttribute('aria-invalid', 'false');
+          updateBalance();
+          window.setTimeout(() => document.getElementById('amountInput').focus(), 0);
+        } else {
+          const close = document.querySelector('#' + name + 'Sheet [data-close-sheet]');
+          if (close) close.focus();
+        }
+      }
+
+      function closeSheet() {
+        if (!activeSheet) return;
+        backdrop.hidden = true;
+        activeSheet = null;
+        if (lastTrigger && typeof lastTrigger.focus === 'function') lastTrigger.focus();
+      }
+
+      function toggleBalance() {
+        balanceVisible = !balanceVisible;
+        updateBalance();
+        notify(balanceVisible ? '余额已显示' : '余额已隐藏，账户隐私已保护');
+      }
+
+      async function copyAccount() {
+        const account = 'QJ 2025 0826';
+        try {
+          if (navigator.clipboard && window.isSecureContext) {
+            await navigator.clipboard.writeText(account);
+          } else {
+            const textarea = document.createElement('textarea');
+            textarea.value = account;
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            textarea.select();
+            const copied = document.execCommand('copy');
+            textarea.remove();
+            if (!copied) throw new Error('copy unavailable');
+          }
+          notify('收款账号已复制：' + account);
+        } catch (error) {
+          notify('请手动记录收款账号：' + account);
+        }
+      }
+
+      document.querySelectorAll('[data-view]').forEach(button => button.addEventListener('click', () => showView(button.dataset.view)));
+      document.querySelectorAll('[data-go-view]').forEach(button => button.addEventListener('click', () => showView(button.dataset.goView)));
+      document.getElementById('balanceToggle').addEventListener('click', toggleBalance);
+      document.getElementById('privacyToggle').addEventListener('click', toggleBalance);
+      document.getElementById('transferButton').addEventListener('click', event => openSheet('transfer', event.currentTarget));
+      document.getElementById('receiveButton').addEventListener('click', event => openSheet('receive', event.currentTarget));
+      document.getElementById('noticeButton').addEventListener('click', event => openSheet('notice', event.currentTarget));
+      document.querySelectorAll('[data-close-sheet]').forEach(button => button.addEventListener('click', closeSheet));
+      document.getElementById('copyAccount').addEventListener('click', copyAccount);
+      document.getElementById('copyReceiveAccount').addEventListener('click', copyAccount);
+
+      backdrop.addEventListener('click', event => { if (event.target === backdrop) closeSheet(); });
+      document.addEventListener('keydown', event => {
+        if (event.key === 'Escape' && activeSheet) closeSheet();
+        if (event.key === 'Tab' && activeSheet) {
+          const sheet = document.getElementById(activeSheet + 'Sheet');
+          const focusable = Array.from(sheet.querySelectorAll('button:not(:disabled), input:not(:disabled), summary')).filter(element => element.offsetParent !== null);
+          if (!focusable.length) return;
+          const first = focusable[0];
+          const last = focusable[focusable.length - 1];
+          if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+          else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+        }
+      });
+
+      document.querySelectorAll('[data-filter]').forEach(button => button.addEventListener('click', () => {
+        activeFilter = button.dataset.filter;
+        document.querySelectorAll('[data-filter]').forEach(filterButton => {
+          const selected = filterButton === button;
+          filterButton.classList.toggle('selected', selected);
+          filterButton.setAttribute('aria-pressed', String(selected));
+        });
+        renderTransactions();
+      }));
+
+      [document.getElementById('recentTransactions'), document.getElementById('allTransactions')].forEach(container => {
+        container.addEventListener('click', event => {
+          const button = event.target.closest('[data-transaction]');
+          if (!button) return;
+          const expanded = button.getAttribute('aria-expanded') === 'true';
+          button.setAttribute('aria-expanded', String(!expanded));
+          document.getElementById(button.getAttribute('aria-controls')).hidden = expanded;
+        });
+      });
+
+      document.getElementById('amountInput').addEventListener('input', () => {
+        document.getElementById('amountInput').setAttribute('aria-invalid', 'false');
+        document.getElementById('amountError').textContent = '';
+      });
+
+      document.getElementById('transferForm').addEventListener('submit', event => {
+        event.preventDefault();
+        const input = document.getElementById('amountInput');
+        const error = document.getElementById('amountError');
+        const amount = Number(input.value);
+        if (!Number.isFinite(amount) || amount <= 0) {
+          input.setAttribute('aria-invalid', 'true');
+          error.textContent = '请输入大于 0 元的转出金额。';
+          input.focus();
+          return;
+        }
+        if (Math.round(amount * 100) > Math.round(balance * 100)) {
+          input.setAttribute('aria-invalid', 'true');
+          error.textContent = '余额不足，最多可转出 ¥' + money(balance) + '。';
+          input.focus();
+          return;
+        }
+        const recipient = document.querySelector('input[name="recipient"]:checked').value;
+        const roundedAmount = Math.round(amount * 100) / 100;
+        balance = Math.round((balance - roundedAmount) * 100) / 100;
+        transactions.unshift({ id: ++transactionSequence, title: '转给' + recipient, category: '好友转账', time: '刚刚', amount: -roundedAmount, type: 'transfer', account: '零钱 · 0826' });
+        updateBalance();
+        renderTransactions();
+        closeSheet();
+        showView('home');
+        notify('已转出 ¥' + money(roundedAmount) + ' 给' + recipient + '，余额与流水已更新');
+      });
+
+      document.getElementById('savingToggle').addEventListener('click', event => {
+        const button = event.currentTarget;
+        const enabled = button.getAttribute('aria-checked') !== 'true';
+        button.setAttribute('aria-checked', String(enabled));
+        document.getElementById('savingStatus').textContent = enabled ? '已开启 · 从零钱余额划入口袋' : '已暂停 · 之后消费不再自动存入';
+        notify(enabled ? '笔笔攒已开启，每笔消费后存入 3 元' : '笔笔攒已暂停，已有积攒不会受影响');
+      });
+
+      renderTransactions();
+      updateBalance();
+    })();
+  </script>
+</body>
+</html>

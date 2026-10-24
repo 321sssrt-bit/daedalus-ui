@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>山渚草木志 · 一盏龙井</title>
+  <style>
+    :root {
+      --celadon: #A9C6B8;
+      --celadon-light: #D6E1D3;
+      --tea: #183D32;
+      --tea-light: #2E5B4B;
+      --paper: #F4F0DF;
+      --paper-deep: #E5E0C9;
+      --ink: #26352D;
+      --muted: #6B756A;
+      --gold: #B8874C;
+      --white: #FFFDF4;
+      --stage: #DDE3D7;
+      --line: #B8C2AF;
+    }
+    * { box-sizing: border-box; }
+    html { color-scheme: light; }
+    body {
+      margin: 0;
+      min-width: 320px;
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: grid;
+      place-items: center;
+      color: var(--ink);
+      background: var(--stage);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+      font-size: 14px;
+      line-height: 1.65;
+    }
+    button { color: inherit; font: inherit; cursor: pointer; }
+    button:focus-visible, summary:focus-visible {
+      outline: 3px solid var(--gold);
+      outline-offset: 4px;
+    }
+    [hidden] { display: none !important; }
+    .stage { display: flex; align-items: center; justify-content: center; gap: 64px; width: 100%; padding: 16px 28px; }
+    .desk-note { width: 240px; padding: 22px 20px; border: 1px solid var(--tea); outline: 1px solid #183D3255; outline-offset: 5px; }
+    .desk-kicker { display: flex; justify-content: space-between; margin: 0 0 26px; color: var(--tea); font-family: Consolas, "SFMono-Regular", monospace; font-size: 9px; letter-spacing: 2px; }
+    .desk-note h2 { margin: 0 0 12px; color: var(--tea); font-family: "Songti SC", "STSong", "SimSun", serif; font-size: 31px; font-weight: 700; line-height: 1.4; letter-spacing: 3px; }
+    .desk-note > p { margin: 0; color: var(--muted); font-family: "Songti SC", "STSong", "SimSun", serif; font-size: 12px; line-height: 2; }
+    .desk-seal { display: grid; place-items: center; width: 39px; height: 39px; margin-top: 25px; color: var(--paper); background: var(--tea); font-family: "Songti SC", "SimSun", serif; font-size: 17px; }
+    .desk-note small { display: block; margin-top: 12px; color: var(--muted); font-family: Consolas, "SFMono-Regular", monospace; font-size: 8px; letter-spacing: 1px; }
+    .phone {
+      flex: 0 0 auto;
+      width: 404px;
+      height: min(860px, calc(100vh - 32px));
+      height: min(860px, calc(100dvh - 32px));
+      padding: 7px;
+      background: var(--tea);
+      border-radius: 39px;
+      box-shadow: 0 22px 55px #183D3233, 0 0 0 1px #FFFDF466;
+    }
+    .screen { position: relative; width: 100%; height: 100%; overflow: hidden; background: var(--paper); border-radius: 32px; }
+    .screen::after { content: ""; position: absolute; inset: 0; z-index: 20; opacity: .22; background-image: radial-gradient(#6B756A50 .55px, transparent .55px); background-size: 6px 6px; pointer-events: none; }
+    .reading-progress { position: absolute; left: 0; top: 0; z-index: 25; width: 0; height: 3px; background: var(--gold); transition: width 100ms linear; }
+    .reader { position: absolute; inset: 0; overflow-x: hidden; overflow-y: auto; padding-bottom: 86px; background: var(--paper); scrollbar-width: none; overscroll-behavior: contain; }
+    .reader::-webkit-scrollbar { display: none; }
+    .article-hero { position: relative; overflow: hidden; background: var(--celadon); border-bottom: 1px solid var(--tea); }
+    .article-hero::before { content: ""; position: absolute; right: -58px; top: 84px; width: 194px; height: 194px; border: 1px solid #183D3226; border-radius: 50%; box-shadow: 0 0 0 17px #183D3208, 0 0 0 36px #183D3208; }
+    .masthead { position: relative; z-index: 2; display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 19px 20px 0; }
+    .brand { display: flex; align-items: center; gap: 9px; color: var(--tea); }
+    .brand-mark { display: grid; place-items: center; width: 29px; height: 29px; border: 1.5px solid var(--tea); border-radius: 50%; font-family: "Songti SC", "SimSun", serif; font-size: 15px; font-weight: 700; }
+    .brand strong { display: block; font-family: "Songti SC", "STSong", "SimSun", serif; font-size: 14px; letter-spacing: 3px; }
+    .brand small { display: block; margin-top: -3px; font-family: Consolas, "SFMono-Regular", monospace; font-size: 7px; letter-spacing: 1.5px; }
+    .issue { color: var(--tea); font-family: "Songti SC", "SimSun", serif; font-size: 10px; letter-spacing: 2px; }
+    .title-block { position: relative; z-index: 2; padding: 28px 21px 0; }
+    .article-kicker { display: flex; align-items: center; gap: 9px; margin: 0 0 10px; color: var(--tea-light); font-size: 10px; font-weight: 700; letter-spacing: 2px; }
+    .article-kicker::before { content: ""; width: 23px; height: 2px; background: var(--tea); }
+    .title-block h1 { max-width: 310px; margin: 0; color: var(--tea); font-family: "Songti SC", "STSong", "SimSun", serif; font-size: 34px; font-weight: 700; line-height: 1.3; letter-spacing: 2px; }
+    .article-subtitle { max-width: 295px; margin: 12px 0 0; color: var(--tea-light); font-family: "Songti SC", "STSong", "SimSun", serif; font-size: 12px; line-height: 1.8; }
+    .hero-art { position: relative; z-index: 1; display: block; width: 100%; height: 219px; margin-top: -2px; }
+    .vertical-caption { position: absolute; right: 19px; top: 158px; z-index: 3; padding: 8px 6px; color: var(--paper); background: var(--tea); font-family: "Songti SC", "SimSun", serif; font-size: 10px; line-height: 1.5; letter-spacing: 3px; writing-mode: vertical-rl; }
+    .article-body { padding: 20px 21px 32px; }
+    .article-meta { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-bottom: 15px; color: var(--muted); border-bottom: 1px solid var(--line); font-size: 9px; }
+    .article-meta strong { color: var(--tea); font-weight: 700; }
+    .author { display: inline-flex; align-items: center; gap: 6px; }
+    .author::before { content: "叶"; display: grid; place-items: center; width: 21px; height: 21px; color: var(--paper); background: var(--tea-light); border-radius: 50%; font-family: "Songti SC", "SimSun", serif; font-size: 10px; }
+    .reading-control { margin: 19px 0 23px; }
+    .control-label { display: flex; align-items: baseline; justify-content: space-between; gap: 14px; margin-bottom: 9px; }
+    .control-label strong { color: var(--tea); font-size: 12px; }
+    .control-label span { color: var(--muted); font-size: 9px; }
+    .segments { display: grid; grid-template-columns: repeat(3, 1fr); padding: 3px; background: var(--celadon-light); border: 1px solid var(--tea); border-radius: 5px; }
+    .segment { min-height: 43px; padding: 5px 4px; color: var(--tea-light); background: transparent; border: 0; border-radius: 2px; transition: color 150ms ease, background-color 150ms ease, box-shadow 150ms ease; }
+    .segment span { display: block; font-family: "Songti SC", "STSong", "SimSun", serif; font-size: 13px; font-weight: 700; }
+    .segment small { display: block; margin-top: 1px; font-size: 8px; }
+    .segment:hover { background: #FFFDF470; }
+    .segment.selected { color: var(--paper); background: var(--tea); box-shadow: 2px 2px 0 #B8874C66; }
+    .article-content { color: var(--ink); font-family: "Songti SC", "STSong", "SimSun", serif; font-size: 15px; line-height: 2.05; }
+    .article-content h2 { position: relative; margin: 27px 0 12px; padding-left: 14px; color: var(--tea); font-size: 20px; line-height: 1.5; letter-spacing: 1px; }
+    .article-content h2:first-child { margin-top: 0; }
+    .article-content h2::before { content: ""; position: absolute; left: 0; top: 7px; bottom: 7px; width: 3px; background: var(--gold); }
+    .article-content p { margin: 0 0 16px; text-align: justify; }
+    .article-content p:first-of-type::first-letter { float: left; margin: 7px 7px 0 0; color: var(--tea); font-size: 43px; font-weight: 700; line-height: .85; }
+    .brew-card { margin-top: 27px; background: var(--celadon-light); border: 1px solid var(--tea); border-radius: 4px; }
+    .brew-card summary { display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center; padding: 14px 15px; color: var(--tea); cursor: pointer; list-style: none; }
+    .brew-card summary::-webkit-details-marker { display: none; }
+    .brew-card summary strong { display: block; font-family: "Songti SC", "SimSun", serif; font-size: 14px; }
+    .brew-card summary small { display: block; margin-top: 2px; color: var(--muted); font-size: 9px; }
+    .brew-plus { display: grid; place-items: center; width: 27px; height: 27px; border: 1px solid var(--tea); border-radius: 50%; font-size: 19px; transition: transform 160ms ease; }
+    .brew-card[open] .brew-plus { transform: rotate(45deg); }
+    .brew-content { padding: 0 15px 16px; }
+    .brew-metrics { display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+    .brew-metrics div { padding: 11px 5px; text-align: center; }
+    .brew-metrics div + div { border-left: 1px solid var(--line); }
+    .brew-metrics span { display: block; color: var(--muted); font-size: 8px; }
+    .brew-metrics strong { display: block; margin-top: 3px; color: var(--tea); font-family: Consolas, "SFMono-Regular", monospace; font-size: 14px; }
+    .brew-content ol { margin: 13px 0 0; padding-left: 19px; color: var(--ink); font-family: "Songti SC", "SimSun", serif; font-size: 11px; line-height: 1.9; }
+    .article-end { margin: 30px 0 4px; color: var(--muted); font-family: "Songti SC", "SimSun", serif; font-size: 10px; letter-spacing: 1px; text-align: center; }
+    .article-end::before { content: ""; display: block; width: 35px; height: 1px; margin: 0 auto 11px; background: var(--gold); }
+    .bottom-actions { position: absolute; left: 0; right: 0; bottom: 0; z-index: 15; display: grid; grid-template-columns: 112px 1fr; gap: 10px; min-height: 75px; padding: 11px 17px; background: #F4F0DFF2; border-top: 1px solid var(--tea); }
+    .action-button { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; padding: 9px 13px; border: 1.5px solid var(--tea); border-radius: 4px; font-size: 12px; font-weight: 700; transition: background-color 150ms ease, color 150ms ease, transform 150ms ease; }
+    .action-button svg { width: 19px; height: 19px; }
+    .action-button:active { transform: translateY(1px); }
+    .brew-button { color: var(--tea); background: transparent; }
+    .brew-button:hover { background: var(--celadon-light); }
+    .favorite-button { color: var(--paper); background: var(--tea); box-shadow: 3px 3px 0 var(--gold); }
+    .favorite-button:hover { background: var(--tea-light); }
+    .favorite-button.saved { color: var(--tea); background: var(--celadon); box-shadow: none; }
+    .toast { position: absolute; left: 50%; bottom: 88px; z-index: 30; width: max-content; max-width: calc(100% - 38px); padding: 10px 15px; color: var(--paper); background: var(--tea); border: 1px solid var(--gold); border-radius: 4px; box-shadow: 3px 3px 0 #B8874C55; font-size: 10px; font-weight: 700; text-align: center; opacity: 0; transform: translate(-50%, 9px); pointer-events: none; transition: opacity 160ms ease, transform 160ms ease; }
+    .toast.show { opacity: 1; transform: translate(-50%, 0); }
+    @media (max-height: 790px) and (min-width: 521px) {
+      .title-block { padding-top: 20px; }
+      .title-block h1 { font-size: 30px; }
+      .article-subtitle { margin-top: 8px; }
+      .hero-art { height: 185px; }
+      .vertical-caption { top: 140px; }
+    }
+    @media (max-width: 899px) { .desk-note { display: none; } .stage { padding: 16px; } }
+    @media (max-width: 520px) {
+      body { display: block; background: var(--paper); }
+      .stage { display: block; padding: 0; }
+      .phone { width: 100%; height: 100vh; height: 100dvh; padding: 0; border-radius: 0; box-shadow: none; }
+      .screen { border-radius: 0; }
+    }
+    @media (max-width: 350px) {
+      .title-block, .article-body { padding-left: 17px; padding-right: 17px; }
+      .title-block h1 { font-size: 30px; }
+      .bottom-actions { grid-template-columns: 102px 1fr; padding-left: 13px; padding-right: 13px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="stage">
+    <aside class="desk-note" aria-label="刊物说明">
+      <p class="desk-kicker"><span>SHANZHU</span><span>VOL. 07</span></p>
+      <h2>草木有本心，<br>一盏见山渚。</h2>
+      <p>一册关于茶、山场与节气的<br>中文移动读物。把复杂的茶事，<br>写得清澈而有分寸。</p>
+      <div class="desk-seal" aria-hidden="true">茶</div>
+      <small>FIELD NOTES ON CHINESE TEA</small>
+    </aside>
+
+    <div class="phone">
+      <main class="screen" aria-label="山渚茶文化移动读物">
+        <div class="reading-progress" id="readingProgress" aria-hidden="true"></div>
+        <div class="reader" id="reader">
+          <article>
+            <header class="article-hero">
+              <div class="masthead">
+                <div class="brand"><span class="brand-mark" aria-hidden="true">渚</span><div><strong>山渚</strong><small>TEA JOURNAL</small></div></div>
+                <span class="issue">草木志 · 第七篇</span>
+              </div>
+              <div class="title-block">
+                <p class="article-kicker">春茶手记 / 绿茶</p>
+                <h1>一盏龙井，<br>如何盛放春天</h1>
+                <p class="article-subtitle">从山场、香气到一杯刚好的水温，读懂明前龙井的清鲜分寸。</p>
+              </div>
+              <span class="vertical-caption">明前 · 龙井</span>
+              <svg class="hero-art" viewBox="0 0 350 219" role="img" aria-labelledby="teaArtTitle">
+                <title id="teaArtTitle">青瓷茶盏中的龙井与春山茶叶</title>
+                <defs>
+                  <linearGradient id="bowlGlaze" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2E5B4B"/><stop offset=".55" stop-color="#183D32"/><stop offset="1" stop-color="#102B24"/></linearGradient>
+                  <radialGradient id="teaSurface" cx="45%" cy="38%" r="65%"><stop offset="0" stop-color="#D2B878"/><stop offset=".65" stop-color="#9B914F"/><stop offset="1" stop-color="#596844"/></radialGradient>
+                </defs>
+                <circle cx="107" cy="135" r="72" fill="#F4F0DF" fill-opacity=".23"/>
+                <path d="M0 157c38-35 69-37 102-11 32-37 75-45 115-10 39-30 81-25 133 14v69H0v-62Z" fill="#2E5B4B" fill-opacity=".12"/>
+                <path d="M0 177c46-30 81-24 114 0 39-32 83-29 122 3 35-22 72-21 114 4" fill="none" stroke="#183D32" stroke-opacity=".28"/>
+                <path d="M31 151c29-19 48-18 71 2M218 153c28-21 52-20 81 1" fill="none" stroke="#F4F0DF" stroke-opacity=".55" stroke-linecap="round"/>
+                <ellipse cx="174" cy="190" rx="105" ry="16" fill="#183D32" fill-opacity=".16"/>
+                <path d="M91 126h166c-4 44-29 70-83 70s-79-26-83-70Z" fill="url(#bowlGlaze)"/>
+                <path d="M104 139c8 28 28 43 55 47" fill="none" stroke="#A9C6B8" stroke-opacity=".35" stroke-width="3" stroke-linecap="round"/>
+                <ellipse cx="174" cy="126" rx="83" ry="24" fill="#D6E1D3" stroke="#183D32" stroke-width="2"/>
+                <ellipse cx="174" cy="127" rx="74" ry="18" fill="url(#teaSurface)"/>
+                <path d="M132 128c15-7 28-7 41 0-15 7-28 7-41 0ZM178 121c12-5 23-4 32 2-12 5-22 4-32-2Z" fill="#3F5C36"/>
+                <path d="M142 125c8 0 15 1 22 3M185 121l16 3" stroke="#D6E1D3" stroke-opacity=".55" stroke-linecap="round"/>
+                <path d="M144 104c-15-16 11-23 0-39M174 102c-14-19 13-28 1-48M202 105c-11-14 10-22 2-34" fill="none" stroke="#F4F0DF" stroke-opacity=".75" stroke-width="2" stroke-linecap="round"/>
+                <g transform="translate(259 77) rotate(19)">
+                  <path d="M0 66C-7 35 7 12 34 0c5 30-5 53-34 66Z" fill="#2E5B4B"/>
+                  <path d="M0 66C12 39 22 20 34 0M7 47l17-8M12 33l14-7" fill="none" stroke="#D6E1D3" stroke-opacity=".6" stroke-linecap="round"/>
+                  <path d="M0 66C-3 42-18 25-40 20c-1 27 12 43 40 46Z" fill="#183D32"/>
+                  <path d="M0 66C-14 45-27 31-40 20M-12 48l-15-2M-20 37l-11-1" fill="none" stroke="#A9C6B8" stroke-opacity=".6" stroke-linecap="round"/>
+                </g>
+                <circle cx="66" cy="82" r="3" fill="#B8874C"/>
+                <path d="M52 82h-20M66 68V52" stroke="#B8874C" stroke-linecap="round"/>
+              </svg>
+            </header>
+
+            <div class="article-body">
+              <div class="article-meta"><span class="author">叶青岑 · 茶事作者</span><strong id="readTime">细品版 · 约 3 分钟</strong></div>
+              <section class="reading-control" aria-labelledby="readingLabel">
+                <div class="control-label"><strong id="readingLabel">阅读份量</strong><span>选一种适合此刻的浓度</span></div>
+                <div class="segments" role="group" aria-labelledby="readingLabel">
+                  <button class="segment" type="button" data-mode="brief" aria-pressed="false"><span>速读</span><small>约 1 分钟</small></button>
+                  <button class="segment selected" type="button" data-mode="full" aria-pressed="true"><span>细品</span><small>约 3 分钟</small></button>
+                  <button class="segment" type="button" data-mode="deep" aria-pressed="false"><span>深究</span><small>约 5 分钟</small></button>
+                </div>
+              </section>
+
+              <div class="article-content" id="articleContent">
+                <h2>春茶，先闻山场的清气</h2>
+                <p>明前龙井的珍贵，不只在一个“早”字。清明前气温尚低，茶树缓慢积累氨基酸，芽叶因而细嫩。好的成品茶带有清豆香与淡淡栗香，而不是扑面而来、久久不散的浓艳香气。</p>
+                <p>把干茶倒在素色茶则里，先看芽叶是否扁平光滑，再闻是否有干净的植物气息。不同茶树品种与山场会带来风格差异，不必只以芽头大小判断高下。</p>
+                <h2>一盏茶里的分寸</h2>
+                <p>玻璃杯泡龙井，宜让水温停在 80–85°C。先注少量水润茶，待叶片舒展，再沿杯壁缓缓加水。3 克茶配 150 毫升水，是容易复刻的起点；口味清淡者可以减少投茶，而不是一味缩短浸泡。</p>
+                <p>第一泡不必久等，约 90 秒即可小口试饮。茶汤入口应是鲜爽先至，微涩随后化开。若苦涩尖锐，先检查水温与投茶量，再考虑茶叶本身。</p>
+              </div>
+
+              <details class="brew-card" id="brewCard">
+                <summary><span><strong>附一张龙井冲泡卡</strong><small>把文章里的分寸，落到手边这一杯</small></span><span class="brew-plus" aria-hidden="true">+</span></summary>
+                <div class="brew-content">
+                  <div class="brew-metrics"><div><span>投茶量</span><strong>3 g</strong></div><div><span>建议水温</span><strong>85°C</strong></div><div><span>首泡时间</span><strong>90 s</strong></div></div>
+                  <ol><li>温杯后投茶，先轻闻干茶的清豆香。</li><li>注入约 150 毫升热水，沿杯壁缓慢加水。</li><li>90 秒后试饮，口味偏淡可减少投茶量。</li></ol>
+                </div>
+              </details>
+              <p class="article-end">山渚草木志 · 好茶值得慢慢读</p>
+            </div>
+          </article>
+        </div>
+
+        <div class="bottom-actions">
+          <button class="action-button brew-button" type="button" id="brewButton">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 8h12v6a5 5 0 0 1-5 5h-2a5 5 0 0 1-5-5V8ZM17 9h1a2.5 2.5 0 0 1 0 5h-1M8 5c-1-1 1-2 0-3M12 5c-1-1 1-2 0-3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            冲泡卡
+          </button>
+          <button class="action-button favorite-button" type="button" id="favoriteButton" aria-pressed="false">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path id="bookmarkPath" d="M6 3h12v18l-6-4-6 4V3Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg>
+            <span id="favoriteText">收藏本文</span>
+          </button>
+        </div>
+        <div class="toast" id="toast" role="status" aria-live="polite"></div>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    (() => {
+      const editions = {
+        brief: {
+          label: '速读版 · 约 1 分钟',
+          sections: [
+            { heading: '一分钟读懂明前龙井', paragraphs: [
+              '明前龙井的清鲜，来自低温时节缓慢生长的细嫩芽叶。好茶的香气应当干净自然，常见清豆香与淡栗香，不是越浓艳越好；外形也不必只追求芽头越小越整齐。',
+              '日常冲泡可从 3 克茶、150 毫升水、80–85°C 水温开始。首泡约 90 秒后试饮，若苦涩明显，先降低水温或减少投茶量。记住这一条，就能泡出一杯清爽而不失鲜味的龙井。'
+            ] }
+          ]
+        },
+        full: {
+          label: '细品版 · 约 3 分钟',
+          sections: [
+            { heading: '春茶，先闻山场的清气', paragraphs: [
+              '明前龙井的珍贵，不只在一个“早”字。清明前气温尚低，茶树缓慢积累氨基酸，芽叶因而细嫩。好的成品茶带有清豆香与淡淡栗香，而不是扑面而来、久久不散的浓艳香气。',
+              '把干茶倒在素色茶则里，先看芽叶是否扁平光滑，再闻是否有干净的植物气息。不同茶树品种与山场会带来风格差异，不必只以芽头大小判断高下。'
+            ] },
+            { heading: '一盏茶里的分寸', paragraphs: [
+              '玻璃杯泡龙井，宜让水温停在 80–85°C。先注少量水润茶，待叶片舒展，再沿杯壁缓缓加水。3 克茶配 150 毫升水，是容易复刻的起点；口味清淡者可以减少投茶，而不是一味缩短浸泡。',
+              '第一泡不必久等，约 90 秒即可小口试饮。茶汤入口应是鲜爽先至，微涩随后化开。若苦涩尖锐，先检查水温与投茶量，再考虑茶叶本身。'
+            ] }
+          ]
+        },
+        deep: {
+          label: '深究版 · 约 5 分钟',
+          sections: [
+            { heading: '春茶，先闻山场的清气', paragraphs: [
+              '明前龙井的珍贵，不只在一个“早”字。清明前气温尚低，茶树缓慢积累氨基酸，芽叶因而细嫩。好的成品茶带有清豆香与淡淡栗香，而不是扑面而来、久久不散的浓艳香气。',
+              '把干茶倒在素色茶则里，先看芽叶是否扁平光滑，再闻是否有干净的植物气息。不同茶树品种与山场会带来风格差异，不必只以芽头大小判断高下。'
+            ] },
+            { heading: '一盏茶里的分寸', paragraphs: [
+              '玻璃杯泡龙井，宜让水温停在 80–85°C。先注少量水润茶，待叶片舒展，再沿杯壁缓缓加水。3 克茶配 150 毫升水，是容易复刻的起点；口味清淡者可以减少投茶，而不是一味缩短浸泡。',
+              '第一泡不必久等，约 90 秒即可小口试饮。茶汤入口应是鲜爽先至，微涩随后化开。若苦涩尖锐，先检查水温与投茶量，再考虑茶叶本身。'
+            ] },
+            { heading: '风土不是包装上的名词', paragraphs: [
+              '山场的海拔、朝向与植被，会改变茶园接受的日照和局部温差。温和散射光与较大的昼夜温差，通常有利于形成细腻香气。但山场只是风格的一部分，采摘成熟度与炒制火候同样决定最后的汤感。',
+              '新茶到手后，密封、避光、防潮比急于炫耀产地更重要。若需冷藏，应先确保包装密封，取出后待茶罐回到室温再开启，减少冷凝水让茶叶受潮。尽早喝完，才是对春鲜最好的珍惜。'
+            ] }
+          ]
+        }
+      };
+      let saved = false;
+      let toastTimer;
+      const reader = document.getElementById('reader');
+      const toast = document.getElementById('toast');
+      const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+      function notify(message) {
+        window.clearTimeout(toastTimer);
+        toast.textContent = message;
+        toast.classList.add('show');
+        toastTimer = window.setTimeout(() => toast.classList.remove('show'), 2500);
+      }
+
+      function renderEdition(mode) {
+        const edition = editions[mode];
+        const fragment = document.createDocumentFragment();
+        edition.sections.forEach(section => {
+          const heading = document.createElement('h2');
+          heading.textContent = section.heading;
+          fragment.appendChild(heading);
+          section.paragraphs.forEach(text => {
+            const paragraph = document.createElement('p');
+            paragraph.textContent = text;
+            fragment.appendChild(paragraph);
+          });
+        });
+        document.getElementById('articleContent').replaceChildren(fragment);
+        document.getElementById('readTime').textContent = edition.label;
+        document.querySelectorAll('[data-mode]').forEach(button => {
+          const selected = button.dataset.mode === mode;
+          button.classList.toggle('selected', selected);
+          button.setAttribute('aria-pressed', String(selected));
+        });
+        updateReadingProgress();
+      }
+
+      function updateReadingProgress() {
+        const maximum = reader.scrollHeight - reader.clientHeight;
+        const percentage = maximum > 0 ? Math.min(100, reader.scrollTop / maximum * 100) : 0;
+        document.getElementById('readingProgress').style.width = percentage + '%';
+      }
+
+      document.querySelectorAll('[data-mode]').forEach(button => button.addEventListener('click', () => {
+        renderEdition(button.dataset.mode);
+        notify('已切换为' + editions[button.dataset.mode].label + '，正文已更新');
+      }));
+
+      document.getElementById('favoriteButton').addEventListener('click', event => {
+        saved = !saved;
+        const button = event.currentTarget;
+        button.classList.toggle('saved', saved);
+        button.setAttribute('aria-pressed', String(saved));
+        document.getElementById('favoriteText').textContent = saved ? '已收藏 · 茶书房' : '收藏本文';
+        document.getElementById('bookmarkPath').setAttribute('fill', saved ? 'currentColor' : 'none');
+        notify(saved ? '已收入你的茶书房，可随时回来细读' : '已从茶书房移除本文');
+      });
+
+      document.getElementById('brewButton').addEventListener('click', () => {
+        const card = document.getElementById('brewCard');
+        card.open = true;
+        card.scrollIntoView({ behavior: reducedMotion.matches ? 'auto' : 'smooth', block: 'center' });
+        notify('冲泡卡已展开：3 克茶、85°C、首泡 90 秒');
+      });
+
+      reader.addEventListener('scroll', updateReadingProgress, { passive: true });
+      window.addEventListener('resize', updateReadingProgress);
+      renderEdition('full');
+    })();
+  </script>
+</body>
+</html>

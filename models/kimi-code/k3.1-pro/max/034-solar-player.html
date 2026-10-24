@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>日落电台 · 正在播放</title>
+  <style>
+    :root {
+      --plum: #241027;
+      --plum-deep: #130815;
+      --plum-soft: #3A173D;
+      --orange: #FF7849;
+      --orange-deep: #D94A35;
+      --peach: #FFB48A;
+      --cream: #FFF4EA;
+      --lavender: #B8A1C8;
+      --line: #6B456B;
+      --stage: #16091B;
+      --black: #09060A;
+    }
+    * { box-sizing: border-box; }
+    html { color-scheme: dark; }
+    body {
+      margin: 0;
+      min-width: 320px;
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: grid;
+      place-items: center;
+      color: var(--cream);
+      background: var(--stage);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    button, input { font: inherit; }
+    button { color: inherit; cursor: pointer; }
+    button:focus-visible, input:focus-visible {
+      outline: 3px solid var(--peach);
+      outline-offset: 4px;
+    }
+    [hidden] { display: none !important; }
+    .stage { position: relative; display: flex; align-items: center; justify-content: center; gap: 66px; width: 100%; padding: 16px 28px; overflow: hidden; }
+    .stage::before { content: ""; position: fixed; left: 9%; top: 8%; width: 340px; height: 340px; background: #7E2D6830; border-radius: 50%; filter: blur(80px); pointer-events: none; }
+    .desk-note { position: relative; z-index: 1; width: 238px; padding-top: 17px; border-top: 2px solid var(--orange); }
+    .desk-kicker { display: flex; justify-content: space-between; margin: 0 0 25px; color: var(--peach); font-family: Consolas, "SFMono-Regular", monospace; font-size: 9px; letter-spacing: 2px; }
+    .desk-note h2 { margin: 0 0 13px; font-size: 33px; font-weight: 650; line-height: 1.35; letter-spacing: -1px; }
+    .desk-note h2 span { color: var(--orange); }
+    .desk-note > p { margin: 0; color: var(--lavender); font-size: 11px; line-height: 1.9; }
+    .desk-speed { margin-top: 31px; color: var(--cream); font-family: Georgia, serif; font-size: 43px; font-style: italic; }
+    .desk-speed small { margin-left: 8px; color: var(--lavender); font-family: Consolas, "SFMono-Regular", monospace; font-size: 9px; font-style: normal; letter-spacing: 1px; }
+    .phone {
+      position: relative;
+      z-index: 1;
+      flex: 0 0 auto;
+      width: 404px;
+      height: min(860px, calc(100vh - 32px));
+      height: min(860px, calc(100dvh - 32px));
+      padding: 7px;
+      background: var(--black);
+      border: 1px solid #FFB48A38;
+      border-radius: 42px;
+      box-shadow: 0 25px 70px #00000080, 0 0 55px #FF784914;
+    }
+    .screen { position: relative; width: 100%; height: 100%; overflow: hidden; background: var(--plum); border-radius: 34px; isolation: isolate; }
+    .screen::before { content: ""; position: absolute; inset: 0; z-index: -2; background: radial-gradient(circle at 92% 15%, #7E2D684D, transparent 38%), radial-gradient(circle at 8% 52%, #FF784910, transparent 35%), linear-gradient(165deg, var(--plum-soft), var(--plum) 35%, var(--plum-deep)); }
+    .screen::after { content: ""; position: absolute; inset: 0; z-index: -1; opacity: .32; background-image: radial-gradient(#FFF4EA80 .65px, transparent .65px); background-size: 29px 29px; pointer-events: none; }
+    .player-scroll { position: absolute; inset: 0; overflow-x: hidden; overflow-y: auto; padding: 20px 22px 22px; scrollbar-width: none; overscroll-behavior: contain; }
+    .player-scroll::-webkit-scrollbar { display: none; }
+    .player-header { display: flex; align-items: center; justify-content: space-between; gap: 20px; min-height: 38px; }
+    .brand { display: flex; align-items: center; gap: 9px; }
+    .brand-sun { position: relative; width: 26px; height: 26px; overflow: hidden; border: 1px solid var(--peach); border-radius: 50%; }
+    .brand-sun::before { content: ""; position: absolute; left: 5px; top: 5px; width: 14px; height: 14px; background: var(--orange); border-radius: 50%; }
+    .brand-sun::after { content: ""; position: absolute; left: 2px; right: 2px; top: 14px; height: 1px; background: var(--plum); box-shadow: 0 3px 0 var(--plum), 0 6px 0 var(--plum); }
+    .brand strong { display: block; font-size: 12px; letter-spacing: 2.5px; }
+    .brand small { display: block; margin-top: -2px; color: var(--lavender); font-size: 8px; letter-spacing: 2px; }
+    .icon-button { display: grid; place-items: center; width: 38px; height: 38px; padding: 0; color: var(--cream); background: #FFF4EA08; border: 1px solid #FFB48A4D; border-radius: 50%; transition: background-color 150ms ease, color 150ms ease, transform 150ms ease; }
+    .icon-button:hover { color: var(--plum); background: var(--peach); }
+    .icon-button:active { transform: scale(.96); }
+    .icon-button svg { width: 19px; height: 19px; }
+    .broadcast-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin: 18px 0 15px; color: var(--lavender); font-family: Consolas, "SFMono-Regular", monospace; font-size: 9px; letter-spacing: 1.3px; }
+    .on-air { display: inline-flex; align-items: center; gap: 7px; }
+    .on-air::before { content: ""; width: 6px; height: 6px; background: var(--orange); border-radius: 50%; box-shadow: 0 0 0 4px #FF784917; }
+    .on-air.paused::before { background: var(--lavender); box-shadow: none; }
+    .track-heading { position: relative; z-index: 2; }
+    .track-kicker { margin: 0 0 6px; color: var(--peach); font-size: 10px; font-weight: 600; letter-spacing: 1.5px; }
+    .track-heading h1 { max-width: 330px; min-height: 66px; margin: 0; font-size: 27px; font-weight: 700; line-height: 1.22; letter-spacing: -.7px; }
+    .artist-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 34px; margin-top: 5px; }
+    .artist { color: var(--lavender); font-size: 11px; }
+    .artist span { margin-left: 7px; padding-left: 9px; border-left: 1px solid var(--line); color: var(--peach); font-size: 9px; }
+    .favorite-button { color: var(--lavender); background: transparent; border-color: transparent; }
+    .favorite-button[aria-pressed="true"] { color: var(--orange); background: #FF784912; border-color: #FF78494D; }
+    .record-area { position: relative; width: 292px; height: 292px; margin: 8px auto 9px; }
+    .record-area::before { content: ""; position: absolute; inset: 30px; background: var(--orange); border-radius: 50%; filter: blur(48px); opacity: .18; pointer-events: none; }
+    .record-area::after { content: "SOLAR SOUND / STEREO"; position: absolute; left: 50%; bottom: -3px; color: var(--lavender); font-family: Consolas, "SFMono-Regular", monospace; font-size: 7px; letter-spacing: 2px; white-space: nowrap; transform: translateX(-50%); }
+    .record { position: relative; z-index: 1; display: block; width: 100%; height: 100%; filter: drop-shadow(0 15px 18px #00000066); animation: spin 20s linear infinite; animation-play-state: paused; }
+    .record.playing { animation-play-state: running; }
+    .record-index { position: absolute; right: -5px; top: 20px; z-index: 2; padding: 4px 7px; color: var(--plum); background: var(--peach); font-family: Consolas, "SFMono-Regular", monospace; font-size: 8px; font-weight: 700; letter-spacing: 1px; transform: rotate(90deg) translateX(100%); transform-origin: right top; }
+    .progress-block { position: relative; z-index: 2; margin-top: 4px; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+    .progress-range { width: 100%; height: 18px; margin: 0; padding: 0; background: transparent; cursor: pointer; appearance: none; -webkit-appearance: none; }
+    .progress-range::-webkit-slider-runnable-track { height: 3px; background: linear-gradient(to right, var(--orange) 0 var(--progress), #B8A1C844 var(--progress) 100%); border-radius: 3px; }
+    .progress-range::-moz-range-track { height: 3px; background: #B8A1C844; border-radius: 3px; }
+    .progress-range::-moz-range-progress { height: 3px; background: var(--orange); border-radius: 3px; }
+    .progress-range::-webkit-slider-thumb { width: 13px; height: 13px; margin-top: -5px; background: var(--peach); border: 2px solid var(--plum); border-radius: 50%; box-shadow: 0 0 0 1px var(--peach); appearance: none; -webkit-appearance: none; }
+    .progress-range::-moz-range-thumb { width: 11px; height: 11px; background: var(--peach); border: 2px solid var(--plum); border-radius: 50%; box-shadow: 0 0 0 1px var(--peach); }
+    .time-row { display: flex; justify-content: space-between; margin-top: -1px; color: var(--lavender); font-family: Consolas, "SFMono-Regular", monospace; font-size: 9px; font-variant-numeric: tabular-nums; }
+    .controls { display: grid; grid-template-columns: 42px 42px 64px 42px 42px; align-items: center; justify-content: space-between; gap: 6px; margin: 16px 0 14px; }
+    .control-button { display: grid; place-items: center; width: 42px; height: 42px; padding: 0; color: var(--lavender); background: transparent; border: 0; border-radius: 50%; transition: color 140ms ease, background-color 140ms ease, transform 140ms ease; }
+    .control-button svg { width: 21px; height: 21px; }
+    .control-button:hover { color: var(--cream); background: #FFF4EA0D; }
+    .control-button:active { transform: scale(.94); }
+    .control-button[aria-pressed="true"] { color: var(--orange); }
+    .play-button { width: 62px; height: 62px; color: var(--plum); background: var(--orange); border: 1px solid var(--peach); box-shadow: 0 0 0 6px #FF784912, 0 8px 24px #00000040; }
+    .play-button:hover { color: var(--plum); background: var(--peach); }
+    .play-button svg { width: 26px; height: 26px; }
+    .next-track { display: grid; grid-template-columns: 1fr 32px; gap: 12px; align-items: center; width: 100%; min-height: 56px; padding: 10px 0; color: var(--cream); background: transparent; border: 0; border-top: 1px solid #B8A1C83D; border-bottom: 1px solid #B8A1C83D; text-align: left; }
+    .next-track:hover { color: var(--peach); background: #FFF4EA06; }
+    .next-track small { display: block; margin-bottom: 2px; color: var(--lavender); font-size: 8px; letter-spacing: 1.3px; }
+    .next-track strong { display: block; overflow: hidden; font-size: 11px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+    .next-track svg { width: 22px; height: 22px; justify-self: end; }
+    .sheet-backdrop { position: absolute; inset: 0; z-index: 30; background: #09060ACC; backdrop-filter: blur(5px); }
+    .queue-sheet { position: absolute; left: 0; right: 0; bottom: 0; max-height: 88%; padding: 12px 21px 24px; overflow-y: auto; background: var(--plum); border-top: 1px solid var(--peach); border-radius: 25px 25px 0 0; box-shadow: 0 -15px 45px #00000066; animation: sheet-in 220ms cubic-bezier(.2,.8,.2,1); }
+    .sheet-handle { width: 38px; height: 4px; margin: 0 auto 17px; background: var(--line); border-radius: 99px; }
+    .sheet-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 15px; }
+    .sheet-kicker { margin: 0 0 4px; color: var(--orange); font-family: Consolas, "SFMono-Regular", monospace; font-size: 9px; letter-spacing: 1.5px; }
+    .queue-sheet h2 { margin: 0; font-size: 24px; }
+    .close-button { flex: 0 0 auto; font-size: 22px; }
+    .queue-copy { margin: 7px 0 16px; color: var(--lavender); font-size: 10px; }
+    .queue-list { border-top: 1px solid var(--line); }
+    .queue-item { display: grid; grid-template-columns: 26px minmax(0, 1fr) auto; gap: 10px; align-items: center; width: 100%; min-height: 64px; padding: 10px 3px; color: var(--cream); background: transparent; border: 0; border-bottom: 1px solid #6B456B80; text-align: left; }
+    .queue-item:hover { background: #FFF4EA08; }
+    .queue-item.selected { color: var(--peach); }
+    .queue-number { color: var(--lavender); font-family: Consolas, "SFMono-Regular", monospace; font-size: 10px; }
+    .queue-item.selected .queue-number { color: var(--orange); }
+    .queue-title { min-width: 0; }
+    .queue-title strong { display: block; overflow: hidden; font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+    .queue-title small { display: block; margin-top: 2px; color: var(--lavender); font-size: 9px; }
+    .queue-duration { color: var(--lavender); font-family: Consolas, "SFMono-Regular", monospace; font-size: 9px; }
+    .toast { position: absolute; left: 50%; bottom: 22px; z-index: 50; width: max-content; max-width: calc(100% - 38px); padding: 10px 15px; color: var(--plum); background: var(--peach); border: 1px solid var(--cream); border-radius: 6px; box-shadow: 4px 4px 0 #FF78494D; font-size: 10px; font-weight: 700; text-align: center; opacity: 0; transform: translate(-50%, 10px); pointer-events: none; transition: opacity 160ms ease, transform 160ms ease; }
+    .toast.show { opacity: 1; transform: translate(-50%, 0); }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes sheet-in { from { opacity: 0; transform: translateY(35px); } to { opacity: 1; transform: translateY(0); } }
+    @media (max-height: 790px) and (min-width: 521px) {
+      .player-scroll { padding-top: 16px; }
+      .broadcast-row { margin: 11px 0 10px; }
+      .track-heading h1 { min-height: 58px; font-size: 24px; }
+      .record-area { width: 246px; height: 246px; margin-top: 5px; }
+      .controls { margin: 11px 0 9px; }
+    }
+    @media (max-width: 899px) { .desk-note { display: none; } .stage { padding: 16px; } }
+    @media (max-width: 520px) {
+      body { display: block; background: var(--plum); }
+      .stage { display: block; padding: 0; overflow: visible; }
+      .phone { width: 100%; height: 100vh; height: 100dvh; padding: 0; border: 0; border-radius: 0; box-shadow: none; }
+      .screen { border-radius: 0; }
+    }
+    @media (max-width: 350px) {
+      .player-scroll { padding-left: 17px; padding-right: 17px; }
+      .record-area { width: 256px; height: 256px; }
+      .track-heading h1 { font-size: 24px; }
+      .controls { grid-template-columns: 38px 38px 58px 38px 38px; gap: 3px; }
+      .play-button { width: 58px; height: 58px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
+      .record, .record.playing { animation: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="stage">
+    <aside class="desk-note" aria-label="电台品牌说明">
+      <p class="desk-kicker"><span>SOLAR RADIO</span><span>18:47</span></p>
+      <h2>把日落，<br>唱到<span>慢一点。</span></h2>
+      <p>为回家路上挑选的华语独立音乐。<br>当橙色落下，让旋律继续。</p>
+      <div class="desk-speed">33⅓<small>LONG PLAY</small></div>
+    </aside>
+
+    <div class="phone">
+      <main class="screen" aria-label="日落电台手机播放器">
+        <div class="player-scroll">
+          <header class="player-header">
+            <div class="brand"><span class="brand-sun" aria-hidden="true"></span><div><strong>SOLAR</strong><small>日落电台</small></div></div>
+            <button class="icon-button" type="button" id="queueButton" aria-label="打开播放列表，共 4 首">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 6h11M4 12h11M4 18h11M18 5v12M18 5l4-1v12" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><circle cx="16" cy="18" r="2.5" stroke="currentColor" stroke-width="1.7"/><circle cx="20" cy="17" r="2.5" stroke="currentColor" stroke-width="1.7"/></svg>
+            </button>
+          </header>
+
+          <div class="broadcast-row"><span class="on-air" id="playStatus">正在播放 · ON AIR</span><span id="trackNumber">TRACK 01 / 04</span></div>
+
+          <section class="track-heading" aria-labelledby="trackTitle">
+            <p class="track-kicker" id="trackKicker">城市慢行 · CITY DRIFT</p>
+            <h1 id="trackTitle">晚风把城市调成慢速</h1>
+            <div class="artist-row">
+              <div class="artist"><span id="artistName" style="margin:0;padding:0;border:0;color:inherit;font-size:inherit">卧轨的日落</span><span>华语独立</span></div>
+              <button class="icon-button favorite-button" type="button" id="favoriteButton" aria-label="收藏当前歌曲" aria-pressed="false">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path id="heartPath" d="M12 20.5S3.5 15.7 3.5 9.4A4.4 4.4 0 0 1 12 7.6a4.4 4.4 0 0 1 8.5 1.8c0 6.3-8.5 11.1-8.5 11.1Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg>
+              </button>
+            </div>
+          </section>
+
+          <div class="record-area">
+            <span class="record-index">SIDE A</span>
+            <svg class="record playing" id="record" viewBox="0 0 320 320" role="img" aria-labelledby="recordTitle">
+              <title id="recordTitle">《晚风把城市调成慢速》日落唱片</title>
+              <defs>
+                <radialGradient id="vinylGradient" cx="42%" cy="35%" r="70%"><stop offset="0" stop-color="#39233D"/><stop offset=".5" stop-color="#171019"/><stop offset="1" stop-color="#09060A"/></radialGradient>
+                <linearGradient id="sunsetGradient" x1="0" y1="0" x2="0" y2="1"><stop id="sunStopA" offset="0" stop-color="#FFB48A"/><stop id="sunStopB" offset=".58" stop-color="#FF7849"/><stop id="sunStopC" offset="1" stop-color="#7E2D68"/></linearGradient>
+                <clipPath id="labelClip"><circle cx="160" cy="160" r="64"/></clipPath>
+              </defs>
+              <circle cx="160" cy="160" r="151" fill="#0B070D" stroke="#FFB48A38" stroke-width="1"/>
+              <circle cx="160" cy="160" r="145" fill="url(#vinylGradient)"/>
+              <g fill="none" stroke="#FFF4EA" stroke-opacity=".09">
+                <circle cx="160" cy="160" r="138"/><circle cx="160" cy="160" r="133"/><circle cx="160" cy="160" r="128"/><circle cx="160" cy="160" r="121"/><circle cx="160" cy="160" r="116"/><circle cx="160" cy="160" r="109"/><circle cx="160" cy="160" r="103"/><circle cx="160" cy="160" r="97"/><circle cx="160" cy="160" r="90"/><circle cx="160" cy="160" r="84"/>
+              </g>
+              <path d="M65 92a124 124 0 0 1 154-19M54 206a126 126 0 0 0 49 45M246 230a125 125 0 0 0 18-43" fill="none" stroke="#FFF4EA" stroke-opacity=".16" stroke-linecap="round"/>
+              <path d="M90 55a142 142 0 0 1 62-11M236 256a132 132 0 0 0 29-35" fill="none" stroke="#FF7849" stroke-opacity=".28" stroke-width="2" stroke-linecap="round"/>
+              <circle cx="160" cy="160" r="68" fill="#130815" stroke="#FFB48A55"/>
+              <g clip-path="url(#labelClip)">
+                <rect x="96" y="96" width="128" height="128" fill="url(#sunsetGradient)"/>
+                <circle cx="160" cy="147" r="30" fill="#FFF4EA" fill-opacity=".85"/>
+                <path d="M96 175c21-15 38-18 56-5 18-17 40-12 72 8v46H96v-49Z" fill="#3A173D"/>
+                <path d="M96 190c26-10 45-8 64 4 20-12 40-11 64-2v32H96v-34Z" fill="#241027"/>
+                <path d="M98 178h124M99 186h122M104 202h112" stroke="#FFB48A" stroke-opacity=".45"/>
+                <text x="160" y="116" fill="#241027" font-family="Arial, sans-serif" font-size="8" font-weight="700" text-anchor="middle" letter-spacing="3">SOLAR</text>
+                <text x="160" y="216" fill="#FFF4EA" font-family="Consolas, monospace" font-size="6" text-anchor="middle" letter-spacing="2">SUNSET SESSIONS</text>
+              </g>
+              <circle cx="160" cy="160" r="8" fill="#FFF4EA"/>
+              <circle cx="160" cy="160" r="3" fill="#241027"/>
+            </svg>
+          </div>
+
+          <div class="progress-block">
+            <label class="sr-only" for="progressRange">播放进度</label>
+            <input class="progress-range" id="progressRange" type="range" min="0" max="252" step="1" value="102" style="--progress:40.48%" aria-valuetext="1 分 42 秒，共 4 分 12 秒">
+            <div class="time-row"><span id="currentTime">01:42</span><span id="durationTime">04:12</span></div>
+          </div>
+
+          <div class="controls" aria-label="播放控制">
+            <button class="control-button" type="button" id="shuffleButton" aria-label="随机播放" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 6h3c5 0 6 12 11 12h4M17 14l4 4-4 4M3 18h3c2.2 0 3.5-2.4 4.8-5M14 7.5C15 6.4 15.8 6 17 6h4M17 2l4 4-4 4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+            <button class="control-button" type="button" id="previousButton" aria-label="上一首"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M5 5h2v14H5zM19 6v12L8 12z"/></svg></button>
+            <button class="control-button play-button" type="button" id="playButton" aria-label="暂停"><svg id="playIcon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg></button>
+            <button class="control-button" type="button" id="nextButton" aria-label="下一首"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17 5h2v14h-2zM5 6v12l11-6z"/></svg></button>
+            <button class="control-button" type="button" id="repeatButton" aria-label="单曲循环" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M17 4l3 3-3 3M4 13V9a2 2 0 0 1 2-2h14M7 20l-3-3 3-3M20 11v4a2 2 0 0 1-2 2H4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          </div>
+
+          <button class="next-track" type="button" id="upNextButton" aria-label="查看接下来播放的歌曲">
+            <span><small>NEXT UP / 接下来</small><strong id="nextTrackTitle">海边的最后一班车 · 白昼便利店</strong></span>
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 6h11M4 12h11M4 18h7M17 13v8M14 18l3 3 3-3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </div>
+
+        <div class="sheet-backdrop" id="queueBackdrop" hidden>
+          <section class="queue-sheet" id="queueSheet" role="dialog" aria-modal="true" aria-labelledby="queueTitle">
+            <div class="sheet-handle"></div>
+            <div class="sheet-head"><div><p class="sheet-kicker">SUNSET QUEUE / 04 TRACKS</p><h2 id="queueTitle">今晚，慢慢听</h2></div><button class="icon-button close-button" type="button" id="closeQueue" aria-label="关闭播放列表">×</button></div>
+            <p class="queue-copy">选择任意一首立即从头播放，今晚的选曲由你决定。</p>
+            <div class="queue-list" id="queueList"></div>
+          </section>
+        </div>
+        <div class="toast" id="toast" role="status" aria-live="polite"></div>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    (() => {
+      const tracks = [
+        { title: '晚风把城市调成慢速', artist: '卧轨的日落', duration: 252, kicker: '城市慢行 · CITY DRIFT', colors: ['#FFB48A', '#FF7849', '#7E2D68'] },
+        { title: '海边的最后一班车', artist: '白昼便利店', duration: 218, kicker: '海岸漫游 · COASTAL RIDE', colors: ['#FFD39B', '#FF8A5B', '#3B687D'] },
+        { title: '在橙色云层里等你', artist: '午夜降落', duration: 236, kicker: '云端散步 · ABOVE THE CITY', colors: ['#FFC3A5', '#F56F57', '#66366F'] },
+        { title: '路灯亮起的三分钟', artist: '北岸电台', duration: 204, kicker: '夜色入城 · AFTER GLOW', colors: ['#F5B78E', '#D95B55', '#282B59'] }
+      ];
+      let trackIndex = 0;
+      let currentSeconds = 102;
+      let playing = true;
+      let shuffle = false;
+      let repeatOne = false;
+      let toastTimer;
+      let lastQueueTrigger = null;
+      const favorites = new Set();
+      const progress = document.getElementById('progressRange');
+      const playButton = document.getElementById('playButton');
+      const record = document.getElementById('record');
+      const queueBackdrop = document.getElementById('queueBackdrop');
+      const toast = document.getElementById('toast');
+
+      function formatTime(seconds) {
+        const safeSeconds = Math.max(0, Math.floor(seconds));
+        return String(Math.floor(safeSeconds / 60)).padStart(2, '0') + ':' + String(safeSeconds % 60).padStart(2, '0');
+      }
+
+      function notify(message) {
+        window.clearTimeout(toastTimer);
+        toast.textContent = message;
+        toast.classList.add('show');
+        toastTimer = window.setTimeout(() => toast.classList.remove('show'), 2400);
+      }
+
+      function updateProgress() {
+        const track = tracks[trackIndex];
+        progress.max = String(track.duration);
+        progress.value = String(currentSeconds);
+        progress.style.setProperty('--progress', (currentSeconds / track.duration * 100).toFixed(2) + '%');
+        progress.setAttribute('aria-valuetext', formatTime(currentSeconds).replace(':', ' 分 ') + ' 秒，共 ' + formatTime(track.duration).replace(':', ' 分 ') + ' 秒');
+        document.getElementById('currentTime').textContent = formatTime(currentSeconds);
+        document.getElementById('durationTime').textContent = formatTime(track.duration);
+      }
+
+      function updatePlayState() {
+        playButton.setAttribute('aria-label', playing ? '暂停' : '播放');
+        document.getElementById('playIcon').innerHTML = playing ? '<path d="M6 5h4v14H6zM14 5h4v14h-4z"/>' : '<path d="M7 4.8v14.4L20 12 7 4.8Z"/>';
+        record.classList.toggle('playing', playing);
+        const status = document.getElementById('playStatus');
+        status.textContent = playing ? '正在播放 · ON AIR' : '已暂停 · PAUSED';
+        status.classList.toggle('paused', !playing);
+      }
+
+      function updateFavorite() {
+        const active = favorites.has(trackIndex);
+        const button = document.getElementById('favoriteButton');
+        button.setAttribute('aria-pressed', String(active));
+        button.setAttribute('aria-label', active ? '取消收藏当前歌曲' : '收藏当前歌曲');
+        document.getElementById('heartPath').setAttribute('fill', active ? 'currentColor' : 'none');
+      }
+
+      function renderQueue() {
+        document.getElementById('queueList').innerHTML = tracks.map((track, index) => {
+          const selected = index === trackIndex;
+          return '<button class="queue-item' + (selected ? ' selected' : '') + '" type="button" data-track="' + index + '"' + (selected ? ' aria-current="true"' : '') + '>' +
+            '<span class="queue-number">' + (selected && playing ? '▶' : String(index + 1).padStart(2, '0')) + '</span>' +
+            '<span class="queue-title"><strong>' + track.title + '</strong><small>' + track.artist + '</small></span>' +
+            '<span class="queue-duration">' + formatTime(track.duration) + '</span></button>';
+        }).join('');
+      }
+
+      function updateTrack() {
+        const track = tracks[trackIndex];
+        document.getElementById('trackTitle').textContent = track.title;
+        document.getElementById('artistName').textContent = track.artist;
+        document.getElementById('trackKicker').textContent = track.kicker;
+        document.getElementById('trackNumber').textContent = 'TRACK ' + String(trackIndex + 1).padStart(2, '0') + ' / 04';
+        document.getElementById('recordTitle').textContent = '《' + track.title + '》日落唱片';
+        ['sunStopA', 'sunStopB', 'sunStopC'].forEach((id, index) => document.getElementById(id).setAttribute('stop-color', track.colors[index]));
+        const nextIndex = shuffle ? (trackIndex + 1) % tracks.length : (trackIndex + 1) % tracks.length;
+        document.getElementById('nextTrackTitle').textContent = tracks[nextIndex].title + ' · ' + tracks[nextIndex].artist;
+        updateProgress();
+        updatePlayState();
+        updateFavorite();
+        renderQueue();
+      }
+
+      function chooseTrack(index, announce = true) {
+        trackIndex = index;
+        currentSeconds = 0;
+        playing = true;
+        updateTrack();
+        if (announce) notify('正在播放：' + tracks[trackIndex].title);
+      }
+
+      function nextTrack(announce = true) {
+        let nextIndex;
+        if (shuffle && tracks.length > 1) {
+          do { nextIndex = Math.floor(Math.random() * tracks.length); } while (nextIndex === trackIndex);
+        } else {
+          nextIndex = (trackIndex + 1) % tracks.length;
+        }
+        chooseTrack(nextIndex, announce);
+      }
+
+      function previousTrack() {
+        if (currentSeconds > 4) {
+          currentSeconds = 0;
+          updateProgress();
+          notify('已回到本首开头');
+          return;
+        }
+        const previousIndex = (trackIndex - 1 + tracks.length) % tracks.length;
+        chooseTrack(previousIndex);
+      }
+
+      function openQueue(trigger) {
+        lastQueueTrigger = trigger || document.activeElement;
+        renderQueue();
+        queueBackdrop.hidden = false;
+        document.getElementById('closeQueue').focus();
+      }
+
+      function closeQueue() {
+        if (queueBackdrop.hidden) return;
+        queueBackdrop.hidden = true;
+        if (lastQueueTrigger) lastQueueTrigger.focus();
+      }
+
+      playButton.addEventListener('click', () => {
+        playing = !playing;
+        updatePlayState();
+        renderQueue();
+        notify(playing ? '继续播放：' + tracks[trackIndex].title : '已暂停，进度停在 ' + formatTime(currentSeconds));
+      });
+      document.getElementById('nextButton').addEventListener('click', () => nextTrack());
+      document.getElementById('previousButton').addEventListener('click', previousTrack);
+      progress.addEventListener('input', () => {
+        currentSeconds = Number(progress.value);
+        updateProgress();
+      });
+      progress.addEventListener('change', () => notify('已跳转到 ' + formatTime(currentSeconds)));
+
+      document.getElementById('shuffleButton').addEventListener('click', event => {
+        shuffle = !shuffle;
+        event.currentTarget.setAttribute('aria-pressed', String(shuffle));
+        notify(shuffle ? '随机播放已开启，下一首将随机选择' : '已恢复顺序播放');
+      });
+      document.getElementById('repeatButton').addEventListener('click', event => {
+        repeatOne = !repeatOne;
+        event.currentTarget.setAttribute('aria-pressed', String(repeatOne));
+        notify(repeatOne ? '单曲循环已开启' : '单曲循环已关闭');
+      });
+      document.getElementById('favoriteButton').addEventListener('click', () => {
+        if (favorites.has(trackIndex)) favorites.delete(trackIndex);
+        else favorites.add(trackIndex);
+        updateFavorite();
+        notify(favorites.has(trackIndex) ? '已收藏《' + tracks[trackIndex].title + '》' : '已取消收藏');
+      });
+
+      document.getElementById('queueButton').addEventListener('click', event => openQueue(event.currentTarget));
+      document.getElementById('upNextButton').addEventListener('click', event => openQueue(event.currentTarget));
+      document.getElementById('closeQueue').addEventListener('click', closeQueue);
+      queueBackdrop.addEventListener('click', event => { if (event.target === queueBackdrop) closeQueue(); });
+      document.getElementById('queueList').addEventListener('click', event => {
+        const button = event.target.closest('[data-track]');
+        if (!button) return;
+        chooseTrack(Number(button.dataset.track));
+        closeQueue();
+      });
+      document.addEventListener('keydown', event => {
+        if (event.key === 'Escape') closeQueue();
+        if (event.key === 'Tab' && !queueBackdrop.hidden) {
+          const focusable = Array.from(document.getElementById('queueSheet').querySelectorAll('button'));
+          const first = focusable[0];
+          const last = focusable[focusable.length - 1];
+          if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+          else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+        }
+      });
+
+      window.setInterval(() => {
+        if (!playing || !queueBackdrop.hidden) return;
+        currentSeconds += 1;
+        if (currentSeconds >= tracks[trackIndex].duration) {
+          if (repeatOne) {
+            currentSeconds = 0;
+            updateProgress();
+          } else {
+            nextTrack(false);
+          }
+        } else {
+          updateProgress();
+        }
+      }, 1000);
+
+      updateTrack();
+    })();
+  </script>
+</body>
+</html>

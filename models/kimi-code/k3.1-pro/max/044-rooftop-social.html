@@ -1,0 +1,2016 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#82D5F5">
+  <title>屋顶有约 · 邻里社交社区</title>
+  <style>
+    :root {
+      --ink: #17191F;
+      --sky: #82D5F5;
+      --sky-soft: #DDF5FF;
+      --paper: #FFFEFC;
+      --feed: #F7F5FF;
+      --lavender: #C9B8F4;
+      --lavender-soft: #EFEAFF;
+      --purple: #6847B8;
+      --muted: #625F70;
+      --yellow: #FFE28A;
+      --peach: #FFAD91;
+      --mint: #A9E4C5;
+      --error: #B93750;
+      --success: #207A55;
+      --white: #FFFFFF;
+      --border: 1.5px solid var(--ink);
+      --shadow: 3px 3px 0 var(--ink);
+      --radius-card: 22px;
+      --radius-control: 14px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      background: #DCD4F4;
+    }
+
+    body {
+      margin: 0;
+      min-width: 280px;
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: grid;
+      place-items: center;
+      overflow-x: hidden;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 18% 20%, var(--sky) 0 7%, transparent 7.2%),
+        radial-gradient(circle at 82% 78%, var(--lavender) 0 9%, transparent 9.2%),
+        #DCD4F4;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    button,
+    textarea,
+    input {
+      font: inherit;
+    }
+
+    button {
+      color: inherit;
+    }
+
+    button,
+    label {
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    button:focus-visible,
+    textarea:focus-visible,
+    article:focus-visible {
+      outline: 3px solid var(--purple);
+      outline-offset: 3px;
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: .48;
+      box-shadow: none;
+      transform: none;
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    .device-frame {
+      position: relative;
+      width: 100%;
+      max-width: 390px;
+      height: 100vh;
+      height: 100dvh;
+      max-height: 844px;
+    }
+
+    .app {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background: var(--sky);
+    }
+
+    .status-bar {
+      position: relative;
+      z-index: 20;
+      flex: 0 0 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 17px;
+      background: var(--sky);
+      font-size: 11px;
+      line-height: 16px;
+      font-weight: 800;
+      letter-spacing: .2px;
+    }
+
+    .status-island {
+      position: absolute;
+      top: 5px;
+      left: 50%;
+      width: 64px;
+      height: 18px;
+      transform: translateX(-50%);
+      border-radius: 20px;
+      background: var(--ink);
+    }
+
+    .status-icons {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .screen {
+      flex: 1 1 auto;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .masthead {
+      position: relative;
+      flex: 0 0 176px;
+      overflow: hidden;
+      background: var(--sky);
+    }
+
+    .brand-row {
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 17px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+    }
+
+    .brand-mark {
+      width: 34px;
+      height: 34px;
+      display: grid;
+      place-items: center;
+      border: var(--border);
+      border-radius: 11px;
+      background: var(--paper);
+      box-shadow: 2px 2px 0 var(--ink);
+      transform: rotate(-4deg);
+    }
+
+    .brand-name {
+      display: block;
+      font-size: 16px;
+      line-height: 20px;
+      font-weight: 900;
+      letter-spacing: .5px;
+    }
+
+    .brand-subtitle {
+      display: block;
+      margin-top: 1px;
+      font-size: 8px;
+      line-height: 10px;
+      font-weight: 800;
+      letter-spacing: 1.4px;
+    }
+
+    .resident-chip {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 8px 4px 4px;
+      border: var(--border);
+      border-radius: 999px;
+      background: var(--lavender-soft);
+      font-size: 10px;
+      line-height: 14px;
+      font-weight: 800;
+    }
+
+    .resident-avatar {
+      width: 25px;
+      height: 25px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--ink);
+      border-radius: 50%;
+      background: var(--yellow);
+      font-size: 11px;
+      font-weight: 900;
+    }
+
+    .intro {
+      position: relative;
+      height: 128px;
+      padding: 13px 18px 0;
+    }
+
+    .intro-kicker {
+      position: relative;
+      z-index: 2;
+      display: inline-block;
+      padding: 4px 9px;
+      border: 1px solid var(--ink);
+      border-radius: 6px;
+      background: var(--yellow);
+      box-shadow: 2px 2px 0 var(--ink);
+      font-size: 10px;
+      line-height: 14px;
+      font-weight: 900;
+      transform: rotate(-2deg);
+    }
+
+    .intro h1 {
+      position: relative;
+      z-index: 2;
+      margin: 10px 0 4px;
+      max-width: 260px;
+      font-size: 29px;
+      line-height: 35px;
+      font-weight: 950;
+      letter-spacing: -1px;
+    }
+
+    .intro p {
+      position: relative;
+      z-index: 2;
+      margin: 0;
+      max-width: 230px;
+      font-size: 12px;
+      line-height: 18px;
+      font-weight: 650;
+    }
+
+    .weather-sticker {
+      position: absolute;
+      z-index: 3;
+      top: 9px;
+      right: 17px;
+      padding: 5px 8px;
+      border: 1px solid var(--ink);
+      border-radius: 8px;
+      background: var(--paper);
+      box-shadow: 2px 2px 0 var(--ink);
+      font-size: 10px;
+      line-height: 14px;
+      font-weight: 900;
+      transform: rotate(4deg);
+    }
+
+    .roof-scene {
+      position: absolute;
+      right: -2px;
+      bottom: -1px;
+      width: 157px;
+      height: 112px;
+    }
+
+    .feed-scroll {
+      position: relative;
+      z-index: 4;
+      flex: 1 1 auto;
+      min-height: 0;
+      margin-top: -18px;
+      padding: 18px 14px 20px;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      border-radius: 26px 26px 0 0;
+      background: var(--feed);
+      scrollbar-width: thin;
+      scrollbar-color: var(--lavender) transparent;
+    }
+
+    .feed-heading {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin: 0 2px 13px;
+    }
+
+    .feed-heading h2 {
+      margin: 0;
+      font-size: 17px;
+      line-height: 24px;
+      font-weight: 900;
+      letter-spacing: -.2px;
+    }
+
+    .feed-heading h2::before {
+      content: "";
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      margin-right: 7px;
+      border: 1px solid var(--ink);
+      border-radius: 50%;
+      background: var(--mint);
+      vertical-align: 2px;
+    }
+
+    .feed-count {
+      flex: none;
+      padding: 4px 8px;
+      border: 1px solid var(--ink);
+      border-radius: 999px;
+      background: var(--paper);
+      font-size: 10px;
+      line-height: 14px;
+      font-weight: 800;
+    }
+
+    .post-card {
+      position: relative;
+      margin: 0 1px 16px;
+      padding: 15px;
+      border: var(--border);
+      border-radius: var(--radius-card);
+      background: var(--paper);
+      box-shadow: var(--shadow);
+    }
+
+    .post-card:nth-of-type(even) {
+      background: var(--lavender-soft);
+    }
+
+    .post-card.post-card-new {
+      background: var(--sky-soft);
+      animation: card-in 260ms ease-out both;
+    }
+
+    .post-header {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .post-avatar {
+      width: 40px;
+      height: 40px;
+      display: grid;
+      place-items: center;
+      border: var(--border);
+      border-radius: 13px;
+      background: var(--yellow);
+      box-shadow: 2px 2px 0 var(--ink);
+      font-size: 15px;
+      line-height: 20px;
+      font-weight: 950;
+      transform: rotate(-3deg);
+    }
+
+    .post-avatar.round {
+      border-radius: 50%;
+      background: var(--peach);
+      transform: rotate(3deg);
+    }
+
+    .post-avatar.purple {
+      background: var(--lavender);
+    }
+
+    .post-avatar.blue {
+      border-radius: 50% 50% 12px 12px;
+      background: var(--sky);
+    }
+
+    .post-author-line {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 5px;
+      min-width: 0;
+    }
+
+    .post-author {
+      margin: 0;
+      overflow-wrap: anywhere;
+      font-size: 14px;
+      line-height: 20px;
+      font-weight: 900;
+    }
+
+    .you-badge {
+      padding: 1px 5px;
+      border: 1px solid var(--ink);
+      border-radius: 5px;
+      background: var(--yellow);
+      font-size: 9px;
+      line-height: 13px;
+      font-weight: 900;
+    }
+
+    .post-byline {
+      margin: 2px 0 0;
+      color: var(--muted);
+      font-size: 10px;
+      line-height: 15px;
+      font-weight: 600;
+    }
+
+    .post-number {
+      align-self: start;
+      padding-top: 2px;
+      color: var(--muted);
+      font-size: 10px;
+      line-height: 14px;
+      font-weight: 900;
+      letter-spacing: .5px;
+    }
+
+    .post-body {
+      margin: 13px 0 0;
+      overflow-wrap: anywhere;
+      white-space: pre-wrap;
+      font-size: 14px;
+      line-height: 22px;
+      font-weight: 550;
+    }
+
+    .post-figure {
+      position: relative;
+      margin: 14px 0 0;
+    }
+
+    .post-art {
+      overflow: hidden;
+      border: var(--border);
+      border-radius: 16px;
+      background: var(--sky-soft);
+    }
+
+    .post-art svg {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    .art-sticker {
+      position: absolute;
+      top: -8px;
+      right: 10px;
+      padding: 4px 8px;
+      border: 1px solid var(--ink);
+      border-radius: 7px;
+      background: var(--yellow);
+      box-shadow: 2px 2px 0 var(--ink);
+      font-size: 10px;
+      line-height: 14px;
+      font-weight: 900;
+      transform: rotate(3deg);
+    }
+
+    .art-sticker.purple {
+      background: var(--lavender);
+      transform: rotate(-3deg);
+    }
+
+    .art-sticker.peach {
+      background: var(--peach);
+    }
+
+    .post-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .visibility-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 8px;
+      border: 1px solid var(--ink);
+      border-radius: 999px;
+      background: var(--paper);
+      font-size: 10px;
+      line-height: 14px;
+      font-weight: 800;
+    }
+
+    .visibility-pill::before {
+      content: "";
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--purple);
+    }
+
+    .visibility-pill[data-visibility="private"]::before {
+      background: var(--ink);
+    }
+
+    .post-stats {
+      color: var(--muted);
+      font-size: 10px;
+      line-height: 15px;
+      font-weight: 650;
+    }
+
+    .feed-end {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 4px 20px 2px;
+      color: var(--muted);
+      font-size: 10px;
+      line-height: 16px;
+      text-align: center;
+    }
+
+    .feed-end::before,
+    .feed-end::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: var(--lavender);
+    }
+
+    .bottom-dock {
+      position: relative;
+      z-index: 8;
+      flex: 0 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 14px 12px;
+      background: var(--feed);
+    }
+
+    .dock-current {
+      min-width: 58px;
+      min-height: 48px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      border: 0;
+      border-radius: 13px;
+      background: transparent;
+      cursor: pointer;
+      font-size: 10px;
+      line-height: 14px;
+      font-weight: 850;
+    }
+
+    .dock-current svg {
+      width: 21px;
+      height: 21px;
+    }
+
+    .open-composer {
+      flex: 1;
+      min-width: 0;
+      min-height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      border: var(--border);
+      border-radius: 17px;
+      background: var(--ink);
+      color: var(--white);
+      box-shadow: 3px 3px 0 var(--lavender);
+      cursor: pointer;
+      font-size: 15px;
+      line-height: 20px;
+      font-weight: 900;
+    }
+
+    .open-composer .plus {
+      width: 25px;
+      height: 25px;
+      display: grid;
+      place-items: center;
+      border-radius: 8px;
+      background: var(--sky);
+      color: var(--ink);
+      font-size: 21px;
+      line-height: 25px;
+      font-weight: 700;
+    }
+
+    .composer-topbar {
+      flex: 0 0 58px;
+      display: grid;
+      grid-template-columns: 76px minmax(0, 1fr) 76px;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 12px;
+      border-bottom: var(--border);
+      background: var(--sky);
+    }
+
+    .back-button {
+      min-width: 68px;
+      min-height: 44px;
+      padding: 0 5px;
+      border: 0;
+      border-radius: 12px;
+      background: transparent;
+      cursor: pointer;
+      font-size: 12px;
+      line-height: 18px;
+      font-weight: 850;
+      text-align: left;
+    }
+
+    .composer-topbar h1 {
+      margin: 0;
+      overflow: hidden;
+      font-size: 16px;
+      line-height: 22px;
+      font-weight: 950;
+      text-align: center;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .network-status {
+      justify-self: end;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 6px;
+      border: 1px solid var(--ink);
+      border-radius: 999px;
+      background: var(--paper);
+      font-size: 9px;
+      line-height: 13px;
+      font-weight: 850;
+      white-space: nowrap;
+    }
+
+    .network-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--success);
+    }
+
+    .network-status.offline .network-dot {
+      background: var(--error);
+    }
+
+    .composer-scroll {
+      flex: 1 1 auto;
+      min-height: 0;
+      padding: 14px 14px 20px;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      background: var(--feed);
+    }
+
+    .editor-card,
+    .visibility-panel,
+    .drill-card,
+    .publish-feedback {
+      border: var(--border);
+      border-radius: var(--radius-card);
+      background: var(--paper);
+      box-shadow: var(--shadow);
+    }
+
+    .editor-card {
+      padding: 15px;
+    }
+
+    .editor-author {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .editor-avatar {
+      width: 38px;
+      height: 38px;
+      display: grid;
+      place-items: center;
+      flex: none;
+      border: var(--border);
+      border-radius: 12px;
+      background: var(--yellow);
+      box-shadow: 2px 2px 0 var(--ink);
+      font-size: 14px;
+      font-weight: 950;
+      transform: rotate(-3deg);
+    }
+
+    .editor-author strong {
+      display: block;
+      font-size: 14px;
+      line-height: 20px;
+      font-weight: 900;
+    }
+
+    .draft-status {
+      display: block;
+      margin-top: 1px;
+      color: var(--muted);
+      font-size: 10px;
+      line-height: 15px;
+      font-weight: 650;
+    }
+
+    .editor-label {
+      display: block;
+      margin: 14px 0 7px;
+      font-size: 11px;
+      line-height: 16px;
+      font-weight: 850;
+    }
+
+    .editor {
+      display: block;
+      width: 100%;
+      min-height: 116px;
+      max-height: 220px;
+      resize: vertical;
+      padding: 12px;
+      border: var(--border);
+      border-radius: var(--radius-control);
+      background: var(--sky-soft);
+      color: var(--ink);
+      caret-color: var(--purple);
+      font-size: 15px;
+      line-height: 23px;
+      font-weight: 550;
+    }
+
+    .editor::placeholder {
+      color: #716D7C;
+      opacity: 1;
+    }
+
+    .editor[readonly] {
+      background: var(--lavender-soft);
+    }
+
+    .editor-meta {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 10px;
+      line-height: 15px;
+    }
+
+    .character-count {
+      flex: none;
+      font-variant-numeric: tabular-nums;
+      font-weight: 800;
+    }
+
+    .visibility-panel {
+      margin-top: 14px;
+      padding: 14px;
+    }
+
+    .visibility-panel fieldset {
+      min-width: 0;
+      margin: 0;
+      padding: 0;
+      border: 0;
+    }
+
+    .visibility-panel legend {
+      width: 100%;
+      margin: 0 0 10px;
+      padding: 0;
+      font-size: 13px;
+      line-height: 19px;
+      font-weight: 900;
+    }
+
+    .legend-note {
+      float: right;
+      color: var(--muted);
+      font-size: 10px;
+      line-height: 19px;
+      font-weight: 650;
+    }
+
+    .visibility-options {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .visibility-option {
+      position: relative;
+      min-width: 0;
+      cursor: pointer;
+    }
+
+    .visibility-option input {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      opacity: 0;
+    }
+
+    .visibility-card {
+      position: relative;
+      min-height: 76px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      padding: 9px 4px;
+      border: 1.5px solid var(--ink);
+      border-radius: 13px;
+      background: var(--feed);
+      font-size: 11px;
+      line-height: 16px;
+      font-weight: 850;
+      text-align: center;
+      transition: transform 140ms ease, box-shadow 140ms ease, background-color 140ms ease;
+    }
+
+    .visibility-card svg {
+      width: 22px;
+      height: 22px;
+    }
+
+    .visibility-option input:checked + .visibility-card {
+      background: var(--lavender);
+      box-shadow: 2px 2px 0 var(--ink);
+      transform: translate(-1px, -1px);
+    }
+
+    .visibility-option input:checked + .visibility-card::after {
+      content: "";
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      width: 7px;
+      height: 7px;
+      border: 1px solid var(--ink);
+      border-radius: 50%;
+      background: var(--yellow);
+    }
+
+    .visibility-option input:focus-visible + .visibility-card {
+      outline: 3px solid var(--purple);
+      outline-offset: 3px;
+    }
+
+    .visibility-option input:disabled + .visibility-card {
+      cursor: not-allowed;
+      opacity: .55;
+      box-shadow: none;
+      transform: none;
+    }
+
+    .visibility-description {
+      min-height: 18px;
+      margin: 10px 0 0;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 18px;
+      font-weight: 650;
+    }
+
+    .drill-card {
+      margin-top: 14px;
+      padding: 13px 14px 14px;
+      border-style: dashed;
+      background: var(--lavender-soft);
+    }
+
+    .drill-heading {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .drill-heading h2 {
+      margin: 0;
+      font-size: 13px;
+      line-height: 19px;
+      font-weight: 950;
+    }
+
+    .drill-label {
+      padding: 2px 6px;
+      border: 1px solid var(--ink);
+      border-radius: 5px;
+      background: var(--yellow);
+      font-size: 9px;
+      line-height: 13px;
+      font-weight: 900;
+      transform: rotate(2deg);
+    }
+
+    .drill-card p {
+      margin: 6px 0 10px;
+      color: var(--muted);
+      font-size: 10px;
+      line-height: 16px;
+      font-weight: 600;
+    }
+
+    .drill-button {
+      width: 100%;
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      padding: 8px 10px;
+      border: var(--border);
+      border-radius: 12px;
+      background: var(--paper);
+      box-shadow: 2px 2px 0 var(--ink);
+      cursor: pointer;
+      font-size: 12px;
+      line-height: 18px;
+      font-weight: 900;
+    }
+
+    .drill-button[aria-pressed="true"] {
+      background: var(--ink);
+      color: var(--white);
+      box-shadow: 2px 2px 0 var(--lavender);
+    }
+
+    .drill-icon {
+      width: 18px;
+      height: 18px;
+      display: grid;
+      place-items: center;
+      border: 1px solid currentColor;
+      border-radius: 50%;
+      font-size: 11px;
+      line-height: 16px;
+    }
+
+    .publish-feedback {
+      margin-top: 14px;
+      padding: 14px;
+      background: #FFF0F2;
+      border-color: var(--error);
+      box-shadow: 3px 3px 0 var(--error);
+    }
+
+    .publish-feedback.recovered {
+      background: #EAF8F1;
+      border-color: var(--success);
+      box-shadow: 3px 3px 0 var(--success);
+    }
+
+    .feedback-kicker {
+      display: inline-block;
+      margin-bottom: 5px;
+      color: var(--error);
+      font-size: 9px;
+      line-height: 14px;
+      font-weight: 950;
+      letter-spacing: 1px;
+    }
+
+    .recovered .feedback-kicker {
+      color: var(--success);
+    }
+
+    .publish-feedback h2 {
+      margin: 0;
+      font-size: 16px;
+      line-height: 23px;
+      font-weight: 950;
+    }
+
+    .publish-feedback p {
+      margin: 6px 0 12px;
+      font-size: 12px;
+      line-height: 19px;
+      font-weight: 600;
+    }
+
+    .feedback-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .feedback-actions button {
+      flex: 1 1 126px;
+      min-height: 44px;
+      padding: 8px 10px;
+      border: var(--border);
+      border-radius: 12px;
+      background: var(--paper);
+      box-shadow: 2px 2px 0 var(--ink);
+      cursor: pointer;
+      font-size: 11px;
+      line-height: 17px;
+      font-weight: 900;
+    }
+
+    .feedback-actions .retry-button {
+      background: var(--ink);
+      color: var(--white);
+    }
+
+    .composer-dock {
+      flex: 0 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px 12px;
+      border-top: var(--border);
+      background: var(--paper);
+    }
+
+    .composer-summary {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .composer-summary strong,
+    .composer-summary span {
+      display: block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .composer-summary strong {
+      font-size: 11px;
+      line-height: 17px;
+      font-weight: 900;
+    }
+
+    .composer-summary span {
+      color: var(--muted);
+      font-size: 9px;
+      line-height: 14px;
+      font-weight: 650;
+    }
+
+    .publish-button {
+      flex: 0 0 158px;
+      min-height: 50px;
+      padding: 0 12px;
+      border: var(--border);
+      border-radius: 15px;
+      background: var(--ink);
+      color: var(--white);
+      box-shadow: 3px 3px 0 var(--lavender);
+      cursor: pointer;
+      font-size: 13px;
+      line-height: 19px;
+      font-weight: 950;
+    }
+
+    .publish-button:not(:disabled) {
+      background: var(--purple);
+    }
+
+    .toast {
+      position: absolute;
+      z-index: 50;
+      left: 16px;
+      right: 16px;
+      bottom: 88px;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 11px 13px;
+      border: 1.5px solid var(--white);
+      border-radius: 15px;
+      background: var(--ink);
+      color: var(--white);
+      box-shadow: 3px 3px 0 var(--lavender);
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(10px);
+      transition: opacity 160ms ease, transform 160ms ease;
+      font-size: 12px;
+      line-height: 18px;
+      font-weight: 750;
+    }
+
+    .toast.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .toast-mark {
+      width: 23px;
+      height: 23px;
+      display: grid;
+      place-items: center;
+      flex: none;
+      border-radius: 8px;
+      background: var(--sky);
+      color: var(--ink);
+      font-size: 11px;
+      line-height: 16px;
+      font-weight: 950;
+      transform: rotate(-4deg);
+    }
+
+    @media (hover: hover) {
+      .dock-current:hover,
+      .back-button:hover {
+        background: var(--lavender-soft);
+      }
+
+      .open-composer:hover:not(:disabled),
+      .publish-button:hover:not(:disabled),
+      .feedback-actions button:hover:not(:disabled),
+      .drill-button:hover:not(:disabled) {
+        transform: translate(-1px, -1px);
+        box-shadow: 4px 4px 0 var(--lavender);
+      }
+
+      .visibility-option:hover input:not(:checked):not(:disabled) + .visibility-card {
+        background: var(--sky-soft);
+      }
+    }
+
+    .dock-current:active,
+    .back-button:active,
+    .open-composer:active:not(:disabled),
+    .publish-button:active:not(:disabled),
+    .feedback-actions button:active:not(:disabled),
+    .drill-button:active:not(:disabled) {
+      transform: translate(1px, 1px);
+      box-shadow: none;
+    }
+
+    @media (min-width: 521px) {
+      body {
+        padding: 28px;
+      }
+
+      .device-frame {
+        box-sizing: content-box;
+        width: 390px;
+        height: min(844px, calc(100dvh - 56px));
+        min-height: 620px;
+        border: 8px solid var(--ink);
+        border-radius: 45px;
+        box-shadow: 12px 16px 0 rgba(23, 25, 31, .16), 0 28px 70px rgba(23, 25, 31, .22);
+      }
+
+      .device-frame::before,
+      .device-frame::after {
+        content: "";
+        position: absolute;
+        right: -12px;
+        width: 4px;
+        border-radius: 0 4px 4px 0;
+        background: var(--ink);
+      }
+
+      .device-frame::before {
+        top: 128px;
+        height: 62px;
+      }
+
+      .device-frame::after {
+        top: 204px;
+        height: 86px;
+      }
+
+      .app {
+        border-radius: 36px;
+      }
+    }
+
+    @media (max-width: 359px) {
+      .intro h1 {
+        max-width: 220px;
+        font-size: 26px;
+        line-height: 32px;
+      }
+
+      .roof-scene {
+        width: 132px;
+      }
+
+      .weather-sticker {
+        right: 12px;
+        font-size: 9px;
+      }
+
+      .feed-scroll,
+      .composer-scroll {
+        padding-left: 10px;
+        padding-right: 10px;
+      }
+
+      .post-card {
+        padding: 12px;
+      }
+
+      .composer-topbar {
+        grid-template-columns: 68px minmax(0, 1fr) 70px;
+        padding-left: 8px;
+        padding-right: 8px;
+      }
+
+      .publish-button {
+        flex-basis: 138px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .01ms !important;
+      }
+    }
+
+    @keyframes card-in {
+      from {
+        opacity: 0;
+        transform: translateY(-8px) rotate(-1deg);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) rotate(0);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="device-frame">
+    <div class="app" id="app">
+      <div class="status-bar" aria-hidden="true">
+        <span>20:44</span>
+        <span class="status-island"></span>
+        <span class="status-icons">
+          <svg width="15" height="12" viewBox="0 0 15 12" fill="none">
+            <path d="M1 11h2V8H1v3Zm4 0h2V5H5v6Zm4 0h2V2H9v9Zm4 0h1V0h-1v11Z" fill="currentColor"/>
+          </svg>
+          <svg width="15" height="12" viewBox="0 0 15 12" fill="none">
+            <path d="M1 4.2a9.5 9.5 0 0 1 13 0M3.4 6.7a6.1 6.1 0 0 1 8.2 0M5.9 9.1a2.4 2.4 0 0 1 3.2 0" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+            <circle cx="7.5" cy="11" r="1" fill="currentColor"/>
+          </svg>
+          <svg width="23" height="12" viewBox="0 0 23 12" fill="none">
+            <rect x=".7" y=".7" width="18.6" height="10.6" rx="3" stroke="currentColor" stroke-width="1.4"/>
+            <rect x="2.7" y="2.7" width="13.8" height="6.6" rx="1.5" fill="currentColor"/>
+            <path d="M21 4v4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+        </span>
+      </div>
+
+      <section class="screen" id="feed-screen" aria-labelledby="feed-title">
+        <header class="masthead">
+          <div class="brand-row">
+            <div class="brand">
+              <span class="brand-mark" aria-hidden="true">
+                <svg width="25" height="25" viewBox="0 0 25 25" fill="none">
+                  <path d="M4 17.5h17M6 17.5v-7h5v7m2 0V5h6v12.5" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+                  <path d="M4 7.5a3.5 3.5 0 0 1 5.7-2.7A4 4 0 0 1 17 7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                </svg>
+              </span>
+              <span>
+                <span class="brand-name">屋顶有约</span>
+                <span class="brand-subtitle">ROOFTOP SOCIAL</span>
+              </span>
+            </div>
+            <div class="resident-chip" aria-label="当前用户林小满">
+              <span class="resident-avatar" aria-hidden="true">满</span>
+              <span>我的屋顶</span>
+            </div>
+          </div>
+          <div class="intro">
+            <span class="intro-kicker">周三 · 晚风营业中</span>
+            <h1 id="feed-title">上楼，吹吹风。</h1>
+            <p>把今天放到天台上晒一晒，<br>127 位邻居正在这里。</p>
+            <span class="weather-sticker">24°C · 适合见面</span>
+            <svg class="roof-scene" viewBox="0 0 157 112" fill="none" aria-hidden="true">
+              <path d="M8 103h145" stroke="#17191F" stroke-width="2" stroke-linecap="round"/>
+              <path d="M93 102V51h43v51M103 51V36h22v15M21 102V68h54v34" fill="#C9B8F4" stroke="#17191F" stroke-width="2" stroke-linejoin="round"/>
+              <path d="M32 68V57h10v11m18 0V49h7v19M102 65h9v9h-9zm20 0h7v9h-7zM102 83h9v9h-9zm20 0h7v9h-7zM31 80h11v10H31zm21 0h11v10H52z" fill="#FFFEFC" stroke="#17191F" stroke-width="1.6"/>
+              <path d="M45 45V25m-5 5 5-5 5 5" stroke="#17191F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="128" cy="21" r="12" fill="#FFE28A" stroke="#17191F" stroke-width="2"/>
+              <path d="M128 3V0m0 42v-3m18-18h3m-42 0h3m33-13 2-2m-32 32 2-2m0-26-2-2m32 32-2-2" stroke="#17191F" stroke-width="1.6" stroke-linecap="round"/>
+              <path d="M7 47c5-7 12-7 17-2 6-5 14-2 15 4H7c-2 0-2-1 0-2Z" fill="#FFFEFC" stroke="#17191F" stroke-width="1.6" stroke-linejoin="round"/>
+              <path d="M78 102V86m-5 0h10l-2-7h-6l-2 7Z" fill="#FFAD91" stroke="#17191F" stroke-width="1.8" stroke-linejoin="round"/>
+            </svg>
+          </div>
+        </header>
+
+        <main class="feed-scroll" id="feed-scroll">
+          <div class="feed-heading">
+            <h2>邻居正在发</h2>
+            <span class="feed-count" id="feed-count">4 条动态</span>
+          </div>
+          <div id="new-posts"></div>
+
+          <article class="post-card" id="post-roof-004" data-post-id="roof-004" aria-labelledby="post-roof-004-author">
+            <header class="post-header">
+              <div class="post-avatar" aria-hidden="true">荞</div>
+              <div>
+                <div class="post-author-line">
+                  <h3 class="post-author" id="post-roof-004-author">阿荞</h3>
+                </div>
+                <p class="post-byline">2 分钟前 · 天台种植组</p>
+              </div>
+              <span class="post-number">#004</span>
+            </header>
+            <p class="post-body">给薄荷换到背风的位置，隔壁栋的叔叔送来两只青柠。明晚的屋顶气泡水，有着落了。</p>
+            <figure class="post-figure">
+              <div class="post-art">
+                <svg viewBox="0 0 310 142" role="img" aria-label="蓝色天空下，两盆薄荷和青柠摆在屋顶">
+                  <rect width="310" height="142" fill="#DDF5FF"/>
+                  <circle cx="259" cy="31" r="18" fill="#FFE28A" stroke="#17191F" stroke-width="2"/>
+                  <path d="M0 112h310v30H0z" fill="#C9B8F4"/>
+                  <path d="M0 112h310" stroke="#17191F" stroke-width="2"/>
+                  <path d="M32 112V78h50v34m-39-34V61h12v17" fill="#FFAD91" stroke="#17191F" stroke-width="2" stroke-linejoin="round"/>
+                  <path d="M138 109h62l-6 27h-50l-6-27Z" fill="#FFAD91" stroke="#17191F" stroke-width="2" stroke-linejoin="round"/>
+                  <path d="M169 109V65m0 22c-18 0-25-10-24-21 15-1 24 7 24 21Zm1-10c1-16 11-25 25-23 0 14-9 23-25 23Zm-1 25c-13 0-20-7-20-16 12-1 19 5 20 16Zm2-5c3-12 11-18 22-15-2 11-9 16-22 15Z" fill="#A9E4C5" stroke="#17191F" stroke-width="2" stroke-linejoin="round"/>
+                  <path d="M218 116h45l-4 20h-37l-4-20Z" fill="#FFFEFC" stroke="#17191F" stroke-width="2"/>
+                  <circle cx="230" cy="109" r="10" fill="#A9E4C5" stroke="#17191F" stroke-width="2"/>
+                  <circle cx="249" cy="108" r="11" fill="#A9E4C5" stroke="#17191F" stroke-width="2"/>
+                  <path d="M247 96c2-5 6-6 10-5-1 5-4 7-10 5Z" fill="#FFE28A" stroke="#17191F" stroke-width="1.5"/>
+                  <path d="M12 29c7-9 17-8 22-2 8-6 19-2 20 6H12c-3 0-3-2 0-4Z" fill="#FFFEFC" stroke="#17191F" stroke-width="1.7"/>
+                </svg>
+              </div>
+              <figcaption class="art-sticker">今日小收获</figcaption>
+            </figure>
+            <footer class="post-footer">
+              <span class="visibility-pill" data-visibility="public">公开</span>
+              <span class="post-stats">28 次鼓掌 · 7 条评论</span>
+            </footer>
+          </article>
+
+          <article class="post-card" id="post-roof-003" data-post-id="roof-003" aria-labelledby="post-roof-003-author">
+            <header class="post-header">
+              <div class="post-avatar round" aria-hidden="true">周</div>
+              <div>
+                <div class="post-author-line">
+                  <h3 class="post-author" id="post-roof-003-author">老周</h3>
+                </div>
+                <p class="post-byline">8 分钟前 · 五栋 17 楼</p>
+              </div>
+              <span class="post-number">#003</span>
+            </header>
+            <p class="post-body">今晚七点半，五栋天台留了两把折叠椅。带一壶乌龙，谁来把今天的云看完？</p>
+            <figure class="post-figure">
+              <div class="post-art">
+                <svg viewBox="0 0 310 142" role="img" aria-label="淡紫色晚霞里，屋顶摆着两把折叠椅和一壶茶">
+                  <rect width="310" height="142" fill="#C9B8F4"/>
+                  <circle cx="226" cy="52" r="27" fill="#FFAD91" stroke="#17191F" stroke-width="2"/>
+                  <path d="M0 100c44-18 76-16 115 0s81 15 114-1 58-12 81-3v46H0V100Z" fill="#82D5F5" stroke="#17191F" stroke-width="2"/>
+                  <path d="M0 124h310v18H0z" fill="#FFFEFC"/>
+                  <path d="M0 124h310" stroke="#17191F" stroke-width="2"/>
+                  <path d="M70 71v44m45-44v44M70 83h45M69 115l-12 19m58-19 12 19M75 71l-5-15h37l8 15" stroke="#17191F" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M68 72h48v14H68z" fill="#FFE28A" stroke="#17191F" stroke-width="2"/>
+                  <path d="M157 76v39m42-39v39m-42-31h42m-43 31-11 19m54-19 12 19m-48-58-4-14h32l10 14" stroke="#17191F" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M155 77h46v14h-46z" fill="#FFAD91" stroke="#17191F" stroke-width="2"/>
+                  <path d="M241 102h24v18h-24z" fill="#FFFEFC" stroke="#17191F" stroke-width="2"/>
+                  <path d="M265 106c12-1 12 12 0 11" stroke="#17191F" stroke-width="2"/>
+                  <path d="M245 101c0-8 16-8 16 0" stroke="#17191F" stroke-width="2"/>
+                  <path d="M21 39c19-9 37-8 55 0m-42 9c14-5 26-4 39 1" stroke="#FFFEFC" stroke-width="3" stroke-linecap="round"/>
+                </svg>
+              </div>
+              <figcaption class="art-sticker peach">虚位以待</figcaption>
+            </figure>
+            <footer class="post-footer">
+              <span class="visibility-pill" data-visibility="friends">朋友可见</span>
+              <span class="post-stats">12 次鼓掌 · 4 条评论</span>
+            </footer>
+          </article>
+
+          <article class="post-card" id="post-roof-002" data-post-id="roof-002" aria-labelledby="post-roof-002-author">
+            <header class="post-header">
+              <div class="post-avatar purple" aria-hidden="true">映</div>
+              <div>
+                <div class="post-author-line">
+                  <h3 class="post-author" id="post-roof-002-author">十三栋放映室</h3>
+                </div>
+                <p class="post-byline">19 分钟前 · 屋顶活动主理人</p>
+              </div>
+              <span class="post-number">#002</span>
+            </header>
+            <p class="post-body">周五电影夜投票，《重庆森林》以 3 票领先。天台风大，记得带外套；毯子和热茶我们准备。</p>
+            <figure class="post-figure">
+              <div class="post-art">
+                <svg viewBox="0 0 310 142" role="img" aria-label="屋顶电影夜的银幕、放映机与折叠椅">
+                  <rect width="310" height="142" fill="#17191F"/>
+                  <circle cx="37" cy="28" r="2" fill="#FFE28A"/>
+                  <circle cx="278" cy="24" r="2" fill="#FFE28A"/>
+                  <circle cx="237" cy="43" r="1.5" fill="#FFFEFC"/>
+                  <circle cx="72" cy="52" r="1.5" fill="#FFFEFC"/>
+                  <path d="m74 17 2 5 5 2-5 2-2 5-2-5-5-2 5-2 2-5Zm177 56 1.5 4 4 1.5-4 1.5-1.5 4-1.5-4-4-1.5 4-1.5 1.5-4Z" fill="#FFE28A"/>
+                  <rect x="72" y="24" width="151" height="82" rx="3" fill="#FFFEFC" stroke="#82D5F5" stroke-width="3"/>
+                  <rect x="82" y="34" width="131" height="62" fill="#C9B8F4"/>
+                  <circle cx="177" cy="54" r="15" fill="#FFE28A"/>
+                  <path d="M82 82c25-18 44-14 62 0s37 12 69-3v17H82V82Z" fill="#82D5F5"/>
+                  <path d="M72 112h151M88 106v13m119-13v13" stroke="#FFFEFC" stroke-width="2" stroke-linecap="round"/>
+                  <path d="m39 89 57-19v35L39 91Z" fill="#82D5F5" opacity=".7"/>
+                  <rect x="18" y="83" width="31" height="25" rx="4" fill="#FFAD91" stroke="#FFFEFC" stroke-width="2"/>
+                  <circle cx="26" cy="82" r="7" fill="#C9B8F4" stroke="#FFFEFC" stroke-width="2"/>
+                  <circle cx="42" cy="82" r="7" fill="#C9B8F4" stroke="#FFFEFC" stroke-width="2"/>
+                  <path d="M24 108v15m19-15v15M267 111v22m-13-22h26l-4 11h-18l-4-11Z" stroke="#FFFEFC" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+              <figcaption class="art-sticker purple">周五 20:00</figcaption>
+            </figure>
+            <footer class="post-footer">
+              <span class="visibility-pill" data-visibility="public">公开</span>
+              <span class="post-stats">36 次鼓掌 · 11 条评论</span>
+            </footer>
+          </article>
+
+          <article class="post-card" id="post-roof-001" data-post-id="roof-001" aria-labelledby="post-roof-001-author">
+            <header class="post-header">
+              <div class="post-avatar blue" aria-hidden="true">满</div>
+              <div>
+                <div class="post-author-line">
+                  <h3 class="post-author" id="post-roof-001-author">林小满</h3>
+                  <span class="you-badge">你</span>
+                </div>
+                <p class="post-byline">32 分钟前 · 七楼常住居民</p>
+              </div>
+              <span class="post-number">#001</span>
+            </header>
+            <p class="post-body">给自己留一张今天的云。没赶上日落，但天完全黑下来之前，紫色那几分钟也很值得。</p>
+            <figure class="post-figure">
+              <div class="post-art">
+                <svg viewBox="0 0 310 142" role="img" aria-label="淡紫天空中的月亮、云朵和安静的城市屋顶">
+                  <rect width="310" height="142" fill="#C9B8F4"/>
+                  <path d="M243 22c-15 3-21 20-12 32 7 10 21 11 29 3-5 13-22 19-35 10-15-10-17-32-4-44 8-8 16-8 22-1Z" fill="#FFE28A" stroke="#17191F" stroke-width="2" stroke-linejoin="round"/>
+                  <path d="m47 24 2 5 5 2-5 2-2 5-2-5-5-2 5-2 2-5Zm117 13 1.5 4 4 1.5-4 1.5-1.5 4-1.5-4-4-1.5 4-1.5 1.5-4Z" fill="#FFFEFC"/>
+                  <path d="M28 68c8-10 20-9 27-2 10-7 24-2 25 8H28c-4 0-4-3 0-6Zm91 22c6-8 16-7 21-2 8-5 19-1 20 7h-41c-3 0-3-2 0-5Z" fill="#FFFEFC" stroke="#17191F" stroke-width="1.7"/>
+                  <path d="M0 122h310v20H0z" fill="#82D5F5"/>
+                  <path d="M0 122h310M18 122V90h52v32m13 0V72h57v50m17 0V96h45v26m15 0V82h72v40" fill="#17191F" stroke="#17191F" stroke-width="2"/>
+                  <path d="M95 84h10v9H95zm22 0h10v9h-10zm-22 20h10v9H95zm132-10h11v9h-11zm25 0h11v9h-11z" fill="#FFE28A"/>
+                </svg>
+              </div>
+              <figcaption class="art-sticker">私藏一片云</figcaption>
+            </figure>
+            <footer class="post-footer">
+              <span class="visibility-pill" data-visibility="private">仅自己</span>
+              <span class="post-stats">已收藏到私人日记</span>
+            </footer>
+          </article>
+
+          <div class="feed-end">屋顶很大，慢慢逛</div>
+        </main>
+
+        <nav class="bottom-dock" aria-label="动态操作">
+          <button class="dock-current" id="feed-home" type="button" aria-label="回到最新动态">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M4 10.5 12 4l8 6.5V20h-6v-6h-4v6H4v-9.5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+            </svg>
+            <span>动态</span>
+          </button>
+          <button class="open-composer" id="open-composer" type="button">
+            <span class="plus" aria-hidden="true">+</span>
+            <span>发布屋顶动态</span>
+          </button>
+        </nav>
+      </section>
+
+      <section class="screen" id="composer-screen" aria-labelledby="composer-title" hidden>
+        <header class="composer-topbar">
+          <button class="back-button" id="back-to-feed" type="button">← 返回</button>
+          <h1 id="composer-title">发条屋顶动态</h1>
+          <span class="network-status" id="network-status">
+            <span class="network-dot" aria-hidden="true"></span>
+            <span id="network-label">网络良好</span>
+          </span>
+        </header>
+
+        <main class="composer-scroll" id="composer-scroll">
+          <section class="editor-card" aria-labelledby="editor-heading">
+            <div class="editor-author">
+              <span class="editor-avatar" aria-hidden="true">满</span>
+              <div>
+                <strong id="editor-heading">林小满，今天怎么样？</strong>
+                <span class="draft-status" id="draft-status">返回也会保留草稿</span>
+              </div>
+            </div>
+            <label class="editor-label" for="editor">动态正文</label>
+            <textarea class="editor" id="editor" maxlength="280" placeholder="比如：今晚的云很好看，七点半来七楼坐坐……" aria-describedby="editor-help character-count"></textarea>
+            <div class="editor-meta">
+              <span id="editor-help">写点真事，邻居更容易接住话题。</span>
+              <span class="character-count" id="character-count">0 / 280</span>
+            </div>
+          </section>
+
+          <section class="visibility-panel" aria-label="可见范围设置">
+            <fieldset id="visibility-fieldset">
+              <legend>谁可以看 <span class="legend-note">返回后仍保留选择</span></legend>
+              <div class="visibility-options">
+                <label class="visibility-option">
+                  <input type="radio" name="visibility" id="visibility-public" value="public" checked>
+                  <span class="visibility-card">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                      <circle cx="12" cy="12" r="8.5" stroke="currentColor" stroke-width="1.7"/>
+                      <path d="M3.8 12h16.4M12 3.5c2.2 2.3 3.2 5.1 3.2 8.5S14.2 18.2 12 20.5C9.8 18.2 8.8 15.4 8.8 12S9.8 5.8 12 3.5Z" stroke="currentColor" stroke-width="1.5"/>
+                    </svg>
+                    <span>公开</span>
+                  </span>
+                </label>
+                <label class="visibility-option">
+                  <input type="radio" name="visibility" id="visibility-friends" value="friends">
+                  <span class="visibility-card">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                      <circle cx="9" cy="8" r="3.2" stroke="currentColor" stroke-width="1.7"/>
+                      <circle cx="16.5" cy="9.5" r="2.5" stroke="currentColor" stroke-width="1.7"/>
+                      <path d="M3.5 19c.3-4 2.2-6 5.5-6s5.2 2 5.5 6H3.5Zm12-5.4c3.2-.6 4.8.9 5 4.4h-4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <span>朋友可见</span>
+                  </span>
+                </label>
+                <label class="visibility-option">
+                  <input type="radio" name="visibility" id="visibility-private" value="private">
+                  <span class="visibility-card">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                      <rect x="5" y="10" width="14" height="10" rx="3" stroke="currentColor" stroke-width="1.7"/>
+                      <path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+                    </svg>
+                    <span>仅自己</span>
+                  </span>
+                </label>
+              </div>
+              <p class="visibility-description" id="visibility-description" aria-live="polite">所有屋顶居民都能看到这条动态。</p>
+            </fieldset>
+          </section>
+
+          <section class="drill-card" aria-labelledby="drill-title">
+            <div class="drill-heading">
+              <h2 id="drill-title">发布演练</h2>
+              <span class="drill-label">可主动触发</span>
+            </div>
+            <p id="drill-help">仅影响下一次发布；失败后可恢复网络，再使用保留草稿重试。</p>
+            <button class="drill-button" id="failure-toggle" type="button" aria-pressed="false" aria-describedby="drill-help">
+              <span class="drill-icon" aria-hidden="true">!</span>
+              <span id="failure-toggle-label">模拟本次发布失败</span>
+            </button>
+          </section>
+
+          <section class="publish-feedback" id="publish-feedback" aria-live="polite" aria-atomic="true" hidden>
+            <span class="feedback-kicker" id="feedback-kicker">发布未完成</span>
+            <h2 id="feedback-title" tabindex="-1">这次没有发出去</h2>
+            <p id="feedback-description"></p>
+            <div class="feedback-actions">
+              <button id="restore-network" type="button">恢复网络</button>
+              <button class="retry-button" id="retry-publish" type="button">使用保留草稿重试</button>
+            </div>
+          </section>
+        </main>
+
+        <footer class="composer-dock">
+          <div class="composer-summary">
+            <strong id="composer-visibility-summary">公开 · 所有居民可见</strong>
+            <span>正文与范围只在成功后提交</span>
+          </div>
+          <button class="publish-button" id="publish-button" type="button" disabled>发布到屋顶</button>
+        </footer>
+      </section>
+
+      <div class="toast" id="toast" aria-hidden="true">
+        <span class="toast-mark" aria-hidden="true">天</span>
+        <span id="toast-text"></span>
+      </div>
+      <div class="sr-only" id="live-region" aria-live="polite" aria-atomic="true"></div>
+    </div>
+  </div>
+
+  <script>
+    const VISIBILITY_LABELS = Object.freeze({
+      public: '公开',
+      friends: '朋友可见',
+      private: '仅自己'
+    });
+
+    const VISIBILITY_DESCRIPTIONS = Object.freeze({
+      public: '所有屋顶居民都能看到这条动态。',
+      friends: '只有互相关注的朋友能看到这条动态。',
+      private: '只有自己能看到，会同时收进私人日记。'
+    });
+
+    function createInitialModel() {
+      return {
+        draft: '',
+        visibility: 'public',
+        failNext: false,
+        online: true,
+        publishing: false,
+        error: null,
+        nextPostNumber: 5,
+        published: []
+      };
+    }
+
+    function updateDraft(model, draft) {
+      return { ...model, draft };
+    }
+
+    function changeVisibility(model, visibility) {
+      if (!Object.hasOwn(VISIBILITY_LABELS, visibility) || model.publishing) return model;
+      return { ...model, visibility };
+    }
+
+    function toggleFailure(model) {
+      if (model.publishing) return model;
+      return { ...model, failNext: !model.failNext };
+    }
+
+    function beginPublish(model) {
+      const body = model.draft.trim();
+      if (model.publishing || !model.online || !body) {
+        return { model, request: null };
+      }
+      const request = {
+        id: `roof-${String(model.nextPostNumber).padStart(3, '0')}`,
+        body,
+        visibility: model.visibility,
+        shouldFail: model.failNext
+      };
+      return {
+        model: { ...model, publishing: true, error: null },
+        request
+      };
+    }
+
+    function settlePublish(model, request) {
+      if (!request || !model.publishing) {
+        return { model, outcome: 'ignored', post: null };
+      }
+      if (request.shouldFail) {
+        return {
+          model: {
+            ...model,
+            publishing: false,
+            online: false,
+            failNext: false,
+            error: 'offline'
+          },
+          outcome: 'failed',
+          post: null
+        };
+      }
+      if (model.published.some((post) => post.id === request.id)) {
+        return {
+          model: { ...model, publishing: false },
+          outcome: 'ignored',
+          post: null
+        };
+      }
+      const post = {
+        id: request.id,
+        body: request.body,
+        visibility: request.visibility,
+        author: '林小满',
+        time: '刚刚'
+      };
+      return {
+        model: {
+          ...model,
+          draft: '',
+          publishing: false,
+          online: true,
+          failNext: false,
+          error: null,
+          nextPostNumber: model.nextPostNumber + 1,
+          published: [post, ...model.published]
+        },
+        outcome: 'success',
+        post
+      };
+    }
+
+    function restoreNetwork(model) {
+      if (model.publishing || model.online) return model;
+      return { ...model, online: true, error: 'recovered' };
+    }
+
+    const elements = {
+      feedScreen: document.getElementById('feed-screen'),
+      composerScreen: document.getElementById('composer-screen'),
+      feedScroll: document.getElementById('feed-scroll'),
+      composerScroll: document.getElementById('composer-scroll'),
+      feedHome: document.getElementById('feed-home'),
+      openComposer: document.getElementById('open-composer'),
+      backToFeed: document.getElementById('back-to-feed'),
+      newPosts: document.getElementById('new-posts'),
+      feedCount: document.getElementById('feed-count'),
+      editor: document.getElementById('editor'),
+      characterCount: document.getElementById('character-count'),
+      draftStatus: document.getElementById('draft-status'),
+      visibilityFieldset: document.getElementById('visibility-fieldset'),
+      visibilityInputs: Array.from(document.querySelectorAll('input[name="visibility"]')),
+      visibilityDescription: document.getElementById('visibility-description'),
+      failureToggle: document.getElementById('failure-toggle'),
+      failureToggleLabel: document.getElementById('failure-toggle-label'),
+      drillHelp: document.getElementById('drill-help'),
+      networkStatus: document.getElementById('network-status'),
+      networkLabel: document.getElementById('network-label'),
+      publishFeedback: document.getElementById('publish-feedback'),
+      feedbackKicker: document.getElementById('feedback-kicker'),
+      feedbackTitle: document.getElementById('feedback-title'),
+      feedbackDescription: document.getElementById('feedback-description'),
+      restoreNetwork: document.getElementById('restore-network'),
+      retryPublish: document.getElementById('retry-publish'),
+      composerVisibilitySummary: document.getElementById('composer-visibility-summary'),
+      publishButton: document.getElementById('publish-button'),
+      toast: document.getElementById('toast'),
+      toastText: document.getElementById('toast-text'),
+      liveRegion: document.getElementById('live-region')
+    };
+
+    let model = createInitialModel();
+    let toastTimer = null;
+
+    function announce(message) {
+      elements.liveRegion.textContent = message;
+    }
+
+    function notify(message) {
+      elements.toastText.textContent = message;
+      elements.toast.classList.add('visible');
+      announce(message);
+      window.clearTimeout(toastTimer);
+      toastTimer = window.setTimeout(() => {
+        elements.toast.classList.remove('visible');
+      }, 2800);
+    }
+
+    function visibilitySummary(visibility) {
+      if (visibility === 'friends') return '朋友可见 · 互相关注可见';
+      if (visibility === 'private') return '仅自己 · 收入私人日记';
+      return '公开 · 所有居民可见';
+    }
+
+    function syncComposer() {
+      const label = VISIBILITY_LABELS[model.visibility];
+      const length = model.draft.length;
+      const canPublish = !model.publishing && model.online && Boolean(model.draft.trim());
+
+      if (elements.editor.value !== model.draft) {
+        elements.editor.value = model.draft;
+      }
+      elements.editor.readOnly = model.publishing;
+      elements.characterCount.textContent = `${length} / 280`;
+      elements.draftStatus.textContent = model.publishing
+        ? '正在等待发布结果，内容已锁定'
+        : length > 0
+          ? `草稿已保留 · ${length} 字`
+          : '返回也会保留草稿';
+
+      elements.visibilityInputs.forEach((input) => {
+        input.checked = input.value === model.visibility;
+        input.disabled = model.publishing;
+      });
+      elements.visibilityDescription.textContent = VISIBILITY_DESCRIPTIONS[model.visibility];
+      elements.composerVisibilitySummary.textContent = visibilitySummary(model.visibility);
+
+      elements.failureToggle.disabled = model.publishing;
+      elements.failureToggle.setAttribute('aria-pressed', String(model.failNext));
+      elements.failureToggleLabel.textContent = model.failNext
+        ? '已设置：下一次发布将失败'
+        : '模拟本次发布失败';
+      elements.drillHelp.textContent = model.failNext
+        ? '演练已就绪：本次失败不会新增动态或占用编号，草稿与范围会保留。'
+        : '仅影响下一次发布；失败后可恢复网络，再使用保留草稿重试。';
+
+      elements.networkStatus.classList.toggle('offline', !model.online);
+      elements.networkLabel.textContent = model.online ? '网络良好' : '网络已断开';
+      elements.backToFeed.disabled = model.publishing;
+
+      elements.publishButton.disabled = !canPublish;
+      elements.publishButton.textContent = model.publishing
+        ? '发布中…'
+        : !model.online
+          ? '等待网络恢复'
+          : model.error === 'recovered'
+            ? '重新发布'
+            : '发布到屋顶';
+
+      elements.publishFeedback.hidden = !model.error;
+      elements.publishFeedback.classList.toggle('recovered', model.error === 'recovered');
+      if (model.error === 'offline') {
+        elements.feedbackKicker.textContent = '发布未完成';
+        elements.feedbackTitle.textContent = '这次没有发出去';
+        elements.feedbackDescription.textContent = `网络连接中断。草稿与「${label}」范围已完整保留，动态数量与编号均未变化。`;
+        elements.restoreNetwork.hidden = false;
+        elements.retryPublish.disabled = true;
+      } else if (model.error === 'recovered') {
+        elements.feedbackKicker.textContent = '连接已恢复';
+        elements.feedbackTitle.textContent = '草稿还在，可以重试';
+        elements.feedbackDescription.textContent = `保留的正文与「${label}」范围均未改变。重试成功后，动态只会出现一次。`;
+        elements.restoreNetwork.hidden = true;
+        elements.retryPublish.disabled = !canPublish;
+      } else {
+        elements.retryPublish.disabled = !canPublish;
+      }
+    }
+
+    function buildPost(post) {
+      const article = document.createElement('article');
+      article.className = 'post-card post-card-new';
+      article.id = `post-${post.id}`;
+      article.dataset.postId = post.id;
+      article.tabIndex = -1;
+      article.setAttribute('aria-labelledby', `${article.id}-author`);
+      article.innerHTML = `
+        <header class="post-header">
+          <div class="post-avatar blue" aria-hidden="true">满</div>
+          <div>
+            <div class="post-author-line">
+              <h3 class="post-author" id="${article.id}-author">林小满</h3>
+              <span class="you-badge">你</span>
+            </div>
+            <p class="post-byline">刚刚 · 七楼常住居民</p>
+          </div>
+          <span class="post-number">#${post.id.slice(-3)}</span>
+        </header>
+        <p class="post-body"></p>
+        <figure class="post-figure">
+          <div class="post-art">
+            <svg viewBox="0 0 310 142" role="img" aria-label="刚贴上屋顶的蓝天气球与云朵贴纸">
+              <rect width="310" height="142" fill="#82D5F5"/>
+              <circle cx="254" cy="33" r="19" fill="#FFE28A" stroke="#17191F" stroke-width="2"/>
+              <path d="M0 116h310v26H0z" fill="#C9B8F4"/>
+              <path d="M0 116h310" stroke="#17191F" stroke-width="2"/>
+              <path d="M24 116V84h56v32m151 0V76h57v40" fill="#FFFEFC" stroke="#17191F" stroke-width="2"/>
+              <path d="M37 95h10v9H37zm20 0h10v9H57zm188-7h11v9h-11zm22 0h11v9h-11z" fill="#FFAD91" stroke="#17191F" stroke-width="1.3"/>
+              <path d="M21 42c8-10 20-9 27-2 10-7 24-2 25 8H21c-4 0-4-3 0-6Z" fill="#FFFEFC" stroke="#17191F" stroke-width="1.8"/>
+              <path d="M129 77c-20-17-15-48 10-55 27-8 48 18 35 42-6 11-16 16-23 25h-14c-2-5-4-8-8-12Z" fill="#EFEAFF" stroke="#17191F" stroke-width="2" stroke-linejoin="round"/>
+              <path d="m137 89 7 12 8-12m-8 12c-5 15 8 17 2 31" stroke="#17191F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M139 35c7-7 18-5 23 1" stroke="#FFFEFC" stroke-width="4" stroke-linecap="round"/>
+              <path d="m91 30 2 5 5 2-5 2-2 5-2-5-5-2 5-2 2-5Zm116 49 1.5 4 4 1.5-4 1.5-1.5 4-1.5-4-4-1.5 4-1.5 1.5-4Z" fill="#FFE28A" stroke="#17191F" stroke-width="1"/>
+            </svg>
+          </div>
+          <figcaption class="art-sticker purple">刚刚贴上屋顶</figcaption>
+        </figure>
+        <footer class="post-footer">
+          <span class="visibility-pill"></span>
+          <span class="post-stats">新发布 · 等待邻居回应</span>
+        </footer>`;
+      article.querySelector('.post-body').textContent = post.body;
+      const visibilityPill = article.querySelector('.visibility-pill');
+      visibilityPill.dataset.visibility = post.visibility;
+      visibilityPill.textContent = VISIBILITY_LABELS[post.visibility];
+      if (post.visibility === 'private') {
+        article.querySelector('.post-stats').textContent = '仅你可见 · 已收入私人日记';
+      }
+      return article;
+    }
+
+    function renderPublishedPosts() {
+      elements.newPosts.replaceChildren(...model.published.map(buildPost));
+      elements.feedCount.textContent = `${4 + model.published.length} 条动态`;
+    }
+
+    function openComposer() {
+      elements.feedScreen.hidden = true;
+      elements.composerScreen.hidden = false;
+      elements.toast.classList.remove('visible');
+      syncComposer();
+      elements.composerScroll.scrollTop = 0;
+      elements.editor.focus();
+      announce(model.draft ? '已打开保留的草稿，可以继续编辑。' : '发布器已打开，请编辑动态正文。');
+    }
+
+    function showFeed(options = {}) {
+      elements.composerScreen.hidden = true;
+      elements.feedScreen.hidden = false;
+      if (options.postId) {
+        elements.feedScroll.scrollTop = 0;
+        const post = document.getElementById(`post-${options.postId}`);
+        if (post) post.focus({ preventScroll: true });
+      } else {
+        elements.openComposer.focus({ preventScroll: true });
+      }
+    }
+
+    function requestPublish() {
+      const started = beginPublish(model);
+      if (!started.request) return;
+      model = started.model;
+      const request = started.request;
+      syncComposer();
+      announce('正在发布，请稍候。');
+
+      window.setTimeout(() => {
+        const settled = settlePublish(model, request);
+        model = settled.model;
+
+        if (settled.outcome === 'failed') {
+          syncComposer();
+          notify('发布未完成，草稿和可见范围已保留。');
+          elements.feedbackTitle.focus();
+          return;
+        }
+
+        if (settled.outcome === 'success') {
+          renderPublishedPosts();
+          syncComposer();
+          showFeed({ postId: settled.post.id });
+          notify(`发布成功，${settled.post.id} 已按「${VISIBILITY_LABELS[settled.post.visibility]}」展示。`);
+          return;
+        }
+
+        syncComposer();
+      }, 720);
+    }
+
+    elements.openComposer.addEventListener('click', openComposer);
+
+    elements.feedHome.addEventListener('click', () => {
+      elements.feedScroll.scrollTop = 0;
+      notify('已回到最新动态。');
+    });
+
+    elements.backToFeed.addEventListener('click', () => {
+      if (model.publishing) return;
+      const hasDraft = model.draft.length > 0;
+      showFeed();
+      notify(hasDraft
+        ? `草稿与「${VISIBILITY_LABELS[model.visibility]}」范围已保留。`
+        : '已返回动态广场。');
+    });
+
+    elements.editor.addEventListener('input', (event) => {
+      model = updateDraft(model, event.target.value);
+      syncComposer();
+    });
+
+    elements.visibilityInputs.forEach((input) => {
+      input.addEventListener('change', (event) => {
+        model = changeVisibility(model, event.target.value);
+        syncComposer();
+      });
+    });
+
+    elements.failureToggle.addEventListener('click', () => {
+      model = toggleFailure(model);
+      syncComposer();
+      announce(model.failNext
+        ? '已设置下一次发布失败。点击发布后即可验证草稿保留。'
+        : '已取消发布失败演练。');
+    });
+
+    elements.restoreNetwork.addEventListener('click', () => {
+      const before = model.online;
+      model = restoreNetwork(model);
+      if (!before && model.online) {
+        syncComposer();
+        notify('网络已恢复，保留的草稿可以重试。');
+        elements.retryPublish.focus();
+      }
+    });
+
+    elements.retryPublish.addEventListener('click', requestPublish);
+    elements.publishButton.addEventListener('click', requestPublish);
+
+    syncComposer();
+  </script>
+</body>
+</html>

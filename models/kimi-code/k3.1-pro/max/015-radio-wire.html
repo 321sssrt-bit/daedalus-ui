@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RADIO WIRE · 电台电讯中心</title>
+  <style>
+    :root {
+      --page: #191B1A;
+      --deep: #121413;
+      --panel: #222522;
+      --panel-soft: #292C27;
+      --line: #3A3D35;
+      --text: #F2E9D8;
+      --muted: #A39E8E;
+      --orange: #F07A3C;
+      --orange-soft: #FFB07B;
+      --green: #A9C49A;
+      --yellow: #E5BC68;
+      --violet: #B5A6D6;
+      --red: #D88373;
+      --blue: #8FB8C2;
+      --space: 8px;
+      --radius-control: 2px;
+      --radius-panel: 3px;
+    }
+    * { box-sizing: border-box; }
+    html { color-scheme: dark; }
+    body { margin: 0; color: var(--text); background-color: var(--page); background-image: linear-gradient(#FFFFFF03 1px, transparent 1px), linear-gradient(90deg, #FFFFFF03 1px, transparent 1px); background-size: 24px 24px; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; font-size: 14px; line-height: 1.5; }
+    button { font: inherit; cursor: pointer; }
+    button:focus-visible, a:focus-visible { outline: 2px solid var(--orange-soft); outline-offset: 3px; }
+    button:disabled { cursor: not-allowed; opacity: .38; }
+    .console { min-height: 100vh; display: grid; grid-template-rows: 64px minmax(0, 1fr); }
+    .topline { display: flex; align-items: center; justify-content: space-between; gap: 24px; height: 64px; padding: 0 24px; background: var(--deep); border-bottom: 1px solid var(--line); }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .brand-icon { width: 34px; height: 34px; color: var(--orange); }
+    .brand-name { display: block; font-size: 15px; line-height: 1.1; font-weight: 800; letter-spacing: 2.2px; }
+    .brand-cn { display: block; margin-top: 4px; color: var(--muted); font-size: 9px; letter-spacing: 2.5px; }
+    .top-frequency { display: flex; align-items: center; gap: 13px; color: var(--muted); font: 10px/1.5 Consolas, monospace; letter-spacing: 1px; }
+    .top-frequency strong { color: var(--text); font-size: 14px; font-weight: 500; }
+    .mini-wave { display: flex; align-items: center; gap: 2px; height: 18px; }
+    .mini-wave i { width: 2px; height: var(--h); background: var(--orange); }
+    .on-duty { display: flex; align-items: center; gap: 9px; font: 10px/1.5 Consolas, monospace; letter-spacing: 1px; }
+    .rx-light { width: 7px; height: 7px; background: var(--orange); border-radius: 50%; box-shadow: 0 0 10px #F07A3C77; }
+    .console-grid { width: 100%; max-width: 1600px; height: calc(100vh - 64px); min-height: 660px; margin: 0 auto; padding: 22px 24px 24px; display: grid; grid-template-columns: 190px minmax(0, 1fr) 252px; gap: 20px; }
+    .rail-column { min-height: 0; display: flex; flex-direction: column; }
+    .rail-section { border-top: 2px solid var(--orange); padding-top: 12px; }
+    .rail-title { margin: 0 0 11px; color: var(--muted); font: 9px/1.5 Consolas, monospace; letter-spacing: 1.6px; }
+    .type-nav { display: grid; gap: 4px; }
+    .type-button { position: relative; width: 100%; height: 38px; display: flex; align-items: center; gap: 9px; padding: 0 8px; color: var(--muted); background: transparent; border: 1px solid transparent; border-radius: var(--radius-control); text-align: left; }
+    .type-button:hover { color: var(--text); background: var(--panel-soft); }
+    .type-button[aria-pressed="true"] { color: var(--text); background: var(--panel); border-color: var(--line); }
+    .type-button[aria-pressed="true"]::before { content: ""; position: absolute; left: -1px; top: 8px; bottom: 8px; width: 2px; background: var(--orange); }
+    .type-glyph { flex: 0 0 auto; width: 22px; height: 22px; display: grid; place-items: center; color: var(--orange); border: 1px solid var(--line); font: 10px/1 Consolas, monospace; }
+    .type-label { flex: 1; font-size: 11px; }
+    .type-count { color: var(--muted); font: 9px/1.5 Consolas, monospace; }
+    .operator-card { margin-top: auto; padding: 15px 13px; background: var(--deep); border: 1px solid var(--line); border-top: 2px solid var(--orange); }
+    .operator-code { color: var(--orange); font: 9px/1.5 Consolas, monospace; letter-spacing: 1.3px; }
+    .operator-name { margin: 10px 0 2px; font-size: 17px; font-weight: 650; }
+    .operator-shift { color: var(--muted); font-size: 10px; }
+    .operator-meta { display: flex; justify-content: space-between; gap: 10px; margin-top: 13px; padding-top: 10px; border-top: 1px solid var(--line); color: var(--muted); font: 9px/1.5 Consolas, monospace; }
+    .timeline-panel { min-width: 0; min-height: 0; display: flex; flex-direction: column; }
+    .timeline-head { min-height: 68px; display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; }
+    .eyebrow { margin: 0 0 4px; color: var(--orange); font: 9px/1.4 Consolas, monospace; letter-spacing: 1.8px; }
+    h1 { margin: 0; font-size: 28px; line-height: 1.2; font-weight: 680; letter-spacing: .3px; }
+    .unread-summary { display: flex; align-items: baseline; gap: 8px; padding-top: 4px; }
+    .unread-summary strong { color: var(--orange); font: 400 31px/1 Consolas, monospace; }
+    .unread-summary span { color: var(--muted); font-size: 10px; }
+    .timeline-controls { min-height: 46px; display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; padding: 6px 7px; background: var(--deep); border: 1px solid var(--line); }
+    .view-switch { display: flex; gap: 3px; }
+    .view-button { height: 30px; padding: 0 12px; color: var(--muted); background: transparent; border: 1px solid transparent; border-radius: var(--radius-control); font-size: 10px; }
+    .view-button:hover { color: var(--text); background: var(--panel-soft); }
+    .view-button[aria-pressed="true"] { color: var(--deep); background: var(--orange); font-weight: 700; }
+    .mark-all { height: 32px; display: inline-flex; align-items: center; gap: 7px; padding: 0 10px; color: var(--orange-soft); background: transparent; border: 1px solid #F07A3C66; border-radius: var(--radius-control); font-size: 10px; }
+    .mark-all svg { width: 14px; height: 14px; }
+    .mark-all:hover:not(:disabled) { color: var(--deep); background: var(--orange); border-color: var(--orange); }
+    .timeline-scroll { min-height: 0; flex: 1; overflow-y: auto; padding-right: 4px; scrollbar-color: var(--line) transparent; }
+    .date-group { display: flex; align-items: center; gap: 10px; margin: 4px 0 10px; color: var(--muted); font: 9px/1.5 Consolas, monospace; letter-spacing: 1px; }
+    .date-group::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+    .wire-row { display: grid; grid-template-columns: 48px minmax(0, 1fr); gap: 10px; }
+    .wire-time { position: relative; padding-top: 14px; color: var(--muted); font: 9px/1.4 Consolas, monospace; text-align: right; }
+    .wire-time::after { content: ""; position: absolute; right: -15px; top: 17px; width: 7px; height: 7px; background: var(--page); border: 1px solid var(--muted); border-radius: 50%; }
+    .wire-row.unread .wire-time { color: var(--orange-soft); }
+    .wire-row.unread .wire-time::after { background: var(--orange); border-color: var(--orange); box-shadow: 0 0 0 3px #F07A3C18; }
+    .wire-track { position: relative; min-width: 0; padding-bottom: 10px; }
+    .wire-track::before { content: ""; position: absolute; left: -15px; top: 24px; bottom: -4px; width: 1px; background: var(--line); }
+    .wire-row:last-child .wire-track::before { display: none; }
+    .wire-card { min-width: 0; background: var(--panel); border: 1px solid var(--line); border-left: 2px solid var(--line); border-radius: var(--radius-panel); }
+    .wire-row.unread .wire-card { border-left-color: var(--orange); }
+    .wire-row.read .wire-card { background: #1E211E; }
+    .wire-expand { width: 100%; display: block; padding: 11px 13px 10px; color: var(--text); background: transparent; border: 0; text-align: left; }
+    .wire-expand:hover .wire-title { color: var(--orange-soft); }
+    .wire-meta { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+    .type-badge { padding: 1px 5px; color: var(--badge, var(--muted)); border: 1px solid currentColor; border-radius: 1px; font-size: 8px; line-height: 1.5; letter-spacing: .6px; }
+    .type-device { --badge: var(--orange); }
+    .type-dispatch { --badge: var(--green); }
+    .type-weather { --badge: var(--yellow); }
+    .type-collab { --badge: var(--violet); }
+    .type-security { --badge: var(--red); }
+    .type-message { --badge: var(--blue); }
+    .type-system { --badge: var(--muted); }
+    .wire-source { overflow: hidden; color: var(--muted); font: 8px/1.5 Consolas, monospace; letter-spacing: .6px; text-overflow: ellipsis; white-space: nowrap; }
+    .unread-label { margin-left: auto; color: var(--orange); font-size: 8px; letter-spacing: 1px; }
+    .wire-title { display: block; padding-right: 8px; font-size: 14px; line-height: 1.4; font-weight: 650; transition: color 140ms ease; }
+    .read .wire-title { color: #C9C4B6; }
+    .wire-preview { display: block; margin-top: 4px; overflow: hidden; color: var(--muted); font-size: 10px; line-height: 1.55; text-overflow: ellipsis; white-space: nowrap; }
+    .expand-label { display: flex; align-items: center; gap: 5px; margin-top: 8px; color: var(--orange-soft); font-size: 9px; }
+    .expand-label svg { width: 11px; height: 11px; transition: transform 160ms ease; }
+    .wire-expand[aria-expanded="true"] .expand-label svg { transform: rotate(180deg); }
+    .wire-detail { margin: 0 12px; padding: 11px 0 12px; border-top: 1px dashed var(--line); color: #D4CDBC; font-size: 11px; line-height: 1.75; }
+    .wire-detail p { margin: 0 0 8px; }
+    .wire-detail p:last-child { margin-bottom: 0; }
+    .detail-metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin-top: 10px; }
+    .detail-metric { padding: 7px 8px; background: var(--deep); border: 1px solid var(--line); }
+    .detail-metric span { display: block; color: var(--muted); font-size: 8px; }
+    .detail-metric strong { display: block; margin-top: 3px; color: var(--orange-soft); font: 500 11px/1.4 Consolas, monospace; }
+    .wire-footer { min-height: 31px; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 5px 12px; border-top: 1px solid var(--line); }
+    .channel-code { color: var(--muted); font: 8px/1.5 Consolas, monospace; letter-spacing: .6px; }
+    .read-toggle { padding: 3px 0 3px 8px; color: var(--muted); background: transparent; border: 0; font-size: 9px; }
+    .read-toggle:hover { color: var(--orange-soft); text-decoration: underline; text-underline-offset: 3px; }
+    .empty-timeline { display: grid; place-items: center; min-height: 280px; padding: 30px; color: var(--muted); background: var(--panel); border: 1px dashed var(--line); text-align: center; }
+    .empty-timeline svg { width: 45px; height: 45px; margin-bottom: 12px; color: var(--orange); }
+    .empty-timeline h2 { margin: 0 0 6px; color: var(--text); font-size: 17px; }
+    .empty-timeline p { margin: 0 0 16px; font-size: 11px; }
+    .reset-button { height: 34px; padding: 0 14px; color: var(--deep); background: var(--orange); border: 1px solid var(--orange); border-radius: var(--radius-control); font-size: 10px; font-weight: 700; }
+    .reset-button:hover { background: var(--orange-soft); }
+    .monitor-column { min-width: 0; display: grid; align-content: start; gap: 16px; }
+    .monitor-panel { background: var(--panel); border: 1px solid var(--line); border-top: 2px solid var(--orange); }
+    .monitor-head { display: flex; justify-content: space-between; gap: 10px; padding: 12px 13px 0; color: var(--muted); font: 8px/1.5 Consolas, monospace; letter-spacing: 1px; }
+    .signal-dial { display: block; width: 100%; height: 145px; margin-top: 3px; }
+    .signal-reading { margin: -8px 14px 0; text-align: center; }
+    .signal-reading strong { display: block; font: 400 25px/1.1 Consolas, monospace; letter-spacing: -1px; }
+    .signal-reading span { display: block; margin-top: 5px; color: var(--orange); font: 9px/1.5 Consolas, monospace; letter-spacing: 1.2px; }
+    .signal-bars { height: 26px; display: flex; align-items: end; justify-content: center; gap: 4px; margin: 12px 0; }
+    .signal-bars i { width: 19px; height: var(--h); background: var(--orange); opacity: var(--o, 1); }
+    .monitor-metrics { padding: 0 13px 13px; }
+    .monitor-row { display: flex; justify-content: space-between; gap: 12px; padding: 7px 0; border-top: 1px solid var(--line); color: var(--muted); font-size: 9px; }
+    .monitor-row strong { color: var(--text); font: 500 9px/1.5 Consolas, monospace; }
+    .channel-list { display: grid; gap: 0; padding: 8px 13px 12px; }
+    .channel-item { display: grid; grid-template-columns: 42px 1fr auto; gap: 8px; padding: 9px 0; border-bottom: 1px solid var(--line); font-size: 9px; }
+    .channel-item:last-child { border-bottom: 0; }
+    .channel-item span { color: var(--muted); }
+    .channel-item strong { font: 500 9px/1.5 Consolas, monospace; }
+    .channel-item i { color: var(--green); font-style: normal; font-size: 8px; }
+    .channel-item.active i { color: var(--orange); }
+    .shift-card { padding: 13px; }
+    .shift-card h2 { margin: 0 0 10px; color: var(--muted); font: 9px/1.5 Consolas, monospace; letter-spacing: 1px; }
+    .shift-time { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+    .shift-time strong { font: 400 21px/1.2 Consolas, monospace; }
+    .shift-time span { color: var(--muted); font-size: 9px; }
+    .shift-card p { margin: 8px 0 0; color: var(--muted); font-size: 9px; }
+    .toast { position: fixed; right: 24px; bottom: 24px; z-index: 20; max-width: calc(100vw - 48px); padding: 11px 15px; color: var(--deep); background: var(--orange-soft); border: 1px solid var(--deep); box-shadow: 4px 4px 0 var(--orange); font-size: 11px; opacity: 0; transform: translateY(8px); pointer-events: none; transition: opacity 180ms ease, transform 180ms ease; }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    @media (max-width: 1100px) {
+      .console-grid { grid-template-columns: 56px minmax(0, 1fr); gap: 16px; padding-inline: 18px; }
+      .monitor-column { display: none; }
+      .rail-title, .type-label, .operator-card { display: none; }
+      .rail-section { padding-top: 10px; }
+      .type-button { justify-content: center; padding: 0; }
+      .type-count { position: absolute; top: 0; right: -1px; font-size: 7px; }
+      .top-frequency { display: none; }
+    }
+    @media (max-width: 700px) {
+      .topline { padding-inline: 14px; }
+      .on-duty { font-size: 8px; }
+      .console-grid { padding: 18px 12px; gap: 12px; }
+      h1 { font-size: 24px; }
+      .unread-summary span { display: none; }
+      .timeline-controls { gap: 6px; }
+      .view-button { padding-inline: 8px; }
+      .wire-row { grid-template-columns: 40px minmax(0, 1fr); gap: 8px; }
+      .wire-preview { white-space: normal; }
+      .detail-metrics { grid-template-columns: 1fr; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="console">
+    <header class="topline">
+      <div class="brand"><svg class="brand-icon" viewBox="0 0 34 34" fill="none" aria-hidden="true"><circle cx="17" cy="17" r="3" fill="currentColor"/><path d="M10 10a10 10 0 0 0 0 14m14-14a10 10 0 0 1 0 14M6 6a16 16 0 0 0 0 22m22-22a16 16 0 0 1 0 22" stroke="currentColor" stroke-width="1.4"/></svg><span><strong class="brand-name">RADIO WIRE</strong><span class="brand-cn">临港电台 · 电讯中心</span></span></div>
+      <div class="top-frequency"><span>RX / MAIN</span><div class="mini-wave" aria-hidden="true"><i style="--h:5px"></i><i style="--h:12px"></i><i style="--h:8px"></i><i style="--h:17px"></i><i style="--h:10px"></i><i style="--h:14px"></i><i style="--h:6px"></i></div><strong>147.825 MHz</strong></div>
+      <div class="on-duty"><span class="rx-light"></span>值守在线 · 20 AUG 2025</div>
+    </header>
+
+    <main class="console-grid">
+      <aside class="rail-column" aria-label="电讯类型筛选">
+        <section class="rail-section"><h2 class="rail-title">LINE SELECT / 线路</h2><nav class="type-nav" id="type-nav">
+          <button class="type-button" type="button" data-type="all" aria-pressed="true" title="全部线路"><span class="type-glyph">全</span><span class="type-label">全部线路</span><b class="type-count" data-type-count="all">7</b></button>
+          <button class="type-button" type="button" data-type="dispatch" aria-pressed="false" title="调度"><span class="type-glyph">调</span><span class="type-label">调度</span><b class="type-count" data-type-count="dispatch">1</b></button>
+          <button class="type-button" type="button" data-type="device" aria-pressed="false" title="设备"><span class="type-glyph">台</span><span class="type-label">设备</span><b class="type-count" data-type-count="device">1</b></button>
+          <button class="type-button" type="button" data-type="weather" aria-pressed="false" title="气象"><span class="type-glyph">象</span><span class="type-label">气象</span><b class="type-count" data-type-count="weather">1</b></button>
+          <button class="type-button" type="button" data-type="collab" aria-pressed="false" title="协同"><span class="type-glyph">协</span><span class="type-label">协同</span><b class="type-count" data-type-count="collab">1</b></button>
+          <button class="type-button" type="button" data-type="security" aria-pressed="false" title="安全"><span class="type-glyph">钥</span><span class="type-label">安全</span><b class="type-count" data-type-count="security">1</b></button>
+          <button class="type-button" type="button" data-type="message" aria-pressed="false" title="口信"><span class="type-glyph">信</span><span class="type-label">口信</span><b class="type-count" data-type-count="message">1</b></button>
+          <button class="type-button" type="button" data-type="system" aria-pressed="false" title="系统"><span class="type-glyph">系</span><span class="type-label">系统</span><b class="type-count" data-type-count="system">1</b></button>
+        </nav></section>
+        <section class="operator-card"><span class="operator-code">DUTY DESK / 01</span><h2 class="operator-name">林澈</h2><span class="operator-shift">中央台值机员 · 早班</span><div class="operator-meta"><span>07:00—15:00</span><span>OP-07</span></div></section>
+      </aside>
+
+      <section class="timeline-panel" aria-labelledby="page-title">
+        <div class="timeline-head"><div><p class="eyebrow">SIGNAL LOG / 08—20</p><h1 id="page-title">电讯时间线</h1></div><div class="unread-summary" aria-live="polite"><strong id="unread-total">4</strong><span>条未读电讯</span></div></div>
+        <div class="timeline-controls">
+          <div class="view-switch" role="group" aria-label="已读状态过滤"><button class="view-button" type="button" data-view="all" aria-pressed="true">全部电讯</button><button class="view-button" type="button" data-view="unread" aria-pressed="false">只看未读</button></div>
+          <button class="mark-all" id="mark-all" type="button"><svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="m2 8 3 3L10 6m-3 5 2 2 5-6" stroke="currentColor" stroke-width="1.4"/></svg>全部标已读</button>
+        </div>
+        <div class="timeline-scroll" id="timeline-scroll"></div>
+      </section>
+
+      <aside class="monitor-column" aria-label="线路监测">
+        <section class="monitor-panel">
+          <div class="monitor-head"><span>LINE MONITOR</span><span>CH-01 / RX</span></div>
+          <svg class="signal-dial" viewBox="0 0 210 150" fill="none" aria-label="主线路信号强度良好">
+            <path d="M35 122a75 75 0 0 1 140 0" stroke="#3A3D35" stroke-width="9" stroke-linecap="round"/>
+            <path d="M35 122a75 75 0 0 1 112-66" stroke="#F07A3C" stroke-width="9" stroke-linecap="round"/>
+            <g stroke="#A39E8E" stroke-width="1">
+              <path d="M35 122l9-3M42 92l9 4M61 66l7 8M88 51l3 10M119 48l-2 10M148 62l-7 8M166 88l-10 4M174 119l-10-2"/>
+            </g>
+            <path d="M105 116l39-48" stroke="#F2E9D8" stroke-width="1.5"/>
+            <circle cx="105" cy="116" r="7" fill="#121413" stroke="#F07A3C" stroke-width="2"/>
+            <circle cx="105" cy="116" r="2" fill="#F2E9D8"/>
+            <path d="M25 133h160" stroke="#3A3D35"/>
+            <text x="28" y="143" fill="#A39E8E" font-size="8" font-family="Consolas, monospace">-120</text>
+            <text x="168" y="143" fill="#A39E8E" font-size="8" font-family="Consolas, monospace">-40 dBm</text>
+          </svg>
+          <div class="signal-reading"><strong>-67 dBm</strong><span>SIGNAL / 优</span></div>
+          <div class="signal-bars" aria-hidden="true"><i style="--h:7px"></i><i style="--h:11px"></i><i style="--h:16px"></i><i style="--h:21px"></i><i style="--h:26px;--o:.25"></i></div>
+          <div class="monitor-metrics"><div class="monitor-row"><span>噪声底</span><strong>-112 dBm</strong></div><div class="monitor-row"><span>往返延迟</span><strong>42 ms</strong></div><div class="monitor-row"><span>实时丢包</span><strong>0.8 %</strong></div></div>
+        </section>
+        <section class="monitor-panel"><div class="monitor-head"><span>RECEIVE CHANNELS</span><span>03 ACTIVE</span></div><div class="channel-list"><div class="channel-item active"><strong>CH-01</strong><span>中央值守</span><i>接收中</i></div><div class="channel-item"><strong>CH-02</strong><span>港务调度</span><i>待命</i></div><div class="channel-item"><strong>CH-04</strong><span>气象浮标</span><i>待命</i></div></div></section>
+        <section class="monitor-panel shift-card"><h2>NEXT HANDOVER</h2><div class="shift-time"><strong>22:00</strong><span>林澈 → 赵屿</span></div><p>夜航前检查 CH-02 与备用密钥。</p></section>
+      </aside>
+    </main>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    const wires = [
+      { id:'n1', type:'device', label:'设备', group:'今天 · 8月20日', time:'09:42', source:'R-07 / 西侧中继站', channel:'CH-01 · AUTO LOG', title:'西侧中继站信号恢复', preview:'R-07 已完成自动重连，丢包率回落至 0.8%。', detail:['09:36 远程复位完成，09:41 主备链路握手成功。系统自动切回主线路，期间缓存的 6 条电文均已补收，无需人工重发。'], metrics:[['当前信号','-67 dBm'],['补收电文','6 条'],['链路丢包','0.8 %']], read:false },
+      { id:'n2', type:'dispatch', label:'调度', group:'今天 · 8月20日', time:'09:18', source:'DISPATCH / 港务调度台', channel:'CH-02 · HANDOVER', title:'夜航频段交接已确认', preview:'22:00 后夜航调度切换至 CH-02，林澈与赵屿已完成双向确认。', detail:['交接双方：林澈 → 赵屿。22:00 起夜航调度使用 CH-02，CH-01 继续保留中央值守。','交接口令已核验，备用线路 CH-03 保持静默监听。'], metrics:[['交接时间','22:00'],['主用线路','CH-02'],['备用线路','CH-03']], read:false },
+      { id:'n3', type:'weather', label:'气象', group:'今天 · 8月20日', time:'08:55', source:'N-12 / 北侧气象浮标', channel:'CH-04 · WEATHER', title:'海面阵风预警升至黄色', preview:'北向阵风 14.2 m/s，预计未来三小时影响外侧锚地。', detail:['N-12 浮标在 08:50 测得瞬时阵风 14.2 m/s，风向 NNE。外侧锚地与小船作业需注意，预警预计于 12:00 后复评。'], metrics:[['瞬时阵风','14.2 m/s'],['风向','NNE'],['复评时间','12:00']], read:false },
+      { id:'n4', type:'collab', label:'协同', group:'今天 · 8月20日', time:'08:31', source:'XU YAO / 频率表协作', channel:'DOC-18 · MENTION', title:'许遥在《晨间频率表》中提及你', preview:'“请中央台复核 06:00 的 CH-04 占用记录，再签发午间版本。”', detail:['许遥：请中央台复核 06:00 的 CH-04 占用记录，再签发午间版本。气象浮标在同一时段有一次临时校准，已附在备注栏。','文档位置：晨间频率表 / 第 18 行。'], metrics:[['文档行号','18'],['待复核','1 项'],['签发时限','11:30']], read:true },
+      { id:'n5', type:'security', label:'安全', group:'今天 · 8月20日', time:'07:50', source:'KEY SERVICE / 密钥服务', channel:'SYS-KEY · AUDIT', title:'备用密钥轮换完成', preview:'备用通讯密钥已按周期轮换，旧密钥封存，审计记录完整。', detail:['本次轮换仅覆盖备用线路，主线路通讯未中断。旧密钥已封存，新密钥指纹尾号为 7C·42，无需值机员手动操作。'], metrics:[['轮换结果','成功'],['指纹尾号','7C·42'],['审计记录','完整']], read:true },
+      { id:'n6', type:'message', label:'口信', group:'昨天 · 8月19日', time:'23:16', source:'HARBOR 02 / 港务二台', channel:'CH-02 · MESSAGE', title:'港务台转来一条靠泊口信', preview:'“海岚号预计 06:40 抵港，请预留三号码头东侧交接位。”', detail:['港务二台留言：海岚号预计今日 06:40 抵港，请预留三号码头东侧交接位。船上仅有两名随行人员，无需另备车辆。','口信由自动转写生成，值机员赵屿已核对船名与抵达时间。'], metrics:[['预计抵港','06:40'],['交接位置','3 号码头东'],['随行人员','2 人']], read:false },
+      { id:'n7', type:'system', label:'系统', group:'昨天 · 8月19日', time:'22:40', source:'ARCHIVE / 夜间归档', channel:'SYS-ARC · REPORT', title:'夜间归档完成，126 条电文已入库', preview:'昨日 126 条电文完成校验与归档，未发现缺号或重复记录。', detail:['归档范围：8 月 19 日 00:00—23:59。126 条电文均已通过序号和校验和检查，未检出缺号、重复或无法识别的记录。'], metrics:[['归档电文','126 条'],['缺号记录','0 条'],['校验结果','通过']], read:true }
+    ];
+    const expanded = new Set();
+    let currentType = 'all';
+    let currentView = 'all';
+    let toastTimer;
+    const byId = id => document.getElementById(id);
+    const groups = ['今天 · 8月20日', '昨天 · 8月19日'];
+    function showToast(message) {
+      byId('toast').textContent = message;
+      byId('toast').classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => byId('toast').classList.remove('show'), 2500);
+    }
+    function filteredWires() {
+      return wires.filter(wire => (currentType === 'all' || wire.type === currentType) && (currentView === 'all' || !wire.read));
+    }
+    function wireMarkup(wire) {
+      const isOpen = expanded.has(wire.id);
+      return `<div class="wire-row ${wire.read ? 'read' : 'unread'}">
+        <time class="wire-time">${wire.time}</time><div class="wire-track"><article class="wire-card type-${wire.type}">
+          <button class="wire-expand" type="button" data-expand="${wire.id}" aria-expanded="${isOpen}" aria-controls="detail-${wire.id}">
+            <span class="wire-meta"><span class="type-badge">${wire.label}</span><span class="wire-source">${wire.source}</span>${wire.read ? '' : '<span class="unread-label">未读</span>'}</span>
+            <strong class="wire-title">${wire.title}</strong><span class="wire-preview">${wire.preview}</span><span class="expand-label">${isOpen ? '收起电文' : '展开电文'}<svg viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="m3 4.5 3 3 3-3" stroke="currentColor"/></svg></span>
+          </button>
+          <div class="wire-detail" id="detail-${wire.id}" ${isOpen ? '' : 'hidden'}>${wire.detail.map(text => `<p>${text}</p>`).join('')}<div class="detail-metrics">${wire.metrics.map(metric => `<div class="detail-metric"><span>${metric[0]}</span><strong>${metric[1]}</strong></div>`).join('')}</div></div>
+          <footer class="wire-footer"><span class="channel-code">${wire.channel}</span><button class="read-toggle" type="button" data-read="${wire.id}" aria-label="将“${wire.title}”标为${wire.read ? '未读' : '已读'}">${wire.read ? '标为未读' : '标为已读'}</button></footer>
+        </article></div>
+      </div>`;
+    }
+    function updateSummary() {
+      const unread = wires.filter(wire => !wire.read).length;
+      byId('unread-total').textContent = unread;
+      byId('mark-all').disabled = unread === 0;
+      byId('mark-all').title = unread === 0 ? '所有电讯均已读' : `将 ${unread} 条未读电讯标为已读`;
+      document.querySelectorAll('[data-type-count]').forEach(badge => {
+        const type = badge.dataset.typeCount;
+        badge.textContent = type === 'all' ? wires.length : wires.filter(wire => wire.type === type).length;
+      });
+    }
+    function renderTimeline() {
+      updateSummary();
+      const visible = filteredWires();
+      if (!visible.length) {
+        byId('timeline-scroll').innerHTML = '<div class="empty-timeline"><svg viewBox="0 0 48 48" fill="none" aria-hidden="true"><path d="M9 24a15 15 0 0 1 30 0M15 24a9 9 0 0 1 18 0M21 24a3 3 0 0 1 6 0M24 27v13" stroke="currentColor" stroke-width="1.4"/><path d="m19 36 5 5 5-5" stroke="currentColor" stroke-width="1.4"/></svg><h2>当前线路很安静</h2><p>此筛选下没有电讯。查看全部线路，或恢复显示已读内容。</p><button class="reset-button" id="reset-timeline" type="button">查看全部电讯</button></div>';
+        byId('reset-timeline').addEventListener('click', resetFilters);
+        return;
+      }
+      byId('timeline-scroll').innerHTML = groups.map(group => {
+        const items = visible.filter(wire => wire.group === group);
+        return items.length ? `<section aria-label="${group}"><h2 class="date-group">${group} · ${items.length} 条</h2>${items.map(wireMarkup).join('')}</section>` : '';
+      }).join('');
+      byId('timeline-scroll').querySelectorAll('[data-expand]').forEach(button => button.addEventListener('click', () => {
+        const id = button.dataset.expand;
+        if (expanded.has(id)) expanded.delete(id); else expanded.add(id);
+        const isOpen = expanded.has(id);
+        button.setAttribute('aria-expanded', String(isOpen));
+        button.querySelector('.expand-label').firstChild.textContent = isOpen ? '收起电文' : '展开电文';
+        byId(`detail-${id}`).hidden = !isOpen;
+      }));
+      byId('timeline-scroll').querySelectorAll('[data-read]').forEach(button => button.addEventListener('click', () => {
+        const wire = wires.find(item => item.id === button.dataset.read);
+        wire.read = !wire.read;
+        renderTimeline();
+        showToast(wire.read ? '电讯已标为已读' : '电讯已恢复为未读');
+      }));
+    }
+    function resetFilters() {
+      currentType = 'all';
+      currentView = 'all';
+      document.querySelectorAll('[data-type]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.type === 'all')));
+      document.querySelectorAll('[data-view]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.view === 'all')));
+      renderTimeline();
+    }
+    document.querySelectorAll('[data-type]').forEach(button => button.addEventListener('click', () => {
+      currentType = button.dataset.type;
+      document.querySelectorAll('[data-type]').forEach(item => item.setAttribute('aria-pressed', String(item === button)));
+      renderTimeline();
+    }));
+    document.querySelectorAll('[data-view]').forEach(button => button.addEventListener('click', () => {
+      currentView = button.dataset.view;
+      document.querySelectorAll('[data-view]').forEach(item => item.setAttribute('aria-pressed', String(item === button)));
+      renderTimeline();
+    }));
+    byId('mark-all').addEventListener('click', () => {
+      const count = wires.filter(wire => !wire.read).length;
+      if (!count) return;
+      wires.forEach(wire => { wire.read = true; });
+      renderTimeline();
+      showToast(`${count} 条电讯已全部标为已读`);
+    });
+    renderTimeline();
+  </script>
+</body>
+</html>

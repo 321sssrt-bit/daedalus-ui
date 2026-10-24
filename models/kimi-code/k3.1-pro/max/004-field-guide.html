@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>野册 Field Guide｜新手观察引导</title>
+  <style>
+    :root {
+      --moss: #354B38;
+      --moss-dark: #233529;
+      --sage: #D8DDC5;
+      --paper: #F7F0DE;
+      --paper-deep: #EFE4CC;
+      --cream: #FFF9EA;
+      --ochre: #B86F3E;
+      --ink: #29372C;
+      --muted: #6F7768;
+      --line: #C8C5A9;
+      --lichen: #899777;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background-color: var(--sage);
+      background-image:
+        radial-gradient(circle at 15px 19px, rgba(53, 75, 56, .055) 0 1px, transparent 1.3px),
+        radial-gradient(circle at 61px 47px, rgba(255, 249, 234, .28) 0 1px, transparent 1.4px);
+      background-size: 83px 79px, 109px 103px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+    button, input { font: inherit; }
+    button { cursor: pointer; }
+    button:focus-visible, [tabindex]:focus-visible { outline: 3px solid var(--ochre); outline-offset: 3px; }
+    [hidden] { display: none !important; }
+    .field-shell {
+      width: min(1220px, calc(100% - 48px));
+      min-height: 100vh;
+      min-height: 100svh;
+      margin: 0 auto;
+      padding: 20px 0 16px;
+      display: flex;
+      flex-direction: column;
+    }
+    .guide-header { min-height: 55px; padding-bottom: 13px; display: flex; align-items: center; justify-content: space-between; gap: 22px; border-bottom: 1px solid #AEB89F; }
+    .brand { display: flex; align-items: center; gap: 11px; }
+    .brand svg { width: 38px; height: 38px; color: var(--moss); }
+    .brand-name { font-family: "Songti SC", "STSong", "SimSun", serif; font-size: 22px; font-weight: 700; letter-spacing: .14em; }
+    .brand-en { margin-top: 2px; color: #64715E; font: 8px/1.3 Consolas, "SFMono-Regular", monospace; letter-spacing: .2em; }
+    .header-center { color: #64715E; font: 9px/1.4 Consolas, "SFMono-Regular", monospace; letter-spacing: .16em; }
+    .skip-button { min-height: 33px; padding: 0 13px; color: var(--moss); background: rgba(247, 240, 222, .35); border: 1px solid #899777; border-radius: 2px; font-size: 11px; transition: color .18s ease, background .18s ease; }
+    .skip-button:hover { color: var(--cream); background: var(--moss); }
+    .trail { position: relative; flex: 0 0 148px; height: 148px; }
+    .trail-map { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+    .trail-stop {
+      position: absolute;
+      left: var(--x);
+      top: var(--y);
+      width: 176px;
+      min-height: 65px;
+      padding: 9px 11px;
+      display: grid;
+      grid-template-columns: 31px 1fr;
+      align-items: center;
+      gap: 10px;
+      color: var(--ink);
+      text-align: left;
+      background: var(--paper);
+      border: 1px solid #9DA78F;
+      border-radius: 3px;
+      box-shadow: 3px 3px 0 rgba(53, 75, 56, .12);
+      transform: translate(-50%, -50%);
+      transition: color .2s ease, background .2s ease, border-color .2s ease, box-shadow .2s ease, transform .2s ease;
+    }
+    .trail-stop:hover { border-color: var(--moss); box-shadow: 4px 4px 0 rgba(53, 75, 56, .2); }
+    .trail-stop.is-active { color: var(--cream); background: var(--moss); border-color: var(--moss-dark); box-shadow: 4px 4px 0 var(--ochre); transform: translate(-50%, -50%) translateY(-4px); }
+    .trail-stop.is-done { color: var(--moss); background: #E9E9D4; border-color: #718367; }
+    .step-index { width: 30px; height: 30px; display: grid; place-items: center; border: 1px solid currentColor; border-radius: 50%; font: 10px/1 Consolas, monospace; opacity: .86; }
+    .trail-stop.is-active .step-index { color: var(--ochre); background: var(--cream); border-color: var(--cream); opacity: 1; }
+    .step-label { display: block; font-family: "Songti SC", "STSong", "SimSun", serif; font-size: 14px; font-weight: 700; }
+    .step-sub { display: block; margin-top: 4px; color: var(--muted); font-size: 9px; }
+    .trail-stop.is-active .step-sub { color: #D8DFD1; }
+    .notebook {
+      position: relative;
+      flex: 1 0 auto;
+      min-height: 402px;
+      background: var(--paper);
+      border: 1px solid #ACAF97;
+      box-shadow: 7px 7px 0 rgba(53, 75, 56, .12);
+      overflow: hidden;
+    }
+    .notebook::before { content: ""; position: absolute; z-index: 4; top: 0; bottom: 0; left: 46%; width: 17px; transform: translateX(-50%); background: linear-gradient(90deg, transparent, rgba(75, 67, 45, .09), transparent); pointer-events: none; }
+    .step-panel, .ready-view { min-height: 402px; display: grid; grid-template-columns: 46% 54%; }
+    .step-copy { padding: 34px 42px 29px; display: flex; flex-direction: column; min-width: 0; }
+    .step-panel:not([hidden]) .step-copy { animation: write-in .32s ease-out; }
+    .step-panel:not([hidden]) .step-visual { animation: plate-in .4s ease-out; }
+    .step-eyebrow { color: var(--ochre); font: 9px/1.5 Consolas, "Microsoft YaHei", monospace; letter-spacing: .16em; }
+    .step-copy h2 { max-width: 420px; margin: 13px 0 13px; font-family: "Songti SC", "STSong", "SimSun", serif; font-size: clamp(29px, 2.8vw, 38px); line-height: 1.35; font-weight: 700; letter-spacing: -.02em; }
+    .step-description { max-width: 420px; margin: 0; color: var(--muted); font-size: 12px; line-height: 1.9; }
+    .field-note { margin-top: 20px; padding: 12px 0; display: flex; align-items: flex-start; gap: 10px; color: #4F5D4B; border-top: 1px dashed #B7B398; border-bottom: 1px dashed #B7B398; font-size: 11px; line-height: 1.7; }
+    .field-note svg { flex: 0 0 auto; width: 21px; height: 21px; color: var(--ochre); }
+    .field-note strong { color: var(--moss); font-weight: 700; }
+    .step-meta { margin-top: auto; padding-top: 18px; display: flex; align-items: center; justify-content: space-between; gap: 16px; color: #777C68; font: 9px/1.5 Consolas, "Microsoft YaHei", monospace; }
+    .step-meta span:first-child { display: inline-flex; align-items: center; gap: 6px; }
+    .step-meta i { width: 5px; height: 5px; background: var(--ochre); border-radius: 50%; }
+    .step-visual { position: relative; min-width: 0; min-height: 360px; padding: 24px; display: grid; place-items: center; overflow: hidden; background: #E5E7D2; border-left: 1px solid rgba(117, 123, 94, .18); }
+    .step-visual::after { content: ""; position: absolute; inset: 10px; border: 1px solid rgba(53, 75, 56, .1); pointer-events: none; }
+    .plate-label { position: absolute; z-index: 2; top: 20px; left: 24px; color: #66745E; font: 8px/1.4 Consolas, monospace; letter-spacing: .15em; }
+    .plate-number { position: absolute; right: 23px; bottom: 14px; color: rgba(53, 75, 56, .14); font: 74px/.9 Georgia, serif; }
+    .nature-plate { width: 100%; height: 100%; max-height: 410px; position: relative; z-index: 1; }
+    .controls { min-height: 51px; margin-top: 13px; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 20px; }
+    .nav-button { min-height: 43px; padding: 0 16px; display: inline-flex; align-items: center; justify-content: space-between; gap: 18px; border-radius: 2px; font-size: 11px; font-weight: 650; transition: color .18s ease, background .18s ease, transform .18s ease, box-shadow .18s ease; }
+    .prev-button { width: 132px; justify-self: start; color: var(--moss); background: transparent; border: 1px solid #899777; }
+    .prev-button:hover:not(:disabled) { background: rgba(247, 240, 222, .5); border-color: var(--moss); }
+    .prev-button:disabled { color: #89917F; border-color: #ADB39E; opacity: .55; cursor: not-allowed; }
+    .next-button { width: 176px; justify-self: end; color: var(--cream); background: var(--moss); border: 1px solid var(--moss-dark); box-shadow: 3px 3px 0 var(--ochre); }
+    .next-button:hover { background: #456047; transform: translateY(-1px); box-shadow: 4px 4px 0 var(--ochre); }
+    .next-button:active { transform: translate(1px, 1px); box-shadow: 1px 1px 0 var(--ochre); }
+    .progress-wrap { text-align: center; color: #5E6B58; }
+    .progress-text { font: 9px/1.4 Consolas, "Microsoft YaHei", monospace; letter-spacing: .1em; }
+    .progress-dots { margin-top: 7px; display: flex; justify-content: center; gap: 7px; }
+    .progress-dot { width: 15px; height: 3px; background: #AAB29B; transition: background .2s ease, width .2s ease; }
+    .progress-dot.is-active { width: 25px; background: var(--ochre); }
+    .progress-dot.is-done { background: var(--moss); }
+    .ready-view:not([hidden]) .ready-copy { animation: write-in .32s ease-out; }
+    .ready-copy { padding: 37px 42px 31px; display: flex; flex-direction: column; justify-content: center; }
+    .ready-emblem { width: 62px; height: 62px; margin-bottom: 17px; color: var(--moss); }
+    .ready-copy h2 { margin: 12px 0; font-family: "Songti SC", "STSong", "SimSun", serif; font-size: 35px; line-height: 1.4; }
+    .ready-copy > p { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.9; }
+    .ready-list { margin: 20px 0; padding: 12px 0; display: flex; gap: 23px; border-top: 1px dashed #B7B398; border-bottom: 1px dashed #B7B398; }
+    .ready-list strong { display: block; color: var(--moss); font: 21px/1.2 Georgia, serif; }
+    .ready-list span { display: block; margin-top: 4px; color: var(--muted); font-size: 9px; }
+    .restart-button { align-self: flex-start; min-height: 40px; padding: 0 15px; color: var(--moss); background: transparent; border: 1px solid #899777; border-radius: 2px; font-size: 11px; }
+    .restart-button:hover { color: var(--cream); background: var(--moss); }
+    .ready-visual { position: relative; padding: 30px; display: grid; place-items: center; background: #E5E7D2; overflow: hidden; }
+    .ready-visual svg { position: absolute; inset: 0; width: 100%; height: 100%; opacity: .6; }
+    .blank-observation { position: relative; z-index: 2; width: min(330px, 88%); padding: 24px 25px; background: var(--cream); border: 1px solid #B9B497; box-shadow: 6px 6px 0 rgba(53, 75, 56, .15); transform: rotate(-2deg); }
+    .blank-card-head { display: flex; justify-content: space-between; gap: 14px; padding-bottom: 11px; border-bottom: 1px solid var(--moss); color: var(--moss); font-size: 10px; letter-spacing: .1em; }
+    .blank-observation h3 { margin: 20px 0 7px; font-family: "Songti SC", "STSong", "SimSun", serif; font-size: 24px; }
+    .blank-observation p { margin: 0; color: var(--muted); font-size: 11px; line-height: 1.7; }
+    .blank-lines { margin-top: 22px; }
+    .blank-lines i { display: block; height: 22px; border-bottom: 1px solid #D3CCB5; }
+    .blank-card-foot { margin-top: 15px; display: flex; justify-content: space-between; color: var(--ochre); font: 9px/1.4 Consolas, "Microsoft YaHei", monospace; }
+    @keyframes write-in { from { opacity: 0; transform: translateY(7px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes plate-in { from { opacity: .45; } to { opacity: 1; } }
+    @media (max-width: 1000px) {
+      .field-shell { width: calc(100% - 36px); }
+      .trail-stop { width: 146px; padding-inline: 9px; grid-template-columns: 28px 1fr; gap: 7px; }
+      .step-index { width: 27px; height: 27px; }
+      .step-label { font-size: 12px; }
+      .step-copy, .ready-copy { padding-inline: 28px; }
+      .step-copy h2 { font-size: 31px; }
+      .step-visual { padding: 18px; }
+    }
+    @media (max-width: 800px) {
+      .header-center { display: none; }
+      .trail-stop { width: 132px; }
+      .step-sub { font-size: 8px; }
+      .step-copy, .ready-copy { padding: 27px 23px; }
+      .step-copy h2 { font-size: 28px; }
+      .step-description { font-size: 11px; }
+      .field-note { font-size: 10px; }
+      .step-meta { align-items: flex-start; flex-direction: column; gap: 5px; }
+    }
+    @media (max-width: 700px) {
+      .field-shell { width: calc(100% - 30px); padding-top: 15px; }
+      .trail { flex: none; height: auto; padding: 16px 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+      .trail-map { display: none; }
+      .trail-stop { position: static; width: auto; min-height: 64px; transform: none; grid-template-columns: 1fr; gap: 4px; text-align: center; }
+      .trail-stop.is-active { transform: translateY(-3px); }
+      .step-index { margin: 0 auto; }
+      .step-sub { display: none; }
+      .notebook::before { display: none; }
+      .step-panel, .ready-view { grid-template-columns: 1fr; }
+      .step-copy { padding: 29px 27px; }
+      .step-copy h2 { max-width: 520px; font-size: 32px; }
+      .step-description { max-width: 540px; font-size: 12px; }
+      .step-meta { flex-direction: row; }
+      .step-visual { min-height: 330px; border-left: 0; border-top: 1px solid rgba(117, 123, 94, .18); }
+      .nature-plate { max-height: 330px; }
+      .ready-visual { min-height: 390px; }
+    }
+    @media (max-width: 480px) {
+      .brand-en { display: none; }
+      .trail { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .trail-stop { grid-template-columns: 28px 1fr; text-align: left; }
+      .step-index { margin: 0; }
+      .controls { grid-template-columns: 1fr 1fr; gap: 12px; }
+      .progress-wrap { grid-column: 1 / -1; grid-row: 1; }
+      .prev-button, .next-button { grid-row: 2; width: 100%; }
+      .ready-copy h2 { font-size: 30px; }
+      .ready-list { gap: 17px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="field-shell">
+    <header class="guide-header">
+      <div class="brand">
+        <svg viewBox="0 0 42 42" fill="none" aria-hidden="true"><path d="M8 35C5 19 14 7 34 6c1 19-8 30-24 29" stroke="currentColor" stroke-width="1.5"/><path d="M9 35C15 25 21 19 31 11M15 28l-1-10M21 21l10 1" stroke="currentColor" stroke-width="1.4"/><path d="M5 37h32" stroke="currentColor"/></svg>
+        <div><div class="brand-name">野册</div><div class="brand-en">FIELD GUIDE / LOCAL NATURE NOTES</div></div>
+      </div>
+      <div class="header-center" id="header-state">FIRST WALK · 四个观察片刻</div>
+      <button class="skip-button" id="skip-guide" type="button">跳过引导，直接使用</button>
+    </header>
+
+    <nav class="trail" id="trail" aria-label="新手引导步骤">
+      <svg class="trail-map" viewBox="0 0 1220 150" preserveAspectRatio="none" fill="none" aria-hidden="true">
+        <path d="M75 103C190 103 249 38 401 42s257 66 393 59 231-72 352-62" stroke="#F7F0DE" stroke-width="5"/>
+        <path d="M75 103C190 103 249 38 401 42s257 66 393 59 231-72 352-62" stroke="#8C987E" stroke-width="1.3" stroke-dasharray="4 7"/>
+        <path d="M41 117c25-12 42-11 60-6M1089 66c28-14 52-14 81-8" stroke="#B86F3E" stroke-width="1" opacity=".55"/>
+        <g fill="#899777"><circle cx="48" cy="91" r="2"/><circle cx="228" cy="113" r="2"/><circle cx="615" cy="35" r="2"/><circle cx="974" cy="117" r="2"/><circle cx="1171" cy="75" r="2"/></g>
+        <g stroke="#899777" stroke-width="1"><path d="M20 80c7-8 13-8 20 0-7 8-13 8-20 0ZM1180 106c7-8 13-8 20 0-7 8-13 8-20 0Z"/></g>
+      </svg>
+      <button class="trail-stop is-active" style="--x:7%;--y:103px" data-step="0" aria-current="step"><span class="step-index">01</span><span><span class="step-label">停下来观察</span><span class="step-sub">先看见，再辨认</span></span></button>
+      <button class="trail-stop" style="--x:36%;--y:42px" data-step="1"><span class="step-index">02</span><span><span class="step-label">收好位置</span><span class="step-sub">坐标由你决定</span></span></button>
+      <button class="trail-stop" style="--x:65%;--y:101px" data-step="2"><span class="step-index">03</span><span><span class="step-label">与同行者分享</span><span class="step-sub">可见范围随时改</span></span></button>
+      <button class="trail-stop" style="--x:93%;--y:40px" data-step="3"><span class="step-index">04</span><span><span class="step-label">带野册出发</span><span class="step-sub">从附近开始记录</span></span></button>
+    </nav>
+
+    <main class="notebook" id="notebook">
+      <section class="step-panel" id="step-panel-0" aria-labelledby="step-title-0">
+        <div class="step-copy">
+          <div class="step-eyebrow">01 / OBSERVE · 先停下来</div>
+          <h2 id="step-title-0">一片叶子，<br>也值得被记下。</h2>
+          <p class="step-description">野册把文字、照片和声音收进同一条观察记录。不必先知道物种名字，先留下你真正注意到的颜色、质地和变化。</p>
+          <div class="field-note"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 20C3 10 9 3 21 3c0 12-5 18-15 17" stroke="currentColor"/><path d="M5 20c4-6 8-9 14-14" stroke="currentColor"/></svg><span><strong>第一次可以只写三句：</strong>叶缘有细齿；背面比正面浅；风从西南吹来。</span></div>
+          <div class="step-meta"><span><i></i>无需任何物种知识</span><span>约 30 秒 / 观察</span></div>
+        </div>
+        <div class="step-visual">
+          <span class="plate-label">PLATE 01 · LEAF STUDY</span>
+          <svg class="nature-plate" viewBox="0 0 560 390" fill="none" aria-label="叶片观察图">
+            <g stroke="#AEB99D" stroke-width=".7" opacity=".55"><path d="M55 45h450M55 95h450M55 145h450M55 195h450M55 245h450M55 295h450M55 345h450"/><path d="M80 25v340M140 25v340M200 25v340M260 25v340M320 25v340M380 25v340M440 25v340M500 25v340"/></g>
+            <path d="M165 337C224 260 275 179 360 64" stroke="#354B38" stroke-width="4" stroke-linecap="round"/>
+            <path d="M271 195c-73 7-112-38-103-108 70-3 111 30 103 108Z" fill="#7F936E" stroke="#354B38" stroke-width="1.4"/>
+            <path d="M271 195c-23-46-48-72-89-94M240 159l-48 1M225 141l-4-34" stroke="#354B38" stroke-width="1.2"/>
+            <path d="M307 145c5-70 49-101 113-82-3 65-43 101-113 82Z" fill="#A6B38B" stroke="#354B38" stroke-width="1.4"/>
+            <path d="M307 145c36-35 62-52 99-70M343 114l7-36M363 98l37 6" stroke="#354B38" stroke-width="1.2"/>
+            <path d="M224 262c-58 2-89-32-85-84 55-4 89 24 85 84Z" fill="#B86F3E" fill-opacity=".72" stroke="#71472D" stroke-width="1.3"/>
+            <path d="M224 262c-20-35-42-53-73-72M195 228l-37-1" stroke="#71472D" stroke-width="1.1"/>
+            <path d="M345 84c-8-33 7-55 41-61 13 29 2 52-41 61Z" fill="#D2B277" stroke="#71472D"/>
+            <circle cx="270" cy="194" r="56" stroke="#B86F3E" stroke-width="1.4" stroke-dasharray="4 5"/>
+            <circle cx="270" cy="194" r="46" stroke="#B86F3E" stroke-opacity=".45"/>
+            <path d="M313 235l31 32" stroke="#B86F3E" stroke-width="4" stroke-linecap="round"/>
+            <g font-family="Consolas, Microsoft YaHei, monospace" font-size="10">
+              <path d="M174 102 102 67H54" stroke="#6F7768"/><circle cx="174" cy="102" r="3" fill="#B86F3E"/><text x="54" y="56" fill="#354B38">01 / 叶缘</text><text x="54" y="82" fill="#6F7768">细齿，触感略硬</text>
+              <path d="M372 156 439 181h65" stroke="#6F7768"/><circle cx="372" cy="156" r="3" fill="#B86F3E"/><text x="433" y="171" fill="#354B38">02 / 叶脉</text><text x="433" y="197" fill="#6F7768">朝向光源</text>
+            </g>
+            <g transform="translate(56 295)"><rect width="122" height="49" fill="#F7F0DE" stroke="#AEB99D"/><text x="12" y="19" fill="#6F7768" font-family="Consolas, Microsoft YaHei, monospace" font-size="9">FIELD NOTE</text><text x="12" y="37" fill="#354B38" font-family="SimSun, serif" font-size="13">西南风 · 晴</text></g>
+          </svg>
+          <span class="plate-number" aria-hidden="true">01</span>
+        </div>
+      </section>
+
+      <section class="step-panel" id="step-panel-1" aria-labelledby="step-title-1" hidden>
+        <div class="step-copy">
+          <div class="step-eyebrow">02 / LOCATE · 留下坐标</div>
+          <h2 id="step-title-1">把地点收好，<br>把隐私留给自己。</h2>
+          <p class="step-description">记录可以精确到一条小径，也可以只保留一座城市。位置仅在你主动选择时写入，已经保存的精度也能随时修改。</p>
+          <div class="field-note"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 21s7-6 7-12A7 7 0 0 0 5 9c0 6 7 12 7 12Z" stroke="currentColor"/><circle cx="12" cy="9" r="2.5" stroke="currentColor"/></svg><span><strong>默认只显示城市：</strong>陌生访客看到的是“杭州”，而不是你脚下的那块石头。</span></div>
+          <div class="step-meta"><span><i></i>精确位置默认关闭</span><span>约 20 秒 / 隐私</span></div>
+        </div>
+        <div class="step-visual">
+          <span class="plate-label">PLATE 02 · APPROXIMATE MAP</span>
+          <svg class="nature-plate" viewBox="0 0 560 390" fill="none" aria-label="观察位置与隐私范围图">
+            <rect x="46" y="38" width="468" height="310" fill="#EDEBD5" stroke="#9EAA8E"/>
+            <g stroke="#B5BEA4" stroke-width=".7" stroke-dasharray="2 5"><path d="M116 38v310M186 38v310M256 38v310M326 38v310M396 38v310M466 38v310M46 100h468M46 162h468M46 224h468M46 286h468"/></g>
+            <g stroke="#8C9D7C" stroke-width="1.2">
+              <path d="M66 157c37-76 116-86 161-45s15 91 69 93 82-52 139-26 37 87-2 115-110-7-153 20-109 25-150-14-3-89-64-143Z"/>
+              <path d="M85 160c29-58 93-69 133-36s19 77 70 84 84-43 128-19 24 67-9 87-94-10-134 17-88 20-124-11-1-76-64-122Z"/>
+              <path d="M111 162c24-40 68-48 101-25s25 65 73 78 83-33 113-13 12 48-14 60-75-11-111 14-68 16-94-7 4-65-68-107Z"/>
+              <path d="M141 167c22-25 49-29 73-12s29 52 74 70 75-24 92-11 5 29-11 36-62-10-92 10-54 11-73-5 11-52-63-88Z"/>
+            </g>
+            <path d="M61 268c68-29 87-101 151-99 77 2 85 109 156 98 54-8 75-64 128-71" stroke="#7D9B91" stroke-width="6" stroke-opacity=".48"/>
+            <path d="M61 268c68-29 87-101 151-99 77 2 85 109 156 98 54-8 75-64 128-71" stroke="#F7F0DE" stroke-width="1" stroke-dasharray="4 6"/>
+            <circle cx="285" cy="187" r="68" fill="#B86F3E" fill-opacity=".07" stroke="#B86F3E" stroke-dasharray="5 5"/>
+            <circle cx="285" cy="187" r="42" stroke="#B86F3E" stroke-opacity=".35"/>
+            <path d="M285 207s23-20 23-38a23 23 0 0 0-46 0c0 18 23 38 23 38Z" fill="#354B38"/>
+            <circle cx="285" cy="169" r="7" fill="#F7F0DE"/>
+            <g transform="translate(332 65)"><rect width="152" height="66" fill="#FFF9EA" stroke="#899777"/><text x="13" y="20" fill="#6F7768" font-family="Consolas, monospace" font-size="8" letter-spacing="1">LOCATION PRIVACY</text><text x="13" y="42" fill="#354B38" font-family="SimSun, serif" font-size="15">仅显示城市</text><circle cx="131" cy="39" r="10" fill="#D8DDC5"/><path d="m126 39 4 4 7-9" stroke="#354B38"/></g>
+            <g font-family="Consolas, Microsoft YaHei, monospace" font-size="9" fill="#6F7768"><text x="62" y="330">HANGZHOU / APPROX. 5 KM</text><text x="408" y="330">N 30°16′</text></g>
+            <path d="M89 74v28M75 88h28" stroke="#354B38"/><text x="84" y="67" fill="#354B38" font-family="Georgia, serif" font-size="13">N</text>
+          </svg>
+          <span class="plate-number" aria-hidden="true">02</span>
+        </div>
+      </section>
+
+      <section class="step-panel" id="step-panel-2" aria-labelledby="step-title-2" hidden>
+        <div class="step-copy">
+          <div class="step-eyebrow">03 / SHARE · 彼此印证</div>
+          <h2 id="step-title-2">独自观察，<br>也能彼此印证。</h2>
+          <p class="step-description">把笔记留为私密、只与同行者分享，或公开到本地观察径。别人的补充会单独标注，不会悄悄改写你的原始记录。</p>
+          <div class="field-note"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="8" cy="9" r="3" stroke="currentColor"/><circle cx="17" cy="8" r="2.5" stroke="currentColor"/><path d="M2 20c0-4 2-6 6-6s6 2 6 6M14 14c4-1 7 1 8 5" stroke="currentColor"/></svg><span><strong>分享边界由你决定：</strong>私密、同行者、公开三种范围，发布之后仍能调整。</span></div>
+          <div class="step-meta"><span><i></i>原始记录始终保留</span><span>约 25 秒 / 同行</span></div>
+        </div>
+        <div class="step-visual">
+          <span class="plate-label">PLATE 03 · SHARED NOTES</span>
+          <svg class="nature-plate" viewBox="0 0 560 390" fill="none" aria-label="同行者分享观察笔记图">
+            <path d="M111 207C187 117 304 113 433 181M129 252c103 60 217 48 307-23" stroke="#899777" stroke-dasharray="4 6"/>
+            <path d="M63 70c80-45 168-48 244-16s134 32 196-3M59 326c91 28 172 22 243-3s134-27 202-4" stroke="#B4BEA4"/>
+            <g transform="translate(52 105) rotate(-5 80 95)"><rect width="160" height="190" fill="#FFF9EA" stroke="#9DA78F"/><rect x="14" y="15" width="132" height="87" fill="#D8DDC5"/><path d="M77 88c-5-35 11-55 47-60 3 36-13 56-47 60Z" fill="#899777" stroke="#354B38"/><path d="M77 88c10-23 22-36 40-51" stroke="#354B38"/><circle cx="29" cy="122" r="10" fill="#B86F3E"/><text x="46" y="126" fill="#354B38" font-family="SimSun, serif" font-size="12">阿青的观察</text><path d="M16 145h126M16 158h104M16 171h119" stroke="#B8B398"/><text x="16" y="183" fill="#B86F3E" font-family="Consolas, monospace" font-size="7">PRIVATE → FRIENDS</text></g>
+            <g transform="translate(344 75) rotate(6 75 95)"><rect width="150" height="183" fill="#F7F0DE" stroke="#9DA78F"/><rect x="14" y="15" width="122" height="78" fill="#E6D5B8"/><path d="M28 78c20-37 33-32 47-10 14-40 33-42 51 10" fill="#899777"/><circle cx="29" cy="115" r="10" fill="#354B38"/><text x="46" y="119" fill="#354B38" font-family="SimSun, serif" font-size="12">小满的补充</text><path d="M16 139h117M16 152h90" stroke="#B8B398"/><text x="16" y="171" fill="#B86F3E" font-family="Consolas, monospace" font-size="7">ADDED A NOTE</text></g>
+            <g transform="translate(209 211)"><circle cx="70" cy="52" r="49" fill="#354B38"/><circle cx="70" cy="52" r="42" stroke="#F7F0DE" stroke-dasharray="2 4"/><path d="M70 24v22M58 35h24M51 60c5 12 12 18 19 18s14-6 19-18M58 60l-7-2M82 60l7-2" stroke="#FFF9EA" stroke-width="1.6"/><circle cx="70" cy="24" r="3" fill="#B86F3E"/><rect x="27" y="110" width="86" height="24" fill="#B86F3E"/><text x="40" y="126" fill="#FFF9EA" font-family="Microsoft YaHei, sans-serif" font-size="10">彼此印证</text></g>
+            <g fill="#354B38"><path d="M278 65c7-9 15-9 22 0-7-4-15-4-22 0ZM267 73c7-9 15-9 22 0-7-4-15-4-22 0Z"/></g>
+            <g font-family="Consolas, Microsoft YaHei, monospace" font-size="9" fill="#6F7768"><text x="48" y="57">YOUR NOTE</text><text x="404" y="53">FIELD FRIEND</text><text x="217" y="366">ORIGINALS STAY INTACT</text></g>
+          </svg>
+          <span class="plate-number" aria-hidden="true">03</span>
+        </div>
+      </section>
+
+      <section class="step-panel" id="step-panel-3" aria-labelledby="step-title-3" hidden>
+        <div class="step-copy">
+          <div class="step-eyebrow">04 / BEGIN · 带上野册</div>
+          <h2 id="step-title-3">第一条记录，<br>不必等到远方。</h2>
+          <p class="step-description">从楼下的一株酢浆草、窗台的一盆薄荷开始。完成引导后，野册会备好第一张空白观察卡，之后的每一次发现都有处可放。</p>
+          <div class="field-note"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 8h14l2 13H3L5 8Z" stroke="currentColor"/><path d="M8 9V6a4 4 0 0 1 8 0v3M8 13h8" stroke="currentColor"/></svg><span><strong>出门只需带上好奇心：</strong>离线也能写草稿，回到网络环境后再由你决定同步。</span></div>
+          <div class="step-meta"><span><i></i>第一张观察卡已备好</span><span>现在 / 出发</span></div>
+        </div>
+        <div class="step-visual">
+          <span class="plate-label">PLATE 04 · FIRST WALK</span>
+          <svg class="nature-plate" viewBox="0 0 560 390" fill="none" aria-label="背包与第一条自然观察图">
+            <circle cx="400" cy="100" r="56" fill="#D8B779" fill-opacity=".6"/>
+            <path d="M43 243c85-83 146-79 216-13 76-105 157-101 259 12v108H43V243Z" fill="#C3CBAF"/>
+            <path d="M43 279c94-68 169-54 237 9 80-75 152-69 238-5v67H43v-71Z" fill="#91A17F"/>
+            <path d="M42 327c108-42 182-18 260 24M297 350c81-54 143-62 221-32" stroke="#354B38" stroke-opacity=".45"/>
+            <path d="M58 103c36-27 64-30 94-10M466 175c20-16 36-17 52-8" stroke="#F7F0DE" stroke-width="2"/>
+            <g transform="translate(135 112)"><path d="M63 44c0-49 100-49 100 0" stroke="#354B38" stroke-width="9"/><rect x="28" y="39" width="172" height="211" rx="21" fill="#B86F3E" stroke="#71472D" stroke-width="2"/><path d="M28 86h172M45 42V23M184 42V23" stroke="#71472D" stroke-width="3"/><rect x="49" y="106" width="130" height="107" rx="10" fill="#C9824F" stroke="#71472D"/><path d="M49 131h130M113 106v107" stroke="#71472D"/><rect x="81" y="62" width="67" height="27" fill="#F7F0DE" stroke="#71472D"/><text x="91" y="80" fill="#354B38" font-family="Consolas, monospace" font-size="10" letter-spacing="2">FIELD 01</text><path d="M61 229v31M166 229v31" stroke="#354B38" stroke-width="8" stroke-linecap="round"/></g>
+            <g transform="translate(356 202) rotate(8)"><rect width="125" height="119" fill="#FFF9EA" stroke="#899777"/><text x="13" y="22" fill="#B86F3E" font-family="Consolas, monospace" font-size="8" letter-spacing="1">FIRST NOTE</text><path d="M14 36h96M14 53h96M14 70h96M14 87h62" stroke="#C8C5A9"/><path d="M81 108c-3-20 7-31 28-34 2 20-7 31-28 34Z" fill="#899777" stroke="#354B38"/><path d="M81 108c7-13 13-20 24-28" stroke="#354B38"/></g>
+            <g transform="translate(62 184)"><circle cx="28" cy="28" r="25" fill="#354B38"/><circle cx="82" cy="28" r="25" fill="#354B38"/><path d="M50 20h10v17H50zM4 19 0 7M106 19l8-12" stroke="#354B38" stroke-width="6"/><circle cx="28" cy="28" r="16" fill="#D8DDC5"/><circle cx="82" cy="28" r="16" fill="#D8DDC5"/></g>
+            <text x="55" y="69" fill="#354B38" font-family="SimSun, serif" font-size="15">附近，也有整个自然。</text>
+          </svg>
+          <span class="plate-number" aria-hidden="true">04</span>
+        </div>
+      </section>
+
+      <section class="ready-view" id="ready-view" aria-labelledby="ready-title" hidden>
+        <div class="ready-copy">
+          <svg class="ready-emblem" viewBox="0 0 66 66" fill="none" aria-hidden="true"><circle cx="33" cy="33" r="30" stroke="currentColor"/><path d="M19 45C16 29 25 17 48 16c1 21-9 32-28 29" stroke="currentColor" stroke-width="1.5"/><path d="M19 45c8-11 15-17 26-25" stroke="currentColor" stroke-width="1.5"/><path d="m42 42 5 5 10-12" stroke="#B86F3E" stroke-width="2"/></svg>
+          <div class="step-eyebrow" id="ready-kicker">FIELD GUIDE COMPLETE</div>
+          <h2 id="ready-title" tabindex="-1">野册已装好，<br>去发现身边吧。</h2>
+          <p id="ready-description">你已完成四个观察片刻。第一张空白观察卡已经放在首页，不必等到远方，现在就能开始。</p>
+          <div class="ready-list"><div><strong>01</strong><span>空白观察卡</span></div><div><strong>03</strong><span>分享范围</span></div><div><strong>∞</strong><span>身边的发现</span></div></div>
+          <button class="restart-button" id="restart-guide" type="button">重新查看引导</button>
+        </div>
+        <div class="ready-visual">
+          <svg viewBox="0 0 560 420" fill="none" aria-hidden="true"><circle cx="280" cy="210" r="183" stroke="#AAB59B" stroke-dasharray="3 8"/><circle cx="280" cy="210" r="151" stroke="#BEC6AF"/><path d="M43 350c85-66 144-63 214-8 80-92 157-89 259-5" stroke="#9EAB90"/><path d="M93 89c7-12 16-12 23 0-8-5-16-5-23 0ZM444 83c7-12 16-12 23 0-8-5-16-5-23 0Z" fill="#354B38"/></svg>
+          <div class="blank-observation">
+            <div class="blank-card-head"><span>我的野册 / 001</span><span>待记录</span></div>
+            <h3>今天，我注意到……</h3>
+            <p>一种颜色、一阵声音，或一个还想再回来看看的生命。</p>
+            <div class="blank-lines" aria-hidden="true"><i></i><i></i><i></i></div>
+            <div class="blank-card-foot"><span>位置：仅自己可见</span><span>空白观察卡</span></div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="controls" id="controls">
+      <button class="nav-button prev-button" id="prev-step" type="button" disabled><span aria-hidden="true">←</span><span>上一步</span></button>
+      <div class="progress-wrap" aria-live="polite"><div class="progress-text" id="progress-text">第 1 步，共 4 步</div><div class="progress-dots" aria-hidden="true"><i class="progress-dot is-active"></i><i class="progress-dot"></i><i class="progress-dot"></i><i class="progress-dot"></i></div></div>
+      <button class="nav-button next-button" id="next-step" type="button"><span id="next-label">下一步</span><span aria-hidden="true">→</span></button>
+    </footer>
+  </div>
+
+  <script>
+    (() => {
+      const stops = Array.from(document.querySelectorAll('.trail-stop'));
+      const panels = stops.map((_, index) => document.getElementById(`step-panel-${index}`));
+      const dots = Array.from(document.querySelectorAll('.progress-dot'));
+      const previous = document.getElementById('prev-step');
+      const next = document.getElementById('next-step');
+      const nextLabel = document.getElementById('next-label');
+      const trail = document.getElementById('trail');
+      const controls = document.getElementById('controls');
+      const ready = document.getElementById('ready-view');
+      const skip = document.getElementById('skip-guide');
+      let current = 0;
+
+      function renderStep(index) {
+        current = Math.max(0, Math.min(3, index));
+        panels.forEach((panel, panelIndex) => { panel.hidden = panelIndex !== current; });
+        ready.hidden = true;
+        stops.forEach((stop, stopIndex) => {
+          stop.classList.toggle('is-active', stopIndex === current);
+          stop.classList.toggle('is-done', stopIndex < current);
+          if (stopIndex === current) stop.setAttribute('aria-current', 'step');
+          else stop.removeAttribute('aria-current');
+          stop.querySelector('.step-index').textContent = stopIndex < current ? '✓' : String(stopIndex + 1).padStart(2, '0');
+        });
+        dots.forEach((dot, dotIndex) => {
+          dot.classList.toggle('is-active', dotIndex === current);
+          dot.classList.toggle('is-done', dotIndex < current);
+        });
+        previous.disabled = current === 0;
+        nextLabel.textContent = current === 3 ? '开始使用野册' : '下一步';
+        document.getElementById('progress-text').textContent = `第 ${current + 1} 步，共 4 步`;
+      }
+      function showReady(skipped) {
+        panels.forEach((panel) => { panel.hidden = true; });
+        trail.hidden = true;
+        controls.hidden = true;
+        skip.hidden = true;
+        ready.hidden = false;
+        document.getElementById('header-state').textContent = skipped ? 'FIELD NOTES / 已进入野册' : 'FIELD NOTES / 准备出发';
+        document.getElementById('ready-kicker').textContent = skipped ? 'GUIDE SKIPPED · READY' : 'FIELD GUIDE COMPLETE';
+        document.getElementById('ready-description').textContent = skipped
+          ? '已跳过引导，第一张空白观察卡仍已为你备好。之后想了解的四个观察片刻，也可以随时重新查看。'
+          : '你已完成四个观察片刻。第一张空白观察卡已经放在首页，不必等到远方，现在就能开始。';
+        document.getElementById('ready-title').focus();
+      }
+      stops.forEach((stop) => stop.addEventListener('click', () => renderStep(Number(stop.dataset.step))));
+      previous.addEventListener('click', () => renderStep(current - 1));
+      next.addEventListener('click', () => {
+        if (current === 3) showReady(false);
+        else renderStep(current + 1);
+      });
+      skip.addEventListener('click', () => showReady(true));
+      document.getElementById('restart-guide').addEventListener('click', () => {
+        trail.hidden = false;
+        controls.hidden = false;
+        skip.hidden = false;
+        document.getElementById('header-state').textContent = 'FIRST WALK · 四个观察片刻';
+        renderStep(0);
+        stops[0].focus();
+      });
+    })();
+  </script>
+</body>
+</html>

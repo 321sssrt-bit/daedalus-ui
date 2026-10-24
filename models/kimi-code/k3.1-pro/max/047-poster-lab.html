@@ -1,0 +1,1815 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>047 · 海报实验室 Poster Lab</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --page: #E8E3D9;
+      --surface: #F8F4EB;
+      --paper: #F2EEE4;
+      --ink: #19161F;
+      --muted: #746E78;
+      --line: #D2CBC0;
+      --purple: #6838F5;
+      --purple-dark: #4D24C8;
+      --purple-soft: #EEE8FD;
+      --green: #C8FF3D;
+      --error: #B9384B;
+      --error-bg: #FFF0F1;
+      --success: #216B4B;
+      --success-bg: #EDF7EF;
+      --white: #FFFFFF;
+      --radius-panel: 16px;
+      --radius-control: 9px;
+      --shadow: 0 16px 42px rgba(25, 22, 31, 0.16);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+
+    html {
+      background: var(--page);
+    }
+
+    body {
+      margin: 0;
+      min-width: 360px;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 8% 0%, rgba(104, 56, 245, 0.09), transparent 28%),
+        var(--page);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    button,
+    label,
+    input[type="range"] {
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    button {
+      color: inherit;
+    }
+
+    button:focus-visible,
+    input:focus-visible,
+    a:focus-visible {
+      outline: 3px solid var(--green);
+      outline-offset: 3px;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    .topbar {
+      height: 64px;
+      padding: 0 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(248, 244, 235, 0.92);
+    }
+
+    .brand-mark {
+      position: relative;
+      width: 36px;
+      height: 36px;
+      flex: 0 0 36px;
+      display: grid;
+      place-items: center;
+      border-radius: 10px;
+      color: var(--white);
+      background: var(--purple);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+    }
+
+    .brand-mark::after {
+      content: "";
+      position: absolute;
+      right: -3px;
+      top: -3px;
+      width: 11px;
+      height: 11px;
+      border: 2px solid var(--surface);
+      border-radius: 50%;
+      background: var(--green);
+    }
+
+    .brand-copy {
+      display: flex;
+      align-items: baseline;
+      gap: 9px;
+      min-width: 0;
+    }
+
+    .brand-copy h1 {
+      margin: 0;
+      font-size: 16px;
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+    }
+
+    .brand-copy span {
+      color: var(--muted);
+      font-size: 11px;
+      white-space: nowrap;
+    }
+
+    .project-tab {
+      height: 32px;
+      margin-left: 22px;
+      padding: 0 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--paper);
+      font-size: 12px;
+      font-weight: 650;
+    }
+
+    .project-tab::before {
+      content: "";
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--purple);
+    }
+
+    .topbar-meta {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      color: var(--muted);
+      font-size: 11px;
+      white-space: nowrap;
+    }
+
+    .live-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--ink);
+      font-weight: 650;
+    }
+
+    .live-badge::before {
+      content: "";
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--success);
+      box-shadow: 0 0 0 3px rgba(33, 107, 75, 0.12);
+    }
+
+    .size-badge {
+      padding: 4px 8px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--surface);
+      font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+      font-size: 10px;
+    }
+
+    .workspace {
+      height: calc(100vh - 64px);
+      min-height: 700px;
+      padding: 16px;
+      display: grid;
+      grid-template-columns: 264px minmax(0, 1fr) 304px;
+      gap: 12px;
+    }
+
+    .panel {
+      min-width: 0;
+      min-height: 0;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-panel);
+      background: var(--surface);
+      box-shadow: 0 3px 12px rgba(25, 22, 31, 0.035);
+    }
+
+    .controls-panel,
+    .export-panel {
+      overflow: auto;
+      scrollbar-width: thin;
+      scrollbar-color: var(--line) transparent;
+    }
+
+    .panel-head {
+      min-height: 58px;
+      padding: 14px 17px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .panel-heading {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+    }
+
+    .section-number {
+      color: var(--purple);
+      font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+    }
+
+    .panel-head h2 {
+      margin: 0;
+      font-size: 14px;
+      line-height: 1.2;
+      letter-spacing: -0.01em;
+    }
+
+    .panel-note {
+      color: var(--muted);
+      font-size: 10px;
+      white-space: nowrap;
+    }
+
+    .controls-body {
+      padding: 16px;
+      display: grid;
+      gap: 18px;
+    }
+
+    .control-section {
+      display: grid;
+      gap: 10px;
+    }
+
+    .control-section + .control-section {
+      padding-top: 17px;
+      border-top: 1px solid var(--line);
+    }
+
+    .section-label,
+    .field-label {
+      margin: 0;
+      color: var(--ink);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .section-label-row,
+    .range-head,
+    .output-heading {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .field-hint,
+    .section-hint {
+      margin: 0;
+      color: var(--muted);
+      font-size: 10px;
+      line-height: 1.55;
+    }
+
+    .text-input {
+      width: 100%;
+      height: 42px;
+      padding: 0 11px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-control);
+      color: var(--ink);
+      background: var(--white);
+      font-size: 13px;
+      font-weight: 600;
+      transition: border-color 160ms ease, box-shadow 160ms ease;
+    }
+
+    .text-input:hover {
+      border-color: #AAA1B2;
+    }
+
+    .text-input:focus {
+      border-color: var(--purple);
+      box-shadow: 0 0 0 3px rgba(104, 56, 245, 0.11);
+    }
+
+    .palette-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 7px;
+    }
+
+    .palette-option,
+    .format-option {
+      position: relative;
+      min-width: 0;
+      cursor: pointer;
+    }
+
+    .palette-option input,
+    .format-option input,
+    .switch-control input {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .palette-card {
+      min-height: 66px;
+      padding: 7px 6px;
+      display: grid;
+      gap: 7px;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      background: var(--paper);
+      text-align: center;
+      transition: border-color 160ms ease, transform 160ms ease, background 160ms ease;
+    }
+
+    .palette-card:hover {
+      border-color: var(--purple);
+      transform: translateY(-1px);
+    }
+
+    .palette-option input:checked + .palette-card {
+      border-color: var(--purple);
+      background: var(--purple-soft);
+      box-shadow: inset 0 0 0 1px var(--purple);
+    }
+
+    .palette-option input:focus-visible + .palette-card,
+    .format-option input:focus-visible + .format-card {
+      outline: 3px solid var(--green);
+      outline-offset: 3px;
+    }
+
+    .swatches {
+      height: 24px;
+      display: flex;
+      overflow: hidden;
+      border: 1px solid rgba(25, 22, 31, 0.12);
+      border-radius: 5px;
+    }
+
+    .swatches span {
+      flex: 1;
+    }
+
+    .palette-name {
+      overflow: hidden;
+      font-size: 10px;
+      font-weight: 650;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .range-control {
+      display: grid;
+      gap: 5px;
+    }
+
+    .range-control + .range-control {
+      margin-top: 8px;
+    }
+
+    .range-head label {
+      font-size: 11px;
+      font-weight: 650;
+    }
+
+    .range-value {
+      min-width: 48px;
+      padding: 2px 6px;
+      border-radius: 5px;
+      color: var(--purple-dark);
+      background: var(--purple-soft);
+      font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+      font-size: 10px;
+      font-weight: 750;
+      text-align: center;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      height: 20px;
+      margin: 0;
+      accent-color: var(--purple);
+      cursor: pointer;
+    }
+
+    .range-bounds {
+      display: flex;
+      justify-content: space-between;
+      color: var(--muted);
+      font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+      font-size: 9px;
+    }
+
+    .layer-list {
+      display: grid;
+      gap: 6px;
+    }
+
+    .layer-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 34px;
+      align-items: center;
+      border: 1px solid transparent;
+      border-radius: 10px;
+      transition: border-color 160ms ease, background 160ms ease;
+    }
+
+    .layer-row:hover {
+      background: #EFEAE0;
+    }
+
+    .layer-row.is-selected {
+      border-color: var(--purple);
+      background: var(--purple-soft);
+    }
+
+    .layer-row.is-hidden .layer-select {
+      opacity: 0.52;
+    }
+
+    .layer-select {
+      min-width: 0;
+      padding: 7px 5px 7px 7px;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      border: 0;
+      border-radius: 9px;
+      background: transparent;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .layer-icon {
+      width: 29px;
+      height: 29px;
+      flex: 0 0 29px;
+      display: grid;
+      place-items: center;
+      border-radius: 7px;
+      color: var(--ink);
+      background: #E3DDD2;
+    }
+
+    .layer-row.is-selected .layer-icon {
+      color: var(--white);
+      background: var(--purple);
+    }
+
+    .layer-copy {
+      min-width: 0;
+      display: grid;
+      gap: 1px;
+    }
+
+    .layer-name {
+      overflow: hidden;
+      font-size: 11px;
+      font-weight: 700;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .layer-type {
+      color: var(--muted);
+      font-size: 9px;
+    }
+
+    .visibility-btn {
+      width: 30px;
+      height: 30px;
+      padding: 0;
+      display: grid;
+      place-items: center;
+      border: 0;
+      border-radius: 7px;
+      color: var(--muted);
+      background: transparent;
+      cursor: pointer;
+    }
+
+    .visibility-btn:hover {
+      color: var(--purple);
+      background: var(--white);
+    }
+
+    .visibility-btn .eye-slash {
+      display: none;
+    }
+
+    .visibility-btn.is-hidden .eye-slash {
+      display: block;
+    }
+
+    .preview-panel {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .preview-head {
+      flex: 0 0 58px;
+    }
+
+    .sync-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 7px;
+      border: 1px solid #C5B9F2;
+      border-radius: 6px;
+      color: var(--purple-dark);
+      background: var(--purple-soft);
+      font-size: 9px;
+      font-weight: 750;
+      letter-spacing: 0.04em;
+    }
+
+    .stage {
+      position: relative;
+      flex: 1;
+      min-height: 0;
+      padding: 38px 20px 34px;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      background-color: #DCD6CB;
+      background-image:
+        linear-gradient(rgba(25, 22, 31, 0.045) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(25, 22, 31, 0.045) 1px, transparent 1px);
+      background-size: 20px 20px;
+    }
+
+    .stage-top {
+      position: absolute;
+      z-index: 2;
+      top: 11px;
+      left: 13px;
+      right: 13px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      pointer-events: none;
+    }
+
+    .stage-tag {
+      padding: 3px 7px;
+      border: 1px solid rgba(25, 22, 31, 0.13);
+      border-radius: 5px;
+      color: #504A54;
+      background: rgba(248, 244, 235, 0.82);
+      font-size: 9px;
+      font-weight: 650;
+    }
+
+    .poster-frame {
+      position: relative;
+      z-index: 1;
+      width: min(100%, 400px);
+      aspect-ratio: 4 / 5;
+      overflow: hidden;
+      background: var(--paper);
+      box-shadow: var(--shadow);
+    }
+
+    .poster-frame.is-transparent {
+      background-color: #F8F4EB;
+      background-image:
+        linear-gradient(45deg, #D7D1C6 25%, transparent 25%),
+        linear-gradient(-45deg, #D7D1C6 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, #D7D1C6 75%),
+        linear-gradient(-45deg, transparent 75%, #D7D1C6 75%);
+      background-position: 0 0, 0 8px, 8px -8px, -8px 0;
+      background-size: 16px 16px;
+    }
+
+    #posterSvg {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    #posterSvg [data-layer] {
+      cursor: pointer;
+    }
+
+    .stage-note {
+      position: absolute;
+      z-index: 2;
+      left: 13px;
+      bottom: 10px;
+      color: #5A535F;
+      font-size: 9px;
+      pointer-events: none;
+    }
+
+    .export-body {
+      padding: 16px;
+      display: grid;
+      gap: 16px;
+    }
+
+    .export-settings {
+      min-width: 0;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      gap: 15px;
+      border: 0;
+    }
+
+    .export-settings:disabled {
+      opacity: 0.7;
+    }
+
+    .format-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 7px;
+    }
+
+    .format-card {
+      min-height: 62px;
+      padding: 8px 4px;
+      display: grid;
+      place-items: center;
+      align-content: center;
+      gap: 3px;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      background: var(--paper);
+      text-align: center;
+      transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
+    }
+
+    .format-card:hover {
+      border-color: var(--purple);
+      transform: translateY(-1px);
+    }
+
+    .format-option input:checked + .format-card {
+      border-color: var(--purple);
+      color: var(--purple-dark);
+      background: var(--purple-soft);
+      box-shadow: inset 0 0 0 1px var(--purple);
+    }
+
+    .format-name {
+      font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .format-kind {
+      color: var(--muted);
+      font-size: 9px;
+    }
+
+    .switch-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .switch-copy {
+      display: grid;
+      gap: 2px;
+    }
+
+    .switch-copy label {
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .switch-copy span {
+      color: var(--muted);
+      font-size: 10px;
+    }
+
+    .switch-control {
+      position: relative;
+      flex: 0 0 42px;
+      cursor: pointer;
+    }
+
+    .switch-track {
+      position: relative;
+      display: block;
+      width: 42px;
+      height: 24px;
+      border: 1px solid #B9B2A7;
+      border-radius: 20px;
+      background: #CFC9BE;
+      transition: background 160ms ease, border-color 160ms ease;
+    }
+
+    .switch-track::after {
+      content: "";
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--white);
+      box-shadow: 0 1px 3px rgba(25, 22, 31, 0.25);
+      transition: transform 160ms ease;
+    }
+
+    .switch-control input:checked + .switch-track {
+      border-color: var(--purple);
+      background: var(--purple);
+    }
+
+    .switch-control input:checked + .switch-track::after {
+      transform: translateX(18px);
+    }
+
+    .switch-control input:focus-visible + .switch-track {
+      outline: 3px solid var(--green);
+      outline-offset: 3px;
+    }
+
+    .format-note {
+      padding: 9px 10px;
+      border-left: 3px solid var(--purple);
+      border-radius: 0 7px 7px 0;
+      color: #5D5565;
+      background: #EFEAE1;
+      font-size: 10px;
+      line-height: 1.55;
+    }
+
+    .export-button {
+      width: 100%;
+      min-height: 46px;
+      padding: 0 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      border: 0;
+      border-radius: var(--radius-control);
+      color: var(--white);
+      background: var(--purple);
+      box-shadow: 0 5px 12px rgba(104, 56, 245, 0.22);
+      font-size: 13px;
+      font-weight: 750;
+      cursor: pointer;
+      transition: background 160ms ease, transform 160ms ease;
+    }
+
+    .export-button:hover:not(:disabled) {
+      background: var(--purple-dark);
+      transform: translateY(-1px);
+    }
+
+    .export-button:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
+    .export-button:disabled {
+      cursor: wait;
+      opacity: 0.62;
+    }
+
+    .feedback {
+      padding: 11px 12px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: var(--paper);
+    }
+
+    .feedback[data-state="error"] {
+      border-color: #E5A8B1;
+      color: var(--error);
+      background: var(--error-bg);
+    }
+
+    .feedback[data-state="corrected"] {
+      border-color: #B8A5F2;
+      color: var(--purple-dark);
+      background: var(--purple-soft);
+    }
+
+    .feedback[data-state="success"] {
+      border-color: #A8D3B9;
+      color: var(--success);
+      background: var(--success-bg);
+    }
+
+    .feedback-title {
+      margin: 0 0 4px;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .feedback-message {
+      margin: 0;
+      color: #514A57;
+      font-size: 10px;
+      line-height: 1.6;
+    }
+
+    .recovery-actions {
+      margin-top: 10px;
+      display: grid;
+      gap: 6px;
+    }
+
+    .recovery-button {
+      min-height: 34px;
+      padding: 6px 9px;
+      border: 1px solid currentColor;
+      border-radius: 7px;
+      color: inherit;
+      background: rgba(255, 255, 255, 0.7);
+      font-size: 10px;
+      font-weight: 750;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .recovery-button:hover {
+      background: var(--white);
+    }
+
+    .output-section {
+      padding-top: 15px;
+      display: grid;
+      gap: 10px;
+      border-top: 1px solid var(--line);
+    }
+
+    .output-heading h3 {
+      margin: 0;
+      font-size: 12px;
+    }
+
+    .output-count {
+      color: var(--muted);
+      font-size: 10px;
+    }
+
+    .empty-output {
+      padding: 20px 12px;
+      display: grid;
+      place-items: center;
+      gap: 8px;
+      border: 1px dashed #BFB7AA;
+      border-radius: 10px;
+      color: var(--muted);
+      background: #F2EDE4;
+      text-align: center;
+    }
+
+    .empty-output strong {
+      color: #514A57;
+      font-size: 11px;
+    }
+
+    .empty-output span {
+      max-width: 190px;
+      font-size: 10px;
+      line-height: 1.55;
+    }
+
+    .result-card {
+      display: grid;
+      gap: 11px;
+    }
+
+    .result-layout {
+      display: grid;
+      grid-template-columns: 82px minmax(0, 1fr);
+      gap: 11px;
+      align-items: start;
+    }
+
+    .result-preview-wrap {
+      width: 82px;
+      aspect-ratio: 4 / 5;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background-color: var(--white);
+      background-image:
+        linear-gradient(45deg, #E0DAD0 25%, transparent 25%),
+        linear-gradient(-45deg, #E0DAD0 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, #E0DAD0 75%),
+        linear-gradient(-45deg, transparent 75%, #E0DAD0 75%);
+      background-position: 0 0, 0 6px, 6px -6px, -6px 0;
+      background-size: 12px 12px;
+    }
+
+    #resultPreview {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .result-info {
+      min-width: 0;
+    }
+
+    .result-name {
+      margin: 1px 0 5px;
+      overflow-wrap: anywhere;
+      font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+      font-size: 10px;
+      font-weight: 750;
+      line-height: 1.45;
+    }
+
+    .result-meta {
+      margin: 0;
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 3px 7px;
+      color: var(--muted);
+      font-size: 9px;
+      line-height: 1.45;
+    }
+
+    .result-meta dt {
+      margin: 0;
+    }
+
+    .result-meta dd {
+      margin: 0;
+      color: var(--ink);
+      font-weight: 650;
+    }
+
+    .download-link {
+      min-height: 39px;
+      padding: 8px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      border: 1px solid #9CCB22;
+      border-radius: 8px;
+      color: var(--ink);
+      background: var(--green);
+      font-size: 11px;
+      font-weight: 800;
+      text-decoration: none;
+      transition: background 160ms ease, transform 160ms ease;
+    }
+
+    .download-link:hover {
+      background: #B9EF2F;
+      transform: translateY(-1px);
+    }
+
+    .output-footnote {
+      margin: 0;
+      color: var(--muted);
+      font-size: 9px;
+      line-height: 1.55;
+    }
+
+    @media (max-width: 1100px) {
+      .workspace {
+        height: auto;
+        min-height: calc(100vh - 64px);
+        grid-template-columns: 232px minmax(0, 1fr);
+        align-items: start;
+      }
+
+      .controls-panel,
+      .export-panel {
+        overflow: visible;
+      }
+
+      .preview-panel {
+        min-height: 660px;
+      }
+
+      .export-panel {
+        grid-column: 1 / -1;
+      }
+
+      .export-body {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        gap: 20px;
+      }
+
+      .output-section {
+        padding-top: 0;
+        padding-left: 20px;
+        border-top: 0;
+        border-left: 1px solid var(--line);
+      }
+    }
+
+    @media (max-width: 720px) {
+      .topbar {
+        padding: 0 12px;
+      }
+
+      .project-tab,
+      .topbar-meta .size-badge,
+      .brand-copy span {
+        display: none;
+      }
+
+      .workspace {
+        padding: 10px;
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      .preview-panel {
+        min-height: 620px;
+      }
+
+      .export-panel {
+        grid-column: auto;
+      }
+
+      .export-body {
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      .output-section {
+        padding-top: 15px;
+        padding-left: 0;
+        border-top: 1px solid var(--line);
+        border-left: 0;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand-mark" aria-hidden="true">PL</div>
+    <div class="brand-copy">
+      <h1>海报实验室</h1>
+      <span>POSTER LAB / 047</span>
+    </div>
+    <div class="project-tab">未命名的实验 01</div>
+    <div class="topbar-meta">
+      <span class="live-badge">本地实时渲染</span>
+      <span class="size-badge">1200 × 1500 PX</span>
+    </div>
+  </header>
+
+  <main class="workspace">
+    <aside class="panel controls-panel" aria-labelledby="controlsTitle">
+      <div class="panel-head">
+        <div class="panel-heading">
+          <span class="section-number">01</span>
+          <h2 id="controlsTitle">创作参数</h2>
+        </div>
+        <span class="panel-note">即时生效</span>
+      </div>
+
+      <div class="controls-body">
+        <section class="control-section" aria-labelledby="contentSectionTitle">
+          <div class="section-label-row">
+            <h3 class="section-label" id="contentSectionTitle">海报文案</h3>
+            <span class="section-hint">TEXT</span>
+          </div>
+          <div>
+            <label class="field-label" for="posterTitle">标题</label>
+            <input class="text-input" id="posterTitle" type="text" value="把灵感印成海报" maxlength="16" autocomplete="off">
+          </div>
+          <p class="field-hint">16 字以内，自动分为两行；输入会实时写入 SVG。</p>
+        </section>
+
+        <section class="control-section" aria-labelledby="paletteSectionTitle">
+          <div class="section-label-row">
+            <h3 class="section-label" id="paletteSectionTitle">作品配色</h3>
+            <span class="section-hint">背景 / 主色 / 荧光</span>
+          </div>
+          <div class="palette-grid" role="radiogroup" aria-label="选择作品配色">
+            <label class="palette-option">
+              <input type="radio" name="palette" value="bone" checked>
+              <span class="palette-card">
+                <span class="swatches" aria-hidden="true">
+                  <span style="background:#F2EEE4"></span>
+                  <span style="background:#6838F5"></span>
+                  <span style="background:#C8FF3D"></span>
+                </span>
+                <span class="palette-name">骨白实验</span>
+              </span>
+            </label>
+            <label class="palette-option">
+              <input type="radio" name="palette" value="night">
+              <span class="palette-card">
+                <span class="swatches" aria-hidden="true">
+                  <span style="background:#251840"></span>
+                  <span style="background:#9A7BFF"></span>
+                  <span style="background:#C8FF3D"></span>
+                </span>
+                <span class="palette-name">紫夜电波</span>
+              </span>
+            </label>
+            <label class="palette-option">
+              <input type="radio" name="palette" value="acid">
+              <span class="palette-card">
+                <span class="swatches" aria-hidden="true">
+                  <span style="background:#C8FF3D"></span>
+                  <span style="background:#6838F5"></span>
+                  <span style="background:#F8F4EB"></span>
+                </span>
+                <span class="palette-name">荧光纸面</span>
+              </span>
+            </label>
+          </div>
+        </section>
+
+        <section class="control-section" aria-labelledby="geometrySectionTitle">
+          <div class="section-label-row">
+            <h3 class="section-label" id="geometrySectionTitle">几何参数</h3>
+            <span class="section-hint">TRANSFORM</span>
+          </div>
+          <div class="range-control">
+            <div class="range-head">
+              <label for="shapeScale">图形尺度</label>
+              <output class="range-value" id="shapeScaleValue" for="shapeScale">100%</output>
+            </div>
+            <input id="shapeScale" type="range" min="60" max="140" step="1" value="100">
+            <div class="range-bounds" aria-hidden="true"><span>60%</span><span>140%</span></div>
+          </div>
+          <div class="range-control">
+            <div class="range-head">
+              <label for="shapeRotation">图形旋转</label>
+              <output class="range-value" id="shapeRotationValue" for="shapeRotation">12°</output>
+            </div>
+            <input id="shapeRotation" type="range" min="-45" max="45" step="1" value="12">
+            <div class="range-bounds" aria-hidden="true"><span>−45°</span><span>+45°</span></div>
+          </div>
+        </section>
+
+        <section class="control-section" aria-labelledby="layersSectionTitle">
+          <div class="section-label-row">
+            <h3 class="section-label" id="layersSectionTitle">图层</h3>
+            <span class="section-hint">3 个对象</span>
+          </div>
+          <div class="layer-list">
+            <div class="layer-row" data-layer-row="title">
+              <button class="layer-select" type="button" data-select-layer="title" aria-pressed="false">
+                <span class="layer-icon" aria-hidden="true">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <path d="M3 3.5h10M8 3.5v9M5.5 12.5h5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                  </svg>
+                </span>
+                <span class="layer-copy">
+                  <span class="layer-name">标题文字</span>
+                  <span class="layer-type">文本与署名</span>
+                </span>
+              </button>
+              <button class="visibility-btn" type="button" data-toggle-layer="title" aria-pressed="true" aria-label="隐藏标题文字">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                  <path d="M1.8 8s2.2-3.5 6.2-3.5S14.2 8 14.2 8s-2.2 3.5-6.2 3.5S1.8 8 1.8 8Z" stroke="currentColor" stroke-width="1.25"/>
+                  <circle cx="8" cy="8" r="1.8" stroke="currentColor" stroke-width="1.25"/>
+                  <path class="eye-slash" d="m3 13 10-10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+                </svg>
+              </button>
+            </div>
+            <div class="layer-row is-selected" data-layer-row="geometry">
+              <button class="layer-select" type="button" data-select-layer="geometry" aria-pressed="true">
+                <span class="layer-icon" aria-hidden="true">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <circle cx="8" cy="8" r="5.5" stroke="currentColor" stroke-width="1.4"/>
+                    <path d="M8 1v14M1 8h14" stroke="currentColor" stroke-width="1.1"/>
+                  </svg>
+                </span>
+                <span class="layer-copy">
+                  <span class="layer-name">主图形</span>
+                  <span class="layer-type">圆形与轨道</span>
+                </span>
+              </button>
+              <button class="visibility-btn" type="button" data-toggle-layer="geometry" aria-pressed="true" aria-label="隐藏主图形">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                  <path d="M1.8 8s2.2-3.5 6.2-3.5S14.2 8 14.2 8s-2.2 3.5-6.2 3.5S1.8 8 1.8 8Z" stroke="currentColor" stroke-width="1.25"/>
+                  <circle cx="8" cy="8" r="1.8" stroke="currentColor" stroke-width="1.25"/>
+                  <path class="eye-slash" d="m3 13 10-10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+                </svg>
+              </button>
+            </div>
+            <div class="layer-row" data-layer-row="accent">
+              <button class="layer-select" type="button" data-select-layer="accent" aria-pressed="false">
+                <span class="layer-icon" aria-hidden="true">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <path d="m8 1.8 1.7 4.5 4.5 1.7-4.5 1.7L8 14.2 6.3 9.7 1.8 8l4.5-1.7L8 1.8Z" stroke="currentColor" stroke-width="1.25" stroke-linejoin="round"/>
+                  </svg>
+                </span>
+                <span class="layer-copy">
+                  <span class="layer-name">荧光标记</span>
+                  <span class="layer-type">标签与星芒</span>
+                </span>
+              </button>
+              <button class="visibility-btn" type="button" data-toggle-layer="accent" aria-pressed="true" aria-label="隐藏荧光标记">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                  <path d="M1.8 8s2.2-3.5 6.2-3.5S14.2 8 14.2 8s-2.2 3.5-6.2 3.5S1.8 8 1.8 8Z" stroke="currentColor" stroke-width="1.25"/>
+                  <circle cx="8" cy="8" r="1.8" stroke="currentColor" stroke-width="1.25"/>
+                  <path class="eye-slash" d="m3 13 10-10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+          <p class="field-hint">单击图层或预览对象选中；眼睛按钮控制显隐。</p>
+        </section>
+      </div>
+    </aside>
+
+    <section class="panel preview-panel" aria-labelledby="previewTitle">
+      <div class="panel-head preview-head">
+        <div class="panel-heading">
+          <span class="section-number">02</span>
+          <h2 id="previewTitle">实时预览</h2>
+        </div>
+        <span class="sync-chip">SVG 已同步</span>
+      </div>
+      <div class="stage">
+        <div class="stage-top">
+          <span class="stage-tag">画布 01 · 4:5</span>
+          <span class="stage-tag" id="backgroundState">实色背景</span>
+        </div>
+        <div class="poster-frame" id="posterFrame">
+          <svg id="posterSvg" viewBox="0 0 600 750" role="img" aria-labelledby="posterMeta" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif">
+            <title id="posterMeta">把灵感印成海报</title>
+            <rect id="artBackground" x="0" y="0" width="600" height="750" fill="#F2EEE4"/>
+            <g opacity="0.14" fill="none" stroke="#6838F5" stroke-width="1" data-main-stroke>
+              <path d="M48 0v750M132 0v750M216 0v750M300 0v750M384 0v750M468 0v750M552 0v750"/>
+              <path d="M0 64h600M0 158h600M0 252h600M0 346h600M0 440h600M0 534h600M0 628h600M0 722h600"/>
+            </g>
+            <g id="layer-geometry" data-layer="geometry" transform="translate(300 310) rotate(12) scale(1)">
+              <circle cx="0" cy="0" r="184" fill="#6838F5" data-main-fill/>
+              <circle cx="0" cy="0" r="137" fill="none" stroke="#C8FF3D" stroke-width="34" data-accent-stroke/>
+              <circle cx="0" cy="0" r="82" fill="#F2EEE4" data-background-fill/>
+              <rect x="-19" y="-215" width="38" height="430" fill="#19161F" data-ink-fill transform="rotate(45)"/>
+              <circle cx="0" cy="0" r="31" fill="#C8FF3D" data-accent-fill/>
+              <path d="M-216 0h432M0-216v432" fill="none" stroke="#19161F" stroke-width="2" data-ink-stroke/>
+              <path d="M-150-150 150 150M150-150-150 150" fill="none" stroke="#F8F4EB" stroke-width="3" data-paper-stroke/>
+            </g>
+            <g id="layer-accent" data-layer="accent">
+              <rect x="424" y="38" width="128" height="34" fill="#C8FF3D" data-accent-fill/>
+              <text x="488" y="60" fill="#19161F" data-ink-fill text-anchor="middle" font-family="inherit" font-size="13" font-weight="750">实验编号 / 047</text>
+              <path d="m522 102 7 17 17 7-17 7-7 17-7-17-17-7 17-7 7-17Z" fill="#6838F5" data-main-fill/>
+              <rect x="424" y="96" width="62" height="8" fill="#19161F" data-ink-fill/>
+              <rect x="424" y="112" width="42" height="8" fill="#C8FF3D" data-accent-fill/>
+            </g>
+            <g id="layer-title" data-layer="title">
+              <text x="48" y="556" fill="#6838F5" data-main-fill font-family="inherit" font-size="12" font-weight="800" letter-spacing="2.4">THE POSTER SERIES · 2026</text>
+              <text id="artTitle" fill="#19161F" data-ink-fill font-family="inherit" font-size="58" font-weight="850" letter-spacing="-2">
+                <tspan id="titleLineOne" x="46" y="628">把灵感印成海报</tspan>
+                <tspan id="titleLineTwo" x="46" y="674"></tspan>
+              </text>
+              <rect x="48" y="696" width="32" height="5" fill="#6838F5" data-main-fill/>
+              <text x="92" y="704" fill="#19161F" data-ink-fill font-family="inherit" font-size="13" font-weight="600" letter-spacing="1">几何、色彩与一段实时灵感</text>
+              <text x="548" y="704" fill="#19161F" data-ink-fill text-anchor="end" font-family="inherit" font-size="12" font-weight="750">VOL.01</text>
+            </g>
+            <g id="selectionLayer" fill="none" stroke="#C8FF3D" stroke-width="3" stroke-dasharray="8 6" pointer-events="none">
+              <rect data-selection-for="title" x="34" y="538" width="532" height="180" display="none"/>
+              <rect data-selection-for="geometry" x="80" y="90" width="440" height="440"/>
+              <rect data-selection-for="accent" x="410" y="26" width="156" height="140" display="none"/>
+            </g>
+          </svg>
+        </div>
+        <span class="stage-note">单击作品对象可选中图层 · 选框不会进入导出文件</span>
+      </div>
+    </section>
+
+    <aside class="panel export-panel" aria-labelledby="exportTitle">
+      <div class="panel-head">
+        <div class="panel-heading">
+          <span class="section-number">03</span>
+          <h2 id="exportTitle">导出台</h2>
+        </div>
+        <span class="panel-note" id="exportCount">0 份文件</span>
+      </div>
+
+      <div class="export-body">
+        <div>
+          <fieldset class="export-settings" id="exportSettings">
+            <div class="control-section">
+              <div class="section-label-row">
+                <h3 class="section-label">文件格式</h3>
+                <span class="section-hint">3 种可用格式</span>
+              </div>
+              <div class="format-grid" role="radiogroup" aria-label="选择导出格式">
+                <label class="format-option">
+                  <input type="radio" name="exportFormat" value="SVG" checked>
+                  <span class="format-card">
+                    <span class="format-name">SVG</span>
+                    <span class="format-kind">矢量</span>
+                  </span>
+                </label>
+                <label class="format-option">
+                  <input type="radio" name="exportFormat" value="PNG">
+                  <span class="format-card">
+                    <span class="format-name">PNG</span>
+                    <span class="format-kind">无损位图</span>
+                  </span>
+                </label>
+                <label class="format-option">
+                  <input type="radio" name="exportFormat" value="JPEG">
+                  <span class="format-card">
+                    <span class="format-name">JPEG</span>
+                    <span class="format-kind">压缩位图</span>
+                  </span>
+                </label>
+              </div>
+            </div>
+
+            <div class="switch-row">
+              <div class="switch-copy">
+                <label for="transparentBackground">透明背景</label>
+                <span>移除海报底色，保留前景图层</span>
+              </div>
+              <label class="switch-control">
+                <input id="transparentBackground" type="checkbox" role="switch">
+                <span class="switch-track" aria-hidden="true"></span>
+                <span class="sr-only">切换透明背景</span>
+              </label>
+            </div>
+
+            <div class="format-note">输出固定为 1200 × 1500 px。SVG、PNG 支持透明；JPEG 仅支持实色背景。</div>
+          </fieldset>
+
+          <button class="export-button" id="exportButton" type="button">
+            <span id="exportButtonLabel">导出 SVG</span>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <path d="M8 2v8m0 0 3-3M8 10 5 7M3 12.5h10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+
+          <div class="feedback" id="exportFeedback" data-state="pending" hidden>
+            <h3 class="feedback-title" id="feedbackTitle"></h3>
+            <p class="feedback-message" id="feedbackMessage"></p>
+            <div class="recovery-actions" id="recoveryActions" hidden>
+              <button class="recovery-button" id="recoverPng" type="button">改用 PNG，保留透明背景 →</button>
+              <button class="recovery-button" id="recoverJpeg" type="button">关闭透明，继续使用 JPEG →</button>
+            </div>
+          </div>
+        </div>
+
+        <section class="output-section" aria-labelledby="outputTitle">
+          <div class="output-heading">
+            <h3 id="outputTitle">最新结果</h3>
+            <span class="output-count">真实 Blob 文件</span>
+          </div>
+          <div class="empty-output" id="emptyOutput">
+            <svg width="30" height="30" viewBox="0 0 30 30" fill="none" aria-hidden="true">
+              <rect x="5.5" y="3.5" width="19" height="23" rx="2" stroke="currentColor" stroke-width="1.4"/>
+              <path d="M10 10h10M10 15h10M10 20h6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+            </svg>
+            <strong>还没有导出结果</strong>
+            <span>完成创作后，生成一份可检查、可下载的文件。</span>
+          </div>
+          <div class="result-card" id="resultCard" hidden>
+            <div class="result-layout">
+              <div class="result-preview-wrap">
+                <img id="resultPreview" alt="最新导出文件预览">
+              </div>
+              <div class="result-info">
+                <p class="result-name" id="resultName"></p>
+                <dl class="result-meta">
+                  <dt>格式</dt><dd id="resultFormat"></dd>
+                  <dt>尺寸</dt><dd id="resultDimensions">1200 × 1500 px</dd>
+                  <dt>大小</dt><dd id="resultSize"></dd>
+                  <dt>背景</dt><dd id="resultBackground"></dd>
+                </dl>
+              </div>
+            </div>
+            <a class="download-link" id="downloadLink">
+              <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true">
+                <path d="M7.5 2v7m0 0 2.5-2.5M7.5 9 5 6.5M2.5 11.5v1h10v-1" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              下载这份文件
+            </a>
+            <p class="output-footnote">下载使用浏览器生成的 Blob 地址。新结果成功后才会替换上一份文件。</p>
+          </div>
+        </section>
+      </div>
+    </aside>
+  </main>
+
+  <p class="sr-only" id="announcer" aria-live="polite" aria-atomic="true"></p>
+
+  <script>
+    (() => {
+      'use strict';
+
+      const EXPORT_WIDTH = 1200;
+      const EXPORT_HEIGHT = 1500;
+      const SVG_NAMESPACE = String.fromCharCode(104, 116, 116, 112, 58, 47, 47) + 'www.w3.org/2000/svg';
+      const layerNames = { title: '标题文字', geometry: '主图形', accent: '荧光标记' };
+      const palettes = {
+        bone: { background: '#F2EEE4', main: '#6838F5', accent: '#C8FF3D', ink: '#19161F', paper: '#F8F4EB' },
+        night: { background: '#251840', main: '#9A7BFF', accent: '#C8FF3D', ink: '#F8F4EB', paper: '#F8F4EB' },
+        acid: { background: '#C8FF3D', main: '#6838F5', accent: '#F8F4EB', ink: '#19161F', paper: '#F8F4EB' }
+      };
+      const state = {
+        title: '把灵感印成海报',
+        palette: 'bone',
+        scale: 100,
+        rotation: 12,
+        visible: { title: true, geometry: true, accent: true },
+        selected: 'geometry',
+        format: 'SVG',
+        transparent: false,
+        exporting: false,
+        successCount: 0
+      };
+
+      const posterSvg = document.getElementById('posterSvg');
+      const posterFrame = document.getElementById('posterFrame');
+      const posterMeta = document.getElementById('posterMeta');
+      const artBackground = document.getElementById('artBackground');
+      const titleLineOne = document.getElementById('titleLineOne');
+      const titleLineTwo = document.getElementById('titleLineTwo');
+      const shapeScaleValue = document.getElementById('shapeScaleValue');
+      const shapeRotationValue = document.getElementById('shapeRotationValue');
+      const backgroundState = document.getElementById('backgroundState');
+      const titleInput = document.getElementById('posterTitle');
+      const transparentInput = document.getElementById('transparentBackground');
+      const exportSettings = document.getElementById('exportSettings');
+      const exportButton = document.getElementById('exportButton');
+      const exportButtonLabel = document.getElementById('exportButtonLabel');
+      const exportFeedback = document.getElementById('exportFeedback');
+      const feedbackTitle = document.getElementById('feedbackTitle');
+      const feedbackMessage = document.getElementById('feedbackMessage');
+      const recoveryActions = document.getElementById('recoveryActions');
+      const exportCount = document.getElementById('exportCount');
+      const emptyOutput = document.getElementById('emptyOutput');
+      const resultCard = document.getElementById('resultCard');
+      const resultPreview = document.getElementById('resultPreview');
+      const resultName = document.getElementById('resultName');
+      const resultFormat = document.getElementById('resultFormat');
+      const resultSize = document.getElementById('resultSize');
+      const resultBackground = document.getElementById('resultBackground');
+      const downloadLink = document.getElementById('downloadLink');
+      const announcer = document.getElementById('announcer');
+      let resultUrl = null;
+
+      function announce(message) {
+        announcer.textContent = '';
+        window.setTimeout(() => { announcer.textContent = message; }, 20);
+      }
+
+      function paint(selector, attribute, value) {
+        posterSvg.querySelectorAll(selector).forEach((node) => node.setAttribute(attribute, value));
+      }
+
+      function renderPoster() {
+        const palette = palettes[state.palette];
+        const title = state.title.trim() || '未命名海报';
+        const characters = Array.from(title);
+        const firstLine = characters.slice(0, 8).join('');
+        const secondLine = characters.slice(8, 16).join('');
+
+        posterMeta.textContent = title;
+        titleLineOne.textContent = firstLine;
+        titleLineTwo.textContent = secondLine;
+        titleLineOne.setAttribute('y', secondLine ? '594' : '628');
+        titleLineTwo.setAttribute('y', secondLine ? '658' : '674');
+        artBackground.setAttribute('fill', palette.background);
+        artBackground.style.display = state.transparent ? 'none' : '';
+        paint('[data-main-fill]', 'fill', palette.main);
+        paint('[data-main-stroke]', 'stroke', palette.main);
+        paint('[data-accent-fill]', 'fill', palette.accent);
+        paint('[data-accent-stroke]', 'stroke', palette.accent);
+        paint('[data-ink-fill]', 'fill', palette.ink);
+        paint('[data-ink-stroke]', 'stroke', palette.ink);
+        paint('[data-background-fill]', 'fill', palette.background);
+        paint('[data-paper-stroke]', 'stroke', palette.paper);
+
+        document.getElementById('layer-geometry').setAttribute(
+          'transform',
+          `translate(300 310) rotate(${state.rotation}) scale(${state.scale / 100})`
+        );
+        Object.keys(layerNames).forEach((layer) => {
+          const visible = state.visible[layer];
+          document.getElementById(`layer-${layer}`).style.display = visible ? '' : 'none';
+          const row = document.querySelector(`[data-layer-row="${layer}"]`);
+          const selectButton = document.querySelector(`[data-select-layer="${layer}"]`);
+          const visibilityButton = document.querySelector(`[data-toggle-layer="${layer}"]`);
+          row.classList.toggle('is-selected', state.selected === layer);
+          row.classList.toggle('is-hidden', !visible);
+          selectButton.setAttribute('aria-pressed', String(state.selected === layer));
+          visibilityButton.setAttribute('aria-pressed', String(visible));
+          visibilityButton.setAttribute('aria-label', `${visible ? '隐藏' : '显示'}${layerNames[layer]}`);
+          visibilityButton.classList.toggle('is-hidden', !visible);
+          const selection = posterSvg.querySelector(`[data-selection-for="${layer}"]`);
+          selection.setAttribute('display', state.selected === layer && visible ? 'inline' : 'none');
+        });
+
+        const selectionSize = 440 * state.scale / 100;
+        const geometrySelection = posterSvg.querySelector('[data-selection-for="geometry"]');
+        geometrySelection.setAttribute('x', String(300 - selectionSize / 2));
+        geometrySelection.setAttribute('y', String(310 - selectionSize / 2));
+        geometrySelection.setAttribute('width', String(selectionSize));
+        geometrySelection.setAttribute('height', String(selectionSize));
+
+        shapeScaleValue.textContent = `${state.scale}%`;
+        shapeRotationValue.textContent = `${state.rotation}°`;
+        posterFrame.classList.toggle('is-transparent', state.transparent);
+        backgroundState.textContent = state.transparent ? '透明背景' : '实色背景';
+      }
+
+      function renderExportControls() {
+        document.querySelectorAll('input[name="exportFormat"]').forEach((input) => {
+          input.checked = input.value === state.format;
+        });
+        transparentInput.checked = state.transparent;
+        exportButtonLabel.textContent = `${state.successCount ? '再次导出' : '导出'} ${state.format}`;
+        exportCount.textContent = `${state.successCount} 份文件`;
+      }
+
+      function showFeedback(kind, title, message, showRecovery = false) {
+        exportFeedback.hidden = false;
+        exportFeedback.dataset.state = kind;
+        feedbackTitle.textContent = title;
+        feedbackMessage.textContent = message;
+        recoveryActions.hidden = !showRecovery;
+      }
+
+      function announceCorrection(message) {
+        showFeedback('corrected', '设置已修正，可以重新导出', message);
+        announce(`${message} 请点击导出按钮生成文件。`);
+      }
+
+      function clearResolvedConflict() {
+        if (exportFeedback.hidden || exportFeedback.dataset.state !== 'error' || recoveryActions.hidden) return;
+        if (state.format === 'JPEG' && state.transparent) return;
+        const message = state.format === 'PNG' && state.transparent
+          ? 'PNG 会保留透明背景，作品参数与上一份成功结果均未改变。'
+          : '当前格式与背景设置兼容，作品参数与上一份成功结果均未改变。';
+        announceCorrection(message);
+      }
+
+      function setExporting(exporting) {
+        state.exporting = exporting;
+        exportButton.disabled = exporting;
+        exportSettings.disabled = exporting;
+        exportButton.setAttribute('aria-busy', String(exporting));
+        exportButtonLabel.textContent = exporting ? '正在生成文件…' : `${state.successCount ? '再次导出' : '导出'} ${state.format}`;
+      }
+
+      function serializeCurrentPoster() {
+        const exportNode = posterSvg.cloneNode(true);
+        const selection = exportNode.querySelector('#selectionLayer');
+        if (selection) selection.remove();
+        exportNode.setAttribute('width', String(EXPORT_WIDTH));
+        exportNode.setAttribute('height', String(EXPORT_HEIGHT));
+        exportNode.setAttribute('xmlns', SVG_NAMESPACE);
+        return '<?xml version="1.0" encoding="UTF-8"?>\n' + new XMLSerializer().serializeToString(exportNode);
+      }
+
+      function loadImage(sourceUrl) {
+        return new Promise((resolve, reject) => {
+          const image = new Image();
+          image.onload = () => resolve(image);
+          image.onerror = () => reject(new Error('浏览器无法读取当前 SVG，请重试。'));
+          image.src = sourceUrl;
+        });
+      }
+
+      async function rasterize(source, format, background) {
+        const svgBlob = new Blob([source], { type: 'image/svg+xml;charset=utf-8' });
+        const sourceUrl = URL["createObjectURL"](svgBlob);
+        try {
+          const image = await loadImage(sourceUrl);
+          const canvas = document.createElement('canvas');
+          canvas.width = EXPORT_WIDTH;
+          canvas.height = EXPORT_HEIGHT;
+          const context = canvas.getContext('2d');
+          if (!context) throw new Error('当前浏览器无法创建位图画布。');
+          context.clearRect(0, 0, EXPORT_WIDTH, EXPORT_HEIGHT);
+          if (format === 'JPEG') {
+            context.fillStyle = background;
+            context.fillRect(0, 0, EXPORT_WIDTH, EXPORT_HEIGHT);
+          }
+          context.drawImage(image, 0, 0, EXPORT_WIDTH, EXPORT_HEIGHT);
+          const mime = format === 'PNG' ? 'image/png' : 'image/jpeg';
+          return await new Promise((resolve, reject) => {
+            canvas.toBlob((blob) => {
+              if (blob) resolve(blob);
+              else reject(new Error('浏览器未能生成位图文件，请重试。'));
+            }, mime, 0.92);
+          });
+        } finally {
+          URL["revokeObjectURL"](sourceUrl);
+        }
+      }
+
+      function formatBytes(bytes) {
+        if (bytes < 1024) return `${bytes} B`;
+        if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+        return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+      }
+
+      function commitSuccess(blob, snapshot) {
+        const nextUrl = URL["createObjectURL"](blob);
+        const previousUrl = resultUrl;
+        resultUrl = nextUrl;
+        if (previousUrl) URL["revokeObjectURL"](previousUrl);
+
+        state.successCount += 1;
+        const extension = snapshot.format === 'JPEG' ? 'jpg' : snapshot.format.toLowerCase();
+        const fileName = `poster-lab-${String(state.successCount).padStart(3, '0')}.${extension}`;
+        resultPreview.src = resultUrl;
+        resultPreview.alt = `${fileName} 的导出预览`;
+        resultName.textContent = fileName;
+        resultFormat.textContent = `${snapshot.format} · ${blob.type || '二进制文件'}`;
+        resultSize.textContent = formatBytes(blob.size);
+        resultBackground.textContent = snapshot.transparent ? '透明背景' : `实色 · ${snapshot.background}`;
+        downloadLink.href = resultUrl;
+        downloadLink.download = fileName;
+        emptyOutput.hidden = true;
+        resultCard.hidden = false;
+        renderExportControls();
+        showFeedback(
+          'success',
+          `导出完成 · #${String(state.successCount).padStart(3, '0')}`,
+          `${fileName} 已生成，尺寸 1200 × 1500 px，大小 ${formatBytes(blob.size)}。预览与下载链接均来自本次 Blob。`
+        );
+        announce(`导出成功，${fileName}，${formatBytes(blob.size)}。最新结果已更新，可以点击下载。`);
+      }
+
+      async function exportArtwork() {
+        if (state.exporting) return;
+        if (state.format === 'JPEG' && state.transparent) {
+          showFeedback(
+            'error',
+            'JPEG 无法保留透明背景',
+            '已阻止本次无效导出，成功序号没有增加。请改用 PNG 保留透明，或关闭透明后继续使用 JPEG；你的编辑和上一份成功结果均已保留。',
+            true
+          );
+          announce('导出条件冲突：JPEG 不支持透明背景。本次导出已阻止，编辑内容和已有结果均未改变。');
+          return;
+        }
+
+        const snapshot = {
+          format: state.format,
+          transparent: state.transparent,
+          background: palettes[state.palette].background
+        };
+        setExporting(true);
+        showFeedback('pending', '正在生成真实文件', `正在处理当前 SVG 快照，目标格式为 ${snapshot.format}，请稍候。`);
+        announce(`正在导出 ${snapshot.format}，请稍候。`);
+
+        try {
+          const source = serializeCurrentPoster();
+          const blob = snapshot.format === 'SVG'
+            ? new Blob([source], { type: 'image/svg+xml;charset=utf-8' })
+            : await rasterize(source, snapshot.format, snapshot.background);
+          commitSuccess(blob, snapshot);
+        } catch (error) {
+          showFeedback(
+            'error',
+            '本次导出未完成',
+            `${error.message || '浏览器处理文件时出现问题。'} 成功序号与上一份结果均未改变，请重试。`
+          );
+          announce('导出未完成。成功序号、编辑内容和上一份结果均未改变。');
+        } finally {
+          setExporting(false);
+        }
+      }
+
+      titleInput.addEventListener('input', (event) => {
+        state.title = event.target.value;
+        renderPoster();
+      });
+
+      document.querySelectorAll('input[name="palette"]').forEach((input) => {
+        input.addEventListener('change', (event) => {
+          state.palette = event.target.value;
+          renderPoster();
+        });
+      });
+
+      document.getElementById('shapeScale').addEventListener('input', (event) => {
+        state.scale = Number(event.target.value);
+        renderPoster();
+      });
+
+      document.getElementById('shapeRotation').addEventListener('input', (event) => {
+        state.rotation = Number(event.target.value);
+        renderPoster();
+      });
+
+      document.querySelectorAll('[data-select-layer]').forEach((button) => {
+        button.addEventListener('click', () => {
+          state.selected = button.dataset.selectLayer;
+          renderPoster();
+          announce(`已选中${layerNames[state.selected]}图层。`);
+        });
+      });
+
+      document.querySelectorAll('[data-toggle-layer]').forEach((button) => {
+        button.addEventListener('click', () => {
+          const layer = button.dataset.toggleLayer;
+          state.visible[layer] = !state.visible[layer];
+          renderPoster();
+          announce(`${layerNames[layer]}图层已${state.visible[layer] ? '显示' : '隐藏'}，预览已同步。`);
+        });
+      });
+
+      posterSvg.addEventListener('click', (event) => {
+        const layerNode = event.target.closest('[data-layer]');
+        if (!layerNode) return;
+        state.selected = layerNode.dataset.layer;
+        renderPoster();
+        announce(`已从预览选中${layerNames[state.selected]}图层。`);
+      });
+
+      document.querySelectorAll('input[name="exportFormat"]').forEach((input) => {
+        input.addEventListener('change', (event) => {
+          state.format = event.target.value;
+          renderExportControls();
+          clearResolvedConflict();
+        });
+      });
+
+      transparentInput.addEventListener('change', (event) => {
+        state.transparent = event.target.checked;
+        renderPoster();
+        clearResolvedConflict();
+      });
+
+      document.getElementById('recoverPng').addEventListener('click', () => {
+        state.format = 'PNG';
+        renderExportControls();
+        announceCorrection('已改用 PNG，透明背景和全部作品参数保持不变。');
+        exportButton.focus();
+      });
+
+      document.getElementById('recoverJpeg').addEventListener('click', () => {
+        state.transparent = false;
+        renderPoster();
+        renderExportControls();
+        announceCorrection('已关闭透明背景，继续使用 JPEG，配色与全部作品参数保持不变。');
+        exportButton.focus();
+      });
+
+      exportButton.addEventListener('click', exportArtwork);
+      window.addEventListener('beforeunload', () => {
+        if (resultUrl) URL["revokeObjectURL"](resultUrl);
+      });
+
+      renderPoster();
+      renderExportControls();
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>云格 Cloud Cabinet｜我的灵感收藏柜</title>
+  <style>
+    :root {
+      --page: #EAF4FC;
+      --surface: #FFFDF4;
+      --lemon: #F5EB72;
+      --blue: #B9DBF2;
+      --ink: #26374A;
+      --muted: #62758A;
+      --line: #A8BDD0;
+      --coral: #E88772;
+      --mint: #CDE8D9;
+      --pale-yellow: #FFF7C2;
+      --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-width: 320px;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 9% 12%, rgba(255, 253, 244, .75) 0 70px, transparent 71px),
+        radial-gradient(circle at 92% 30%, rgba(245, 235, 114, .22) 0 105px, transparent 106px),
+        var(--page);
+      font-family: var(--sans);
+      -webkit-font-smoothing: antialiased;
+    }
+    [hidden] { display: none !important; }
+    button { font: inherit; }
+    button:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+    .site { width: min(1160px, calc(100% - 56px)); margin: 0 auto; }
+    .topbar { min-height: 66px; display: flex; align-items: center; justify-content: space-between; gap: 20px; border-bottom: 1px solid rgba(38, 55, 74, .18); }
+    .brand { display: flex; align-items: center; gap: 10px; }
+    .brand svg { width: 41px; height: 34px; }
+    .brand-name { display: block; font-size: 19px; line-height: 1.1; font-weight: 800; letter-spacing: .08em; }
+    .brand-en { display: block; margin-top: 3px; color: var(--muted); font-size: 8px; font-weight: 700; letter-spacing: .18em; }
+    .account { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: 11px; }
+    .avatar { width: 34px; height: 34px; display: grid; place-items: center; border: 1px solid var(--ink); border-radius: 50%; color: var(--ink); background: var(--lemon); font-size: 13px; font-weight: 800; box-shadow: 2px 2px 0 var(--blue); }
+    .hero { display: flex; align-items: center; justify-content: space-between; gap: 32px; padding: 25px 0 20px; }
+    .eyebrow { margin: 0 0 8px; color: var(--muted); font-size: 9px; font-weight: 750; letter-spacing: .2em; }
+    .hero h1 { margin: 0; font-size: 38px; line-height: 1.25; letter-spacing: -.035em; }
+    .hero h1 span { position: relative; z-index: 0; white-space: nowrap; }
+    .hero h1 span::after { content: ""; position: absolute; z-index: -1; left: -4px; right: -4px; bottom: 1px; height: 12px; background: var(--lemon); transform: rotate(-1deg); }
+    .hero-copy > p:last-child { margin: 10px 0 0; color: var(--muted); font-size: 12px; }
+    .cloud-status { min-width: 250px; display: flex; align-items: center; gap: 16px; padding: 14px 18px; border: 1px solid var(--line); border-radius: 28px 28px 28px 8px; background: rgba(255, 253, 244, .64); }
+    .cloud-status svg { width: 58px; height: 44px; flex: 0 0 auto; }
+    .cloud-status strong { display: block; font-size: 16px; }
+    .cloud-status strong span { font-size: 25px; }
+    .cloud-status p { margin: 4px 0 0; color: var(--muted); font-size: 10px; }
+    .toolbar { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 12px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+    .filters { display: flex; flex-wrap: wrap; gap: 8px; }
+    .filter {
+      min-height: 34px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 12px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--ink);
+      background: rgba(255, 253, 244, .5);
+      font-size: 11px;
+      cursor: pointer;
+      transition: background-color 160ms ease, color 160ms ease, transform 160ms ease;
+    }
+    .filter:hover { background: var(--surface); transform: translateY(-1px); }
+    .filter[aria-pressed="true"] { color: var(--surface); background: var(--ink); border-color: var(--ink); }
+    .filter-count { min-width: 20px; height: 20px; display: inline-grid; place-items: center; padding: 0 5px; border-radius: 999px; color: var(--ink); background: var(--blue); font-size: 9px; font-weight: 800; }
+    .filter[aria-pressed="true"] .filter-count { background: var(--lemon); }
+    .results-status { flex: 0 0 auto; margin: 0; color: var(--muted); font-size: 10px; }
+    .cabinet-grid { columns: 3; column-gap: 18px; padding: 22px 4px 30px; }
+    .save-card {
+      position: relative;
+      width: 100%;
+      display: inline-block;
+      break-inside: avoid;
+      margin: 0 0 18px;
+      overflow: hidden;
+      border: 1px solid var(--ink);
+      border-radius: 16px 16px 16px 5px;
+      background: var(--surface);
+      box-shadow: 4px 4px 0 rgba(38, 55, 74, .11);
+      vertical-align: top;
+      transition: transform 180ms ease, box-shadow 180ms ease;
+    }
+    .save-card:nth-child(3n + 2) { border-radius: 5px 16px 16px 16px; }
+    .save-card:hover { transform: translateY(-3px) rotate(-.2deg); box-shadow: 6px 7px 0 rgba(38, 55, 74, .13); }
+    .save-card::after { content: ""; position: absolute; top: 0; right: 24px; width: 43px; height: 8px; background: var(--lemon); opacity: .9; }
+    .card-visual { height: 106px; overflow: hidden; border-bottom: 1px solid var(--ink); background: var(--blue); }
+    .card-visual.tall { height: 132px; }
+    .card-visual svg { display: block; width: 100%; height: 100%; }
+    .card-body { padding: 15px 16px 14px; }
+    .card-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+    .category { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-size: 9px; font-weight: 700; letter-spacing: .1em; }
+    .category::before { content: ""; width: 7px; height: 7px; border-radius: 2px; background: var(--blue); }
+    .save-card[data-category="reading"] .category::before { background: var(--lemon); }
+    .save-card[data-category="audio"] .category::before { background: var(--mint); }
+    .save-card[data-category="tools"] .category::before { background: var(--coral); }
+    .remove-card { width: 29px; height: 29px; display: grid; place-items: center; flex: 0 0 auto; margin: -5px -6px -5px 0; border: 0; border-radius: 50%; color: var(--muted); background: transparent; cursor: pointer; transition: color 150ms ease, background-color 150ms ease; }
+    .remove-card:hover { color: var(--ink); background: var(--coral); }
+    .remove-card svg { width: 16px; height: 16px; }
+    .save-card h2 { margin: 0; font-size: 17px; line-height: 1.45; letter-spacing: -.01em; }
+    .card-description { margin: 8px 0 0; color: var(--muted); font-size: 11px; line-height: 1.7; }
+    .card-meta { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 13px; padding-top: 10px; border-top: 1px dashed var(--line); color: var(--muted); font-size: 9px; }
+    .card-source { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .card-type { flex: 0 0 auto; color: var(--ink); font-weight: 650; }
+    .note-card { background: var(--pale-yellow); }
+    .note-card .big-number { display: block; margin: 2px 0 10px; font-family: Georgia, serif; font-size: 54px; line-height: 1; font-style: italic; }
+    .type-sample { padding: 10px 0 4px; border-bottom: 1px solid var(--ink); }
+    .type-sample strong { display: block; font-size: 48px; line-height: 1.1; letter-spacing: -.06em; }
+    .type-sample span { color: var(--muted); font-family: Georgia, serif; font-size: 15px; font-style: italic; }
+    .playlist-time { display: flex; align-items: end; justify-content: space-between; padding-bottom: 12px; border-bottom: 1px solid var(--ink); }
+    .playlist-time strong { font-family: Georgia, serif; font-size: 43px; line-height: 1; font-weight: 400; }
+    .playlist-time svg { width: 63px; height: 34px; }
+    .empty-state { margin: 32px 0 42px; padding: 36px 24px; border: 1px dashed var(--ink); border-radius: 18px; background: rgba(255, 253, 244, .65); text-align: center; }
+    .empty-state svg { width: 70px; height: 50px; }
+    .empty-state h2 { margin: 12px 0 6px; font-size: 21px; }
+    .empty-state p { margin: 0 0 18px; color: var(--muted); font-size: 12px; }
+    .show-all { min-height: 38px; padding: 9px 16px; border: 1px solid var(--ink); border-radius: 999px; color: var(--surface); background: var(--ink); font-size: 12px; cursor: pointer; }
+    .show-all:hover { color: var(--ink); background: var(--lemon); }
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 24px;
+      z-index: 30;
+      min-width: 320px;
+      max-width: calc(100% - 32px);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 22px;
+      padding: 11px 12px 11px 17px;
+      border: 1px solid var(--ink);
+      border-radius: 12px;
+      color: var(--surface);
+      background: var(--ink);
+      box-shadow: 4px 5px 0 rgba(38, 55, 74, .2);
+      font-size: 12px;
+      opacity: 0;
+      transform: translate(-50%, 14px);
+      pointer-events: none;
+      transition: opacity 180ms ease, transform 180ms ease;
+    }
+    .toast.visible { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
+    .undo-button { flex: 0 0 auto; padding: 6px 11px; border: 0; border-radius: 999px; color: var(--ink); background: var(--lemon); font-size: 11px; font-weight: 750; cursor: pointer; }
+    .undo-button:hover { background: var(--surface); }
+    .undo-button:focus-visible { outline-color: var(--lemon); }
+    @media (max-width: 900px) {
+      .site { width: calc(100% - 40px); }
+      .cabinet-grid { columns: 2; }
+      .hero h1 { font-size: 33px; }
+      .cloud-status { min-width: 220px; }
+      .results-status { display: none; }
+    }
+    @media (max-width: 660px) {
+      .hero { align-items: flex-start; flex-direction: column; gap: 18px; }
+      .cloud-status { min-width: 0; width: 100%; }
+      .toolbar { align-items: flex-start; }
+    }
+    @media (max-width: 520px) {
+      .site { width: calc(100% - 28px); }
+      .cabinet-grid { columns: 1; }
+      .account > span:last-child { display: none; }
+      .hero h1 { font-size: 30px; }
+      .toast { min-width: 0; width: calc(100% - 28px); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="site">
+    <header class="topbar">
+      <div class="brand">
+        <svg viewBox="0 0 44 36" fill="none" aria-hidden="true"><path d="M11 28h23a7 7 0 0 0 1-13 10 10 0 0 0-19-3 8 8 0 0 0-5 16z" fill="#F5EB72" stroke="#26374A" stroke-width="1.4"/><path d="M14 22h16M17 17h11" stroke="#26374A" stroke-width="1.4" stroke-linecap="round"/></svg>
+        <span><span class="brand-name">云格</span><span class="brand-en">CLOUD CABINET</span></span>
+      </div>
+      <div class="account"><span>林同学的云柜</span><span class="avatar" aria-hidden="true">林</span></div>
+    </header>
+
+    <main>
+      <section class="hero" aria-labelledby="page-title">
+        <div class="hero-copy">
+          <p class="eyebrow">A LITTLE CLOUD OF MY OWN</p>
+          <h1 id="page-title">把喜欢的东西，<span>收进云里。</span></h1>
+          <p>文章、声音与灵感碎片，都在各自的位置。</p>
+        </div>
+        <div class="cloud-status">
+          <svg viewBox="0 0 64 48" fill="none" aria-hidden="true"><path d="M17 37h31a10 10 0 0 0 1-19 13 13 0 0 0-25-4 11 11 0 0 0-7 23z" fill="#B9DBF2" stroke="#26374A" stroke-width="1.4"/><path d="M24 28l6 6 12-14" stroke="#26374A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <div><strong><span id="total-count">8</span> 件收藏</strong><p>最近整理：今天 14:32</p></div>
+        </div>
+      </section>
+
+      <section class="toolbar" aria-label="收藏分类工具栏">
+        <div class="filters" role="group" aria-label="按分类筛选收藏">
+          <button class="filter" type="button" data-filter="all" aria-pressed="true">全部<span class="filter-count" data-count="all">8</span></button>
+          <button class="filter" type="button" data-filter="visual" aria-pressed="false">视觉<span class="filter-count" data-count="visual">3</span></button>
+          <button class="filter" type="button" data-filter="reading" aria-pressed="false">阅读<span class="filter-count" data-count="reading">2</span></button>
+          <button class="filter" type="button" data-filter="audio" aria-pressed="false">声音<span class="filter-count" data-count="audio">2</span></button>
+          <button class="filter" type="button" data-filter="tools" aria-pressed="false">工具<span class="filter-count" data-count="tools">1</span></button>
+        </div>
+        <p class="results-status" id="results-status" aria-live="polite">正在查看全部 8 件收藏</p>
+      </section>
+
+      <section class="cabinet-grid" id="cabinet-grid" aria-label="收藏内容">
+        <article class="save-card" data-category="visual" data-title="黄与蓝的十二种比例">
+          <div class="card-visual">
+            <svg viewBox="0 0 360 106" role="img" aria-label="柠檬黄、粉蓝和珊瑚色组成的包豪斯几何图集">
+              <rect width="360" height="106" fill="#FFFDF4"/>
+              <rect x="0" y="0" width="120" height="106" fill="#B9DBF2"/><circle cx="120" cy="53" r="43" fill="#F5EB72"/><path d="M163 106a43 43 0 0 1 86 0z" fill="#26374A"/><rect x="249" width="111" height="53" fill="#E88772"/><path d="M249 106l55-53 56 53z" fill="#F5EB72"/><circle cx="57" cy="27" r="13" fill="#FFFDF4"/>
+            </svg>
+          </div>
+          <div class="card-body">
+            <div class="card-top"><span class="category">视觉 / 配色</span><button class="remove-card" type="button" aria-label="移出收藏：黄与蓝的十二种比例"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M5 3h10v14l-5-3-5 3zM7 8h6"/></svg></button></div>
+            <h2>黄与蓝的十二种比例</h2>
+            <p class="card-description">从 1:1 到 1:5，一组适合信息图与海报的明快配色练习。</p>
+            <div class="card-meta"><span class="card-source">形色的设计笔记</span><span class="card-type">图集 · 12 张</span></div>
+          </div>
+        </article>
+
+        <article class="save-card note-card" data-category="reading" data-title="城市步行的 42 个观察角度">
+          <div class="card-body">
+            <div class="card-top"><span class="category">阅读 / 城市</span><button class="remove-card" type="button" aria-label="移出收藏：城市步行的 42 个观察角度"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M5 3h10v14l-5-3-5 3zM7 8h6"/></svg></button></div>
+            <span class="big-number">42</span>
+            <h2>城市步行的 42 个观察角度</h2>
+            <p class="card-description">从树池的高度到店铺卷帘门上的画，下次散步可以带着这份清单。</p>
+            <div class="card-meta"><span class="card-source">城市与步行周刊</span><span class="card-type">文章 · 18 分钟</span></div>
+          </div>
+        </article>
+
+        <article class="save-card" data-category="audio" data-title="雨落便利店｜环境声 28 分钟">
+          <div class="card-visual tall">
+            <svg viewBox="0 0 360 132" role="img" aria-label="蓝色雨夜中亮着暖黄灯的便利店与声波">
+              <rect width="360" height="132" fill="#26374A"/>
+              <circle cx="287" cy="27" r="18" fill="#F5EB72" opacity=".9"/>
+              <path d="M0 102h360v30H0z" fill="#62758A"/><path d="M58 48h190v64H58z" fill="#B9DBF2"/><path d="M48 48h211l-13-18H61z" fill="#FFFDF4"/><path d="M71 65h66v47H71zm78 0h86v47h-86z" fill="#F5EB72"/><path d="M149 65v47M78 76h52m27 0h70m-70 13h70" stroke="#26374A" stroke-width="2"/>
+              <path d="M23 10l-5 15m38-17l-5 15m255 47l-5 15m-275-6l-5 15m300-55l-5 15M165 8l-5 15" stroke="#B9DBF2" stroke-width="1.2" stroke-linecap="round"/>
+              <path d="M267 91v20m8-28v36m8-24v12m8-34v46m8-32v18m8-27v36m8-20v12" stroke="#F5EB72" stroke-width="3" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div class="card-body">
+            <div class="card-top"><span class="category">声音 / 环境声</span><button class="remove-card" type="button" aria-label="移出收藏：雨落便利店环境声"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M5 3h10v14l-5-3-5 3zM7 8h6"/></svg></button></div>
+            <h2>雨落便利店｜环境声 28 分钟</h2>
+            <p class="card-description">雨棚、自动门和很远的雷声，适合放到写作的背景里。</p>
+            <div class="card-meta"><span class="card-source">声景电台</span><span class="card-type">音频 · 28:16</span></div>
+          </div>
+        </article>
+
+        <article class="save-card" data-category="tools" data-title="把表格做得更易读的 7 个细节">
+          <div class="card-body">
+            <div class="card-top"><span class="category">工具 / 效率</span><button class="remove-card" type="button" aria-label="移出收藏：把表格做得更易读的 7 个细节"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M5 3h10v14l-5-3-5 3zM7 8h6"/></svg></button></div>
+            <svg viewBox="0 0 320 74" role="img" aria-label="具有斑马纹和清晰对齐的表格示意">
+              <rect x="1" y="1" width="318" height="72" fill="#FFFDF4" stroke="#26374A"/>
+              <path d="M1 19h318M1 37h318M1 55h318M91 1v72M229 1v72" stroke="#A8BDD0"/>
+              <path d="M1 19h318v18H1zM1 55h318v18H1z" fill="#EAF4FC"/>
+              <path d="M14 11h44m47 0h71m67 0h42M14 29h55m36 0h54m84 0h31M14 47h36m55 0h76m62 0h48M14 65h48m43 0h57m81 0h35" stroke="#26374A" stroke-width="3" stroke-linecap="round"/>
+            </svg>
+            <h2 style="margin-top: 12px;">把表格做得更易读的 7 个细节</h2>
+            <p class="card-description">数字对齐、行高和克制的分隔线，比更多颜色更重要。</p>
+            <div class="card-meta"><span class="card-source">工具体贴指南</span><span class="card-type">网页 · 已读 60%</span></div>
+          </div>
+        </article>
+
+        <article class="save-card" data-category="reading" data-title="独立杂志《附近》第 07 期">
+          <div class="card-visual">
+            <svg viewBox="0 0 360 106" role="img" aria-label="独立杂志附近的抽象封面">
+              <rect width="360" height="106" fill="#CDE8D9"/>
+              <path d="M0 78c61-38 95-30 142-5s90 26 133-2 63-23 85-12v47H0z" fill="#B9DBF2"/>
+              <circle cx="276" cy="30" r="24" fill="#F5EB72"/>
+              <path d="M30 24h118M30 36h82" stroke="#26374A" stroke-width="5"/>
+              <text x="28" y="82" fill="#26374A" font-size="31" font-weight="800" font-family="sans-serif">附近</text><text x="123" y="81" fill="#26374A" font-size="11" font-family="sans-serif">ISSUE 07</text>
+            </svg>
+          </div>
+          <div class="card-body">
+            <div class="card-top"><span class="category">阅读 / 杂志</span><button class="remove-card" type="button" aria-label="移出收藏：独立杂志附近第 07 期"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M5 3h10v14l-5-3-5 3zM7 8h6"/></svg></button></div>
+            <h2>独立杂志《附近》第 07 期</h2>
+            <p class="card-description">这一期讨论菜市场、社区广播和步行十五分钟内的人际关系。</p>
+            <div class="card-meta"><span class="card-source">附近编辑部</span><span class="card-type">PDF · 86 页</span></div>
+          </div>
+        </article>
+
+        <article class="save-card" data-category="visual" data-title="陶器表面的冰裂纹理">
+          <div class="card-visual tall">
+            <svg viewBox="0 0 360 132" role="img" aria-label="粉蓝色陶器表面的细密冰裂纹理">
+              <rect width="360" height="132" fill="#B9DBF2"/>
+              <path d="M0 35l55 22 36-40 45 30 49-19 44 36 46-25 44 29 41-20M22 0l33 57-15 44 51 31M91 17l24 66-25 49M136 47l15 53-23 32M185 28l-8 51 34 53M229 64l-16 52 16 16M275 39l-9 52 41 41M319 68l-22 50 17 14M0 94l40 7 75-18 36 17 62-21 53 12 72-23" fill="none" stroke="#FFFDF4" stroke-width="1.3" opacity=".9"/>
+              <path d="M0 36l55 22 36-40 45 30 49-19 44 36 46-25 44 29" fill="none" stroke="#62758A" stroke-width=".6" opacity=".55"/>
+              <ellipse cx="292" cy="103" rx="42" ry="17" fill="#F5EB72" opacity=".45"/>
+            </svg>
+          </div>
+          <div class="card-body">
+            <div class="card-top"><span class="category">视觉 / 材质</span><button class="remove-card" type="button" aria-label="移出收藏：陶器表面的冰裂纹理"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M5 3h10v14l-5-3-5 3zM7 8h6"/></svg></button></div>
+            <h2>陶器表面的冰裂纹理</h2>
+            <p class="card-description">四张自然光下的釉面细节，留给下一张材质情绪板。</p>
+            <div class="card-meta"><span class="card-source">我的材质采集</span><span class="card-type">图片 · 4 张</span></div>
+          </div>
+        </article>
+
+        <article class="save-card note-card" data-category="audio" data-title="清晨七点半的轻爵士">
+          <div class="card-body">
+            <div class="card-top"><span class="category">声音 / 歌单</span><button class="remove-card" type="button" aria-label="移出收藏：清晨七点半的轻爵士"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M5 3h10v14l-5-3-5 3zM7 8h6"/></svg></button></div>
+            <div class="playlist-time"><strong>07:30</strong><svg viewBox="0 0 63 34" fill="none" aria-hidden="true"><path d="M2 17h4l3-9 5 20 5-25 5 29 5-21 5 12 5-7 5 4 5-13 5 20 5-10h4" stroke="#26374A" stroke-width="1.5" stroke-linejoin="round"/></svg></div>
+            <h2 style="margin-top: 12px;">清晨七点半的轻爵士</h2>
+            <p class="card-description">钢琴、轻刷鼓和不太着急的小号，刚好够做完一顿早餐。</p>
+            <div class="card-meta"><span class="card-source">松涛的歌单</span><span class="card-type">歌单 · 16 首</span></div>
+          </div>
+        </article>
+
+        <article class="save-card" data-category="visual" data-title="地铁站字体采集：七月">
+          <div class="card-body">
+            <div class="card-top"><span class="category">视觉 / 字体</span><button class="remove-card" type="button" aria-label="移出收藏：地铁站字体采集七月"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M5 3h10v14l-5-3-5 3zM7 8h6"/></svg></button></div>
+            <div class="type-sample"><strong>站 / 07</strong><span>Wayfinding notes</span></div>
+            <h2 style="margin-top: 12px;">地铁站字体采集：七月</h2>
+            <p class="card-description">旧站牌上的扁黑体、手写出口补丁，以及两套新导视的对照。</p>
+            <div class="card-meta"><span class="card-source">我的相册</span><span class="card-type">采集 · 23 张</span></div>
+          </div>
+        </article>
+      </section>
+
+      <section class="empty-state" id="empty-state" hidden aria-labelledby="empty-title">
+        <svg viewBox="0 0 70 50" fill="none" aria-hidden="true"><path d="M17 39h36a11 11 0 0 0 1-21 14 14 0 0 0-27-4 12 12 0 0 0-10 25z" fill="#B9DBF2" stroke="#26374A" stroke-width="1.4"/><path d="M27 27h16" stroke="#26374A" stroke-width="2" stroke-linecap="round"/></svg>
+        <h2 id="empty-title">这个分类暂时空空的</h2>
+        <p>被移出的收藏可以撤销，也可以先看看其他分类。</p>
+        <button class="show-all" id="show-all" type="button">查看全部收藏</button>
+      </section>
+    </main>
+  </div>
+
+  <div class="toast" id="undo-toast">
+    <span id="toast-message" role="status" aria-live="polite"></span>
+    <button class="undo-button" id="undo-remove" type="button" hidden>撤销移出</button>
+  </div>
+
+  <script>
+    const grid = document.getElementById("cabinet-grid");
+    const filterButtons = Array.from(document.querySelectorAll(".filter"));
+    const totalCount = document.getElementById("total-count");
+    const resultsStatus = document.getElementById("results-status");
+    const emptyState = document.getElementById("empty-state");
+    const toast = document.getElementById("undo-toast");
+    const toastMessage = document.getElementById("toast-message");
+    const undoButton = document.getElementById("undo-remove");
+    const filterNames = { all: "全部", visual: "视觉", reading: "阅读", audio: "声音", tools: "工具" };
+    let activeFilter = "all";
+    let lastRemoved = null;
+    let toastTimer;
+
+    function cards() { return Array.from(grid.querySelectorAll(".save-card")); }
+
+    function updateView() {
+      const allCards = cards();
+      allCards.forEach(card => { card.hidden = activeFilter !== "all" && card.dataset.category !== activeFilter; });
+      const visibleCount = allCards.filter(card => !card.hidden).length;
+      totalCount.textContent = allCards.length;
+      document.querySelector('[data-count="all"]').textContent = allCards.length;
+      ["visual", "reading", "audio", "tools"].forEach(category => {
+        document.querySelector(`[data-count="${category}"]`).textContent = allCards.filter(card => card.dataset.category === category).length;
+      });
+      resultsStatus.textContent = activeFilter === "all" ? `正在查看全部 ${visibleCount} 件收藏` : `正在查看「${filterNames[activeFilter]}」${visibleCount} 件收藏`;
+      grid.hidden = visibleCount === 0;
+      emptyState.hidden = visibleCount !== 0;
+    }
+
+    function setFilter(filter) {
+      activeFilter = filter;
+      filterButtons.forEach(button => button.setAttribute("aria-pressed", String(button.dataset.filter === filter)));
+      updateView();
+    }
+
+    filterButtons.forEach(button => button.addEventListener("click", () => setFilter(button.dataset.filter)));
+    document.getElementById("show-all").addEventListener("click", () => setFilter("all"));
+
+    function showToast(message, canUndo) {
+      clearTimeout(toastTimer);
+      toastMessage.textContent = message;
+      undoButton.hidden = !canUndo;
+      toast.classList.add("visible");
+      toastTimer = setTimeout(() => {
+        toast.classList.remove("visible");
+        undoButton.hidden = true;
+      }, canUndo ? 7000 : 2600);
+    }
+
+    grid.addEventListener("click", event => {
+      const button = event.target.closest(".remove-card");
+      if (!button) return;
+      const card = button.closest(".save-card");
+      lastRemoved = { card, parent: card.parentNode, nextSibling: card.nextSibling };
+      card.remove();
+      updateView();
+      showToast(`已移出「${card.dataset.title}」`, true);
+    });
+
+    undoButton.addEventListener("click", () => {
+      if (!lastRemoved) return;
+      const { card, parent, nextSibling } = lastRemoved;
+      parent.insertBefore(card, nextSibling && nextSibling.parentNode === parent ? nextSibling : null);
+      lastRemoved = null;
+      updateView();
+      showToast(`已恢复「${card.dataset.title}」`, false);
+    });
+  </script>
+</body>
+</html>

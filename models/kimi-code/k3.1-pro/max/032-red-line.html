@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>核界控制台 · 危险删除</title>
+  <style>
+    :root {
+      --page: #FFFFFF;
+      --ink: #0A0A0A;
+      --danger: #E2231A;
+      --danger-dark: #B81710;
+      --soft: #F2F2F0;
+      --line: #D8D8D3;
+      --muted: #656565;
+      --disabled: #E5E5E1;
+      --pale-red: #FFF0EE;
+      --success: #14633B;
+    }
+    * { box-sizing: border-box; }
+    html { color-scheme: light; }
+    body {
+      margin: 0;
+      min-width: 320px;
+      color: var(--ink);
+      background-color: var(--page);
+      background-image: linear-gradient(#0A0A0A05 1px, transparent 1px), linear-gradient(90deg, #0A0A0A05 1px, transparent 1px);
+      background-size: 40px 40px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+      font-size: 14px;
+      line-height: 1.55;
+    }
+    button, input { font: inherit; }
+    button { cursor: pointer; }
+    button:disabled { cursor: not-allowed; }
+    button:focus-visible, input:focus-visible {
+      outline: 3px solid var(--danger);
+      outline-offset: 4px;
+    }
+    [hidden] { display: none !important; }
+    .topline { height: 6px; background: var(--danger); }
+    .masthead { height: 70px; border-bottom: 2px solid var(--ink); background: var(--page); }
+    .masthead-inner {
+      width: min(1180px, calc(100% - 48px));
+      height: 100%;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+    }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .brand-symbol { position: relative; width: 28px; height: 28px; background: var(--ink); }
+    .brand-symbol::before { content: ""; position: absolute; inset: 6px; border: 2px solid var(--page); transform: rotate(45deg); }
+    .brand-name { font-size: 16px; font-weight: 800; letter-spacing: 2px; }
+    .brand-name small { display: block; margin-top: -2px; color: var(--muted); font-family: Consolas, "SFMono-Regular", monospace; font-size: 8px; font-weight: 500; letter-spacing: 1.5px; }
+    .environment { display: flex; align-items: center; gap: 10px; font-family: Consolas, "SFMono-Regular", monospace; font-size: 11px; }
+    .environment b { padding: 4px 8px; color: var(--page); background: var(--danger); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif; font-size: 10px; letter-spacing: 1px; }
+    .page { width: min(1180px, calc(100% - 48px)); margin: 0 auto; padding: 30px 0 22px; }
+    .page-intro { display: flex; align-items: center; justify-content: space-between; gap: 20px; margin-bottom: 17px; }
+    .breadcrumb { color: var(--muted); font-size: 11px; }
+    .breadcrumb strong { color: var(--ink); }
+    .risk-index { color: var(--danger); font-family: Consolas, "SFMono-Regular", monospace; font-size: 11px; font-weight: 700; letter-spacing: 1px; }
+    .danger-layout { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); min-height: 596px; border: 2px solid var(--ink); background: var(--page); box-shadow: 9px 9px 0 var(--ink); }
+    .danger-copy { position: relative; display: flex; flex-direction: column; min-width: 0; padding: 32px 34px 26px; overflow: hidden; color: var(--page); background: var(--ink); }
+    .danger-copy::after { content: "05"; position: absolute; right: -10px; top: -35px; color: transparent; -webkit-text-stroke: 1px #FFFFFF1F; font-family: Arial, sans-serif; font-size: 210px; font-weight: 900; line-height: 1; pointer-events: none; }
+    .danger-label { position: relative; z-index: 1; display: inline-flex; align-items: center; align-self: flex-start; gap: 8px; margin-bottom: 27px; padding: 5px 9px; color: var(--page); background: var(--danger); font-size: 10px; font-weight: 800; letter-spacing: 2px; }
+    .danger-label::before { content: "!"; display: grid; place-items: center; width: 15px; height: 15px; color: var(--danger); background: var(--page); border-radius: 50%; font-family: Arial, sans-serif; font-size: 11px; }
+    .overline { position: relative; z-index: 1; margin: 0 0 8px; color: #A9A9A9; font-family: Consolas, "SFMono-Regular", monospace; font-size: 10px; letter-spacing: 2px; }
+    h1, h2, h3, p { margin-top: 0; }
+    h1 { position: relative; z-index: 1; max-width: 370px; margin-bottom: 16px; font-size: clamp(36px, 4vw, 55px); line-height: 1.06; letter-spacing: -2px; }
+    h1 span { color: var(--danger); }
+    .lead { position: relative; z-index: 1; max-width: 355px; margin-bottom: 24px; color: #C8C8C8; font-size: 13px; line-height: 1.75; }
+    .target { position: relative; z-index: 1; padding: 13px 0; border-top: 1px solid #FFFFFF38; border-bottom: 1px solid #FFFFFF38; }
+    .target span { display: block; color: #A9A9A9; font-size: 9px; letter-spacing: 1.5px; }
+    .target strong { display: block; margin: 3px 0; font-size: 17px; }
+    .target code { color: #C8C8C8; font-family: Consolas, "SFMono-Regular", monospace; font-size: 10px; }
+    .danger-graphic { position: relative; z-index: 1; display: block; width: 190px; height: 128px; margin: auto 0 -4px auto; }
+    .danger-form { min-width: 0; padding: 29px 34px 27px; background: var(--page); }
+    .section-number { display: flex; align-items: center; justify-content: space-between; gap: 20px; margin-bottom: 16px; color: var(--muted); font-family: Consolas, "SFMono-Regular", monospace; font-size: 10px; letter-spacing: 1px; }
+    .section-number::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+    .danger-form h2 { margin-bottom: 7px; font-size: 23px; line-height: 1.25; letter-spacing: -.5px; }
+    .section-copy { margin-bottom: 17px; color: var(--muted); font-size: 12px; }
+    .loss-list { margin: 0 0 19px; padding: 0; border-top: 2px solid var(--ink); list-style: none; }
+    .loss-list li { display: grid; grid-template-columns: 31px 1fr auto; gap: 11px; align-items: center; min-height: 58px; padding: 9px 0; border-bottom: 1px solid var(--line); }
+    .loss-index { color: var(--danger); font-family: Consolas, "SFMono-Regular", monospace; font-size: 11px; font-weight: 700; }
+    .loss-list strong { display: block; font-size: 12px; }
+    .loss-list small { display: block; margin-top: 1px; color: var(--muted); font-size: 10px; }
+    .loss-value { color: var(--danger); font-family: Consolas, "SFMono-Regular", monospace; font-size: 12px; font-weight: 700; text-align: right; }
+    .confirm-block { padding: 15px 16px 14px; background: var(--soft); border-left: 4px solid var(--danger); }
+    .confirm-block label { display: block; margin-bottom: 8px; font-size: 12px; font-weight: 700; }
+    .confirm-block label span { color: var(--danger); }
+    .phrase { display: inline-block; padding: 1px 5px; color: var(--page); background: var(--ink); font-family: "Microsoft YaHei", sans-serif; font-size: 12px; font-weight: 700; }
+    .confirm-input { width: 100%; height: 44px; margin-top: 10px; padding: 0 12px; color: var(--ink); background: var(--page); border: 2px solid var(--ink); border-radius: 0; font-size: 14px; font-weight: 700; outline-offset: 2px; }
+    .confirm-input::placeholder { color: #8A8A8A; font-weight: 400; }
+    .confirm-input:hover { border-color: var(--danger); }
+    .confirm-input[aria-invalid="true"] { border-color: var(--danger); background: var(--pale-red); }
+    .confirm-input.valid { border-color: var(--success); }
+    .input-feedback { min-height: 17px; margin: 5px 0 0; color: var(--muted); font-size: 10px; }
+    .input-feedback.error { color: var(--danger-dark); }
+    .input-feedback.valid { color: var(--success); }
+    .actions { display: grid; grid-template-columns: 1.25fr 1fr; gap: 10px; margin-top: 14px; }
+    .btn { min-height: 47px; padding: 11px 15px; border: 2px solid var(--ink); border-radius: 0; font-size: 12px; font-weight: 800; transition: color 140ms ease, background-color 140ms ease, transform 140ms ease; }
+    .btn:active:not(:disabled) { transform: translate(1px, 1px); }
+    .btn-cancel { color: var(--page); background: var(--ink); box-shadow: 4px 4px 0 #0A0A0A26; }
+    .btn-cancel:hover { color: var(--ink); background: var(--page); }
+    .btn-delete { color: var(--danger); background: var(--page); border-color: var(--danger); }
+    .btn-delete:hover:not(:disabled) { color: var(--page); background: var(--danger); }
+    .btn-delete:disabled { color: #92928D; background: var(--disabled); border-color: var(--line); }
+    .safety-note { margin: 10px 0 0; color: var(--muted); font-size: 10px; text-align: center; }
+    .safe-message { margin: 12px 0 0; padding: 9px 12px; color: var(--success); background: #14633B0B; border: 1px solid var(--success); font-size: 11px; font-weight: 700; }
+    .page-foot { display: flex; justify-content: space-between; gap: 24px; margin-top: 21px; color: var(--muted); font-family: Consolas, "SFMono-Regular", monospace; font-size: 9px; letter-spacing: .5px; }
+    .page-foot strong { color: var(--danger); }
+    dialog { width: min(480px, calc(100% - 32px)); padding: 0; color: var(--ink); background: var(--page); border: 2px solid var(--danger); border-radius: 0; box-shadow: 10px 10px 0 var(--ink); }
+    dialog::backdrop { background: #0A0A0ACC; }
+    .dialog-stripe { height: 8px; background: repeating-linear-gradient(135deg, var(--danger) 0 12px, var(--ink) 12px 24px); }
+    .dialog-body { padding: 27px 28px 28px; }
+    .dialog-code { margin-bottom: 8px; color: var(--danger); font-family: Consolas, "SFMono-Regular", monospace; font-size: 10px; font-weight: 700; letter-spacing: 1.5px; }
+    .dialog-body h2 { margin-bottom: 10px; font-size: 28px; line-height: 1.2; }
+    .dialog-body p { color: var(--muted); font-size: 12px; }
+    .dialog-target { margin: 18px 0; padding: 12px 14px; background: var(--pale-red); border-left: 3px solid var(--danger); font-size: 12px; font-weight: 700; }
+    .dialog-actions { display: grid; grid-template-columns: 1.2fr 1fr; gap: 10px; }
+    .deleted-view { min-height: 596px; padding: 44px 48px; color: var(--page); background: var(--ink); border: 2px solid var(--ink); box-shadow: 9px 9px 0 var(--danger); }
+    .deleted-mark { display: grid; place-items: center; width: 70px; height: 70px; margin-bottom: 28px; color: var(--page); background: var(--danger); font-family: Arial, sans-serif; font-size: 47px; font-weight: 300; }
+    .deleted-view .overline { color: var(--danger); }
+    .deleted-view h2 { max-width: 600px; margin-bottom: 14px; font-size: 46px; line-height: 1.1; }
+    .deleted-view > p { max-width: 590px; color: #C8C8C8; }
+    .deleted-receipt { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; margin: 34px 0; background: #FFFFFF38; border: 1px solid #FFFFFF38; }
+    .deleted-receipt div { padding: 19px; background: var(--ink); }
+    .deleted-receipt span { display: block; color: #A9A9A9; font-size: 10px; }
+    .deleted-receipt strong { display: block; margin-top: 5px; color: var(--page); font-family: Consolas, "SFMono-Regular", monospace; font-size: 15px; }
+    .deleted-view .btn { min-width: 210px; color: var(--ink); background: var(--page); border-color: var(--page); }
+    .deleted-view .btn:hover { color: var(--page); background: var(--danger); border-color: var(--danger); }
+    .toast { position: fixed; left: 50%; bottom: 24px; z-index: 30; max-width: calc(100vw - 32px); padding: 12px 18px; color: var(--page); background: var(--ink); border-left: 5px solid var(--danger); box-shadow: 5px 5px 0 #E2231A55; font-size: 12px; font-weight: 700; opacity: 0; transform: translate(-50%, 12px); pointer-events: none; transition: opacity 160ms ease, transform 160ms ease; }
+    .toast.show { opacity: 1; transform: translate(-50%, 0); }
+    @media (max-width: 950px) {
+      .danger-layout { grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); }
+      .danger-copy { padding: 28px 26px 24px; }
+      .danger-form { padding: 27px 26px 24px; }
+      h1 { font-size: 40px; }
+      .danger-graphic { width: 150px; }
+      .actions { grid-template-columns: 1fr; }
+      .btn-cancel { order: -1; }
+    }
+    @media (max-width: 720px) {
+      .masthead-inner, .page { width: calc(100% - 32px); }
+      .environment > span { display: none; }
+      .danger-layout { grid-template-columns: 1fr; box-shadow: 6px 6px 0 var(--ink); }
+      .danger-copy { min-height: 420px; }
+      .danger-graphic { position: absolute; right: 22px; bottom: 25px; opacity: .75; }
+      .target { max-width: 360px; }
+      .actions { grid-template-columns: 1fr; }
+      .page-foot { flex-direction: column; gap: 5px; }
+      .deleted-receipt { grid-template-columns: 1fr; }
+      .deleted-view { padding: 32px 26px; }
+      .deleted-view h2 { font-size: 36px; }
+    }
+    @media (max-width: 440px) {
+      .page-intro { align-items: flex-start; }
+      .risk-index { max-width: 110px; text-align: right; }
+      .danger-copy, .danger-form { padding: 25px 21px; }
+      h1 { font-size: 37px; }
+      .loss-list li { grid-template-columns: 25px 1fr; }
+      .loss-value { grid-column: 2; text-align: left; }
+      .dialog-actions { grid-template-columns: 1fr; }
+      .dialog-actions .btn-cancel { order: -1; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="topline"></div>
+  <header class="masthead">
+    <div class="masthead-inner">
+      <div class="brand"><span class="brand-symbol" aria-hidden="true"></span><div class="brand-name">核界控制台<small>CORE INFRASTRUCTURE</small></div></div>
+      <div class="environment"><span>cn-east-1 / production</span><b>生产环境</b></div>
+    </div>
+  </header>
+
+  <main class="page">
+    <div class="page-intro">
+      <div class="breadcrumb">资源管理 / 数据库 / <strong>澜川生产库</strong> / 危险区域</div>
+      <div class="risk-index">RISK LEVEL 05 — IRREVERSIBLE</div>
+    </div>
+
+    <div class="danger-layout" id="deleteLayout">
+      <section class="danger-copy" aria-labelledby="pageTitle">
+        <div class="danger-label">危险区域 · 不可撤销</div>
+        <p class="overline">YOU ARE CROSSING THE RED LINE</p>
+        <h1 id="pageTitle">删除整个<br><span>生产数据库</span></h1>
+        <p class="lead">这不是停用，也不是移入回收站。删除后，业务数据、备份与访问配置将被永久清除，无法由技术支持找回。</p>
+        <div class="target"><span>即将删除的实例</span><strong>澜川生产库</strong><code>db_lc_prod_01 · PostgreSQL 16</code></div>
+        <svg class="danger-graphic" viewBox="0 0 220 150" fill="none" role="img" aria-label="被红线划去的数据库">
+          <ellipse cx="103" cy="35" rx="64" ry="23" stroke="#FFFFFF" stroke-width="2"/>
+          <path d="M39 35v70c0 13 29 23 64 23s64-10 64-23V35" stroke="#FFFFFF" stroke-width="2"/>
+          <path d="M39 69c0 13 29 23 64 23s64-10 64-23M39 101c0 13 29 23 64 23s64-10 64-23" stroke="#FFFFFF" stroke-width="2"/>
+          <path d="M15 137L203 9" stroke="#E2231A" stroke-width="13"/>
+          <path d="M15 137L203 9" stroke="#FFFFFF" stroke-opacity=".25" stroke-width="2" stroke-dasharray="5 9"/>
+        </svg>
+      </section>
+
+      <section class="danger-form" aria-labelledby="lossTitle">
+        <div class="section-number"><span>01 / 核对永久损失</span></div>
+        <h2 id="lossTitle">你将失去这些，且无法恢复</h2>
+        <p class="section-copy">系统已暂停此实例的新写入，但现有线上服务会随删除立即中断。</p>
+        <ul class="loss-list">
+          <li><span class="loss-index">01</span><div><strong>全部业务数据与自动备份</strong><small>含 36,420 位客户资料及最近 30 天备份</small></div><span class="loss-value">124.8 GB</span></li>
+          <li><span class="loss-index">02</span><div><strong>线上集成与访问凭证</strong><small>支付、物流及 BI 服务将立即停止工作</small></div><span class="loss-value">18 条</span></li>
+          <li><span class="loss-index">03</span><div><strong>成员权限与操作审计</strong><small>7 名成员失去访问，历史审计不再可查</small></div><span class="loss-value">永久清除</span></li>
+        </ul>
+
+        <div class="section-number"><span>02 / 手动输入确认词</span></div>
+        <form id="deleteForm" novalidate>
+          <div class="confirm-block">
+            <label for="confirmInput"><span>必须逐字输入</span> <strong class="phrase">删除澜川生产库</strong> 以继续</label>
+            <input class="confirm-input" id="confirmInput" name="confirmPhrase" type="text" placeholder="在此输入完整确认词" autocomplete="off" spellcheck="false" aria-describedby="inputFeedback" aria-invalid="false">
+            <p class="input-feedback" id="inputFeedback">删除按钮默认锁定，输入完全匹配后才会解锁。</p>
+          </div>
+          <div class="actions">
+            <button class="btn btn-cancel" type="button" id="cancelButton">取消，保留全部数据</button>
+            <button class="btn btn-delete" type="submit" id="deleteButton" disabled>永久删除</button>
+          </div>
+          <p class="safety-note">无需删除？选择左侧黑色按钮即可安全退出，不会更改任何数据。</p>
+          <p class="safe-message" id="safeMessage" role="status" hidden>已取消本次操作。澜川生产库及全部数据保持原状。</p>
+        </form>
+      </section>
+    </div>
+
+    <section class="deleted-view" id="deletedView" aria-labelledby="deletedTitle" hidden>
+      <div class="deleted-mark" aria-hidden="true">×</div>
+      <p class="overline">DELETION COMMAND EXECUTED</p>
+      <h2 id="deletedTitle">澜川生产库已删除。</h2>
+      <p>此实例的数据、备份、集成凭证与访问配置已永久清除。相关线上服务应切换至新的数据源。</p>
+      <div class="deleted-receipt">
+        <div><span>操作单号</span><strong id="deletionId">DEL-000000</strong></div>
+        <div><span>执行时间</span><strong id="deletionTime">—</strong></div>
+        <div><span>执行人</span><strong>root@shenzw</strong></div>
+      </div>
+      <button class="btn" type="button" id="returnResources">返回资源管理</button>
+    </section>
+
+    <footer class="page-foot"><span>CORE / PRODUCTION DATABASE / DANGER ZONE</span><span><strong>警告：</strong>本操作不经过回收站，不提供撤销入口</span></footer>
+  </main>
+
+  <dialog id="finalDialog" aria-labelledby="finalTitle" aria-describedby="finalDescription">
+    <div class="dialog-stripe"></div>
+    <div class="dialog-body">
+      <p class="dialog-code">FINAL CONFIRMATION / 最后一步</p>
+      <h2 id="finalTitle">没有回收站，也没有撤销。</h2>
+      <p id="finalDescription">确认词已匹配。执行后将立即中断 18 条线上集成，并永久清除 124.8 GB 数据与全部备份。</p>
+      <div class="dialog-target">目标：澜川生产库 / db_lc_prod_01</div>
+      <div class="dialog-actions">
+        <button class="btn btn-cancel" type="button" id="dialogCancel">取消，保留数据库</button>
+        <button class="btn btn-delete" type="button" id="finalDelete">我了解，永久删除</button>
+      </div>
+    </div>
+  </dialog>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    (() => {
+      const expectedPhrase = '删除澜川生产库';
+      const input = document.getElementById('confirmInput');
+      const deleteButton = document.getElementById('deleteButton');
+      const feedback = document.getElementById('inputFeedback');
+      const safeMessage = document.getElementById('safeMessage');
+      const dialog = document.getElementById('finalDialog');
+      const toast = document.getElementById('toast');
+      let toastTimer;
+
+      function notify(message) {
+        window.clearTimeout(toastTimer);
+        toast.textContent = message;
+        toast.classList.add('show');
+        toastTimer = window.setTimeout(() => toast.classList.remove('show'), 3000);
+      }
+
+      function openDialog() {
+        if (typeof dialog.showModal === 'function') dialog.showModal();
+        else dialog.setAttribute('open', '');
+      }
+
+      function closeDialog() {
+        if (typeof dialog.close === 'function') dialog.close();
+        else dialog.removeAttribute('open');
+      }
+
+      input.addEventListener('input', () => {
+        const value = input.value.trim();
+        const isMatch = value === expectedPhrase;
+        const hasError = value.length > 0 && !isMatch;
+        deleteButton.disabled = !isMatch;
+        input.classList.toggle('valid', isMatch);
+        input.setAttribute('aria-invalid', String(hasError));
+        feedback.className = 'input-feedback' + (isMatch ? ' valid' : hasError ? ' error' : '');
+        feedback.textContent = isMatch ? '确认词完全匹配。仍需在最后一步再次确认。' : hasError ? '确认词尚不匹配，请检查“澜川”与“生产库”是否完整。' : '删除按钮默认锁定，输入完全匹配后才会解锁。';
+        safeMessage.hidden = true;
+      });
+
+      document.getElementById('deleteForm').addEventListener('submit', (event) => {
+        event.preventDefault();
+        if (input.value.trim() !== expectedPhrase) return;
+        openDialog();
+      });
+
+      document.getElementById('cancelButton').addEventListener('click', () => {
+        input.value = '';
+        input.dispatchEvent(new Event('input'));
+        safeMessage.hidden = false;
+        notify('已安全取消，数据库未发生任何变化');
+      });
+
+      document.getElementById('dialogCancel').addEventListener('click', () => {
+        closeDialog();
+        notify('已保留数据库，未执行删除');
+        deleteButton.focus();
+      });
+
+      dialog.addEventListener('click', (event) => {
+        if (event.target === dialog) closeDialog();
+      });
+
+      document.getElementById('finalDelete').addEventListener('click', () => {
+        const now = new Date();
+        closeDialog();
+        document.getElementById('deleteLayout').hidden = true;
+        document.getElementById('deletedView').hidden = false;
+        document.getElementById('deletionId').textContent = 'DEL-' + String(now.getTime()).slice(-6);
+        document.getElementById('deletionTime').textContent = new Intl.DateTimeFormat('zh-CN', {
+          month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false
+        }).format(now);
+        notify('删除指令已执行，实例与数据已永久清除');
+        document.getElementById('returnResources').focus();
+      });
+
+      document.getElementById('returnResources').addEventListener('click', () => {
+        notify('资源列表已更新：澜川生产库不再存在');
+      });
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,377 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#FFF3DC">
+  <title>麦丘烘焙 · 订单等候</title>
+  <style>
+    :root {
+      --page: #E9DCC8;
+      --cream: #FFF3DC;
+      --paper: #FFFBF2;
+      --orange: #C65327;
+      --brown: #432A1D;
+      --oven: #2A1B15;
+      --muted: #8A7160;
+      --line: #E6D2B6;
+      --yellow: #F2C063;
+      --white: #FFFFFF;
+    }
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    html, body { margin: 0; min-height: 100%; }
+    body {
+      background: var(--page);
+      color: var(--brown);
+      font-family: "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    button { font: inherit; color: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+    button:focus-visible, summary:focus-visible { outline: 3px solid var(--orange); outline-offset: 3px; }
+    .stage {
+      min-height: 100dvh;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+    .stage::before { content: ""; position: fixed; left: -85px; bottom: -170px; width: 360px; height: 460px; border: 2px solid rgba(198,83,39,.16); border-radius: 180px 180px 0 0; pointer-events: none; }
+    .stage::after { content: ""; position: fixed; right: -110px; top: -150px; width: 380px; height: 380px; border-radius: 50%; background: rgba(242,192,99,.24); pointer-events: none; }
+    .wall { display: none; }
+    .device {
+      width: 390px;
+      height: min(844px, calc(100dvh - 40px));
+      max-width: 100%;
+      position: relative;
+      z-index: 2;
+      overflow: hidden;
+      border: 7px solid var(--brown);
+      border-radius: 34px;
+      background: var(--cream);
+      box-shadow: 0 24px 60px rgba(67,42,29,.24);
+    }
+    .screen { height: 100%; display: flex; flex-direction: column; position: relative; }
+    .statusbar {
+      height: 28px;
+      flex: 0 0 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 19px;
+      background: var(--cream);
+      font: 800 11px/1 "SFMono-Regular", Consolas, monospace;
+    }
+    .status-right { display: flex; align-items: center; gap: 6px; }
+    .appbar {
+      min-height: 61px;
+      flex: 0 0 61px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0 18px;
+      border-bottom: 1px solid var(--line);
+      background: var(--cream);
+    }
+    .brand-icon { width: 38px; height: 38px; display: grid; place-items: center; border: 1.5px solid var(--brown); border-radius: 50% 50% 45% 45%; color: var(--orange); }
+    .brand-copy { flex: 1; }
+    .brand-name { margin: 0; font-family: "Songti SC", SimSun, serif; font-size: 19px; line-height: 1.1; font-weight: 700; letter-spacing: .09em; }
+    .brand-en { margin: 5px 0 0; color: var(--muted); font: 700 8px/1 Georgia, serif; letter-spacing: .13em; }
+    .order-tag { padding: 6px 9px; border: 1px solid var(--line); border-radius: 999px; background: var(--paper); color: var(--orange); font: 800 11px/1 Consolas, monospace; }
+    .content { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: var(--orange) var(--cream); }
+    .view { min-height: 100%; padding: 16px 19px 26px; }
+    .shop-line { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 0 0 9px; color: var(--muted); font-size: 10px; line-height: 1.4; font-weight: 700; }
+    .live-state { display: flex; align-items: center; gap: 6px; color: var(--orange); }
+    .live-state::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--orange); box-shadow: 0 0 0 4px rgba(198,83,39,.12); }
+    .wait-heading h1, .aside-view h1, .cancelled-view h1 { margin: 0; font-family: "Songti SC", SimSun, serif; font-size: 29px; line-height: 1.35; font-weight: 700; letter-spacing: -.035em; }
+    .heading-note { margin: 7px 0 0; color: var(--muted); font-size: 12px; line-height: 1.6; }
+    .oven-card { margin: 14px 0 14px; overflow: hidden; border-radius: 105px 105px 14px 14px; background: var(--brown); }
+    .oven-visual { display: block; width: 100%; height: 176px; }
+    .heat { animation: heat-glow 1.8s ease-in-out infinite alternate; }
+    .heat:nth-of-type(2) { animation-delay: .35s; }
+    .heat:nth-of-type(3) { animation-delay: .7s; }
+    .step-card { padding: 14px 15px 15px; border: 1px solid var(--line); border-radius: 14px; background: var(--paper); box-shadow: 0 4px 0 var(--line); }
+    .step-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 7px; }
+    .step-label { color: var(--muted); font-size: 10px; line-height: 1; font-weight: 800; letter-spacing: .08em; }
+    .step-count { padding: 4px 7px; border-radius: 999px; background: rgba(198,83,39,.1); color: var(--orange); font-size: 9px; line-height: 1; font-weight: 850; }
+    .step-card h2 { margin: 0; font-size: 19px; line-height: 1.4; font-weight: 850; }
+    .step-copy { margin: 5px 0 12px; color: var(--muted); font-size: 11px; line-height: 1.65; }
+    .eta-row { display: flex; align-items: end; justify-content: space-between; gap: 12px; padding-top: 11px; border-top: 1px dashed var(--line); }
+    .eta-row span { display: block; margin-bottom: 4px; color: var(--muted); font-size: 9px; line-height: 1; }
+    .eta-row strong { color: var(--orange); font: 700 26px/1 Georgia, serif; }
+    .eta-remain { margin-bottom: 2px; color: var(--brown) !important; font-size: 12px !important; font-weight: 850; }
+    .progress { display: grid; grid-template-columns: repeat(4, 1fr); margin: 20px 0 19px; padding: 0; list-style: none; }
+    .progress li { position: relative; text-align: center; color: var(--muted); font-size: 9px; line-height: 1.4; }
+    .progress li::before { content: ""; position: relative; z-index: 2; display: grid; place-items: center; width: 20px; height: 20px; margin: 0 auto 6px; border: 1.5px solid var(--line); border-radius: 50%; background: var(--cream); font: 800 9px/1 Consolas, monospace; }
+    .progress li::after { content: ""; position: absolute; z-index: 1; left: calc(50% + 11px); right: calc(-50% + 11px); top: 9px; border-top: 1px dashed var(--line); }
+    .progress li:last-child::after { display: none; }
+    .progress li.done { color: var(--brown); font-weight: 700; }
+    .progress li.done::before { content: "✓"; border-color: var(--brown); background: var(--brown); color: var(--cream); }
+    .progress li.current { color: var(--orange); font-weight: 850; }
+    .progress li.current::before { border: 5px solid var(--orange); background: var(--yellow); box-shadow: 0 0 0 4px rgba(198,83,39,.11); }
+    .order-details { border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+    .order-details summary { min-height: 48px; display: grid; grid-template-columns: 1fr auto 16px; align-items: center; gap: 8px; cursor: pointer; list-style: none; font-size: 12px; font-weight: 800; }
+    .order-details summary::-webkit-details-marker { display: none; }
+    .order-details summary:hover { color: var(--orange); }
+    .order-details summary .order-price { font: 800 13px/1 Consolas, monospace; }
+    .order-details summary svg { transition: transform .2s ease; }
+    .order-details[open] summary svg { transform: rotate(180deg); }
+    .order-items { padding: 0 0 13px; }
+    .order-item { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 8px; color: var(--muted); font-size: 11px; line-height: 1.5; }
+    .order-item strong { color: var(--brown); font-weight: 700; }
+    .pickup-note { display: flex; gap: 8px; margin-top: 13px; color: var(--muted); font-size: 10px; line-height: 1.6; }
+    .pickup-note svg { flex: 0 0 auto; margin-top: 2px; color: var(--orange); }
+    .pickup-note p { margin: 0; }
+    .action-dock { flex: 0 0 auto; padding: 11px 17px 15px; border-top: 1px solid var(--line); background: var(--paper); }
+    .action-row { display: grid; grid-template-columns: 1.35fr 1fr; gap: 9px; }
+    .action-button { min-height: 50px; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 0 12px; border-radius: 10px; font-size: 13px; font-weight: 850; }
+    .aside-button { border: 1.5px solid var(--brown); background: var(--orange); color: var(--white); box-shadow: 0 4px 0 var(--brown); }
+    .aside-button:hover { background: var(--brown); }
+    .aside-button:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--brown); }
+    .aside-button:focus-visible { outline-color: var(--orange); box-shadow: 0 0 0 5px var(--brown); }
+    .cancel-button { border: 1.5px solid var(--line); background: var(--paper); color: var(--muted); }
+    .cancel-button:hover { border-color: var(--orange); color: var(--orange); background: var(--cream); }
+    .dock-note { margin: 9px 0 0; color: var(--muted); text-align: center; font-size: 9px; line-height: 1.4; }
+    .aside-view { padding-top: 25px; text-align: center; }
+    .aside-illustration { display: block; width: 180px; height: 142px; margin: 0 auto 7px; }
+    .aside-view .shop-line { justify-content: center; }
+    .aside-copy { max-width: 286px; margin: 10px auto 19px; color: var(--muted); font-size: 12px; line-height: 1.75; }
+    .aside-order { overflow: hidden; border-radius: 90px 90px 14px 14px; background: var(--brown); color: var(--cream); text-align: left; }
+    .aside-order-top { padding: 24px 20px 17px; text-align: center; }
+    .aside-order-top span { display: block; margin-bottom: 6px; color: var(--yellow); font-size: 10px; font-weight: 800; letter-spacing: .1em; }
+    .aside-order-top strong { display: block; font: 700 31px/1.2 Georgia, serif; }
+    .aside-order-top p { margin: 7px 0 0; color: var(--line); font-size: 11px; }
+    .aside-order-bottom { padding: 16px; background: var(--paper); color: var(--brown); }
+    .aside-order-bottom p { margin: 0 0 12px; color: var(--muted); text-align: center; font-size: 10px; }
+    .return-wait { width: 100%; min-height: 47px; border: 1.5px solid var(--brown); border-radius: 10px; background: var(--orange); color: var(--white); font-size: 13px; font-weight: 850; }
+    .return-wait:hover { background: var(--brown); }
+    .sheet-backdrop { position: absolute; inset: 0; z-index: 20; display: flex; align-items: flex-end; background: rgba(67,42,29,.48); }
+    .sheet { width: 100%; padding: 20px 20px 18px; border-radius: 26px 26px 0 0; background: var(--paper); animation: sheet-up .26s cubic-bezier(.2,.8,.2,1); }
+    .sheet-icon { width: 44px; height: 44px; display: grid; place-items: center; margin-bottom: 12px; border-radius: 50%; background: rgba(198,83,39,.12); color: var(--orange); }
+    .sheet h2 { margin: 0; font-family: "Songti SC", SimSun, serif; font-size: 24px; line-height: 1.4; }
+    .sheet-copy { margin: 8px 0 14px; color: var(--muted); font-size: 12px; line-height: 1.75; }
+    .refund-note { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 16px; padding: 12px 13px; border: 1px dashed var(--orange); border-radius: 10px; background: var(--cream); font-size: 11px; }
+    .refund-note strong { color: var(--orange); font: 700 20px/1 Georgia, serif; }
+    .sheet-actions { display: grid; grid-template-columns: 1.25fr 1fr; gap: 9px; }
+    .sheet-actions button { min-height: 46px; border-radius: 9px; font-size: 12px; font-weight: 850; }
+    .keep-waiting { border: 1.5px solid var(--brown); background: var(--orange); color: var(--white); }
+    .keep-waiting:hover { background: var(--brown); }
+    .confirm-cancel { border: 1.5px solid var(--line); background: transparent; color: var(--orange); }
+    .confirm-cancel:hover { border-color: var(--orange); background: var(--cream); }
+    .cancelled-view { padding-top: 25px; text-align: center; }
+    .cancelled-mark { width: 56px; height: 56px; display: grid; place-items: center; margin: 0 auto 14px; border: 1.5px solid var(--orange); border-radius: 50%; color: var(--orange); }
+    .cancelled-view .shop-line { justify-content: center; }
+    .cancelled-copy { margin: 9px auto 20px; color: var(--muted); font-size: 12px; line-height: 1.75; }
+    .refund-card { padding: 20px; border: 1px solid var(--line); border-radius: 16px; background: var(--paper); box-shadow: 0 4px 0 var(--line); }
+    .refund-card span { display: block; color: var(--muted); font-size: 10px; }
+    .refund-card strong { display: block; margin: 8px 0; color: var(--orange); font: 700 34px/1 Georgia, serif; }
+    .refund-card p { margin: 0; color: var(--muted); font-size: 11px; line-height: 1.65; }
+    .refund-card dl { margin: 16px 0 0; padding-top: 13px; border-top: 1px dashed var(--line); display: grid; gap: 8px; }
+    .refund-row { display: flex; justify-content: space-between; gap: 12px; font-size: 11px; }
+    .refund-row dt { color: var(--muted); }
+    .refund-row dd { margin: 0; font-weight: 700; }
+    .reorder-button { width: 100%; min-height: 49px; margin-top: 18px; border: 1.5px solid var(--brown); border-radius: 10px; background: var(--orange); color: var(--white); box-shadow: 0 4px 0 var(--brown); font-size: 13px; font-weight: 850; }
+    .reorder-button:hover { background: var(--brown); }
+    .reorder-button:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--brown); }
+    .toast { position: absolute; z-index: 30; left: 20px; right: 20px; bottom: 22px; padding: 12px 14px; border-radius: 10px; background: var(--brown); color: var(--cream); box-shadow: 0 8px 22px rgba(67,42,29,.22); text-align: center; font-size: 12px; line-height: 1.5; font-weight: 700; }
+    @keyframes heat-glow { from { opacity: .35; } to { opacity: 1; } }
+    @keyframes sheet-up { from { transform: translateY(35px); opacity: .4; } to { transform: translateY(0); opacity: 1; } }
+    @media (min-width: 900px) {
+      .wall { display: block; position: fixed; z-index: 1; pointer-events: none; }
+      .wall-left { left: max(45px, calc(50% - 510px)); top: 92px; color: var(--orange); }
+      .wall-kicker { margin: 0 0 16px; font: 800 10px/1 Georgia, serif; letter-spacing: .2em; }
+      .wall-title { margin: 0; font-family: Georgia, serif; font-size: 67px; line-height: .93; font-weight: 700; letter-spacing: -.06em; }
+      .wall-caption { margin: 22px 0 0; color: var(--brown); font-family: "Songti SC", SimSun, serif; font-size: 17px; line-height: 1.8; }
+      .wall-right { right: max(55px, calc(50% - 495px)); bottom: 85px; width: 190px; color: var(--orange); text-align: center; }
+      .wall-right svg { display: block; width: 120px; margin: 0 auto; }
+      .wall-time { margin: 12px 0 4px; font: 700 28px/1 Georgia, serif; }
+      .wall-note { margin: 0; color: var(--muted); font-size: 10px; line-height: 1.7; letter-spacing: .1em; }
+    }
+    @media (max-width: 430px) {
+      .stage { display: block; padding: 0; }
+      .device { width: 100%; height: 100dvh; border: 0; border-radius: 0; box-shadow: none; }
+    }
+    @media (max-height: 680px) and (min-width: 431px) {
+      .stage { padding: 12px; }
+      .device { height: calc(100dvh - 24px); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <main class="stage">
+    <aside class="wall wall-left" aria-hidden="true">
+      <p class="wall-kicker">WHEAT HILL BAKERY</p>
+      <p class="wall-title">SLOW<br>OVEN<br>CLUB.</p>
+      <p class="wall-caption">每日现揉，整炉现烤。<br>把匆忙留在店门外。</p>
+    </aside>
+    <aside class="wall wall-right" aria-hidden="true">
+      <svg viewBox="0 0 120 164" fill="none"><path d="M58 160V19M59 126C34 120 24 104 22 85C45 87 59 100 59 126ZM59 97C82 91 94 75 96 57C74 59 60 73 59 97ZM59 68C38 61 29 47 29 31C49 34 59 47 59 68ZM59 43C76 36 84 24 83 10C67 13 59 25 59 43Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M57 141C75 136 87 122 89 106C69 108 59 121 57 141Z" fill="#F2C063" stroke="currentColor" stroke-width="1.5"/></svg>
+      <p class="wall-time">18:40</p><p class="wall-note">FRESH FROM THE OVEN<br>湖滨店 · 到店自取</p>
+    </aside>
+
+    <section class="device" aria-label="麦丘烘焙手机订单等候">
+      <div class="screen">
+        <div class="statusbar" aria-hidden="true">
+          <span>18:28</span>
+          <span class="status-right">
+            <svg width="16" height="11" viewBox="0 0 16 11" fill="none"><path d="M1 10V7M5 10V5M9 10V3M13 10V1" stroke="currentColor" stroke-width="2"/></svg>
+            <svg width="20" height="11" viewBox="0 0 20 11"><rect x=".7" y=".7" width="16" height="9.6" rx="2" stroke="currentColor"/><path d="M18 4h2v3h-2" fill="currentColor"/><rect x="3" y="3" width="11" height="5" fill="currentColor"/></svg>
+          </span>
+        </div>
+        <header class="appbar">
+          <div class="brand-icon" aria-hidden="true"><svg width="25" height="25" viewBox="0 0 24 24" fill="none"><path d="M12 22V3M12 17C6 16 4 12 4 8C9 8 12 11 12 17ZM12 12C17 11 20 7 20 4C15 4 12 7 12 12Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg></div>
+          <div class="brand-copy"><p class="brand-name">麦丘烘焙</p><p class="brand-en">WHEAT HILL · SLOW OVEN</p></div>
+          <span class="order-tag">#A1042</span>
+        </header>
+
+        <div class="content" id="contentScroll">
+          <section class="view wait-heading" id="waitView">
+            <div class="shop-line"><span>湖滨店 · 到店自取</span><span class="live-state">正在制作</span></div>
+            <h1>好面包，<br>值得等一小会儿。</h1>
+            <p class="heading-note">你的这一炉，已经在烤了。</p>
+            <div class="oven-card">
+              <svg class="oven-visual" viewBox="0 0 352 176" role="img" aria-label="焦橙色烤炉里正在烘烤的三只面包">
+                <path d="M0 114C0 51 51 0 114 0H238C301 0 352 51 352 114V176H0Z" fill="#432A1D"/>
+                <text x="24" y="34" fill="#F2C063" font-size="8" font-family="monospace" letter-spacing="2">NOW IN THE OVEN</text>
+                <text x="24" y="50" fill="#FFF3DC" font-size="9" font-family="serif">慢慢烤，才够香。</text>
+                <rect x="272" y="23" width="56" height="25" rx="12.5" fill="#F2C063"/><text x="285" y="40" fill="#432A1D" font-size="11" font-weight="700" font-family="monospace">180°C</text>
+                <path class="heat" d="M137 33C129 25 143 20 136 12" fill="none" stroke="#C65327" stroke-width="2" stroke-linecap="round"/>
+                <path class="heat" d="M177 31C169 23 183 18 176 10" fill="none" stroke="#C65327" stroke-width="2" stroke-linecap="round"/>
+                <path class="heat" d="M217 33C209 25 223 20 216 12" fill="none" stroke="#C65327" stroke-width="2" stroke-linecap="round"/>
+                <rect x="73" y="48" width="206" height="108" rx="12" fill="#FFF3DC"/>
+                <rect x="88" y="66" width="176" height="72" rx="8" fill="#2A1B15"/>
+                <rect x="97" y="75" width="158" height="54" rx="5" fill="#C65327" opacity=".2"/>
+                <path d="M95 57H257" stroke="#432A1D" stroke-width="5" stroke-linecap="round"/>
+                <circle cx="91" cy="148" r="3" fill="#C65327"/><circle cx="104" cy="148" r="3" fill="#F2C063"/><path d="M239 148H261" stroke="#432A1D" stroke-width="3" stroke-linecap="round"/>
+                <path d="M103 115H250" stroke="#F2C063" stroke-width="2"/>
+                <path d="M113 108C109 95 121 87 137 90C152 93 156 105 146 111C137 116 117 116 113 108Z" fill="#F2C063" stroke="#FFF3DC" stroke-width="1.4"/>
+                <path d="M153 107C151 93 165 85 181 89C196 93 199 105 189 111C179 117 157 115 153 107Z" fill="#C65327" stroke="#F2C063" stroke-width="1.4"/>
+                <path d="M199 109C197 96 209 88 225 91C241 94 245 106 235 112C225 117 203 116 199 109Z" fill="#F2C063" stroke="#FFF3DC" stroke-width="1.4"/>
+                <path d="M122 95L128 105M131 93L138 104M164 94L171 105M174 92L181 103M210 96L216 106M220 94L227 105" stroke="#432A1D" stroke-width="1.4" stroke-linecap="round" opacity=".65"/>
+                <path d="M28 158H61M291 158H324" stroke="#F2C063" stroke-width="1" stroke-dasharray="2 4"/>
+                <text x="26" y="145" fill="#FFF3DC" font-size="7" font-family="monospace">BATCH 02</text>
+              </svg>
+            </div>
+
+            <section class="step-card" aria-label="当前订单步骤与预计时间">
+              <div class="step-top"><span class="step-label">当前步骤</span><span class="step-count">第 2 步 / 共 4 步</span></div>
+              <h2>正在烘烤</h2>
+              <p class="step-copy">海盐卷正在形成金黄表皮，出炉后还需要短暂冷却。</p>
+              <div class="eta-row"><div><span>预计取餐时间</span><strong>18:40</strong></div><span class="eta-remain">约 12 分钟</span></div>
+            </section>
+
+            <ol class="progress" aria-label="订单进度"><li class="done">已接单</li><li class="current" aria-current="step">烘烤中</li><li>冷却装袋</li><li>可以取餐</li></ol>
+
+            <details class="order-details">
+              <summary><span>订单内容 · 3 件</span><span class="order-price">¥46.00</span><svg width="16" height="16" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4 7L10 13L16 7" stroke="currentColor" stroke-width="1.6"/></svg></summary>
+              <div class="order-items"><div class="order-item"><span><strong>海盐卷</strong> × 2</span><span>¥20.00</span></div><div class="order-item"><span><strong>核桃乡村包</strong> × 1</span><span>¥26.00</span></div><div class="order-item"><span>到店自取 · 湖滨店</span><span>无需配送费</span></div></div>
+            </details>
+            <div class="pickup-note"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M10 18C14 13 16 10 16 7C16 4 13 2 10 2C7 2 4 4 4 7C4 10 6 13 10 18Z" stroke="currentColor" stroke-width="1.4"/><circle cx="10" cy="7" r="2" stroke="currentColor" stroke-width="1.4"/></svg><p>到店后报取餐号 <strong>A1042</strong>。出炉并完成装袋后，我们会发送提醒。</p></div>
+          </section>
+
+          <section class="view aside-view" id="asideView" hidden>
+            <svg class="aside-illustration" viewBox="0 0 180 142" role="img" aria-label="纸袋里装着一只金黄乡村面包">
+              <path d="M47 49H137L148 137H35Z" fill="#E6D2B6" stroke="#432A1D" stroke-width="1.7" stroke-linejoin="round"/>
+              <path d="M47 49L58 39H146L137 49" fill="#FFF3DC" stroke="#432A1D" stroke-width="1.7"/>
+              <path d="M59 63C50 31 71 10 98 13C126 16 137 43 119 65Z" fill="#F2C063" stroke="#432A1D" stroke-width="1.7"/>
+              <path d="M71 28L86 42M83 21L99 37M98 20L112 34" stroke="#C65327" stroke-width="3" stroke-linecap="round"/>
+              <path d="M35 137H148" stroke="#432A1D" stroke-width="2"/>
+              <circle cx="91" cy="94" r="20" fill="#FFF3DC"/>
+              <path d="M91 106V80M91 98C82 97 78 91 79 85C86 85 91 90 91 98ZM91 90C98 89 102 84 102 78C95 79 91 83 91 90Z" fill="none" stroke="#C65327" stroke-width="1.4"/>
+              <path d="M22 119H27M153 113H161M25 104V110M156 96V102" stroke="#C65327" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+            <p class="shop-line">订单 #A1042 · 已放到一边</p>
+            <h1>面包在炉里，<br>你先去忙。</h1>
+            <p class="aside-copy">不用一直守着这页，订单仍会继续制作。想看了，随时回来看看。</p>
+            <article class="aside-order"><div class="aside-order-top"><span>正在烘烤</span><strong>18:40</strong><p>预计取餐 · 约 12 分钟</p></div><div class="aside-order-bottom"><p>湖滨店 · 取餐号 A1042</p><button class="return-wait" id="returnWait" type="button">回来看看面包</button></div></article>
+          </section>
+
+          <section class="view cancelled-view" id="cancelledView" hidden>
+            <div class="cancelled-mark" aria-hidden="true"><svg width="29" height="29" viewBox="0 0 28 28" fill="none"><path d="M8 8L20 20M20 8L8 20" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></div>
+            <p class="shop-line">订单 #A1042 · 已关闭</p>
+            <h1>订单已取消</h1>
+            <p class="cancelled-copy">这炉不等了。退款申请已经提交，下一次想吃了再来。</p>
+            <article class="refund-card"><span>预计原路退回</span><strong>¥46.00</strong><p>预计 1—3 个工作日到账<br>实际到账时间以支付机构为准</p><dl><div class="refund-row"><dt>退款单号</dt><dd>RF-A1042-01</dd></div><div class="refund-row"><dt>原支付方式</dt><dd>一卡通 · 尾号 0826</dd></div><div class="refund-row"><dt>当前状态</dt><dd>退款处理中</dd></div></dl></article>
+            <button class="reorder-button" id="reorderButton" type="button">重新选一炉面包</button>
+          </section>
+        </div>
+
+        <footer class="action-dock" id="actionDock">
+          <div class="action-row"><button class="action-button aside-button" id="asideButton" type="button"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M10 2V12M6 8L10 12L14 8M3 13V18H17V13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span>放到一边</span></button><button class="action-button cancel-button" id="cancelButton" type="button">取消订单</button></div>
+          <p class="dock-note">放到一边不会影响制作与出炉提醒</p>
+        </footer>
+
+        <div class="sheet-backdrop" id="cancelBackdrop" hidden>
+          <section class="sheet" role="dialog" aria-modal="true" aria-labelledby="cancelHeading">
+            <div class="sheet-icon" aria-hidden="true"><svg width="25" height="25" viewBox="0 0 24 24" fill="none"><path d="M12 3L22 20H2Z" stroke="currentColor" stroke-width="1.5"/><path d="M12 9V13M12 16V16.1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></div>
+            <h2 id="cancelHeading">面包已经入炉，<br>确定取消吗？</h2>
+            <p class="sheet-copy">取消后无法恢复这张订单。已支付的金额会申请原路退回，预计 1—3 个工作日到账。</p>
+            <div class="refund-note"><span>本单可退金额</span><strong>¥46.00</strong></div>
+            <div class="sheet-actions"><button class="keep-waiting" id="keepWaiting" type="button">继续等待</button><button class="confirm-cancel" id="confirmCancel" type="button">确认取消</button></div>
+          </section>
+        </div>
+        <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    (() => {
+      const waitView = document.getElementById('waitView');
+      const asideView = document.getElementById('asideView');
+      const cancelledView = document.getElementById('cancelledView');
+      const actionDock = document.getElementById('actionDock');
+      const cancelBackdrop = document.getElementById('cancelBackdrop');
+      const cancelButton = document.getElementById('cancelButton');
+      const toast = document.getElementById('toast');
+      let toastTimer;
+
+      function showView(view) {
+        waitView.hidden = view !== 'wait';
+        asideView.hidden = view !== 'aside';
+        cancelledView.hidden = view !== 'cancelled';
+        actionDock.hidden = view !== 'wait';
+        document.getElementById('contentScroll').scrollTop = 0;
+      }
+
+      function closeCancel() {
+        cancelBackdrop.hidden = true;
+        cancelButton.focus();
+      }
+
+      document.getElementById('asideButton').addEventListener('click', () => {
+        showView('aside');
+        document.getElementById('returnWait').focus();
+        clearTimeout(toastTimer);
+        toast.textContent = '已放到一边，制作仍会继续。';
+        toast.hidden = false;
+        toastTimer = setTimeout(() => { toast.hidden = true; }, 2500);
+      });
+      document.getElementById('returnWait').addEventListener('click', () => {
+        toast.hidden = true;
+        showView('wait');
+        document.getElementById('asideButton').focus();
+      });
+      cancelButton.addEventListener('click', () => {
+        cancelBackdrop.hidden = false;
+        document.getElementById('keepWaiting').focus();
+      });
+      document.getElementById('keepWaiting').addEventListener('click', closeCancel);
+      document.getElementById('confirmCancel').addEventListener('click', () => {
+        cancelBackdrop.hidden = true;
+        showView('cancelled');
+        document.getElementById('reorderButton').focus();
+      });
+      document.getElementById('reorderButton').addEventListener('click', () => {
+        showView('wait');
+        document.getElementById('asideButton').focus();
+      });
+      cancelBackdrop.addEventListener('keydown', event => { if (event.key === 'Escape') closeCancel(); });
+    })();
+  </script>
+</body>
+</html>

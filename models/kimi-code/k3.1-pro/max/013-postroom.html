@@ -1,0 +1,398 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>POSTROOM · 临港收发室</title>
+  <style>
+    :root {
+      --kraft: #DCCFB6;
+      --kraft-deep: #C8B795;
+      --paper: #F2EADA;
+      --paper-light: #FCF8EC;
+      --navy: #17324D;
+      --navy-soft: #294A64;
+      --ink: #29343B;
+      --muted: #756C5D;
+      --line: #CDBFA5;
+      --red: #B44B3E;
+      --success: #426A58;
+      --space: 8px;
+      --radius-control: 2px;
+      --radius-panel: 4px;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; color: var(--ink); background: var(--kraft); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; font-size: 14px; line-height: 1.5; }
+    button, input { font: inherit; }
+    button { cursor: pointer; }
+    button:focus-visible, input:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
+    button:disabled { cursor: not-allowed; opacity: .42; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+    .app { height: 100vh; min-height: 650px; display: grid; grid-template-rows: 66px 30px minmax(0, 1fr); }
+    .postal-header { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 0 22px; color: var(--paper-light); background: var(--navy); border-bottom: 1px solid #0E2438; }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .brand-stamp { display: grid; place-items: center; width: 38px; height: 38px; color: var(--paper-light); border: 1px dashed #FCF8EC99; }
+    .brand-stamp svg { width: 24px; height: 24px; }
+    .brand-name { display: block; font-size: 16px; line-height: 1.1; font-weight: 800; letter-spacing: 2.4px; }
+    .brand-cn { display: block; margin-top: 4px; color: #DCCFB6; font-size: 9px; letter-spacing: 3px; }
+    .route-code { color: #DCCFB6; font: 10px/1.5 Consolas, monospace; letter-spacing: 1.6px; }
+    .operator { display: flex; align-items: center; gap: 10px; font-size: 11px; }
+    .operator-avatar { display: grid; place-items: center; width: 30px; height: 30px; border: 1px solid #FCF8EC88; border-radius: 50%; font: 12px/1 Georgia, serif; }
+    .subbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 0 20px; color: var(--navy); background: var(--kraft-deep); border-bottom: 1px solid #AD9D7F; font-size: 10px; letter-spacing: .5px; }
+    .subbar-right { display: flex; align-items: center; gap: 8px; }
+    .subbar-dot { width: 5px; height: 5px; background: var(--success); border-radius: 50%; }
+    .mail-grid { min-height: 0; display: grid; grid-template-columns: 188px 350px minmax(0, 1fr); }
+    .folder-pane { min-height: 0; display: flex; flex-direction: column; padding: 20px 12px 16px; background: var(--kraft); border-right: 1px solid #B9A888; }
+    .pane-label { margin: 0 8px 12px; color: var(--muted); font-size: 9px; font-weight: 700; letter-spacing: 1.8px; }
+    .folder-nav { display: grid; gap: 6px; }
+    .folder-button { position: relative; width: 100%; height: 42px; display: flex; align-items: center; gap: 10px; padding: 0 10px; color: var(--navy); background: transparent; border: 1px solid transparent; border-radius: var(--radius-control); text-align: left; }
+    .folder-button:hover { background: #FCF8EC55; border-color: #B9A888; }
+    .folder-button[aria-pressed="true"] { color: var(--paper-light); background: var(--navy); border-color: var(--navy); }
+    .folder-button svg { flex: 0 0 auto; width: 18px; height: 18px; }
+    .folder-label { flex: 1; font-size: 12px; }
+    .folder-count { min-width: 20px; font: 10px/1.5 Consolas, monospace; text-align: right; }
+    .folder-button[aria-pressed="true"] .folder-count { color: var(--kraft); }
+    .folder-section { margin-top: 25px; padding-top: 17px; border-top: 1px solid #B9A888; }
+    .postal-tags { display: grid; gap: 12px; margin: 0 8px; }
+    .postal-tag { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 10px; }
+    .tag-mark { width: 8px; height: 8px; border: 1px solid var(--navy); }
+    .tag-mark.red { border-color: var(--red); background: var(--red); }
+    .tag-mark.blue { background: var(--navy); }
+    .mailbag { margin-top: auto; padding: 14px 12px; background: #F2EADA66; border: 1px solid #B9A888; }
+    .mailbag-title { display: flex; justify-content: space-between; color: var(--navy); font-size: 10px; }
+    .mailbag-bar { height: 4px; margin: 11px 0 8px; background: #B9A888; }
+    .mailbag-bar span { display: block; width: 69%; height: 100%; background: var(--navy); }
+    .mailbag small { color: var(--muted); font-size: 9px; }
+    .list-pane { min-width: 0; min-height: 0; display: grid; grid-template-rows: auto auto minmax(0, 1fr); background: var(--paper); border-right: 1px solid var(--line); }
+    .list-heading { padding: 18px 16px 12px; }
+    .list-title-row { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 13px; }
+    .list-title { margin: 0; color: var(--navy); font-size: 20px; line-height: 1.2; font-weight: 750; }
+    .list-count { color: var(--muted); font: 10px/1.5 Consolas, monospace; }
+    .search-box { position: relative; }
+    .search-box svg { position: absolute; left: 10px; top: 50%; width: 15px; height: 15px; color: var(--muted); transform: translateY(-50%); pointer-events: none; }
+    .search-input { width: 100%; height: 36px; padding: 0 10px 0 33px; color: var(--ink); background: var(--paper-light); border: 1px solid var(--line); border-radius: var(--radius-control); font-size: 11px; }
+    .search-input::placeholder { color: #918570; }
+    .search-input:hover { border-color: var(--navy-soft); }
+    .filter-row { display: flex; align-items: center; gap: 4px; padding: 0 16px 12px; border-bottom: 1px solid var(--line); }
+    .filter-button { height: 28px; padding: 0 12px; color: var(--muted); background: transparent; border: 1px solid transparent; border-radius: 14px; font-size: 10px; }
+    .filter-button:hover { color: var(--navy); background: var(--kraft); }
+    .filter-button[aria-pressed="true"] { color: var(--paper-light); background: var(--navy); }
+    .filter-note { margin-left: auto; color: var(--muted); font-size: 9px; }
+    .mail-list { min-height: 0; overflow-y: auto; padding: 0 10px 16px; scrollbar-color: var(--kraft-deep) transparent; }
+    .mail-item { position: relative; border-bottom: 1px solid var(--line); }
+    .mail-open { width: 100%; min-height: 103px; display: block; padding: 14px 34px 13px 12px; color: var(--ink); background: transparent; border: 0; border-left: 3px solid transparent; text-align: left; }
+    .mail-open:hover { background: #FCF8EC99; }
+    .mail-item.selected .mail-open { background: var(--paper-light); border-left-color: var(--navy); }
+    .mail-item.unread .mail-open { background: #FCF8EC66; }
+    .mail-item.unread.selected .mail-open { background: var(--paper-light); }
+    .mail-meta { display: flex; align-items: center; gap: 7px; margin-bottom: 5px; }
+    .sender { overflow: hidden; color: var(--muted); font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
+    .mail-time { margin-left: auto; color: var(--muted); font: 9px/1.5 Consolas, monospace; white-space: nowrap; }
+    .unread-dot { flex: 0 0 auto; width: 6px; height: 6px; background: var(--red); border-radius: 50%; }
+    .mail-subject { display: block; overflow: hidden; color: var(--navy); font-size: 12px; line-height: 1.4; font-weight: 500; text-overflow: ellipsis; white-space: nowrap; }
+    .unread .mail-subject { font-weight: 800; }
+    .mail-preview { display: -webkit-box; margin-top: 5px; overflow: hidden; color: var(--muted); font-size: 10px; line-height: 1.5; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+    .star-button { position: absolute; right: 7px; bottom: 10px; width: 28px; height: 28px; display: grid; place-items: center; color: #97896F; background: transparent; border: 0; border-radius: 50%; font-size: 18px; line-height: 1; }
+    .star-button:hover { color: var(--red); background: var(--kraft); }
+    .star-button[aria-pressed="true"] { color: var(--red); }
+    .list-empty { margin: 20px 4px; padding: 26px 16px; color: var(--muted); border: 1px dashed var(--line); text-align: center; font-size: 11px; }
+    .list-empty strong { display: block; margin-bottom: 6px; color: var(--navy); font-size: 13px; }
+    .reader-pane { min-width: 0; min-height: 0; display: flex; flex-direction: column; background: var(--paper-light); }
+    .reader-toolbar { min-height: 56px; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 9px 20px; border-bottom: 1px solid var(--line); }
+    .reader-path { color: var(--muted); font: 9px/1.5 Consolas, monospace; letter-spacing: .8px; }
+    .reader-actions { display: flex; align-items: center; gap: 5px; }
+    .reader-action { height: 34px; display: inline-flex; align-items: center; gap: 6px; padding: 0 9px; color: var(--navy); background: transparent; border: 1px solid transparent; border-radius: var(--radius-control); font-size: 10px; }
+    .reader-action svg { width: 15px; height: 15px; }
+    .reader-action:hover:not(:disabled) { background: var(--paper); border-color: var(--line); }
+    .reader-action[aria-pressed="true"] { color: var(--red); background: #B44B3E0D; border-color: #B44B3E55; }
+    .reader-action.archive { color: var(--paper-light); background: var(--navy); border-color: var(--navy); }
+    .reader-action.archive:hover:not(:disabled) { background: var(--navy-soft); border-color: var(--navy-soft); }
+    .reader-scroll { min-height: 0; flex: 1; overflow-y: auto; padding: 25px 34px 38px; scrollbar-color: var(--kraft-deep) transparent; }
+    .letter { max-width: 760px; margin: 0 auto; }
+    .letter-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; }
+    .letter-index { color: var(--muted); font: 9px/1.6 Consolas, monospace; letter-spacing: 1.2px; }
+    .postage { flex: 0 0 auto; width: 72px; height: 82px; display: grid; place-items: center; padding: 7px; color: var(--red); background: var(--paper); border: 2px dotted var(--red); outline: 1px solid #B44B3E55; outline-offset: -5px; text-align: center; transform: rotate(2deg); }
+    .postage strong { font: 700 18px/1 Georgia, serif; }
+    .postage span { display: block; margin-top: 5px; font-size: 8px; line-height: 1.4; letter-spacing: 1px; }
+    .letter h1 { max-width: 620px; margin: 13px 0 20px; color: var(--navy); font-family: "Songti SC", STSong, SimSun, Georgia, serif; font-size: 27px; line-height: 1.35; font-weight: 700; letter-spacing: .2px; }
+    .sender-card { display: flex; align-items: center; gap: 11px; padding: 13px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+    .sender-avatar { flex: 0 0 auto; width: 38px; height: 38px; display: grid; place-items: center; color: var(--paper-light); background: var(--navy); border-radius: 50%; font-family: "Songti SC", STSong, SimSun, serif; }
+    .sender-info { min-width: 0; }
+    .sender-info strong { display: block; color: var(--navy); font-size: 12px; }
+    .sender-info span { display: block; margin-top: 2px; color: var(--muted); font: 9px/1.5 Consolas, monospace; }
+    .letter-date { margin-left: auto; color: var(--muted); font-size: 10px; text-align: right; white-space: nowrap; }
+    .letter-body { padding: 19px 0 5px; color: #354049; font-family: "Songti SC", STSong, SimSun, Georgia, serif; font-size: 14px; line-height: 1.9; }
+    .letter-body p { margin: 0 0 13px; }
+    .letter-note { margin: 17px 0; padding: 11px 14px; color: var(--navy); background: var(--paper); border-left: 3px solid var(--red); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", sans-serif; font-size: 11px; line-height: 1.7; }
+    .attachments { margin-top: 19px; }
+    .attachments h2 { margin: 0 0 10px; color: var(--muted); font-size: 9px; letter-spacing: 1.5px; }
+    .attachment-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+    .attachment { min-width: 0; display: flex; align-items: center; gap: 10px; padding: 10px 11px; background: var(--paper); border: 1px solid var(--line); }
+    .attachment svg { flex: 0 0 auto; width: 20px; height: 20px; color: var(--red); }
+    .attachment-name { min-width: 0; }
+    .attachment-name strong { display: block; overflow: hidden; color: var(--navy); font-size: 10px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+    .attachment-name span { display: block; margin-top: 2px; color: var(--muted); font: 8px/1.5 Consolas, monospace; }
+    .letter-foot { display: flex; justify-content: space-between; gap: 16px; margin-top: 24px; padding-top: 12px; color: var(--muted); border-top: 1px dashed var(--line); font: 8px/1.6 Consolas, monospace; letter-spacing: .6px; }
+    .reader-empty { height: 100%; display: grid; place-content: center; justify-items: center; padding: 30px; color: var(--muted); text-align: center; }
+    .reader-empty svg { width: 64px; height: 64px; margin-bottom: 16px; color: var(--kraft-deep); }
+    .reader-empty h1 { margin: 0 0 8px; color: var(--navy); font-family: "Songti SC", STSong, SimSun, serif; font-size: 22px; }
+    .reader-empty p { margin: 0 0 18px; font-size: 11px; }
+    .return-button { height: 36px; padding: 0 16px; color: var(--paper-light); background: var(--navy); border: 1px solid var(--navy); border-radius: var(--radius-control); font-size: 11px; }
+    .return-button:hover { background: var(--navy-soft); }
+    .toast { position: fixed; right: 22px; bottom: 22px; z-index: 20; display: flex; align-items: center; gap: 15px; max-width: calc(100vw - 44px); padding: 11px 14px; color: var(--paper-light); background: var(--navy); border: 1px solid var(--paper-light); box-shadow: 4px 4px 0 var(--red); font-size: 11px; opacity: 0; visibility: hidden; transform: translateY(8px); transition: opacity 180ms ease, transform 180ms ease, visibility 180ms; }
+    .toast.show { opacity: 1; visibility: visible; transform: translateY(0); }
+    .toast button { padding: 3px 0; color: var(--kraft); background: transparent; border: 0; border-bottom: 1px solid var(--kraft); font-size: 11px; }
+    @media (max-width: 1100px) {
+      .mail-grid { grid-template-columns: 64px 320px minmax(0, 1fr); }
+      .folder-pane { padding: 18px 7px; }
+      .folder-pane > .pane-label, .folder-label, .folder-section, .mailbag { display: none; }
+      .folder-button { justify-content: center; padding: 0; }
+      .folder-count { position: absolute; top: 1px; right: 2px; min-width: 0; font-size: 8px; }
+      .reader-scroll { padding-inline: 24px; }
+      .route-code { display: none; }
+    }
+    @media (max-width: 900px) {
+      .mail-grid { grid-template-columns: 58px 280px minmax(0, 1fr); }
+      .postal-header { padding-inline: 16px; }
+      .subbar { padding-inline: 14px; }
+      .operator { font-size: 10px; }
+      .reader-toolbar { padding-inline: 12px; }
+      .reader-action { padding-inline: 7px; }
+      .reader-action .action-label { display: none; }
+      .reader-action.archive .action-label { display: inline; }
+      .reader-scroll { padding: 20px 20px 30px; }
+      .letter h1 { font-size: 23px; }
+      .attachment-grid { grid-template-columns: 1fr; }
+      .letter-date { font-size: 9px; }
+    }
+    @media (max-width: 680px) {
+      .mail-grid { grid-template-columns: 52px 220px minmax(0, 1fr); }
+      .brand-cn, .operator, .subbar-right { display: none; }
+      .list-heading { padding-inline: 10px; }
+      .filter-row { padding-inline: 10px; }
+      .filter-note { display: none; }
+      .mail-list { padding-inline: 5px; }
+      .reader-path { display: none; }
+      .reader-toolbar { justify-content: flex-end; }
+      .reader-scroll { padding-inline: 14px; }
+      .postage { display: none; }
+      .letter-date { display: none; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="postal-header">
+      <div class="brand">
+        <span class="brand-stamp"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3" y="5" width="18" height="14" stroke="currentColor"/><path d="m4 7 8 6 8-6M4 17l5-5m11 5-5-5" stroke="currentColor"/></svg></span>
+        <span><strong class="brand-name">POSTROOM</strong><span class="brand-cn">临港收发室</span></span>
+      </div>
+      <span class="route-code">INTERNAL MAIL ROUTE · LG / 08 / 2025</span>
+      <div class="operator"><span class="operator-avatar">澄</span><span>值班主任 · 王澄</span></div>
+    </header>
+    <div class="subbar"><span>临港设计港 · 收发室 08 · 今日邮路正常</span><span class="subbar-right"><i class="subbar-dot"></i>早班已分拣 26 封 · 10:24 更新</span></div>
+
+    <main class="mail-grid">
+      <aside class="folder-pane" aria-label="邮件文件夹">
+        <p class="pane-label">MAIL FOLDERS</p>
+        <nav class="folder-nav">
+          <button class="folder-button" type="button" data-folder="inbox" aria-pressed="true" title="收件箱">
+            <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M3 4h14v12H3zM3 11h4l1 2h4l1-2h4" stroke="currentColor"/></svg><span class="folder-label">收件箱</span><b class="folder-count" id="inbox-count">3</b>
+          </button>
+          <button class="folder-button" type="button" data-folder="starred" aria-pressed="false" title="星标邮件">
+            <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="m10 2 2.4 5 5.6.7-4 3.9 1 5.6-5-2.7-5 2.7 1-5.6-4-3.9 5.6-.7Z" stroke="currentColor"/></svg><span class="folder-label">星标邮件</span><b class="folder-count" id="starred-count">2</b>
+          </button>
+          <button class="folder-button" type="button" data-folder="archive" aria-pressed="false" title="已归档">
+            <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M3 6h14v11H3zM2 3h16v3H2zM8 10h4" stroke="currentColor"/></svg><span class="folder-label">已归档</span><b class="folder-count" id="archive-count">0</b>
+          </button>
+        </nav>
+        <section class="folder-section" aria-label="邮件分类">
+          <p class="pane-label">SORTING MARKS</p>
+          <div class="postal-tags"><span class="postal-tag"><i class="tag-mark blue"></i>内部邮路</span><span class="postal-tag"><i class="tag-mark red"></i>外部来信</span><span class="postal-tag"><i class="tag-mark"></i>行政通知</span></div>
+        </section>
+        <div class="mailbag"><div class="mailbag-title"><span>本周邮袋</span><strong>18 / 26</strong></div><div class="mailbag-bar"><span></span></div><small>已处理 18 封 · 还需分拣 8 封</small></div>
+      </aside>
+
+      <section class="list-pane" aria-labelledby="list-title">
+        <div class="list-heading">
+          <div class="list-title-row"><h1 class="list-title" id="list-title">收件箱</h1><span class="list-count" id="list-count">7 封</span></div>
+          <form class="search-box" id="search-form" role="search">
+            <label class="sr-only" for="mail-search">搜索发件人、主题或摘要</label>
+            <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="7" cy="7" r="4.5" stroke="currentColor"/><path d="m10.5 10.5 3 3" stroke="currentColor"/></svg>
+            <input class="search-input" id="mail-search" type="search" placeholder="搜索发件人、主题或摘要" autocomplete="off">
+          </form>
+        </div>
+        <div class="filter-row"><div role="group" aria-label="邮件未读过滤"><button class="filter-button" type="button" data-filter="all" aria-pressed="true">全部</button><button class="filter-button" type="button" data-filter="unread" aria-pressed="false">仅未读</button></div><span class="filter-note" id="filter-note">按时间倒序</span></div>
+        <div class="mail-list" id="mail-list" aria-live="polite"></div>
+      </section>
+
+      <section class="reader-pane" aria-label="邮件阅读区">
+        <div class="reader-toolbar">
+          <span class="reader-path" id="reader-path">INBOX / LETTER 001</span>
+          <div class="reader-actions">
+            <button class="reader-action" id="reader-star" type="button" aria-pressed="false" title="切换星标"><svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="m8 1.5 1.9 4 4.4.6-3.2 3.1.8 4.4L8 11.5l-3.9 2.1.8-4.4-3.2-3.1 4.4-.6Z" stroke="currentColor"/></svg><span class="action-label">星标</span></button>
+            <button class="reader-action" id="reader-read" type="button" title="切换已读状态"><svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 4h12v9H2zM2 5l6 4 6-4" stroke="currentColor"/></svg><span class="action-label" id="read-action-label">标为未读</span></button>
+            <button class="reader-action archive" id="reader-archive" type="button" title="归档当前邮件"><svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 5h10v9H3zM2 2h12v3H2zM6 8h4" stroke="currentColor"/></svg><span class="action-label">归档</span></button>
+          </div>
+        </div>
+        <div class="reader-scroll" id="reader-scroll"></div>
+      </section>
+    </main>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"><span id="toast-message"></span><button id="toast-undo" type="button" hidden>撤销</button></div>
+
+  <script>
+    const mails = [
+      { id:'m1', no:'001', subject:'关于秋季航线窗口的确认', sender:'沈青 · 海岸物流', address:'shenqing@coast.local', time:'09:42', date:'2025年8月20日 09:42', preview:'北港三号泊位已确认 9 月 6 日至 8 日的装运窗口，请查收最终班次。', body:['王澄：','北港三号泊位已确认 9 月 6 日至 8 日的装运窗口。物料车可在每日 06:30 后进场，首批展柜安排在 6 日上午，雨天备用班次为 9 月 9 日。','请你在今天下班前确认随车的两名装卸人员。若名单没有变化，我们会沿用七月巡展的备案信息。'], note:'需要回复：请于 8 月 20 日 17:00 前确认随车人员名单。', read:true, starred:true, folder:'inbox', attachments:[['秋季航线窗口_v3.pdf','PDF · 1.8 MB'],['进场车辆备案表.xlsx','XLSX · 246 KB']] },
+      { id:'m2', no:'002', subject:'修订稿：北海仓交接清单', sender:'周至 · 仓储组', address:'zhouzhi@lingang.local', time:'09:18', date:'2025年8月20日 09:18', preview:'已补录两只灯具箱的编号，并将易碎品单独列到第二页，请按修订版交接。', body:['王澄：','北海仓交接清单已补录两只灯具箱的编号，易碎品单独列在第二页。上一版中重复计算的 4 号托盘也已更正。','周五交接时请使用这份修订稿，旧版可以直接归档。仓管员会在南门等候，预计清点需要四十分钟。'], note:'交接时间：8 月 22 日 14:00 · 北海仓南门。', read:false, starred:false, folder:'inbox', attachments:[['北海仓交接清单_0820.xlsx','XLSX · 382 KB']] },
+      { id:'m3', no:'003', subject:'九月值班表已签发', sender:'收发室行政', address:'admin@lingang.local', time:'08:55', date:'2025年8月20日 08:55', preview:'九月值班表已由行政签发，中秋假期采用双岗制，请在周五前完成换班申请。', body:['各位同事：','九月值班表已经签发。中秋假期采用双岗制，早班为 07:30—15:30，晚班为 15:30—22:00。','如需换班，请在本周五前由双方确认后交行政备案，临时换班仍需值班主任同意。'], note:'行政编号：XZ-2025-0901 · 换班申请截止 8 月 23 日。', read:true, starred:true, folder:'inbox', attachments:[['九月值班表.pdf','PDF · 512 KB']] },
+      { id:'m4', no:'004', subject:'旧邮票册的数字化样张', sender:'唐宓 · 港史档案馆', address:'tangmi@archive.local', time:'昨天', date:'2025年8月19日 16:26', preview:'第一批 24 枚邮票已完成 600 dpi 扫描，附三张样张，请确认齿孔细节是否足够清晰。', body:['王老师：','第一批 24 枚旧邮票已完成 600 dpi 扫描，文件按册页与原始编号命名。随信附上三张样张，烦请确认齿孔与背胶细节是否达到展览要求。','如果清晰度合适，我们将在下周继续处理余下六册，并保留原始色彩，不做自动修复。'], note:'样张仅供校色，正式文件将在验收后通过馆内档案库移交。', read:true, starred:false, folder:'inbox', attachments:[['邮票样张_03.tif','TIFF · 18.4 MB'],['扫描命名规则.txt','TXT · 4 KB']] },
+      { id:'m5', no:'005', subject:'灯塔巡检报销凭证需补充', sender:'财务共享中心', address:'finance@lingang.local', time:'昨天', date:'2025年8月19日 15:08', preview:'8 月灯塔巡检报销缺少一张渡船票据，请补拍船票背面后再提交，其余项目已通过。', body:['王澄：','你提交的 8 月灯塔巡检报销中，8 月 12 日返程渡船缺少票据影像，请补拍船票正反面后重新提交。','住宿与市内交通项目已经审核通过，本次只需补充渡船票据，无需重复上传其他凭证。'], note:'待补项目：8 月 12 日返程渡船票 · 金额 36.00 元。', read:false, starred:false, folder:'inbox', attachments:[['待补凭证说明.pdf','PDF · 188 KB']] },
+      { id:'m6', no:'006', subject:'你预约的《邮路档案》已到店', sender:'临港图书馆', address:'notice@library.local', time:'周一', date:'2025年8月18日 11:30', preview:'预约图书已送至东门服务台，将为你保留至 8 月 24 日，请携带工作证领取。', body:['王澄读者：','你预约的《邮路档案：1920—1980》已送至东门服务台，索书号为 K928.5 / 047。图书将保留至 8 月 24 日闭馆。','领取时请出示工作证；如还需馆内展出的旧邮袋照片，可在服务台登记调阅。'], note:'保留期限：至 2025 年 8 月 24 日 17:00。', read:true, starred:false, folder:'inbox', attachments:[] },
+      { id:'m7', no:'007', subject:'周末家属开放日提醒', sender:'工会小组', address:'union@lingang.local', time:'周一', date:'2025年8月18日 09:12', preview:'本周六 10:00 举行家属开放日，已报名的同事请在北门领取访客贴，儿童需全程陪同。', body:['各位同事：','本周六 10:00—15:00 举行家属开放日。已报名的同事请从北门进入，在收发室领取访客贴。','分拣设备区仅在讲解时段开放，儿童需由成人全程陪同。午餐按报名人数准备，如需素食请提前回复。'], note:'集合时间：8 月 23 日 09:50 · 北门访客台。', read:false, starred:false, folder:'inbox', attachments:[['开放日参观路线.pdf','PDF · 906 KB']] }
+    ];
+    let currentFolder = 'inbox';
+    let currentFilter = 'all';
+    let selectedId = 'm1';
+    let query = '';
+    let lastArchive = null;
+    let toastTimer;
+    const byId = id => document.getElementById(id);
+    const folderNames = { inbox:'收件箱', starred:'星标邮件', archive:'已归档' };
+    function visibleMails() {
+      const term = query.trim().toLowerCase();
+      return mails.filter(mail => {
+        const inFolder = currentFolder === 'starred' ? mail.starred : mail.folder === currentFolder;
+        const inFilter = currentFilter === 'all' || !mail.read;
+        const inSearch = !term || `${mail.sender} ${mail.subject} ${mail.preview}`.toLowerCase().includes(term);
+        return inFolder && inFilter && inSearch;
+      });
+    }
+    function showToast(message, undo = false) {
+      clearTimeout(toastTimer);
+      byId('toast-message').textContent = message;
+      byId('toast-undo').hidden = !undo;
+      byId('toast').classList.add('show');
+      toastTimer = setTimeout(() => byId('toast').classList.remove('show'), undo ? 4500 : 2400);
+    }
+    function renderList() {
+      const visible = visibleMails();
+      byId('list-title').textContent = folderNames[currentFolder];
+      byId('list-count').textContent = `${visible.length} 封`;
+      byId('filter-note').textContent = query ? `搜索：${query}` : currentFilter === 'unread' ? '未读优先' : '按时间倒序';
+      if (!visible.length) {
+        byId('mail-list').innerHTML = '<div class="list-empty"><strong>这一格暂时没有邮件</strong>可更换文件夹、清除搜索或切换“全部”。</div>';
+        return;
+      }
+      byId('mail-list').innerHTML = visible.map(mail => `
+        <article class="mail-item ${mail.read ? '' : 'unread'} ${mail.id === selectedId ? 'selected' : ''}" id="mail-${mail.id}">
+          <button class="mail-open" type="button" data-open="${mail.id}" aria-current="${mail.id === selectedId ? 'true' : 'false'}" aria-label="${mail.subject}，${mail.sender}${mail.read ? '' : '，未读'}">
+            <span class="mail-meta">${mail.read ? '' : '<i class="unread-dot"></i>'}<span class="sender">${mail.sender}</span><time class="mail-time">${mail.time}</time></span>
+            <strong class="mail-subject">${mail.subject}</strong><span class="mail-preview">${mail.preview}</span>
+          </button>
+          <button class="star-button" type="button" data-star="${mail.id}" aria-pressed="${mail.starred}" aria-label="${mail.starred ? '取消星标' : '添加星标'}：${mail.subject}" title="${mail.starred ? '取消星标' : '添加星标'}">${mail.starred ? '★' : '☆'}</button>
+        </article>`).join('');
+      byId('mail-list').querySelectorAll('[data-open]').forEach(button => button.addEventListener('click', () => openMail(button.dataset.open)));
+      byId('mail-list').querySelectorAll('[data-star]').forEach(button => button.addEventListener('click', () => toggleStar(button.dataset.star)));
+    }
+    function renderReader() {
+      const mail = mails.find(item => item.id === selectedId);
+      const hasMail = Boolean(mail);
+      ['reader-star','reader-read','reader-archive'].forEach(id => byId(id).disabled = !hasMail);
+      if (!mail) {
+        byId('reader-path').textContent = 'NO LETTER SELECTED';
+        byId('reader-scroll').innerHTML = '<div class="reader-empty"><svg viewBox="0 0 64 64" fill="none" aria-hidden="true"><path d="M10 14h44v36H10zM10 18l22 17 22-17" stroke="currentColor" stroke-width="1.5"/><path d="M19 7h26" stroke="currentColor"/></svg><h1>这一格是空的</h1><p>返回收件箱，或调整左侧筛选后再读一封。</p><button class="return-button" id="empty-return" type="button">返回收件箱</button></div>';
+        byId('empty-return').addEventListener('click', () => switchFolder('inbox'));
+        return;
+      }
+      byId('reader-path').textContent = `${mail.folder === 'archive' ? 'ARCHIVE' : 'INBOX'} / LETTER ${mail.no}`;
+      byId('reader-star').setAttribute('aria-pressed', String(mail.starred));
+      byId('reader-star').querySelector('.action-label').textContent = mail.starred ? '已星标' : '星标';
+      byId('read-action-label').textContent = mail.read ? '标为未读' : '标为已读';
+      byId('reader-archive').disabled = mail.folder === 'archive';
+      byId('reader-archive').querySelector('.action-label').textContent = mail.folder === 'archive' ? '已归档' : '归档';
+      const attachments = mail.attachments.length ? `<section class="attachments"><h2>随信附件 · ${mail.attachments.length}</h2><div class="attachment-grid">${mail.attachments.map(file => `<div class="attachment"><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M5 2h7l3 3v13H5zM12 2v4h4M8 11h4m-4 3h4" stroke="currentColor"/></svg><span class="attachment-name"><strong>${file[0]}</strong><span>${file[1]}</span></span></div>`).join('')}</div></section>` : '';
+      byId('reader-scroll').innerHTML = `<article class="letter">
+        <div class="letter-top"><span class="letter-index">RECEIVED AT LINGANG POSTROOM<br>ROUTE LG-08 / NO. ${mail.no}</span><div class="postage" aria-hidden="true"><div><strong>08</strong><span>LINGANG<br>POST · 2025</span></div></div></div>
+        <h1>${mail.subject}</h1>
+        <div class="sender-card"><span class="sender-avatar">${mail.sender.charAt(0)}</span><div class="sender-info"><strong>${mail.sender}</strong><span>${mail.address}</span></div><time class="letter-date">${mail.date}</time></div>
+        <div class="letter-body">${mail.body.map(paragraph => `<p>${paragraph}</p>`).join('')}<aside class="letter-note">${mail.note}</aside></div>
+        ${attachments}<footer class="letter-foot"><span>INTERNAL POST · KEEP FOR RECORD</span><span>分拣员 07 · 核验通过</span></footer>
+      </article>`;
+      byId('reader-scroll').scrollTop = 0;
+    }
+    function renderCounts() {
+      byId('inbox-count').textContent = mails.filter(mail => mail.folder === 'inbox' && !mail.read).length;
+      byId('starred-count').textContent = mails.filter(mail => mail.starred).length;
+      byId('archive-count').textContent = mails.filter(mail => mail.folder === 'archive').length;
+    }
+    function renderAll() {
+      const visible = visibleMails();
+      if (!visible.some(mail => mail.id === selectedId)) selectedId = visible[0]?.id || null;
+      renderCounts();
+      renderList();
+      renderReader();
+    }
+    function openMail(id) {
+      selectedId = id;
+      const mail = mails.find(item => item.id === id);
+      if (mail) mail.read = true;
+      renderAll();
+    }
+    function toggleStar(id) {
+      const mail = mails.find(item => item.id === id);
+      if (!mail) return;
+      mail.starred = !mail.starred;
+      renderAll();
+      showToast(mail.starred ? '已加入星标邮件' : '已取消星标');
+    }
+    function switchFolder(folder) {
+      currentFolder = folder;
+      currentFilter = 'all';
+      query = '';
+      byId('mail-search').value = '';
+      document.querySelectorAll('[data-folder]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.folder === folder)));
+      document.querySelectorAll('[data-filter]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.filter === 'all')));
+      renderAll();
+    }
+    document.querySelectorAll('[data-folder]').forEach(button => button.addEventListener('click', () => switchFolder(button.dataset.folder)));
+    document.querySelectorAll('[data-filter]').forEach(button => button.addEventListener('click', () => {
+      currentFilter = button.dataset.filter;
+      document.querySelectorAll('[data-filter]').forEach(item => item.setAttribute('aria-pressed', String(item === button)));
+      renderAll();
+    }));
+    byId('mail-search').addEventListener('input', event => { query = event.target.value; renderAll(); });
+    byId('search-form').addEventListener('submit', event => event.preventDefault());
+    byId('reader-star').addEventListener('click', () => { if (selectedId) toggleStar(selectedId); });
+    byId('reader-read').addEventListener('click', () => {
+      const mail = mails.find(item => item.id === selectedId);
+      if (!mail) return;
+      mail.read = !mail.read;
+      renderAll();
+      showToast(mail.read ? '已标为已读' : '已标为未读，并计入未读数量');
+    });
+    byId('reader-archive').addEventListener('click', () => {
+      const mail = mails.find(item => item.id === selectedId);
+      if (!mail || mail.folder === 'archive') return;
+      lastArchive = { id:mail.id, folder:mail.folder, previousFolder:currentFolder };
+      mail.folder = 'archive';
+      mail.read = true;
+      renderAll();
+      showToast(`“${mail.subject}”已归档`, true);
+    });
+    byId('toast-undo').addEventListener('click', () => {
+      if (!lastArchive) return;
+      const mail = mails.find(item => item.id === lastArchive.id);
+      if (mail) { mail.folder = lastArchive.folder; selectedId = mail.id; }
+      currentFolder = lastArchive.previousFolder;
+      lastArchive = null;
+      switchFolder(currentFolder);
+      showToast('已撤销归档，邮件放回原处');
+    });
+    renderAll();
+  </script>
+</body>
+</html>

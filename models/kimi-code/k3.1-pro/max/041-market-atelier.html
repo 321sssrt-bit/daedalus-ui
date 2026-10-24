@@ -1,0 +1,2586 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>栖物市集｜把山野的日常带回家</title>
+  <style>
+    :root {
+      --page: #F3EFE5;
+      --surface: #FFFCF6;
+      --surface-olive: #E5E8DA;
+      --ink: #2C3228;
+      --muted: #727365;
+      --olive: #3E4A38;
+      --olive-deep: #2E382B;
+      --clay: #B85F44;
+      --clay-dark: #93452F;
+      --clay-soft: #F0DDD2;
+      --line: #D7D0C1;
+      --success: #48613F;
+      --error: #A23E31;
+      --error-soft: #F9E7E1;
+      --focus: #E19A78;
+      --radius-control: 6px;
+      --radius-container: 16px;
+      --shadow: 0 16px 40px rgba(46, 56, 43, 0.10);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      color-scheme: light;
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      min-width: 320px;
+      background: var(--page);
+      color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    body.dialog-open {
+      overflow: hidden;
+    }
+
+    button,
+    input,
+    select {
+      font: inherit;
+    }
+
+    button,
+    select {
+      cursor: pointer;
+    }
+
+    button {
+      color: inherit;
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.46;
+    }
+
+    button:focus-visible,
+    input:focus-visible,
+    select:focus-visible,
+    a:focus-visible,
+    [tabindex="-1"]:focus-visible {
+      outline: 3px solid var(--focus);
+      outline-offset: 3px;
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin-top: 0;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    .skip-link {
+      position: fixed;
+      top: 8px;
+      left: 8px;
+      z-index: 20;
+      padding: 8px 14px;
+      border-radius: var(--radius-control);
+      background: var(--surface);
+      color: var(--olive-deep);
+      transform: translateY(-150%);
+    }
+
+    .skip-link:focus {
+      transform: translateY(0);
+    }
+
+    .page-shell {
+      width: min(1200px, calc(100% - 80px));
+      margin-inline: auto;
+    }
+
+    .site-header {
+      height: 76px;
+      background: var(--olive);
+      color: var(--surface);
+      border-bottom: 4px solid var(--clay);
+    }
+
+    .header-inner {
+      height: 72px;
+      display: flex;
+      align-items: center;
+      gap: 28px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      min-width: 184px;
+    }
+
+    .brand-mark {
+      width: 38px;
+      height: 38px;
+      flex: 0 0 auto;
+    }
+
+    .brand-name {
+      display: block;
+      font-family: "Songti SC", "STSong", "SimSun", serif;
+      font-size: 25px;
+      line-height: 1.1;
+      letter-spacing: 0.16em;
+    }
+
+    .brand-subtitle {
+      display: block;
+      margin-top: 4px;
+      color: #D9DDCE;
+      font-size: 10px;
+      line-height: 1.2;
+      letter-spacing: 0.18em;
+    }
+
+    .header-note {
+      margin: 0;
+      padding-left: 26px;
+      border-left: 1px solid rgba(255, 252, 246, 0.28);
+      color: #E5E8DA;
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      flex: 1;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-left: auto;
+    }
+
+    .header-button {
+      min-height: 40px;
+      padding: 8px 15px;
+      border-radius: var(--radius-control);
+      border: 1px solid rgba(255, 252, 246, 0.46);
+      background: transparent;
+      color: var(--surface);
+      font-size: 13px;
+      transition: background-color 160ms ease, color 160ms ease;
+    }
+
+    .header-button:hover {
+      background: rgba(255, 252, 246, 0.12);
+    }
+
+    .header-button.cart-button {
+      border-color: var(--clay-soft);
+      background: var(--clay-soft);
+      color: var(--olive-deep);
+      font-weight: 700;
+    }
+
+    .header-button.cart-button:hover {
+      background: var(--surface);
+    }
+
+    .cart-count {
+      display: inline-grid;
+      place-items: center;
+      min-width: 23px;
+      height: 23px;
+      margin-left: 7px;
+      padding-inline: 5px;
+      border-radius: 999px;
+      background: var(--clay);
+      color: var(--surface);
+      font-size: 12px;
+    }
+
+    .intro {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 32px;
+      padding: 28px 0 25px;
+    }
+
+    .eyebrow {
+      margin-bottom: 7px;
+      color: var(--clay-dark);
+      font-size: 11px;
+      font-weight: 700;
+      line-height: 1.4;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+
+    .intro h1 {
+      margin-bottom: 8px;
+      font-family: "Songti SC", "STSong", "SimSun", serif;
+      font-size: 38px;
+      font-weight: 600;
+      line-height: 1.22;
+      letter-spacing: 0.04em;
+    }
+
+    .intro-copy {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .intro-note {
+      width: 292px;
+      flex: 0 0 auto;
+      margin: 0 0 4px;
+      padding-left: 16px;
+      border-left: 3px solid var(--clay);
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.75;
+    }
+
+    .intro-note strong {
+      display: block;
+      color: var(--olive);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .shop-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 360px;
+      align-items: start;
+      gap: 28px;
+      padding-bottom: 48px;
+    }
+
+    .collection-bar {
+      min-height: 42px;
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 12px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .collection-bar h2 {
+      margin: 0;
+      font-size: 17px;
+      line-height: 1.5;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+    }
+
+    .collection-bar p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .product-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 20px 16px;
+    }
+
+    .product-card {
+      width: 100%;
+      display: block;
+      padding: 8px 0 11px;
+      border: 0;
+      border-top: 2px solid transparent;
+      border-radius: 0;
+      background: transparent;
+      text-align: left;
+      transition: transform 180ms ease, background-color 180ms ease, border-color 180ms ease;
+    }
+
+    .product-card:hover {
+      transform: translateY(-3px);
+      background: rgba(255, 252, 246, 0.58);
+    }
+
+    .product-card[aria-pressed="true"] {
+      border-top-color: var(--clay);
+    }
+
+    .product-art {
+      position: relative;
+      display: block;
+      height: 142px;
+      overflow: hidden;
+      border-radius: 3px 18px 3px 3px;
+      background: var(--surface-olive);
+    }
+
+    .product-card[aria-pressed="true"] .product-art {
+      box-shadow: inset 0 0 0 2px var(--clay);
+    }
+
+    .product-art svg,
+    .detail-visual svg,
+    .cart-thumb svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .product-index {
+      position: absolute;
+      top: 9px;
+      left: 9px;
+      padding: 2px 7px;
+      border-radius: 3px;
+      background: rgba(255, 252, 246, 0.90);
+      color: var(--olive);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+    }
+
+    .product-info {
+      display: block;
+      padding: 10px 4px 0;
+    }
+
+    .product-meta {
+      margin-bottom: 3px;
+      color: var(--muted);
+      font-size: 10px;
+      line-height: 1.5;
+      letter-spacing: 0.06em;
+    }
+
+    .product-name-row {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .product-name {
+      margin: 0;
+      font-size: 15px;
+      font-weight: 700;
+      line-height: 1.45;
+    }
+
+    .product-price {
+      flex: 0 0 auto;
+      color: var(--olive-deep);
+      font-size: 15px;
+      line-height: 1.5;
+      white-space: nowrap;
+    }
+
+    .product-bottom {
+      display: flex;
+      justify-content: space-between;
+      gap: 6px;
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .product-action {
+      color: var(--clay-dark);
+      font-weight: 700;
+    }
+
+    .detail-panel {
+      position: sticky;
+      top: 18px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 4px 28px 4px 4px;
+      background: var(--surface);
+      box-shadow: var(--shadow);
+    }
+
+    .detail-visual {
+      position: relative;
+      height: 176px;
+      background: var(--surface-olive);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .detail-badge {
+      position: absolute;
+      right: 15px;
+      bottom: 13px;
+      padding: 4px 9px;
+      border-radius: 3px;
+      background: var(--olive);
+      color: var(--surface);
+      font-size: 10px;
+      letter-spacing: 0.12em;
+    }
+
+    .detail-body {
+      padding: 18px 20px 20px;
+    }
+
+    .detail-kicker {
+      margin-bottom: 5px;
+      color: var(--clay-dark);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.10em;
+    }
+
+    .detail-heading-row {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .detail-heading-row h2 {
+      margin-bottom: 7px;
+      font-family: "Songti SC", "STSong", "SimSun", serif;
+      font-size: 25px;
+      font-weight: 600;
+      line-height: 1.35;
+    }
+
+    .detail-price {
+      padding-top: 4px;
+      color: var(--clay-dark);
+      font-size: 20px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .detail-description {
+      margin-bottom: 12px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.7;
+    }
+
+    .detail-facts {
+      display: flex;
+      gap: 12px;
+      margin: 0 0 15px;
+      padding: 9px 0;
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .detail-facts span {
+      flex: 1;
+    }
+
+    .detail-facts span + span {
+      padding-left: 12px;
+      border-left: 1px solid var(--line);
+    }
+
+    .field-label {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 7px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .stock-note {
+      color: var(--success);
+      font-size: 11px;
+      font-weight: 500;
+    }
+
+    .stock-note.low,
+    .stock-note.out {
+      color: var(--error);
+    }
+
+    .variant-options {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 15px;
+    }
+
+    .variant-button {
+      min-height: 36px;
+      padding: 6px 13px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--surface);
+      color: var(--muted);
+      font-size: 12px;
+      transition: border-color 160ms ease, background-color 160ms ease, color 160ms ease;
+    }
+
+    .variant-button:hover {
+      border-color: var(--olive);
+      color: var(--olive);
+    }
+
+    .variant-button[aria-pressed="true"] {
+      border-color: var(--olive);
+      background: var(--surface-olive);
+      color: var(--olive-deep);
+      font-weight: 700;
+    }
+
+    .purchase-row {
+      display: grid;
+      grid-template-columns: 112px minmax(0, 1fr);
+      gap: 10px;
+    }
+
+    .quantity-control {
+      min-height: 44px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: space-between;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-control);
+      background: var(--surface);
+      overflow: hidden;
+    }
+
+    .quantity-control button {
+      width: 32px;
+      align-self: stretch;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      color: var(--olive);
+      font-size: 19px;
+    }
+
+    .quantity-control button:hover:not(:disabled) {
+      background: var(--surface-olive);
+    }
+
+    .quantity-control input {
+      width: 42px;
+      height: 32px;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      color: var(--ink);
+      text-align: center;
+      font-weight: 700;
+      appearance: textfield;
+    }
+
+    .quantity-control input::-webkit-inner-spin-button,
+    .quantity-control input::-webkit-outer-spin-button {
+      appearance: none;
+      margin: 0;
+    }
+
+    .primary-button {
+      min-height: 44px;
+      padding: 10px 18px;
+      border: 1px solid var(--clay);
+      border-radius: var(--radius-control);
+      background: var(--clay);
+      color: var(--surface);
+      font-weight: 700;
+      transition: background-color 160ms ease, border-color 160ms ease, transform 160ms ease;
+    }
+
+    .primary-button:hover:not(:disabled) {
+      border-color: var(--clay-dark);
+      background: var(--clay-dark);
+      transform: translateY(-1px);
+    }
+
+    .secondary-button {
+      min-height: 40px;
+      padding: 8px 15px;
+      border: 1px solid var(--olive);
+      border-radius: var(--radius-control);
+      background: transparent;
+      color: var(--olive);
+      font-weight: 700;
+      transition: background-color 160ms ease, color 160ms ease;
+    }
+
+    .secondary-button:hover:not(:disabled) {
+      background: var(--olive);
+      color: var(--surface);
+    }
+
+    .text-button {
+      min-height: 34px;
+      padding: 4px 7px;
+      border: 0;
+      border-radius: 4px;
+      background: transparent;
+      color: var(--clay-dark);
+      font-size: 12px;
+      font-weight: 700;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+
+    .text-button:hover:not(:disabled) {
+      background: var(--clay-soft);
+    }
+
+    .detail-feedback,
+    .inline-notice {
+      margin: 10px 0 0;
+      padding: 8px 10px;
+      border-left: 3px solid var(--olive);
+      background: var(--surface-olive);
+      color: var(--olive-deep);
+      font-size: 12px;
+    }
+
+    .detail-feedback.error,
+    .inline-notice.error {
+      border-left-color: var(--error);
+      background: var(--error-soft);
+      color: var(--error);
+    }
+
+    .detail-feedback:empty,
+    .inline-notice:empty {
+      display: none;
+    }
+
+    .detail-service {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      margin: 13px 0 0;
+      color: var(--muted);
+      font-size: 10px;
+    }
+
+    dialog {
+      color: var(--ink);
+    }
+
+    dialog::backdrop {
+      background: rgba(44, 50, 40, 0.56);
+      backdrop-filter: blur(2px);
+    }
+
+    .cart-dialog {
+      width: 540px;
+      max-width: calc(100vw - 24px);
+      height: 100dvh;
+      max-height: 100dvh;
+      margin: 0 0 0 auto;
+      padding: 0;
+      overflow: hidden;
+      border: 0;
+      border-radius: 20px 0 0 20px;
+      background: var(--surface);
+      box-shadow: -20px 0 60px rgba(44, 50, 40, 0.22);
+    }
+
+    .cart-dialog[open] {
+      animation: drawer-in 200ms ease-out;
+    }
+
+    .demo-dialog {
+      width: 580px;
+      max-width: calc(100vw - 32px);
+      max-height: calc(100dvh - 48px);
+      padding: 0;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-container);
+      background: var(--surface);
+      box-shadow: var(--shadow);
+    }
+
+    .demo-dialog[open] {
+      animation: dialog-in 180ms ease-out;
+    }
+
+    .dialog-shell {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .demo-shell {
+      max-height: calc(100dvh - 50px);
+    }
+
+    .dialog-header {
+      min-height: 72px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 14px 24px;
+      border-bottom: 1px solid var(--line);
+      background: var(--surface);
+    }
+
+    .dialog-heading-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .dialog-header h2 {
+      margin: 0;
+      font-family: "Songti SC", "STSong", "SimSun", serif;
+      font-size: 24px;
+      font-weight: 600;
+      line-height: 1.35;
+    }
+
+    .dialog-header p {
+      margin: 2px 0 0;
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .close-button {
+      width: 38px;
+      height: 38px;
+      flex: 0 0 auto;
+      border: 1px solid var(--line);
+      border-radius: 50%;
+      background: transparent;
+      color: var(--olive);
+      font-size: 23px;
+      line-height: 1;
+    }
+
+    .close-button:hover {
+      background: var(--surface-olive);
+    }
+
+    .dialog-body {
+      flex: 1;
+      min-height: 0;
+      padding: 20px 24px;
+      overflow-y: auto;
+    }
+
+    .dialog-footer {
+      padding: 16px 24px 20px;
+      border-top: 1px solid var(--line);
+      background: var(--surface);
+    }
+
+    .dialog-footer .primary-button,
+    .dialog-footer .secondary-button {
+      width: 100%;
+    }
+
+    .footer-button-row {
+      display: grid;
+      grid-template-columns: 1fr 1.6fr;
+      gap: 10px;
+    }
+
+    .footer-button-row .primary-button,
+    .footer-button-row .secondary-button {
+      width: 100%;
+    }
+
+    .demo-entry {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 17px;
+      padding: 11px 12px;
+      border: 1px dashed var(--olive);
+      border-radius: 8px;
+      background: var(--surface-olive);
+    }
+
+    .demo-entry strong {
+      display: block;
+      color: var(--olive);
+      font-size: 12px;
+    }
+
+    .demo-entry > div > span {
+      display: block;
+      color: var(--muted);
+      font-size: 10px;
+    }
+
+    .demo-entry .text-button {
+      flex: 0 0 auto;
+    }
+
+    .demo-tag {
+      display: inline-block;
+      padding: 2px 7px;
+      border-radius: 3px;
+      background: var(--clay-soft);
+      color: var(--clay-dark);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+    }
+
+    .cart-lines {
+      display: grid;
+      gap: 0;
+    }
+
+    .cart-line {
+      display: grid;
+      grid-template-columns: 78px minmax(0, 1fr);
+      gap: 14px;
+      padding: 17px 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .cart-line:first-child {
+      padding-top: 2px;
+    }
+
+    .cart-thumb {
+      width: 78px;
+      height: 94px;
+      overflow: hidden;
+      border-radius: 3px 12px 3px 3px;
+      background: var(--surface-olive);
+    }
+
+    .cart-line-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .cart-line h3 {
+      margin-bottom: 2px;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    .cart-maker {
+      margin-bottom: 7px;
+      color: var(--muted);
+      font-size: 10px;
+    }
+
+    .line-total {
+      flex: 0 0 auto;
+      color: var(--clay-dark);
+      font-size: 14px;
+      white-space: nowrap;
+    }
+
+    .cart-variant {
+      width: 100%;
+      height: 34px;
+      margin-bottom: 8px;
+      padding: 4px 28px 4px 9px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-control);
+      background: var(--surface);
+      color: var(--olive-deep);
+      font-size: 11px;
+    }
+
+    .line-actions {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+    }
+
+    .line-actions .quantity-control {
+      min-height: 32px;
+      height: 32px;
+    }
+
+    .line-actions .quantity-control button {
+      width: 29px;
+      font-size: 17px;
+    }
+
+    .quantity-value {
+      min-width: 26px;
+      text-align: center;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .line-unit {
+      margin: 0 0 0 auto;
+      color: var(--muted);
+      font-size: 10px;
+    }
+
+    .summary-box {
+      margin-top: 18px;
+      padding: 13px 15px;
+      border-radius: 8px;
+      background: var(--page);
+    }
+
+    .summary-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin: 4px 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .summary-row.total {
+      margin-top: 9px;
+      padding-top: 9px;
+      border-top: 1px solid var(--line);
+      color: var(--ink);
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .summary-row.total strong {
+      color: var(--clay-dark);
+      font-size: 22px;
+    }
+
+    .empty-cart {
+      padding: 54px 20px;
+      text-align: center;
+    }
+
+    .empty-cart svg {
+      width: 86px;
+      height: 86px;
+      margin-bottom: 12px;
+    }
+
+    .empty-cart h3 {
+      margin-bottom: 7px;
+      font-family: "Songti SC", "STSong", "SimSun", serif;
+      font-size: 23px;
+    }
+
+    .empty-cart p {
+      margin-bottom: 20px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .back-row {
+      margin-bottom: 15px;
+    }
+
+    .checkout-section {
+      margin-bottom: 20px;
+    }
+
+    .checkout-section h3 {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 11px;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .section-number {
+      display: inline-grid;
+      place-items: center;
+      width: 23px;
+      height: 23px;
+      border-radius: 50%;
+      background: var(--olive);
+      color: var(--surface);
+      font-size: 11px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 11px 12px;
+    }
+
+    .form-field {
+      display: grid;
+      gap: 5px;
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .form-field.full {
+      grid-column: 1 / -1;
+    }
+
+    .form-field input {
+      width: 100%;
+      height: 40px;
+      padding: 8px 10px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-control);
+      background: var(--surface);
+      color: var(--ink);
+      font-size: 12px;
+    }
+
+    .form-field input:hover {
+      border-color: var(--olive);
+    }
+
+    .form-hint {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 10px;
+    }
+
+    .checkout-items {
+      border-top: 1px solid var(--line);
+    }
+
+    .checkout-item {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 4px 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--line);
+      font-size: 12px;
+    }
+
+    .checkout-item strong {
+      font-size: 12px;
+    }
+
+    .checkout-item span {
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .checkout-item .checkout-subtotal {
+      grid-row: 1 / 3;
+      grid-column: 2;
+      align-self: center;
+      color: var(--ink);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .issue-box {
+      margin-bottom: 17px;
+      padding: 13px 14px;
+      border: 1px solid var(--error);
+      border-radius: 8px;
+      background: var(--error-soft);
+      color: var(--error);
+    }
+
+    .issue-box h3 {
+      margin-bottom: 6px;
+      font-size: 13px;
+    }
+
+    .issue-box p {
+      margin-bottom: 7px;
+      font-size: 11px;
+    }
+
+    .issue-list {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .issue-list li {
+      padding: 8px 0;
+      border-top: 1px solid rgba(162, 62, 49, 0.22);
+      font-size: 12px;
+    }
+
+    .issue-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 7px;
+    }
+
+    .issue-actions button {
+      min-height: 32px;
+      padding: 4px 9px;
+      border: 1px solid var(--error);
+      border-radius: var(--radius-control);
+      background: var(--surface);
+      color: var(--error);
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .issue-actions button:hover {
+      background: var(--error-soft);
+    }
+
+    .demo-intro {
+      margin-bottom: 16px;
+      padding: 12px 14px;
+      border-left: 3px solid var(--clay);
+      background: var(--clay-soft);
+      color: var(--clay-dark);
+      font-size: 12px;
+    }
+
+    .demo-intro p {
+      margin: 0;
+    }
+
+    .demo-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .demo-line {
+      padding: 13px 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--page);
+    }
+
+    .demo-line-heading {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 4px;
+    }
+
+    .demo-line-heading strong {
+      font-size: 13px;
+    }
+
+    .demo-line-heading span {
+      color: var(--muted);
+      font-size: 11px;
+      white-space: nowrap;
+    }
+
+    .demo-line p {
+      margin-bottom: 9px;
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .demo-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .demo-actions button {
+      min-height: 34px;
+      padding: 5px 10px;
+      border: 1px solid var(--clay);
+      border-radius: var(--radius-control);
+      background: var(--surface);
+      color: var(--clay-dark);
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .demo-actions button:hover:not(:disabled) {
+      background: var(--clay-soft);
+    }
+
+    .demo-footnote {
+      margin: 15px 0 0;
+      color: var(--muted);
+      font-size: 10px;
+    }
+
+    .success-body {
+      padding-top: 28px;
+    }
+
+    .success-mark {
+      width: 62px;
+      height: 62px;
+      display: grid;
+      place-items: center;
+      margin: 0 auto 13px;
+      border-radius: 50%;
+      background: var(--olive);
+      color: var(--surface);
+    }
+
+    .success-heading {
+      margin-bottom: 5px;
+      text-align: center;
+      font-family: "Songti SC", "STSong", "SimSun", serif;
+      font-size: 27px;
+      font-weight: 600;
+    }
+
+    .success-lead {
+      margin-bottom: 20px;
+      color: var(--muted);
+      text-align: center;
+      font-size: 12px;
+    }
+
+    .receipt-number {
+      margin-bottom: 18px;
+      padding: 12px 14px;
+      border-radius: 8px;
+      background: var(--surface-olive);
+      text-align: center;
+    }
+
+    .receipt-number span {
+      display: block;
+      color: var(--muted);
+      font-size: 10px;
+      letter-spacing: 0.10em;
+    }
+
+    .receipt-number strong {
+      display: block;
+      margin-top: 3px;
+      color: var(--olive-deep);
+      font-size: 18px;
+      letter-spacing: 0.08em;
+    }
+
+    .receipt-block {
+      margin-bottom: 17px;
+      padding: 14px 0;
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .receipt-block h3 {
+      margin-bottom: 9px;
+      font-size: 12px;
+      letter-spacing: 0.06em;
+    }
+
+    .receipt-item {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 3px 12px;
+      margin-bottom: 10px;
+      font-size: 12px;
+    }
+
+    .receipt-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .receipt-item span {
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .receipt-item .receipt-price {
+      grid-row: 1 / 3;
+      grid-column: 2;
+      align-self: center;
+      color: var(--ink);
+      font-weight: 700;
+    }
+
+    .receipt-address {
+      margin-bottom: 17px;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.8;
+    }
+
+    .receipt-address strong {
+      color: var(--ink);
+    }
+
+    .receipt-disclaimer {
+      margin: 13px 0 0;
+      color: var(--muted);
+      text-align: center;
+      font-size: 10px;
+    }
+
+    @keyframes drawer-in {
+      from { transform: translateX(28px); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    @keyframes dialog-in {
+      from { transform: translateY(10px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    @media (max-width: 1100px) {
+      .shop-layout {
+        grid-template-columns: minmax(0, 1fr) 320px;
+        gap: 20px;
+      }
+
+      .product-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .product-art {
+        height: 138px;
+      }
+
+      .detail-body {
+        padding-inline: 17px;
+      }
+
+      .detail-visual {
+        height: 160px;
+      }
+    }
+
+    @media (max-width: 980px) {
+      .page-shell {
+        width: calc(100% - 40px);
+      }
+
+      .header-inner {
+        gap: 16px;
+      }
+
+      .header-note {
+        display: none;
+      }
+
+      .intro {
+        gap: 20px;
+      }
+
+      .intro h1 {
+        font-size: 31px;
+      }
+
+      .intro-note {
+        width: 254px;
+      }
+
+      .product-name-row {
+        display: block;
+      }
+
+      .product-price {
+        display: block;
+        margin-top: 2px;
+      }
+    }
+
+    @media (max-width: 700px) {
+      .site-header,
+      .header-inner {
+        height: auto;
+        min-height: 72px;
+      }
+
+      .header-inner {
+        flex-wrap: wrap;
+        padding-block: 12px;
+      }
+
+      .brand {
+        min-width: 0;
+      }
+
+      .brand-subtitle {
+        display: none;
+      }
+
+      .header-button {
+        padding-inline: 10px;
+      }
+
+      .intro {
+        display: block;
+      }
+
+      .intro-note {
+        width: auto;
+        margin-top: 17px;
+      }
+
+      .shop-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .detail-panel {
+        position: static;
+      }
+
+      .product-art {
+        height: 150px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .header-actions {
+        width: 100%;
+      }
+
+      .header-button {
+        flex: 1;
+      }
+
+      .product-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .product-name-row {
+        display: flex;
+      }
+
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .form-field.full {
+        grid-column: auto;
+      }
+
+      .cart-dialog {
+        max-width: 100vw;
+        border-radius: 0;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html {
+        scroll-behavior: auto;
+      }
+
+      *,
+      *::before,
+      *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#main-content">跳到商品列表</a>
+  <header class="site-header">
+    <div class="page-shell header-inner">
+      <div class="brand" aria-label="栖物市集家居买手店">
+        <svg class="brand-mark" viewBox="0 0 40 40" aria-hidden="true" focusable="false">
+          <circle cx="20" cy="20" r="18" fill="none" stroke="#F0DDD2" stroke-width="1.5"/>
+          <path d="M12 25C12 16 18 11 28 10C28 20 23 27 14 28" fill="none" stroke="#F0DDD2" stroke-width="2" stroke-linecap="round"/>
+          <path d="M13 29C17 23 21 19 27 15" fill="none" stroke="#F0DDD2" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        <div>
+          <span class="brand-name">栖物</span>
+          <span class="brand-subtitle">QIWU HOME ATELIER</span>
+        </div>
+      </div>
+      <p class="header-note">小批量到货 · 独立窑口 · 买手实地选物</p>
+      <div class="header-actions">
+        <button class="header-button" id="demo-open" type="button">库存演练 <span class="demo-tag">演示</span></button>
+        <button class="header-button cart-button" id="cart-open" type="button" aria-haspopup="dialog" aria-label="打开购物袋，共 0 件">购物袋<span class="cart-count" id="cart-count">0</span></button>
+      </div>
+    </div>
+  </header>
+
+  <main class="page-shell" id="main-content">
+    <section class="intro" aria-labelledby="page-title">
+      <div>
+        <p class="eyebrow">VOL. 06 / 春日居所</p>
+        <h1 id="page-title">把山野的日常，带回家。</h1>
+        <p class="intro-copy">器物不必夺目，耐用、顺手，也耐得住日日相看。</p>
+      </div>
+      <p class="intro-note"><strong>买手澄夏的本周选物</strong>从釉色、织感到握持尺度逐一试用。价格含税，支持七日无理由退换。</p>
+    </section>
+
+    <div class="shop-layout">
+      <section class="collection" aria-labelledby="collection-title">
+        <div class="collection-bar">
+          <h2 id="collection-title">本月新到</h2>
+          <p>6 件选物 · 点击器物查看规格</p>
+        </div>
+        <div class="product-grid" id="product-grid"></div>
+      </section>
+      <aside class="detail-panel" id="detail-panel" aria-label="商品详情"></aside>
+    </div>
+  </main>
+
+  <dialog class="cart-dialog" id="cart-dialog" aria-labelledby="cart-title"></dialog>
+  <dialog class="demo-dialog" id="demo-dialog" aria-labelledby="demo-title"></dialog>
+  <div class="sr-only" id="live-region" aria-live="polite" aria-atomic="true"></div>
+
+  <script>
+    (() => {
+      "use strict";
+
+      const products = [
+        {
+          id: "vase",
+          name: "野枝粗陶花器",
+          category: "手作陶器",
+          maker: "景德镇 · 叁泥窑",
+          price: 268,
+          description: "哑光釉面留住手指与泥土的痕迹，插一枝野果或单束洋牡丹都稳妥。",
+          material: "粗陶 / 哑光釉",
+          size: "口径 8 × 高 22 cm",
+          variants: [
+            { id: "moss", name: "苔绿", stock: 8, tone: "#657056" },
+            { id: "clay", name: "陶土", stock: 6, tone: "#B76B50" }
+          ]
+        },
+        {
+          id: "cushion",
+          name: "弧光亚麻靠垫",
+          category: "天然织物",
+          maker: "南通 · 慢织工坊",
+          price: 189,
+          description: "水洗亚麻带一点自然的皱，弧形滚边让沙发和木椅都柔和下来。",
+          material: "亚麻 / 羽丝绒芯",
+          size: "50 × 50 cm",
+          variants: [
+            { id: "olive", name: "橄榄绿", stock: 9, tone: "#788066" },
+            { id: "wheat", name: "麦仁色", stock: 7, tone: "#D4C2A2" }
+          ]
+        },
+        {
+          id: "tray",
+          name: "山影榉木托盘",
+          category: "木与金属",
+          maker: "湖州 · 半山木作",
+          price: 228,
+          description: "浅凹盘面收住茶杯与早餐，保留清晰木纹，边缘手工磨成温润弧度。",
+          material: "榉木 / 木蜡油",
+          size: "32 × 22 × 2 cm",
+          variants: [
+            { id: "natural", name: "原木色", stock: 7, tone: "#B98B5D" },
+            { id: "smoked", name: "烟熏色", stock: 5, tone: "#725444" }
+          ]
+        },
+        {
+          id: "mug",
+          name: "暮色手作马克杯",
+          category: "手作陶器",
+          maker: "龙泉 · 南窑",
+          price: 128,
+          description: "杯腹微微收拢，留住咖啡香气；宽耳杯把让两指握持也从容。",
+          material: "高温陶 / 窑变釉",
+          size: "容量 320 ml",
+          variants: [
+            { id: "oat", name: "燕麦白", stock: 10, tone: "#DDD2BD" },
+            { id: "brown", name: "窑变棕", stock: 6, tone: "#8A6048" }
+          ]
+        },
+        {
+          id: "blanket",
+          name: "织野羊毛盖毯",
+          category: "天然织物",
+          maker: "西宁 · 原野织造",
+          price: 459,
+          description: "轻而有暖意的羊毛混织，午后搭在膝上，或铺在单人床尾都刚好。",
+          material: "羊毛 / 棉",
+          size: "130 × 180 cm",
+          variants: [
+            { id: "mustard", name: "芥黄", stock: 5, tone: "#B49455" },
+            { id: "fern", name: "蕨绿", stock: 6, tone: "#596B55" }
+          ]
+        },
+        {
+          id: "candlestick",
+          name: "小屿黄铜烛台",
+          category: "木与金属",
+          maker: "苏州 · 金工研究室",
+          price: 158,
+          description: "小小一座像岛屿的烛台，氧化后会留下时间色泽，适合晚餐与独处时刻。",
+          material: "黄铜 / 哑光拉丝",
+          size: "底座直径 9 cm",
+          variants: [
+            { id: "low", name: "矮款 7 cm", stock: 8, tone: "#B39355" },
+            { id: "high", name: "高款 12 cm", stock: 4, tone: "#C0A267" }
+          ]
+        }
+      ];
+
+      const state = {
+        selectedProductId: "vase",
+        selectedVariantId: "moss",
+        detailQuantity: 1,
+        detailFeedback: "",
+        detailFeedbackType: "",
+        cart: [],
+        cartNotice: "",
+        cartNoticeType: "",
+        step: "cart",
+        checkoutIssues: [],
+        checkoutNotice: "",
+        shipping: {
+          name: "林小满",
+          phone: "13800138000",
+          city: "浙江省 杭州市",
+          address: "西湖区天目里 8 号楼 302 室"
+        },
+        lastOrder: null,
+        orderSequence: 0
+      };
+
+      const productGrid = document.getElementById("product-grid");
+      const detailPanel = document.getElementById("detail-panel");
+      const cartDialog = document.getElementById("cart-dialog");
+      const demoDialog = document.getElementById("demo-dialog");
+      const cartOpen = document.getElementById("cart-open");
+      const liveRegion = document.getElementById("live-region");
+      let demoReturnToCart = false;
+
+      function escapeHtml(value) {
+        return String(value).replace(/[&<>"']/g, character => ({
+          "&": "&amp;",
+          "<": "&lt;",
+          ">": "&gt;",
+          "\"": "&quot;",
+          "'": "&#039;"
+        })[character]);
+      }
+
+      function money(value) {
+        return `¥${value.toLocaleString("zh-CN")}`;
+      }
+
+      function getProduct(productId) {
+        return products.find(product => product.id === productId);
+      }
+
+      function getVariant(product, variantId) {
+        return product.variants.find(variant => variant.id === variantId);
+      }
+
+      function lineKey(line) {
+        return `${line.productId}::${line.variantId}`;
+      }
+
+      function findLine(key) {
+        return state.cart.find(line => lineKey(line) === key);
+      }
+
+      function cartCount() {
+        return state.cart.reduce((sum, line) => sum + line.quantity, 0);
+      }
+
+      function cartTotal() {
+        return state.cart.reduce((sum, line) => sum + getProduct(line.productId).price * line.quantity, 0);
+      }
+
+      function announce(message) {
+        liveRegion.textContent = "";
+        window.setTimeout(() => {
+          liveRegion.textContent = message;
+        }, 20);
+      }
+
+      function productArt(productId, variantId) {
+        const product = getProduct(productId);
+        const variant = getVariant(product, variantId) || product.variants[0];
+        const tone = variant.tone;
+        const start = `<svg viewBox="0 0 280 180" aria-hidden="true" focusable="false" preserveAspectRatio="xMidYMid meet">`;
+        const end = `</svg>`;
+        const ground = `<ellipse cx="142" cy="151" rx="72" ry="9" fill="#2C3228" opacity="0.10"/>`;
+
+        if (productId === "vase") {
+          return `${start}
+            <rect width="280" height="180" fill="#DFE2D4"/>
+            <circle cx="220" cy="42" r="27" fill="#F3EFE5" opacity="0.85"/>
+            <path d="M0 145H280" stroke="#B7B9A7"/>
+            <path d="M140 87C137 60 123 41 107 23M142 88C148 55 168 42 177 20M141 76C126 56 109 55 96 49" fill="none" stroke="#55634B" stroke-width="3" stroke-linecap="round"/>
+            <path d="M104 23C113 20 120 25 119 33C110 34 104 30 104 23ZM176 20C183 25 183 33 177 38C169 33 169 26 176 20ZM95 48C100 42 108 43 112 49C107 56 100 55 95 48Z" fill="#78856A"/>
+            ${ground}
+            <path d="M118 79C118 75 162 75 162 79L158 95C158 105 173 118 168 141C165 154 116 154 112 141C107 118 123 105 122 95Z" fill="${tone}"/>
+            <ellipse cx="140" cy="79" rx="22" ry="5" fill="#2E382B" opacity="0.45"/>
+            <path d="M123 103C132 108 148 110 161 105M117 132C130 137 151 137 166 131" fill="none" stroke="#FFFCF6" stroke-width="2" opacity="0.22"/>
+          ${end}`;
+        }
+
+        if (productId === "cushion") {
+          return `${start}
+            <rect width="280" height="180" fill="#EAE2D4"/>
+            <path d="M42 146H238" stroke="#C4B8A5" stroke-width="2"/>
+            <rect x="52" y="36" width="112" height="112" rx="22" fill="#B85F44" opacity="0.24" transform="rotate(-8 108 92)"/>
+            ${ground}
+            <rect x="82" y="28" width="128" height="128" rx="25" fill="${tone}" transform="rotate(5 146 92)"/>
+            <rect x="91" y="37" width="110" height="110" rx="20" fill="none" stroke="#FFFCF6" stroke-width="2" opacity="0.58" transform="rotate(5 146 92)"/>
+            <path d="M112 56C139 75 155 99 177 128M104 67C132 84 146 108 165 134" fill="none" stroke="#2C3228" stroke-width="1" opacity="0.13"/>
+          ${end}`;
+        }
+
+        if (productId === "tray") {
+          return `${start}
+            <rect width="280" height="180" fill="#E4DED0"/>
+            <rect x="30" y="26" width="56" height="128" rx="28" fill="#F3EFE5" opacity="0.8"/>
+            ${ground}
+            <path d="M55 65L214 43C226 42 235 51 232 62L216 128C214 139 204 145 193 143L52 119C41 117 35 107 39 96L43 79C45 72 48 67 55 65Z" fill="${tone}"/>
+            <path d="M57 75L213 53C219 52 224 57 222 64L208 123C207 130 201 134 194 132L55 109C48 108 45 103 47 96L51 82C52 78 54 76 57 75Z" fill="none" stroke="#2C3228" stroke-width="2" opacity="0.22"/>
+            <path d="M67 86C106 77 150 82 202 65M60 99C111 90 156 96 198 82M84 112C120 105 161 111 191 99" fill="none" stroke="#FFFCF6" stroke-width="2" opacity="0.25"/>
+            <circle cx="83" cy="60" r="9" fill="#3E4A38" opacity="0.75"/>
+          ${end}`;
+        }
+
+        if (productId === "mug") {
+          return `${start}
+            <rect width="280" height="180" fill="#E8DED0"/>
+            <circle cx="68" cy="47" r="30" fill="#F3EFE5"/>
+            <path d="M36 150H244" stroke="#C3B4A2"/>
+            ${ground}
+            <path d="M171 69C211 60 219 86 208 108C201 122 188 127 174 123" fill="none" stroke="${tone}" stroke-width="14"/>
+            <path d="M177 77C200 72 204 88 197 102C192 111 185 113 177 111" fill="none" stroke="#E8DED0" stroke-width="6"/>
+            <path d="M89 60H177L171 132C170 147 98 147 96 132Z" fill="${tone}"/>
+            <ellipse cx="133" cy="61" rx="44" ry="9" fill="#F5EDDE"/>
+            <ellipse cx="133" cy="62" rx="36" ry="6" fill="#604536"/>
+            <path d="M107 77L111 127C112 133 119 136 124 137" fill="none" stroke="#FFFCF6" stroke-width="4" opacity="0.35" stroke-linecap="round"/>
+            <path d="M121 43C113 34 128 30 120 19M145 44C137 35 152 31 144 20" fill="none" stroke="#727365" stroke-width="2" opacity="0.55" stroke-linecap="round"/>
+          ${end}`;
+        }
+
+        if (productId === "blanket") {
+          return `${start}
+            <rect width="280" height="180" fill="#DFE2D4"/>
+            <path d="M30 145H250" stroke="#B8BCAB"/>
+            ${ground}
+            <path d="M63 62C63 51 72 44 83 45L218 57C228 58 233 67 229 76L214 115L70 105Z" fill="${tone}"/>
+            <path d="M70 94L214 105L207 139C205 149 196 154 186 151L64 127C55 125 51 115 56 107Z" fill="${tone}" opacity="0.84"/>
+            <path d="M75 55L214 67M68 72L220 84M65 110L204 132" fill="none" stroke="#FFFCF6" stroke-width="3" opacity="0.38"/>
+            <path d="M64 127L60 143M76 130L73 148M90 132L88 149M104 135L103 151M191 151L192 162M201 147L205 158" stroke="${tone}" stroke-width="3" stroke-linecap="round"/>
+            <path d="M97 48L84 101M127 51L115 103M158 53L146 105M189 56L177 108" stroke="#2C3228" opacity="0.12"/>
+          ${end}`;
+        }
+
+        const candleHeight = variantId === "high" ? 61 : 43;
+        const candleTop = variantId === "high" ? 37 : 55;
+        return `${start}
+          <rect width="280" height="180" fill="#E9E1D2"/>
+          <circle cx="213" cy="45" r="30" fill="#B85F44" opacity="0.15"/>
+          <path d="M34 151H246" stroke="#C6BAA5"/>
+          ${ground}
+          <rect x="132" y="${candleTop}" width="18" height="${candleHeight}" rx="4" fill="#F7F0DE"/>
+          <path d="M141 ${candleTop - 2}C133 ${candleTop - 12} 140 ${candleTop - 19} 143 ${candleTop - 23}C150 ${candleTop - 13} 149 ${candleTop - 6} 141 ${candleTop - 2}Z" fill="#B85F44"/>
+          <path d="M140 ${candleTop + 4}V${candleTop + 15}" stroke="#D6C9AD" stroke-width="2"/>
+          <ellipse cx="141" cy="105" rx="28" ry="8" fill="${tone}"/>
+          <path d="M116 105L124 135H158L166 105C158 113 124 113 116 105Z" fill="${tone}"/>
+          <ellipse cx="141" cy="137" rx="45" ry="11" fill="${tone}"/>
+          <ellipse cx="141" cy="134" rx="45" ry="10" fill="#C5AA70"/>
+          <path d="M127 116L131 130" stroke="#FFFCF6" stroke-width="3" opacity="0.35" stroke-linecap="round"/>
+        ${end}`;
+      }
+
+      function productStockLabel(product) {
+        const total = product.variants.reduce((sum, variant) => sum + variant.stock, 0);
+        if (total === 0) return "暂时缺货";
+        if (product.variants.some(variant => variant.stock === 0)) return "部分规格缺货";
+        return "小批量现货";
+      }
+
+      function renderHeader() {
+        const count = cartCount();
+        document.getElementById("cart-count").textContent = count;
+        cartOpen.setAttribute("aria-label", `打开购物袋，共 ${count} 件`);
+      }
+
+      function renderProducts() {
+        productGrid.innerHTML = products.map((product, index) => {
+          const selected = product.id === state.selectedProductId;
+          return `
+            <button class="product-card" type="button" data-product-id="${product.id}" aria-pressed="${selected}" aria-label="查看${product.name}详情，${money(product.price)}">
+              <span class="product-art">
+                ${productArt(product.id, product.variants[0].id)}
+                <span class="product-index">${String(index + 1).padStart(2, "0")}</span>
+              </span>
+              <span class="product-info">
+                <span class="product-meta">${product.category} / ${product.maker}</span>
+                <span class="product-name-row">
+                  <span class="product-name">${product.name}</span>
+                  <span class="product-price">${money(product.price)}</span>
+                </span>
+                <span class="product-bottom">
+                  <span>${productStockLabel(product)}</span>
+                  <span class="product-action">${selected ? "正在挑选" : "查看规格"} →</span>
+                </span>
+              </span>
+            </button>`;
+        }).join("");
+      }
+
+      function selectedStock() {
+        const product = getProduct(state.selectedProductId);
+        return getVariant(product, state.selectedVariantId).stock;
+      }
+
+      function renderDetail() {
+        const product = getProduct(state.selectedProductId);
+        const variant = getVariant(product, state.selectedVariantId);
+        const stock = variant.stock;
+        const stockClass = stock === 0 ? "out" : stock <= 2 ? "low" : "";
+        const stockText = stock === 0 ? "暂时缺货" : stock <= 2 ? `仅剩 ${stock} 件` : `现货 ${stock} 件`;
+        detailPanel.innerHTML = `
+          <div class="detail-visual">
+            ${productArt(product.id, variant.id)}
+            <span class="detail-badge">买手实地选</span>
+          </div>
+          <div class="detail-body">
+            <p class="detail-kicker">${product.category} · ${product.maker}</p>
+            <div class="detail-heading-row">
+              <h2 id="detail-name" tabindex="-1">${product.name}</h2>
+              <span class="detail-price" id="detail-price">${money(product.price)}</span>
+            </div>
+            <p class="detail-description" id="detail-description">${product.description}</p>
+            <div class="detail-facts">
+              <span>${product.material}</span>
+              <span>${product.size}</span>
+            </div>
+            <div class="field-label">
+              <span>选择规格</span>
+              <span class="stock-note ${stockClass}" id="detail-stock">${stockText}</span>
+            </div>
+            <div class="variant-options" id="variant-options" role="group" aria-label="${product.name}规格">
+              ${product.variants.map(option => `
+                <button class="variant-button" type="button" data-variant-id="${option.id}" aria-pressed="${option.id === variant.id}">${option.name}${option.stock === 0 ? " · 缺货" : ""}</button>
+              `).join("")}
+            </div>
+            <div class="field-label"><span>数量</span><span class="stock-note">加入购物袋后核对合计</span></div>
+            <div class="purchase-row">
+              <div class="quantity-control">
+                <button id="detail-minus" type="button" aria-label="减少数量" ${Number(state.detailQuantity) <= 1 ? "disabled" : ""}>−</button>
+                <input id="detail-qty" type="number" min="1" max="99" step="1" inputmode="numeric" value="${escapeHtml(state.detailQuantity)}" aria-label="购买数量">
+                <button id="detail-plus" type="button" aria-label="增加数量" ${Number(state.detailQuantity) >= stock || Number(state.detailQuantity) >= 99 ? "disabled" : ""}>+</button>
+              </div>
+              <button class="primary-button" id="add-to-cart" type="button" ${stock === 0 ? "disabled" : ""}>${stock === 0 ? "当前规格缺货" : "加入购物袋"}</button>
+            </div>
+            <p class="detail-feedback ${state.detailFeedbackType}" id="detail-feedback" aria-live="polite">${escapeHtml(state.detailFeedback)}</p>
+            <p class="detail-service"><span>免费礼盒包装</span><span>48 小时内发出</span></p>
+          </div>`;
+      }
+
+      function refresh() {
+        renderHeader();
+        renderProducts();
+        renderDetail();
+        if (cartDialog.open) renderCart();
+        if (demoDialog.open) renderDemo();
+      }
+
+      function syncBodyLock() {
+        document.body.classList.toggle("dialog-open", cartDialog.open || demoDialog.open);
+      }
+
+      function openCart() {
+        if (demoDialog.open) demoDialog.close();
+        renderCart();
+        if (!cartDialog.open) cartDialog.showModal();
+        syncBodyLock();
+      }
+
+      function focusCartHeading() {
+        const heading = document.getElementById("cart-title");
+        if (heading) heading.focus({ preventScroll: true });
+      }
+
+      function cartLineMarkup(line) {
+        const product = getProduct(line.productId);
+        const variant = getVariant(product, line.variantId);
+        const key = lineKey(line);
+        return `
+          <article class="cart-line">
+            <div class="cart-thumb">${productArt(product.id, variant.id)}</div>
+            <div>
+              <div class="cart-line-top">
+                <div>
+                  <h3>${product.name}</h3>
+                  <p class="cart-maker">${product.maker}</p>
+                </div>
+                <strong class="line-total">小计 ${money(product.price * line.quantity)}</strong>
+              </div>
+              <label>
+                <span class="sr-only">${product.name}的规格</span>
+                <select class="cart-variant" data-key="${key}" aria-label="修改${product.name}规格，当前${variant.name}">
+                  ${product.variants.map(option => `<option value="${option.id}" ${option.id === variant.id ? "selected" : ""}>${option.name} · ${option.stock > 0 ? `可售 ${option.stock} 件` : "暂时缺货"}</option>`).join("")}
+                </select>
+              </label>
+              <div class="line-actions">
+                <div class="quantity-control" aria-label="修改${product.name}数量">
+                  <button type="button" data-action="decrease" data-key="${key}" aria-label="减少${product.name}数量" ${line.quantity <= 1 ? "disabled" : ""}>−</button>
+                  <span class="quantity-value" aria-label="数量 ${line.quantity}">${line.quantity}</span>
+                  <button type="button" data-action="increase" data-key="${key}" aria-label="增加${product.name}数量" ${line.quantity >= variant.stock ? "disabled" : ""}>+</button>
+                </div>
+                <button class="text-button" type="button" data-action="remove" data-key="${key}">移除</button>
+                <span class="line-unit">单价 ${money(product.price)}</span>
+              </div>
+            </div>
+          </article>`;
+      }
+
+      function summaryMarkup() {
+        return `
+          <div class="summary-box">
+            <div class="summary-row"><span>商品小计</span><span>${money(cartTotal())}</span></div>
+            <div class="summary-row"><span>总件数</span><span>${cartCount()} 件</span></div>
+            <div class="summary-row"><span>配送</span><span>标准配送 · 免运费</span></div>
+            <div class="summary-row total"><span>应付总额</span><strong>${money(cartTotal())}</strong></div>
+          </div>`;
+      }
+
+      function renderCart() {
+        if (state.step === "success" && state.lastOrder) {
+          renderSuccess();
+          return;
+        }
+
+        if (state.step === "checkout") {
+          renderCheckout();
+          return;
+        }
+
+        if (state.cart.length === 0) {
+          cartDialog.innerHTML = `
+            <div class="dialog-shell">
+              <header class="dialog-header">
+                <div><h2 id=cart-title tabindex="-1">购物袋</h2><p>把喜欢的器物慢慢收进来</p></div>
+                <button class="close-button" type="button" data-action="close-cart" aria-label="关闭购物袋">×</button>
+              </header>
+              <div class="dialog-body">
+                <div class="empty-cart">
+                  <svg viewBox="0 0 90 90" aria-hidden="true" focusable="false">
+                    <path d="M23 31H67L63 73H27Z" fill="#E5E8DA" stroke="#3E4A38" stroke-width="2"/>
+                    <path d="M34 34V25C34 12 56 12 56 25V34" fill="none" stroke="#3E4A38" stroke-width="2"/>
+                    <path d="M34 51C41 57 50 57 57 51" fill="none" stroke="#B85F44" stroke-width="2" stroke-linecap="round"/>
+                  </svg>
+                  <h3>购物袋还空着</h3>
+                  <p>先从六件本月选物里，挑一件顺手的器物。</p>
+                  <button class="secondary-button" type="button" data-action="continue-browsing">去挑选商品</button>
+                </div>
+              </div>
+            </div>`;
+          return;
+        }
+
+        cartDialog.innerHTML = `
+          <div class="dialog-shell">
+            <header class="dialog-header">
+              <div><h2 id=cart-title tabindex="-1">购物袋</h2><p>共 ${cartCount()} 件 · 库存将在提交订单时再次核对</p></div>
+              <button class="close-button" type="button" data-action="close-cart" aria-label="关闭购物袋">×</button>
+            </header>
+            <div class="dialog-body">
+              <div class="demo-entry">
+                <div><strong>库存演练 <span class="demo-tag">演示</span></strong><span>模拟已选规格缺货或仅剩 1 件</span></div>
+                <button class="text-button" type="button" data-action="open-demo">选择商品</button>
+              </div>
+              <p class="inline-notice ${state.cartNoticeType}" id="cart-notice" aria-live="polite">${escapeHtml(state.cartNotice)}</p>
+              <div class="cart-lines" id="cart-lines">${state.cart.map(cartLineMarkup).join("")}</div>
+              ${summaryMarkup()}
+            </div>
+            <footer class="dialog-footer">
+              <div class="footer-button-row">
+                <button class="secondary-button" type="button" data-action="continue-browsing">继续挑选</button>
+                <button class="primary-button" id="go-checkout" type="button">核对收货信息 · ${money(cartTotal())}</button>
+              </div>
+            </footer>
+          </div>`;
+      }
+
+      function checkoutIssuesMarkup() {
+        if (state.checkoutIssues.length === 0) return "";
+        const stockIssues = state.checkoutIssues.filter(issue => issue.type === "stock");
+        const formIssues = state.checkoutIssues.filter(issue => issue.type === "form");
+        return `
+          <section class="issue-box" id="checkout-error" tabindex="-1" aria-live="assertive" aria-labelledby="issue-title">
+            <h3 id="issue-title">订单尚未提交，请先处理以下问题</h3>
+            <p>购物袋、商品件数与金额均未改变；本次没有生成订单编号，也没有扣减库存。</p>
+            <ul class="issue-list">
+              ${formIssues.map(issue => `<li>${escapeHtml(issue.message)}</li>`).join("")}
+              ${stockIssues.map(issue => {
+                const product = getProduct(issue.productId);
+                const variant = getVariant(product, issue.variantId);
+                const line = findLine(`${issue.productId}::${issue.variantId}`);
+                if (!line) return "";
+                const alternative = product.variants.find(option => option.id !== variant.id && option.stock >= line.quantity);
+                return `<li>
+                  <strong>${product.name} · ${variant.name}</strong><br>
+                  需要 ${line.quantity} 件，当前可售 ${variant.stock} 件。
+                  <div class="issue-actions">
+                    ${alternative ? `<button type="button" data-action="recover-variant" data-key="${lineKey(line)}" data-variant-id="${alternative.id}">改选「${alternative.name}」</button>` : ""}
+                    ${variant.stock > 0 && variant.stock < line.quantity ? `<button type="button" data-action="recover-quantity" data-key="${lineKey(line)}" data-quantity="${variant.stock}">减至 ${variant.stock} 件</button>` : ""}
+                    <button type="button" data-action="back-to-cart">返回购物袋修改</button>
+                  </div>
+                </li>`;
+              }).join("")}
+            </ul>
+          </section>`;
+      }
+
+      function renderCheckout() {
+        if (state.cart.length === 0) {
+          state.step = "cart";
+          renderCart();
+          return;
+        }
+        cartDialog.innerHTML = `
+          <form class="dialog-shell" id="checkout-form" novalidate>
+            <header class="dialog-header">
+              <div><h2 id=cart-title tabindex="-1">核对订单</h2><p>确认收货信息与商品，再提交订单</p></div>
+              <button class="close-button" type="button" data-action="close-cart" aria-label="关闭订单核对">×</button>
+            </header>
+            <div class="dialog-body">
+              <div class="back-row"><button class="text-button" type="button" data-action="back-to-cart">← 返回购物袋修改</button></div>
+              ${checkoutIssuesMarkup()}
+              <p class="inline-notice" id="checkout-feedback" aria-live="polite">${escapeHtml(state.checkoutNotice)}</p>
+              <section class="checkout-section" aria-labelledby="shipping-title">
+                <h3 id="shipping-title"><span class="section-number">1</span>收货信息</h3>
+                <div class="form-grid">
+                  <label class="form-field">收件人
+                    <input id="shipping-name" data-shipping="name" autocomplete="name" value="${escapeHtml(state.shipping.name)}" required>
+                  </label>
+                  <label class="form-field">手机号码
+                    <input id="shipping-phone" data-shipping="phone" type="tel" inputmode="tel" autocomplete="tel" value="${escapeHtml(state.shipping.phone)}" required>
+                  </label>
+                  <label class="form-field full">省市
+                    <input id="shipping-city" data-shipping="city" autocomplete="address-level1" value="${escapeHtml(state.shipping.city)}" required>
+                  </label>
+                  <label class="form-field full">详细地址
+                    <input id="shipping-address" data-shipping="address" autocomplete="street-address" value="${escapeHtml(state.shipping.address)}" required>
+                  </label>
+                </div>
+                <p class="form-hint">以上为可修改的演示收货信息；标准配送免运费，预计 2–4 天送达。</p>
+              </section>
+              <section class="checkout-section" aria-labelledby="order-items-title">
+                <h3 id="order-items-title"><span class="section-number">2</span>商品与规格</h3>
+                <div class="checkout-items">
+                  ${state.cart.map(line => {
+                    const product = getProduct(line.productId);
+                    const variant = getVariant(product, line.variantId);
+                    return `<div class="checkout-item">
+                      <strong>${product.name}</strong>
+                      <span>${variant.name} · ${line.quantity} 件</span>
+                      <span class="checkout-subtotal">${money(product.price * line.quantity)}</span>
+                    </div>`;
+                  }).join("")}
+                </div>
+                ${summaryMarkup()}
+              </section>
+            </div>
+            <footer class="dialog-footer">
+              <button class="primary-button" id="submit-order" type="submit">提交订单 · ${money(cartTotal())}</button>
+              <p class="receipt-disclaimer">演示订单不会真实扣款；提交时将重新核验每个规格的库存。</p>
+            </footer>
+          </form>`;
+      }
+
+      function renderSuccess() {
+        const order = state.lastOrder;
+        cartDialog.innerHTML = `
+          <div class="dialog-shell">
+            <header class="dialog-header">
+              <div><h2 id=cart-title tabindex="-1">订单回执</h2><p>栖物市集 · 感谢你的挑选</p></div>
+              <button class="close-button" type="button" data-action="close-cart" aria-label="关闭订单回执并开始新订单">×</button>
+            </header>
+            <div class="dialog-body success-body">
+              <div class="success-mark">
+                <svg width="31" height="31" viewBox="0 0 31 31" aria-hidden="true" focusable="false">
+                  <path d="M7 16L13 22L25 9" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+              <h3 class="success-heading" id="success-title" tabindex="-1">订单已收到</h3>
+              <p class="success-lead">我们会仔细包好每件器物，并在 48 小时内交给配送。</p>
+              <div class="receipt-number"><span>订单编号</span><strong id="order-number">${order.number}</strong></div>
+              <section class="receipt-block" aria-labelledby="receipt-items-title">
+                <h3 id="receipt-items-title">商品 / 规格 / 件数</h3>
+                <div id="receipt-items">
+                  ${order.items.map(item => `<div class="receipt-item">
+                    <strong>${item.productName}</strong>
+                    <span>${item.variantName} · ${item.quantity} 件</span>
+                    <span class="receipt-price">${money(item.subtotal)}</span>
+                  </div>`).join("")}
+                </div>
+              </section>
+              <div class="receipt-address"><strong>${escapeHtml(order.shipping.name)} · ${escapeHtml(order.shipping.phone)}</strong><br>${escapeHtml(order.shipping.city)} ${escapeHtml(order.shipping.address)}</div>
+              <div class="summary-box">
+                <div class="summary-row"><span>订单总件数</span><span>${order.count} 件</span></div>
+                <div class="summary-row total"><span>订单总额</span><strong id="receipt-total">${money(order.total)}</strong></div>
+              </div>
+              <p class="receipt-disclaimer">这是演示订单，不会发生真实扣款或发货。</p>
+            </div>
+            <footer class="dialog-footer">
+              <button class="primary-button" id="continue-shopping" type="button" data-action="new-order">继续购物，开始新订单</button>
+            </footer>
+          </div>`;
+      }
+
+      function renderDemo() {
+        demoDialog.innerHTML = `
+          <div class="dialog-shell demo-shell">
+            <header class="dialog-header">
+              <div class="dialog-heading-group"><h2 id="demo-title" tabindex="-1">库存演练</h2><span class="demo-tag">演示</span></div>
+              <button class="close-button" type="button" data-action="close-demo" aria-label="关闭库存演练">×</button>
+            </header>
+            <div class="dialog-body">
+              <div class="demo-intro"><p>选择购物袋中的一条商品，将该规格的当前可售库存调低。返回核对订单并提交，即可验证缺货拦截与恢复。</p></div>
+              ${state.cart.length === 0 ? `
+                <div class="empty-cart">
+                  <h3>先挑一件器物</h3>
+                  <p>购物袋有商品后，才能对已经选择的规格进行库存演练。</p>
+                  <button class="secondary-button" type="button" data-action="demo-shop">去挑选商品</button>
+                </div>` : `
+                <div class="demo-list" id="demo-lines">
+                  ${state.cart.map(line => {
+                    const product = getProduct(line.productId);
+                    const variant = getVariant(product, line.variantId);
+                    return `<article class="demo-line">
+                      <div class="demo-line-heading"><strong>${product.name} · ${variant.name}</strong><span>购物袋 ${line.quantity} 件</span></div>
+                      <p>当前可售 ${variant.stock} 件；演练只改变此规格，不影响其他规格。</p>
+                      <div class="demo-actions">
+                        <button type="button" data-action="demo-zero" data-key="${lineKey(line)}" ${variant.stock === 0 ? "disabled" : ""}>${variant.stock === 0 ? "已模拟缺货" : "模拟此规格缺货（0 件）"}</button>
+                        <button type="button" data-action="demo-one" data-key="${lineKey(line)}" ${line.quantity <= 1 || variant.stock === 1 ? "disabled" : ""}>${variant.stock === 1 ? "当前仅剩 1 件" : "模拟此规格仅剩 1 件"}</button>
+                      </div>
+                    </article>`;
+                  }).join("")}
+                </div>`}
+              <p class="demo-footnote">演练入口是评测专用操作，不代表真实仓库波动；不会直接生成或提交订单。</p>
+            </div>
+            <footer class="dialog-footer">
+              <button class="secondary-button" type="button" data-action="close-demo">${demoReturnToCart ? "返回购物袋" : "关闭演练"}</button>
+            </footer>
+          </div>`;
+      }
+
+      function openDemo() {
+        demoReturnToCart = cartDialog.open;
+        if (cartDialog.open) cartDialog.close();
+        renderDemo();
+        if (!demoDialog.open) demoDialog.showModal();
+        syncBodyLock();
+      }
+
+      function setDetailQuantity(nextQuantity, focusAction) {
+        const numeric = Number.isFinite(nextQuantity) ? Math.min(99, Math.max(1, Math.round(nextQuantity))) : 1;
+        state.detailQuantity = numeric;
+        state.detailFeedback = "";
+        state.detailFeedbackType = "";
+        renderDetail();
+        const target = document.getElementById(focusAction === "minus" ? "detail-minus" : "detail-plus");
+        if (target && !target.disabled) target.focus();
+        else document.getElementById("detail-qty").focus();
+      }
+
+      function addToCart() {
+        const product = getProduct(state.selectedProductId);
+        const variant = getVariant(product, state.selectedVariantId);
+        const raw = String(state.detailQuantity).trim();
+        const quantity = Number(raw);
+        if (!/^\d+$/.test(raw) || quantity < 1 || quantity > 99) {
+          state.detailFeedback = "请输入 1–99 的整数数量。";
+          state.detailFeedbackType = "error";
+          renderDetail();
+          document.getElementById("detail-qty").focus();
+          return;
+        }
+        const key = `${product.id}::${variant.id}`;
+        const existing = findLine(key);
+        const alreadyInCart = existing ? existing.quantity : 0;
+        if (quantity + alreadyInCart > variant.stock) {
+          state.detailFeedback = `「${variant.name}」当前可售 ${variant.stock} 件，购物袋已有 ${alreadyInCart} 件，本次无法再加入 ${quantity} 件。`;
+          state.detailFeedbackType = "error";
+          renderDetail();
+          document.getElementById("detail-feedback").focus?.();
+          return;
+        }
+        if (existing) existing.quantity += quantity;
+        else state.cart.push({ productId: product.id, variantId: variant.id, quantity });
+        state.detailQuantity = 1;
+        state.detailFeedback = "";
+        state.detailFeedbackType = "";
+        state.cartNotice = `已加入：${product.name} · ${variant.name}，${quantity} 件。`;
+        state.cartNoticeType = "";
+        state.step = "cart";
+        state.checkoutIssues = [];
+        refresh();
+        announce(state.cartNotice);
+        openCart();
+      }
+
+      function setCartQuantity(key, nextQuantity) {
+        const line = findLine(key);
+        if (!line) return false;
+        const product = getProduct(line.productId);
+        const variant = getVariant(product, line.variantId);
+        if (nextQuantity > variant.stock) {
+          state.cartNotice = `${product.name} · ${variant.name} 当前可售 ${variant.stock} 件，不能调整为 ${nextQuantity} 件。`;
+          state.cartNoticeType = "error";
+          return false;
+        }
+        if (nextQuantity < 1) return false;
+        line.quantity = nextQuantity;
+        state.cartNotice = `已将 ${product.name} · ${variant.name} 调整为 ${nextQuantity} 件，合计已更新。`;
+        state.cartNoticeType = "";
+        state.checkoutIssues = [];
+        return true;
+      }
+
+      function changeCartVariant(key, nextVariantId) {
+        const line = findLine(key);
+        if (!line) return false;
+        if (line.variantId === nextVariantId) return true;
+        const product = getProduct(line.productId);
+        const previous = getVariant(product, line.variantId);
+        const target = getVariant(product, nextVariantId);
+        const existing = state.cart.find(other => other !== line && other.productId === product.id && other.variantId === nextVariantId);
+        const combinedQuantity = line.quantity + (existing ? existing.quantity : 0);
+        if (combinedQuantity > target.stock) {
+          state.cartNotice = `${product.name} · ${target.name} 当前可售 ${target.stock} 件，不足本次改选所需的 ${combinedQuantity} 件。`;
+          state.cartNoticeType = "error";
+          return false;
+        }
+        if (existing) {
+          existing.quantity = combinedQuantity;
+          state.cart = state.cart.filter(other => other !== line);
+        } else {
+          line.variantId = nextVariantId;
+        }
+        state.cartNotice = `已将 ${product.name} 从「${previous.name}」改选为「${target.name}」，共 ${combinedQuantity} 件。`;
+        state.cartNoticeType = "";
+        state.checkoutIssues = [];
+        return true;
+      }
+
+      function createOrderNumber() {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, "0");
+        const day = String(now.getDate()).padStart(2, "0");
+        return `QW${year}${month}${day}-${String(state.orderSequence).padStart(3, "0")}`;
+      }
+
+      function submitOrder() {
+        const issues = [];
+        const phone = state.shipping.phone.replace(/\s/g, "");
+        if (!state.shipping.name.trim()) issues.push({ type: "form", message: "请填写收件人姓名。" });
+        if (!/^1\d{10}$/.test(phone)) issues.push({ type: "form", message: "请填写 11 位中国大陆手机号码。" });
+        if (!state.shipping.city.trim()) issues.push({ type: "form", message: "请填写省市信息。" });
+        if (!state.shipping.address.trim()) issues.push({ type: "form", message: "请填写详细收货地址。" });
+        if (state.cart.length === 0) issues.push({ type: "form", message: "购物袋为空，请先挑选商品。" });
+
+        state.cart.forEach(line => {
+          const product = getProduct(line.productId);
+          const variant = getVariant(product, line.variantId);
+          if (line.quantity > variant.stock) {
+            issues.push({ type: "stock", productId: product.id, variantId: variant.id });
+          }
+        });
+
+        if (issues.length > 0) {
+          state.checkoutIssues = issues;
+          state.checkoutNotice = "";
+          renderCart();
+          const error = document.getElementById("checkout-error");
+          if (error) error.focus({ preventScroll: true });
+          announce("订单未提交，请处理库存或收货信息问题。购物袋和合计均未改变。");
+          return;
+        }
+
+        const items = state.cart.map(line => {
+          const product = getProduct(line.productId);
+          const variant = getVariant(product, line.variantId);
+          return {
+            productId: product.id,
+            variantId: variant.id,
+            productName: product.name,
+            variantName: variant.name,
+            quantity: line.quantity,
+            unitPrice: product.price,
+            subtotal: product.price * line.quantity
+          };
+        });
+        const total = cartTotal();
+        const count = cartCount();
+        items.forEach(item => {
+          const product = getProduct(item.productId);
+          getVariant(product, item.variantId).stock -= item.quantity;
+        });
+        state.orderSequence += 1;
+        state.lastOrder = {
+          number: createOrderNumber(),
+          items,
+          total,
+          count,
+          shipping: { ...state.shipping }
+        };
+        state.cart = [];
+        state.checkoutIssues = [];
+        state.checkoutNotice = "";
+        state.cartNotice = "";
+        state.step = "success";
+        refresh();
+        const successTitle = document.getElementById("success-title");
+        if (successTitle) successTitle.focus({ preventScroll: true });
+        announce(`订单提交成功，订单编号 ${state.lastOrder.number}，共 ${count} 件，总额 ${money(total)}。`);
+      }
+
+      productGrid.addEventListener("click", event => {
+        const button = event.target.closest("[data-product-id]");
+        if (!button) return;
+        const product = getProduct(button.dataset.productId);
+        state.selectedProductId = product.id;
+        state.selectedVariantId = product.variants[0].id;
+        state.detailQuantity = 1;
+        state.detailFeedback = "";
+        state.detailFeedbackType = "";
+        renderProducts();
+        renderDetail();
+        document.getElementById("detail-name").focus({ preventScroll: true });
+      });
+
+      detailPanel.addEventListener("click", event => {
+        const variantButton = event.target.closest("[data-variant-id]");
+        if (variantButton) {
+          state.selectedVariantId = variantButton.dataset.variantId;
+          state.detailQuantity = 1;
+          state.detailFeedback = "";
+          state.detailFeedbackType = "";
+          renderDetail();
+          const selected = detailPanel.querySelector(`[data-variant-id="${state.selectedVariantId}"]`);
+          if (selected) selected.focus();
+          return;
+        }
+        if (event.target.closest("#detail-minus")) {
+          const current = Number(state.detailQuantity) || 1;
+          setDetailQuantity(current - 1, "minus");
+          return;
+        }
+        if (event.target.closest("#detail-plus")) {
+          const current = Number(state.detailQuantity) || 1;
+          setDetailQuantity(current + 1, "plus");
+          return;
+        }
+        if (event.target.closest("#add-to-cart")) addToCart();
+      });
+
+      detailPanel.addEventListener("input", event => {
+        if (event.target.id === "detail-qty") {
+          state.detailQuantity = event.target.value;
+          state.detailFeedback = "";
+          state.detailFeedbackType = "";
+          document.getElementById("detail-feedback").textContent = "";
+          document.getElementById("detail-minus").disabled = Number(state.detailQuantity) <= 1;
+          document.getElementById("detail-plus").disabled = Number(state.detailQuantity) >= selectedStock() || Number(state.detailQuantity) >= 99;
+        }
+      });
+
+      cartOpen.addEventListener("click", openCart);
+      document.getElementById("demo-open").addEventListener("click", openDemo);
+
+      cartDialog.addEventListener("close", () => {
+        if (state.step === "success") {
+          state.step = "cart";
+          state.lastOrder = null;
+          refresh();
+        }
+        syncBodyLock();
+      });
+
+      demoDialog.addEventListener("close", () => {
+        syncBodyLock();
+        if (demoReturnToCart) {
+          demoReturnToCart = false;
+          openCart();
+        }
+      });
+
+      cartDialog.addEventListener("input", event => {
+        const field = event.target.dataset.shipping;
+        if (field) state.shipping[field] = event.target.value;
+      });
+
+      cartDialog.addEventListener("change", event => {
+        const select = event.target.closest(".cart-variant");
+        if (!select) return;
+        const key = select.dataset.key;
+        changeCartVariant(key, select.value);
+        refresh();
+        announce(state.cartNotice);
+        const nextSelect = cartDialog.querySelector(`[data-key="${key}"]`);
+        if (nextSelect) nextSelect.focus();
+        else focusCartHeading();
+      });
+
+      cartDialog.addEventListener("submit", event => {
+        if (event.target.id !== "checkout-form") return;
+        event.preventDefault();
+        submitOrder();
+      });
+
+      cartDialog.addEventListener("click", event => {
+        const button = event.target.closest("button[data-action]");
+        if (!button) return;
+        const action = button.dataset.action;
+        const key = button.dataset.key;
+
+        if (action === "close-cart") {
+          if (state.step === "success") {
+            state.step = "cart";
+            state.lastOrder = null;
+          }
+          cartDialog.close();
+          refresh();
+          return;
+        }
+        if (action === "continue-browsing") {
+          cartDialog.close();
+          document.getElementById("detail-name").focus({ preventScroll: true });
+          return;
+        }
+        if (action === "open-demo") {
+          openDemo();
+          return;
+        }
+        if (action === "back-to-cart") {
+          state.step = "cart";
+          state.checkoutIssues = [];
+          state.checkoutNotice = "";
+          renderCart();
+          focusCartHeading();
+          return;
+        }
+        if (action === "remove") {
+          const line = findLine(key);
+          if (line) {
+            const product = getProduct(line.productId);
+            const variant = getVariant(product, line.variantId);
+            state.cart = state.cart.filter(item => item !== line);
+            state.cartNotice = `已移除 ${product.name} · ${variant.name}，其余商品与合计已更新。`;
+            state.cartNoticeType = "";
+            state.checkoutIssues = [];
+            refresh();
+            announce(state.cartNotice);
+            focusCartHeading();
+          }
+          return;
+        }
+        if (action === "increase" || action === "decrease") {
+          const line = findLine(key);
+          if (!line) return;
+          const next = line.quantity + (action === "increase" ? 1 : -1);
+          setCartQuantity(key, next);
+          refresh();
+          announce(state.cartNotice);
+          const nextButton = cartDialog.querySelector(`[data-action="${action}"][data-key="${key}"]`);
+          if (nextButton && !nextButton.disabled) nextButton.focus();
+          else focusCartHeading();
+          return;
+        }
+        if (action === "recover-variant") {
+          const changed = changeCartVariant(key, button.dataset.variantId);
+          state.checkoutNotice = changed ? `${state.cartNotice} 请重新提交订单。` : state.cartNotice;
+          if (changed) state.checkoutIssues = [];
+          refresh();
+          announce(state.checkoutNotice);
+          const submit = document.getElementById("submit-order");
+          if (submit) submit.focus();
+          return;
+        }
+        if (action === "recover-quantity") {
+          const changed = setCartQuantity(key, Number(button.dataset.quantity));
+          state.checkoutNotice = changed ? `${state.cartNotice} 请重新提交订单。` : state.cartNotice;
+          if (changed) state.checkoutIssues = [];
+          refresh();
+          announce(state.checkoutNotice);
+          const submit = document.getElementById("submit-order");
+          if (submit) submit.focus();
+          return;
+        }
+        if (action === "new-order") {
+          state.step = "cart";
+          state.lastOrder = null;
+          state.checkoutIssues = [];
+          state.checkoutNotice = "";
+          cartDialog.close();
+          refresh();
+          announce("已开始新订单，可以继续挑选商品。 ");
+          document.getElementById("detail-name").focus({ preventScroll: true });
+        }
+      });
+
+      cartDialog.addEventListener("click", event => {
+        if (event.target.closest("#go-checkout")) {
+          state.step = "checkout";
+          state.checkoutIssues = [];
+          state.checkoutNotice = "";
+          state.cartNotice = "";
+          state.cartNoticeType = "";
+          renderCart();
+          focusCartHeading();
+        }
+      });
+
+      demoDialog.addEventListener("click", event => {
+        const button = event.target.closest("button[data-action]");
+        if (!button) return;
+        const action = button.dataset.action;
+        if (action === "close-demo") {
+          demoDialog.close();
+          return;
+        }
+        if (action === "demo-shop") {
+          demoReturnToCart = false;
+          demoDialog.close();
+          document.getElementById("detail-name").focus({ preventScroll: true });
+          return;
+        }
+        if (action === "demo-zero" || action === "demo-one") {
+          const line = findLine(button.dataset.key);
+          if (!line) return;
+          const product = getProduct(line.productId);
+          const variant = getVariant(product, line.variantId);
+          const nextStock = action === "demo-zero" ? 0 : 1;
+          variant.stock = nextStock;
+          state.step = "cart";
+          state.checkoutIssues = [];
+          state.checkoutNotice = "";
+          state.cartNotice = `演示已生效：${product.name} · ${variant.name} 当前可售 ${nextStock} 件；购物袋仍为 ${line.quantity} 件，请核对后提交。`;
+          state.cartNoticeType = "error";
+          demoReturnToCart = true;
+          refresh();
+          announce(state.cartNotice);
+          demoDialog.close();
+        }
+      });
+
+      refresh();
+    })();
+  </script>
+</body>
+</html>

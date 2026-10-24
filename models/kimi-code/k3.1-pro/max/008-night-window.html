@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>夜窗 · 通知权限</title>
+  <style>
+    :root {
+      --night: #080D22;
+      --indigo: #111A38;
+      --pane: #1B2A50;
+      --frame: #2B395D;
+      --amber: #F0B65B;
+      --cream: #FFF0CF;
+      --text: #F2F0E9;
+      --muted: #AAB2C7;
+      --success: #8CC6A1;
+      --denied: #E39A8D;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-width: 320px;
+      min-height: 100vh;
+      color: var(--text);
+      background: var(--night);
+      font-family: "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    button { font: inherit; cursor: pointer; }
+    button:focus-visible {
+      outline: 2px solid var(--amber);
+      outline-offset: 4px;
+    }
+    .night-shell { width: min(1184px, calc(100% - 64px)); margin: 0 auto; }
+    .topbar { min-height: 64px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+    .brand { display: flex; align-items: center; gap: 11px; font-size: 14px; font-weight: 700; letter-spacing: .12em; }
+    .brand svg { width: 25px; height: 30px; color: var(--amber); }
+    .brand small { display: block; margin-top: 2px; color: var(--muted); font-size: 8px; font-weight: 500; letter-spacing: .2em; }
+    .session { display: flex; align-items: center; gap: 18px; color: var(--muted); font-size: 11px; }
+    .session-time { color: var(--cream); font: 400 15px/1 Georgia, serif; letter-spacing: .08em; }
+    .window-stage {
+      position: relative;
+      height: 672px;
+      margin: 20px 0;
+      overflow: hidden;
+      border: 8px solid #050918;
+      border-radius: 260px 260px 18px 18px;
+      background: var(--indigo);
+      box-shadow: 0 0 0 1px var(--frame), 0 24px 70px rgba(0, 0, 0, .32);
+      isolation: isolate;
+    }
+    .night-scene { position: absolute; inset: 0; z-index: -1; width: 100%; height: 100%; }
+    .star { animation: twinkle 4.8s ease-in-out infinite alternate; }
+    .star:nth-of-type(2n) { animation-delay: -2.4s; }
+    @keyframes twinkle { from { opacity: .28; } to { opacity: .95; } }
+    .stage-copy { position: absolute; left: 58px; bottom: 52px; max-width: 360px; }
+    .stage-kicker { display: flex; align-items: center; gap: 10px; margin: 0 0 15px; color: var(--amber); font-size: 10px; font-weight: 700; letter-spacing: .14em; }
+    .stage-kicker::before { content: ""; width: 22px; height: 1px; background: var(--amber); }
+    .stage-copy h2 { margin: 0; font-family: "Songti SC", "STSong", "SimSun", serif; font-size: 35px; font-weight: 500; line-height: 1.45; letter-spacing: .03em; }
+    .stage-copy p:last-child { max-width: 300px; margin: 14px 0 0; color: var(--muted); font-size: 11px; line-height: 1.8; }
+    .scene-status { position: absolute; left: 58px; top: 118px; display: flex; align-items: center; gap: 8px; padding: 8px 11px; border: 1px solid rgba(170, 178, 199, .26); border-radius: 999px; color: var(--muted); background: rgba(8, 13, 34, .45); font-size: 10px; backdrop-filter: blur(8px); }
+    .scene-status::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--amber); }
+    .permission-card {
+      position: absolute;
+      top: 104px;
+      right: 54px;
+      width: 420px;
+      max-height: calc(100% - 150px);
+      padding: 27px 28px 25px;
+      overflow-y: auto;
+      border: 1px solid #4B5470;
+      border-radius: 20px;
+      background: rgba(17, 26, 56, .94);
+      box-shadow: 0 18px 50px rgba(0, 0, 0, .32), inset 0 1px 0 rgba(255, 240, 207, .08);
+      backdrop-filter: blur(18px);
+      scrollbar-width: thin;
+      scrollbar-color: var(--frame) transparent;
+    }
+    .permission-kicker { display: flex; align-items: center; gap: 8px; margin: 0 0 12px; color: var(--amber); font-size: 10px; font-weight: 700; letter-spacing: .14em; }
+    .permission-kicker svg { width: 15px; height: 15px; }
+    .permission-card h1 { margin: 0; font-size: 30px; font-weight: 650; line-height: 1.28; letter-spacing: -.03em; }
+    .permission-intro { margin: 12px 0 0; color: var(--muted); font-size: 12px; line-height: 1.75; }
+    .permission-reason { margin-top: 18px; padding: 15px 16px 13px; border: 1px solid rgba(240, 182, 91, .22); border-radius: 12px; background: rgba(240, 182, 91, .06); }
+    .permission-reason h2 { margin: 0 0 7px; color: var(--cream); font-size: 12px; font-weight: 700; }
+    .permission-reason p { margin: 0; color: var(--muted); font-size: 11px; line-height: 1.75; }
+    .assurances { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 11px 0 0; padding: 0; list-style: none; color: var(--text); font-size: 10px; }
+    .assurances li { display: flex; align-items: center; gap: 5px; }
+    .assurances svg { width: 12px; height: 12px; color: var(--success); }
+    .preview-button { display: inline-flex; align-items: center; gap: 6px; margin-top: 11px; padding: 2px 0; border: 0; border-bottom: 1px solid rgba(240, 182, 91, .45); border-radius: 0; color: var(--amber); background: transparent; font-size: 10px; }
+    .preview-button:hover { color: var(--cream); border-bottom-color: var(--cream); }
+    .permission-actions { margin-top: 18px; }
+    .allow-button { width: 100%; min-height: 49px; display: flex; align-items: center; justify-content: center; gap: 9px; border: 1px solid var(--amber); border-radius: 10px; color: var(--night); background: var(--amber); font-size: 13px; font-weight: 800; transition: background-color 160ms ease, transform 160ms ease, box-shadow 160ms ease; }
+    .allow-button svg { width: 16px; height: 16px; }
+    .allow-button:hover { background: var(--cream); transform: translateY(-2px); box-shadow: 0 5px 18px rgba(240, 182, 91, .18); }
+    .allow-button:active { transform: translateY(1px); }
+    .allow-button[aria-pressed="true"] { color: var(--night); background: var(--success); border-color: var(--success); }
+    .secondary-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+    .secondary-actions button { min-height: 41px; border: 1px solid var(--frame); border-radius: 9px; color: var(--text); background: transparent; font-size: 11px; transition: border-color 160ms ease, background-color 160ms ease; }
+    .secondary-actions button:hover { border-color: var(--muted); background: rgba(170, 178, 199, .08); }
+    .secondary-actions button[aria-pressed="true"] { border-color: var(--amber); color: var(--cream); background: rgba(240, 182, 91, .12); }
+    #deny-permission[aria-pressed="true"] { border-color: var(--denied); color: var(--denied); background: rgba(227, 154, 141, .08); }
+    .permission-feedback { min-height: 34px; margin: 13px 0 0; padding-top: 11px; border-top: 1px solid rgba(170, 178, 199, .17); color: var(--muted); font-size: 10px; line-height: 1.65; }
+    .permission-feedback.success { color: var(--success); }
+    .permission-feedback.once { color: var(--cream); }
+    .permission-feedback.denied { color: var(--denied); }
+    .system-notification { position: absolute; top: 24px; right: 24px; z-index: 5; width: 348px; padding: 15px 42px 15px 15px; border: 1px solid rgba(255, 240, 207, .35); border-radius: 15px; color: var(--night); background: rgba(255, 240, 207, .96); box-shadow: 0 12px 35px rgba(0, 0, 0, .3); backdrop-filter: blur(16px); animation: notification-in 220ms ease-out both; }
+    @keyframes notification-in { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+    .notification-head { display: flex; align-items: center; gap: 7px; color: #625843; font-size: 9px; font-weight: 700; letter-spacing: .08em; }
+    .notification-app { display: grid; place-items: center; width: 19px; height: 19px; border-radius: 5px; color: var(--night); background: var(--amber); font-size: 10px; }
+    .system-notification strong { display: block; margin-top: 10px; font-size: 12px; }
+    .system-notification p { margin: 5px 0 0; color: #625843; font-size: 11px; line-height: 1.6; }
+    .notification-close { position: absolute; top: 10px; right: 10px; width: 26px; height: 26px; border: 0; border-radius: 50%; color: #625843; background: transparent; font-size: 17px; }
+    .notification-close:hover { background: rgba(8, 13, 34, .08); }
+    .notification-close:focus-visible { outline-color: var(--night); }
+    [hidden] { display: none !important; }
+    @media (max-width: 900px) {
+      .night-shell { width: min(760px, calc(100% - 40px)); }
+      .window-stage { height: auto; min-height: 740px; display: flex; justify-content: center; padding: 128px 20px 32px; border-radius: 190px 190px 16px 16px; }
+      .permission-card { position: relative; top: auto; right: auto; width: min(440px, 100%); max-height: none; flex: 0 0 auto; }
+      .stage-copy { left: 32px; top: 38px; bottom: auto; }
+      .stage-copy h2, .stage-copy p:last-child { display: none; }
+      .stage-kicker { margin: 0; }
+      .scene-status { left: auto; right: 30px; top: 34px; }
+      .system-notification { top: 76px; right: 20px; width: min(348px, calc(100% - 40px)); }
+    }
+    @media (max-width: 520px) {
+      .night-shell { width: calc(100% - 24px); }
+      .session span:first-child { display: none; }
+      .window-stage { padding: 112px 12px 20px; border-width: 5px; border-radius: 140px 140px 14px 14px; }
+      .permission-card { padding: 24px 20px 22px; }
+      .permission-card h1 { font-size: 27px; }
+      .scene-status { display: none; }
+      .stage-copy { left: 26px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
+      .star { opacity: .7; }
+    }
+  </style>
+</head>
+<body>
+  <div class="night-shell">
+    <header class="topbar">
+      <div class="brand">
+        <svg viewBox="0 0 25 30" aria-hidden="true"><path d="M3 28V11C3 5 7 2 12.5 2S22 5 22 11v17H3Z" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M12.5 3v25M3 15h19" stroke="currentColor" stroke-width="1.2"/><path d="M6 26V12c0-4 2-6 6-7" fill="none" stroke="currentColor" stroke-width="1" opacity=".5"/></svg>
+        <span>夜窗<small>NIGHT WINDOW</small></span>
+      </div>
+      <div class="session"><span>专注空间 / 夜间模式</span><span class="session-time">22:40</span></div>
+    </header>
+
+    <main class="window-stage" aria-labelledby="permission-title">
+      <svg class="night-scene" viewBox="0 0 1184 672" preserveAspectRatio="xMidYMid slice" role="img" aria-labelledby="night-title night-desc">
+        <title id="night-title">深夜城市中的拱形窗</title>
+        <desc id="night-desc">深靛蓝夜空挂着月亮，左侧窗外是城市剪影，右侧窗内亮着一盏琥珀色台灯。</desc>
+        <defs>
+          <linearGradient id="sky-gradient" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#111A38"/><stop offset="1" stop-color="#1B2A50"/></linearGradient>
+          <radialGradient id="lamp-gradient" cx="70%" cy="46%" r="55%"><stop offset="0" stop-color="#F0B65B" stop-opacity=".28"/><stop offset="1" stop-color="#F0B65B" stop-opacity="0"/></radialGradient>
+          <linearGradient id="glass-gradient" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFF0CF" stop-opacity=".08"/><stop offset=".5" stop-color="#FFF0CF" stop-opacity="0"/><stop offset="1" stop-color="#AAB2C7" stop-opacity=".08"/></linearGradient>
+        </defs>
+        <rect width="1184" height="672" fill="url(#sky-gradient)"/>
+        <rect width="1184" height="672" fill="url(#lamp-gradient)"/>
+        <g fill="#FFF0CF">
+          <circle class="star" cx="135" cy="170" r="1.7"/><circle class="star" cx="221" cy="95" r="1.3"/><circle class="star" cx="344" cy="165" r="1.6"/><circle class="star" cx="439" cy="82" r="1.2"/><circle class="star" cx="527" cy="190" r="1.4"/><circle class="star" cx="683" cy="112" r="1.3"/><circle class="star" cx="793" cy="66" r="1.6"/><circle class="star" cx="944" cy="139" r="1.2"/><circle class="star" cx="1061" cy="94" r="1.4"/>
+        </g>
+        <circle cx="269" cy="192" r="58" fill="#FFF0CF" opacity=".9"/>
+        <circle cx="294" cy="174" r="58" fill="#152142"/>
+        <g fill="#0B122B">
+          <path d="M0 424h74v-91h55v63h51V276h77v148h44V313h58v111h72v-68h61v68h60V297h83v127h65v248H0Z"/>
+          <path d="M690 388h63v-72h57v72h51V259h89v129h47v-82h61v82h126v284H690Z" opacity=".72"/>
+        </g>
+        <g fill="#F0B65B" opacity=".65">
+          <rect x="94" y="356" width="8" height="13"/><rect x="115" y="356" width="8" height="13"/><rect x="204" y="300" width="9" height="14"/><rect x="229" y="300" width="9" height="14"/><rect x="204" y="334" width="9" height="14"/><rect x="324" y="337" width="8" height="12"/><rect x="480" y="326" width="9" height="13"/><rect x="506" y="326" width="9" height="13"/><rect x="884" y="287" width="10" height="15"/><rect x="913" y="287" width="10" height="15"/><rect x="884" y="326" width="10" height="15"/><rect x="1001" y="330" width="9" height="13"/>
+        </g>
+        <g stroke="#2B395D" fill="none">
+          <path d="M592 0v672M0 358h1184" stroke-width="14"/>
+          <path d="M592 0v672M0 358h1184" stroke="#080D22" stroke-width="4"/>
+          <path d="M78 0v672M1106 0v672" stroke-width="7" opacity=".55"/>
+        </g>
+        <rect width="1184" height="672" fill="url(#glass-gradient)"/>
+        <g opacity=".65">
+          <path d="M935 445h135l-18-91h-98Z" fill="#F0B65B"/>
+          <path d="M953 354h98" stroke="#FFF0CF" stroke-width="2"/>
+          <path d="M1002 445v76M964 526h78" stroke="#F0B65B" stroke-width="5"/>
+          <ellipse cx="1003" cy="531" rx="115" ry="12" fill="#080D22" opacity=".5"/>
+        </g>
+        <path d="M0 590h1184v82H0Z" fill="#080D22" opacity=".82"/>
+        <path d="M0 590h1184" stroke="#2B395D" stroke-width="3"/>
+        <g stroke="#AAB2C7" stroke-width="1" opacity=".12"><path d="m90 70-38 88M177 36l-68 154M489 71l-52 119M1121 199l-55 126"/></g>
+      </svg>
+
+      <div class="scene-status" id="scene-status">45 分钟专注 · 等待权限选择</div>
+      <section class="stage-copy" aria-label="夜间专注介绍">
+        <p class="stage-kicker">夜间专注 · 第 01 次</p>
+        <h2>安静工作，<br>也知道何时停下。</h2>
+        <p>城市还亮着灯，你不必一直亮着。完成这一段，就把夜晚还给自己。</p>
+      </section>
+
+      <section class="permission-card" aria-describedby="permission-intro">
+        <p class="permission-kicker">
+          <svg viewBox="0 0 18 18" aria-hidden="true"><path d="M4 8V6a5 5 0 0 1 10 0v2M3 8h12v8H3Z" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="9" cy="12" r="1" fill="currentColor"/></svg>
+          系统权限 / 通知
+        </p>
+        <h1 id="permission-title">允许「夜窗」<br>发送通知吗？</h1>
+        <p class="permission-intro" id="permission-intro">只在你主动开始专注后，于计时结束时提醒你离开屏幕。</p>
+        <div class="permission-reason">
+          <h2>一条结束提醒，不多打扰</h2>
+          <p>例如：22:40 开始 45 分钟专注，23:25 收到一条“本轮已完成”的系统通知。</p>
+          <ul class="assurances">
+            <li><svg viewBox="0 0 14 14" aria-hidden="true"><path d="m3 7 2.5 2.5L11 4" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>不读取其他通知</li>
+            <li><svg viewBox="0 0 14 14" aria-hidden="true"><path d="m3 7 2.5 2.5L11 4" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>不发送营销消息</li>
+          </ul>
+          <button class="preview-button" id="preview-notification" type="button" aria-expanded="false" aria-controls="system-notification">预览这条通知 <span aria-hidden="true">↗</span></button>
+        </div>
+        <div class="permission-actions" aria-label="通知权限选择">
+          <button class="allow-button" id="allow-permission" type="button" aria-pressed="false">
+            <svg viewBox="0 0 18 18" aria-hidden="true"><path d="M3 13h12l-1.5-2.5V7a4.5 4.5 0 0 0-9 0v3.5ZM7 15h4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+            允许通知
+          </button>
+          <div class="secondary-actions">
+            <button id="once-permission" type="button" aria-pressed="false">仅此一次</button>
+            <button id="deny-permission" type="button" aria-pressed="false">暂不允许</button>
+          </div>
+        </div>
+        <p class="permission-feedback" id="permission-feedback" role="status">尚未请求系统权限。你也可以先预览通知，再决定。</p>
+      </section>
+
+      <aside class="system-notification" id="system-notification" aria-label="通知预览" hidden>
+        <div class="notification-head"><span class="notification-app">夜</span>夜窗 · 专注结束提醒</div>
+        <strong>这一轮，好好完成了。</strong>
+        <p>45 分钟到了。合上电脑，起身看看窗外的灯吧。</p>
+        <button class="notification-close" id="close-notification" type="button" aria-label="关闭通知预览">×</button>
+      </aside>
+    </main>
+  </div>
+
+  <script>
+    (() => {
+      const choices = {
+        allow: document.getElementById('allow-permission'),
+        once: document.getElementById('once-permission'),
+        deny: document.getElementById('deny-permission')
+      };
+      const feedback = document.getElementById('permission-feedback');
+      const sceneStatus = document.getElementById('scene-status');
+      const previewButton = document.getElementById('preview-notification');
+      const notification = document.getElementById('system-notification');
+      const states = {
+        allow: {
+          message: '已允许通知。23:25 专注结束时，夜窗会发送一条结束提醒。',
+          type: 'success',
+          status: '45 分钟专注 · 结束提醒已开启',
+          scene: '已允许通知'
+        },
+        once: {
+          message: '仅本次允许。今晚 23:25 会提醒一次，下次开始专注前仍会询问。',
+          type: 'once',
+          status: '45 分钟专注 · 仅本次提醒',
+          scene: '仅此一次'
+        },
+        deny: {
+          message: '通知未开启。专注计时仍可使用，但结束时不会有系统提醒。',
+          type: 'denied',
+          status: '45 分钟专注 · 无通知模式',
+          scene: '暂不允许'
+        }
+      };
+
+      function choosePermission(key) {
+        Object.entries(choices).forEach(([name, button]) => {
+          button.setAttribute('aria-pressed', String(name === key));
+        });
+        const state = states[key];
+        feedback.textContent = state.message;
+        feedback.className = 'permission-feedback ' + state.type;
+        sceneStatus.textContent = state.status;
+      }
+
+      Object.entries(choices).forEach(([key, button]) => {
+        button.addEventListener('click', () => choosePermission(key));
+      });
+
+      function setPreview(open) {
+        notification.hidden = !open;
+        previewButton.setAttribute('aria-expanded', String(open));
+        previewButton.innerHTML = (open ? '收起通知预览' : '预览这条通知') + ' <span aria-hidden="true">↗</span>';
+      }
+
+      previewButton.addEventListener('click', () => setPreview(notification.hidden));
+      document.getElementById('close-notification').addEventListener('click', () => {
+        setPreview(false);
+        previewButton.focus();
+      });
+    })();
+  </script>
+</body>
+</html>

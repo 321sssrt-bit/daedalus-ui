@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>纸上行 Paper Run｜通讯员注册</title>
+  <style>
+    :root {
+      --paper: #F5EFE4;
+      --sheet: #FFFCF6;
+      --ink: #292621;
+      --coral: #E55B49;
+      --coral-dark: #B84032;
+      --sand: #E4D8C7;
+      --line: #C7BAA7;
+      --muted: #7D7468;
+      --success: #3E6B58;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background-color: var(--paper);
+      background-image: repeating-linear-gradient(0deg, rgba(91, 70, 43, .022) 0, rgba(91, 70, 43, .022) 1px, transparent 1px, transparent 4px);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+    button, input, textarea { font: inherit; }
+    button { cursor: pointer; }
+    button:focus-visible, input:focus-visible, textarea:focus-visible, [tabindex]:focus-visible {
+      outline: 2px solid var(--coral);
+      outline-offset: 3px;
+    }
+    [hidden] { display: none !important; }
+    .masthead { border-top: 5px solid var(--ink); border-bottom: 1px solid var(--ink); background: rgba(255, 252, 246, .46); }
+    .masthead-inner {
+      width: min(1200px, calc(100% - 80px));
+      min-height: 62px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+    }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .brand-block { width: 34px; height: 38px; display: grid; place-items: center; color: var(--sheet); background: var(--coral); font-family: "Songti SC", "STSong", "SimSun", serif; font-size: 23px; font-weight: 700; }
+    .brand-name { font-family: "Songti SC", "STSong", "SimSun", serif; font-size: 21px; font-weight: 700; letter-spacing: .12em; }
+    .brand-en { margin-left: 8px; color: var(--muted); font: 9px/1.4 Consolas, "SFMono-Regular", monospace; letter-spacing: .2em; }
+    .masthead-center { color: var(--muted); font: 10px/1.5 Consolas, "SFMono-Regular", monospace; letter-spacing: .14em; }
+    .desk-note { display: flex; align-items: center; gap: 9px; font-size: 11px; }
+    .desk-note::before { content: ""; width: 7px; height: 7px; background: var(--coral); border-radius: 50%; }
+    .workspace {
+      width: min(1200px, calc(100% - 80px));
+      min-height: calc(100svh - 108px);
+      margin: 0 auto;
+      padding: 31px 0 27px;
+      display: grid;
+      grid-template-columns: minmax(0, .82fr) minmax(0, 1.18fr);
+      gap: 54px;
+      align-items: center;
+    }
+    .issue-rail { min-width: 0; padding: 4px 0; }
+    .edition-line { display: flex; align-items: center; justify-content: space-between; gap: 15px; padding-bottom: 10px; border-bottom: 1px solid var(--line); color: var(--coral-dark); font-size: 10px; font-weight: 700; letter-spacing: .17em; }
+    .edition-line span:last-child { color: var(--muted); font-family: Consolas, "SFMono-Regular", monospace; font-weight: 400; }
+    .issue-rail h1 { margin: 20px 0 12px; font-family: "Songti SC", "STSong", "SimSun", serif; font-size: clamp(39px, 3.8vw, 52px); line-height: 1.24; font-weight: 700; letter-spacing: -.025em; }
+    .issue-rail h1 em { color: var(--coral); font-style: normal; }
+    .intro { max-width: 410px; margin: 0; color: #675F55; font-size: 13px; line-height: 1.85; }
+    .issue-poster { position: relative; height: 141px; margin: 14px 0 7px; overflow: hidden; border-bottom: 1px solid var(--line); }
+    .issue-number { position: absolute; left: -5px; bottom: 5px; color: var(--sand); font: 152px/.8 Georgia, "Times New Roman", serif; letter-spacing: -.075em; }
+    .issue-number sup { position: absolute; left: 8px; top: 1px; color: var(--coral); font: 700 10px/1 Consolas, monospace; letter-spacing: .18em; }
+    .issue-art { position: absolute; right: -5px; bottom: 3px; width: 278px; height: 132px; }
+    .steps-track { position: relative; margin: 0; padding: 0; list-style: none; }
+    .steps-track::before { content: ""; position: absolute; left: 16px; top: 26px; bottom: 26px; border-left: 1px dashed #B5A894; }
+    .trail-step { position: relative; min-height: 58px; padding: 10px 0; display: grid; grid-template-columns: 34px 1fr auto; align-items: center; gap: 12px; }
+    .step-number { position: relative; z-index: 1; width: 33px; height: 33px; display: grid; place-items: center; color: var(--muted); background: var(--paper); border: 1px solid #B5A894; border-radius: 50%; font: 11px/1 Consolas, monospace; transition: background .2s ease, color .2s ease, border-color .2s ease; }
+    .step-copy strong { display: block; font-family: "Songti SC", "STSong", "SimSun", serif; font-size: 15px; font-weight: 600; }
+    .step-copy small { display: block; margin-top: 3px; color: var(--muted); font-size: 10px; }
+    .step-status { color: var(--muted); font-size: 9px; letter-spacing: .08em; }
+    .trail-step.is-current .step-number { color: var(--sheet); background: var(--coral); border-color: var(--coral); box-shadow: 0 0 0 4px rgba(229, 91, 73, .1); }
+    .trail-step.is-current .step-copy strong, .trail-step.is-current .step-status { color: var(--coral-dark); }
+    .trail-step.is-done .step-number { color: var(--sheet); background: var(--success); border-color: var(--success); }
+    .trail-step.is-done .step-status { color: var(--success); }
+    .registration-paper {
+      position: relative;
+      min-width: 0;
+      padding: 26px 30px 23px;
+      background: var(--sheet);
+      border: 1px solid #D5C8B5;
+      border-top: 4px solid var(--coral);
+      border-radius: 0;
+      box-shadow: 8px 8px 0 var(--sand);
+    }
+    .registration-paper::after { content: ""; position: absolute; right: 12px; bottom: 11px; width: 19px; height: 19px; border-right: 1px solid #C5B69E; border-bottom: 1px solid #C5B69E; pointer-events: none; }
+    .form-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; }
+    .form-kicker { color: var(--coral-dark); font: 9px/1.4 Consolas, "SFMono-Regular", monospace; letter-spacing: .15em; }
+    .form-heading h2, .success-view h2 { margin: 7px 0 5px; font-family: "Songti SC", "STSong", "SimSun", serif; font-size: 27px; line-height: 1.3; }
+    .form-heading p { margin: 0; color: var(--muted); font-size: 11px; }
+    .open-stamp { margin-top: 3px; padding: 6px 9px; color: var(--coral-dark); border: 1px solid var(--coral); font-size: 10px; font-weight: 700; letter-spacing: .12em; transform: rotate(3deg); white-space: nowrap; }
+    .signup-form { margin-top: 18px; }
+    .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 17px; row-gap: 12px; }
+    .field { min-width: 0; }
+    .field label, .topic-field legend { display: block; margin-bottom: 5px; padding: 0; color: #4F4941; font-size: 11px; font-weight: 650; }
+    .required { color: var(--coral); }
+    .optional { color: var(--muted); font-weight: 400; }
+    .field input, .field textarea {
+      width: 100%;
+      color: var(--ink);
+      background: transparent;
+      border: 0;
+      border-bottom: 1px solid #AFA18E;
+      border-radius: 0;
+      outline: 0;
+      transition: border-color .18s ease, background .18s ease, box-shadow .18s ease;
+    }
+    .field input { height: 39px; padding: 0 2px; font-size: 13px; }
+    .field textarea { height: 59px; min-height: 59px; max-height: 140px; padding: 8px 2px; resize: vertical; font-size: 12px; line-height: 1.55; }
+    .field input:hover, .field textarea:hover { border-bottom-color: var(--ink); }
+    .field input:focus, .field textarea:focus { border-bottom-color: var(--coral); box-shadow: 0 2px 0 rgba(229, 91, 73, .13); background: #FFF9F1; }
+    .field input[aria-invalid="true"], .field textarea[aria-invalid="true"] { border-bottom: 2px solid var(--coral-dark); background: #FFF5EF; }
+    .field input::placeholder, .field textarea::placeholder { color: #9A9186; }
+    .field-error { margin: 4px 0 0; color: var(--coral-dark); font-size: 10px; line-height: 1.45; }
+    .topic-field { min-width: 0; margin: 15px 0 0; padding: 0; border: 0; }
+    .topic-options { display: flex; flex-wrap: wrap; gap: 7px; }
+    .topic-option { position: relative; cursor: pointer; }
+    .topic-option input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+    .topic-option span { display: block; min-height: 29px; padding: 5px 11px; color: #655D52; background: transparent; border: 1px solid #BDB09C; font-size: 11px; line-height: 17px; transition: color .16s ease, background .16s ease, border-color .16s ease; }
+    .topic-option:hover span { border-color: var(--coral); color: var(--coral-dark); }
+    .topic-option input:checked + span { color: var(--sheet); background: var(--coral); border-color: var(--coral); }
+    .topic-option input:focus-visible + span { outline: 2px solid var(--coral); outline-offset: 3px; }
+    .letter-field { margin-top: 13px; }
+    .agreement { margin: 12px 0 14px; display: flex; align-items: flex-start; gap: 8px; color: #6A6257; font-size: 10px; line-height: 1.6; cursor: pointer; }
+    .agreement input { flex: 0 0 auto; width: 14px; height: 14px; margin: 1px 0 0; accent-color: var(--coral); }
+    .agreement-error { margin: -8px 0 10px; }
+    .form-actions { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 20px; }
+    .submit-button {
+      min-height: 46px;
+      padding: 0 17px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 15px;
+      color: var(--sheet);
+      background: var(--coral);
+      border: 1px solid var(--coral-dark);
+      border-radius: 0;
+      box-shadow: 4px 4px 0 var(--ink);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .06em;
+      transition: transform .16s ease, box-shadow .16s ease, background .16s ease;
+    }
+    .submit-button:hover:not(:disabled) { background: #D94F3E; transform: translate(-1px, -1px); box-shadow: 5px 5px 0 var(--ink); }
+    .submit-button:active:not(:disabled) { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--ink); }
+    .submit-button:disabled { opacity: .56; cursor: wait; box-shadow: 2px 2px 0 var(--ink); }
+    .login-link { padding: 5px 0; color: #514A42; background: transparent; border: 0; border-bottom: 1px solid #8E8374; font-size: 11px; white-space: nowrap; }
+    .login-link:hover { color: var(--coral-dark); border-bottom-color: var(--coral); }
+    .privacy-note { margin: 13px 0 0; color: var(--muted); font-size: 9px; line-height: 1.5; }
+    .form-alert { margin: 0 0 12px; padding: 8px 10px; color: var(--coral-dark); background: #FBE6DE; border-left: 3px solid var(--coral); font-size: 11px; }
+    .success-view { padding: 13px 5px 3px; text-align: center; }
+    .accepted-stamp { width: 105px; height: 105px; margin: 0 auto 17px; display: grid; place-items: center; color: var(--coral); border: 3px double var(--coral); border-radius: 50%; font-family: "Songti SC", "STSong", "SimSun", serif; font-size: 24px; font-weight: 700; letter-spacing: .12em; transform: rotate(-7deg); }
+    .success-view > p { max-width: 410px; margin: 8px auto 0; color: var(--muted); font-size: 12px; line-height: 1.75; }
+    .receipt { margin: 20px 0 18px; padding: 8px 17px; text-align: left; background: #F7F0E4; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+    .receipt-row { min-height: 35px; display: grid; grid-template-columns: 95px 1fr; align-items: center; gap: 12px; font-size: 11px; }
+    .receipt-row + .receipt-row { border-top: 1px dashed #D2C5B2; }
+    .receipt-row span { color: var(--muted); }
+    .receipt-row strong { font-weight: 600; overflow-wrap: anywhere; }
+    .success-actions { display: flex; align-items: center; justify-content: center; gap: 22px; }
+    .secondary-button { min-height: 40px; padding: 0 15px; color: var(--ink); background: transparent; border: 1px solid #9C8F7D; border-radius: 0; font-size: 11px; }
+    .secondary-button:hover { color: var(--coral-dark); border-color: var(--coral); background: #FFF7EF; }
+    .back-link { margin: 0 0 17px; padding: 0 0 3px; color: var(--muted); background: transparent; border: 0; border-bottom: 1px solid #A99C8A; font-size: 11px; }
+    .back-link:hover { color: var(--coral-dark); }
+    .login-view .signup-form { margin-top: 25px; }
+    .login-view .field + .field { margin-top: 17px; }
+    .login-success { padding: 29px 0 17px; text-align: center; }
+    .login-success svg { width: 67px; color: var(--success); }
+    .login-success h3 { margin: 12px 0 7px; font-family: "Songti SC", "STSong", "SimSun", serif; font-size: 25px; }
+    .login-success p { margin: 0; color: var(--muted); font-size: 12px; }
+    .page-footer { width: min(1200px, calc(100% - 80px)); min-height: 40px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 20px; color: var(--muted); border-top: 1px solid var(--line); font: 9px/1.5 Consolas, "Microsoft YaHei", monospace; letter-spacing: .06em; }
+    @media (max-width: 1050px) {
+      .masthead-inner, .workspace, .page-footer { width: calc(100% - 48px); }
+      .workspace { gap: 30px; grid-template-columns: minmax(0, .74fr) minmax(0, 1.26fr); }
+      .masthead-center { display: none; }
+      .issue-number { font-size: 130px; }
+      .issue-art { width: 238px; }
+      .registration-paper { padding-inline: 24px; }
+      .form-actions { gap: 14px; }
+    }
+    @media (max-width: 860px) {
+      .workspace { max-width: 690px; grid-template-columns: 1fr; gap: 26px; padding-top: 27px; }
+      .issue-rail h1 { font-size: 45px; }
+      .issue-poster { height: 127px; }
+      .issue-art { width: 278px; }
+      .steps-track { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+      .steps-track::before { display: none; }
+      .trail-step { grid-template-columns: 34px 1fr; gap: 9px; }
+      .step-status { display: none; }
+      .registration-paper { padding: 27px 30px 24px; }
+    }
+    @media (max-width: 560px) {
+      .masthead-inner, .workspace, .page-footer { width: calc(100% - 32px); }
+      .brand-en, .desk-note { display: none; }
+      .issue-rail h1 { font-size: 38px; }
+      .issue-number { font-size: 120px; }
+      .issue-art { width: 225px; right: -26px; }
+      .steps-track { grid-template-columns: 1fr; gap: 0; }
+      .trail-step { min-height: 53px; grid-template-columns: 34px 1fr auto; }
+      .step-status { display: block; }
+      .registration-paper { padding: 23px 20px 21px; box-shadow: 5px 5px 0 var(--sand); }
+      .form-grid { grid-template-columns: 1fr; }
+      .form-actions { grid-template-columns: 1fr; gap: 16px; }
+      .login-link { justify-self: start; }
+      .success-actions, .page-footer { align-items: flex-start; flex-direction: column; }
+      .page-footer { padding: 13px 0; gap: 5px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
+    }
+  </style>
+</head>
+<body>
+  <header class="masthead">
+    <div class="masthead-inner">
+      <div class="brand"><span class="brand-block" aria-hidden="true">行</span><span class="brand-name">纸上行</span><span class="brand-en">PAPER RUN</span></div>
+      <div class="masthead-center">INDEPENDENT FIELD NOTES · EST. 2018</div>
+      <div class="desk-note">第 047 期通讯员通道开放中</div>
+    </div>
+  </header>
+
+  <main class="workspace">
+    <section class="issue-rail" aria-labelledby="page-title">
+      <div class="edition-line"><span>通讯员招募 / CALL FOR NOTES</span><span>VOL. 047</span></div>
+      <h1 id="page-title">把你的<em>现场</em>，<br>写进下一期。</h1>
+      <p class="intro">我们寻找愿意多走一站路、多听一个故事的同行者。登记你的观察方向，通过编辑核对后，就能收到第一封选题信。</p>
+      <div class="issue-poster" aria-label="第 047 期春季号">
+        <div class="issue-number" aria-hidden="true"><sup>ISSUE NO.</sup>047</div>
+        <svg class="issue-art" viewBox="0 0 300 145" fill="none" aria-hidden="true">
+          <g transform="translate(83 12) rotate(5 90 58)">
+            <path d="M18 13h154v104H18z" fill="#E9DECD" stroke="#292621"/>
+            <path d="M9 6h154v104H9z" fill="#F5EFE4" stroke="#292621"/>
+            <path d="M0 0h154v104H0z" fill="#FFFCF6" stroke="#292621" stroke-width="1.2"/>
+            <path d="M12 13h80v7H12zM12 27h130v2H12zM12 34h130v2H12z" fill="#292621"/>
+            <path d="M12 47h58v39H12z" fill="#E4D8C7" stroke="#292621" stroke-width=".8"/>
+            <path d="m17 79 14-14 11 8 12-16 11 22" stroke="#7D7468" stroke-width="1"/>
+            <path d="M79 47h62M79 54h62M79 61h54M79 68h62M79 75h57M79 82h62M12 94h129" stroke="#7D7468" stroke-width="1.2"/>
+            <path d="M77 44v43" stroke="#C7BAA7" stroke-width=".8"/>
+            <path d="m10 10 22 14M7 17l21 13" stroke="#E55B49" stroke-width="1.5"/>
+            <circle cx="127" cy="18" r="12" stroke="#E55B49" stroke-width="1.4"/>
+            <path d="m119 19 6 5 11-14" stroke="#E55B49" stroke-width="1.6"/>
+          </g>
+          <g transform="translate(39 112) rotate(-18)">
+            <path d="M0 0h118v8H0z" fill="#E55B49" stroke="#292621"/>
+            <path d="m118 0 18 4-18 4z" fill="#E4D8C7" stroke="#292621"/>
+            <path d="m136 4-5 1" stroke="#292621" stroke-width="2"/>
+            <path d="M0 0v8" stroke="#292621" stroke-width="4"/>
+          </g>
+          <path d="M39 39c-20 13-23 34-5 47" stroke="#E55B49" stroke-width="1.2" stroke-dasharray="3 4"/>
+          <path d="m29 81 5 6 7-4" stroke="#E55B49" stroke-width="1.2"/>
+        </svg>
+      </div>
+      <ol class="steps-track" aria-label="通讯员登记进度">
+        <li class="trail-step is-current" id="step-one">
+          <span class="step-number" id="step-one-number">01</span>
+          <span class="step-copy"><strong>填写通讯员资料</strong><small>让我们知道你在何处观察</small></span>
+          <span class="step-status" id="step-one-status">当前</span>
+        </li>
+        <li class="trail-step" id="step-two">
+          <span class="step-number" id="step-two-number">02</span>
+          <span class="step-copy"><strong>编辑人工核对</strong><small>不是机器筛选，每份都会读</small></span>
+          <span class="step-status" id="step-two-status">1 个工作日</span>
+        </li>
+        <li class="trail-step" id="step-three">
+          <span class="step-number">03</span>
+          <span class="step-copy"><strong>接收第一次选题</strong><small>从一封简短的约稿信开始</small></span>
+          <span class="step-status">邮件通知</span>
+        </li>
+      </ol>
+    </section>
+
+    <section class="registration-paper" aria-label="通讯员登记纸">
+      <div id="register-view">
+        <div id="registration-fields">
+          <div class="form-heading">
+            <div><div class="form-kicker">CONTRIBUTOR DESK / 047</div><h2 id="signup-title" tabindex="-1">通讯员登记</h2><p>带 <span class="required">*</span> 的项目需要填写，约需 2 分钟。</p></div>
+            <span class="open-stamp">开放登记</span>
+          </div>
+          <form class="signup-form" id="signup-form" novalidate>
+            <p class="form-alert" id="signup-alert" role="alert" hidden>有几处资料尚未填妥，请查看红色标记。</p>
+            <div class="form-grid">
+              <div class="field">
+                <label for="contributor-name">姓名 <span class="required">*</span></label>
+                <input id="contributor-name" name="name" type="text" autocomplete="name" placeholder="用于编辑核对身份" aria-describedby="name-error">
+                <p class="field-error" id="name-error" hidden></p>
+              </div>
+              <div class="field">
+                <label for="contributor-email">联系邮箱 <span class="required">*</span></label>
+                <input id="contributor-email" name="email" type="email" autocomplete="email" placeholder="用于接收约稿信" aria-describedby="email-error">
+                <p class="field-error" id="email-error" hidden></p>
+              </div>
+              <div class="field">
+                <label for="contributor-phone">手机号码 <span class="required">*</span></label>
+                <input id="contributor-phone" name="phone" type="tel" inputmode="numeric" autocomplete="tel" placeholder="11 位大陆手机号" aria-describedby="phone-error">
+                <p class="field-error" id="phone-error" hidden></p>
+              </div>
+              <div class="field">
+                <label for="contributor-city">常驻城市 <span class="required">*</span></label>
+                <input id="contributor-city" name="city" type="text" autocomplete="address-level2" placeholder="例如：泉州" aria-describedby="city-error">
+                <p class="field-error" id="city-error" hidden></p>
+              </div>
+            </div>
+            <fieldset class="topic-field" aria-describedby="topic-error">
+              <legend>关注方向 <span class="required">*</span> <span class="optional">至少选择一项</span></legend>
+              <div class="topic-options">
+                <label class="topic-option"><input type="checkbox" name="topic" value="城市" checked><span>城市</span></label>
+                <label class="topic-option"><input type="checkbox" name="topic" value="乡土"><span>乡土</span></label>
+                <label class="topic-option"><input type="checkbox" name="topic" value="手艺"><span>手艺</span></label>
+                <label class="topic-option"><input type="checkbox" name="topic" value="环境"><span>环境</span></label>
+                <label class="topic-option"><input type="checkbox" name="topic" value="人物"><span>人物</span></label>
+              </div>
+              <p class="field-error" id="topic-error" hidden>请至少选择一个关注方向。</p>
+            </fieldset>
+            <div class="field letter-field">
+              <label for="contributor-note">一句报道意向 <span class="optional">选填</span></label>
+              <textarea id="contributor-note" name="note" placeholder="例如：我想记录老城区修表匠留下的时间。"></textarea>
+            </div>
+            <label class="agreement"><input id="contributor-agreement" type="checkbox" aria-describedby="agreement-error"><span>我同意编辑部仅为通讯员核对与选题联络使用以上资料，并遵守原创与事实核验约定。</span></label>
+            <p class="field-error agreement-error" id="agreement-error" hidden>请先阅读并勾选资料使用约定。</p>
+            <div class="form-actions">
+              <button class="submit-button" id="signup-submit" type="submit"><span id="signup-button-label">提交登记，寄往编辑部</span><span aria-hidden="true">↗</span></button>
+              <button class="login-link" id="go-login" type="button">已有账号？去登录</button>
+            </div>
+            <p class="privacy-note">编辑部不会公开展示你的手机号；未通过核对的资料将在 30 日后清除。</p>
+          </form>
+        </div>
+
+        <div class="success-view" id="signup-success" hidden>
+          <div class="accepted-stamp" aria-hidden="true">已收讫</div>
+          <div class="form-kicker">REGISTRATION RECEIVED</div>
+          <h2 id="success-title" tabindex="-1">你的资料已抵达编辑部</h2>
+          <p>值班编辑会在 1 个工作日内完成核对。结果与第一封选题说明将发送至你的邮箱。</p>
+          <div class="receipt" aria-label="登记回执">
+            <div class="receipt-row"><span>登记编号</span><strong>PR–047–0186</strong></div>
+            <div class="receipt-row"><span>通讯员</span><strong id="receipt-name"></strong></div>
+            <div class="receipt-row"><span>观察方向</span><strong id="receipt-topics"></strong></div>
+            <div class="receipt-row"><span>回执邮箱</span><strong id="receipt-email"></strong></div>
+          </div>
+          <div class="success-actions"><button class="secondary-button" id="register-another" type="button">再登记一位通讯员</button><button class="login-link" id="success-go-login" type="button">已有账号，去登录</button></div>
+        </div>
+      </div>
+
+      <div class="login-view" id="login-view" hidden>
+        <button class="back-link" id="back-to-signup" type="button">← 返回通讯员登记</button>
+        <div class="form-kicker">CONTRIBUTOR SIGN IN</div>
+        <div class="form-heading"><div><h2 id="login-title" tabindex="-1">欢迎回到编辑部</h2><p>使用通讯员邮箱与密码查看你的选题往来。</p></div><span class="open-stamp">内部通讯</span></div>
+        <form class="signup-form" id="login-form" novalidate>
+          <p class="form-alert" id="login-alert" role="alert" hidden>请核对标记的登录信息。</p>
+          <div class="field"><label for="login-email">通讯员邮箱</label><input id="login-email" type="email" autocomplete="username" placeholder="name@example.com" aria-describedby="login-email-error"><p class="field-error" id="login-email-error" hidden></p></div>
+          <div class="field"><label for="login-password">登录密码</label><input id="login-password" type="password" autocomplete="current-password" placeholder="输入至少 6 位密码" aria-describedby="login-password-error"><p class="field-error" id="login-password-error" hidden></p></div>
+          <div class="form-actions" style="margin-top:24px"><button class="submit-button" id="login-submit" type="submit"><span id="login-button-label">登录通讯员信箱</span><span aria-hidden="true">→</span></button></div>
+        </form>
+        <div class="login-success" id="login-success" role="status" hidden>
+          <svg viewBox="0 0 70 70" fill="none" aria-hidden="true"><circle cx="35" cy="35" r="31" stroke="currentColor"/><path d="m20 36 10 10 21-24" stroke="currentColor" stroke-width="2"/></svg>
+          <h3 id="login-success-title" tabindex="-1">签到成功，信箱已打开</h3>
+          <p>当前没有待回复的退稿意见；新选题抵达时会通过邮件提醒你。</p>
+        </div>
+        <p class="privacy-note">通讯员资料与选题草稿仅对已核验的本人及值班编辑可见。</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="page-footer"><span>纸上行编辑部 · 上海市徐汇区复兴西路 47 号</span><span>每周四 18:00 截稿 / 原创与事实优先</span></footer>
+
+  <script>
+    (() => {
+      const signupForm = document.getElementById('signup-form');
+      const registerView = document.getElementById('register-view');
+      const loginView = document.getElementById('login-view');
+      const registrationFields = document.getElementById('registration-fields');
+      const signupSuccess = document.getElementById('signup-success');
+      const submitButton = document.getElementById('signup-submit');
+      const submitLabel = document.getElementById('signup-button-label');
+      const signupAlert = document.getElementById('signup-alert');
+      const fields = {
+        name: document.getElementById('contributor-name'),
+        email: document.getElementById('contributor-email'),
+        phone: document.getElementById('contributor-phone'),
+        city: document.getElementById('contributor-city')
+      };
+      const errors = {
+        name: document.getElementById('name-error'),
+        email: document.getElementById('email-error'),
+        phone: document.getElementById('phone-error'),
+        city: document.getElementById('city-error')
+      };
+      const topics = Array.from(document.querySelectorAll('input[name="topic"]'));
+      const agreement = document.getElementById('contributor-agreement');
+
+      function setError(key, message) {
+        fields[key].setAttribute('aria-invalid', 'true');
+        errors[key].textContent = message;
+        errors[key].hidden = false;
+      }
+      Object.keys(fields).forEach((key) => {
+        fields[key].addEventListener('input', () => {
+          fields[key].removeAttribute('aria-invalid');
+          errors[key].hidden = true;
+          signupAlert.hidden = true;
+        });
+      });
+      topics.forEach((topic) => topic.addEventListener('change', () => { document.getElementById('topic-error').hidden = true; signupAlert.hidden = true; }));
+      agreement.addEventListener('change', () => { document.getElementById('agreement-error').hidden = true; signupAlert.hidden = true; });
+
+      signupForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+        Object.keys(fields).forEach((key) => { fields[key].removeAttribute('aria-invalid'); errors[key].hidden = true; });
+        document.getElementById('topic-error').hidden = true;
+        document.getElementById('agreement-error').hidden = true;
+        let firstInvalid = null;
+        if (!fields.name.value.trim()) { setError('name', '请填写用于核对的姓名。'); firstInvalid = fields.name; }
+        if (!fields.email.value.trim()) { setError('email', '请填写接收回执的邮箱。'); firstInvalid = firstInvalid || fields.email; }
+        else if (!fields.email.validity.valid) { setError('email', '邮箱格式不完整，请检查 @ 符号前后。'); firstInvalid = firstInvalid || fields.email; }
+        if (!/^1\d{10}$/.test(fields.phone.value.replace(/\s/g, ''))) { setError('phone', '请填写 11 位大陆手机号码。'); firstInvalid = firstInvalid || fields.phone; }
+        if (!fields.city.value.trim()) { setError('city', '请填写你目前常驻的城市。'); firstInvalid = firstInvalid || fields.city; }
+        const selectedTopics = topics.filter((topic) => topic.checked);
+        if (!selectedTopics.length) { document.getElementById('topic-error').hidden = false; firstInvalid = firstInvalid || topics[0]; }
+        if (!agreement.checked) { document.getElementById('agreement-error').hidden = false; firstInvalid = firstInvalid || agreement; }
+        if (firstInvalid) {
+          signupAlert.hidden = false;
+          firstInvalid.focus();
+          return;
+        }
+        signupAlert.hidden = true;
+        submitButton.disabled = true;
+        submitLabel.textContent = '正在装订资料…';
+        window.setTimeout(() => {
+          document.getElementById('receipt-name').textContent = `${fields.name.value.trim()} · ${fields.city.value.trim()}`;
+          document.getElementById('receipt-email').textContent = fields.email.value.trim();
+          document.getElementById('receipt-topics').textContent = selectedTopics.map((topic) => topic.value).join(' / ');
+          registrationFields.hidden = true;
+          signupSuccess.hidden = false;
+          document.getElementById('step-one').className = 'trail-step is-done';
+          document.getElementById('step-one-number').textContent = '✓';
+          document.getElementById('step-one-status').textContent = '已提交';
+          document.getElementById('step-two').className = 'trail-step is-current';
+          document.getElementById('step-two-status').textContent = '等待核对';
+          document.getElementById('success-title').focus();
+          submitButton.disabled = false;
+          submitLabel.textContent = '提交登记，寄往编辑部';
+        }, 750);
+      });
+
+      function showLogin() {
+        registerView.hidden = true;
+        loginView.hidden = false;
+        document.getElementById('login-form').hidden = false;
+        document.getElementById('login-success').hidden = true;
+        document.getElementById('login-title').focus();
+      }
+      document.getElementById('go-login').addEventListener('click', showLogin);
+      document.getElementById('success-go-login').addEventListener('click', showLogin);
+      document.getElementById('back-to-signup').addEventListener('click', () => {
+        loginView.hidden = true;
+        registerView.hidden = false;
+        const target = signupSuccess.hidden ? document.getElementById('signup-title') : document.getElementById('success-title');
+        target.focus();
+      });
+      document.getElementById('register-another').addEventListener('click', () => {
+        signupForm.reset();
+        signupSuccess.hidden = true;
+        registrationFields.hidden = false;
+        document.getElementById('step-one').className = 'trail-step is-current';
+        document.getElementById('step-one-number').textContent = '01';
+        document.getElementById('step-one-status').textContent = '当前';
+        document.getElementById('step-two').className = 'trail-step';
+        document.getElementById('step-two-status').textContent = '1 个工作日';
+        fields.name.focus();
+      });
+
+      const loginForm = document.getElementById('login-form');
+      const loginEmail = document.getElementById('login-email');
+      const loginPassword = document.getElementById('login-password');
+      function clearLoginError(input, error) { input.removeAttribute('aria-invalid'); error.hidden = true; document.getElementById('login-alert').hidden = true; }
+      loginEmail.addEventListener('input', () => clearLoginError(loginEmail, document.getElementById('login-email-error')));
+      loginPassword.addEventListener('input', () => clearLoginError(loginPassword, document.getElementById('login-password-error')));
+      loginForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+        const emailError = document.getElementById('login-email-error');
+        const passwordError = document.getElementById('login-password-error');
+        clearLoginError(loginEmail, emailError);
+        clearLoginError(loginPassword, passwordError);
+        let firstInvalid = null;
+        if (!loginEmail.validity.valid || !loginEmail.value.trim()) {
+          loginEmail.setAttribute('aria-invalid', 'true'); emailError.textContent = '请输入有效的通讯员邮箱。'; emailError.hidden = false; firstInvalid = loginEmail;
+        }
+        if (loginPassword.value.length < 6) {
+          loginPassword.setAttribute('aria-invalid', 'true'); passwordError.textContent = '登录密码至少为 6 位。'; passwordError.hidden = false; firstInvalid = firstInvalid || loginPassword;
+        }
+        if (firstInvalid) { document.getElementById('login-alert').hidden = false; firstInvalid.focus(); return; }
+        const button = document.getElementById('login-submit');
+        button.disabled = true;
+        document.getElementById('login-button-label').textContent = '正在翻阅通行证…';
+        window.setTimeout(() => {
+          loginForm.hidden = true;
+          document.getElementById('login-success').hidden = false;
+          document.getElementById('login-success-title').focus();
+          button.disabled = false;
+          document.getElementById('login-button-label').textContent = '登录通讯员信箱';
+        }, 650);
+      });
+    })();
+  </script>
+</body>
+</html>

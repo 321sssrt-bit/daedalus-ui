@@ -1,0 +1,1818 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#071824">
+  <title>涟漪钱包 · 安全转账</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --page: #020D16;
+      --app: #071824;
+      --surface: #0D2636;
+      --surface-raised: #123447;
+      --surface-soft: #102D3D;
+      --line: #245064;
+      --text: #EAFBF7;
+      --muted: #8DAAB5;
+      --accent: #55E6D0;
+      --accent-soft: #9AF7E8;
+      --accent-ink: #06231F;
+      --danger: #FFB4A4;
+      --danger-surface: #382832;
+      --danger-line: #7D4548;
+      --font: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      background: var(--page);
+    }
+
+    body {
+      margin: 0;
+      min-width: 0;
+      min-height: 100vh;
+      min-height: 100svh;
+      background: var(--app);
+      color: var(--text);
+      font-family: var(--font);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    button {
+      color: inherit;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    button:not(:disabled) {
+      cursor: pointer;
+    }
+
+    button:focus-visible,
+    input:focus-visible,
+    [tabindex="-1"]:focus-visible {
+      outline: 3px solid var(--accent);
+      outline-offset: 3px;
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+
+    .phone {
+      position: relative;
+      width: 100%;
+      max-width: 390px;
+      min-height: 100vh;
+      min-height: 100svh;
+      margin: 0 auto;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 100% 8%, rgba(85, 230, 208, 0.08), transparent 32%),
+        var(--app);
+    }
+
+    .app {
+      min-height: 100vh;
+      min-height: 100svh;
+    }
+
+    .screen {
+      position: relative;
+      min-height: 100vh;
+      min-height: 100svh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .topbar {
+      position: relative;
+      z-index: 3;
+      min-height: 72px;
+      padding: calc(14px + env(safe-area-inset-top)) 20px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .brand-mark {
+      position: relative;
+      width: 34px;
+      height: 34px;
+      flex: 0 0 34px;
+      border: 1px solid rgba(85, 230, 208, 0.5);
+      border-radius: 50%;
+    }
+
+    .brand-mark::before,
+    .brand-mark::after {
+      content: "";
+      position: absolute;
+      border: 1px solid var(--accent);
+      border-radius: 50%;
+      inset: 6px;
+    }
+
+    .brand-mark::after {
+      inset: 12px;
+      background: var(--accent);
+      box-shadow: 0 0 16px rgba(85, 230, 208, 0.35);
+    }
+
+    .brand-name {
+      margin: 0;
+      font-size: 17px;
+      line-height: 24px;
+      font-weight: 680;
+      letter-spacing: 0.04em;
+    }
+
+    .security-pill,
+    .step-pill {
+      flex: 0 0 auto;
+      padding: 5px 9px;
+      border: 1px solid rgba(85, 230, 208, 0.22);
+      border-radius: 999px;
+      background: rgba(85, 230, 208, 0.07);
+      color: var(--accent-soft);
+      font-size: 11px;
+      line-height: 16px;
+      letter-spacing: 0.04em;
+    }
+
+    .topbar-leading {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .back-button {
+      width: 40px;
+      height: 40px;
+      flex: 0 0 40px;
+      display: grid;
+      place-items: center;
+      padding: 0;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(13, 38, 54, 0.82);
+      transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
+    }
+
+    .back-button svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    .screen-heading {
+      margin: 0;
+      font-size: 17px;
+      line-height: 24px;
+      font-weight: 650;
+    }
+
+    .content {
+      position: relative;
+      z-index: 1;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 0 20px calc(24px + env(safe-area-inset-bottom));
+    }
+
+    .balance-card {
+      position: relative;
+      height: 236px;
+      flex: 0 0 236px;
+      margin-bottom: 24px;
+      padding: 24px;
+      overflow: hidden;
+      border: 1px solid rgba(85, 230, 208, 0.25);
+      border-radius: 28px;
+      background:
+        linear-gradient(145deg, rgba(85, 230, 208, 0.12), transparent 48%),
+        linear-gradient(160deg, #123B4B 0%, #0B2A3C 56%, #091F30 100%);
+      box-shadow: 0 20px 50px rgba(0, 7, 14, 0.28);
+    }
+
+    .balance-card::after {
+      content: "";
+      position: absolute;
+      left: 24px;
+      right: 24px;
+      bottom: 68px;
+      height: 1px;
+      background: linear-gradient(90deg, rgba(154, 247, 232, 0.28), rgba(154, 247, 232, 0.03));
+    }
+
+    .ripple-visual {
+      position: absolute;
+      width: 310px;
+      height: 310px;
+      right: -105px;
+      top: -74px;
+      color: var(--accent);
+      opacity: 0.48;
+      transform-origin: center;
+      animation: ripple-breathe 7s ease-in-out infinite;
+      pointer-events: none;
+    }
+
+    .eyebrow {
+      position: relative;
+      margin: 0 0 7px;
+      color: var(--accent-soft);
+      font-size: 12px;
+      line-height: 18px;
+      font-weight: 550;
+      letter-spacing: 0.12em;
+    }
+
+    .total-balance {
+      position: relative;
+      margin: 0;
+      font-size: 42px;
+      line-height: 52px;
+      font-weight: 720;
+      letter-spacing: -0.035em;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .total-balance .currency {
+      margin-right: 4px;
+      font-size: 24px;
+      font-weight: 560;
+      vertical-align: 5px;
+    }
+
+    .balance-caption {
+      position: relative;
+      margin: 5px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 18px;
+    }
+
+    .home-sources {
+      position: absolute;
+      left: 24px;
+      right: 24px;
+      bottom: 20px;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .home-source {
+      min-width: 0;
+    }
+
+    .home-source + .home-source {
+      padding-left: 16px;
+      border-left: 1px solid rgba(154, 247, 232, 0.15);
+    }
+
+    .home-source-label {
+      display: block;
+      overflow: hidden;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 16px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .home-source-value {
+      display: block;
+      margin-top: 3px;
+      font-size: 14px;
+      line-height: 20px;
+      font-weight: 620;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .section-heading-row {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .section-title {
+      margin: 0;
+      font-size: 18px;
+      line-height: 26px;
+      font-weight: 650;
+      letter-spacing: 0.01em;
+    }
+
+    .section-meta {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 18px;
+    }
+
+    .recipient-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .recipient-card {
+      position: relative;
+      min-width: 0;
+      height: 104px;
+      padding: 14px;
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      text-align: left;
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      background: linear-gradient(150deg, rgba(18, 52, 71, 0.94), rgba(13, 38, 54, 0.94));
+      transition: border-color 180ms ease, background 180ms ease, transform 180ms ease;
+    }
+
+    .recipient-card.is-selected {
+      border-color: var(--accent);
+      background: linear-gradient(150deg, rgba(85, 230, 208, 0.16), rgba(13, 38, 54, 0.96));
+      box-shadow: inset 0 0 0 1px rgba(85, 230, 208, 0.14);
+    }
+
+    .recipient-check {
+      position: absolute;
+      top: 9px;
+      right: 9px;
+      width: 18px;
+      height: 18px;
+      display: none;
+      place-items: center;
+      border-radius: 50%;
+      background: var(--accent);
+      color: var(--accent-ink);
+    }
+
+    .recipient-card.is-selected .recipient-check {
+      display: grid;
+    }
+
+    .recipient-check svg {
+      width: 12px;
+      height: 12px;
+    }
+
+    .avatar {
+      width: 42px;
+      height: 42px;
+      flex: 0 0 42px;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(234, 251, 247, 0.16);
+      border-radius: 15px;
+      color: var(--text);
+      font-size: 16px;
+      font-weight: 650;
+    }
+
+    .avatar-a { background: linear-gradient(145deg, #276C74, #17414F); }
+    .avatar-b { background: linear-gradient(145deg, #405B83, #21344F); }
+    .avatar-c { background: linear-gradient(145deg, #6B557B, #39344F); }
+    .avatar-d { background: linear-gradient(145deg, #7A644D, #423B38); }
+
+    .recipient-copy {
+      min-width: 0;
+    }
+
+    .recipient-name {
+      display: block;
+      font-size: 15px;
+      line-height: 22px;
+      font-weight: 620;
+    }
+
+    .recipient-account {
+      display: block;
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 16px;
+      white-space: nowrap;
+    }
+
+    .home-note {
+      margin: auto;
+      padding-top: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 18px;
+      text-align: center;
+    }
+
+    .home-note svg {
+      width: 15px;
+      height: 15px;
+      flex: 0 0 15px;
+      color: var(--accent);
+    }
+
+    .recipient-banner {
+      width: 100%;
+      min-height: 72px;
+      margin-bottom: 22px;
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-align: left;
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      background: var(--surface);
+      transition: border-color 160ms ease, background 160ms ease;
+    }
+
+    .recipient-banner .avatar {
+      width: 44px;
+      height: 44px;
+      flex-basis: 44px;
+    }
+
+    .banner-copy {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .banner-name {
+      display: block;
+      font-size: 15px;
+      line-height: 22px;
+      font-weight: 620;
+    }
+
+    .banner-account {
+      display: block;
+      margin-top: 1px;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 17px;
+    }
+
+    .change-label {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      color: var(--accent);
+      font-size: 12px;
+      line-height: 18px;
+    }
+
+    .change-label svg {
+      width: 15px;
+      height: 15px;
+    }
+
+    .amount-panel {
+      margin-bottom: 22px;
+    }
+
+    .field-label,
+    .source-title {
+      display: block;
+      margin: 0 0 10px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 18px;
+      font-weight: 550;
+      letter-spacing: 0.06em;
+    }
+
+    .amount-input-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-height: 76px;
+      padding: 0 16px;
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      background: var(--surface);
+      transition: border-color 160ms ease, box-shadow 160ms ease;
+    }
+
+    .amount-input-wrap:focus-within {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(85, 230, 208, 0.1);
+    }
+
+    .amount-input-wrap.has-error {
+      border-color: var(--danger);
+    }
+
+    .amount-currency {
+      color: var(--accent-soft);
+      font-size: 30px;
+      line-height: 40px;
+      font-weight: 500;
+    }
+
+    .amount-input {
+      width: 100%;
+      min-width: 0;
+      padding: 10px 0;
+      border: 0;
+      outline: 0;
+      background: transparent;
+      color: var(--text);
+      caret-color: var(--accent);
+      font-size: 40px;
+      line-height: 52px;
+      font-weight: 680;
+      letter-spacing: -0.025em;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .amount-input::placeholder {
+      color: #527180;
+      opacity: 1;
+    }
+
+    .amount-input:focus-visible {
+      outline: 0;
+    }
+
+    .field-message {
+      min-height: 20px;
+      margin: 7px 2px 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 18px;
+    }
+
+    .field-message.is-error {
+      color: var(--danger);
+    }
+
+    .quick-amounts {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .quick-amount {
+      min-width: 64px;
+      height: 32px;
+      padding: 0 13px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: transparent;
+      color: var(--accent-soft);
+      font-size: 12px;
+      line-height: 30px;
+      transition: border-color 160ms ease, background 160ms ease;
+    }
+
+    .source-fieldset {
+      min-width: 0;
+      margin: 0;
+      padding: 0;
+      border: 0;
+    }
+
+    .source-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .source-card {
+      position: relative;
+      width: 100%;
+      min-height: 76px;
+      padding: 13px 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-align: left;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: var(--surface);
+      transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
+    }
+
+    .source-card.is-selected {
+      border-color: var(--accent);
+      background: linear-gradient(100deg, rgba(85, 230, 208, 0.12), var(--surface));
+    }
+
+    .source-icon {
+      width: 38px;
+      height: 38px;
+      flex: 0 0 38px;
+      display: grid;
+      place-items: center;
+      border-radius: 13px;
+      background: rgba(85, 230, 208, 0.09);
+      color: var(--accent);
+    }
+
+    .source-icon svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    .source-copy {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .source-name {
+      display: block;
+      font-size: 14px;
+      line-height: 20px;
+      font-weight: 620;
+    }
+
+    .source-description {
+      display: block;
+      margin-top: 2px;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 16px;
+    }
+
+    .source-balance {
+      flex: 0 0 auto;
+      text-align: right;
+    }
+
+    .source-balance-label {
+      display: block;
+      color: var(--muted);
+      font-size: 10px;
+      line-height: 15px;
+    }
+
+    .source-balance-value {
+      display: block;
+      margin-top: 2px;
+      font-size: 14px;
+      line-height: 20px;
+      font-weight: 620;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .radio-mark {
+      width: 18px;
+      height: 18px;
+      flex: 0 0 18px;
+      border: 1px solid #527180;
+      border-radius: 50%;
+    }
+
+    .source-card.is-selected .radio-mark {
+      border: 5px solid var(--accent);
+      background: var(--accent-ink);
+    }
+
+    .source-hint {
+      margin: 10px 2px 0;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 17px;
+    }
+
+    .action-dock {
+      margin-top: auto;
+      padding-top: 20px;
+    }
+
+    .primary-button,
+    .secondary-button {
+      width: 100%;
+      min-height: 56px;
+      padding: 14px 18px;
+      border-radius: 18px;
+      font-size: 15px;
+      line-height: 22px;
+      font-weight: 680;
+      text-align: center;
+      transition: transform 160ms ease, background 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+    }
+
+    .primary-button {
+      border: 1px solid var(--accent);
+      background: var(--accent);
+      color: var(--accent-ink);
+      box-shadow: 0 10px 24px rgba(85, 230, 208, 0.14);
+    }
+
+    .primary-button:disabled {
+      border-color: #31505A;
+      background: #31505A;
+      color: #89A0A8;
+      box-shadow: none;
+      cursor: not-allowed;
+    }
+
+    .secondary-button {
+      border: 1px solid var(--line);
+      background: var(--surface);
+      color: var(--text);
+    }
+
+    .fine-print {
+      margin: 10px 0 0;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 17px;
+      text-align: center;
+    }
+
+    .confirm-intro {
+      margin: 8px 0 20px;
+      text-align: center;
+    }
+
+    .confirm-kicker {
+      margin: 0 0 8px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 18px;
+      letter-spacing: 0.08em;
+    }
+
+    .confirm-amount {
+      margin: 0;
+      font-size: 44px;
+      line-height: 54px;
+      font-weight: 720;
+      letter-spacing: -0.035em;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .confirm-recipient-line {
+      margin: 7px 0 0;
+      color: var(--accent-soft);
+      font-size: 14px;
+      line-height: 21px;
+    }
+
+    .review-card,
+    .receipt-card {
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      background: linear-gradient(150deg, rgba(18, 52, 71, 0.92), rgba(13, 38, 54, 0.96));
+      box-shadow: 0 16px 40px rgba(0, 7, 14, 0.2);
+    }
+
+    .review-card {
+      padding: 6px 18px;
+    }
+
+    .detail-list {
+      margin: 0;
+    }
+
+    .detail-row {
+      min-height: 48px;
+      padding: 12px 0;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 18px;
+      font-size: 13px;
+      line-height: 21px;
+    }
+
+    .detail-row + .detail-row {
+      border-top: 1px solid rgba(141, 170, 181, 0.13);
+    }
+
+    .detail-row dt {
+      flex: 0 0 auto;
+      color: var(--muted);
+    }
+
+    .detail-row dd {
+      min-width: 0;
+      margin: 0;
+      text-align: right;
+      font-weight: 550;
+      overflow-wrap: anywhere;
+    }
+
+    .detail-row dd.amount-detail {
+      color: var(--accent-soft);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .assurance-note {
+      margin: 16px 2px 0;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 18px;
+    }
+
+    .assurance-note svg {
+      width: 16px;
+      height: 16px;
+      flex: 0 0 16px;
+      margin-top: 1px;
+      color: var(--accent);
+    }
+
+    .insufficient-panel {
+      margin-top: 16px;
+      padding: 16px;
+      border: 1px solid var(--danger-line);
+      border-radius: 20px;
+      background: var(--danger-surface);
+    }
+
+    .insufficient-heading {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--danger);
+    }
+
+    .insufficient-heading svg {
+      width: 20px;
+      height: 20px;
+      flex: 0 0 20px;
+    }
+
+    .insufficient-title {
+      margin: 0;
+      font-size: 15px;
+      line-height: 22px;
+      font-weight: 680;
+    }
+
+    .insufficient-copy {
+      margin: 8px 0 0;
+      color: #F5D8D3;
+      font-size: 12px;
+      line-height: 20px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .insufficient-actions {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .insufficient-button {
+      min-height: 40px;
+      padding: 8px 10px;
+      border: 1px solid rgba(255, 180, 164, 0.38);
+      border-radius: 13px;
+      background: rgba(255, 180, 164, 0.08);
+      color: #FFE3DD;
+      font-size: 12px;
+      line-height: 18px;
+      font-weight: 620;
+    }
+
+    .success-content {
+      padding-top: 4px;
+    }
+
+    .success-symbol {
+      position: relative;
+      width: 116px;
+      height: 116px;
+      margin: 0 auto 10px;
+      display: grid;
+      place-items: center;
+    }
+
+    .success-rings {
+      position: absolute;
+      inset: 0;
+      width: 116px;
+      height: 116px;
+      color: var(--accent);
+      opacity: 0.38;
+      animation: success-ripple 700ms ease-out both;
+    }
+
+    .success-check {
+      position: relative;
+      width: 58px;
+      height: 58px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      background: var(--accent);
+      color: var(--accent-ink);
+      box-shadow: 0 0 34px rgba(85, 230, 208, 0.24);
+      animation: success-arrive 380ms ease-out both;
+    }
+
+    .success-check svg {
+      width: 30px;
+      height: 30px;
+    }
+
+    .success-heading {
+      margin: 0;
+      text-align: center;
+      font-size: 22px;
+      line-height: 30px;
+      font-weight: 680;
+    }
+
+    .success-amount {
+      margin: 5px 0 0;
+      color: var(--accent-soft);
+      text-align: center;
+      font-size: 34px;
+      line-height: 44px;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .success-caption {
+      margin: 2px 0 20px;
+      color: var(--muted);
+      text-align: center;
+      font-size: 12px;
+      line-height: 19px;
+    }
+
+    .receipt-card {
+      position: relative;
+      padding: 8px 18px;
+    }
+
+    .receipt-card::before,
+    .receipt-card::after {
+      content: "";
+      position: absolute;
+      top: 52%;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--app);
+    }
+
+    .receipt-card::before { left: -10px; }
+    .receipt-card::after { right: -10px; }
+
+    .receipt-id {
+      font-size: 12px;
+      letter-spacing: 0.025em;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .receipt-time {
+      font-size: 12px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .receipt-balance {
+      color: var(--accent-soft);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .success-actions {
+      margin-top: auto;
+      padding-top: 20px;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    @keyframes ripple-breathe {
+      0%, 100% { transform: scale(0.97); opacity: 0.38; }
+      50% { transform: scale(1.03); opacity: 0.58; }
+    }
+
+    @keyframes success-ripple {
+      from { transform: scale(0.72); opacity: 0.7; }
+      to { transform: scale(1); opacity: 0.38; }
+    }
+
+    @keyframes success-arrive {
+      from { transform: scale(0.76); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    @media (hover: hover) {
+      .back-button:hover,
+      .recipient-banner:hover,
+      .recipient-card:hover,
+      .source-card:hover {
+        border-color: var(--accent);
+        background-color: var(--surface-raised);
+      }
+
+      .recipient-card:hover,
+      .source-card:hover,
+      .primary-button:not(:disabled):hover {
+        transform: translateY(-1px);
+      }
+
+      .primary-button:not(:disabled):hover {
+        background: var(--accent-soft);
+        box-shadow: 0 12px 28px rgba(85, 230, 208, 0.2);
+      }
+
+      .secondary-button:hover,
+      .quick-amount:hover,
+      .insufficient-button:hover {
+        border-color: var(--accent);
+      }
+    }
+
+    .back-button:active,
+    .recipient-card:active,
+    .source-card:active,
+    .primary-button:not(:disabled):active,
+    .secondary-button:active {
+      transform: translateY(1px);
+    }
+
+    @media (min-width: 600px) {
+      body {
+        min-height: 100vh;
+        padding: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background:
+          radial-gradient(circle at 50% 42%, rgba(38, 100, 116, 0.2), transparent 42%),
+          var(--page);
+      }
+
+      .phone {
+        width: 406px;
+        max-width: 406px;
+        height: 860px;
+        min-height: 0;
+        flex: 0 0 auto;
+        border: 8px solid #16354A;
+        border-radius: 44px;
+        box-shadow: 0 32px 90px rgba(0, 0, 0, 0.46), 0 0 0 1px rgba(154, 247, 232, 0.09);
+      }
+
+      .app {
+        height: 100%;
+        min-height: 0;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        scrollbar-width: thin;
+        scrollbar-color: var(--line) transparent;
+      }
+
+      .screen {
+        min-height: 100%;
+      }
+    }
+
+    @media (max-width: 350px) {
+      .topbar,
+      .content {
+        padding-left: 16px;
+        padding-right: 16px;
+      }
+
+      .balance-card {
+        padding-left: 20px;
+        padding-right: 20px;
+      }
+
+      .home-sources {
+        left: 20px;
+        right: 20px;
+      }
+
+      .total-balance {
+        font-size: 38px;
+      }
+
+      .recipient-card {
+        padding: 11px;
+        gap: 8px;
+      }
+
+      .avatar {
+        width: 38px;
+        height: 38px;
+        flex-basis: 38px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+
+      .ripple-visual,
+      .success-rings,
+      .success-check {
+        animation: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="phone">
+    <main class="app" id="app">
+      <section class="screen" id="homeScreen" aria-labelledby="homeTitle">
+        <header class="topbar">
+          <div class="brand">
+            <span class="brand-mark" aria-hidden="true"></span>
+            <h1 class="brand-name" id="homeTitle" tabindex="-1">涟漪钱包</h1>
+          </div>
+          <span class="security-pill">安全演示</span>
+        </header>
+
+        <div class="content">
+          <section class="balance-card" aria-label="账户余额">
+            <svg class="ripple-visual" viewBox="0 0 320 320" fill="none" aria-hidden="true">
+              <circle cx="160" cy="160" r="44" stroke="currentColor" stroke-width="1.4"/>
+              <circle cx="160" cy="160" r="78" stroke="currentColor" stroke-width="1.2"/>
+              <circle cx="160" cy="160" r="112" stroke="currentColor" stroke-width="1"/>
+              <circle cx="160" cy="160" r="146" stroke="currentColor" stroke-width="0.8"/>
+              <circle cx="160" cy="160" r="5" fill="currentColor"/>
+              <circle cx="91" cy="96" r="3" fill="currentColor"/>
+            </svg>
+            <p class="eyebrow">总可用余额</p>
+            <p class="total-balance" id="homeTotal"><span class="currency">¥</span>10,680.00</p>
+            <p class="balance-caption">两股水流，汇成一份安心</p>
+            <div class="home-sources">
+              <div class="home-source">
+                <span class="home-source-label">零钱</span>
+                <strong class="home-source-value" id="homeCashBalance">¥2,680.00</strong>
+              </div>
+              <div class="home-source">
+                <span class="home-source-label">青澜演示卡</span>
+                <strong class="home-source-value" id="homeCardBalance">¥8,000.00</strong>
+              </div>
+            </div>
+          </section>
+
+          <section aria-labelledby="recipientHeading">
+            <div class="section-heading-row">
+              <h2 class="section-title" id="recipientHeading" tabindex="-1">选择收款人</h2>
+              <p class="section-meta">4 位常用联系人</p>
+            </div>
+            <div class="recipient-grid">
+              <button class="recipient-card" id="recipient-lin" type="button" data-recipient="lin" aria-pressed="false" aria-label="向林澜转账，手机尾号 0826">
+                <span class="avatar avatar-a" aria-hidden="true">林</span>
+                <span class="recipient-copy">
+                  <span class="recipient-name">林澜</span>
+                  <span class="recipient-account">尾号 0826</span>
+                </span>
+                <span class="recipient-check" aria-hidden="true">
+                  <svg viewBox="0 0 16 16" fill="none"><path d="m3.5 8 3 3 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </span>
+              </button>
+              <button class="recipient-card" id="recipient-zhou" type="button" data-recipient="zhou" aria-pressed="false" aria-label="向周远转账，手机尾号 1932">
+                <span class="avatar avatar-b" aria-hidden="true">周</span>
+                <span class="recipient-copy">
+                  <span class="recipient-name">周远</span>
+                  <span class="recipient-account">尾号 1932</span>
+                </span>
+                <span class="recipient-check" aria-hidden="true">
+                  <svg viewBox="0 0 16 16" fill="none"><path d="m3.5 8 3 3 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </span>
+              </button>
+              <button class="recipient-card" id="recipient-chen" type="button" data-recipient="chen" aria-pressed="false" aria-label="向陈予转账，手机尾号 6715">
+                <span class="avatar avatar-c" aria-hidden="true">陈</span>
+                <span class="recipient-copy">
+                  <span class="recipient-name">陈予</span>
+                  <span class="recipient-account">尾号 6715</span>
+                </span>
+                <span class="recipient-check" aria-hidden="true">
+                  <svg viewBox="0 0 16 16" fill="none"><path d="m3.5 8 3 3 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </span>
+              </button>
+              <button class="recipient-card" id="recipient-su" type="button" data-recipient="su" aria-pressed="false" aria-label="向苏禾转账，手机尾号 3489">
+                <span class="avatar avatar-d" aria-hidden="true">苏</span>
+                <span class="recipient-copy">
+                  <span class="recipient-name">苏禾</span>
+                  <span class="recipient-account">尾号 3489</span>
+                </span>
+                <span class="recipient-check" aria-hidden="true">
+                  <svg viewBox="0 0 16 16" fill="none"><path d="m3.5 8 3 3 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </span>
+              </button>
+            </div>
+          </section>
+
+          <div class="home-note">
+            <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M10 2.5 16 5v4.3c0 3.8-2.4 6.7-6 8.2-3.6-1.5-6-4.4-6-8.2V5l6-2.5Z" stroke="currentColor" stroke-width="1.4"/><path d="m7.3 9.8 1.8 1.8 3.7-3.8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span>演示资金仅用于体验 · 转账信息在本页核对</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="screen" id="amountScreen" aria-labelledby="amountTitle" hidden>
+        <header class="topbar">
+          <div class="topbar-leading">
+            <button class="back-button" id="amountBackButton" type="button" aria-label="返回选择收款人">
+              <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="m12 4-6 6 6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+            <h1 class="screen-heading" id="amountTitle" tabindex="-1">输入金额</h1>
+          </div>
+          <span class="step-pill">02 / 03</span>
+        </header>
+
+        <form class="content" id="amountForm" novalidate>
+          <button class="recipient-banner" id="changeRecipientButton" type="button" aria-label="更换收款人">
+            <span class="avatar avatar-a" id="amountAvatar" aria-hidden="true">林</span>
+            <span class="banner-copy">
+              <span class="banner-name" id="amountRecipient">转给 林澜</span>
+              <span class="banner-account" id="amountRecipientAccount">手机尾号 0826</span>
+            </span>
+            <span class="change-label">更换<svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="m6 3 5 5-5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          </button>
+
+          <div class="amount-panel">
+            <label class="field-label" for="amountInput">转账金额</label>
+            <div class="amount-input-wrap" id="amountInputWrap">
+              <span class="amount-currency" aria-hidden="true">¥</span>
+              <input class="amount-input" id="amountInput" name="transfer-amount" type="text" inputmode="decimal" autocomplete="off" maxlength="24" placeholder="0.00" aria-describedby="amountMessage" aria-invalid="false">
+            </div>
+            <p class="field-message" id="amountMessage">最多两位小数，金额需大于 0 元</p>
+            <div class="quick-amounts" aria-label="快捷金额">
+              <button class="quick-amount" type="button" data-quick-amount="50">¥50</button>
+              <button class="quick-amount" type="button" data-quick-amount="100">¥100</button>
+              <button class="quick-amount" type="button" data-quick-amount="500">¥500</button>
+            </div>
+          </div>
+
+          <fieldset class="source-fieldset">
+            <legend class="source-title">资金来源</legend>
+            <div class="source-list" role="radiogroup" aria-label="选择资金来源">
+              <button class="source-card is-selected" id="source-cash" type="button" data-source="cash" role="radio" aria-checked="true">
+                <span class="source-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none"><path d="M4 7.5h14a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-12a2 2 0 0 1 2-2h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M15 12h5v4h-5a2 2 0 0 1 0-4Z" stroke="currentColor" stroke-width="1.5"/></svg>
+                </span>
+                <span class="source-copy">
+                  <span class="source-name">零钱</span>
+                  <span class="source-description">钱包余额 · 实时到账</span>
+                </span>
+                <span class="source-balance">
+                  <span class="source-balance-label">可用余额</span>
+                  <strong class="source-balance-value" id="sourceCashBalance">¥2,680.00</strong>
+                </span>
+                <span class="radio-mark" aria-hidden="true"></span>
+              </button>
+              <button class="source-card" id="source-card" type="button" data-source="card" role="radio" aria-checked="false">
+                <span class="source-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="14" rx="3" stroke="currentColor" stroke-width="1.5"/><path d="M3 10h18M7 15h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                </span>
+                <span class="source-copy">
+                  <span class="source-name">青澜演示卡</span>
+                  <span class="source-description">尾号 2026 · 实时到账</span>
+                </span>
+                <span class="source-balance">
+                  <span class="source-balance-label">可用余额</span>
+                  <strong class="source-balance-value" id="sourceCardBalance">¥8,000.00</strong>
+                </span>
+                <span class="radio-mark" aria-hidden="true"></span>
+              </button>
+            </div>
+            <p class="source-hint" id="sourceHint">将从零钱扣款，当前可用 ¥2,680.00</p>
+          </fieldset>
+
+          <div class="action-dock">
+            <button class="primary-button" id="reviewButton" type="submit" disabled>核对转账</button>
+            <p class="fine-print">下一步核对收款人、来源与金额</p>
+          </div>
+        </form>
+      </section>
+
+      <section class="screen" id="confirmScreen" aria-labelledby="confirmTitle" hidden>
+        <header class="topbar">
+          <div class="topbar-leading">
+            <button class="back-button" id="confirmBackButton" type="button" aria-label="返回修改金额">
+              <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="m12 4-6 6 6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+            <h1 class="screen-heading" id="confirmTitle" tabindex="-1">确认转账</h1>
+          </div>
+          <span class="step-pill">03 / 03</span>
+        </header>
+
+        <div class="content">
+          <div class="confirm-intro">
+            <p class="confirm-kicker">请确认这笔转账</p>
+            <p class="confirm-amount" id="confirmAmount">¥0.00</p>
+            <p class="confirm-recipient-line" id="confirmRecipientLine">转给 —</p>
+          </div>
+
+          <section class="review-card" aria-label="转账信息核对">
+            <dl class="detail-list">
+              <div class="detail-row">
+                <dt>收款人</dt>
+                <dd id="confirmRecipient">—</dd>
+              </div>
+              <div class="detail-row">
+                <dt>资金来源</dt>
+                <dd id="confirmSource">—</dd>
+              </div>
+              <div class="detail-row">
+                <dt>当前可用</dt>
+                <dd id="confirmAvailable">—</dd>
+              </div>
+              <div class="detail-row">
+                <dt>转账金额</dt>
+                <dd class="amount-detail" id="confirmAmountDetail">—</dd>
+              </div>
+              <div class="detail-row">
+                <dt>服务费</dt>
+                <dd>¥0.00</dd>
+              </div>
+            </dl>
+          </section>
+
+          <p class="assurance-note">
+            <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M10 2.5 16 5v4.3c0 3.8-2.4 6.7-6 8.2-3.6-1.5-6-4.4-6-8.2V5l6-2.5Z" stroke="currentColor" stroke-width="1.4"/><path d="M10 7v4M10 14v.2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            <span>资金将实时转给对方，请核对收款信息。余额不足时不会扣款，也不会生成凭证。</span>
+          </p>
+
+          <section class="insufficient-panel" id="insufficientPanel" role="alert" aria-labelledby="insufficientTitle" tabindex="-1" hidden>
+            <div class="insufficient-heading">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6"/><path d="M12 7v6M12 16.5v.1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+              <h2 class="insufficient-title" id="insufficientTitle">余额不足，未扣款</h2>
+            </div>
+            <p class="insufficient-copy" id="insufficientCopy"></p>
+            <div class="insufficient-actions">
+              <button class="insufficient-button" id="editAmountButton" type="button">降低金额</button>
+              <button class="insufficient-button" id="changeSourceButton" type="button">切换资金来源</button>
+            </div>
+          </section>
+
+          <div class="action-dock">
+            <button class="primary-button" id="confirmButton" type="button">确认转账</button>
+            <p class="fine-print">点击确认即完成本页演示转账</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="screen" id="successScreen" aria-labelledby="successTitle" hidden>
+        <header class="topbar">
+          <div class="brand">
+            <span class="brand-mark" aria-hidden="true"></span>
+            <h1 class="brand-name">转账凭证</h1>
+          </div>
+          <span class="security-pill">已完成</span>
+        </header>
+
+        <div class="content success-content">
+          <div class="success-symbol" aria-hidden="true">
+            <svg class="success-rings" viewBox="0 0 116 116" fill="none">
+              <circle cx="58" cy="58" r="54" stroke="currentColor" stroke-width="1"/>
+              <circle cx="58" cy="58" r="43" stroke="currentColor" stroke-width="1"/>
+              <circle cx="58" cy="58" r="34" stroke="currentColor" stroke-width="1"/>
+            </svg>
+            <span class="success-check">
+              <svg viewBox="0 0 30 30" fill="none"><path d="m7 15 5 5L23 9" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </span>
+          </div>
+          <h2 class="success-heading" id="successTitle" tabindex="-1">转账成功</h2>
+          <p class="success-amount" id="receiptHeroAmount">¥0.00</p>
+          <p class="success-caption" id="receiptHeroRecipient">已转给 —</p>
+
+          <section class="receipt-card" aria-label="成功交易凭证">
+            <dl class="detail-list">
+              <div class="detail-row">
+                <dt>交易编号</dt>
+                <dd class="receipt-id" id="receiptTransactionId">—</dd>
+              </div>
+              <div class="detail-row">
+                <dt>转账时间</dt>
+                <dd class="receipt-time" id="receiptTime">—</dd>
+              </div>
+              <div class="detail-row">
+                <dt>收款人</dt>
+                <dd id="receiptRecipient">—</dd>
+              </div>
+              <div class="detail-row">
+                <dt>资金来源</dt>
+                <dd id="receiptSource">—</dd>
+              </div>
+              <div class="detail-row">
+                <dt>转账金额</dt>
+                <dd class="amount-detail" id="receiptAmount">—</dd>
+              </div>
+              <div class="detail-row">
+                <dt id="receiptBalanceLabel">转账后余额</dt>
+                <dd class="receipt-balance" id="receiptBalance">—</dd>
+              </div>
+            </dl>
+          </section>
+
+          <div class="success-actions">
+            <button class="primary-button" id="againButton" type="button">再转一笔</button>
+            <p class="fine-print">返回后余额保留，可继续选择收款人</p>
+          </div>
+        </div>
+      </section>
+
+      <p class="sr-only" id="liveStatus" role="status" aria-live="polite" aria-atomic="true"></p>
+    </main>
+  </div>
+
+  <script>
+    (() => {
+      "use strict";
+
+      const recipients = [
+        { id: "lin", name: "林澜", initial: "林", account: "手机尾号 0826", avatarClass: "avatar-a" },
+        { id: "zhou", name: "周远", initial: "周", account: "手机尾号 1932", avatarClass: "avatar-b" },
+        { id: "chen", name: "陈予", initial: "陈", account: "手机尾号 6715", avatarClass: "avatar-c" },
+        { id: "su", name: "苏禾", initial: "苏", account: "手机尾号 3489", avatarClass: "avatar-d" }
+      ];
+
+      const sources = [
+        { id: "cash", name: "零钱", balanceLabel: "转账后零钱余额" },
+        { id: "card", name: "青澜演示卡", balanceLabel: "转账后演示卡余额" }
+      ];
+
+      const state = {
+        view: "home",
+        recipientId: null,
+        sourceId: "cash",
+        amountText: "",
+        amountCents: 0,
+        balances: { cash: 268000, card: 800000 },
+        transactionSequence: 0,
+        insufficient: null,
+        receipt: null
+      };
+
+      const byId = (id) => document.getElementById(id);
+      const screens = {
+        home: byId("homeScreen"),
+        amount: byId("amountScreen"),
+        confirm: byId("confirmScreen"),
+        success: byId("successScreen")
+      };
+      const amountInput = byId("amountInput");
+      const amountMessage = byId("amountMessage");
+      const amountInputWrap = byId("amountInputWrap");
+      const reviewButton = byId("reviewButton");
+      const liveStatus = byId("liveStatus");
+
+      function formatMoney(cents) {
+        const absolute = Math.abs(cents);
+        const whole = Math.floor(absolute / 100).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        const fraction = String(absolute % 100).padStart(2, "0");
+        return `${cents < 0 ? "-" : ""}¥${whole}.${fraction}`;
+      }
+
+      function parseAmount(text) {
+        const value = text.trim();
+        if (!value) {
+          return { ok: false, message: "请输入转账金额。" };
+        }
+        if (!/^\d+(?:\.\d{1,2})?$/.test(value)) {
+          if (/^\d+\.\d{3,}$/.test(value)) {
+            return { ok: false, message: "金额最多支持两位小数，请减少小数位。" };
+          }
+          return { ok: false, message: "请输入有效金额，不支持负数或非数字。" };
+        }
+        const parts = value.split(".");
+        const whole = parts[0].replace(/^0+(?=\d)/, "");
+        const fraction = (parts[1] || "").padEnd(2, "0");
+        if (whole.length > 12) {
+          return { ok: false, message: "单笔金额过大，请输入较小金额。" };
+        }
+        const cents = Number(whole) * 100 + Number(fraction || "0");
+        if (!Number.isSafeInteger(cents)) {
+          return { ok: false, message: "金额超出可处理范围，请重新输入。" };
+        }
+        if (cents <= 0) {
+          return { ok: false, message: "转账金额必须大于 0 元。" };
+        }
+        return { ok: true, cents };
+      }
+
+      function getRecipient() {
+        return recipients.find((recipient) => recipient.id === state.recipientId);
+      }
+
+      function getSource() {
+        return sources.find((source) => source.id === state.sourceId);
+      }
+
+      function announce(message) {
+        liveStatus.textContent = "";
+        liveStatus.textContent = message;
+      }
+
+      function renderBalances() {
+        const total = state.balances.cash + state.balances.card;
+        byId("homeTotal").innerHTML = `<span class="currency">¥</span>${formatMoney(total).slice(1)}`;
+        byId("homeCashBalance").textContent = formatMoney(state.balances.cash);
+        byId("homeCardBalance").textContent = formatMoney(state.balances.card);
+        byId("sourceCashBalance").textContent = formatMoney(state.balances.cash);
+        byId("sourceCardBalance").textContent = formatMoney(state.balances.card);
+      }
+
+      function renderRecipients() {
+        document.querySelectorAll("[data-recipient]").forEach((button) => {
+          const selected = button.dataset.recipient === state.recipientId;
+          button.classList.toggle("is-selected", selected);
+          button.setAttribute("aria-pressed", String(selected));
+        });
+      }
+
+      function renderSources() {
+        document.querySelectorAll("[data-source]").forEach((button) => {
+          const selected = button.dataset.source === state.sourceId;
+          button.classList.toggle("is-selected", selected);
+          button.setAttribute("aria-checked", String(selected));
+        });
+        const source = getSource();
+        byId("sourceHint").textContent = `将从${source.name}扣款，当前可用 ${formatMoney(state.balances[source.id])}`;
+      }
+
+      function renderAmount() {
+        const recipient = getRecipient();
+        if (!recipient) {
+          return;
+        }
+        byId("amountRecipient").textContent = `转给 ${recipient.name}`;
+        byId("amountRecipientAccount").textContent = recipient.account;
+        byId("amountAvatar").textContent = recipient.initial;
+        byId("amountAvatar").className = `avatar ${recipient.avatarClass}`;
+        if (amountInput.value !== state.amountText) {
+          amountInput.value = state.amountText;
+        }
+        reviewButton.disabled = !state.amountText.trim();
+        renderSources();
+      }
+
+      function renderConfirm() {
+        const recipient = getRecipient();
+        const source = getSource();
+        const available = state.balances[source.id];
+        byId("confirmAmount").textContent = formatMoney(state.amountCents);
+        byId("confirmRecipientLine").textContent = `转给 ${recipient.name}`;
+        byId("confirmRecipient").textContent = `${recipient.name}（${recipient.account}）`;
+        byId("confirmSource").textContent = source.name;
+        byId("confirmAvailable").textContent = formatMoney(available);
+        byId("confirmAmountDetail").textContent = formatMoney(state.amountCents);
+        byId("confirmButton").textContent = `确认转账 ${formatMoney(state.amountCents)}`;
+
+        const insufficient = state.insufficient;
+        byId("insufficientPanel").hidden = !insufficient;
+        if (insufficient) {
+          byId("insufficientCopy").textContent = `${source.name}当前可用 ${formatMoney(insufficient.available)}，本次需转 ${formatMoney(insufficient.amount)}，还差 ${formatMoney(insufficient.shortfall)}。收款人、金额和来源已保留，请调整后重试。`;
+        }
+      }
+
+      function renderReceipt() {
+        const receipt = state.receipt;
+        if (!receipt) {
+          return;
+        }
+        byId("receiptHeroAmount").textContent = formatMoney(receipt.amount);
+        byId("receiptHeroRecipient").textContent = `已转给 ${receipt.recipientName} · 实时到账`;
+        byId("receiptTransactionId").textContent = receipt.transactionId;
+        byId("receiptTime").textContent = receipt.time;
+        byId("receiptRecipient").textContent = `${receipt.recipientName}（${receipt.recipientAccount}）`;
+        byId("receiptSource").textContent = receipt.sourceName;
+        byId("receiptAmount").textContent = formatMoney(receipt.amount);
+        byId("receiptBalanceLabel").textContent = receipt.balanceLabel;
+        byId("receiptBalance").textContent = formatMoney(receipt.balanceAfter);
+      }
+
+      function setView(view, focusId) {
+        state.view = view;
+        Object.entries(screens).forEach(([name, screen]) => {
+          screen.hidden = name !== view;
+        });
+        renderBalances();
+        renderRecipients();
+        if (view === "amount") {
+          renderAmount();
+        } else if (view === "confirm") {
+          renderConfirm();
+        } else if (view === "success") {
+          renderReceipt();
+        }
+        byId("app").scrollTop = 0;
+        window.scrollTo(0, 0);
+        if (focusId) {
+          byId(focusId).focus({ preventScroll: true });
+        }
+      }
+
+      function showAmountError(message) {
+        amountMessage.textContent = message;
+        amountMessage.classList.add("is-error");
+        amountInputWrap.classList.add("has-error");
+        amountInput.setAttribute("aria-invalid", "true");
+        announce(message);
+      }
+
+      function clearAmountError() {
+        amountMessage.textContent = "最多两位小数，金额需大于 0 元";
+        amountMessage.classList.remove("is-error");
+        amountInputWrap.classList.remove("has-error");
+        amountInput.setAttribute("aria-invalid", "false");
+      }
+
+      function twoDigits(value) {
+        return String(value).padStart(2, "0");
+      }
+
+      function createTransactionId(date, sequence) {
+        const day = `${date.getFullYear()}${twoDigits(date.getMonth() + 1)}${twoDigits(date.getDate())}`;
+        return `RW${day}-${String(sequence).padStart(4, "0")}`;
+      }
+
+      function formatTime(date) {
+        return `${date.getFullYear()}年${twoDigits(date.getMonth() + 1)}月${twoDigits(date.getDate())}日 ${twoDigits(date.getHours())}:${twoDigits(date.getMinutes())}:${twoDigits(date.getSeconds())}`;
+      }
+
+      document.querySelectorAll("[data-recipient]").forEach((button) => {
+        button.addEventListener("click", () => {
+          state.recipientId = button.dataset.recipient;
+          state.insufficient = null;
+          state.receipt = null;
+          clearAmountError();
+          setView("amount", "amountTitle");
+          announce(`已选择${getRecipient().name}，请输入转账金额。`);
+        });
+      });
+
+      document.querySelectorAll("[data-source]").forEach((button) => {
+        button.addEventListener("click", () => {
+          state.sourceId = button.dataset.source;
+          state.insufficient = null;
+          clearAmountError();
+          renderSources();
+          announce(`已选择${getSource().name}，可用余额${formatMoney(state.balances[state.sourceId])}，转账金额已保留。`);
+        });
+      });
+
+      document.querySelectorAll("[data-quick-amount]").forEach((button) => {
+        button.addEventListener("click", () => {
+          state.amountText = button.dataset.quickAmount;
+          state.amountCents = 0;
+          state.insufficient = null;
+          amountInput.value = state.amountText;
+          reviewButton.disabled = false;
+          clearAmountError();
+          amountInput.focus();
+          announce(`已填入${formatMoney(Number(state.amountText) * 100)}。`);
+        });
+      });
+
+      amountInput.addEventListener("input", () => {
+        state.amountText = amountInput.value;
+        state.amountCents = 0;
+        state.insufficient = null;
+        reviewButton.disabled = !state.amountText.trim();
+        clearAmountError();
+      });
+
+      byId("amountForm").addEventListener("submit", (event) => {
+        event.preventDefault();
+        const result = parseAmount(state.amountText);
+        if (!result.ok) {
+          showAmountError(result.message);
+          amountInput.focus();
+          return;
+        }
+        state.amountCents = result.cents;
+        state.insufficient = null;
+        clearAmountError();
+        setView("confirm", "confirmTitle");
+        announce(`请核对向${getRecipient().name}转账${formatMoney(state.amountCents)}的信息。`);
+      });
+
+      byId("amountBackButton").addEventListener("click", () => {
+        setView("home", state.recipientId ? `recipient-${state.recipientId}` : "recipientHeading");
+        announce("已返回收款人列表，金额与资金来源已保留。 ");
+      });
+
+      byId("changeRecipientButton").addEventListener("click", () => {
+        setView("home", `recipient-${state.recipientId}`);
+        announce("请选择新的收款人，已输入的金额与资金来源会保留。 ");
+      });
+
+      byId("confirmBackButton").addEventListener("click", () => {
+        setView("amount", "amountTitle");
+        announce("已返回金额输入，可修改金额或资金来源。 ");
+      });
+
+      byId("editAmountButton").addEventListener("click", () => {
+        setView("amount", "amountInput");
+        amountInput.select();
+        announce(`金额${formatMoney(state.amountCents)}已保留，请降低金额后重新核对。`);
+      });
+
+      byId("changeSourceButton").addEventListener("click", () => {
+        setView("amount", `source-${state.sourceId}`);
+        announce(`金额${formatMoney(state.amountCents)}已保留，请选择余额足够的资金来源。`);
+      });
+
+      byId("confirmButton").addEventListener("click", () => {
+        const recipient = getRecipient();
+        const source = getSource();
+        const amount = state.amountCents;
+        const available = state.balances[source.id];
+
+        if (amount > available) {
+          state.insufficient = {
+            amount,
+            available,
+            shortfall: amount - available
+          };
+          state.receipt = null;
+          renderConfirm();
+          byId("insufficientPanel").focus({ preventScroll: true });
+          announce(`余额不足，未扣款。${source.name}可用${formatMoney(available)}，还差${formatMoney(amount - available)}。`);
+          return;
+        }
+
+        state.balances[source.id] = available - amount;
+        state.transactionSequence += 1;
+        const now = new Date();
+        state.receipt = {
+          transactionId: createTransactionId(now, state.transactionSequence),
+          time: formatTime(now),
+          amount,
+          recipientName: recipient.name,
+          recipientAccount: recipient.account,
+          sourceName: source.name,
+          balanceLabel: source.balanceLabel,
+          balanceAfter: state.balances[source.id]
+        };
+        state.insufficient = null;
+        setView("success", "successTitle");
+        announce(`转账成功，已向${recipient.name}转账${formatMoney(amount)}，${source.name}剩余${formatMoney(state.balances[source.id])}。`);
+      });
+
+      byId("againButton").addEventListener("click", () => {
+        state.recipientId = null;
+        state.sourceId = "cash";
+        state.amountText = "";
+        state.amountCents = 0;
+        state.insufficient = null;
+        state.receipt = null;
+        amountInput.value = "";
+        reviewButton.disabled = true;
+        clearAmountError();
+        setView("home", "recipientHeading");
+        announce(`已返回钱包，总可用余额${formatMoney(state.balances.cash + state.balances.card)}，可再转一笔。`);
+      });
+
+      renderBalances();
+      renderRecipients();
+      renderSources();
+    })();
+  </script>
+</body>
+</html>

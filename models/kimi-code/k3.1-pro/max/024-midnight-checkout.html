@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>夜航票务｜确认《星河旅馆》订单</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --night: #171327;
+      --night-deep: #100D1D;
+      --panel: #241B3D;
+      --panel-raised: #2E234A;
+      --mint: #A7F3D0;
+      --text: #F7F3FF;
+      --muted: #B3A8CA;
+      --line: #493B65;
+      --lavender: #C9B8F2;
+      --danger: #FF9C9C;
+      --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    body {
+      margin: 0;
+      min-width: 320px;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 86% 4%, rgba(201, 184, 242, .12), transparent 28%),
+        radial-gradient(circle at 4% 58%, rgba(167, 243, 208, .055), transparent 25%),
+        var(--night);
+      font-family: var(--sans);
+      -webkit-font-smoothing: antialiased;
+    }
+    button, input { font: inherit; }
+    button:focus-visible, input:focus-visible, summary:focus-visible { outline: 2px solid var(--mint); outline-offset: 3px; }
+    .site { width: min(1120px, calc(100% - 56px)); margin: 0 auto; }
+    .topbar { min-height: 70px; display: flex; align-items: center; justify-content: space-between; gap: 28px; border-bottom: 1px solid var(--line); }
+    .brand { display: flex; align-items: center; gap: 10px; }
+    .brand svg { width: 33px; height: 33px; color: var(--mint); }
+    .brand strong { display: block; font-size: 17px; letter-spacing: .12em; }
+    .brand small { display: block; margin-top: 2px; color: var(--muted); font-size: 8px; letter-spacing: .17em; }
+    .steps { display: flex; align-items: center; gap: 0; margin: 0; padding: 0; list-style: none; }
+    .step { display: flex; align-items: center; gap: 7px; color: var(--muted); font-size: 10px; white-space: nowrap; }
+    .step:not(:last-child)::after { content: ""; width: 38px; height: 1px; margin: 0 12px; background: var(--line); }
+    .step-number { width: 22px; height: 22px; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 50%; font-family: Georgia, serif; font-size: 11px; }
+    .step.done { color: var(--lavender); }
+    .step.done .step-number { color: var(--night); background: var(--lavender); border-color: var(--lavender); }
+    .step.current { color: var(--mint); }
+    .step.current .step-number { color: var(--night); background: var(--mint); border-color: var(--mint); box-shadow: 0 0 0 4px rgba(167, 243, 208, .09); }
+    .page-heading { display: flex; align-items: end; justify-content: space-between; gap: 24px; padding: 26px 0 22px; }
+    .eyebrow { margin: 0 0 8px; color: var(--mint); font-size: 9px; font-weight: 700; letter-spacing: .19em; }
+    .page-heading h1 { margin: 0; font-size: 34px; line-height: 1.25; font-weight: 750; letter-spacing: -.025em; }
+    .order-reference { margin: 0 0 4px; color: var(--muted); font-size: 10px; text-align: right; line-height: 1.7; }
+    .order-reference strong { display: block; color: var(--text); font-family: Georgia, serif; font-size: 12px; font-weight: 400; letter-spacing: .07em; }
+    .checkout-grid { display: grid; grid-template-columns: minmax(0, 1fr) 390px; gap: 24px; align-items: start; padding-bottom: 32px; }
+    .payment-panel, .success-panel { padding: 24px; border: 1px solid var(--line); border-radius: 20px; background: var(--panel); box-shadow: 0 18px 45px rgba(16, 13, 29, .25); }
+    .panel-heading { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+    .section-number { width: 29px; height: 29px; display: grid; place-items: center; flex: 0 0 auto; border: 1px solid var(--line); border-radius: 8px; color: var(--lavender); font-family: Georgia, serif; font-size: 12px; }
+    .panel-heading h2 { margin: 0; font-size: 15px; line-height: 1.4; }
+    .panel-heading p { margin: 3px 0 0; color: var(--muted); font-size: 10px; }
+    .field label { display: block; margin-bottom: 7px; color: var(--muted); font-size: 11px; }
+    .field input {
+      width: 100%;
+      height: 45px;
+      padding: 0 13px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      color: var(--text);
+      background: var(--night-deep);
+      font-size: 14px;
+      letter-spacing: .05em;
+      transition: border-color 160ms ease, box-shadow 160ms ease;
+    }
+    .field input:hover { border-color: var(--lavender); }
+    .field input:focus { border-color: var(--mint); box-shadow: 0 0 0 3px rgba(167, 243, 208, .08); }
+    .field input[aria-invalid="true"] { border-color: var(--danger); }
+    .field-hint, .field-error { display: block; margin-top: 6px; font-size: 10px; }
+    .field-hint { color: var(--muted); }
+    .field-error { color: var(--danger); }
+    .section-separator { height: 1px; margin: 20px 0; background: var(--line); }
+    .payment-methods { display: grid; gap: 8px; margin: 0; padding: 0; border: 0; }
+    .payment-method { position: relative; display: block; cursor: pointer; }
+    .payment-method input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+    .method-content { min-height: 59px; display: grid; grid-template-columns: 38px minmax(0, 1fr) 20px; gap: 12px; align-items: center; padding: 9px 13px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel-raised); transition: border-color 160ms ease, background-color 160ms ease; }
+    .payment-method:hover .method-content { border-color: var(--lavender); }
+    .payment-method input:checked + .method-content { border-color: var(--mint); background: rgba(167, 243, 208, .075); }
+    .payment-method input:focus-visible + .method-content { outline: 2px solid var(--mint); outline-offset: 3px; }
+    .payment-method input:disabled + .method-content { opacity: .5; cursor: wait; }
+    .pay-icon { width: 36px; height: 36px; display: grid; place-items: center; border-radius: 10px; color: var(--night); background: var(--mint); font-size: 14px; font-weight: 850; }
+    .pay-icon.wechat { background: var(--lavender); }
+    .pay-icon.union { color: var(--text); background: var(--line); font-size: 10px; }
+    .method-copy strong { display: block; font-size: 12px; }
+    .method-copy small { display: block; margin-top: 3px; color: var(--muted); font-size: 9px; }
+    .radio-mark { width: 18px; height: 18px; display: grid; place-items: center; border: 1px solid var(--muted); border-radius: 50%; }
+    .radio-mark::after { content: ""; width: 8px; height: 8px; border-radius: 50%; background: transparent; }
+    .payment-method input:checked + .method-content .radio-mark { border-color: var(--mint); }
+    .payment-method input:checked + .method-content .radio-mark::after { background: var(--mint); }
+    .payment-note { min-height: 16px; margin: 10px 0 0; color: var(--muted); font-size: 10px; }
+    .policy { margin-top: 17px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+    .policy summary { padding: 12px 0; color: var(--lavender); font-size: 11px; cursor: pointer; }
+    .policy p { margin: 0 0 13px; color: var(--muted); font-size: 10px; line-height: 1.8; }
+    .consent { display: flex; align-items: flex-start; gap: 9px; margin-top: 16px; color: var(--muted); font-size: 11px; line-height: 1.5; cursor: pointer; }
+    .consent input { width: 16px; height: 16px; flex: 0 0 auto; margin: 0; accent-color: var(--mint); }
+    .consent-error { margin-left: 25px; }
+    .pay-button {
+      width: 100%;
+      min-height: 54px;
+      display: grid;
+      grid-template-columns: 1fr auto 20px;
+      gap: 12px;
+      align-items: center;
+      margin-top: 17px;
+      padding: 12px 17px;
+      border: 0;
+      border-radius: 12px;
+      color: var(--night);
+      background: var(--mint);
+      box-shadow: 0 8px 22px rgba(167, 243, 208, .12);
+      font-size: 13px;
+      font-weight: 750;
+      text-align: left;
+      cursor: pointer;
+      transition: transform 160ms ease, box-shadow 160ms ease, opacity 160ms ease;
+    }
+    .pay-button:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(167, 243, 208, .2); }
+    .pay-button:disabled { opacity: .64; cursor: wait; }
+    .pay-button strong { font-family: Georgia, serif; font-size: 23px; font-weight: 600; }
+    .pay-button svg { width: 19px; height: 19px; }
+    .button-note { margin: 9px 0 0; color: var(--muted); font-size: 9px; text-align: center; }
+    .order-card { overflow: hidden; border: 1px solid var(--line); border-radius: 20px; background: var(--panel); box-shadow: 0 18px 45px rgba(16, 13, 29, .25); }
+    .order-top { display: flex; align-items: center; justify-content: space-between; padding: 17px 22px; }
+    .order-top > span:first-child { font-size: 12px; font-weight: 700; letter-spacing: .08em; }
+    .status-badge { padding: 4px 9px; border: 1px solid var(--lavender); border-radius: 999px; color: var(--lavender); font-size: 9px; }
+    .status-badge.paid { color: var(--mint); border-color: var(--mint); background: rgba(167, 243, 208, .08); }
+    .event-art { height: 116px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); background: var(--night-deep); }
+    .event-art svg { display: block; width: 100%; height: 100%; }
+    .event-content { padding: 18px 22px 0; }
+    .event-kicker { margin: 0 0 5px; color: var(--mint); font-size: 9px; letter-spacing: .12em; }
+    .event-content h2 { margin: 0; font-size: 29px; line-height: 1.25; letter-spacing: .03em; }
+    .event-en { display: block; margin-top: 4px; color: var(--muted); font-family: Georgia, serif; font-size: 9px; letter-spacing: .15em; }
+    .event-details { display: grid; gap: 9px; margin: 16px 0 0; }
+    .event-details div { display: grid; grid-template-columns: 42px 1fr; gap: 12px; font-size: 10px; line-height: 1.5; }
+    .event-details dt { color: var(--muted); }
+    .event-details dd { margin: 0; color: var(--text); }
+    .ticket-divider { position: relative; margin: 18px -22px 0; border-top: 1px dashed var(--line); }
+    .ticket-divider::before, .ticket-divider::after { content: ""; position: absolute; top: -10px; width: 18px; height: 18px; border-radius: 50%; background: var(--night); }
+    .ticket-divider::before { left: -10px; }
+    .ticket-divider::after { right: -10px; }
+    .price-lines { display: grid; gap: 8px; padding: 16px 0; border-bottom: 1px solid var(--line); }
+    .price-lines div { display: flex; justify-content: space-between; gap: 16px; color: var(--muted); font-size: 10px; }
+    .price-lines div span:last-child { color: var(--text); font-family: Georgia, serif; font-size: 12px; }
+    .price-lines .discount span:last-child { color: var(--mint); }
+    .total { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 14px 0 18px; }
+    .total > span { font-size: 12px; font-weight: 700; }
+    .total > span small { display: block; margin-top: 4px; color: var(--muted); font-size: 9px; font-weight: 400; }
+    .total strong { color: var(--mint); font-family: Georgia, serif; font-size: 48px; line-height: 1; font-weight: 500; letter-spacing: -.04em; }
+    .total strong small { margin-right: 3px; font-size: 20px; vertical-align: 8px; }
+    .order-footer { padding: 11px 22px; border-top: 1px solid var(--line); color: var(--muted); background: var(--night-deep); font-size: 9px; text-align: center; letter-spacing: .06em; }
+    .success-panel { min-height: 530px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+    .success-panel:focus { outline: none; }
+    .success-mark { width: 70px; height: 70px; margin-bottom: 20px; color: var(--mint); }
+    .success-panel h2 { margin: 0; font-size: 30px; line-height: 1.3; }
+    .success-copy { max-width: 410px; margin: 12px 0 0; color: var(--muted); font-size: 12px; line-height: 1.8; }
+    .success-receipt { width: 100%; display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 26px 0 20px; padding: 18px 0; border-top: 1px dashed var(--line); border-bottom: 1px dashed var(--line); }
+    .success-receipt span { display: block; color: var(--muted); font-size: 9px; }
+    .success-receipt strong { display: block; margin-top: 7px; color: var(--text); font-size: 12px; }
+    .success-receipt .receipt-amount { color: var(--mint); font-family: Georgia, serif; font-size: 20px; }
+    .ghost-button { min-height: 39px; padding: 9px 16px; border: 1px solid var(--line); border-radius: 10px; color: var(--text); background: transparent; font-size: 11px; cursor: pointer; }
+    .ghost-button:hover:not(:disabled) { color: var(--night); background: var(--mint); border-color: var(--mint); }
+    .ghost-button:disabled { opacity: .55; cursor: wait; }
+    .copy-order-feedback { min-height: 16px; margin: 10px 0 0; color: var(--mint); font-size: 10px; }
+    .copy-order-feedback.error { color: var(--danger); }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+    @media (max-width: 900px) {
+      .site { width: calc(100% - 40px); }
+      .checkout-grid { grid-template-columns: 1fr; }
+      .order-card { order: -1; }
+      .event-details { grid-template-columns: 1fr 1fr; }
+      .topbar { flex-wrap: wrap; padding: 14px 0; }
+    }
+    @media (max-width: 620px) {
+      .page-heading { align-items: flex-start; flex-direction: column; gap: 12px; }
+      .order-reference { text-align: left; }
+      .step:not(:last-child)::after { width: 18px; margin: 0 8px; }
+      .step { font-size: 9px; }
+      .payment-panel, .success-panel { padding: 20px; }
+      .event-details { grid-template-columns: 1fr; }
+      .success-receipt { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 430px) {
+      .site { width: calc(100% - 28px); }
+      .step .step-label { display: none; }
+      .step:not(:last-child)::after { width: 40px; }
+      .page-heading h1 { font-size: 29px; }
+      .method-content { grid-template-columns: 36px minmax(0, 1fr) 18px; gap: 9px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="site">
+    <header class="topbar">
+      <div class="brand">
+        <svg viewBox="0 0 34 34" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M25 24A12 12 0 0 1 12 5a12 12 0 1 0 13 19z"/><path d="M24 6v5m-2.5-2.5h5M7 26h20" stroke-linecap="round"/></svg>
+        <span><strong>夜航票务</strong><small>AFTERDARK TICKETS</small></span>
+      </div>
+      <ol class="steps" aria-label="结账进度">
+        <li class="step done" id="step-show"><span class="step-number">1</span><span class="step-label">选择场次</span></li>
+        <li class="step current" id="step-payment" aria-current="step"><span class="step-number">2</span><span class="step-label">确认支付</span></li>
+        <li class="step" id="step-ticket"><span class="step-number">3</span><span class="step-label">获取电子票</span></li>
+      </ol>
+    </header>
+
+    <main>
+      <div class="page-heading">
+        <div><p class="eyebrow">ONE LAST LOOK BEFORE TONIGHT</p><h1>为今夜，做好最后确认。</h1></div>
+        <p class="order-reference">订单编号<strong>YH202511080027</strong></p>
+      </div>
+
+      <div class="checkout-grid">
+        <div>
+          <form class="payment-panel" id="payment-form" novalidate>
+            <section aria-labelledby="ticket-contact-title">
+              <div class="panel-heading"><span class="section-number">01</span><div><h2 id="ticket-contact-title">接收电子票</h2><p>用于接收入场凭证与场次变动提醒</p></div></div>
+              <div class="field">
+                <label for="ticket-phone">手机号</label>
+                <input id="ticket-phone" name="phone" type="tel" inputmode="numeric" autocomplete="tel" value="13800138000" aria-describedby="phone-hint phone-error" aria-invalid="false">
+                <span class="field-hint" id="phone-hint">电子票将同步到该手机号，仅用于本次订单通知。</span>
+                <span class="field-error" id="phone-error" hidden>请输入有效的 11 位中国大陆手机号。</span>
+              </div>
+            </section>
+
+            <div class="section-separator"></div>
+
+            <section aria-labelledby="payment-title">
+              <div class="panel-heading"><span class="section-number">02</span><div><h2 id="payment-title">选择支付方式</h2><p>本次支付由你选择的平台完成</p></div></div>
+              <fieldset class="payment-methods">
+                <legend class="sr-only">支付方式</legend>
+                <label class="payment-method">
+                  <input type="radio" name="payment" value="alipay" checked>
+                  <span class="method-content"><span class="pay-icon">支</span><span class="method-copy"><strong>支付宝</strong><small>使用余额、银行卡或花呗付款</small></span><span class="radio-mark" aria-hidden="true"></span></span>
+                </label>
+                <label class="payment-method">
+                  <input type="radio" name="payment" value="wechat">
+                  <span class="method-content"><span class="pay-icon wechat">微</span><span class="method-copy"><strong>微信支付</strong><small>使用微信余额或已绑定银行卡</small></span><span class="radio-mark" aria-hidden="true"></span></span>
+                </label>
+                <label class="payment-method">
+                  <input type="radio" name="payment" value="union">
+                  <span class="method-content"><span class="pay-icon union">银联</span><span class="method-copy"><strong>云闪付</strong><small>使用银联卡完成本次付款</small></span><span class="radio-mark" aria-hidden="true"></span></span>
+                </label>
+              </fieldset>
+              <p class="payment-note" id="payment-note">确认后，本次订单将使用支付宝付款。</p>
+            </section>
+
+            <details class="policy">
+              <summary>退改规则与购票须知</summary>
+              <p>本场演出支持开场前 48 小时申请退票，每张收取票款 5% 的手续费；开场前 48 小时内不可退改。电子票仅限当场次使用，入场时请保持二维码完整清晰。</p>
+            </details>
+            <label class="consent" for="ticket-terms"><input id="ticket-terms" type="checkbox" checked><span>我已阅读并同意本场演出的退改规则</span></label>
+            <span class="field-error consent-error" id="terms-error" hidden>请先阅读并同意退改规则。</span>
+
+            <button class="pay-button" id="pay-button" type="submit">
+              <span id="pay-button-label">确认支付</span><strong>¥532</strong>
+              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M3 10h13m-5-5l5 5-5 5"/></svg>
+            </button>
+            <p class="button-note">座位已为你锁定，请在本次保留时间内完成确认。</p>
+          </form>
+
+          <section class="success-panel" id="success-panel" hidden tabindex="-1" aria-labelledby="success-title">
+            <svg class="success-mark" viewBox="0 0 72 72" fill="none" aria-hidden="true"><circle cx="36" cy="36" r="32" stroke="currentColor" stroke-width="1.5"/><circle cx="36" cy="36" r="25" fill="#A7F3D0" opacity=".1"/><path d="M23 36l9 9 18-20" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <p class="eyebrow">PAYMENT CONFIRMED</p>
+            <h2 id="success-title">支付成功，夜晚见。</h2>
+            <p class="success-copy">2 张电子票已放入你的夜航票夹，并会发送到订单手机号。开场前 2 小时即可出示二维码入场。</p>
+            <div class="success-receipt">
+              <div><span>实付金额</span><strong class="receipt-amount">¥532</strong></div>
+              <div><span>支付方式</span><strong id="success-payment">支付宝</strong></div>
+              <div><span>接收手机号</span><strong id="success-phone">138****8000</strong></div>
+            </div>
+            <button class="ghost-button" id="copy-order" type="button">复制订单号</button>
+            <p class="copy-order-feedback" id="copy-order-feedback" role="status"></p>
+          </section>
+        </div>
+
+        <aside class="order-card" aria-labelledby="event-title">
+          <div class="order-top"><span>订单摘要</span><span class="status-badge" id="order-status">待支付</span></div>
+          <div class="event-art">
+            <svg viewBox="0 0 390 116" role="img" aria-label="紫色夜空、薄荷绿月亮与星河旅馆的窗口">
+              <rect width="390" height="116" fill="#100D1D"/>
+              <g fill="#C9B8F2" opacity=".7"><circle cx="27" cy="24" r="1"/><circle cx="66" cy="14" r="1.3"/><circle cx="109" cy="30" r=".8"/><circle cx="158" cy="16" r="1"/><circle cx="201" cy="28" r="1.4"/><circle cx="243" cy="12" r=".8"/><circle cx="286" cy="30" r="1"/><circle cx="350" cy="18" r="1.2"/></g>
+              <path d="M327 39a21 21 0 0 1-21-25 22 22 0 1 0 21 25z" fill="#A7F3D0"/>
+              <path d="M45 108V51l58-28 59 28v57M18 108V70l36-17 36 17v38m164 0V61l47-22 47 22v47" fill="#241B3D" stroke="#493B65" stroke-width="1.2"/>
+              <path d="M80 108V63h47v45M63 55h80M38 74h11m-11 14h11m224-16h14m-14 16h14m42-29h14m-14 17h14m-14 17h14" stroke="#C9B8F2" stroke-width="1.2"/>
+              <g fill="#A7F3D0"><rect x="88" y="72" width="10" height="12"/><rect x="110" y="72" width="10" height="12"/><rect x="88" y="94" width="10" height="14"/><rect x="110" y="94" width="10" height="14"/><rect x="282" y="69" width="10" height="12"/><rect x="312" y="69" width="10" height="12"/></g>
+              <path d="M0 108h390" stroke="#A7F3D0" stroke-width="1.5"/>
+              <path d="M181 86h28v22h-28z" fill="#2E234A" stroke="#493B65"/><path d="M187 92h16m-16 6h16" stroke="#C9B8F2"/>
+            </svg>
+          </div>
+          <div class="event-content">
+            <p class="event-kicker">环境式音乐剧 · 2 张票</p>
+            <h2 id="event-title">星河旅馆</h2>
+            <span class="event-en">THE MIDNIGHT HOTEL</span>
+            <dl class="event-details">
+              <div><dt>场次</dt><dd>2025 年 11 月 08 日 周六 19:30</dd></div>
+              <div><dt>场馆</dt><dd>上海 · 西岸穹顶艺术中心 A 厅</dd></div>
+              <div><dt>座位</dt><dd>C 区 7 排 09、10 座（连座）</dd></div>
+              <div><dt>取票</dt><dd>电子票 · 开场前 2 小时启用</dd></div>
+            </dl>
+            <div class="ticket-divider" aria-hidden="true"></div>
+            <div class="price-lines">
+              <div><span>票款　¥280 × 2</span><span>¥560</span></div>
+              <div><span>票务服务费</span><span>¥12</span></div>
+              <div class="discount"><span>夜猫优惠</span><span>−¥40</span></div>
+            </div>
+            <div class="total"><span>应付总额<small>已含服务费与优惠</small></span><strong aria-label="应付总额 532 元"><small>¥</small>532</strong></div>
+          </div>
+          <div class="order-footer">下单时间 2025.10.28 22:16 · 夜航票务担保交易</div>
+        </aside>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const form = document.getElementById("payment-form");
+    const phone = document.getElementById("ticket-phone");
+    const terms = document.getElementById("ticket-terms");
+    const phoneError = document.getElementById("phone-error");
+    const termsError = document.getElementById("terms-error");
+    const payButton = document.getElementById("pay-button");
+    const payButtonLabel = document.getElementById("pay-button-label");
+    const paymentRadios = Array.from(document.querySelectorAll('input[name="payment"]'));
+    const paymentNames = { alipay: "支付宝", wechat: "微信支付", union: "云闪付" };
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    let selectedPayment = "alipay";
+
+    paymentRadios.forEach(radio => radio.addEventListener("change", () => {
+      if (!radio.checked) return;
+      selectedPayment = radio.value;
+      document.getElementById("payment-note").textContent = `确认后，本次订单将使用${paymentNames[selectedPayment]}付款。`;
+    }));
+
+    phone.addEventListener("input", () => {
+      phone.setAttribute("aria-invalid", "false");
+      phoneError.hidden = true;
+    });
+    terms.addEventListener("change", () => { termsError.hidden = terms.checked; });
+
+    form.addEventListener("submit", event => {
+      event.preventDefault();
+      const digits = phone.value.replace(/\D/g, "");
+      const phoneValid = /^1\d{10}$/.test(digits);
+      phone.setAttribute("aria-invalid", String(!phoneValid));
+      phoneError.hidden = phoneValid;
+      termsError.hidden = terms.checked;
+      if (!phoneValid || !terms.checked) {
+        if (!phoneValid) phone.focus();
+        else terms.focus();
+        return;
+      }
+
+      form.setAttribute("aria-busy", "true");
+      phone.disabled = true;
+      terms.disabled = true;
+      paymentRadios.forEach(radio => { radio.disabled = true; });
+      payButton.disabled = true;
+      payButtonLabel.textContent = "正在确认座位与支付…";
+
+      setTimeout(() => {
+        form.hidden = true;
+        form.setAttribute("aria-busy", "false");
+        document.getElementById("success-payment").textContent = paymentNames[selectedPayment];
+        document.getElementById("success-phone").textContent = `${digits.slice(0, 3)}****${digits.slice(-4)}`;
+        const status = document.getElementById("order-status");
+        status.textContent = "已支付";
+        status.classList.add("paid");
+        const paymentStep = document.getElementById("step-payment");
+        paymentStep.classList.remove("current");
+        paymentStep.classList.add("done");
+        paymentStep.removeAttribute("aria-current");
+        const ticketStep = document.getElementById("step-ticket");
+        ticketStep.classList.add("current");
+        ticketStep.setAttribute("aria-current", "step");
+        const success = document.getElementById("success-panel");
+        success.hidden = false;
+        success.focus();
+      }, reducedMotion.matches ? 0 : 900);
+    });
+
+    const copyOrderButton = document.getElementById("copy-order");
+    const copyOrderFeedback = document.getElementById("copy-order-feedback");
+    copyOrderButton.addEventListener("click", async () => {
+      const orderNumber = "YH202511080027";
+      let copied = false;
+      copyOrderButton.disabled = true;
+      try {
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(orderNumber);
+          copied = true;
+        }
+      } catch (error) {
+        copied = false;
+      }
+      if (!copied) {
+        const field = document.createElement("textarea");
+        field.value = orderNumber;
+        field.style.position = "fixed";
+        field.style.opacity = "0";
+        document.body.appendChild(field);
+        field.select();
+        try { copied = document.execCommand("copy"); } catch (error) { copied = false; }
+        field.remove();
+      }
+      copyOrderButton.disabled = false;
+      copyOrderButton.textContent = copied ? "订单号已复制" : "复制订单号";
+      copyOrderFeedback.textContent = copied ? "可用于查询订单与入场问题。" : "自动复制受限，请记下 YH202511080027。";
+      copyOrderFeedback.classList.toggle("error", !copied);
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,567 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#F4F0E6">
+  <title>街头小报 · 编辑发布</title>
+  <style>
+    :root {
+      --page: #E9E5DC;
+      --paper: #F4F0E6;
+      --ink: #111111;
+      --red: #E33B24;
+      --muted: #777267;
+      --line: #C9C2B4;
+      --white: #FFFFFF;
+      --disabled: #B7B0A3;
+    }
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    html, body { margin: 0; min-height: 100%; }
+    body {
+      color: var(--ink);
+      background: var(--page);
+      font-family: "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    button, textarea, input { font: inherit; }
+    button { color: inherit; cursor: pointer; }
+    button:disabled { cursor: not-allowed; }
+    button, textarea, input { -webkit-tap-highlight-color: transparent; }
+    button:focus-visible, textarea:focus-visible, input:focus-visible {
+      outline: 3px solid var(--red);
+      outline-offset: 3px;
+    }
+    .stage {
+      min-height: 100dvh;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+      background-image: radial-gradient(var(--line) .7px, transparent .7px);
+      background-size: 7px 7px;
+    }
+    .wall { display: none; }
+    .device {
+      width: 390px;
+      height: min(844px, calc(100dvh - 40px));
+      max-width: 100%;
+      background: var(--paper);
+      border: 3px solid var(--ink);
+      border-radius: 28px;
+      box-shadow: 10px 10px 0 var(--ink);
+      overflow: hidden;
+      position: relative;
+      z-index: 2;
+    }
+    .screen { height: 100%; display: flex; flex-direction: column; position: relative; isolation: isolate; }
+    .screen::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: 10;
+      pointer-events: none;
+      opacity: .12;
+      background-image: repeating-linear-gradient(93deg, transparent 0, transparent 3px, var(--line) 4px);
+      mix-blend-mode: multiply;
+    }
+    .statusbar {
+      height: 28px;
+      flex: 0 0 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 18px;
+      border-bottom: 1px solid var(--ink);
+      font: 700 11px/1 "SFMono-Regular", Consolas, monospace;
+      letter-spacing: .03em;
+    }
+    .status-icons { display: flex; align-items: center; gap: 6px; }
+    .appbar {
+      min-height: 58px;
+      flex: 0 0 58px;
+      display: grid;
+      grid-template-columns: 48px 1fr auto;
+      align-items: center;
+      gap: 10px;
+      padding: 0 15px;
+      border-bottom: 2px solid var(--ink);
+      background: var(--paper);
+    }
+    .brand-mark {
+      width: 42px;
+      height: 36px;
+      display: grid;
+      place-items: center;
+      background: var(--ink);
+      color: var(--paper);
+      font-size: 13px;
+      font-weight: 900;
+      letter-spacing: .12em;
+      transform: rotate(-2deg);
+    }
+    .brand-name { margin: 0; font-size: 17px; line-height: 1.15; font-weight: 900; letter-spacing: .12em; }
+    .brand-en { margin: 4px 0 0; font: 700 8px/1 Consolas, monospace; letter-spacing: .2em; }
+    .draft-button {
+      min-height: 40px;
+      padding: 0 2px 0 10px;
+      border: 0;
+      border-bottom: 2px solid var(--red);
+      background: transparent;
+      font-size: 13px;
+      font-weight: 800;
+    }
+    .draft-button:hover { color: var(--red); background: var(--white); }
+    .draft-button:active { transform: translateY(1px); }
+    .editor {
+      flex: 1 1 auto;
+      min-height: 0;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      padding: 17px 18px 26px;
+      scrollbar-width: thin;
+      scrollbar-color: var(--ink) var(--paper);
+    }
+    .issue-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 14px; }
+    .issue { display: flex; align-items: center; gap: 7px; font: 800 10px/1.2 Consolas, monospace; letter-spacing: .09em; }
+    .issue::before { content: ""; width: 18px; height: 7px; background: var(--red); }
+    .state-badge {
+      padding: 4px 7px;
+      border: 1px solid var(--ink);
+      background: var(--white);
+      font-size: 10px;
+      font-weight: 700;
+      line-height: 1;
+    }
+    .state-badge.saved { background: var(--ink); color: var(--paper); }
+    .field-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin-bottom: 6px; }
+    .field-head label, .field-head legend { font-size: 12px; font-weight: 900; letter-spacing: .12em; }
+    .counter { color: var(--muted); font: 11px/1.2 Consolas, monospace; }
+    .title-input {
+      display: block;
+      width: 100%;
+      min-height: 72px;
+      resize: none;
+      overflow: hidden;
+      padding: 0 0 9px;
+      color: var(--ink);
+      background: transparent;
+      border: 0;
+      border-bottom: 3px solid var(--ink);
+      border-radius: 0;
+      font-size: 27px;
+      line-height: 1.25;
+      font-weight: 950;
+      letter-spacing: -.035em;
+    }
+    .title-input::placeholder, .body-input::placeholder { color: var(--muted); opacity: .7; }
+    .title-input:hover { border-bottom-color: var(--red); }
+    .byline { margin: 8px 0 13px; color: var(--muted); font-size: 11px; font-weight: 600; }
+    .byline strong { color: var(--ink); }
+    .zine-figure {
+      margin: 0 3px 18px 0;
+      border: 2px solid var(--ink);
+      background: var(--white);
+      box-shadow: 5px 5px 0 var(--ink);
+      position: relative;
+    }
+    .zine-figure svg { display: block; width: 100%; height: 126px; }
+    .tape {
+      position: absolute;
+      right: 18px;
+      top: -8px;
+      width: 61px;
+      height: 16px;
+      background: var(--red);
+      opacity: .9;
+      transform: rotate(3deg);
+    }
+    .zine-figure figcaption {
+      display: flex;
+      gap: 8px;
+      padding: 7px 9px;
+      border-top: 2px solid var(--ink);
+      background: var(--paper);
+      font-size: 10px;
+      line-height: 1.4;
+      font-weight: 700;
+    }
+    .zine-figure figcaption span { color: var(--red); font-family: Consolas, monospace; }
+    .body-input {
+      display: block;
+      width: 100%;
+      min-height: 184px;
+      resize: vertical;
+      padding: 11px 12px;
+      border: 1.5px solid var(--ink);
+      border-radius: 0;
+      color: var(--ink);
+      background: rgba(255, 255, 255, .52);
+      font-size: 14px;
+      line-height: 1.8;
+    }
+    .body-input:hover { background: var(--white); }
+    .body-input[aria-invalid="true"], .title-input[aria-invalid="true"] { border-color: var(--red); background: rgba(227, 59, 36, .06); }
+    .error-text { margin: 7px 0 0; color: var(--red); font-size: 12px; line-height: 1.5; font-weight: 800; }
+    .column-picker { margin: 17px 0 0; padding: 0; border: 0; }
+    .column-picker legend { padding: 0; margin-bottom: 8px; }
+    .column-options { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; }
+    .column-options label { position: relative; }
+    .column-options input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+    .column-options span {
+      min-height: 36px;
+      display: grid;
+      place-items: center;
+      border: 1.5px solid var(--ink);
+      background: var(--paper);
+      font-size: 12px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+    .column-options span:hover { background: var(--white); }
+    .column-options input:checked + span { background: var(--ink); color: var(--paper); box-shadow: 3px 3px 0 var(--red); }
+    .column-options input:focus-visible + span { outline: 3px solid var(--red); outline-offset: 3px; }
+    .publish-dock {
+      flex: 0 0 auto;
+      padding: 10px 16px 14px;
+      border-top: 2px solid var(--ink);
+      background: var(--paper);
+      position: relative;
+      z-index: 3;
+    }
+    .save-state { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 9px; font-size: 10px; line-height: 1.3; }
+    .save-state span:first-child { display: flex; align-items: center; gap: 6px; color: var(--muted); }
+    .save-dot { width: 6px; height: 6px; background: var(--red); border-radius: 50%; }
+    .save-state .mono { font-family: Consolas, monospace; color: var(--ink); }
+    .publish-button {
+      width: 100%;
+      min-height: 48px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 16px;
+      border: 2px solid var(--ink);
+      border-radius: 0;
+      background: var(--red);
+      color: var(--white);
+      box-shadow: 4px 4px 0 var(--ink);
+      font-size: 15px;
+      font-weight: 900;
+      letter-spacing: .08em;
+    }
+    .publish-button:hover:not(:disabled) { background: var(--ink); }
+    .publish-button:active:not(:disabled) { transform: translate(3px, 3px); box-shadow: 1px 1px 0 var(--ink); }
+    .publish-button:disabled { background: var(--disabled); color: var(--ink); box-shadow: none; }
+    .publish-button svg { width: 22px; height: 22px; }
+    .sheet-backdrop {
+      position: absolute;
+      inset: 0;
+      z-index: 20;
+      display: flex;
+      align-items: flex-end;
+      background: rgba(17, 17, 17, .64);
+    }
+    .sheet {
+      width: 100%;
+      padding: 22px 20px 20px;
+      border-top: 3px solid var(--ink);
+      background: var(--paper);
+      animation: sheet-in .28s cubic-bezier(.2, .8, .2, 1);
+    }
+    .sheet-rule { width: 42px; height: 6px; background: var(--red); margin-bottom: 17px; }
+    .sheet-kicker { margin: 0 0 6px; color: var(--red); font: 800 10px/1 Consolas, monospace; letter-spacing: .18em; }
+    .sheet h2 { margin: 0; font-size: 29px; line-height: 1.2; letter-spacing: -.04em; }
+    .published-title { margin: 12px 0; padding: 11px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); font-size: 14px; line-height: 1.6; font-weight: 800; }
+    .receipt-line { display: flex; justify-content: space-between; margin: 0 0 18px; color: var(--muted); font: 11px/1.4 Consolas, monospace; }
+    .sheet-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+    .sheet-actions button { min-height: 44px; border: 2px solid var(--ink); border-radius: 0; font-size: 13px; font-weight: 900; }
+    .sheet-actions .secondary { background: var(--paper); }
+    .sheet-actions .secondary:hover { background: var(--white); }
+    .sheet-actions .primary { background: var(--red); color: var(--white); }
+    .sheet-actions .primary:hover { background: var(--ink); }
+    .toast {
+      position: absolute;
+      z-index: 30;
+      left: 18px;
+      right: 18px;
+      bottom: 91px;
+      padding: 11px 13px;
+      border: 2px solid var(--ink);
+      background: var(--ink);
+      color: var(--paper);
+      box-shadow: 4px 4px 0 var(--red);
+      font-size: 12px;
+      line-height: 1.5;
+      font-weight: 700;
+    }
+    @keyframes sheet-in { from { transform: translateY(100%); } to { transform: translateY(0); } }
+    @media (min-width: 900px) {
+      .wall { display: block; position: fixed; z-index: 1; pointer-events: none; }
+      .wall-left { left: max(42px, calc(50% - 490px)); top: 64px; }
+      .wall-title { margin: 0; color: var(--page); -webkit-text-stroke: 2px var(--ink); font-size: 112px; line-height: .88; font-weight: 950; letter-spacing: -.08em; }
+      .wall-caption { display: inline-block; margin: 20px 0 0; padding: 7px 10px; background: var(--red); color: var(--white); font: 800 11px/1 Consolas, monospace; letter-spacing: .12em; transform: rotate(-3deg); }
+      .wall-right { right: max(42px, calc(50% - 500px)); bottom: 72px; width: 230px; transform: rotate(2deg); }
+      .wall-note { margin: 0; padding: 15px; border: 2px solid var(--ink); background: var(--paper); box-shadow: 6px 6px 0 var(--ink); font-size: 14px; line-height: 1.65; font-weight: 900; }
+      .wall-note small { display: block; margin-top: 9px; color: var(--red); font: 700 10px/1.4 Consolas, monospace; letter-spacing: .08em; }
+    }
+    @media (max-width: 430px) {
+      .stage { padding: 0; display: block; }
+      .device { width: 100%; height: 100dvh; border: 0; border-radius: 0; box-shadow: none; }
+    }
+    @media (max-height: 680px) and (min-width: 431px) {
+      .stage { padding: 12px; }
+      .device { height: calc(100dvh - 24px); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <main class="stage">
+    <div class="wall wall-left" aria-hidden="true">
+      <p class="wall-title">街<br>头</p>
+      <p class="wall-caption">WRITE THE CITY</p>
+    </div>
+    <div class="wall wall-right" aria-hidden="true">
+      <p class="wall-note">记下大楼夹缝里，<br>那些不肯统一的生活。<small>巷口编辑部 · 自出版计划<br>NO. 036 / CITY PRESS</small></p>
+    </div>
+
+    <section class="device" aria-label="街头小报手机编辑器">
+      <div class="screen">
+        <div class="statusbar" aria-hidden="true">
+          <span>09:41</span>
+          <span class="status-icons">
+            <svg width="16" height="11" viewBox="0 0 16 11" fill="none"><path d="M1 10V7M5 10V5M9 10V3M13 10V1" stroke="currentColor" stroke-width="2"/></svg>
+            <svg width="20" height="11" viewBox="0 0 20 11"><rect x=".7" y=".7" width="16" height="9.6" rx="2" stroke="currentColor"/><path d="M18 4h2v3h-2" fill="currentColor"/><rect x="3" y="3" width="11" height="5" fill="currentColor"/></svg>
+          </span>
+        </div>
+        <header class="appbar">
+          <div class="brand-mark" aria-hidden="true">巷口</div>
+          <div>
+            <h1 class="brand-name">街头小报</h1>
+            <p class="brand-en">STREET ZINE</p>
+          </div>
+          <button class="draft-button" id="saveDraft" type="button">存草稿</button>
+        </header>
+
+        <div class="editor" id="editorScroll">
+          <div class="issue-row">
+            <span class="issue">VOL.08 / 城市观察</span>
+            <span class="state-badge" id="draftBadge">未保存</span>
+          </div>
+
+          <div class="field-head">
+            <label for="articleTitle">标题</label>
+            <span class="counter" id="titleCounter">0 / 32</span>
+          </div>
+          <textarea class="title-input" id="articleTitle" rows="2" maxlength="32" placeholder="给这条街一个标题">天台上种花的人，把风留住了</textarea>
+          <p class="byline">文 / <strong>阿黎</strong>　摄 / 北野　·　预计阅读 2 分钟</p>
+
+          <figure class="zine-figure">
+            <span class="tape" aria-hidden="true"></span>
+            <svg viewBox="0 0 350 126" role="img" aria-label="黑白复印风格的屋顶花园与城市剪影">
+              <defs>
+                <pattern id="zineDots" width="6" height="6" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r=".8" fill="#111111"/></pattern>
+                <pattern id="zineHatch" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(35)"><line x1="0" y1="0" x2="0" y2="7" stroke="#111111" stroke-width="2"/></pattern>
+              </defs>
+              <rect width="350" height="126" fill="#FFFFFF"/>
+              <circle cx="282" cy="26" r="18" fill="url(#zineDots)" stroke="#111111" stroke-width="1.5"/>
+              <path d="M0 77L25 77V43H54V68H78V30H104V65H130V49H162V79H194V37H223V68H248V51H277V72H312V40H337V70H350V126H0Z" fill="url(#zineHatch)" opacity=".34"/>
+              <path d="M0 88H350V126H0Z" fill="#111111"/>
+              <path d="M0 87L350 82" stroke="#111111" stroke-width="4"/>
+              <rect x="46" y="72" width="48" height="20" fill="#F4F0E6" stroke="#111111" stroke-width="2"/>
+              <path d="M54 72V62H87V72M60 62V53M80 62V49" stroke="#111111" stroke-width="2"/>
+              <path d="M58 56C47 48 52 39 61 47C61 35 73 36 69 49M80 51C73 40 84 33 87 45C95 37 101 48 87 54" fill="#FFFFFF" stroke="#111111" stroke-width="2"/>
+              <rect x="251" y="72" width="38" height="14" fill="#F4F0E6" stroke="#111111" stroke-width="2"/>
+              <path d="M257 72C252 57 261 53 269 64C265 47 279 45 279 61C290 51 295 66 282 72" fill="#FFFFFF" stroke="#111111" stroke-width="2"/>
+              <circle cx="176" cy="52" r="7" fill="#111111"/>
+              <path d="M174 60L168 83M179 61L187 82M171 67L157 72M181 67L197 58" stroke="#111111" stroke-width="5" stroke-linecap="square"/>
+              <path d="M163 50L187 47L180 40Z" fill="#E33B24" stroke="#111111" stroke-width="1.5"/>
+              <path d="M19 20H82M19 27H62M108 16H144" stroke="#111111" stroke-width="1" stroke-dasharray="3 3"/>
+              <text x="19" y="15" fill="#111111" font-size="8" font-family="monospace">ABOVE THE NOISE</text>
+            </svg>
+            <figcaption><span>图 01</span>城市上空，另有一种生活。</figcaption>
+          </figure>
+
+          <div class="field-head">
+            <label for="articleBody">正文</label>
+            <span class="counter" id="bodyCounter">0 / 600</span>
+          </div>
+          <textarea class="body-input" id="articleBody" rows="8" maxlength="600" placeholder="写下你看到的街角、遇到的人……">老城的天台总比地图多一层。周叔把泡沫箱排成三行，种下薄荷、番茄和几株不知名的花。晾衣绳穿过菜畦，衬衫在头顶轻轻晃。
+
+他说，楼上风大，种子却会自己找落脚的地方。傍晚六点，铁门再次打开，下班的人走上来，带走一小把香草，也带走片刻安静。</textarea>
+          <p class="error-text" id="formError" role="alert" hidden></p>
+
+          <fieldset class="column-picker">
+            <div class="field-head"><legend>刊登栏目</legend><span class="counter">单选</span></div>
+            <div class="column-options">
+              <label><input type="radio" name="column" value="街头"><span>街头</span></label>
+              <label><input type="radio" name="column" value="人物" checked><span>人物</span></label>
+              <label><input type="radio" name="column" value="散步"><span>散步</span></label>
+            </div>
+          </fieldset>
+        </div>
+
+        <footer class="publish-dock">
+          <div class="save-state" role="status" aria-live="polite">
+            <span><i class="save-dot" aria-hidden="true"></i><span id="saveMessage">有修改，尚未存草稿</span></span>
+            <span class="mono" id="characterTotal">0 字</span>
+          </div>
+          <button class="publish-button" id="publishButton" type="button">
+            <span id="publishLabel">发布本期街谈</span>
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 12H19M13 5L20 12L13 19" stroke="currentColor" stroke-width="2"/></svg>
+          </button>
+        </footer>
+
+        <div class="sheet-backdrop" id="publishedBackdrop" hidden>
+          <section class="sheet" role="dialog" aria-modal="true" aria-labelledby="publishedHeading">
+            <div class="sheet-rule" aria-hidden="true"></div>
+            <p class="sheet-kicker">PUBLISHED / NO. 026</p>
+            <h2 id="publishedHeading">这一期，上街了。</h2>
+            <p class="published-title" id="publishedTitle"></p>
+            <p class="receipt-line"><span>稿号 AL-008-026</span><span id="publishedColumn">人物栏目</span></p>
+            <div class="sheet-actions">
+              <button class="secondary" id="backToEdit" type="button">返回编辑</button>
+              <button class="primary" id="writeAnother" type="button">再写一篇</button>
+            </div>
+          </section>
+        </div>
+        <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    (() => {
+      const title = document.getElementById('articleTitle');
+      const body = document.getElementById('articleBody');
+      const titleCounter = document.getElementById('titleCounter');
+      const bodyCounter = document.getElementById('bodyCounter');
+      const characterTotal = document.getElementById('characterTotal');
+      const saveMessage = document.getElementById('saveMessage');
+      const draftBadge = document.getElementById('draftBadge');
+      const formError = document.getElementById('formError');
+      const publishButton = document.getElementById('publishButton');
+      const publishLabel = document.getElementById('publishLabel');
+      const backdrop = document.getElementById('publishedBackdrop');
+      const toast = document.getElementById('toast');
+      const saveDraft = document.getElementById('saveDraft');
+      let toastTimer;
+      let dirty = true;
+
+      function updateCounts() {
+        titleCounter.textContent = `${title.value.length} / 32`;
+        bodyCounter.textContent = `${body.value.length} / 600`;
+        characterTotal.textContent = `${body.value.replace(/\s/g, '').length} 字`;
+        title.style.height = 'auto';
+        title.style.height = `${Math.max(72, title.scrollHeight)}px`;
+      }
+
+      function markDirty() {
+        dirty = true;
+        draftBadge.textContent = '未保存';
+        draftBadge.classList.remove('saved');
+        saveMessage.textContent = '有修改，尚未存草稿';
+        formError.hidden = true;
+        title.removeAttribute('aria-invalid');
+        body.removeAttribute('aria-invalid');
+        updateCounts();
+      }
+
+      function showToast(message) {
+        clearTimeout(toastTimer);
+        toast.textContent = message;
+        toast.hidden = false;
+        toastTimer = setTimeout(() => { toast.hidden = true; }, 2600);
+      }
+
+      function validate(forPublish) {
+        const missingTitle = !title.value.trim();
+        const missingBody = forPublish && !body.value.trim();
+        title.setAttribute('aria-invalid', String(missingTitle));
+        body.setAttribute('aria-invalid', String(missingBody));
+        if (missingTitle || missingBody) {
+          formError.textContent = missingTitle && missingBody ? '标题和正文还空着，写点什么再发布。' : missingTitle ? '还差一个标题，再发布也不迟。' : '正文还空着，写完这段街谈再发布。';
+          formError.hidden = false;
+          (missingTitle ? title : body).focus();
+          return false;
+        }
+        formError.hidden = true;
+        return true;
+      }
+
+      function persistDraft() {
+        if (!title.value.trim() && !body.value.trim()) {
+          formError.textContent = '先写下标题或正文，才能存成草稿。';
+          formError.hidden = false;
+          title.focus();
+          return;
+        }
+        const now = new Date();
+        const stamp = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+        try {
+          localStorage.setItem('street-zine-draft', JSON.stringify({ title: title.value, body: body.value, column: document.querySelector('input[name="column"]:checked').value, stamp }));
+        } catch (error) { /* Storage may be unavailable for local files; in-page feedback still works. */ }
+        dirty = false;
+        draftBadge.textContent = '草稿已存';
+        draftBadge.classList.add('saved');
+        saveMessage.textContent = `草稿已保存 · ${stamp}`;
+        showToast('草稿已存好，灵感不会丢。');
+      }
+
+      title.addEventListener('input', markDirty);
+      body.addEventListener('input', markDirty);
+      document.querySelectorAll('input[name="column"]').forEach(input => input.addEventListener('change', () => {
+        markDirty();
+        showToast(`已归入「${input.value}」栏目`);
+      }));
+      saveDraft.addEventListener('click', persistDraft);
+
+      publishButton.addEventListener('click', () => {
+        if (!validate(true)) return;
+        publishButton.disabled = true;
+        saveDraft.disabled = true;
+        publishLabel.textContent = '正在送印…';
+        setTimeout(() => {
+          document.getElementById('publishedTitle').textContent = `《${title.value.trim()}》`;
+          document.getElementById('publishedColumn').textContent = `${document.querySelector('input[name="column"]:checked').value}栏目`;
+          backdrop.hidden = false;
+          publishButton.disabled = false;
+          saveDraft.disabled = false;
+          publishLabel.textContent = '再次发布';
+          draftBadge.textContent = '已发布';
+          draftBadge.classList.add('saved');
+          saveMessage.textContent = '发布成功 · 修改后可再次发布';
+          dirty = false;
+          document.getElementById('backToEdit').focus();
+        }, 650);
+      });
+
+      document.getElementById('backToEdit').addEventListener('click', () => {
+        backdrop.hidden = true;
+        publishButton.focus();
+      });
+      document.getElementById('writeAnother').addEventListener('click', () => {
+        title.value = '';
+        body.value = '';
+        backdrop.hidden = true;
+        publishLabel.textContent = '发布本期街谈';
+        document.querySelector('input[name="column"][value="人物"]').checked = true;
+        markDirty();
+        document.getElementById('editorScroll').scrollTop = 0;
+        title.focus();
+      });
+      backdrop.addEventListener('keydown', event => {
+        if (event.key === 'Escape') {
+          backdrop.hidden = true;
+          publishButton.focus();
+        }
+      });
+      updateCounts();
+    })();
+  </script>
+</body>
+</html>

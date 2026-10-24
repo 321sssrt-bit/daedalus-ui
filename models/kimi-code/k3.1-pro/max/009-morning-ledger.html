@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>晨簿 · 今日经营总览</title>
+  <style>
+    :root {
+      --canvas: #D8D2C7;
+      --paper: #F5F1E8;
+      --side: #E8E2D7;
+      --ink: #202724;
+      --muted: #74776E;
+      --line: #CFC8BA;
+      --teal: #177A70;
+      --teal-pale: #D4E4DC;
+      --accent: #B56243;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      min-width: 320px;
+      min-height: 100vh;
+      color: var(--ink);
+      background: var(--canvas);
+      font-family: "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    button, input { font: inherit; }
+    button, summary { cursor: pointer; }
+    a { color: inherit; }
+    button:focus-visible, a:focus-visible, summary:focus-visible, input:focus-visible {
+      outline: 2px solid var(--teal);
+      outline-offset: 4px;
+    }
+    .app { max-width: 1440px; min-height: 100vh; margin: 0 auto; display: grid; grid-template-columns: 190px minmax(0, 1fr) 310px; border-left: 1px solid var(--line); border-right: 1px solid var(--line); background: var(--paper); }
+    .sidebar { position: sticky; top: 0; height: 100vh; display: flex; flex-direction: column; padding: 26px 20px 22px; border-right: 1px solid var(--line); background: var(--side); }
+    .brand { display: flex; align-items: center; gap: 11px; }
+    .brand-seal { display: grid; place-items: center; width: 34px; height: 38px; border: 1px solid var(--ink); color: var(--paper); background: var(--ink); font-family: "Songti SC", "STSong", "SimSun", serif; font-size: 20px; }
+    .brand-name { font-family: "Songti SC", "STSong", "SimSun", serif; font-size: 21px; font-weight: 700; letter-spacing: .12em; }
+    .brand-sub { display: block; margin-top: 3px; color: var(--muted); font-size: 7px; letter-spacing: .18em; }
+    .store { margin-top: 30px; padding: 15px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+    .store-label { color: var(--muted); font-size: 9px; letter-spacing: .12em; }
+    .store-name { margin-top: 7px; font-size: 12px; font-weight: 700; }
+    .store-meta { margin-top: 4px; color: var(--muted); font-size: 10px; }
+    .sidebar-nav { display: grid; gap: 5px; margin-top: 26px; }
+    .sidebar-nav a { display: flex; align-items: center; gap: 12px; min-height: 42px; padding: 0 10px; border-left: 3px solid transparent; color: var(--muted); text-decoration: none; font-size: 11px; transition: color 140ms ease, background-color 140ms ease, border-color 140ms ease; }
+    .sidebar-nav a:hover { color: var(--ink); background: rgba(245, 241, 232, .65); }
+    .sidebar-nav a.active { border-left-color: var(--teal); color: var(--teal); background: var(--paper); font-weight: 700; }
+    .nav-index { width: 19px; color: var(--muted); font: 400 10px/1 Georgia, serif; }
+    .sidebar-nav a.active .nav-index { color: var(--teal); }
+    .nav-count { margin-left: auto; min-width: 20px; padding: 3px 5px; border-radius: 999px; color: var(--teal); background: var(--teal-pale); font: 700 9px/1 Arial, sans-serif; text-align: center; }
+    .sidebar-foot { margin-top: auto; padding-top: 18px; border-top: 1px solid var(--line); }
+    .open-state { display: flex; align-items: center; gap: 7px; color: var(--muted); font-size: 9px; }
+    .open-state::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+    .sidebar-user { display: flex; align-items: center; gap: 10px; margin-top: 17px; }
+    .user-avatar { display: grid; place-items: center; flex: 0 0 31px; width: 31px; height: 31px; border: 1px solid var(--ink); border-radius: 50%; font-family: "Songti SC", "STSong", "SimSun", serif; font-size: 13px; }
+    .sidebar-user strong { display: block; font-size: 11px; }
+    .sidebar-user small { display: block; margin-top: 3px; color: var(--muted); font-size: 9px; }
+    .main-column { min-width: 0; padding: 28px 30px 36px; background-color: var(--paper); background-image: repeating-linear-gradient(0deg, transparent, transparent 31px, rgba(32, 39, 36, .022) 31px, rgba(32, 39, 36, .022) 32px); }
+    .morning-head { scroll-margin-top: 24px; }
+    .date-line { display: flex; align-items: center; justify-content: space-between; gap: 16px; color: var(--muted); font-size: 10px; letter-spacing: .08em; }
+    .date-line time { color: var(--ink); font: 400 14px/1 Georgia, serif; letter-spacing: .04em; }
+    .headline-row { display: flex; align-items: center; justify-content: space-between; gap: 18px; margin-top: 20px; }
+    h1 { margin: 0; font-family: "Songti SC", "STSong", "SimSun", serif; font-size: 35px; font-weight: 600; line-height: 1.25; letter-spacing: -.03em; }
+    .open-badge { flex: 0 0 auto; display: flex; align-items: center; gap: 7px; padding: 7px 9px; border: 1px solid var(--line); color: var(--muted); background: rgba(245, 241, 232, .8); font-size: 9px; }
+    .open-badge::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+    .morning-sub { margin: 11px 0 0; color: var(--muted); font-size: 11px; line-height: 1.7; }
+    .morning-sub strong { color: var(--teal); font-weight: 700; }
+    .metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; margin-top: 29px; }
+    .metric { min-width: 0; padding: 14px 0 13px; border-top: 3px solid var(--ink); border-bottom: 1px solid var(--line); }
+    .metric:nth-child(2) { border-top-color: var(--teal); }
+    .metric:nth-child(3) { border-top-color: var(--accent); }
+    .metric-label { display: flex; align-items: center; justify-content: space-between; gap: 8px; color: var(--muted); font-size: 10px; }
+    .metric-index { font: italic 11px/1 Georgia, serif; }
+    .metric-value { margin-top: 10px; font: 400 35px/1.1 Georgia, "Times New Roman", serif; letter-spacing: -.03em; white-space: nowrap; }
+    .metric-value small { margin-left: 3px; font-family: "PingFang SC", "Microsoft YaHei", sans-serif; font-size: 11px; letter-spacing: 0; }
+    .metric-note { margin-top: 8px; color: var(--muted); font-size: 9px; line-height: 1.4; }
+    .metric-note .up { color: var(--teal); }
+    .orders-section { margin-top: 30px; scroll-margin-top: 24px; }
+    .section-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; }
+    .section-heading h2 { margin: 0; font-family: "Songti SC", "STSong", "SimSun", serif; font-size: 21px; font-weight: 700; }
+    .live-label { display: flex; align-items: center; gap: 6px; color: var(--muted); font-size: 9px; }
+    .live-label::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: var(--teal); }
+    .order-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-top: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--ink); }
+    .filters { display: flex; gap: 5px; }
+    .filter-button { min-height: 29px; padding: 0 10px; border: 1px solid transparent; border-radius: 0; color: var(--muted); background: transparent; font-size: 10px; }
+    .filter-button:hover { color: var(--ink); background: var(--side); }
+    .filter-button[aria-pressed="true"] { border-color: var(--ink); color: var(--paper); background: var(--ink); }
+    .pickup-note { color: var(--muted); font-size: 9px; }
+    .orders-head { display: grid; grid-template-columns: 64px minmax(0, 1fr) 78px 64px 16px; gap: 12px; padding: 10px 11px; color: var(--muted); font-size: 8px; letter-spacing: .08em; }
+    .order { border-bottom: 1px solid var(--line); }
+    .order summary { display: grid; grid-template-columns: 64px minmax(0, 1fr) 78px 64px 16px; align-items: center; gap: 12px; min-height: 62px; padding: 8px 11px; list-style: none; transition: background-color 140ms ease; }
+    .order summary::-webkit-details-marker { display: none; }
+    .order summary:hover { background: rgba(232, 226, 215, .7); }
+    .order[open] summary { background: var(--side); }
+    .order-time { font: 400 13px/1 Georgia, serif; }
+    .order-person { min-width: 0; }
+    .order-person strong { display: block; overflow: hidden; font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+    .order-person small { display: block; overflow: hidden; margin-top: 4px; color: var(--muted); font-size: 9px; text-overflow: ellipsis; white-space: nowrap; }
+    .order-amount { font: 400 12px/1 Georgia, serif; text-align: right; }
+    .status-badge { display: inline-flex; align-items: center; justify-content: center; min-height: 23px; padding: 0 6px; border: 1px solid var(--line); color: var(--accent); background: var(--paper); font-size: 8px; white-space: nowrap; }
+    .status-badge.done { color: var(--teal); background: var(--teal-pale); border-color: transparent; }
+    .order-chevron { color: var(--muted); font-size: 13px; transition: transform 140ms ease; }
+    .order[open] .order-chevron { transform: rotate(90deg); }
+    .order-detail { padding: 0 11px 15px 87px; background: var(--side); }
+    .order-detail dl { display: grid; grid-template-columns: 52px 1fr; gap: 6px 10px; margin: 0; padding-top: 3px; font-size: 9px; line-height: 1.65; }
+    .order-detail dt { color: var(--muted); }
+    .order-detail dd { margin: 0; }
+    .complete-order { min-height: 31px; margin-top: 11px; padding: 0 12px; border: 1px solid var(--teal); border-radius: 0; color: var(--paper); background: var(--teal); font-size: 9px; font-weight: 700; }
+    .complete-order:hover:not(:disabled) { color: var(--teal); background: transparent; }
+    .complete-order:disabled { border-color: var(--line); color: var(--muted); background: transparent; cursor: default; }
+    .queue-empty { padding: 28px 12px; color: var(--muted); font-size: 11px; text-align: center; }
+    .right-column { min-width: 0; padding: 29px 24px 32px; border-left: 1px solid var(--line); background: var(--side); }
+    .right-date { display: flex; justify-content: space-between; align-items: baseline; padding-bottom: 20px; border-bottom: 3px solid var(--ink); }
+    .right-date strong { font-family: "Songti SC", "STSong", "SimSun", serif; font-size: 19px; }
+    .right-date span { color: var(--muted); font: italic 12px/1 Georgia, serif; }
+    .side-section { padding: 22px 0; border-bottom: 1px solid var(--line); scroll-margin-top: 24px; }
+    .side-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 15px; }
+    .side-heading h2 { margin: 0; font-size: 12px; font-weight: 700; }
+    .side-heading span { color: var(--muted); font-size: 9px; }
+    .checklist { display: grid; gap: 12px; }
+    .checklist label { display: grid; grid-template-columns: 17px 1fr; align-items: start; gap: 9px; cursor: pointer; }
+    .checklist input { width: 16px; height: 16px; margin: 1px 0 0; accent-color: var(--teal); }
+    .check-text strong { display: block; font-size: 10px; font-weight: 600; line-height: 1.5; }
+    .check-text small { display: block; margin-top: 2px; color: var(--muted); font-size: 8px; }
+    .checklist input:checked + .check-text strong { color: var(--muted); text-decoration: line-through; text-decoration-color: var(--teal); }
+    .progress-track { height: 4px; margin-top: 16px; overflow: hidden; background: var(--line); }
+    .progress-fill { width: 50%; height: 100%; background: var(--teal); transition: width 240ms ease; }
+    .check-message { margin: 8px 0 0; color: var(--muted); font-size: 8px; line-height: 1.5; }
+    .team-list { display: grid; gap: 12px; }
+    .team-member { display: grid; grid-template-columns: 31px 1fr auto; align-items: center; gap: 10px; }
+    .member-avatar { display: grid; place-items: center; width: 31px; height: 31px; border: 1px solid var(--line); border-radius: 50%; color: var(--teal); background: var(--paper); font-family: "Songti SC", "STSong", "SimSun", serif; font-size: 11px; }
+    .team-member strong { display: block; font-size: 10px; }
+    .team-member small { display: block; margin-top: 2px; color: var(--muted); font-size: 8px; }
+    .member-time { color: var(--muted); font: 400 10px/1 Georgia, serif; }
+    .ledger-total { padding-bottom: 14px; border-bottom: 1px solid var(--line); }
+    .ledger-total span { display: block; color: var(--muted); font-size: 9px; }
+    .ledger-total strong { display: block; margin-top: 7px; font: 400 29px/1 Georgia, serif; }
+    .ledger-rows { margin: 12px 0 0; }
+    .ledger-rows div { display: flex; justify-content: space-between; gap: 16px; margin-top: 8px; font-size: 9px; }
+    .ledger-rows dt { color: var(--muted); }
+    .ledger-rows dd { margin: 0; font-family: Georgia, serif; }
+    .ledger-details { margin-top: 15px; }
+    .ledger-details summary { color: var(--teal); font-size: 9px; font-weight: 700; }
+    .ledger-details p { margin: 9px 0 0; color: var(--muted); font-size: 8px; line-height: 1.75; }
+    .manager-note { margin-top: 22px; padding: 14px 15px; border-left: 3px solid var(--accent); background: var(--paper); }
+    .manager-note span { color: var(--accent); font-size: 8px; font-weight: 700; letter-spacing: .1em; }
+    .manager-note p { margin: 7px 0 0; font-family: "Songti SC", "STSong", "SimSun", serif; font-size: 11px; line-height: 1.75; }
+    .toast { position: fixed; left: 50%; bottom: 24px; z-index: 20; transform: translateX(-50%); max-width: calc(100% - 32px); padding: 12px 18px; border: 1px solid var(--ink); color: var(--paper); background: var(--ink); box-shadow: 4px 4px 0 var(--teal); font-size: 11px; text-align: center; }
+    [hidden] { display: none !important; }
+    section { scroll-margin-top: 24px; }
+    @media (max-width: 1000px) {
+      .app { grid-template-columns: 76px minmax(0, 1fr); }
+      .sidebar { grid-row: 1 / span 2; padding: 24px 12px; }
+      .brand { justify-content: center; }
+      .brand > div, .store, .sidebar-foot { display: none; }
+      .sidebar-nav { margin-top: 30px; }
+      .sidebar-nav a { justify-content: center; min-height: 48px; padding: 0; border-left: 0; border-bottom: 3px solid transparent; }
+      .sidebar-nav a.active { border-bottom-color: var(--teal); }
+      .sidebar-nav a > span:not(.nav-index) { display: none; }
+      .nav-index { width: auto; font-size: 13px; }
+      .main-column { grid-column: 2; }
+      .right-column { grid-column: 2; border-top: 1px solid var(--line); border-left: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 28px; }
+      .right-date { grid-column: 1 / -1; }
+      .manager-note { align-self: end; }
+    }
+    @media (max-width: 640px) {
+      .app { display: block; }
+      .sidebar { position: static; width: 100%; height: auto; padding: 16px; border-right: 0; border-bottom: 1px solid var(--line); }
+      .brand { justify-content: flex-start; }
+      .brand > div { display: block; }
+      .sidebar-nav { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 16px; }
+      .sidebar-nav a { min-height: 34px; padding: 0 8px; }
+      .sidebar-nav a > span:not(.nav-index) { display: inline; }
+      .nav-index { display: none; }
+      .main-column, .right-column { padding: 24px 18px; }
+      .metrics { grid-template-columns: 1fr; gap: 10px; }
+      .metric { display: grid; grid-template-columns: 1fr auto; align-items: center; }
+      .metric-value { grid-row: 1 / 3; grid-column: 2; }
+      .headline-row { align-items: flex-start; }
+      .open-badge { display: none; }
+      .orders-head { display: none; }
+      .order summary { grid-template-columns: 48px minmax(0, 1fr) 56px 16px; gap: 8px; }
+      .order-amount { display: none; }
+      .order-detail { padding-left: 11px; }
+      .pickup-note { display: none; }
+      .right-column { display: block; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand"><span class="brand-seal">晨</span><div><span class="brand-name">晨簿</span><span class="brand-sub">MORNING LEDGER</span></div></div>
+      <div class="store"><div class="store-label">当前门店</div><div class="store-name">栖迟咖啡 · 湖滨店</div><div class="store-meta">杭州 / 开店第 128 天</div></div>
+      <nav class="sidebar-nav" aria-label="经营总览导航">
+        <a href="#overview" class="active" aria-current="page" aria-label="今日总览"><span class="nav-index">01</span><span>今日总览</span></a>
+        <a href="#orders" aria-label="订单队列，3 单待处理"><span class="nav-index">02</span><span>订单队列</span><span class="nav-count" id="nav-pending-count">3</span></a>
+        <a href="#stock" aria-label="开店清单"><span class="nav-index">03</span><span>开店清单</span></a>
+        <a href="#team" aria-label="当班伙伴"><span class="nav-index">04</span><span>当班伙伴</span></a>
+        <a href="#summary" aria-label="账目摘要"><span class="nav-index">05</span><span>账目摘要</span></a>
+      </nav>
+      <div class="sidebar-foot">
+        <div class="open-state">门店准备中 · 08:30 营业</div>
+        <div class="sidebar-user"><span class="user-avatar">岚</span><div><strong>林岚</strong><small>今日店长</small></div></div>
+      </div>
+    </aside>
+
+    <main class="main-column">
+      <header class="morning-head" id="overview">
+        <div class="date-line"><span>五月十六日 / 星期四 / 晴</span><time datetime="07:42">07:42 AM</time></div>
+        <div class="headline-row"><h1>早安，林岚。</h1><span class="open-badge">营业准备中</span></div>
+        <p class="morning-sub">早间预订已经到店，先处理 <strong id="headline-pending">3 笔待出品</strong>，再看一眼昨日账。</p>
+      </header>
+
+      <section class="metrics" aria-label="今日三个关键数字">
+        <article class="metric"><div class="metric-label"><span>今日预订</span><span class="metric-index">I</span></div><div class="metric-value">28<small>单</small></div><div class="metric-note"><span class="up">↑ 4 单</span> 较上周四</div></article>
+        <article class="metric"><div class="metric-label"><span>预计营收</span><span class="metric-index">II</span></div><div class="metric-value">¥6,840</div><div class="metric-note">今日目标 ¥8,600 · 79.5%</div></article>
+        <article class="metric"><div class="metric-label"><span>早间待出品</span><span class="metric-index">III</span></div><div class="metric-value" id="pending-count">3<small>单</small></div><div class="metric-note" id="pending-note">08:30 前有 2 单</div></article>
+      </section>
+
+      <section class="orders-section" id="orders" aria-labelledby="orders-title">
+        <div class="section-heading"><h2 id="orders-title">早间订单</h2><span class="live-label">队列已同步</span></div>
+        <div class="order-toolbar">
+          <div class="filters" aria-label="筛选订单状态">
+            <button class="filter-button" type="button" data-filter="all" aria-pressed="true">全部 <span id="all-count">4</span></button>
+            <button class="filter-button" type="button" data-filter="pending" aria-pressed="false">待处理 <span id="filter-pending-count">3</span></button>
+            <button class="filter-button" type="button" data-filter="done" aria-pressed="false">已完成 <span id="done-count">1</span></button>
+          </div>
+          <span class="pickup-note">均为到店自提</span>
+        </div>
+        <div class="orders-head" aria-hidden="true"><span>时间</span><span>订单 / 内容</span><span style="text-align:right">金额</span><span>状态</span><span></span></div>
+        <div id="order-list">
+          <details class="order" data-status="pending" data-order="A-028">
+            <summary><span class="order-time">08:10</span><span class="order-person"><strong>A-028 · 顾女士</strong><small>燕麦拿铁 ×2 / 海盐卷 ×1</small></span><span class="order-amount">¥66.00</span><span class="status-badge">待制作</span><span class="order-chevron" aria-hidden="true">›</span></summary>
+            <div class="order-detail"><dl><dt>饮品要求</dt><dd>两杯均热饮，其中一杯半糖</dd><dt>自提备注</dt><dd>不用杯套，到店后取餐</dd></dl><button class="complete-order" type="button">标记已出杯</button></div>
+          </details>
+          <details class="order" data-status="pending" data-order="A-029">
+            <summary><span class="order-time">08:25</span><span class="order-person"><strong>A-029 · 陈先生</strong><small>手冲耶加 ×1 / 原味可颂 ×2</small></span><span class="order-amount">¥74.00</span><span class="status-badge">制作中</span><span class="order-chevron" aria-hidden="true">›</span></summary>
+            <div class="order-detail"><dl><dt>饮品要求</dt><dd>耶加雪菲，热饮，不加糖</dd><dt>自提备注</dt><dd>可颂分开包装</dd></dl><button class="complete-order" type="button">标记已出杯</button></div>
+          </details>
+          <details class="order" data-status="pending" data-order="A-030">
+            <summary><span class="order-time">08:40</span><span class="order-person"><strong>A-030 · 小满</strong><small>中杯美式 ×1</small></span><span class="order-amount">¥22.00</span><span class="status-badge">待制作</span><span class="order-chevron" aria-hidden="true">›</span></summary>
+            <div class="order-detail"><dl><dt>饮品要求</dt><dd>冰美式，正常冰</dd><dt>自提备注</dt><dd>会员尾号 1036</dd></dl><button class="complete-order" type="button">标记已出杯</button></div>
+          </details>
+          <details class="order" data-status="done" data-order="A-027">
+            <summary><span class="order-time">07:55</span><span class="order-person"><strong>A-027 · 周先生</strong><small>热拿铁 ×1</small></span><span class="order-amount">¥28.00</span><span class="status-badge done">已出杯</span><span class="order-chevron" aria-hidden="true">›</span></summary>
+            <div class="order-detail"><dl><dt>饮品要求</dt><dd>热拿铁，燕麦奶</dd><dt>完成时间</dt><dd>07:38 已由林岚出杯</dd></dl><button class="complete-order" type="button" disabled>已出杯</button></div>
+          </details>
+        </div>
+        <div class="queue-empty" id="queue-empty" hidden>这一组已经清空，换个筛选看看。</div>
+      </section>
+    </main>
+
+    <aside class="right-column" aria-label="开店辅助信息">
+      <div class="right-date"><strong>今日账页</strong><span>NO. 128</span></div>
+      <section class="side-section" id="stock" aria-labelledby="stock-title">
+        <div class="side-heading"><h2 id="stock-title">开店清单</h2><span id="check-count">2 / 4 已完成</span></div>
+        <div class="checklist">
+          <label><input type="checkbox" checked><span class="check-text"><strong>磨豆机校准</strong><small>林岚 · 07:18 完成</small></span></label>
+          <label><input type="checkbox"><span class="check-text"><strong>燕麦奶补至 12 盒</strong><small>冷藏柜第二层</small></span></label>
+          <label><input type="checkbox" checked><span class="check-text"><strong>外卖平台开机</strong><small>自动接单已开启</small></span></label>
+          <label><input type="checkbox"><span class="check-text"><strong>复核今日面包到店数</strong><small>送货单 36 个，需逐一清点</small></span></label>
+        </div>
+        <div class="progress-track" id="check-progress" role="progressbar" aria-label="开店清单完成进度" aria-valuemin="0" aria-valuemax="4" aria-valuenow="2"><div class="progress-fill" id="progress-fill"></div></div>
+        <p class="check-message" id="check-message">还差 2 项，08:30 前完成即可。</p>
+      </section>
+
+      <section class="side-section" id="team" aria-labelledby="team-title">
+        <div class="side-heading"><h2 id="team-title">当班伙伴</h2><span>3 人在店</span></div>
+        <div class="team-list">
+          <div class="team-member"><span class="member-avatar">岚</span><div><strong>林岚 · 店长</strong><small>收银 / 早间品控</small></div><span class="member-time">07:00</span></div>
+          <div class="team-member"><span class="member-avatar">禾</span><div><strong>小禾 · 咖啡师</strong><small>吧台 / 手冲</small></div><span class="member-time">07:30</span></div>
+          <div class="team-member"><span class="member-avatar">青</span><div><strong>阿青 · 伙伴</strong><small>出杯 / 外场</small></div><span class="member-time">08:00</span></div>
+        </div>
+      </section>
+
+      <section class="side-section" id="summary" aria-labelledby="summary-title">
+        <div class="side-heading"><h2 id="summary-title">昨日结算</h2><span>五月十五日</span></div>
+        <div class="ledger-total"><span>实收合计</span><strong>¥8,462.00</strong></div>
+        <dl class="ledger-rows"><div><dt>现金</dt><dd>¥1,280.00</dd></div><div><dt>扫码支付</dt><dd>¥7,182.00</dd></div><div><dt>账面差额</dt><dd>¥0.00</dd></div></dl>
+        <details class="ledger-details"><summary>查看收支明细</summary><p>订单收入 ¥8,620.00；会员退款 ¥158.00；当日共计 126 单。现金已由林岚与夜班小禾双人核对。</p></details>
+      </section>
+      <aside class="manager-note"><span>今日店长备忘</span><p>桂花乌龙拿铁首日供应，早高峰先备 12 杯；十点后再看销量调整。</p></aside>
+    </aside>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+  <script>
+    (() => {
+      const orders = Array.from(document.querySelectorAll('.order'));
+      const filterButtons = Array.from(document.querySelectorAll('.filter-button'));
+      const queueEmpty = document.getElementById('queue-empty');
+      const toast = document.getElementById('toast');
+      let activeFilter = 'all';
+      let toastTimer;
+
+      function showToast(message) {
+        clearTimeout(toastTimer);
+        toast.textContent = message;
+        toast.hidden = false;
+        toastTimer = setTimeout(() => { toast.hidden = true; }, 3600);
+      }
+
+      function applyFilter() {
+        let visible = 0;
+        orders.forEach(order => {
+          const show = activeFilter === 'all' || order.dataset.status === activeFilter;
+          order.hidden = !show;
+          if (!show) order.open = false;
+          if (show) visible += 1;
+        });
+        queueEmpty.hidden = visible !== 0;
+      }
+
+      function updateCounts() {
+        const pending = orders.filter(order => order.dataset.status === 'pending').length;
+        const done = orders.length - pending;
+        document.getElementById('pending-count').innerHTML = pending + '<small>单</small>';
+        document.getElementById('filter-pending-count').textContent = pending;
+        document.getElementById('nav-pending-count').textContent = pending;
+        document.querySelector('.sidebar-nav a[href="#orders"]').setAttribute('aria-label', '订单队列，' + pending + ' 单待处理');
+        document.getElementById('done-count').textContent = done;
+        document.getElementById('headline-pending').textContent = pending + ' 笔待出品';
+        document.getElementById('pending-note').textContent = pending === 0 ? '早间队列已清空' : Math.min(pending, 2) + ' 单需优先处理';
+      }
+
+      filterButtons.forEach(button => {
+        button.addEventListener('click', () => {
+          activeFilter = button.dataset.filter;
+          filterButtons.forEach(item => item.setAttribute('aria-pressed', String(item === button)));
+          applyFilter();
+        });
+      });
+
+      orders.forEach(order => {
+        const button = order.querySelector('.complete-order');
+        button.addEventListener('click', () => {
+          if (order.dataset.status === 'done') return;
+          order.dataset.status = 'done';
+          const badge = order.querySelector('.status-badge');
+          badge.textContent = '已出杯';
+          badge.classList.add('done');
+          button.textContent = '已出杯';
+          button.disabled = true;
+          updateCounts();
+          applyFilter();
+          showToast(order.dataset.order + ' 已标记出杯，订单队列已更新');
+        });
+      });
+
+      const navLinks = Array.from(document.querySelectorAll('.sidebar-nav a'));
+      navLinks.forEach(link => {
+        link.addEventListener('click', () => {
+          navLinks.forEach(item => {
+            item.classList.toggle('active', item === link);
+            if (item === link) item.setAttribute('aria-current', 'page');
+            else item.removeAttribute('aria-current');
+          });
+        });
+      });
+
+      const checkboxes = Array.from(document.querySelectorAll('.checklist input'));
+      function updateChecklist() {
+        const checked = checkboxes.filter(input => input.checked).length;
+        document.getElementById('check-count').textContent = checked + ' / 4 已完成';
+        document.getElementById('progress-fill').style.width = (checked / 4 * 100) + '%';
+        document.getElementById('check-progress').setAttribute('aria-valuenow', String(checked));
+        document.getElementById('check-message').textContent = checked === 4 ? '全部就绪，可以准时开门。' : '还差 ' + (4 - checked) + ' 项，08:30 前完成即可。';
+      }
+      checkboxes.forEach(input => input.addEventListener('change', () => {
+        updateChecklist();
+        showToast(input.checked ? '清单已勾选一项，进度已保存到本页' : '已恢复为待办，记得在开店前完成');
+      }));
+      updateChecklist();
+    })();
+  </script>
+</body>
+</html>

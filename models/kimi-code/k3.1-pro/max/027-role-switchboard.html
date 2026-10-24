@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>角色权限总机 · 栈桥协作</title>
+  <style>
+    :root {
+      --page: #1B1E20;
+      --panel: #262A2C;
+      --panel-raised: #303537;
+      --paper: #ECE7DC;
+      --paper-deep: #DED8CB;
+      --ink: #242729;
+      --cream: #F3EDDF;
+      --muted: #9DA3A3;
+      --line: #484D4F;
+      --coral: #EE735F;
+      --coral-dark: #B94C3D;
+      --brass: #C8A96A;
+      --ok: #8DB6A0;
+      --shadow: 0 18px 45px rgba(0, 0, 0, .26);
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-width: 0; background: var(--page); color: var(--cream); font-family: "PingFang SC", "Microsoft YaHei", system-ui, sans-serif; font-size: 14px; line-height: 1.5; }
+    button, input { font: inherit; }
+    button { cursor: pointer; }
+    button:disabled { cursor: not-allowed; }
+    button:focus-visible, input:focus-visible { outline: 3px solid var(--brass); outline-offset: 3px; }
+    .topbar { height: 68px; padding: 0 34px; display: flex; align-items: center; justify-content: space-between; gap: 20px; border-bottom: 1px solid var(--line); background: #202426; }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .brand-symbol { width: 37px; height: 37px; display: grid; grid-template-columns: repeat(2, 6px); grid-auto-rows: 6px; justify-content: center; align-content: center; gap: 5px; border: 1px solid #616668; }
+    .brand-symbol i { display: block; border: 1px solid var(--coral); border-radius: 50%; }
+    .brand-symbol i:first-child, .brand-symbol i:last-child { background: var(--coral); }
+    .brand-name { font-size: 17px; font-weight: 700; letter-spacing: .12em; }
+    .brand-sub { color: var(--muted); font-family: Consolas, monospace; font-size: 9px; letter-spacing: .16em; }
+    .workspace-id { display: flex; align-items: center; gap: 10px; color: #C8CECD; font-size: 11px; }
+    .workspace-id::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--ok); box-shadow: 0 0 0 4px rgba(141,182,160,.1); }
+    .operator { display: flex; align-items: center; gap: 9px; font-size: 11px; color: #C8CECD; }
+    .operator-badge { width: 30px; height: 30px; display: grid; place-items: center; background: var(--coral); color: #211F1E; font-weight: 800; }
+    main { max-width: 1280px; margin: 0 auto; padding: 23px 32px 19px; }
+    .page-heading { display: flex; justify-content: space-between; align-items: flex-end; gap: 24px; margin-bottom: 18px; }
+    .kicker { margin: 0 0 3px; color: var(--coral); font-family: Consolas, monospace; font-size: 10px; letter-spacing: .16em; }
+    h1 { margin: 0; font-size: 29px; line-height: 1.3; letter-spacing: .04em; }
+    .subtitle { margin: 5px 0 0; color: var(--muted); font-size: 11px; }
+    .heading-actions { display: flex; align-items: center; gap: 9px; }
+    .save-state { margin-right: 6px; color: var(--muted); font-size: 10px; }
+    .save-state.dirty { color: #F2B4A7; }
+    .btn { min-height: 37px; padding: 8px 15px; border: 1px solid #676C6D; background: transparent; color: var(--cream); font-size: 11px; font-weight: 600; transition: background .16s ease, border-color .16s ease, color .16s ease; }
+    .btn:hover:not(:disabled) { border-color: var(--cream); background: #303537; }
+    .btn.primary { border-color: var(--coral); background: var(--coral); color: #211F1E; }
+    .btn.primary:hover:not(:disabled) { background: #FA8B77; border-color: #FA8B77; }
+    .btn:disabled { opacity: .36; }
+    .board { display: grid; grid-template-columns: 238px minmax(0, 1fr) 306px; min-height: 566px; border: 1px solid #515658; background: var(--panel); box-shadow: var(--shadow); }
+    .role-rack { min-width: 0; padding: 17px 14px 15px; border-right: 1px solid #515658; background: #24282A; }
+    .rack-label { display: flex; justify-content: space-between; padding: 0 4px; color: #ADB3B2; font-family: Consolas, monospace; font-size: 9px; letter-spacing: .12em; }
+    .patchbay { display: block; width: 100%; height: 104px; margin: 7px 0 12px; border: 1px solid #44494B; background: #1D2022; }
+    .patch-cable { transition: opacity .2s ease, stroke-width .2s ease; }
+    .patch-cable:not(.active) { opacity: .25; }
+    .patch-cable.active { stroke-width: 3; }
+    .section-label { margin: 0 5px 8px; color: #8E9696; font-size: 9px; letter-spacing: .16em; }
+    .role-list { display: grid; gap: 7px; }
+    .role-button { position: relative; width: 100%; min-height: 78px; padding: 11px 11px 10px 15px; border: 1px solid #44494B; background: #2B2F31; color: #E8E4DA; text-align: left; transition: background .16s ease, border-color .16s ease; }
+    .role-button:hover { background: #34393B; border-color: #6B7071; }
+    .role-button[aria-pressed="true"] { border-color: var(--coral); background: #383331; box-shadow: inset 4px 0 0 var(--coral); }
+    .role-code { display: flex; justify-content: space-between; color: #8F9898; font-family: Consolas, monospace; font-size: 9px; letter-spacing: .09em; }
+    .role-name { display: block; margin: 3px 0 2px; font-size: 14px; font-weight: 700; }
+    .role-meta { color: #AEB4B2; font-size: 10px; }
+    .dirty-dot { display: none; width: 7px; height: 7px; border-radius: 50%; background: var(--coral); }
+    .role-button.unsaved .dirty-dot { display: block; }
+    .rack-note { margin: 13px 5px 0; padding-top: 11px; border-top: 1px solid #424748; color: #8F9695; font-size: 9px; line-height: 1.65; }
+    .permission-panel { min-width: 0; padding: 21px 23px 18px; color: var(--ink); background: var(--paper); }
+    .permission-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; padding-bottom: 13px; border-bottom: 1px solid #C9C3B7; }
+    .panel-index { color: #77776F; font-family: Consolas, monospace; font-size: 9px; letter-spacing: .12em; }
+    .permission-head h2 { margin: 2px 0 2px; font-size: 23px; line-height: 1.3; }
+    .permission-head p { margin: 0; color: #6F706A; font-size: 10px; }
+    .role-count { flex: 0 0 auto; padding: 5px 8px; border: 1px solid #B9B2A5; color: #5F615C; font-size: 10px; }
+    .permission-groups { display: grid; gap: 9px; margin-top: 12px; }
+    .permission-group-title { display: flex; align-items: center; gap: 8px; margin-bottom: 3px; color: #686A64; font-size: 9px; font-weight: 700; letter-spacing: .12em; }
+    .permission-group-title::after { content: ""; flex: 1; height: 1px; background: #D1CABD; }
+    .permission-row { min-height: 43px; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 6px 4px; border-bottom: 1px solid #D8D1C4; }
+    .permission-row label { cursor: pointer; }
+    .permission-name { display: block; font-size: 12px; font-weight: 600; }
+    .permission-desc { display: block; margin-top: 1px; color: #777870; font-size: 9px; }
+    .switch { appearance: none; width: 38px; height: 22px; margin: 0; padding: 2px; border: 1px solid #96968E; border-radius: 20px; background: #B4B2A9; cursor: pointer; transition: background .16s ease, border-color .16s ease; }
+    .switch::before { content: ""; display: block; width: 16px; height: 16px; border-radius: 50%; background: #F8F4EA; box-shadow: 0 1px 3px rgba(0,0,0,.25); transition: transform .16s ease; }
+    .switch:checked { border-color: var(--coral-dark); background: var(--coral); }
+    .switch:checked::before { transform: translateX(16px); }
+    .switch:hover { border-color: var(--coral-dark); }
+    .permission-foot { display: flex; justify-content: space-between; gap: 12px; margin-top: 12px; color: #77776F; font-size: 9px; }
+    .permission-foot strong { color: var(--coral-dark); font-weight: 700; }
+    .preview-panel { min-width: 0; padding: 20px 18px; border-left: 1px solid #515658; background: #25292B; }
+    .preview-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+    .preview-heading h2 { margin: 1px 0 0; font-size: 15px; }
+    .live-badge { display: inline-flex; align-items: center; gap: 5px; color: var(--ok); font-family: Consolas, monospace; font-size: 8px; letter-spacing: .08em; }
+    .live-badge::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: var(--ok); }
+    .preview-caption { min-height: 34px; margin: 6px 0 12px; color: #9CA3A2; font-size: 9px; }
+    .device-switch { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; padding: 3px; margin-bottom: 14px; background: #1D2022; border: 1px solid #44494B; }
+    .device-switch button { min-height: 29px; border: 0; background: transparent; color: #8F9796; font-size: 10px; }
+    .device-switch button:hover { color: #FFFFFF; }
+    .device-switch button[aria-pressed="true"] { background: #3A3F41; color: var(--cream); box-shadow: inset 0 -2px 0 var(--coral); }
+    .preview-stage { min-height: 325px; display: flex; justify-content: center; align-items: flex-start; padding: 10px; background: #1C1F21; border: 1px solid #414648; background-image: radial-gradient(#3B4143 1px, transparent 1px); background-size: 12px 12px; }
+    .mini-window { width: 100%; min-height: 278px; overflow: hidden; border: 1px solid #676B69; background: #F3F0E8; color: #272B2C; box-shadow: 5px 6px 0 rgba(0,0,0,.28); transition: width .2s ease; }
+    .preview-stage.mobile .mini-window { width: 154px; }
+    .mini-top { height: 25px; padding: 0 8px; display: flex; align-items: center; justify-content: space-between; background: #DDD9D0; border-bottom: 1px solid #C2BDB2; font-size: 7px; }
+    .mini-dots { display: flex; gap: 3px; }
+    .mini-dots i { width: 4px; height: 4px; border-radius: 50%; background: #878780; }
+    .mini-body { display: grid; grid-template-columns: 42px 1fr; min-height: 253px; }
+    .preview-stage.mobile .mini-body { grid-template-columns: 1fr; }
+    .mini-nav { padding: 9px 5px; background: #303638; color: #C9CECA; font-size: 7px; }
+    .preview-stage.mobile .mini-nav { display: flex; gap: 6px; padding: 5px 7px; }
+    .mini-nav span { display: block; margin-bottom: 8px; }
+    .preview-stage.mobile .mini-nav span { margin: 0; }
+    .mini-content { padding: 11px 9px; min-width: 0; }
+    .mini-role { color: #77796F; font-size: 7px; }
+    .mini-content h3 { margin: 2px 0 9px; font-size: 12px; }
+    .mini-stat { padding: 8px; margin-bottom: 9px; border-left: 3px solid var(--coral); background: #E5E0D5; font-size: 8px; }
+    .mini-stat strong { display: block; font-size: 15px; }
+    .mini-actions { display: grid; gap: 5px; }
+    .mini-actions button { min-height: 25px; padding: 4px 6px; border: 1px solid #A9A79F; background: transparent; color: #333735; font-size: 8px; text-align: left; }
+    .mini-actions button:hover:not(:disabled) { border-color: var(--coral-dark); color: var(--coral-dark); }
+    .mini-actions button:disabled { opacity: .4; text-decoration: line-through; }
+    .mini-actions button.allowed { background: #303638; color: #F5F0E5; border-color: #303638; }
+    .preview-note { margin: 12px 1px 0; color: #9CA3A2; font-size: 9px; line-height: 1.65; }
+    .board-footer { display: flex; justify-content: space-between; gap: 20px; padding: 12px 2px 0; color: #858D8C; font-size: 9px; }
+    .board-footer span:first-child { color: #B1B6B3; }
+    .toast { position: fixed; right: 26px; bottom: 24px; z-index: 20; max-width: min(390px, calc(100vw - 32px)); padding: 13px 17px; border: 1px solid #696E6E; border-left: 4px solid var(--coral); background: #2D3234; color: #F5F0E5; box-shadow: var(--shadow); font-size: 11px; opacity: 0; transform: translateY(10px); pointer-events: none; transition: opacity .18s ease, transform .18s ease; }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    @media (max-width: 1080px) {
+      .board { grid-template-columns: 210px minmax(0, 1fr) 270px; }
+      .permission-panel { padding: 20px 17px; }
+      .preview-panel { padding: 18px 13px; }
+      .save-state { display: none; }
+    }
+    @media (max-width: 900px) {
+      .topbar { padding: 0 22px; }
+      .workspace-id { display: none; }
+      main { padding: 22px; }
+      .board { grid-template-columns: 205px minmax(0, 1fr); }
+      .preview-panel { grid-column: 1 / -1; border-left: 0; border-top: 1px solid #515658; display: grid; grid-template-columns: 1fr 1.3fr; gap: 12px 22px; }
+      .preview-heading, .preview-caption, .device-switch, .preview-note { grid-column: 1; }
+      .preview-stage { grid-column: 2; grid-row: 1 / 6; min-height: 280px; }
+      .device-switch { margin: 0; }
+      .board-footer { padding-bottom: 5px; }
+    }
+    @media (max-width: 680px) {
+      .page-heading { align-items: flex-start; flex-direction: column; }
+      .board { grid-template-columns: 1fr; }
+      .role-rack { border-right: 0; border-bottom: 1px solid #515658; }
+      .role-list { grid-template-columns: repeat(3, 1fr); }
+      .role-button { min-height: 88px; }
+      .preview-panel { grid-template-columns: 1fr; }
+      .preview-stage { grid-column: 1; grid-row: auto; }
+      .board-footer { flex-direction: column; gap: 3px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="brand-symbol" aria-hidden="true"><i></i><i></i><i></i><i></i></span><div><div class="brand-name">栈桥协作</div><div class="brand-sub">TRESTLE / CONTROL</div></div></div>
+    <div class="workspace-id">松果出版项目组 · 权限线路正常</div>
+    <div class="operator">系统管理员 · 陈工<span class="operator-badge" aria-hidden="true">陈</span></div>
+  </header>
+  <main>
+    <div class="page-heading">
+      <div><p class="kicker">ROLE PATCHBOARD / 03 LINES</p><h1>角色权限总机</h1><p class="subtitle">接通一个角色，核对其能到达的每一处。修改只影响当前工作空间。</p></div>
+      <div class="heading-actions"><span class="save-state" id="saveState">全部更改已保存</span><button class="btn" id="resetButton" type="button" disabled>撤销修改</button><button class="btn primary" id="saveButton" type="button" disabled>保存此角色</button></div>
+    </div>
+
+    <section class="board" aria-label="角色权限交换台">
+      <aside class="role-rack" aria-label="角色列表">
+        <div class="rack-label"><span>PATCH PANEL A</span><span>03 / 03</span></div>
+        <svg class="patchbay" viewBox="0 0 210 104" role="img" aria-labelledby="patchTitle">
+          <title id="patchTitle">三条角色线路接入权限交换台，当前线路高亮</title>
+          <g fill="#303537" stroke="#626868"><rect x="12" y="12" width="42" height="24"/><rect x="84" y="12" width="42" height="24"/><rect x="156" y="12" width="42" height="24"/></g>
+          <g fill="#171A1B" stroke="#8B918E"><circle cx="33" cy="24" r="7"/><circle cx="105" cy="24" r="7"/><circle cx="177" cy="24" r="7"/></g>
+          <g fill="#C8A96A"><circle cx="33" cy="24" r="2"/><circle cx="105" cy="24" r="2"/><circle cx="177" cy="24" r="2"/></g>
+          <path id="cable-admin" class="patch-cable active" d="M33 24C33 62 66 54 66 92" fill="none" stroke="#EE735F" stroke-width="2"/>
+          <path id="cable-editor" class="patch-cable" d="M105 24C105 55 105 65 105 92" fill="none" stroke="#C8A96A" stroke-width="2"/>
+          <path id="cable-viewer" class="patch-cable" d="M177 24C177 62 144 54 144 92" fill="none" stroke="#8DB6A0" stroke-width="2"/>
+          <g fill="#151819" stroke="#626868"><circle cx="66" cy="91" r="6"/><circle cx="105" cy="91" r="6"/><circle cx="144" cy="91" r="6"/></g>
+          <g fill="#9DA3A3" font-size="7" font-family="Consolas, monospace"><text x="19" y="48">ADM</text><text x="91" y="48">EDT</text><text x="163" y="48">VWR</text></g>
+        </svg>
+        <p class="section-label">选择要接通的角色</p>
+        <div class="role-list" id="roleList"></div>
+        <p class="rack-note">珊瑚色圆点表示该角色有未保存修改。切换角色不会丢弃修改，保存则按角色逐一确认。</p>
+      </aside>
+
+      <section class="permission-panel" aria-labelledby="roleTitle">
+        <div class="permission-head"><div><span class="panel-index" id="roleIndex">LINE 01 / ADMINISTRATOR</span><h2 id="roleTitle">空间管理员</h2><p id="roleDescription">负责空间、内容与成员的完整管理。</p></div><span class="role-count" id="roleMembers">3 名成员</span></div>
+        <div class="permission-groups" id="permissionGroups"></div>
+        <div class="permission-foot"><span>开关变更会立即反映在右侧预览</span><span><strong id="enabledCount">0</strong> / 8 项已允许</span></div>
+      </section>
+
+      <aside class="preview-panel" aria-labelledby="previewHeading">
+        <div class="preview-heading"><div><span class="panel-index">LIVE MONITOR</span><h2 id="previewHeading">角色实机预览</h2></div><span class="live-badge">LIVE</span></div>
+        <p class="preview-caption" id="previewCaption">正在以“空间管理员”查看；置灰功能表示该角色不可操作。</p>
+        <div class="device-switch" aria-label="切换预览设备"><button type="button" data-device="desktop" aria-pressed="true">桌面端预览</button><button type="button" data-device="mobile" aria-pressed="false">窄屏预览</button></div>
+        <div class="preview-stage" id="previewStage">
+          <div class="mini-window">
+            <div class="mini-top"><span class="mini-dots" aria-hidden="true"><i></i><i></i><i></i></span><span id="miniRole">空间管理员</span></div>
+            <div class="mini-body">
+              <div class="mini-nav"><span>总览</span><span>文档</span><span>成员</span><span>设置</span></div>
+              <div class="mini-content"><span class="mini-role">本周工作空间</span><h3>秋季选题进度</h3><div class="mini-stat"><strong>24</strong>篇文档正在协作</div><div class="mini-actions"><button type="button" class="allowed" data-action="edit">＋ 新建文档</button><button type="button" data-action="publish">↗ 发布到团队空间</button><button type="button" data-action="invite">○ 邀请项目成员</button><button type="button" data-action="roles">⚙ 管理角色权限</button></div></div>
+            </div>
+          </div>
+        </div>
+        <p class="preview-note">预览只模拟功能可见性，不会以成员身份执行真实操作。点击可用功能可检查反馈。</p>
+      </aside>
+    </section>
+    <footer class="board-footer"><span>安全提示：删除内容与角色管理属于高风险权限，请仅授予必要人员。</span><span id="lastSaved">上次保存：2026-06-18 10:24 · 管理员陈工</span></footer>
+  </main>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    const roles = {
+      admin: { code: '01', en: 'ADMINISTRATOR', name: '空间管理员', members: 3, description: '负责空间、内容与成员的完整管理。', permissions: { view: true, project: true, edit: true, comment: true, publish: true, remove: true, invite: true, roles: true } },
+      editor: { code: '02', en: 'EDITOR', name: '内容编辑', members: 12, description: '专注创作与发布，不涉及计费和角色管理。', permissions: { view: true, project: false, edit: true, comment: true, publish: true, remove: false, invite: true, roles: false } },
+      viewer: { code: '03', en: 'REVIEWER', name: '访客审阅', members: 8, description: '供外部审阅者查看与评论，不能改动正文。', permissions: { view: true, project: false, edit: false, comment: true, publish: false, remove: false, invite: false, roles: false } }
+    };
+    const groups = [
+      { name: '工作台', items: [['view', '查看项目总览', '浏览项目进度与团队动态'], ['project', '管理项目档案', '创建、归档与修改项目资料']] },
+      { name: '内容协作', items: [['edit', '新建与编辑文档', '修改正文、标题与协作者'], ['comment', '添加评论', '在文档中留下审阅意见'], ['publish', '发布到团队空间', '将定稿内容向团队公开'], ['remove', '删除内容', '将文档或评论移至回收站']] },
+      { name: '成员与安全', items: [['invite', '邀请项目成员', '发送邀请并设置初始角色'], ['roles', '管理角色权限', '修改其他角色的能力范围']] }
+    ];
+    const working = JSON.parse(JSON.stringify(roles));
+    const saved = JSON.parse(JSON.stringify(roles));
+    let currentRole = 'admin';
+    const dirty = new Set();
+    const roleList = document.getElementById('roleList');
+    const permissionGroups = document.getElementById('permissionGroups');
+    const toast = document.getElementById('toast');
+    let toastTimer;
+    function notify(message) {
+      clearTimeout(toastTimer);
+      toast.textContent = message;
+      toast.classList.add('show');
+      toastTimer = setTimeout(() => toast.classList.remove('show'), 3200);
+    }
+    Object.entries(roles).forEach(([key, role]) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'role-button';
+      button.dataset.role = key;
+      button.setAttribute('aria-pressed', String(key === currentRole));
+      button.innerHTML = '<span class="role-code">LINE ' + role.code + '<i class="dirty-dot" aria-label="有未保存修改"></i></span><span class="role-name">' + role.name + '</span><span class="role-meta">' + role.members +  ' 名成员 · ' + Object.values(role.permissions).filter(Boolean).length + ' 项权限</span>';
+      roleList.appendChild(button);
+    });
+    function renderPermissions() {
+      const permissions = working[currentRole].permissions;
+      permissionGroups.innerHTML = groups.map(group => '<section><div class="permission-group-title">' + group.name + '</div>' + group.items.map(([key, name, description]) => '<div class="permission-row"><label for="perm-' + key + '"><span class="permission-name">' + name + '</span><span class="permission-desc">' + description + '</span></label><input class="switch" id="perm-' + key + '" data-key="' + key + '" type="checkbox" role="switch" aria-label="' + name + '"' + (permissions[key] ? ' checked' : '') + '></div>').join('') + '</section>').join('');
+      document.getElementById('enabledCount').textContent = Object.values(permissions).filter(Boolean).length;
+    }
+    function renderPreview() {
+      const role = working[currentRole];
+      document.getElementById('miniRole').textContent = role.name;
+      document.getElementById('previewCaption').textContent = '正在以“' + role.name + '”查看；置灰功能表示该角色不可操作。';
+      document.querySelectorAll('.mini-actions button').forEach(button => {
+        const allowed = role.permissions[button.dataset.action];
+        button.disabled = !allowed;
+        button.classList.toggle('allowed', allowed);
+        button.title = allowed ? '点击检查此角色的操作反馈' : role.name + '没有此项权限';
+      });
+    }
+    function updateSaveState() {
+      const isDirty = dirty.has(currentRole);
+      document.getElementById('saveButton').disabled = !isDirty;
+      document.getElementById('resetButton').disabled = !isDirty;
+      const state = document.getElementById('saveState');
+      state.textContent = dirty.size ? dirty.size + ' 个角色有未保存修改' : '全部更改已保存';
+      state.classList.toggle('dirty', dirty.size > 0);
+      document.querySelectorAll('.role-button').forEach(button => button.classList.toggle('unsaved', dirty.has(button.dataset.role)));
+    }
+    function selectRole(key) {
+      currentRole = key;
+      const role = working[key];
+      document.querySelectorAll('.role-button').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.role === key)));
+      document.getElementById('roleIndex').textContent = 'LINE ' + role.code + ' / ' + role.en;
+      document.getElementById('roleTitle').textContent = role.name;
+      document.getElementById('roleDescription').textContent = role.description;
+      document.getElementById('roleMembers').textContent = role.members + ' 名成员';
+      Object.keys(roles).forEach(roleKey => document.getElementById('cable-' + roleKey).classList.toggle('active', roleKey === key));
+      renderPermissions();
+      renderPreview();
+      updateSaveState();
+    }
+    roleList.addEventListener('click', event => {
+      const button = event.target.closest('.role-button');
+      if (button) selectRole(button.dataset.role);
+    });
+    permissionGroups.addEventListener('change', event => {
+      if (!event.target.matches('.switch')) return;
+      working[currentRole].permissions[event.target.dataset.key] = event.target.checked;
+      dirty.add(currentRole);
+      document.getElementById('enabledCount').textContent = Object.values(working[currentRole].permissions).filter(Boolean).length;
+      renderPreview();
+      updateSaveState();
+    });
+    document.getElementById('saveButton').addEventListener('click', () => {
+      saved[currentRole].permissions = JSON.parse(JSON.stringify(working[currentRole].permissions));
+      dirty.delete(currentRole);
+      const now = new Date();
+      document.getElementById('lastSaved').textContent = '上次保存：' + now.toLocaleDateString('zh-CN') + ' ' + now.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }) + ' · 管理员陈工';
+      updateSaveState();
+      notify(working[currentRole].name + '的权限已保存，成员下次进入空间时生效。');
+    });
+    document.getElementById('resetButton').addEventListener('click', () => {
+      working[currentRole].permissions = JSON.parse(JSON.stringify(saved[currentRole].permissions));
+      dirty.delete(currentRole);
+      renderPermissions();
+      renderPreview();
+      updateSaveState();
+      notify('已撤销“' + working[currentRole].name + '”的未保存修改。');
+    });
+    document.querySelector('.device-switch').addEventListener('click', event => {
+      const button = event.target.closest('button[data-device]');
+      if (!button) return;
+      document.querySelectorAll('.device-switch button').forEach(item => item.setAttribute('aria-pressed', String(item === button)));
+      document.getElementById('previewStage').classList.toggle('mobile', button.dataset.device === 'mobile');
+    });
+    document.querySelector('.mini-actions').addEventListener('click', event => {
+      const button = event.target.closest('button');
+      if (!button || button.disabled) return;
+      notify('预览检查：“' + working[currentRole].name + '”可以使用' + button.textContent.replace(/^[＋↗○⚙]\s*/, '') + '。');
+    });
+    selectRole(currentRole);
+  </script>
+</body>
+</html>

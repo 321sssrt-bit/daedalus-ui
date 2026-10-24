@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>光谱批处理台 · 析光实验室</title>
+  <style>
+    :root {
+      --page: #E8EDEC;
+      --surface: #F7FAF9;
+      --white: #FDFEFE;
+      --ink: #253033;
+      --muted: #6E7B7D;
+      --line: #C5D0CF;
+      --cyan: #00A6B4;
+      --cyan-bright: #42D7D9;
+      --cyan-soft: #DDF3F1;
+      --graphite: #202B2E;
+      --graphite-raised: #2D3A3D;
+      --success: #267C68;
+      --warning: #B7792F;
+      --error: #B94D49;
+      --shadow: 0 12px 30px rgba(32, 43, 46, .08);
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--page); color: var(--ink); font-family: "PingFang SC", "Microsoft YaHei", system-ui, sans-serif; font-size: 14px; line-height: 1.5; }
+    button, input, select { font: inherit; }
+    button { cursor: pointer; }
+    button:disabled { cursor: not-allowed; opacity: .42; }
+    button:focus-visible, input:focus-visible, select:focus-visible, label:focus-visible { outline: 3px solid var(--cyan); outline-offset: 3px; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+    .topbar { height: 62px; padding: 0 33px; display: flex; align-items: center; justify-content: space-between; gap: 20px; background: var(--graphite); color: #ECF5F3; border-bottom: 2px solid #354447; }
+    .brand { display: flex; align-items: center; gap: 11px; }
+    .brand-icon { width: 34px; height: 34px; }
+    .brand-name { font-size: 16px; font-weight: 700; letter-spacing: .1em; }
+    .brand-sub { color: #8FA3A5; font-family: Consolas, monospace; font-size: 8px; letter-spacing: .17em; }
+    .lab-nav { display: flex; gap: 25px; align-self: stretch; }
+    .lab-nav span { display: flex; align-items: center; position: relative; color: #91A3A5; font-size: 11px; }
+    .lab-nav span.active { color: #EAF5F3; }
+    .lab-nav span.active::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: var(--cyan-bright); }
+    .system-state { display: flex; align-items: center; gap: 8px; color: #A9BDBE; font-family: Consolas, monospace; font-size: 9px; }
+    .system-state::before { content: ""; width: 6px; height: 6px; background: var(--cyan-bright); box-shadow: 0 0 0 4px rgba(66,215,217,.12); }
+    main { max-width: 1280px; margin: 0 auto; padding: 22px 32px 26px; }
+    .page-heading { display: flex; justify-content: space-between; align-items: flex-end; gap: 20px; margin-bottom: 15px; }
+    .kicker { margin: 0 0 3px; color: #36757B; font-family: Consolas, monospace; font-size: 9px; letter-spacing: .16em; }
+    h1 { margin: 0; font-size: 28px; line-height: 1.3; letter-spacing: .03em; }
+    .experiment-meta { display: flex; gap: 8px; align-items: center; color: var(--muted); font-family: Consolas, monospace; font-size: 10px; }
+    .experiment-id { padding: 5px 8px; border: 1px solid #AABBB9; background: #F0F5F4; color: #35585B; }
+    .run-strip { min-height: 42px; display: grid; grid-template-columns: repeat(3, 1fr); margin-bottom: 18px; border: 1px solid var(--line); background: #F1F5F4; }
+    .run-step { position: relative; display: flex; align-items: center; gap: 9px; padding: 9px 15px; border-right: 1px solid var(--line); color: var(--muted); font-size: 10px; }
+    .run-step:last-child { border-right: 0; }
+    .run-step::after { content: ""; position: absolute; left: 0; bottom: -1px; width: 0; height: 3px; background: var(--cyan); transition: width .25s ease; }
+    .run-step.active { color: var(--ink); font-weight: 600; }
+    .run-step.active::after { width: 100%; }
+    .step-number { display: grid; place-items: center; width: 21px; height: 21px; border: 1px solid #9EAFAE; color: #527174; font-family: Consolas, monospace; font-size: 9px; }
+    .run-step.active .step-number { background: var(--cyan); border-color: var(--cyan); color: #FFFFFF; }
+    .workspace { display: grid; grid-template-columns: minmax(0, 1fr) 292px; gap: 19px; align-items: start; }
+    .intake-panel { min-width: 0; border: 1px solid var(--line); background: var(--surface); box-shadow: var(--shadow); }
+    .dropzone { min-height: 156px; margin: 17px 17px 0; padding: 15px 18px; display: grid; grid-template-columns: 151px minmax(0, 1fr) auto; align-items: center; gap: 18px; border: 1px dashed #8CA9A9; background-color: #F0F7F5; background-image: linear-gradient(rgba(0,166,180,.045) 1px, transparent 1px), linear-gradient(90deg, rgba(0,166,180,.045) 1px, transparent 1px); background-size: 18px 18px; transition: border-color .16s ease, background-color .16s ease; }
+    .dropzone.dragover { border: 2px solid var(--cyan); background-color: #DDF3F1; }
+    .drop-visual { display: block; width: 151px; height: 105px; }
+    .drop-copy h2 { margin: 0 0 5px; font-size: 17px; }
+    .drop-copy p { margin: 0 0 5px; color: #526669; font-size: 11px; }
+    .drop-copy small { color: #7B8D8E; font-size: 9px; }
+    .btn { min-height: 38px; padding: 9px 14px; border: 1px solid #879C9D; background: transparent; color: var(--ink); font-size: 11px; font-weight: 600; transition: background .16s ease, border-color .16s ease; }
+    .btn:hover:not(:disabled) { border-color: var(--cyan); background: var(--cyan-soft); }
+    .btn.primary { border-color: var(--cyan); background: var(--cyan); color: #FFFFFF; }
+    .btn.primary:hover:not(:disabled) { border-color: #008C99; background: #008C99; }
+    .queue-head { min-height: 57px; padding: 14px 18px 10px; display: flex; align-items: flex-end; justify-content: space-between; gap: 14px; }
+    .queue-head h2 { margin: 0; font-size: 14px; }
+    .queue-head h2 span { margin-left: 7px; color: var(--cyan); font-family: Consolas, monospace; font-size: 12px; }
+    .queue-meta { color: var(--muted); font-family: Consolas, monospace; font-size: 9px; }
+    .queue-columns { display: grid; grid-template-columns: minmax(0, 1fr) 85px 112px 58px; gap: 10px; padding: 7px 18px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); background: #EAF0EF; color: #718183; font-size: 9px; letter-spacing: .08em; }
+    .file-queue { padding: 0 18px; }
+    .file-row { display: grid; grid-template-columns: minmax(0, 1fr) 85px 112px 58px; gap: 10px; align-items: center; min-height: 66px; border-bottom: 1px solid #D7E0DE; }
+    .file-main { min-width: 0; display: grid; grid-template-columns: 36px minmax(0, 1fr); align-items: center; gap: 10px; }
+    .file-icon { width: 34px; height: 39px; display: grid; place-items: center; position: relative; border: 1px solid #A9BCBA; background: #FFFFFF; color: #32747A; font-family: Consolas, monospace; font-size: 8px; font-weight: 700; }
+    .file-icon::after { content: ""; position: absolute; right: -1px; top: -1px; border-style: solid; border-width: 0 0 8px 8px; border-color: transparent transparent #A9BCBA transparent; }
+    .file-name { display: block; overflow: hidden; color: #2D3A3D; font-size: 11px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+    .file-note { display: block; margin-top: 3px; overflow: hidden; color: #7B898A; font-size: 9px; text-overflow: ellipsis; white-space: nowrap; }
+    .file-size { color: #506164; font-family: Consolas, monospace; font-size: 10px; }
+    .file-status { display: inline-flex; align-items: center; gap: 6px; color: #4C6B6C; font-size: 10px; }
+    .file-status::before { content: ""; width: 6px; height: 6px; background: #7C9998; }
+    .file-row.processing .file-status { color: #007F8B; }
+    .file-row.processing .file-status::before { background: var(--cyan); }
+    .file-row.done .file-status { color: var(--success); }
+    .file-row.done .file-status::before { background: var(--success); }
+    .file-row.error .file-status { color: var(--error); }
+    .file-row.error .file-status::before { background: var(--error); }
+    .progress-track { height: 3px; margin-top: 6px; background: #D9E3E1; overflow: hidden; }
+    .progress-bar { width: 0; height: 100%; background: var(--cyan); transition: width .2s linear; }
+    .done .progress-bar { background: var(--success); }
+    .remove-upload { padding: 6px 0; border: 0; border-bottom: 1px solid transparent; background: transparent; color: #718183; font-size: 10px; }
+    .remove-upload:hover:not(:disabled) { color: var(--error); border-bottom-color: var(--error); }
+    .empty-queue { padding: 26px 10px; color: var(--muted); font-size: 11px; text-align: center; }
+    .completion { display: none; margin: 13px 18px 0; padding: 11px 13px; align-items: center; justify-content: space-between; gap: 12px; border: 1px solid #A9CFC3; border-left: 4px solid var(--success); background: #E9F4EF; color: #2C6454; font-size: 10px; }
+    .completion.visible { display: flex; }
+    .completion strong { display: block; margin-bottom: 2px; font-size: 11px; }
+    .completion .btn { min-height: 31px; padding: 6px 10px; color: #2C6454; border-color: #86B7A7; white-space: nowrap; }
+    .activity { margin-top: 13px; padding: 11px 18px 12px; border-top: 1px solid var(--line); background: #EFF4F3; }
+    .activity-title { display: flex; justify-content: space-between; margin-bottom: 6px; color: #627476; font-size: 9px; letter-spacing: .1em; }
+    .activity-title span:last-child { font-family: Consolas, monospace; letter-spacing: 0; }
+    .activity-list { display: grid; gap: 4px; margin: 0; padding: 0; list-style: none; }
+    .activity-list li { display: grid; grid-template-columns: 56px 1fr; gap: 9px; color: #5E6F71; font-size: 9px; }
+    .activity-list time { color: #829091; font-family: Consolas, monospace; }
+    .side-stack { display: grid; gap: 14px; }
+    .protocol-panel { padding: 19px 18px 17px; background: var(--graphite); color: #EAF3F1; border: 1px solid #172124; box-shadow: var(--shadow); }
+    .panel-kicker { color: #7E999B; font-family: Consolas, monospace; font-size: 8px; letter-spacing: .16em; }
+    .protocol-panel h2 { margin: 3px 0 4px; font-size: 17px; }
+    .protocol-intro { margin: 0 0 15px; color: #91A6A7; font-size: 9px; }
+    .control { margin-top: 12px; }
+    .control label, .control-label { display: block; margin-bottom: 6px; color: #B7C6C6; font-size: 10px; }
+    .control select { width: 100%; height: 38px; padding: 7px 9px; border: 1px solid #526669; border-radius: 0; background: #2C383B; color: #EDF5F3; font-size: 10px; }
+    .control select:hover { border-color: var(--cyan-bright); }
+    .toggle-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 32px; color: #B7C6C6; font-size: 10px; }
+    .toggle-row label { cursor: pointer; }
+    .toggle { appearance: none; width: 32px; height: 18px; margin: 0; padding: 2px; border: 1px solid #637679; border-radius: 18px; background: #4A5A5D; cursor: pointer; }
+    .toggle::before { content: ""; display: block; width: 12px; height: 12px; border-radius: 50%; background: #CAD5D4; transition: transform .16s ease; }
+    .toggle:checked { border-color: var(--cyan); background: var(--cyan); }
+    .toggle:checked::before { background: #FFFFFF; transform: translateX(14px); }
+    .protocol-estimate { display: flex; justify-content: space-between; gap: 10px; margin: 14px 0 11px; padding-top: 11px; border-top: 1px solid #405154; color: #8FA5A6; font-size: 9px; }
+    .protocol-estimate strong { color: #D9E8E6; font-family: Consolas, monospace; font-weight: 400; }
+    .process-button { width: 100%; min-height: 43px; border: 1px solid var(--cyan-bright); background: var(--cyan-bright); color: #173034; font-size: 11px; font-weight: 700; letter-spacing: .04em; transition: background .16s ease; }
+    .process-button:hover:not(:disabled) { background: #72E6E5; }
+    .selection-summary { min-height: 30px; margin: 8px 0 0; color: #8FA5A6; font-size: 9px; line-height: 1.6; text-align: center; }
+    .clear-button { width: 100%; margin-top: 7px; padding: 5px; border: 0; background: transparent; color: #8FA5A6; font-size: 9px; text-decoration: underline; text-underline-offset: 3px; }
+    .clear-button:hover:not(:disabled) { color: #FFFFFF; }
+    .quality-card { padding: 14px 16px; border: 1px solid var(--line); background: #F2F6F5; }
+    .quality-card h3 { margin: 0 0 8px; font-size: 11px; }
+    .quality-list { display: grid; gap: 7px; margin: 0; padding: 0; list-style: none; }
+    .quality-list li { display: grid; grid-template-columns: 14px 1fr; gap: 7px; color: #657779; font-size: 9px; }
+    .quality-list li::before { content: "✓"; color: var(--success); font-weight: 700; }
+    .page-note { margin: 13px 0 0; color: #6F7E7F; font-size: 9px; }
+    .toast { position: fixed; right: 25px; bottom: 23px; z-index: 30; max-width: min(390px, calc(100vw - 32px)); padding: 13px 16px; border-left: 4px solid var(--cyan-bright); background: var(--graphite); color: #F0F8F6; box-shadow: var(--shadow); font-size: 11px; opacity: 0; transform: translateY(10px); pointer-events: none; transition: opacity .18s ease, transform .18s ease; }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    @media (max-width: 1020px) {
+      .workspace { grid-template-columns: minmax(0, 1fr) 265px; }
+      .dropzone { grid-template-columns: 122px minmax(0, 1fr); }
+      .drop-visual { width: 122px; }
+      .dropzone > .btn { grid-column: 2; justify-self: start; margin-top: -8px; }
+      .queue-columns, .file-row { grid-template-columns: minmax(0, 1fr) 69px 92px 48px; gap: 7px; }
+    }
+    @media (max-width: 820px) {
+      .topbar { padding: 0 22px; }
+      .lab-nav { display: none; }
+      main { padding: 21px 20px 30px; }
+      .workspace { grid-template-columns: 1fr; }
+      .side-stack { grid-template-columns: 1fr 1fr; }
+      .protocol-panel { grid-row: span 2; }
+      .dropzone { grid-template-columns: 151px minmax(0, 1fr) auto; }
+      .drop-visual { width: 151px; }
+      .dropzone > .btn { grid-column: auto; margin-top: 0; }
+    }
+    @media (max-width: 650px) {
+      .dropzone { grid-template-columns: 1fr; text-align: center; }
+      .drop-visual { display: none; }
+      .dropzone > .btn { grid-column: 1; justify-self: center; margin: 0; }
+      .queue-columns { display: none; }
+      .file-row { grid-template-columns: minmax(0, 1fr) 62px 48px; padding: 10px 0; }
+      .file-status { grid-column: 2; }
+      .file-size { grid-column: 2; grid-row: 1; }
+      .remove-upload { grid-column: 3; grid-row: 1; }
+      .side-stack { grid-template-columns: 1fr; }
+      .run-step { padding: 8px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><svg class="brand-icon" viewBox="0 0 36 36" aria-hidden="true"><path d="M5 4h26v28H5z" fill="none" stroke="#60777A"/><path d="M10 25V11m5 14V16m5 9V8m5 17V13" stroke="#42D7D9" stroke-width="2"/><path d="M8 29h18" stroke="#ECF5F3"/></svg><div><div class="brand-name">析光实验室</div><div class="brand-sub">SPECTRA / WORKBENCH</div></div></div>
+    <nav class="lab-nav" aria-label="实验台栏目"><span>样本库</span><span class="active">批处理台</span><span>分析记录</span><span>协议管理</span></nav>
+    <div class="system-state">LOCAL ENGINE · READY</div>
+  </header>
+  <main>
+    <div class="page-heading"><div><p class="kicker">EXPERIMENT INTAKE / BATCH 024</p><h1>光谱批处理台</h1></div><div class="experiment-meta"><span class="experiment-id">EXP-0624-A</span><span>操作员：许研</span></div></div>
+    <div class="run-strip" aria-label="处理步骤"><div class="run-step active" data-step="1"><span class="step-number">01</span>导入样本并校验</div><div class="run-step" data-step="2"><span class="step-number">02</span>确认协议与参数</div><div class="run-step" data-step="3"><span class="step-number">03</span>运行并生成报告</div></div>
+
+    <div class="workspace">
+      <section class="intake-panel" aria-label="文件导入与处理队列">
+        <div class="dropzone" id="dropZone">
+          <svg class="drop-visual" viewBox="0 0 151 105" role="img" aria-labelledby="dropArtTitle">
+            <title id="dropArtTitle">三份光谱样本进入青色扫描托盘</title>
+            <path d="M13 78h124l-11 18H25z" fill="#D4E4E1" stroke="#6C8C8E"/>
+            <path d="M24 75h103l-8 12H32z" fill="#202B2E"/>
+            <path d="M40 18h70v54H40z" fill="#FDFEFE" stroke="#8CA9A9"/>
+            <path d="M49 28h31M49 35h45M49 42h39" stroke="#A1B5B4"/>
+            <path d="m49 60 10-9 10 5 12-14 12 8 10-4" fill="none" stroke="#00A6B4" stroke-width="2"/>
+            <path d="M27 28h8v34h-8zM116 28h8v34h-8z" fill="#DDF3F1" stroke="#6C8C8E"/>
+            <path d="M20 14h111" stroke="#42D7D9" stroke-width="2"/>
+            <path d="M20 10v8M131 10v8" stroke="#42D7D9"/>
+            <circle cx="75" cy="14" r="4" fill="#202B2E" stroke="#42D7D9"/>
+            <path d="M75 2v6" stroke="#202B2E"/>
+            <g fill="#6E7B7D" font-size="6" font-family="Consolas, monospace"><text x="12" y="103">INTAKE TRAY / 03</text><text x="105" y="8">SCAN</text></g>
+          </svg>
+          <div class="drop-copy"><h2>把样本文件放到实验台上</h2><p>拖放到此处，或从本机选择多份文件。</p><small>支持 CSV、JSON、TXT · 单份不超过 20 MB · 仅在当前页面演示处理</small></div>
+          <label class="sr-only" for="fileInput">选择要加入队列的光谱文件</label><input class="sr-only" id="fileInput" type="file" multiple accept=".csv,.json,.txt"><button class="btn primary" id="selectFiles" type="button">选择文件</button>
+        </div>
+        <div class="queue-head"><h2>待处理队列 <span id="queueCount">03 FILES</span></h2><div class="queue-meta"><span id="totalSize">0 MB</span> / 单批最多 20 份</div></div>
+        <div class="queue-columns" aria-hidden="true"><span>样本文件</span><span>大小</span><span>校验 / 进度</span><span>操作</span></div>
+        <div class="file-queue" id="fileQueue" aria-live="polite"></div>
+        <div class="completion" id="completion"><div><strong id="completionTitle">本批处理完成</strong><span id="completionMeta">结果已生成</span></div><button class="btn" id="downloadReport" type="button">下载处理摘要</button></div>
+        <div class="activity"><div class="activity-title"><span>RUN LOG / 实时记录</span><span>本地任务不自动上传</span></div><ul class="activity-list" id="activityList"><li><time>10:18:42</time><span>协议“常规峰值检测”已载入，等待样本。</span></li><li><time>10:18:37</time><span>实验台 EXP-0624-A 已完成环境检查。</span></li></ul></div>
+      </section>
+
+      <aside class="side-stack" aria-label="处理协议与质量检查">
+        <section class="protocol-panel">
+          <span class="panel-kicker">PROTOCOL / P-07</span><h2>处理协议</h2><p class="protocol-intro">参数仅作用于当前批次，不会覆盖已保存的原始文件。</p>
+          <div class="control"><label for="protocol">分析方法</label><select id="protocol"><option value="常规峰值检测">常规峰值检测</option><option value="高精度去噪">高精度去噪</option><option value="基线漂移校正">基线漂移校正</option></select></div>
+          <div class="control"><span class="control-label">预处理</span><div class="toggle-row"><label for="baseline">自动基线校正</label><input class="toggle" id="baseline" type="checkbox" role="switch" checked></div><div class="toggle-row"><label for="outliers">剔除异常峰值</label><input class="toggle" id="outliers" type="checkbox" role="switch" checked></div></div>
+          <div class="control"><label for="outputFormat">结果格式</label><select id="outputFormat"><option value="CSV">CSV 数据表</option><option value="JSON">JSON 结构化数据</option></select></div>
+          <div class="protocol-estimate"><span>预计运行时间</span><strong id="estimate">约 18 秒</strong></div>
+          <button class="process-button" id="processButton" type="button">开始处理 3 份文件</button><p class="selection-summary" id="selectionSummary">3 份文件已就绪，处理期间可查看实时进度。</p><button class="clear-button" id="clearQueue" type="button">清空队列并重新选择</button>
+        </section>
+        <section class="quality-card"><h3>入列前自动检查</h3><ul class="quality-list"><li>扩展名与大小限制</li><li>原始文件保持只读</li><li>处理结果单独生成</li></ul></section>
+      </aside>
+    </div>
+    <p class="page-note">实验提示：若文件格式或大小不符合要求，请先移除异常项；处理队列只存在于当前页面，刷新后恢复示例批次。</p>
+  </main>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    const samples = [
+      { id: 'sample-a', name: '东侧水样_A01.csv', size: 2516582, status: 'ready', progress: 0, note: '12,480 行 · UTF-8 · 2 个检测通道' },
+      { id: 'sample-b', name: '对照组_B07.csv', size: 1887437, status: 'ready', progress: 0, note: '9,216 行 · UTF-8 · 2 个检测通道' },
+      { id: 'sample-c', name: '峰值记录_0612.json', size: 884736, status: 'ready', progress: 0, note: '864 个数据点 · 结构校验通过' }
+    ];
+    let files = JSON.parse(JSON.stringify(samples));
+    let isProcessing = false;
+    let processTimer = null;
+    let fileSequence = 0;
+    const queue = document.getElementById('fileQueue');
+    const processButton = document.getElementById('processButton');
+    const toast = document.getElementById('toast');
+    let toastTimer;
+    function notify(message) {
+      clearTimeout(toastTimer);
+      toast.textContent = message;
+      toast.classList.add('show');
+      toastTimer = setTimeout(() => toast.classList.remove('show'), 3200);
+    }
+    function formatSize(bytes) {
+      if (bytes === 0) return '0 KB';
+      if (bytes >= 1048576) return (bytes / 1048576).toFixed(1) + ' MB';
+      return Math.max(1, Math.round(bytes / 1024)) + ' KB';
+    }
+    function extension(name) { return name.includes('.') ? name.split('.').pop().toUpperCase() : 'FILE'; }
+    function statusText(file) {
+      if (file.status === 'processing') return '处理中 ' + file.progress + '%';
+      if (file.status === 'done') return '已完成';
+      if (file.status === 'error') return '校验失败';
+      return '已校验';
+    }
+    function renderQueue() {
+      queue.innerHTML = '';
+      if (!files.length) {
+        const empty = document.createElement('div');
+        empty.className = 'empty-queue';
+        empty.textContent = '队列为空。请从上方拖入或选择需要处理的样本文件。';
+        queue.appendChild(empty);
+      }
+      files.forEach(file => {
+        const row = document.createElement('div');
+        row.className = 'file-row ' + file.status;
+        row.dataset.id = file.id;
+        row.innerHTML = '<div class="file-main"><span class="file-icon"></span><div><span class="file-name"></span><span class="file-note"></span><div class="progress-track"><div class="progress-bar"></div></div></div></div><span class="file-size">' + formatSize(file.size) + '</span><span class="file-status">' + statusText(file) + '</span><button class="remove-upload" type="button">移除</button>';
+        row.querySelector('.file-icon').textContent = extension(file.name).slice(0, 4);
+        row.querySelector('.file-name').textContent = file.name;
+        row.querySelector('.file-name').title = file.name;
+        row.querySelector('.file-note').textContent = file.note;
+        row.querySelector('.progress-bar').style.width = file.progress + '%';
+        const remove = row.querySelector('.remove-upload');
+        remove.dataset.id = file.id;
+        remove.setAttribute('aria-label', '移除 ' + file.name);
+        remove.disabled = isProcessing;
+        queue.appendChild(row);
+      });
+      const total = files.reduce((sum, file) => sum + file.size, 0);
+      document.getElementById('queueCount').textContent = String(files.length).padStart(2, '0') + ' FILES';
+      document.getElementById('totalSize').textContent = formatSize(total);
+      const errorCount = files.filter(file => file.status === 'error').length;
+      const readyCount = files.filter(file => file.status === 'ready' || file.status === 'done').length;
+      processButton.disabled = isProcessing || !files.length || files.length > 20 || errorCount > 0;
+      processButton.textContent = isProcessing ? '正在处理 · ' + files.filter(file => file.status === 'done').length + '/' + files.length : (files.some(file => file.status === 'done') ? '再次处理 ' + readyCount + ' 份文件' : '开始处理 ' + readyCount + ' 份文件');
+      const summary = document.getElementById('selectionSummary');
+      if (isProcessing) summary.textContent = '本地引擎正在运行，完成前暂不能修改队列。';
+      else if (files.length > 20) summary.textContent = '每批最多 20 份，请移除多余文件。';
+      else if (errorCount) summary.textContent = '请先移除 ' + errorCount + ' 份异常文件，再开始处理。';
+      else if (!files.length) summary.textContent = '队列为空，请先添加至少一份文件。';
+      else summary.textContent = readyCount + ' 份文件可处理，原始文件保持不变。';
+      document.getElementById('clearQueue').disabled = isProcessing || !files.length;
+      document.getElementById('selectFiles').disabled = isProcessing;
+      document.getElementById('protocol').disabled = isProcessing;
+      document.getElementById('baseline').disabled = isProcessing;
+      document.getElementById('outliers').disabled = isProcessing;
+      document.getElementById('outputFormat').disabled = isProcessing;
+    }
+    function addLog(message) {
+      const item = document.createElement('li');
+      const time = document.createElement('time');
+      const text = document.createElement('span');
+      time.textContent = new Date().toLocaleTimeString('zh-CN', { hour12: false });
+      text.textContent = message;
+      item.append(time, text);
+      const list = document.getElementById('activityList');
+      list.prepend(item);
+      while (list.children.length > 3) list.lastElementChild.remove();
+    }
+    function setStep(step) {
+      document.querySelectorAll('.run-step').forEach(item => item.classList.toggle('active', Number(item.dataset.step) === step));
+    }
+    function addFiles(fileList) {
+      if (isProcessing) return;
+      const incoming = [...fileList];
+      incoming.forEach(item => {
+        const ext = extension(item.name).toLowerCase();
+        const validType = ['csv', 'json', 'txt'].includes(ext);
+        const validSize = item.size <= 20 * 1048576;
+        files.push({ id: 'upload-' + Date.now() + '-' + fileSequence++, name: item.name, size: item.size, status: validType && validSize ? 'ready' : 'error', progress: 0, note: !validType ? '不支持 .' + ext + ' 格式，请使用 CSV、JSON 或 TXT' : !validSize ? '文件超过 20 MB，请拆分后重新导入' : '本机文件 · 等待协议处理' });
+      });
+      document.getElementById('completion').classList.remove('visible');
+      addLog('已加入 ' + incoming.length + ' 份本机文件，完成格式与大小检查。');
+      setStep(2);
+      renderQueue();
+      const failed = files.filter(file => file.status === 'error').length;
+      notify(failed ? '文件已入列，但有 ' + failed + ' 份未通过校验，请检查后移除。' : incoming.length + ' 份文件已加入队列并通过基础校验。');
+    }
+    document.getElementById('selectFiles').addEventListener('click', () => document.getElementById('fileInput').click());
+    document.getElementById('fileInput').addEventListener('change', event => { if (event.target.files.length) addFiles(event.target.files); event.target.value = ''; });
+    const dropZone = document.getElementById('dropZone');
+    ['dragenter', 'dragover'].forEach(type => dropZone.addEventListener(type, event => { event.preventDefault(); if (!isProcessing) dropZone.classList.add('dragover'); }));
+    ['dragleave', 'drop'].forEach(type => dropZone.addEventListener(type, event => { event.preventDefault(); dropZone.classList.remove('dragover'); }));
+    dropZone.addEventListener('drop', event => { if (!isProcessing && event.dataTransfer.files.length) addFiles(event.dataTransfer.files); });
+    queue.addEventListener('click', event => {
+      const button = event.target.closest('.remove-upload');
+      if (!button || isProcessing) return;
+      const index = files.findIndex(file => file.id === button.dataset.id);
+      if (index < 0) return;
+      const removed = files.splice(index, 1)[0];
+      document.getElementById('completion').classList.remove('visible');
+      addLog('已从队列移除“' + removed.name + '”，原始文件未改动。');
+      renderQueue();
+      notify('已移除“' + removed.name + '”。');
+    });
+    document.getElementById('clearQueue').addEventListener('click', () => {
+      if (isProcessing) return;
+      files = [];
+      document.getElementById('completion').classList.remove('visible');
+      addLog('当前处理队列已清空，可重新导入样本。');
+      setStep(1);
+      renderQueue();
+      notify('队列已清空，本机原始文件不受影响。');
+    });
+    document.getElementById('protocol').addEventListener('change', event => {
+      const estimates = { '常规峰值检测': '约 18 秒', '高精度去噪': '约 42 秒', '基线漂移校正': '约 25 秒' };
+      document.getElementById('estimate').textContent = estimates[event.target.value];
+      addLog('分析方法已切换为“' + event.target.value + '”。');
+    });
+    processButton.addEventListener('click', () => {
+      if (processButton.disabled) return;
+      isProcessing = true;
+      document.getElementById('completion').classList.remove('visible');
+      files.forEach(file => { file.status = 'processing'; file.progress = 0; });
+      setStep(3);
+      addLog('批次 EXP-0624-A 启动，协议：' + document.getElementById('protocol').value + '。');
+      renderQueue();
+      processTimer = setInterval(() => {
+        files.forEach((file, index) => {
+          if (file.status !== 'processing') return;
+          file.progress = Math.min(100, file.progress + 8 + index * 2);
+          if (file.progress === 100) {
+            file.status = 'done';
+            addLog('“' + file.name + '”处理完成，结果已生成。');
+          }
+        });
+        renderQueue();
+        if (files.every(file => file.status === 'done')) {
+          clearInterval(processTimer);
+          processTimer = null;
+          isProcessing = false;
+          const now = new Date();
+          document.getElementById('completionTitle').textContent = files.length + ' 份样本处理完成';
+          document.getElementById('completionMeta').textContent = '完成于 ' + now.toLocaleTimeString('zh-CN', { hour12: false }) + ' · ' + document.getElementById('protocol').value + ' · 输出 ' + document.getElementById('outputFormat').value;
+          document.getElementById('completion').classList.add('visible');
+          addLog('整批任务完成，处理摘要可下载。');
+          renderQueue();
+          notify('本批 ' + files.length + ' 份样本已全部处理完成。');
+        }
+      }, 220);
+    });
+    document.getElementById('downloadReport').addEventListener('click', () => {
+      const lines = ['析光实验室 · 批次处理摘要', '实验编号：EXP-0624-A', '协议：' + document.getElementById('protocol').value, '基线校正：' + (document.getElementById('baseline').checked ? '开启' : '关闭'), '异常峰值剔除：' + (document.getElementById('outliers').checked ? '开启' : '关闭'), '输出格式：' + document.getElementById('outputFormat').value, '', ...files.map(file => file.name + ' | ' + formatSize(file.size) + ' | ' + statusText(file))];
+      const url = URL["createObjectURL"](new Blob([lines.join('\n')], { type: 'text/plain;charset=utf-8' }));
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'EXP-0624-A-处理摘要.txt';
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL["revokeObjectURL"](url), 1000);
+      notify('处理摘要已下载。');
+    });
+    renderQueue();
+  </script>
+</body>
+</html>

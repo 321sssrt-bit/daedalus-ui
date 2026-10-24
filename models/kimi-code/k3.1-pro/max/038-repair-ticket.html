@@ -1,0 +1,407 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#092F57">
+  <title>城市燃气 · 报修提交故障</title>
+  <style>
+    :root {
+      --page: #DCE5EA;
+      --paper: #F3F6F8;
+      --white: #FFFFFF;
+      --blue: #1259A7;
+      --navy: #092F57;
+      --yellow: #F5C842;
+      --muted: #657583;
+      --line: #C5D2DA;
+      --pale-blue: #D9E8F5;
+      --success: #177A5B;
+    }
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    html, body { margin: 0; min-height: 100%; }
+    body {
+      background: var(--page);
+      color: var(--navy);
+      font-family: "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    button { font: inherit; color: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+    button:disabled { cursor: wait; }
+    button:focus-visible { outline: 3px solid var(--yellow); outline-offset: 3px; }
+    .stage {
+      min-height: 100dvh;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+      background-image: linear-gradient(rgba(18,89,167,.08) 1px, transparent 1px), linear-gradient(90deg, rgba(18,89,167,.08) 1px, transparent 1px);
+      background-size: 32px 32px;
+    }
+    .wall { display: none; }
+    .device {
+      width: 390px;
+      height: min(844px, calc(100dvh - 40px));
+      max-width: 100%;
+      position: relative;
+      z-index: 2;
+      overflow: hidden;
+      border: 6px solid var(--navy);
+      border-radius: 24px;
+      background: var(--paper);
+      box-shadow: 0 20px 48px rgba(9,47,87,.24);
+    }
+    .screen { height: 100%; display: flex; flex-direction: column; position: relative; }
+    .statusbar {
+      height: 28px;
+      flex: 0 0 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 18px;
+      background: var(--navy);
+      color: var(--white);
+      font: 700 11px/1 "SFMono-Regular", Consolas, monospace;
+    }
+    .status-right { display: flex; align-items: center; gap: 6px; }
+    .appbar {
+      min-height: 61px;
+      flex: 0 0 61px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0 17px;
+      border-bottom: 1px solid var(--line);
+      background: var(--white);
+    }
+    .utility-logo { width: 38px; height: 38px; display: grid; place-items: center; background: var(--blue); color: var(--white); clip-path: polygon(0 0, 82% 0, 100% 18%, 100% 100%, 18% 100%, 0 82%); }
+    .brand-copy { flex: 1; }
+    .brand-name { margin: 0; font-size: 17px; line-height: 1.15; font-weight: 850; letter-spacing: .06em; }
+    .brand-en { margin: 5px 0 0; color: var(--muted); font: 700 8px/1 Consolas, monospace; letter-spacing: .11em; }
+    .context-badge { padding: 6px 9px; background: var(--yellow); color: var(--navy); font-size: 11px; line-height: 1; font-weight: 900; }
+    .state-strip {
+      min-height: 32px;
+      flex: 0 0 32px;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 0 17px;
+      background: var(--yellow);
+      color: var(--navy);
+      font-size: 11px;
+      line-height: 1.3;
+      font-weight: 800;
+    }
+    .state-strip.success { background: var(--success); color: var(--white); }
+    .state-strip.home { background: var(--pale-blue); color: var(--navy); }
+    .strip-symbol { width: 16px; height: 16px; flex: 0 0 auto; display: grid; place-items: center; border: 1.5px solid currentColor; font: 900 11px/1 Consolas, monospace; }
+    .content { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: var(--blue) var(--paper); }
+    .view { padding: 18px 18px 25px; }
+    .error-code { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 0 0 10px; color: var(--blue); font: 800 10px/1.3 Consolas, monospace; letter-spacing: .08em; }
+    .error-code span:last-child { padding: 4px 6px; border: 1px solid var(--blue); }
+    .error-view h1, .success-view h1, .home-view h1 { margin: 0; font-size: 29px; line-height: 1.3; font-weight: 850; letter-spacing: -.04em; }
+    .human-copy { margin: 11px 0 14px; color: var(--muted); font-size: 13px; line-height: 1.75; }
+    .human-copy strong { color: var(--navy); font-weight: 800; }
+    .fault-visual { display: block; width: 100%; height: 137px; margin: 0 0 16px; background: var(--navy); }
+    .ticket {
+      position: relative;
+      margin-bottom: 13px;
+      border: 1px solid var(--line);
+      border-left: 5px solid var(--blue);
+      background: var(--white);
+      box-shadow: 4px 4px 0 var(--pale-blue);
+    }
+    .ticket::after { content: ""; position: absolute; top: 0; right: 0; border-top: 16px solid var(--pale-blue); border-left: 16px solid transparent; }
+    .ticket-head { display: flex; justify-content: space-between; align-items: start; gap: 10px; padding: 13px 13px 11px; border-bottom: 1px dashed var(--line); }
+    .ticket-label { display: block; margin-bottom: 5px; color: var(--muted); font-size: 10px; line-height: 1; font-weight: 700; }
+    .ticket-number { display: block; color: var(--blue); font: 800 15px/1.25 Consolas, monospace; letter-spacing: .02em; }
+    .kept-badge { flex: 0 0 auto; padding: 4px 7px; background: var(--pale-blue); color: var(--blue); font-size: 10px; font-weight: 800; }
+    .ticket-details { margin: 0; padding: 11px 13px 13px; display: grid; gap: 9px; }
+    .detail-row { display: grid; grid-template-columns: 55px 1fr; gap: 10px; font-size: 11px; line-height: 1.55; }
+    .detail-row dt { color: var(--muted); }
+    .detail-row dd { margin: 0; color: var(--navy); font-weight: 650; }
+    .safety-note { display: flex; align-items: flex-start; gap: 9px; padding: 11px 12px; border: 1px solid var(--yellow); background: rgba(245,200,66,.13); }
+    .safety-note svg { flex: 0 0 auto; margin-top: 2px; color: var(--blue); }
+    .safety-note p { margin: 0; color: var(--navy); font-size: 10px; line-height: 1.65; }
+    .safety-note strong { font-weight: 900; }
+    .action-dock { flex: 0 0 auto; padding: 10px 16px 14px; border-top: 1px solid var(--line); background: var(--white); }
+    .dock-note { display: flex; align-items: center; justify-content: center; gap: 6px; margin: 0 0 9px; color: var(--muted); font-size: 10px; line-height: 1.4; }
+    .dock-note svg { color: var(--blue); }
+    .action-row { display: grid; grid-template-columns: 1.35fr 1fr; gap: 9px; }
+    .action-button { min-height: 49px; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 0 12px; border: 2px solid var(--blue); border-radius: 3px; font-size: 14px; font-weight: 850; }
+    .action-button svg { width: 19px; height: 19px; }
+    .action-button.primary { background: var(--blue); color: var(--white); box-shadow: 3px 3px 0 var(--navy); }
+    .action-button.primary:hover:not(:disabled) { background: var(--navy); }
+    .action-button.primary:active:not(:disabled) { transform: translate(2px,2px); box-shadow: 1px 1px 0 var(--navy); }
+    .action-button.secondary { background: var(--white); color: var(--blue); }
+    .action-button.secondary:hover:not(:disabled) { background: var(--pale-blue); }
+    .action-button:disabled { opacity: .58; box-shadow: none; }
+    .success-mark { width: 58px; height: 58px; display: grid; place-items: center; margin-bottom: 13px; background: var(--success); color: var(--white); clip-path: polygon(0 0, 82% 0, 100% 18%, 100% 100%, 18% 100%, 0 82%); }
+    .success-view .ticket { border-left-color: var(--success); }
+    .success-view .ticket-number { color: var(--success); }
+    .arrival { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 13px; padding: 13px; background: var(--navy); color: var(--white); }
+    .arrival span { font-size: 11px; opacity: .76; }
+    .arrival strong { display: block; margin-top: 4px; font-size: 17px; }
+    .arrival .arrival-time { color: var(--yellow); font: 800 22px/1 Consolas, monospace; }
+    .progress-details { margin: 0 0 14px; padding: 14px; border: 1px solid var(--line); background: var(--white); }
+    .progress-details h2 { margin: 0 0 13px; font-size: 13px; }
+    .timeline { margin: 0; padding: 0; list-style: none; }
+    .timeline li { position: relative; padding: 0 0 15px 22px; color: var(--muted); font-size: 11px; line-height: 1.55; }
+    .timeline li:last-child { padding-bottom: 0; }
+    .timeline li::before { content: ""; position: absolute; left: 2px; top: 4px; width: 8px; height: 8px; background: var(--line); }
+    .timeline li::after { content: ""; position: absolute; left: 5.5px; top: 15px; bottom: 3px; width: 1px; background: var(--line); }
+    .timeline li:last-child::after { display: none; }
+    .timeline li.done { color: var(--navy); font-weight: 700; }
+    .timeline li.done::before { background: var(--success); }
+    .home-banner { position: relative; margin-bottom: 17px; padding: 19px 17px; overflow: hidden; background: var(--navy); color: var(--white); }
+    .home-banner::after { content: ""; position: absolute; right: -24px; top: -35px; width: 120px; height: 120px; border: 24px solid var(--blue); transform: rotate(25deg); }
+    .home-banner p { position: relative; z-index: 1; margin: 0 0 7px; color: var(--yellow); font: 700 9px/1 Consolas, monospace; letter-spacing: .16em; }
+    .home-banner h1 { position: relative; z-index: 1; max-width: 240px; font-size: 26px; }
+    .home-banner span { position: relative; z-index: 1; display: block; margin-top: 10px; font-size: 11px; opacity: .72; }
+    .home-section-head { display: flex; align-items: center; justify-content: space-between; margin: 0 0 10px; }
+    .home-section-head h2 { margin: 0; font-size: 14px; }
+    .home-section-head span { color: var(--muted); font-size: 10px; }
+    .home-order { padding: 15px; border-top: 4px solid var(--blue); background: var(--white); box-shadow: 0 3px 0 var(--pale-blue); }
+    .home-order-top { display: flex; justify-content: space-between; gap: 10px; margin-bottom: 9px; }
+    .home-order-top strong { font: 800 14px/1.4 Consolas, monospace; color: var(--blue); }
+    .home-order-status { padding: 4px 6px; align-self: flex-start; background: var(--yellow); color: var(--navy); font-size: 10px; font-weight: 800; }
+    .home-order-status.success { background: var(--success); color: var(--white); }
+    .home-order p { margin: 0 0 13px; color: var(--muted); font-size: 12px; line-height: 1.65; }
+    .resume-button { width: 100%; min-height: 43px; border: 1.5px solid var(--blue); border-radius: 3px; background: var(--white); color: var(--blue); font-size: 13px; font-weight: 800; }
+    .resume-button:hover { background: var(--blue); color: var(--white); }
+    .guide { margin-top: 17px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+    .guide-toggle { width: 100%; min-height: 48px; display: flex; justify-content: space-between; align-items: center; padding: 0; border: 0; background: transparent; color: var(--navy); font-size: 12px; font-weight: 800; }
+    .guide-toggle:hover { color: var(--blue); }
+    .guide-toggle svg { transition: transform .2s ease; }
+    .guide-toggle[aria-expanded="true"] svg { transform: rotate(180deg); }
+    .guide-content { padding: 0 0 13px; color: var(--muted); font-size: 11px; line-height: 1.75; }
+    .guide-content p { margin: 0 0 6px; }
+    .toast { position: absolute; z-index: 30; left: 18px; right: 18px; bottom: 88px; padding: 11px 13px; border-left: 5px solid var(--yellow); background: var(--navy); color: var(--white); font-size: 12px; line-height: 1.5; font-weight: 700; box-shadow: 0 8px 20px rgba(9,47,87,.2); }
+    @media (min-width: 900px) {
+      .wall { display: block; position: fixed; z-index: 1; pointer-events: none; }
+      .wall-left { left: max(45px, calc(50% - 510px)); top: 80px; }
+      .wall-service { display: inline-block; margin: 0 0 17px; padding: 7px 9px; background: var(--blue); color: var(--white); font: 800 10px/1 Consolas, monospace; letter-spacing: .13em; }
+      .wall-number { margin: 0; color: var(--navy); font: 900 64px/1 Consolas, monospace; letter-spacing: -.08em; }
+      .wall-caption { margin: 12px 0 0; color: var(--blue); font-size: 13px; font-weight: 800; line-height: 1.8; }
+      .wall-right { right: max(45px, calc(50% - 505px)); bottom: 80px; width: 218px; padding: 16px; border: 2px solid var(--navy); background: var(--yellow); box-shadow: 8px 8px 0 var(--navy); }
+      .wall-right strong { display: block; margin-bottom: 7px; font-size: 14px; }
+      .wall-right p { margin: 0; font-size: 11px; line-height: 1.75; }
+      .wall-right small { display: block; margin-top: 12px; padding-top: 9px; border-top: 1px solid var(--navy); font: 700 9px/1.5 Consolas, monospace; }
+    }
+    @media (max-width: 430px) {
+      .stage { display: block; padding: 0; }
+      .device { width: 100%; height: 100dvh; border: 0; border-radius: 0; box-shadow: none; }
+    }
+    @media (max-height: 680px) and (min-width: 431px) {
+      .stage { padding: 12px; }
+      .device { height: calc(100dvh - 24px); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <main class="stage">
+    <aside class="wall wall-left" aria-hidden="true">
+      <p class="wall-service">PUBLIC UTILITY / 24H</p>
+      <p class="wall-number">96177</p>
+      <p class="wall-caption">城市燃气服务热线<br>急修 · 咨询 · 安全检查</p>
+    </aside>
+    <aside class="wall wall-right" aria-hidden="true">
+      <strong>先安全，再报修。</strong>
+      <p>闻到燃气味时，不开关电器，不使用明火。立即开窗，到户外联系抢修。</p>
+      <small>SERVICE NOTICE 038<br>KEEP YOUR TICKET</small>
+    </aside>
+
+    <section class="device" aria-label="城市燃气手机报修服务">
+      <div class="screen">
+        <div class="statusbar" aria-hidden="true">
+          <span>09:41</span>
+          <span class="status-right">
+            <svg width="16" height="11" viewBox="0 0 16 11" fill="none"><path d="M1 10V7M5 10V5M9 10V3M13 10V1" stroke="currentColor" stroke-width="2"/></svg>
+            <svg width="20" height="11" viewBox="0 0 20 11"><rect x=".7" y=".7" width="16" height="9.6" rx="2" stroke="currentColor"/><path d="M18 4h2v3h-2" fill="currentColor"/><rect x="3" y="3" width="11" height="5" fill="currentColor"/></svg>
+          </span>
+        </div>
+        <header class="appbar">
+          <div class="utility-logo" aria-hidden="true"><svg width="25" height="25" viewBox="0 0 24 24" fill="none"><path d="M13 2C14 7 8 8 9 12C7 11 6 9 6 7C2 12 4 20 11 21C18 22 22 15 18 10C18 14 15 14 15 12C17 7 14 4 13 2Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg></div>
+          <div class="brand-copy"><p class="brand-name">城市燃气</p><p class="brand-en">CITY GAS · 96177</p></div>
+          <span class="context-badge" id="contextBadge">故障</span>
+        </header>
+        <div class="state-strip" id="stateStrip" role="status" aria-live="polite"><span class="strip-symbol" id="stripSymbol" aria-hidden="true">!</span><span id="stripText">提交遇到问题 · 你填写的内容已保留</span></div>
+
+        <div class="content" id="contentScroll">
+          <section class="view error-view" id="errorView">
+            <p class="error-code"><span>服务连接超时</span><span>E-NET-504</span></p>
+            <h1>这一次，<br>报修没提交成功。</h1>
+            <p class="human-copy">不是你家燃气出了新问题，而是<strong>我们的服务暂时没连上</strong>。地址和故障描述都还在，不用重新填写。</p>
+            <svg class="fault-visual" viewBox="0 0 354 137" role="img" aria-label="蓝色工程图上的断开管线与黄色警示标志">
+              <defs><pattern id="repairGrid" width="16" height="16" patternUnits="userSpaceOnUse"><path d="M16 0H0V16" fill="none" stroke="#D9E8F5" stroke-width=".5" opacity=".25"/></pattern></defs>
+              <rect width="354" height="137" fill="#092F57"/><rect width="354" height="137" fill="url(#repairGrid)"/>
+              <path d="M0 16H76M278 121H354" stroke="#F5C842" stroke-width="3"/>
+              <path d="M36 48H126V76H36Z" fill="#1259A7" stroke="#F3F6F8" stroke-width="2"/>
+              <path d="M48 48V36H66V48M95 48V36H113V48" fill="none" stroke="#F3F6F8" stroke-width="2"/>
+              <path d="M126 56H154M126 68H146" stroke="#F3F6F8" stroke-width="6"/>
+              <path d="M207 56H231V76H317V48M231 68H317" fill="none" stroke="#F3F6F8" stroke-width="6"/>
+              <path d="M169 43L158 59H171L163 79L188 57H175L184 43Z" fill="#F5C842"/>
+              <path d="M303 48V35H317V48M303 76V89H317V76" fill="none" stroke="#F3F6F8" stroke-width="2"/>
+              <path d="M242 25L265 65H219Z" fill="#F5C842" stroke="#092F57" stroke-width="2"/>
+              <path d="M242 38V49M242 56V57" stroke="#092F57" stroke-width="3" stroke-linecap="round"/>
+              <text x="36" y="111" fill="#D9E8F5" font-size="9" font-family="monospace" letter-spacing="1">CONNECTION INTERRUPTED</text>
+              <text x="36" y="124" fill="#F5C842" font-size="7" font-family="monospace">YOUR FORM IS STILL HERE</text>
+              <path d="M303 109H332V101M303 109V101" fill="none" stroke="#D9E8F5" stroke-width="1"/>
+            </svg>
+
+            <article class="ticket" aria-label="已保留的报修预检单">
+              <div class="ticket-head"><div><span class="ticket-label">报修预检单</span><strong class="ticket-number">WX-260412-038</strong></div><span class="kept-badge">内容已保留</span></div>
+              <dl class="ticket-details">
+                <div class="detail-row"><dt>故障</dt><dd>厨房燃气热水器无法点火</dd></div>
+                <div class="detail-row"><dt>地址</dt><dd>梧桐里 8 幢 2 单元（门牌已隐去）</dd></div>
+                <div class="detail-row"><dt>联系人</dt><dd>林先生 · 138****2061</dd></div>
+              </dl>
+            </article>
+            <div class="safety-note">
+              <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M10 2L18 17H2Z" stroke="currentColor" stroke-width="1.5"/><path d="M10 7V11M10 14V14.1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+              <p><strong>如果闻到燃气味，请不要等线上报修。</strong>立即开窗、远离明火，到户外拨打 96177。</p>
+            </div>
+          </section>
+
+          <section class="view success-view" id="successView" hidden>
+            <div class="success-mark" aria-hidden="true"><svg width="34" height="34" viewBox="0 0 32 32" fill="none"><path d="M7 16L13 22L25 9" stroke="currentColor" stroke-width="3" stroke-linecap="square" stroke-linejoin="miter"/></svg></div>
+            <p class="error-code"><span>报修提交成功</span><span>RECEIVED</span></p>
+            <h1>已收到报修，<br>接下来交给我们。</h1>
+            <p class="human-copy">客服会先核对地址与故障情况，<strong>请留意 138****2061 的来电</strong>。无需重复提交。</p>
+            <div class="arrival"><div><span>预计客服确认</span><strong>10 分钟内</strong></div><span class="arrival-time">09:51</span></div>
+            <article class="ticket" aria-label="已提交的维修工单">
+              <div class="ticket-head"><div><span class="ticket-label">正式维修工单</span><strong class="ticket-number">CS-260412-038</strong></div><span class="kept-badge">待客服确认</span></div>
+              <dl class="ticket-details"><div class="detail-row"><dt>故障</dt><dd>厨房燃气热水器无法点火</dd></div><div class="detail-row"><dt>提交时间</dt><dd>4 月 12 日 09:41</dd></div></dl>
+            </article>
+            <section class="progress-details" id="progressDetails" hidden>
+              <h2>处理进度</h2>
+              <ol class="timeline"><li class="done">09:41　工单提交成功，内容已送入客服队列</li><li>下一步　客服来电核对门牌与现场情况</li><li>稍后　维修员接单并约定上门时间</li></ol>
+            </section>
+            <div class="safety-note"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M10 2L17 5V10C17 14 14 17 10 18C6 17 3 14 3 10V5Z" stroke="currentColor" stroke-width="1.5"/><path d="M7 10L9 12L13 8" stroke="currentColor" stroke-width="1.5"/></svg><p>维修人员上门时会出示工牌。你可以通过这张工单核对身份，不需支付线上预约费。</p></div>
+          </section>
+
+          <section class="view home-view" id="homeView" hidden>
+            <div class="home-banner"><p>CITY GAS AT HOME</p><h1>燃气服务，<br>安心到家。</h1><span>户号尾号 0826 · 梧桐里 8 幢</span></div>
+            <div class="home-section-head"><h2>我的报修</h2><span>近 30 天 / 1 张</span></div>
+            <article class="home-order">
+              <div class="home-order-top"><strong id="homeTicketNumber">WX-260412-038</strong><span class="home-order-status" id="homeOrderStatus">提交未完成</span></div>
+              <p id="homeOrderCopy">厨房燃气热水器无法点火<br>已填写的内容仍然保留，可以继续提交。</p>
+              <button class="resume-button" id="resumeTicket" type="button">继续提交这张报修单</button>
+            </article>
+            <div class="guide">
+              <button class="guide-toggle" id="guideToggle" type="button" aria-expanded="false" aria-controls="guideContent"><span>闻到燃气味，应该怎么做？</span><svg width="17" height="17" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4 7L10 13L16 7" stroke="currentColor" stroke-width="1.6"/></svg></button>
+              <div class="guide-content" id="guideContent" hidden><p>1. 不要开关灯、排风扇等任何电器，不要使用明火。</p><p>2. 立即打开门窗通风，关闭燃气阀门，迅速离开现场。</p><p>3. 到户外安全处拨打 96177，等待专业抢修人员。</p></div>
+            </div>
+          </section>
+        </div>
+
+        <footer class="action-dock" id="actionDock">
+          <p class="dock-note" id="dockNote"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 1L14 4V8C14 11 11 14 8 15C5 14 2 11 2 8V4Z" stroke="currentColor" stroke-width="1.3"/><path d="M5 8L7 10L11 6" stroke="currentColor" stroke-width="1.3"/></svg><span id="dockNoteText">无需重填 · 重试不会重复生成工单</span></p>
+          <div class="action-row">
+            <button class="action-button primary" id="primaryAction" type="button"><svg id="primaryIcon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 11C20 6 16 3 11 4C7 4 4 7 4 11C4 16 7 19 12 19C15 19 17 18 19 16M20 11V5M20 11H14" stroke="currentColor" stroke-width="1.8" stroke-linecap="square"/></svg><span id="primaryLabel">重新提交</span></button>
+            <button class="action-button secondary" id="homeAction" type="button"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 11L12 3L21 11M6 9V21H18V9M10 21V14H14V21" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg><span>回首页</span></button>
+          </div>
+        </footer>
+        <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    (() => {
+      const errorView = document.getElementById('errorView');
+      const successView = document.getElementById('successView');
+      const homeView = document.getElementById('homeView');
+      const primaryAction = document.getElementById('primaryAction');
+      const homeAction = document.getElementById('homeAction');
+      const primaryLabel = document.getElementById('primaryLabel');
+      const actionDock = document.getElementById('actionDock');
+      const stateStrip = document.getElementById('stateStrip');
+      const stripText = document.getElementById('stripText');
+      const stripSymbol = document.getElementById('stripSymbol');
+      const contextBadge = document.getElementById('contextBadge');
+      const progressDetails = document.getElementById('progressDetails');
+      const toast = document.getElementById('toast');
+      let submitted = false;
+      let currentView = 'error';
+      let toastTimer;
+
+      function showView(view) {
+        currentView = view;
+        errorView.hidden = view !== 'error';
+        successView.hidden = view !== 'success';
+        homeView.hidden = view !== 'home';
+        actionDock.hidden = view === 'home';
+        stateStrip.className = `state-strip${view === 'success' ? ' success' : view === 'home' ? ' home' : ''}`;
+        document.getElementById('primaryIcon').hidden = view === 'success';
+        if (view === 'error') {
+          contextBadge.textContent = '故障';
+          stripSymbol.textContent = '!';
+          stripText.textContent = '提交遇到问题 · 你填写的内容已保留';
+          primaryLabel.textContent = '重新提交';
+          primaryAction.setAttribute('aria-expanded', 'false');
+          document.getElementById('dockNoteText').textContent = '无需重填 · 重试不会重复生成工单';
+        } else if (view === 'success') {
+          contextBadge.textContent = '已受理';
+          stripSymbol.textContent = '✓';
+          stripText.textContent = '报修已进入客服队列 · 请留意来电';
+          primaryLabel.textContent = progressDetails.hidden ? '查看处理进度' : '收起处理进度';
+          primaryAction.setAttribute('aria-expanded', String(!progressDetails.hidden));
+          document.getElementById('dockNoteText').textContent = '工单 CS-260412-038 · 预约不收取费用';
+        } else {
+          contextBadge.textContent = '首页';
+          stripSymbol.textContent = 'i';
+          stripText.textContent = '24 小时燃气服务 · 紧急抢修请拨 96177';
+          document.getElementById('homeTicketNumber').textContent = submitted ? 'CS-260412-038' : 'WX-260412-038';
+          document.getElementById('homeOrderStatus').textContent = submitted ? '待客服确认' : '提交未完成';
+          document.getElementById('homeOrderStatus').classList.toggle('success', submitted);
+          document.getElementById('homeOrderCopy').innerHTML = submitted ? '厨房燃气热水器无法点火<br>报修已提交，预计 10 分钟内客服来电确认。' : '厨房燃气热水器无法点火<br>已填写的内容仍然保留，可以继续提交。';
+          document.getElementById('resumeTicket').textContent = submitted ? '查看这张维修工单' : '继续提交这张报修单';
+        }
+        document.getElementById('contentScroll').scrollTop = 0;
+      }
+
+      function showToast(message) {
+        clearTimeout(toastTimer);
+        toast.textContent = message;
+        toast.hidden = false;
+        toastTimer = setTimeout(() => { toast.hidden = true; }, 2500);
+      }
+
+      primaryAction.addEventListener('click', () => {
+        if (currentView === 'success') {
+          progressDetails.hidden = !progressDetails.hidden;
+          primaryLabel.textContent = progressDetails.hidden ? '查看处理进度' : '收起处理进度';
+          primaryAction.setAttribute('aria-expanded', String(!progressDetails.hidden));
+          return;
+        }
+        primaryAction.disabled = true;
+        homeAction.disabled = true;
+        primaryLabel.textContent = '正在重新连接…';
+        stripText.textContent = '正在连接报修服务，请稍候';
+        setTimeout(() => {
+          submitted = true;
+          primaryAction.disabled = false;
+          homeAction.disabled = false;
+          showView('success');
+          showToast('提交成功，正式维修工单已生成。');
+        }, 850);
+      });
+      homeAction.addEventListener('click', () => showView('home'));
+      document.getElementById('resumeTicket').addEventListener('click', () => showView(submitted ? 'success' : 'error'));
+      document.getElementById('guideToggle').addEventListener('click', event => {
+        const button = event.currentTarget;
+        const expanded = button.getAttribute('aria-expanded') === 'true';
+        button.setAttribute('aria-expanded', String(!expanded));
+        document.getElementById('guideContent').hidden = expanded;
+      });
+      showView('error');
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>构场 FRAMEWORK · 创作协作方案</title>
+  <style>
+    :root {
+      --paper: #F3F3EF;
+      --white: #FFFFFF;
+      --ink: #111111;
+      --muted: #686862;
+      --soft: #E4E4DE;
+      --gray: #B9B9B2;
+      --pink: #FF4D9D;
+      --pink-dark: #DB2375;
+      --pink-pale: #FFE0ED;
+      --error: #C8134F;
+      --shadow: 12px 12px 0 rgba(17, 17, 17, 0.24);
+    }
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    html { scroll-behavior: smooth; color-scheme: light; }
+    body {
+      margin: 0;
+      min-width: 320px;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", Arial, sans-serif;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+    button, input, select, textarea { font: inherit; }
+    button, a, input, select, textarea, summary { -webkit-tap-highlight-color: transparent; }
+    button { color: inherit; cursor: pointer; }
+    a { color: inherit; }
+    button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, summary:focus-visible { outline: 3px solid var(--pink); outline-offset: 3px; }
+    .skip-link { position: fixed; left: 16px; top: -60px; z-index: 100; padding: 8px 14px; background: var(--pink); color: var(--ink); text-decoration: none; font-weight: 700; }
+    .skip-link:focus { top: 12px; }
+    .site-header { border-top: 5px solid var(--ink); border-bottom: 2px solid var(--ink); background: var(--white); }
+    .header-inner { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; max-width: 1280px; min-height: 75px; margin: 0 auto; padding: 0 36px; }
+    .brand { display: inline-flex; align-items: center; gap: 11px; width: max-content; text-decoration: none; }
+    .brand-mark { display: grid; place-items: center; width: 38px; height: 38px; background: var(--ink); color: var(--pink); font-family: Arial, sans-serif; font-size: 20px; font-weight: 900; letter-spacing: -0.1em; }
+    .brand-name { display: block; font-size: 18px; font-weight: 800; line-height: 1.1; letter-spacing: 0.08em; }
+    .brand-en { display: block; margin-top: 4px; font-family: Arial, sans-serif; font-size: 8px; font-weight: 700; letter-spacing: 0.2em; }
+    .main-nav { display: flex; align-items: center; gap: 29px; }
+    .main-nav a { padding: 24px 0 22px; text-decoration: none; font-size: 11px; font-weight: 650; }
+    .main-nav a:hover { color: var(--pink-dark); text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 6px; }
+    .header-contact { justify-self: end; min-height: 37px; padding: 7px 13px; border: 1.5px solid var(--ink); border-radius: 0; background: var(--white); font-size: 11px; font-weight: 700; }
+    .header-contact:hover { background: var(--pink); box-shadow: 3px 3px 0 var(--ink); }
+    .page-shell { max-width: 1280px; margin: 0 auto; padding: 0 36px 50px; }
+    .hero { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(320px, 0.6fr); align-items: end; gap: 54px; padding: 36px 0 33px; }
+    .eyebrow { display: flex; align-items: center; gap: 9px; margin: 0 0 12px; font-family: Arial, sans-serif; font-size: 9px; font-weight: 800; letter-spacing: 0.18em; }
+    .eyebrow::before { content: ""; width: 9px; height: 9px; background: var(--pink); }
+    h1 { max-width: 760px; margin: 0; font-size: clamp(48px, 5vw, 66px); font-weight: 800; line-height: 1.1; letter-spacing: -0.065em; }
+    .pink-mark { position: relative; display: inline-block; z-index: 0; }
+    .pink-mark::after { content: ""; position: absolute; left: -3px; right: -5px; bottom: 2px; z-index: -1; height: 15px; background: var(--pink); }
+    .hero-side { padding-bottom: 3px; }
+    .hero-side > p { max-width: 380px; margin: 0 0 20px; color: var(--muted); font-size: 12px; line-height: 1.85; }
+    .billing-line { display: flex; align-items: center; gap: 11px; flex-wrap: wrap; }
+    .billing-toggle { display: inline-flex; padding: 3px; border: 1.5px solid var(--ink); background: var(--white); }
+    .billing-button { min-height: 35px; padding: 6px 15px; border: 0; border-radius: 0; background: var(--white); color: var(--muted); font-size: 11px; font-weight: 700; }
+    .billing-button:hover { color: var(--pink-dark); }
+    .billing-button[aria-pressed="true"] { background: var(--ink); color: var(--white); }
+    .save-tag { padding: 3px 7px; background: var(--pink); color: var(--ink); font-size: 9px; font-weight: 800; }
+    .billing-note { margin: 8px 0 0 !important; font-size: 9px !important; letter-spacing: 0.05em; }
+    .plans-section { scroll-margin-top: 20px; }
+    .plans-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border: 2px solid var(--ink); background: var(--white); }
+    .plan { position: relative; display: flex; flex-direction: column; min-width: 0; min-height: 442px; padding: 25px 26px 24px; border-right: 1px solid var(--ink); }
+    .plan:last-child { border-right: 0; }
+    .plan.featured { background: var(--ink); color: var(--white); }
+    .plan-flag { position: absolute; right: 0; top: 0; padding: 5px 10px; background: var(--pink); color: var(--ink); font-family: Arial, sans-serif; font-size: 9px; font-weight: 850; letter-spacing: 0.08em; }
+    .plan-code { margin: 0 0 19px; color: var(--muted); font-family: Arial, sans-serif; font-size: 9px; font-weight: 700; letter-spacing: 0.16em; }
+    .featured .plan-code { color: #BDBDB7; }
+    .plan-name { margin: 0; font-size: 27px; font-weight: 780; line-height: 1.2; letter-spacing: -0.035em; }
+    .plan-audience { min-height: 40px; margin: 7px 0 17px; color: var(--muted); font-size: 11px; line-height: 1.75; }
+    .featured .plan-audience { color: #C8C8C1; }
+    .plan-price { display: flex; align-items: flex-start; min-height: 76px; font-family: Arial, sans-serif; font-variant-numeric: tabular-nums; }
+    .currency { margin: 10px 4px 0 0; font-size: 20px; font-weight: 600; }
+    .price-amount { font-size: 68px; font-weight: 750; line-height: 1; letter-spacing: -0.065em; }
+    .price-period { align-self: flex-end; margin: 0 0 12px 7px; color: var(--muted); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif; font-size: 10px; }
+    .featured .price-period { color: #C8C8C1; }
+    .price-note { min-height: 18px; margin: 3px 0 18px; color: var(--muted); font-size: 9px; }
+    .featured .price-note { color: var(--pink-pale); }
+    .feature-list { margin: 0 0 22px; padding: 0; list-style: none; border-top: 1px solid var(--soft); }
+    .featured .feature-list { border-top-color: #434343; }
+    .feature-list li { display: flex; align-items: flex-start; gap: 8px; padding: 6px 0; font-size: 11px; line-height: 1.5; }
+    .feature-list li::before { content: "+"; flex: 0 0 13px; color: var(--pink-dark); font-family: Arial, sans-serif; font-size: 15px; font-weight: 800; line-height: 1.2; }
+    .featured .feature-list li::before { color: var(--pink); }
+    .plan-action { display: flex; align-items: center; justify-content: space-between; width: 100%; min-height: 48px; margin-top: auto; padding: 11px 14px; border: 1.5px solid var(--ink); border-radius: 0; background: var(--ink); color: var(--white); font-size: 11px; font-weight: 750; transition: transform 150ms ease, box-shadow 150ms ease, background 150ms ease; }
+    .plan-action svg { width: 19px; height: 19px; }
+    .plan-action:hover { color: var(--ink); background: var(--pink); box-shadow: 4px 4px 0 var(--ink); transform: translate(-2px, -2px); }
+    .featured .plan-action { border-color: var(--pink); background: var(--pink); color: var(--ink); }
+    .featured .plan-action:hover { border-color: var(--white); background: var(--white); box-shadow: 4px 4px 0 var(--pink); }
+    .plan-action.contact { background: var(--white); color: var(--ink); }
+    .plan-action.contact:hover { background: var(--ink); color: var(--white); }
+    .plan-under { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 12px 2px 0; color: var(--muted); font-size: 9px; }
+    .plan-under strong { color: var(--ink); font-weight: 650; }
+    .included { display: grid; grid-template-columns: 1.15fr repeat(3, 1fr); margin-top: 38px; border: 2px solid var(--ink); background: var(--ink); color: var(--white); scroll-margin-top: 20px; }
+    .included-title { padding: 22px 24px; background: var(--pink); color: var(--ink); font-size: 20px; font-weight: 800; line-height: 1.35; }
+    .included-item { padding: 21px 22px; border-left: 1px solid #484848; }
+    .included-item strong { display: block; margin-bottom: 4px; font-family: Arial, sans-serif; font-size: 20px; }
+    .included-item span { color: #C8C8C1; font-size: 10px; }
+    .faq-section { display: grid; grid-template-columns: 0.7fr 1.3fr; gap: 55px; padding: 52px 0 46px; scroll-margin-top: 20px; }
+    .faq-section h2 { margin: 0; font-size: 30px; line-height: 1.3; letter-spacing: -0.04em; }
+    .faq-section > div > p { margin: 10px 0 0; color: var(--muted); font-size: 11px; }
+    .faq-list { border-top: 2px solid var(--ink); }
+    .faq-list details { border-bottom: 1px solid var(--ink); }
+    .faq-list summary { position: relative; padding: 15px 30px 15px 0; cursor: pointer; font-size: 12px; font-weight: 700; list-style: none; }
+    .faq-list summary::-webkit-details-marker { display: none; }
+    .faq-list summary::after { content: "+"; position: absolute; right: 3px; top: 12px; font-family: Arial, sans-serif; font-size: 20px; }
+    .faq-list details[open] summary::after { content: "−"; color: var(--pink-dark); }
+    .faq-list details p { margin: 0 0 16px; color: var(--muted); font-size: 11px; line-height: 1.85; }
+    .site-footer { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding-top: 18px; border-top: 2px solid var(--ink); font-family: Arial, sans-serif; font-size: 9px; font-weight: 650; letter-spacing: 0.07em; }
+    .footer-pink { display: inline-flex; align-items: center; gap: 7px; }
+    .footer-pink::before { content: ""; width: 8px; height: 8px; background: var(--pink); }
+    .plan-dialog { width: min(570px, calc(100vw - 32px)); max-height: calc(100dvh - 40px); padding: 0; overflow-y: auto; border: 2px solid var(--ink); border-radius: 0; background: var(--paper); color: var(--ink); box-shadow: var(--shadow); }
+    .plan-dialog::backdrop { background: rgba(17, 17, 17, 0.66); }
+    .dialog-banner { display: flex; align-items: center; justify-content: space-between; min-height: 48px; padding: 9px 18px; border-bottom: 2px solid var(--ink); background: var(--pink); font-family: Arial, sans-serif; font-size: 9px; font-weight: 800; letter-spacing: 0.14em; }
+    .dialog-close { display: grid; place-items: center; width: 30px; height: 30px; padding: 0; border: 1.5px solid var(--ink); border-radius: 0; background: var(--white); font-size: 20px; line-height: 1; }
+    .dialog-close:hover { background: var(--ink); color: var(--white); }
+    .dialog-body { padding: 25px 28px 28px; }
+    .dialog-kicker { margin: 0 0 4px; color: var(--pink-dark); font-size: 9px; font-weight: 750; letter-spacing: 0.12em; }
+    .dialog-body h2 { margin: 0 0 16px; font-size: 30px; line-height: 1.25; letter-spacing: -0.04em; }
+    .dialog-plan { display: flex; align-items: center; justify-content: space-between; gap: 15px; margin-bottom: 19px; padding: 13px 14px; border: 1.5px solid var(--ink); background: var(--white); font-size: 11px; }
+    .dialog-plan strong { font-family: Arial, sans-serif; font-size: 19px; font-variant-numeric: tabular-nums; }
+    .contact-intro { margin: 0 0 19px; padding: 13px 14px; border-left: 5px solid var(--pink); background: var(--white); color: var(--muted); font-size: 11px; }
+    .form-field { display: grid; gap: 6px; margin-bottom: 14px; }
+    .form-field label { font-size: 11px; font-weight: 700; }
+    .form-field input, .form-field select, .form-field textarea { width: 100%; min-height: 43px; padding: 9px 11px; border: 1.5px solid var(--ink); border-radius: 0; background: var(--white); color: var(--ink); }
+    .form-field textarea { min-height: 76px; resize: vertical; }
+    .form-field input::placeholder, .form-field textarea::placeholder { color: #898982; }
+    .form-field input:user-invalid, .form-field select:user-invalid, .form-field textarea:user-invalid { border-color: var(--error); background: #FFF3F7; }
+    .terms-field { display: flex; align-items: flex-start; gap: 8px; margin: 4px 0 16px; font-size: 10px; cursor: pointer; }
+    .terms-field input { width: 16px; height: 16px; flex: 0 0 16px; margin: 2px 0 0; accent-color: var(--pink-dark); }
+    .dialog-submit { display: flex; align-items: center; justify-content: space-between; width: 100%; min-height: 50px; padding: 12px 15px; border: 1.5px solid var(--ink); border-radius: 0; background: var(--ink); color: var(--white); font-weight: 750; }
+    .dialog-submit:hover { background: var(--pink); color: var(--ink); box-shadow: 4px 4px 0 var(--ink); }
+    .dialog-note { margin: 10px 0 0; color: var(--muted); font-size: 9px; text-align: center; }
+    .plan-success { padding: 33px 30px 30px; }
+    .success-code { display: inline-block; margin-bottom: 18px; padding: 6px 9px; background: var(--pink); font-family: Arial, sans-serif; font-size: 10px; font-weight: 800; letter-spacing: 0.1em; }
+    .plan-success h2 { margin: 0 0 9px; font-size: 34px; line-height: 1.2; letter-spacing: -0.045em; }
+    .plan-success > p { margin: 0 0 21px; color: var(--muted); font-size: 12px; line-height: 1.8; }
+    .success-receipt { margin-bottom: 22px; border-top: 2px solid var(--ink); }
+    .receipt-line { display: flex; justify-content: space-between; gap: 15px; padding: 10px 0; border-bottom: 1px solid var(--gray); font-size: 11px; }
+    .receipt-line span { color: var(--muted); }
+    .receipt-line strong { text-align: right; font-weight: 700; overflow-wrap: anywhere; }
+    .success-done { width: 100%; min-height: 47px; border: 1.5px solid var(--ink); border-radius: 0; background: var(--ink); color: var(--white); font-weight: 750; }
+    .success-done:hover { background: var(--pink); color: var(--ink); }
+    @media (max-width: 1020px) {
+      .header-inner, .page-shell { padding-inline: 28px; }
+      .hero { gap: 32px; }
+      .plan { padding-inline: 21px; }
+      .price-amount { font-size: 60px; }
+      .included { grid-template-columns: 1fr 1fr; }
+      .included-title { grid-row: span 2; }
+      .included-item:nth-child(2) { border-bottom: 1px solid #484848; }
+      .included-item:nth-child(3) { border-bottom: 1px solid #484848; }
+    }
+    @media (max-width: 900px) {
+      .header-inner { grid-template-columns: 1fr auto; }
+      .main-nav { grid-column: 1 / -1; grid-row: 2; gap: 26px; }
+      .main-nav a { padding: 10px 0 13px; }
+      .header-contact { grid-column: 2; grid-row: 1; }
+      .hero { grid-template-columns: 1fr; gap: 22px; }
+      .hero-side > p { max-width: 600px; }
+      .plans-grid { grid-template-columns: 1fr; }
+      .plan { min-height: 0; border-right: 0; border-bottom: 1px solid var(--ink); }
+      .plan:last-child { border-bottom: 0; }
+      .plan-audience { min-height: 0; }
+      .feature-list { display: grid; grid-template-columns: 1fr 1fr; column-gap: 20px; }
+      .plan-action { margin-top: 4px; }
+      .faq-section { gap: 30px; }
+    }
+    @media (max-width: 620px) {
+      .header-inner, .page-shell { padding-inline: 18px; }
+      .brand-en { display: none; }
+      .main-nav { gap: 19px; }
+      h1 { font-size: 45px; }
+      .pink-mark::after { height: 10px; }
+      .plan { padding: 24px 22px; }
+      .feature-list { display: block; }
+      .plan-under { align-items: flex-start; flex-direction: column; gap: 4px; }
+      .included { grid-template-columns: 1fr; }
+      .included-title { grid-row: auto; }
+      .included-item { border-left: 0; border-top: 1px solid #484848; }
+      .faq-section { grid-template-columns: 1fr; gap: 22px; padding-block: 38px; }
+      .site-footer { align-items: flex-start; flex-direction: column; }
+      .dialog-body { padding: 22px; }
+      .plan-success { padding: 28px 22px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; }
+      .plan-action:hover { transform: none; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#plans">跳到订阅方案</a>
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="brand" href="#top" aria-label="构场首页"><span class="brand-mark" aria-hidden="true">F/</span><span><span class="brand-name">构场</span><span class="brand-en">FRAMEWORK STUDIO</span></span></a>
+      <nav class="main-nav" aria-label="方案导航"><a href="#included">包含能力</a><a href="#plans">订阅方案</a><a href="#faq">常见问题</a></nav>
+      <button class="header-contact" id="header-contact" type="button">需要定制？聊聊</button>
+    </div>
+  </header>
+
+  <main class="page-shell" id="top">
+    <section class="hero" aria-labelledby="page-title">
+      <div><p class="eyebrow">ROOM FOR EVERY GOOD IDEA</p><h1 id="page-title">灵感不打折，<br><span class="pink-mark">协作按所需。</span></h1></div>
+      <div class="hero-side"><p>从第一版分镜到最终交付，构场把素材、审片与版本放在同一个工作现场。选今天够用的方案，明天随时升级。</p><div class="billing-line"><div class="billing-toggle" role="group" aria-label="选择计费周期"><button class="billing-button" type="button" data-billing="monthly" aria-pressed="true">按月付</button><button class="billing-button" type="button" data-billing="annual" aria-pressed="false">按年付</button></div><span class="save-tag">年付省 20%</span></div><p class="billing-note" id="billing-note">当前为月度价格，人民币含税。</p></div>
+    </section>
+
+    <section class="plans-section" id="plans" aria-label="三档创作协作订阅">
+      <div class="plans-grid">
+        <article class="plan" data-plan-card="solo">
+          <p class="plan-code">01 / INDEPENDENT</p><h2 class="plan-name">独立方案</h2><p class="plan-audience">给自由导演、设计师，<br>一个人的完整创作现场。</p>
+          <div class="plan-price"><span class="currency">¥</span><span class="price-amount" data-price="solo" aria-live="polite">49</span><span class="price-period">/ 月</span></div><p class="price-note" data-note="solo">按月结算 · 随时取消</p>
+          <ul class="feature-list"><li>每月 10 个活跃项目</li><li>100 GB 原片云端空间</li><li>4K 审片与时间码评论</li><li>30 天基础版本记录</li><li>单席位个人工作区</li></ul>
+          <button class="plan-action" type="button" data-plan="solo" data-action="purchase"><span>选择独立方案</span><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M3 10h14M12 5l5 5-5 5" stroke="currentColor" stroke-width="1.5"/></svg></button>
+        </article>
+        <article class="plan featured" data-plan-card="team">
+          <span class="plan-flag">推荐 / TEAM FAVORITE</span><p class="plan-code">02 / COLLABORATE</p><h2 class="plan-name">联合方案</h2><p class="plan-audience">给 2–5 人创作小组，<br>让反馈赶上灵感的速度。</p>
+          <div class="plan-price"><span class="currency">¥</span><span class="price-amount" data-price="team" aria-live="polite">129</span><span class="price-period">/ 月</span></div><p class="price-note" data-note="team">按月结算 · 随时取消</p>
+          <ul class="feature-list"><li>不限活跃项目</li><li>1 TB 原片云端空间</li><li>4K 审片与逐帧标注</li><li>完整版本记录与对比</li><li>5 个席位，可灵活扩展</li><li>客户免账号审片</li></ul>
+          <button class="plan-action" type="button" data-plan="team" data-action="purchase"><span>选择联合方案</span><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M3 10h14M12 5l5 5-5 5" stroke="currentColor" stroke-width="1.5"/></svg></button>
+        </article>
+        <article class="plan" data-plan-card="studio">
+          <p class="plan-code">03 / AT SCALE</p><h2 class="plan-name">工作室方案</h2><p class="plan-audience">给多项目并行的工作室，<br>把权限与交付也安排妥当。</p>
+          <div class="plan-price"><span class="currency">¥</span><span class="price-amount" data-price="studio" aria-live="polite">299</span><span class="price-period">/ 月</span></div><p class="price-note" data-note="studio">按月结算 · 随时取消</p>
+          <ul class="feature-list"><li>联合方案全部能力</li><li>5 TB 空间与专属加速</li><li>SSO 登录与权限分组</li><li>无限版本记录</li><li>20 个席位，可灵活扩展</li><li>专属客户成功经理</li></ul>
+          <button class="plan-action contact" type="button" data-plan="studio" data-action="contact"><span>联系方案顾问</span><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M3 10h14M12 5l5 5-5 5" stroke="currentColor" stroke-width="1.5"/></svg></button>
+        </article>
+      </div>
+      <div class="plan-under"><span><strong>无需绑定长期合约。</strong> 月付方案可按周期取消，年付方案到期不自动续费。</span><span>价格均为人民币含税价 / 支持企业发票</span></div>
+    </section>
+
+    <section class="included" id="included" aria-label="所有方案共同包含的能力">
+      <div class="included-title">每一档，<br>都不省基本功。</div><div class="included-item"><strong>20 GB</strong><span>单文件上传上限</span></div><div class="included-item"><strong>TLS 1.3</strong><span>素材传输全程加密</span></div><div class="included-item"><strong>7 × 12 h</strong><span>中文在线支持</span></div>
+    </section>
+
+    <section class="faq-section" id="faq" aria-labelledby="faq-title">
+      <div><h2 id="faq-title">先把问题，<br>放在桌面上。</h2><p>还有特殊席位、素材迁移或采购流程？<br>点击右上角“需要定制？聊聊”。</p></div>
+      <div class="faq-list">
+        <details><summary>中途可以从独立方案升级到联合方案吗？</summary><p>可以。升级后立即可用新席位与空间，当前周期已支付但未使用的金额会按比例折算，不需要重新上传项目素材。</p></details>
+        <details><summary>客户审片也需要购买席位吗？</summary><p>不需要。联合与工作室方案可生成受密码保护的客户审片链接，客户无需注册即可查看和留下时间码评论。</p></details>
+        <details><summary>取消后，项目与素材会怎样？</summary><p>取消后工作区进入 30 天只读期，你仍可导出项目与原始素材。只读期结束并再次提醒后，才会清理云端数据。</p></details>
+      </div>
+    </section>
+    <footer class="site-footer"><span>构场 FRAMEWORK © 2026 / MADE FOR THE WORK IN PROGRESS</span><span class="footer-pink">给创作留一点余地</span></footer>
+  </main>
+
+  <dialog class="plan-dialog" id="plan-dialog" aria-labelledby="plan-dialog-title">
+    <div class="dialog-banner"><span id="dialog-banner-copy">FRAMEWORK / SECURE CHECKOUT</span><button class="dialog-close" id="dialog-close" type="button" aria-label="关闭方案窗口">×</button></div>
+    <div class="dialog-body" id="dialog-body">
+      <p class="dialog-kicker" id="dialog-kicker">SUBSCRIPTION / 开通方案</p><h2 id="plan-dialog-title">开通独立方案</h2>
+      <div class="dialog-plan" id="dialog-plan"><span id="dialog-plan-copy"></span><strong id="dialog-plan-price"></strong></div>
+      <p class="contact-intro" id="contact-intro" hidden>告诉我们团队规模与当前协作方式，方案顾问会按你的实际项目量整理席位、迁移和采购建议。</p>
+      <form id="plan-form">
+        <div class="form-field"><label for="workspace-name" id="workspace-label">工作区名称</label><input id="workspace-name" name="workspace-name" placeholder="例如：周末电影社" autocomplete="organization" required></div>
+        <div class="form-field"><label for="work-email">工作邮箱</label><input id="work-email" name="work-email" type="email" placeholder="name@studio.cn" autocomplete="email" required></div>
+        <div class="form-field" id="team-size-field" hidden><label for="team-size">当前团队规模</label><select id="team-size" name="team-size"><option value="6–10 人">6–10 人</option><option value="11–20 人">11–20 人</option><option value="21–50 人">21–50 人</option><option value="50 人以上">50 人以上</option></select></div>
+        <div class="form-field" id="needs-field" hidden><label for="consult-needs">最想解决的问题</label><textarea id="consult-needs" name="consult-needs" placeholder="例如：需要迁移 3 TB 历史项目，并给外部客户分开审片权限"></textarea></div>
+        <label class="terms-field" id="terms-field"><input id="terms-check" type="checkbox" required><span>我已核对所选方案与本次结算金额，并知悉可在下一周期前取消。</span></label>
+        <button class="dialog-submit" type="submit"><span id="dialog-submit-label">确认开通</span><span id="dialog-submit-price"></span></button>
+        <p class="dialog-note" id="dialog-note">提交后创建开通单，此页面不会直接扣款。</p>
+      </form>
+    </div>
+    <section class="plan-success" id="plan-success" aria-labelledby="success-heading" hidden>
+      <span class="success-code" id="success-code">ORDER CREATED</span><h2 id="success-heading" tabindex="-1">方案已就绪。</h2><p id="success-copy"></p>
+      <div class="success-receipt"><div class="receipt-line"><span id="receipt-id-label">开通编号</span><strong id="receipt-id"></strong></div><div class="receipt-line"><span>方案 / 周期</span><strong id="receipt-plan"></strong></div><div class="receipt-line"><span id="receipt-amount-label">本次结算</span><strong id="receipt-amount"></strong></div><div class="receipt-line"><span>工作邮箱</span><strong id="receipt-email"></strong></div></div>
+      <button class="success-done" id="success-done" type="button">完成，返回方案</button>
+    </section>
+  </dialog>
+
+  <script>
+    const plans = {
+      solo: { name: "独立方案", monthly: 49, annual: 39, annualTotal: 468 },
+      team: { name: "联合方案", monthly: 129, annual: 103, annualTotal: 1236 },
+      studio: { name: "工作室方案", monthly: 299, annual: 239, annualTotal: 2868 }
+    };
+    let billing = "monthly";
+    let selectedPlan = plans.solo;
+    let dialogMode = "purchase";
+    const planDialog = document.getElementById("plan-dialog");
+    const planForm = document.getElementById("plan-form");
+    const dialogBody = document.getElementById("dialog-body");
+    const planSuccess = document.getElementById("plan-success");
+
+    function money(value) { return value.toLocaleString("zh-CN"); }
+
+    function updateBilling() {
+      Object.entries(plans).forEach(([id, plan]) => {
+        const price = billing === "annual" ? plan.annual : plan.monthly;
+        const saving = plan.monthly * 12 - plan.annualTotal;
+        document.querySelector(`[data-price="${id}"]`).textContent = money(price);
+        document.querySelector(`[data-note="${id}"]`).textContent = billing === "annual" ? `按年结算 ¥${money(plan.annualTotal)} / 年 · 省 ¥${money(saving)}` : "按月结算 · 随时取消";
+      });
+      document.querySelectorAll("[data-billing]").forEach(button => button.setAttribute("aria-pressed", String(button.dataset.billing === billing)));
+      document.getElementById("billing-note").textContent = billing === "annual" ? "当前为年付折算月价，人民币含税。" : "当前为月度价格，人民币含税。";
+    }
+
+    function openPlan(planId, mode) {
+      selectedPlan = plans[planId];
+      dialogMode = mode;
+      planForm.reset();
+      dialogBody.hidden = false;
+      planSuccess.hidden = true;
+      planDialog.setAttribute("aria-labelledby", "plan-dialog-title");
+      document.getElementById("dialog-banner-copy").textContent = mode === "contact" ? "FRAMEWORK / STUDIO CONSULTATION" : "FRAMEWORK / SECURE CHECKOUT";
+      document.getElementById("dialog-kicker").textContent = mode === "contact" ? "CONSULTATION / 方案咨询" : "SUBSCRIPTION / 开通方案";
+      document.getElementById("plan-dialog-title").textContent = mode === "contact" ? "聊聊你的工作室" : `开通${selectedPlan.name}`;
+      document.getElementById("dialog-plan").hidden = mode === "contact";
+      document.getElementById("contact-intro").hidden = mode !== "contact";
+      document.getElementById("team-size-field").hidden = mode !== "contact";
+      document.getElementById("needs-field").hidden = mode !== "contact";
+      document.getElementById("terms-field").hidden = mode === "contact";
+      document.getElementById("terms-check").required = mode !== "contact";
+      document.getElementById("workspace-label").textContent = mode === "contact" ? "工作室或团队名称" : "工作区名称";
+      const payable = billing === "annual" ? selectedPlan.annualTotal : selectedPlan.monthly;
+      const cycle = billing === "annual" ? "年度订阅" : "月度订阅";
+      document.getElementById("dialog-plan-copy").textContent = `${selectedPlan.name} · ${cycle}`;
+      document.getElementById("dialog-plan-price").textContent = `¥${money(payable)}`;
+      document.getElementById("dialog-submit-label").textContent = mode === "contact" ? "提交咨询需求" : "确认开通";
+      document.getElementById("dialog-submit-price").textContent = mode === "contact" ? "1 个工作日内回复" : `¥${money(payable)}`;
+      document.getElementById("dialog-note").textContent = mode === "contact" ? "仅用于本次方案沟通，不订阅营销邮件。" : "提交后创建开通单，此页面不会直接扣款。";
+      planDialog.showModal();
+      document.getElementById("workspace-name").focus();
+    }
+
+    document.querySelectorAll("[data-billing]").forEach(button => button.addEventListener("click", () => { billing = button.dataset.billing; updateBilling(); }));
+    document.querySelectorAll("[data-plan][data-action]").forEach(button => button.addEventListener("click", () => openPlan(button.dataset.plan, button.dataset.action)));
+    document.getElementById("header-contact").addEventListener("click", () => openPlan("studio", "contact"));
+    document.getElementById("dialog-close").addEventListener("click", () => planDialog.close());
+    document.getElementById("success-done").addEventListener("click", () => planDialog.close());
+    planDialog.addEventListener("click", event => {
+      if (event.target !== planDialog) return;
+      const box = planDialog.getBoundingClientRect();
+      if (event.clientX < box.left || event.clientX > box.right || event.clientY < box.top || event.clientY > box.bottom) planDialog.close();
+    });
+    planForm.addEventListener("submit", event => {
+      event.preventDefault();
+      if (!planForm.reportValidity()) return;
+      const email = document.getElementById("work-email").value;
+      const workspace = document.getElementById("workspace-name").value.trim();
+      const payable = billing === "annual" ? selectedPlan.annualTotal : selectedPlan.monthly;
+      const cycle = billing === "annual" ? "年度订阅" : "月度订阅";
+      document.getElementById("receipt-id").textContent = `${dialogMode === "contact" ? "CS" : "FW"}${String(Date.now()).slice(-8)}`;
+      document.getElementById("receipt-id-label").textContent = dialogMode === "contact" ? "咨询编号" : "开通编号";
+      document.getElementById("receipt-plan").textContent = dialogMode === "contact" ? `${selectedPlan.name} / ${document.getElementById("team-size").value}` : `${selectedPlan.name} / ${cycle}`;
+      document.getElementById("receipt-amount-label").textContent = dialogMode === "contact" ? "团队名称" : "本次结算";
+      document.getElementById("receipt-amount").textContent = dialogMode === "contact" ? workspace : `¥${money(payable)}${billing === "annual" ? " / 年" : " / 月"}`;
+      document.getElementById("receipt-email").textContent = email;
+      document.getElementById("success-code").textContent = dialogMode === "contact" ? "REQUEST NOTED" : "ORDER CREATED";
+      document.getElementById("success-heading").textContent = dialogMode === "contact" ? "需求已记录。" : "方案已就绪。";
+      document.getElementById("success-copy").textContent = dialogMode === "contact" ? `已为「${workspace}」生成咨询摘要。请保留咨询编号，方案顾问将按 ${email} 与你确认沟通时间。` : `「${workspace}」的开通单已创建，当前尚未扣款。请保留下方编号，以便继续完成工作区设置。`;
+      dialogBody.hidden = true;
+      planSuccess.hidden = false;
+      planDialog.setAttribute("aria-labelledby", "success-heading");
+      document.getElementById("success-heading").focus();
+    });
+
+    updateBilling();
+  </script>
+</body>
+</html>

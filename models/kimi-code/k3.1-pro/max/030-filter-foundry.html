@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>工业备件筛选台 · 铸库</title>
+  <style>
+    :root {
+      --page: #E6E8E4;
+      --surface: #F4F5F0;
+      --white: #FCFCF8;
+      --ink: #272C29;
+      --muted: #6B726D;
+      --line: #C2C7C0;
+      --orange: #E75C24;
+      --orange-dark: #B54119;
+      --orange-soft: #F9E3D6;
+      --graphite: #292F2C;
+      --steel: #758079;
+      --success: #316A4E;
+      --warning: #9C6A20;
+      --shadow: 0 10px 26px rgba(39, 44, 41, .07);
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--page); color: var(--ink); font-family: "PingFang SC", "Microsoft YaHei", system-ui, sans-serif; font-size: 14px; line-height: 1.5; }
+    button, input, select { font: inherit; }
+    button { cursor: pointer; }
+    button:disabled { cursor: not-allowed; opacity: .4; }
+    button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid var(--orange); outline-offset: 3px; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+    .topbar { height: 64px; padding: 0 33px; display: flex; align-items: center; justify-content: space-between; gap: 22px; background: var(--graphite); color: #F0F2EB; border-bottom: 3px solid var(--orange); }
+    .brand { display: flex; align-items: center; gap: 11px; }
+    .brand-mark { width: 36px; height: 36px; }
+    .brand-name { font-size: 18px; font-weight: 800; letter-spacing: .12em; }
+    .brand-sub { color: #9FA9A2; font-family: "Arial Narrow", Consolas, sans-serif; font-size: 8px; letter-spacing: .2em; }
+    .topnav { display: flex; align-self: stretch; gap: 27px; }
+    .topnav span { position: relative; display: flex; align-items: center; color: #9FA9A2; font-size: 11px; }
+    .topnav span.active { color: #FFFFFF; }
+    .topnav span.active::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: var(--orange); }
+    .quote-status { min-width: 93px; display: flex; align-items: center; justify-content: space-between; gap: 13px; padding: 7px 10px; border: 1px solid #58625C; color: #C3CCC5; font-size: 10px; }
+    .quote-status strong { display: grid; place-items: center; min-width: 22px; height: 22px; background: var(--orange); color: #FFFFFF; font-family: Consolas, monospace; font-size: 11px; }
+    main { max-width: 1280px; margin: 0 auto; padding: 21px 32px 33px; }
+    .index-header { min-height: 99px; display: grid; grid-template-columns: minmax(0, 1fr) 250px; align-items: center; gap: 22px; margin-bottom: 18px; padding: 10px 0 13px; border-bottom: 1px solid #B5BBB4; }
+    .kicker { margin: 0 0 3px; color: var(--orange-dark); font-family: Consolas, monospace; font-size: 9px; font-weight: 700; letter-spacing: .16em; }
+    h1 { margin: 0; font-size: 28px; line-height: 1.3; letter-spacing: .03em; }
+    .header-sub { margin: 5px 0 0; color: var(--muted); font-size: 10px; }
+    .foundry-art { display: block; width: 250px; height: 78px; }
+    .workbench { display: grid; grid-template-columns: 262px minmax(0, 1fr); gap: 18px; align-items: start; }
+    .filter-panel { position: sticky; top: 16px; border: 1px solid #AFB6AE; background: var(--surface); box-shadow: var(--shadow); }
+    .hazard { height: 7px; background: repeating-linear-gradient(-45deg, var(--orange) 0, var(--orange) 8px, var(--graphite) 8px, var(--graphite) 16px); }
+    .filter-head { min-height: 55px; padding: 12px 14px 10px; display: flex; align-items: center; justify-content: space-between; gap: 9px; border-bottom: 1px solid var(--line); }
+    .filter-head h2 { margin: 0; font-size: 14px; }
+    .filter-head h2 span { display: block; margin-top: 2px; color: var(--muted); font-family: Consolas, monospace; font-size: 8px; font-weight: 400; letter-spacing: .12em; }
+    .clear-filters { padding: 4px 0; border: 0; border-bottom: 1px solid currentColor; background: transparent; color: var(--orange-dark); font-size: 10px; }
+    .clear-filters:hover:not(:disabled) { color: var(--ink); }
+    .filter-body { padding: 0 14px; }
+    .filter-group { min-width: 0; margin: 0; padding: 14px 0; border: 0; border-bottom: 1px solid #D1D5CE; }
+    .filter-group:last-child { border-bottom: 0; }
+    .filter-group legend, .search-label { display: block; width: 100%; margin-bottom: 8px; padding: 0; color: #3D4540; font-size: 10px; font-weight: 700; letter-spacing: .05em; }
+    .search-box { position: relative; }
+    .search-box input { width: 100%; height: 38px; padding: 8px 30px 8px 10px; border: 1px solid #A9B1A9; border-radius: 0; background: var(--white); color: var(--ink); font-size: 11px; }
+    .search-box svg { position: absolute; right: 9px; top: 11px; width: 15px; height: 15px; pointer-events: none; }
+    .filter-group input[type="search"]:hover, .filter-group select:hover { border-color: var(--orange); }
+    .option-list { display: grid; gap: 8px; }
+    .option { display: flex; align-items: center; gap: 8px; min-height: 20px; color: #535C56; font-size: 10px; cursor: pointer; }
+    .option:hover { color: var(--orange-dark); }
+    .option input { flex: 0 0 auto; width: 15px; height: 15px; margin: 0; accent-color: var(--orange); }
+    .option .option-count { margin-left: auto; color: #8B938D; font-family: Consolas, monospace; font-size: 9px; }
+    .filter-group select { width: 100%; height: 37px; padding: 7px 9px; border: 1px solid #A9B1A9; border-radius: 0; background: var(--white); color: var(--ink); font-size: 10px; }
+    .range-value { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 7px; }
+    .range-value output { color: var(--orange-dark); font-family: Consolas, monospace; font-size: 14px; font-weight: 700; }
+    .range-value span { color: var(--muted); font-size: 9px; }
+    .price-range { width: 100%; height: 18px; margin: 0; accent-color: var(--orange); cursor: pointer; }
+    .range-marks { display: flex; justify-content: space-between; color: #858D87; font-family: Consolas, monospace; font-size: 8px; }
+    .filter-foot { padding: 10px 14px; border-top: 1px solid var(--line); background: #E9ECE6; color: #6F7871; font-size: 9px; }
+    .results-panel { min-width: 0; }
+    .results-toolbar { min-height: 68px; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 10px 16px; border: 1px solid var(--line); border-left: 4px solid var(--orange); background: var(--surface); }
+    .count-block { display: flex; align-items: baseline; gap: 8px; }
+    .count-label { align-self: center; max-width: 48px; color: var(--muted); font-family: Consolas, monospace; font-size: 8px; line-height: 1.4; letter-spacing: .1em; }
+    .result-count { color: var(--orange); font-family: "Arial Narrow", Bahnschrift, Consolas, sans-serif; font-size: 36px; font-weight: 800; line-height: 1; }
+    .count-unit { color: #4C5550; font-size: 11px; }
+    .sort-control { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 10px; }
+    .sort-control select { height: 35px; padding: 6px 9px; border: 1px solid #ABB3AB; border-radius: 0; background: var(--white); color: var(--ink); font-size: 10px; }
+    .active-filters { min-height: 39px; display: flex; align-items: center; flex-wrap: wrap; gap: 6px; padding: 8px 2px 7px; }
+    .active-label { color: var(--muted); font-size: 9px; }
+    .filter-chip { min-height: 24px; padding: 3px 8px; border: 1px solid #D5A28B; background: var(--orange-soft); color: #85401F; font-size: 9px; }
+    .filter-chip:hover { border-color: var(--orange); background: #F6D2BE; }
+    .result-columns { display: grid; grid-template-columns: minmax(0, 1fr) 107px 91px 100px; gap: 12px; padding: 7px 14px; border: 1px solid var(--line); border-bottom: 0; background: #DDE1DA; color: #69716B; font-size: 8px; letter-spacing: .1em; }
+    .results-list { border: 1px solid var(--line); border-top: 0; background: var(--surface); box-shadow: var(--shadow); }
+    .part-card { border-bottom: 1px solid var(--line); }
+    .part-card:last-child { border-bottom: 0; }
+    .part-row { display: grid; grid-template-columns: minmax(0, 1fr) 107px 91px 100px; gap: 12px; align-items: center; min-height: 88px; padding: 12px 14px; transition: background .15s ease; }
+    .part-row:hover { background: #FAFAF5; }
+    .part-main { min-width: 0; display: grid; grid-template-columns: 42px minmax(0, 1fr); gap: 11px; align-items: center; }
+    .part-serial { align-self: stretch; display: flex; flex-direction: column; align-items: center; justify-content: center; border-right: 1px solid #C9CEC7; color: #858D86; font-family: Consolas, monospace; font-size: 8px; }
+    .part-serial strong { color: #4F5952; font-size: 15px; font-weight: 400; }
+    .part-name { display: inline-flex; align-items: center; gap: 5px; max-width: 100%; padding: 0; border: 0; background: transparent; color: #29312C; font-size: 12px; font-weight: 700; text-align: left; }
+    .part-name:hover { color: var(--orange-dark); text-decoration: underline; text-underline-offset: 3px; }
+    .part-name::after { content: "＋"; color: var(--orange); font-size: 12px; }
+    .part-name[aria-expanded="true"]::after { content: "−"; }
+    .part-sku { display: block; margin-top: 3px; color: #7B847D; font-family: Consolas, monospace; font-size: 8px; letter-spacing: .04em; }
+    .part-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+    .part-tag { padding: 2px 5px; border: 1px solid #CDD2CB; color: #69736C; font-size: 8px; }
+    .stock-cell strong { display: block; color: var(--success); font-size: 10px; }
+    .stock-cell.low strong { color: var(--warning); }
+    .stock-cell.out strong { color: #7D8580; }
+    .stock-cell span { display: block; margin-top: 3px; color: #7B847D; font-size: 9px; }
+    .price-cell { color: #303832; font-family: Consolas, monospace; font-size: 13px; font-weight: 700; }
+    .price-cell small { display: block; margin-top: 3px; color: #8A918B; font-family: "PingFang SC", "Microsoft YaHei", sans-serif; font-size: 8px; font-weight: 400; }
+    .quote-button { min-height: 32px; padding: 6px 8px; border: 1px solid var(--orange); background: transparent; color: var(--orange-dark); font-size: 9px; font-weight: 600; transition: background .15s ease, color .15s ease; }
+    .quote-button:hover { background: var(--orange); color: #FFFFFF; }
+    .quote-button.added { background: var(--success); border-color: var(--success); color: #FFFFFF; }
+    .part-details { margin: 0 14px 12px 67px; padding: 11px 13px; border-left: 3px solid var(--orange); background: #E8ECE5; }
+    .part-details[hidden] { display: none; }
+    .detail-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px 15px; }
+    .detail-item span { display: block; color: #7A847C; font-size: 8px; }
+    .detail-item strong { display: block; margin-top: 2px; color: #3A443D; font-family: Consolas, monospace; font-size: 9px; font-weight: 600; }
+    .empty-results { padding: 42px 20px; text-align: center; }
+    .empty-results svg { width: 74px; height: 60px; margin-bottom: 8px; }
+    .empty-results h3 { margin: 0 0 5px; font-size: 15px; }
+    .empty-results p { margin: 0 0 14px; color: var(--muted); font-size: 10px; }
+    .empty-results button { min-height: 34px; padding: 7px 13px; border: 1px solid var(--orange); background: var(--orange); color: #FFFFFF; font-size: 10px; }
+    .results-foot { display: flex; justify-content: space-between; gap: 15px; padding: 10px 2px; color: #737C75; font-size: 9px; }
+    .results-foot strong { color: #404A43; font-weight: 600; }
+    .toast { position: fixed; right: 25px; bottom: 23px; z-index: 30; max-width: min(390px, calc(100vw - 32px)); padding: 13px 16px; border-left: 4px solid var(--orange); background: var(--graphite); color: #F4F6F0; box-shadow: var(--shadow); font-size: 11px; opacity: 0; transform: translateY(10px); pointer-events: none; transition: opacity .18s ease, transform .18s ease; }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    @media (max-width: 1050px) {
+      .workbench { grid-template-columns: 235px minmax(0, 1fr); }
+      .result-columns, .part-row { grid-template-columns: minmax(0, 1fr) 83px 78px 84px; gap: 8px; }
+      .part-main { grid-template-columns: 34px minmax(0, 1fr); gap: 8px; }
+      .part-details { margin-left: 56px; }
+    }
+    @media (max-width: 900px) {
+      .topbar { padding: 0 22px; }
+      .topnav { display: none; }
+      main { padding: 20px 20px 30px; }
+      .workbench { grid-template-columns: 1fr; }
+      .filter-panel { position: static; }
+      .filter-body { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0 18px; }
+      .filter-group.search-group { grid-column: span 2; }
+      .filter-group { border-bottom: 1px solid #D1D5CE; }
+      .filter-foot { text-align: right; }
+      .result-columns, .part-row { grid-template-columns: minmax(0, 1fr) 100px 88px 94px; gap: 10px; }
+    }
+    @media (max-width: 680px) {
+      .index-header { grid-template-columns: 1fr; }
+      .foundry-art { display: none; }
+      .filter-body { grid-template-columns: repeat(2, 1fr); }
+      .result-columns { display: none; }
+      .part-row { grid-template-columns: minmax(0, 1fr) 85px; }
+      .stock-cell { grid-column: 2; grid-row: 1; }
+      .price-cell { grid-column: 1; padding-left: 53px; }
+      .quote-button { grid-column: 2; }
+      .part-details { margin-left: 14px; }
+      .results-foot { flex-direction: column; gap: 3px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><svg class="brand-mark" viewBox="0 0 38 38" aria-hidden="true"><path d="M4 5h30v28H4z" fill="none" stroke="#6D7871"/><path d="m9 27 8-17 5 11 7-5-4 12z" fill="#E75C24"/><path d="M8 31h22" stroke="#F0F2EB"/></svg><div><div class="brand-name">铸库</div><div class="brand-sub">FOUNDRY / PARTS INDEX</div></div></div>
+    <nav class="topnav" aria-label="备件库栏目"><span>采购看板</span><span class="active">备件索引</span><span>询价记录</span><span>供应商</span></nav>
+    <div class="quote-status">当前询价单 <strong id="quoteCount">0</strong></div>
+  </header>
+  <main>
+    <section class="index-header" aria-labelledby="pageTitle">
+      <div><p class="kicker">PARTS FOUNDRY / INDEX REV.18</p><h1 id="pageTitle">工业备件筛选台</h1><p class="header-sub">华东维修中心 · 8 项标准件档案 · 库存数据更新于 2026-06-18 14:30</p></div>
+      <svg class="foundry-art" viewBox="0 0 250 78" role="img" aria-labelledby="foundryArtTitle">
+        <title id="foundryArtTitle">安全橙工业筛选机与三个通过筛网的备件</title>
+        <path d="M18 11h92l-13 27H31z" fill="#D2D7D0" stroke="#59645D"/>
+        <path d="M37 38h56v23H37z" fill="#292F2C" stroke="#59645D"/>
+        <path d="M43 44h44M43 50h44M43 56h44" stroke="#89948C" stroke-dasharray="3 3"/>
+        <path d="M31 61h-8v10h78v-10H93" fill="none" stroke="#59645D" stroke-width="2"/>
+        <path d="M25 17h77" stroke="#E75C24" stroke-width="3"/>
+        <path d="M121 17h106v45H121z" fill="#F4F5F0" stroke="#A4ADA5"/>
+        <path d="M132 26h44M132 33h74M132 40h56M132 47h81" stroke="#B1B8B0"/>
+        <circle cx="211" cy="25" r="6" fill="none" stroke="#E75C24" stroke-width="2"/>
+        <path d="m143 64 10-10 10 10m17 0 10-10 10 10m17 0 10-10 10 10" fill="none" stroke="#E75C24" stroke-width="2"/>
+        <g fill="#6B726D" font-size="6" font-family="Consolas, monospace"><text x="18" y="7">FILTER BED / 04</text><text x="179" y="72">PASS →</text></g>
+      </svg>
+    </section>
+
+    <div class="workbench">
+      <aside class="filter-panel" aria-labelledby="filterTitle">
+        <div class="hazard" aria-hidden="true"></div>
+        <div class="filter-head"><h2 id="filterTitle">筛选条件 <span>FILTER ASSEMBLY</span></h2><button class="clear-filters" id="clearFilters" type="button">全部清除</button></div>
+        <form id="filters">
+          <div class="filter-body">
+            <div class="filter-group search-group"><label class="search-label" for="keyword">关键词 / 件号</label><div class="search-box"><input id="keyword" type="search" placeholder="如：轴承、FD-6204" autocomplete="off"><svg viewBox="0 0 18 18" fill="none" stroke="#758079" aria-hidden="true"><circle cx="8" cy="8" r="5"/><path d="m12 12 4 4"/></svg></div></div>
+            <fieldset class="filter-group"><legend>部件类别</legend><div class="option-list"><label class="option"><input type="checkbox" name="category" value="轴承">轴承组件<span class="option-count">02</span></label><label class="option"><input type="checkbox" name="category" value="传感">传感元件<span class="option-count">02</span></label><label class="option"><input type="checkbox" name="category" value="液压">液压密封<span class="option-count">02</span></label><label class="option"><input type="checkbox" name="category" value="驱动">驱动传动<span class="option-count">02</span></label></div></fieldset>
+            <fieldset class="filter-group"><legend>库存状态</legend><div class="option-list"><label class="option"><input type="radio" name="stock" value="all">全部状态</label><label class="option"><input type="radio" name="stock" value="ready" checked>现货充足<span class="option-count">06</span></label><label class="option"><input type="radio" name="stock" value="low">库存紧张<span class="option-count">01</span></label><label class="option"><input type="radio" name="stock" value="out">暂时缺货<span class="option-count">01</span></label></div></fieldset>
+            <div class="filter-group"><label class="search-label" for="material">主体材质</label><select id="material"><option value="all">全部材质</option><option>304 不锈钢</option><option>316L 不锈钢</option><option>6061 铝合金</option><option>氧化锆陶瓷</option><option>黄铜</option><option>工程塑料</option></select></div>
+            <div class="filter-group"><label class="search-label" for="maxPrice">单价上限</label><div class="range-value"><output id="priceOutput" for="maxPrice">¥4,000</output><span>含税 / 件</span></div><input class="price-range" id="maxPrice" type="range" min="300" max="4000" step="100" value="4000"><div class="range-marks"><span>¥300</span><span>¥4,000</span></div></div>
+          </div>
+        </form>
+        <div class="filter-foot" id="filterFoot">当前启用 1 项条件 · 条件之间按“且”组合</div>
+      </aside>
+
+      <section class="results-panel" aria-label="备件筛选结果">
+        <div class="results-toolbar"><div class="count-block"><span class="count-label">MATCHED PARTS</span><strong class="result-count" id="resultCount">6</strong><span class="count-unit">项匹配结果</span></div><div class="sort-control"><label for="sortBy">结果排序</label><select id="sortBy"><option value="relevance">综合排序</option><option value="price">价格从低到高</option><option value="stock">库存从多到少</option></select></div></div>
+        <div class="active-filters" id="activeFilters" aria-label="当前筛选条件"></div>
+        <div class="result-columns" aria-hidden="true"><span>备件名称 / 规格</span><span>库存 / 库位</span><span>含税单价</span><span>采购操作</span></div>
+        <div class="results-list" id="resultsList"></div>
+        <div class="results-foot"><span id="resultsSummary">显示 <strong>6 / 8</strong> 项标准件</span><span>价格为华东区协议价 · 批量采购可在询价单中另行核价</span></div>
+        <div class="sr-only" id="resultAnnouncement" aria-live="polite"></div>
+      </section>
+    </div>
+  </main>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    const parts = [
+      { id: 'FD-6204-RS', name: '深沟球密封轴承', category: '轴承', material: '304 不锈钢', price: 680, stock: 24, warehouse: '苏州 A-12', tags: ['内径 20 mm', '双面密封'], spec: ['外径 47 mm', '额定载荷 12.8 kN', 'IP65'], grade: 'A 级', lead: '当日出库' },
+      { id: 'FD-6305-CZ', name: '高速陶瓷混合轴承', category: '轴承', material: '氧化锆陶瓷', price: 1280, stock: 8, warehouse: '苏州 B-04', tags: ['内径 25 mm', '低摩擦'], spec: ['外径 62 mm', '转速 18,000 rpm', 'P5 精度'], grade: 'A 级', lead: '当日出库' },
+      { id: 'SN-PT100-M8', name: '螺纹式温度传感探头', category: '传感', material: '316L 不锈钢', price: 960, stock: 16, warehouse: '无锡 C-08', tags: ['PT100', 'M8 螺纹'], spec: ['−50–250 ℃', 'A 级精度', '线长 2 m'], grade: 'A 级', lead: '当日出库' },
+      { id: 'HY-OR-442', name: '耐油液压密封组件', category: '液压', material: '黄铜', price: 450, stock: 3, warehouse: '宁波 D-17', tags: ['42 mm', '耐油'], spec: ['压力 31.5 MPa', '丁腈橡胶', '6 件 / 套'], grade: 'B 级', lead: '3 日内出库' },
+      { id: 'DR-BL86-300', name: '无刷直流行星驱动器', category: '驱动', material: '6061 铝合金', price: 2380, stock: 6, warehouse: '苏州 E-02', tags: ['300 W', '减速比 10:1'], spec: ['48 VDC', '额定转矩 18 Nm', 'IP54'], grade: 'A 级', lead: '当日出库' },
+      { id: 'SN-IND-M18', name: '电感式接近传感器', category: '传感', material: '工程塑料', price: 320, stock: 0, warehouse: '无锡 C-21', tags: ['M18', 'NPN 常开'], spec: ['检测 8 mm', '10–30 VDC', 'IP67'], grade: 'B 级', lead: '预计 7 月 2 日' },
+      { id: 'HY-CYL-50', name: '紧凑型液压缸维修包', category: '液压', material: '304 不锈钢', price: 760, stock: 11, warehouse: '宁波 D-03', tags: ['缸径 50 mm', '耐高温'], spec: ['压力 16 MPa', '氟橡胶', '9 件 / 套'], grade: 'A 级', lead: '当日出库' },
+      { id: 'DR-BELT-S8M', name: '高强度同步带轮组', category: '驱动', material: '6061 铝合金', price: 1850, stock: 9, warehouse: '杭州 F-09', tags: ['S8M 齿形', '免键衬套'], spec: ['齿数 32', '带宽 30 mm', '动平衡 G6.3'], grade: 'A 级', lead: '次日出库' }
+    ];
+    const expanded = new Set();
+    const quoted = new Set();
+    const form = document.getElementById('filters');
+    const resultsList = document.getElementById('resultsList');
+    const toast = document.getElementById('toast');
+    let toastTimer;
+    function notify(message) {
+      clearTimeout(toastTimer);
+      toast.textContent = message;
+      toast.classList.add('show');
+      toastTimer = setTimeout(() => toast.classList.remove('show'), 3000);
+    }
+    function money(value) { return '¥' + value.toLocaleString('zh-CN'); }
+    function stockState(part) { return part.stock === 0 ? 'out' : part.stock <= 4 ? 'low' : 'ready'; }
+    function stockLabel(part) { const state = stockState(part); return state === 'out' ? '暂时缺货' : state === 'low' ? '库存紧张 · ' + part.stock + ' 件' : '现货 · ' + part.stock + ' 件'; }
+    function currentFilters() {
+      return {
+        query: document.getElementById('keyword').value.trim().toLowerCase(),
+        categories: [...form.querySelectorAll('input[name="category"]:checked')].map(input => input.value),
+        stock: form.querySelector('input[name="stock"]:checked').value,
+        material: document.getElementById('material').value,
+        maxPrice: Number(document.getElementById('maxPrice').value)
+      };
+    }
+    function filteredParts() {
+      const filters = currentFilters();
+      const result = parts.filter(part => {
+        const searchable = [part.id, part.name, part.category, part.material, ...part.tags].join(' ').toLowerCase();
+        return (!filters.query || searchable.includes(filters.query)) &&
+          (!filters.categories.length || filters.categories.includes(part.category)) &&
+          (filters.stock === 'all' || stockState(part) === filters.stock) &&
+          (filters.material === 'all' || part.material === filters.material) &&
+          part.price <= filters.maxPrice;
+      });
+      const sort = document.getElementById('sortBy').value;
+      if (sort === 'price') result.sort((a, b) => a.price - b.price);
+      if (sort === 'stock') result.sort((a, b) => b.stock - a.stock);
+      return result;
+    }
+    function renderResults() {
+      const matches = filteredParts();
+      document.getElementById('resultCount').textContent = matches.length;
+      document.getElementById('resultsSummary').innerHTML = '显示 <strong>' + matches.length + ' / ' + parts.length + '</strong> 项标准件';
+      document.getElementById('resultAnnouncement').textContent = '筛选完成，共 ' + matches.length + ' 项结果。';
+      resultsList.innerHTML = '';
+      if (!matches.length) {
+        resultsList.innerHTML = '<div class="empty-results"><svg viewBox="0 0 80 64" aria-hidden="true"><path d="M8 7h64L52 31v22l-24 6V31z" fill="#E8ECE5" stroke="#758079"/><path d="M18 16h44M24 23h32" stroke="#E75C24" stroke-width="2"/><path d="m31 41 18 12m0-12L31 53" stroke="#758079"/></svg><h3>没有符合全部条件的备件</h3><p>试着移除材质或价格限制，或者清除关键词后重新筛选。</p><button id="emptyClear" type="button">清除全部条件</button></div>';
+        return;
+      }
+      matches.forEach((part, index) => {
+        const article = document.createElement('article');
+        article.className = 'part-card';
+        article.dataset.id = part.id;
+        const isExpanded = expanded.has(part.id);
+        const isQuoted = quoted.has(part.id);
+        article.innerHTML = '<div class="part-row"><div class="part-main"><span class="part-serial"><strong>' + String(index + 1).padStart(2, '0') + '</strong>' + part.category + '</span><div><button class="part-name" type="button" aria-expanded="' + isExpanded + '">' + part.name + '</button><span class="part-sku">' + part.id + ' · 质检 ' + part.grade + '</span><div class="part-tags">' + part.tags.map(tag => '<span class="part-tag">' + tag + '</span>').join('') + '</div></div></div><div class="stock-cell ' + stockState(part) + '"><strong>' + stockLabel(part) + '</strong><span>' + part.warehouse + ' · ' + part.lead + '</span></div><div class="price-cell">' + money(part.price) + '<small>未含运费</small></div><button class="quote-button' + (isQuoted ? ' added' : '') + '" type="button" aria-pressed="' + isQuoted + '">' + (isQuoted ? '已加入 ✓' : '加入询价') + '</button></div><div class="part-details"' + (isExpanded ? '' : ' hidden') + '><div class="detail-grid"><div class="detail-item"><span>关键规格</span><strong>' + part.spec[0] + '</strong></div><div class="detail-item"><span>性能参数</span><strong>' + part.spec[1] + '</strong></div><div class="detail-item"><span>防护 / 包装</span><strong>' + part.spec[2] + '</strong></div><div class="detail-item"><span>主体材质</span><strong>' + part.material + '</strong></div><div class="detail-item"><span>质检等级</span><strong>' + part.grade + '</strong></div><div class="detail-item"><span>交付说明</span><strong>' + part.lead + '</strong></div></div></div>';
+        resultsList.appendChild(article);
+      });
+    }
+    function renderChips() {
+      const filters = currentFilters();
+      const chips = [];
+      if (filters.query) chips.push({ type: 'query', value: '', label: '关键词：' + document.getElementById('keyword').value.trim() });
+      filters.categories.forEach(category => chips.push({ type: 'category', value: category, label: '类别：' + category }));
+      if (filters.stock !== 'all') {
+        const labels = { ready: '现货充足', low: '库存紧张', out: '暂时缺货' };
+        chips.push({ type: 'stock', value: filters.stock, label: '库存：' + labels[filters.stock] });
+      }
+      if (filters.material !== 'all') chips.push({ type: 'material', value: '', label: '材质：' + filters.material });
+      if (filters.maxPrice < 4000) chips.push({ type: 'price', value: '', label: '单价 ≤ ' + money(filters.maxPrice) });
+      const container = document.getElementById('activeFilters');
+      container.innerHTML = '';
+      const label = document.createElement('span');
+      label.className = 'active-label';
+      label.textContent = chips.length ? '已启用' : '未设限制 · 显示全部档案';
+      container.appendChild(label);
+      chips.forEach(chip => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'filter-chip';
+        button.dataset.type = chip.type;
+        button.dataset.value = chip.value;
+        button.textContent = chip.label + ' ×';
+        button.setAttribute('aria-label', '移除条件 ' + chip.label);
+        container.appendChild(button);
+      });
+      document.getElementById('clearFilters').disabled = chips.length === 0;
+      document.getElementById('filterFoot').textContent = '当前启用 ' + chips.length + ' 项条件 · 条件之间按“且”组合';
+    }
+    function applyFilters() {
+      document.getElementById('priceOutput').textContent = money(Number(document.getElementById('maxPrice').value));
+      renderChips();
+      renderResults();
+    }
+    function clearAll() {
+      form.reset();
+      document.getElementById('keyword').value = '';
+      document.getElementById('material').value = 'all';
+      document.getElementById('maxPrice').value = '4000';
+      form.querySelector('input[name="stock"][value="all"]').checked = true;
+      applyFilters();
+      notify('筛选条件已全部清除，现显示 8 项标准件。');
+    }
+    form.addEventListener('submit', event => event.preventDefault());
+    form.addEventListener('input', event => { if (event.target.matches('#keyword, #maxPrice')) applyFilters(); });
+    form.addEventListener('change', event => { if (event.target.matches('input[name="category"], input[name="stock"], #material')) applyFilters(); });
+    document.getElementById('clearFilters').addEventListener('click', clearAll);
+    document.getElementById('sortBy').addEventListener('change', renderResults);
+    document.getElementById('activeFilters').addEventListener('click', event => {
+      const chip = event.target.closest('.filter-chip');
+      if (!chip) return;
+      if (chip.dataset.type === 'query') document.getElementById('keyword').value = '';
+      if (chip.dataset.type === 'category') form.querySelector('input[name="category"][value="' + chip.dataset.value + '"]').checked = false;
+      if (chip.dataset.type === 'stock') form.querySelector('input[name="stock"][value="all"]').checked = true;
+      if (chip.dataset.type === 'material') document.getElementById('material').value = 'all';
+      if (chip.dataset.type === 'price') document.getElementById('maxPrice').value = '4000';
+      applyFilters();
+    });
+    resultsList.addEventListener('click', event => {
+      if (event.target.id === 'emptyClear') { clearAll(); return; }
+      const card = event.target.closest('.part-card');
+      if (!card) return;
+      const part = parts.find(item => item.id === card.dataset.id);
+      const nameButton = event.target.closest('.part-name');
+      if (nameButton) {
+        const details = card.querySelector('.part-details');
+        const willExpand = details.hidden;
+        details.hidden = !willExpand;
+        nameButton.setAttribute('aria-expanded', String(willExpand));
+        if (willExpand) expanded.add(part.id); else expanded.delete(part.id);
+      }
+      const quoteButton = event.target.closest('.quote-button');
+      if (quoteButton) {
+        if (quoted.has(part.id)) quoted.delete(part.id); else quoted.add(part.id);
+        const added = quoted.has(part.id);
+        quoteButton.classList.toggle('added', added);
+        quoteButton.setAttribute('aria-pressed', String(added));
+        quoteButton.textContent = added ? '已加入 ✓' : '加入询价';
+        document.getElementById('quoteCount').textContent = quoted.size;
+        notify(added ? '已将“' + part.name + '”加入询价单。' : '已从询价单移除“' + part.name + '”。');
+      }
+    });
+    applyFilters();
+  </script>
+</body>
+</html>

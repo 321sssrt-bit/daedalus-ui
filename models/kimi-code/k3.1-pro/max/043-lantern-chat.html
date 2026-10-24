@@ -1,0 +1,1693 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f3ecdc">
+  <title>灯笺 · 近讯</title>
+  <style>
+    :root {
+      --page: #ded5c4;
+      --paper: #f3ecdc;
+      --surface: #fffaf0;
+      --surface-deep: #ebe1cf;
+      --ink: #25324e;
+      --indigo: #293b5f;
+      --indigo-dark: #1d2a44;
+      --muted: #766f63;
+      --faint: #9a9182;
+      --line: #d8ccb6;
+      --red: #b5473c;
+      --red-dark: #91362f;
+      --red-soft: #f3dfd5;
+      --on-indigo: #fff8ea;
+      --focus: #c35b45;
+      --tea: #667665;
+      --ochre: #a77a45;
+      --paper-shadow: #e0d4be;
+      --disabled: #c9beab;
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      --font-serif: "Songti SC", "STSong", "SimSun", serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      background: var(--page);
+    }
+
+    body {
+      margin: 0;
+      min-width: 0;
+      min-height: 100vh;
+      overflow-x: hidden;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 18% 12%, rgba(255, 250, 240, 0.7), transparent 30%),
+        var(--page);
+      font-family: var(--font-sans);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    button,
+    textarea {
+      font: inherit;
+    }
+
+    button {
+      max-width: 100%;
+      color: inherit;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    button:focus-visible,
+    textarea:focus-visible {
+      outline: 3px solid var(--focus);
+      outline-offset: 3px;
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    .device {
+      position: relative;
+      width: 100%;
+      max-width: 390px;
+      height: 100vh;
+      height: 100dvh;
+      margin: 0 auto;
+      background: var(--paper);
+    }
+
+    .screen {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: var(--paper);
+      isolation: isolate;
+    }
+
+    .screen::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      opacity: 0.55;
+      background-image: repeating-linear-gradient(
+        0deg,
+        transparent 0,
+        transparent 3px,
+        rgba(77, 63, 42, 0.025) 4px
+      );
+    }
+
+    .view {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .view:not([hidden]) {
+      animation: view-in 180ms ease-out both;
+    }
+
+    .list-header {
+      flex: none;
+      min-height: 148px;
+      padding: 24px 20px 12px;
+      border-bottom: 1px solid rgba(151, 132, 101, 0.24);
+      background: linear-gradient(180deg, rgba(255, 250, 240, 0.72), rgba(243, 236, 220, 0));
+    }
+
+    .brand-row,
+    .brand-lockup,
+    .list-heading,
+    .conversation-name-row,
+    .network-title-row,
+    .message-meta,
+    .composer-meta {
+      display: flex;
+      align-items: center;
+    }
+
+    .brand-row {
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .brand-lockup {
+      gap: 11px;
+      min-width: 0;
+    }
+
+    .brand-seal {
+      display: grid;
+      place-items: center;
+      flex: 0 0 42px;
+      width: 42px;
+      height: 48px;
+      color: var(--surface);
+      background: var(--red);
+      border: 1px solid var(--red-dark);
+      border-radius: 13px 13px 13px 3px;
+      box-shadow: 3px 3px 0 rgba(145, 54, 47, 0.13);
+    }
+
+    .brand-seal svg {
+      width: 26px;
+      height: 30px;
+    }
+
+    .eyebrow {
+      margin: 0 0 3px;
+      color: var(--red-dark);
+      font-size: 9px;
+      font-weight: 650;
+      letter-spacing: 0.24em;
+    }
+
+    .brand-title {
+      margin: 0;
+      font-family: var(--font-serif);
+      font-size: 31px;
+      font-weight: 700;
+      line-height: 1;
+      letter-spacing: 0.12em;
+    }
+
+    .unread-summary {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      flex: none;
+      padding: 6px 8px;
+      color: var(--red-dark);
+      background: rgba(255, 250, 240, 0.66);
+      border: 1px solid var(--line);
+      border-radius: 8px 8px 8px 2px;
+      font-size: 10px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .unread-summary::before {
+      content: "";
+      width: 6px;
+      height: 6px;
+      background: var(--red);
+      border-radius: 50%;
+    }
+
+    .unread-summary.is-clear {
+      color: var(--tea);
+    }
+
+    .unread-summary.is-clear::before {
+      background: var(--tea);
+    }
+
+    .list-heading {
+      gap: 12px;
+      margin-top: 23px;
+    }
+
+    .list-heading h2 {
+      margin: 0;
+      font-family: var(--font-serif);
+      font-size: 18px;
+      line-height: 1.2;
+      letter-spacing: 0.08em;
+    }
+
+    .list-heading p {
+      flex: 1;
+      min-width: 0;
+      margin: 0;
+      color: var(--muted);
+      font-size: 11px;
+      letter-spacing: 0.04em;
+    }
+
+    .list-heading > span {
+      flex: none;
+      color: var(--faint);
+      font-size: 10px;
+    }
+
+    .conversation-scroll {
+      flex: 1;
+      min-height: 0;
+      overflow-x: hidden;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      scrollbar-width: thin;
+      scrollbar-color: var(--line) transparent;
+    }
+
+    .conversation-list {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      margin: 0;
+      padding: 10px 12px 14px;
+      list-style: none;
+    }
+
+    .conversation-item {
+      min-width: 0;
+    }
+
+    .conversation-button {
+      position: relative;
+      display: grid;
+      grid-template-columns: 50px minmax(0, 1fr) 44px;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      min-height: 92px;
+      padding: 14px 10px;
+      text-align: left;
+      background: rgba(255, 250, 240, 0.34);
+      border: 1px solid transparent;
+      border-bottom-color: var(--line);
+      border-radius: 14px 14px 14px 4px;
+      transition: background-color 150ms ease, border-color 150ms ease, transform 150ms ease;
+    }
+
+    .conversation-button.is-unread {
+      background: rgba(255, 250, 240, 0.82);
+      border-left-color: var(--red);
+    }
+
+    .conversation-button.is-unread::before {
+      content: "";
+      position: absolute;
+      left: -1px;
+      top: 23px;
+      bottom: 23px;
+      width: 3px;
+      background: var(--red);
+      border-radius: 0 2px 2px 0;
+    }
+
+    .avatar {
+      position: relative;
+      display: grid;
+      place-items: center;
+      width: 50px;
+      height: 50px;
+      overflow: hidden;
+      color: var(--indigo);
+      background: var(--surface-deep);
+      border: 1px solid rgba(41, 59, 95, 0.16);
+      border-radius: 15px 15px 15px 4px;
+      font-family: var(--font-serif);
+      font-size: 20px;
+      font-weight: 700;
+      box-shadow: inset 0 0 0 3px rgba(255, 250, 240, 0.34);
+    }
+
+    .avatar::after {
+      content: "";
+      position: absolute;
+      right: 5px;
+      bottom: 5px;
+      width: 7px;
+      height: 7px;
+      border: 1px solid currentColor;
+      border-radius: 50%;
+      opacity: 0.32;
+    }
+
+    .avatar[data-tone="red"] {
+      color: var(--red-dark);
+      background: #eddbcd;
+    }
+
+    .avatar[data-tone="tea"] {
+      color: #4f6254;
+      background: #dfe4d8;
+    }
+
+    .avatar[data-tone="ochre"] {
+      color: #765630;
+      background: #eae0c9;
+    }
+
+    .avatar[data-tone="indigo"] {
+      color: var(--indigo);
+      background: #dfe2e5;
+    }
+
+    .conversation-copy {
+      display: block;
+      min-width: 0;
+    }
+
+    .conversation-name-row {
+      min-width: 0;
+      gap: 7px;
+    }
+
+    .conversation-name {
+      flex: none;
+      font-size: 15px;
+      font-weight: 650;
+      letter-spacing: 0.02em;
+    }
+
+    .conversation-note {
+      min-width: 0;
+      overflow: hidden;
+      color: var(--faint);
+      font-size: 9px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .conversation-preview {
+      display: block;
+      margin-top: 7px;
+      overflow: hidden;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .conversation-preview.is-failed {
+      color: var(--red-dark);
+    }
+
+    .conversation-meta {
+      align-self: stretch;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      justify-content: center;
+      min-width: 0;
+      color: var(--faint);
+    }
+
+    .conversation-meta time {
+      font-size: 10px;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    .unread-badge {
+      display: inline-grid;
+      place-items: center;
+      min-width: 20px;
+      height: 20px;
+      margin-top: 10px;
+      padding: 0 5px;
+      color: var(--surface);
+      background: var(--red);
+      border-radius: 10px;
+      font-size: 10px;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .read-state {
+      margin-top: 11px;
+      color: var(--faint);
+      font-size: 9px;
+    }
+
+    .list-footer {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      flex: none;
+      min-height: 42px;
+      padding: 9px 16px calc(10px + env(safe-area-inset-bottom));
+      color: var(--muted);
+      border-top: 1px solid var(--line);
+      background: var(--surface-deep);
+      font-family: var(--font-serif);
+      font-size: 10px;
+      letter-spacing: 0.12em;
+    }
+
+    .list-footer::before,
+    .list-footer::after {
+      content: "";
+      width: 24px;
+      height: 1px;
+      background: var(--line);
+    }
+
+    .chat-header {
+      display: grid;
+      grid-template-columns: 40px minmax(0, 1fr) 38px;
+      align-items: center;
+      gap: 11px;
+      flex: none;
+      min-height: 76px;
+      padding: 14px 14px 10px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255, 250, 240, 0.48);
+    }
+
+    .icon-button {
+      display: grid;
+      place-items: center;
+      width: 40px;
+      height: 40px;
+      padding: 0;
+      color: var(--indigo);
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 50%;
+      transition: background-color 150ms ease, transform 150ms ease;
+    }
+
+    .icon-button svg {
+      width: 19px;
+      height: 19px;
+    }
+
+    .chat-heading {
+      min-width: 0;
+      text-align: center;
+    }
+
+    .chat-heading h1 {
+      margin: 0;
+      overflow: hidden;
+      font-family: var(--font-serif);
+      font-size: 19px;
+      font-weight: 700;
+      line-height: 1.3;
+      letter-spacing: 0.06em;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .chat-heading h1:focus {
+      outline: none;
+    }
+
+    .chat-heading p {
+      margin: 4px 0 0;
+      color: var(--tea);
+      font-size: 10px;
+      line-height: 1.2;
+    }
+
+    .chat-heading p.is-offline {
+      color: var(--red-dark);
+    }
+
+    .avatar-small {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px 12px 12px 3px;
+      font-size: 16px;
+    }
+
+    .avatar-small::after {
+      right: 4px;
+      bottom: 4px;
+      width: 5px;
+      height: 5px;
+    }
+
+    .network-panel {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 10px;
+      flex: none;
+      min-height: 66px;
+      margin: 10px 14px 8px;
+      padding: 9px 10px 9px 12px;
+      background: rgba(235, 225, 207, 0.8);
+      border: 1px solid var(--line);
+      border-radius: 13px 13px 13px 4px;
+      transition: background-color 160ms ease, border-color 160ms ease;
+    }
+
+    .network-copy {
+      min-width: 0;
+    }
+
+    .network-title-row {
+      min-width: 0;
+      gap: 6px;
+    }
+
+    .network-title-row svg {
+      flex: none;
+      width: 14px;
+      height: 14px;
+      color: var(--indigo);
+    }
+
+    .network-title {
+      flex: none;
+      margin: 0;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .network-state {
+      flex: none;
+      padding: 2px 5px;
+      color: var(--tea);
+      border: 1px solid currentColor;
+      border-radius: 5px;
+      font-size: 9px;
+      line-height: 1.2;
+    }
+
+    .network-hint {
+      margin: 5px 0 0;
+      color: var(--muted);
+      font-size: 10px;
+      line-height: 1.4;
+    }
+
+    .network-action {
+      min-width: 112px;
+      min-height: 38px;
+      padding: 7px 9px;
+      color: var(--red-dark);
+      background: var(--surface);
+      border: 1px solid var(--red);
+      border-radius: 10px 10px 10px 3px;
+      font-size: 11px;
+      font-weight: 650;
+      line-height: 1.35;
+      transition: background-color 150ms ease, color 150ms ease, transform 150ms ease;
+    }
+
+    .network-panel.is-armed {
+      background: var(--red-soft);
+      border-color: var(--red);
+    }
+
+    .network-panel.is-armed .network-state,
+    .network-panel.is-offline .network-state {
+      color: var(--red-dark);
+    }
+
+    .network-panel.is-armed .network-action {
+      color: var(--surface);
+      background: var(--red);
+    }
+
+    .network-panel.is-offline {
+      background: var(--red-soft);
+      border-color: var(--red-dark);
+    }
+
+    .network-panel.is-offline .network-hint {
+      color: var(--red-dark);
+    }
+
+    .network-panel.is-offline .network-action {
+      color: var(--on-indigo);
+      background: var(--indigo);
+      border-color: var(--indigo);
+    }
+
+    .message-scroll {
+      flex: 1;
+      min-width: 0;
+      min-height: 0;
+      overflow-x: hidden;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      scrollbar-width: thin;
+      scrollbar-color: var(--line) transparent;
+    }
+
+    .message-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      min-width: 0;
+      margin: 0;
+      padding: 4px 16px 18px;
+      list-style: none;
+    }
+
+    .day-divider {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      width: 100%;
+      margin: 2px 0 4px;
+      color: var(--faint);
+      font-size: 9px;
+      letter-spacing: 0.08em;
+      white-space: nowrap;
+    }
+
+    .day-divider::before,
+    .day-divider::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: var(--line);
+    }
+
+    .message-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      width: 100%;
+      min-width: 0;
+    }
+
+    .message-row.is-own {
+      justify-content: flex-end;
+    }
+
+    .message-row:focus {
+      outline: none;
+    }
+
+    .message-avatar {
+      display: grid;
+      place-items: center;
+      flex: 0 0 26px;
+      width: 26px;
+      height: 26px;
+      margin-top: 2px;
+      color: var(--indigo);
+      background: var(--surface-deep);
+      border: 1px solid var(--line);
+      border-radius: 8px 8px 8px 2px;
+      font-family: var(--font-serif);
+      font-size: 11px;
+    }
+
+    .message-stack {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      min-width: 0;
+      max-width: 78%;
+    }
+
+    .is-own .message-stack {
+      align-items: flex-end;
+    }
+
+    .message-bubble {
+      min-width: 0;
+      max-width: 100%;
+      padding: 9px 12px;
+      overflow-wrap: anywhere;
+      color: var(--ink);
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 4px 15px 15px 15px;
+      box-shadow: 2px 3px 0 var(--paper-shadow);
+      font-size: 14px;
+      line-height: 1.65;
+      letter-spacing: 0.015em;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .is-own .message-bubble {
+      color: var(--on-indigo);
+      background: var(--indigo);
+      border-color: var(--indigo);
+      border-radius: 15px 4px 15px 15px;
+    }
+
+    .message-row.is-failed .message-bubble {
+      border-color: var(--red);
+      box-shadow: 2px 3px 0 var(--paper-shadow), 0 0 0 1px rgba(181, 71, 60, 0.18);
+    }
+
+    .message-meta {
+      flex-wrap: wrap;
+      gap: 5px;
+      min-height: 20px;
+      margin-top: 5px;
+      color: var(--faint);
+      font-size: 9px;
+      line-height: 1.3;
+    }
+
+    .is-own .message-meta {
+      justify-content: flex-end;
+    }
+
+    .message-meta time {
+      font-variant-numeric: tabular-nums;
+    }
+
+    .delivery-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      white-space: nowrap;
+    }
+
+    .delivery-status svg {
+      width: 12px;
+      height: 12px;
+    }
+
+    .delivery-status.is-delivered {
+      color: var(--tea);
+    }
+
+    .delivery-status.is-failed {
+      color: var(--red-dark);
+      font-weight: 700;
+    }
+
+    .status-spinner {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border: 1.5px solid var(--line);
+      border-top-color: var(--indigo);
+      border-radius: 50%;
+      animation: spin 800ms linear infinite;
+    }
+
+    .retry-button {
+      min-width: 40px;
+      min-height: 24px;
+      padding: 2px 7px;
+      color: var(--red-dark);
+      background: var(--surface);
+      border: 1px solid var(--red);
+      border-radius: 6px;
+      font-size: 10px;
+      font-weight: 650;
+    }
+
+    .retry-button:disabled {
+      color: var(--faint);
+      background: var(--surface-deep);
+      border-color: var(--line);
+      opacity: 0.72;
+    }
+
+    .composer-shell {
+      flex: none;
+      padding: 10px 12px calc(12px + env(safe-area-inset-bottom));
+      background: var(--surface-deep);
+      border-top: 1px solid var(--line);
+    }
+
+    .composer-shell.is-offline {
+      border-top-color: var(--red);
+    }
+
+    .composer-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 66px;
+      align-items: end;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .input-wrap {
+      min-width: 0;
+    }
+
+    .composer-row textarea {
+      display: block;
+      width: 100%;
+      height: 44px;
+      min-height: 44px;
+      max-height: 88px;
+      padding: 10px 12px;
+      resize: none;
+      overflow-x: hidden;
+      overflow-y: auto;
+      color: var(--ink);
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 12px 12px 4px 12px;
+      font-size: 13px;
+      line-height: 1.65;
+    }
+
+    .composer-row textarea::placeholder {
+      color: var(--faint);
+    }
+
+    .send-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      width: 66px;
+      height: 44px;
+      padding: 0 8px;
+      color: var(--surface);
+      background: var(--red);
+      border: 1px solid var(--red-dark);
+      border-radius: 12px 12px 12px 4px;
+      box-shadow: 0 3px 0 var(--red-dark);
+      font-size: 12px;
+      font-weight: 700;
+      transition: transform 120ms ease, box-shadow 120ms ease, background-color 150ms ease;
+    }
+
+    .send-button svg {
+      width: 15px;
+      height: 15px;
+    }
+
+    .send-button:active:not(:disabled) {
+      transform: translateY(2px);
+      box-shadow: 0 1px 0 var(--red-dark);
+    }
+
+    .send-button:disabled {
+      color: var(--surface);
+      background: var(--disabled);
+      border-color: var(--disabled);
+      box-shadow: none;
+    }
+
+    .composer-meta {
+      justify-content: space-between;
+      gap: 12px;
+      min-height: 15px;
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 9px;
+      line-height: 1.4;
+    }
+
+    .composer-meta p {
+      min-width: 0;
+      margin: 0;
+    }
+
+    .char-count {
+      flex: none;
+      color: var(--faint);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .toast {
+      position: absolute;
+      left: 50%;
+      bottom: 104px;
+      z-index: 20;
+      width: max-content;
+      max-width: calc(100% - 40px);
+      padding: 10px 14px;
+      transform: translateX(-50%);
+      color: var(--on-indigo);
+      background: var(--indigo-dark);
+      border: 1px solid rgba(255, 248, 234, 0.2);
+      border-radius: 10px 10px 10px 3px;
+      box-shadow: 0 8px 22px rgba(29, 42, 68, 0.2);
+      font-size: 11px;
+      line-height: 1.5;
+      text-align: center;
+      pointer-events: none;
+    }
+
+    .toast:not([hidden]) {
+      animation: toast-in 160ms ease-out both;
+    }
+
+    @media (hover: hover) {
+      .conversation-button:hover {
+        background: var(--surface);
+        border-color: var(--line);
+        transform: translateY(-1px);
+      }
+
+      .icon-button:hover {
+        background: var(--surface-deep);
+      }
+
+      .network-action:hover:not(:disabled) {
+        transform: translateY(-1px);
+      }
+
+      .retry-button:hover:not(:disabled) {
+        color: var(--surface);
+        background: var(--red);
+      }
+
+      .send-button:hover:not(:disabled) {
+        background: var(--red-dark);
+      }
+    }
+
+    @media (min-width: 520px) and (min-height: 920px) {
+      body {
+        display: grid;
+        place-items: center;
+        padding: 28px;
+      }
+
+      .device {
+        box-sizing: content-box;
+        width: 390px;
+        max-width: none;
+        height: 844px;
+        border: 7px solid var(--indigo-dark);
+        border-radius: 39px;
+        box-shadow:
+          0 30px 70px rgba(38, 42, 51, 0.22),
+          0 4px 12px rgba(38, 42, 51, 0.12),
+          inset 0 0 0 1px rgba(255, 250, 240, 0.16);
+      }
+
+      .device::before,
+      .device::after {
+        content: "";
+        position: absolute;
+        width: 4px;
+        background: var(--indigo-dark);
+        border-radius: 0 3px 3px 0;
+      }
+
+      .device::before {
+        right: -11px;
+        top: 126px;
+        height: 64px;
+      }
+
+      .device::after {
+        left: -11px;
+        top: 104px;
+        height: 44px;
+        border-radius: 3px 0 0 3px;
+      }
+
+      .screen {
+        border-radius: 31px;
+      }
+    }
+
+    @media (max-width: 359px) {
+      .list-header {
+        padding-right: 14px;
+        padding-left: 14px;
+      }
+
+      .conversation-button {
+        grid-template-columns: 44px minmax(0, 1fr) 38px;
+        gap: 9px;
+        padding-right: 7px;
+        padding-left: 7px;
+      }
+
+      .avatar {
+        width: 44px;
+        height: 44px;
+      }
+
+      .conversation-note {
+        display: none;
+      }
+
+      .network-panel {
+        gap: 7px;
+        margin-right: 10px;
+        margin-left: 10px;
+        padding-left: 9px;
+      }
+
+      .network-action {
+        min-width: 100px;
+        font-size: 10px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+
+    @keyframes view-in {
+      from {
+        opacity: 0;
+        transform: translateY(4px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes toast-in {
+      from {
+        opacity: 0;
+        transform: translate(-50%, 6px);
+      }
+      to {
+        opacity: 1;
+        transform: translate(-50%, 0);
+      }
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="device">
+    <main class="screen" id="app" aria-label="灯笺即时通讯">
+      <section class="view" id="list-view" aria-labelledby="list-title">
+        <header class="list-header">
+          <div class="brand-row">
+            <div class="brand-lockup">
+              <span class="brand-seal" aria-hidden="true">
+                <svg viewBox="0 0 28 32" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M10 4h8M9 8h10l2 5v9l-3 4H10l-3-4v-9l2-5Z"/>
+                  <path d="M14 1v3M14 26v4M11 30h6M8 13h12M8 21h12M14 8v18"/>
+                </svg>
+              </span>
+              <div>
+                <p class="eyebrow">纸上传音</p>
+                <h1 class="brand-title" id="list-title">灯笺</h1>
+              </div>
+            </div>
+            <span class="unread-summary" id="unread-summary">6 封未读</span>
+          </div>
+          <div class="list-heading">
+            <h2>近讯</h2>
+            <p>灯下有话，慢慢说。</p>
+            <span>四段往来</span>
+          </div>
+        </header>
+        <div class="conversation-scroll">
+          <ul class="conversation-list" id="conversation-list" aria-label="会话列表"></ul>
+        </div>
+        <footer class="list-footer">字字有回音</footer>
+      </section>
+
+      <section class="view" id="chat-view" aria-labelledby="chat-title" hidden>
+        <header class="chat-header">
+          <button class="icon-button" id="back-button" type="button" aria-label="返回会话列表">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="m14.5 5-7 7 7 7M8 12h11"/>
+            </svg>
+          </button>
+          <div class="chat-heading">
+            <h1 id="chat-title" tabindex="-1"></h1>
+            <p id="chat-presence"></p>
+          </div>
+          <span class="avatar avatar-small" id="chat-avatar" aria-hidden="true"></span>
+        </header>
+
+        <section class="network-panel" id="network-panel" aria-labelledby="network-title">
+          <div class="network-copy">
+            <div class="network-title-row">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true">
+                <path d="M4 9a12 12 0 0 1 16 0M7 13a7.5 7.5 0 0 1 10 0M10 17a3 3 0 0 1 4 0"/>
+                <circle cx="12" cy="20" r="1" fill="currentColor" stroke="none"/>
+              </svg>
+              <h2 class="network-title" id="network-title">网络演练</h2>
+              <span class="network-state" id="network-state">连接正常</span>
+            </div>
+            <p class="network-hint" id="network-hint" aria-live="polite">仅影响当前会话的下一条消息</p>
+          </div>
+          <button class="network-action" id="network-action" type="button" aria-pressed="false">
+            <span id="network-action-label">让下一条发送失败</span>
+          </button>
+        </section>
+
+        <div class="message-scroll" id="message-scroll">
+          <ol class="message-list" id="message-list" aria-label="当前会话消息"></ol>
+        </div>
+
+        <footer class="composer-shell" id="composer-shell">
+          <form id="composer" novalidate>
+            <div class="composer-row">
+              <div class="input-wrap">
+                <label class="sr-only" for="composer-input">消息内容</label>
+                <textarea id="composer-input" rows="1" maxlength="300" placeholder="写一句此刻想说的话…" aria-describedby="composer-feedback char-count"></textarea>
+              </div>
+              <button class="send-button" id="send-button" type="submit" disabled>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="m4 4 17 8-17 8 3-8-3-8ZM7 12h14"/>
+                </svg>
+                <span>寄出</span>
+              </button>
+            </div>
+            <div class="composer-meta">
+              <p id="composer-feedback" aria-live="polite">空白消息不会寄出</p>
+              <span class="char-count" id="char-count">0 / 300</span>
+            </div>
+          </form>
+        </footer>
+      </section>
+
+      <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true" hidden></div>
+    </main>
+  </div>
+
+  <script>
+    (() => {
+      "use strict";
+
+      const conversations = [
+        {
+          id: "qingwu",
+          name: "沈青梧",
+          mark: "梧",
+          note: "纸边读书会",
+          tone: "indigo",
+          day: "今天 · 五月二十日",
+          time: "21:42",
+          unread: 2,
+          draft: "",
+          drill: { armed: false, offline: false },
+          messages: [
+            { id: "qw-1", sender: "them", text: "今晨整理旧书，翻到你夹在《东京梦华录》里的银杏叶。", time: "21:31" },
+            { id: "qw-2", sender: "me", text: "还以为弄丢了。叶子旁边那行小字还在吗？", time: "21:34", status: "delivered" },
+            { id: "qw-3", sender: "them", text: "在，墨色淡了一点。我替你重新夹回第一百五十二页。", time: "21:36" },
+            { id: "qw-4", sender: "them", text: "书留在南窗的桌上，来时直接推门便好。", time: "21:40" },
+            { id: "qw-5", sender: "them", text: "若闻到桂花香，是我刚沏了茶。", time: "21:42" }
+          ]
+        },
+        {
+          id: "atang",
+          name: "阿棠",
+          mark: "棠",
+          note: "巷口旧友",
+          tone: "red",
+          day: "今天 · 五月二十日",
+          time: "19:10",
+          unread: 3,
+          draft: "",
+          drill: { armed: false, offline: false },
+          messages: [
+            { id: "at-1", sender: "them", text: "巷口灯笼亮了，你到了吗？", time: "19:02" },
+            { id: "at-2", sender: "me", text: "刚过石桥，远远看见你提的那盏。", time: "19:05", status: "delivered" },
+            { id: "at-3", sender: "them", text: "那我慢慢走，在前面的槐树等你。", time: "19:06" },
+            { id: "at-4", sender: "them", text: "夜风有些凉，我把斗篷也带来了。", time: "19:08" },
+            { id: "at-5", sender: "them", text: "不着急，路上小心。", time: "19:10" }
+          ]
+        },
+        {
+          id: "nanchuang",
+          name: "南窗茶事",
+          mark: "茶",
+          note: "三人小茶局",
+          tone: "tea",
+          day: "今天 · 五月二十日",
+          time: "08:28",
+          unread: 0,
+          draft: "",
+          drill: { armed: false, offline: false },
+          messages: [
+            { id: "nc-1", sender: "them", text: "明日的桂花乌龙已备好，给你留了靠窗的小桌。", time: "08:20" },
+            { id: "nc-2", sender: "me", text: "好，我巳时后到。若落雨，茶会照常吗？", time: "08:24", status: "delivered" },
+            { id: "nc-3", sender: "them", text: "照常。檐下听雨，另有一番滋味。", time: "08:26" },
+            { id: "nc-4", sender: "me", text: "那便明早见，替我留一壶。", time: "08:28", status: "delivered" }
+          ]
+        },
+        {
+          id: "yuhuai",
+          name: "周聿怀",
+          mark: "聿",
+          note: "河岸照相馆",
+          tone: "ochre",
+          day: "昨天 · 五月十九日",
+          time: "昨天",
+          unread: 1,
+          draft: "",
+          drill: { armed: false, offline: false },
+          messages: [
+            { id: "yh-1", sender: "them", text: "今天冲洗时，才发现你那天一直看着河对岸。", time: "18:12" },
+            { id: "yh-2", sender: "me", text: "对岸有人放纸鸢，我看得出神了。", time: "18:15", status: "delivered" },
+            { id: "yh-3", sender: "them", text: "幸好按下快门时，纸鸢也刚好进了画面。", time: "18:20" },
+            { id: "yh-4", sender: "me", text: "那一定很巧，替我留一张。", time: "18:24", status: "delivered" },
+            { id: "yh-5", sender: "them", text: "已经洗出来了，下次见面给你。", time: "18:26" }
+          ]
+        }
+      ];
+
+      const state = {
+        activeId: null,
+        messageSerial: 0,
+        toastTimer: null
+      };
+
+      const listView = document.getElementById("list-view");
+      const chatView = document.getElementById("chat-view");
+      const conversationList = document.getElementById("conversation-list");
+      const unreadSummary = document.getElementById("unread-summary");
+      const backButton = document.getElementById("back-button");
+      const chatTitle = document.getElementById("chat-title");
+      const chatPresence = document.getElementById("chat-presence");
+      const chatAvatar = document.getElementById("chat-avatar");
+      const networkPanel = document.getElementById("network-panel");
+      const networkState = document.getElementById("network-state");
+      const networkHint = document.getElementById("network-hint");
+      const networkAction = document.getElementById("network-action");
+      const networkActionLabel = document.getElementById("network-action-label");
+      const messageScroll = document.getElementById("message-scroll");
+      const messageList = document.getElementById("message-list");
+      const composerShell = document.getElementById("composer-shell");
+      const composer = document.getElementById("composer");
+      const composerInput = document.getElementById("composer-input");
+      const composerFeedback = document.getElementById("composer-feedback");
+      const charCount = document.getElementById("char-count");
+      const sendButton = document.getElementById("send-button");
+      const toast = document.getElementById("toast");
+
+      const icons = {
+        delivered: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m1.5 8 3 3 5-6M7 10l1 1 6-7"/></svg>',
+        failed: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><circle cx="8" cy="8" r="6.2"/><path d="M8 4.5v4M8 11.5h.01"/></svg>',
+        sending: '<span class="status-spinner" aria-hidden="true"></span>'
+      };
+
+      function escapeHTML(value) {
+        return String(value).replace(/[&<>"']/g, (character) => ({
+          "&": "&amp;",
+          "<": "&lt;",
+          ">": "&gt;",
+          '"': "&quot;",
+          "'": "&#39;"
+        })[character]);
+      }
+
+      function activeConversation() {
+        return conversations.find((conversation) => conversation.id === state.activeId) || null;
+      }
+
+      function lastMessage(conversation) {
+        return conversation.messages[conversation.messages.length - 1];
+      }
+
+      function messagePreview(conversation) {
+        const message = lastMessage(conversation);
+        const text = message.text.replace(/\s+/g, " ").trim();
+        if (message.sender === "me" && message.status === "failed") {
+          return { text: `发送失败 · ${text}`, failed: true };
+        }
+        if (message.sender === "me" && message.status === "sending") {
+          return { text: `发送中 · ${text}`, failed: false };
+        }
+        return { text: message.sender === "me" ? `我：${text}` : text, failed: false };
+      }
+
+      function renderList() {
+        conversationList.innerHTML = conversations.map((conversation) => {
+          const preview = messagePreview(conversation);
+          const unread = conversation.unread > 0;
+          return `
+            <li class="conversation-item">
+              <button class="conversation-button${unread ? " is-unread" : ""}" id="conversation-${conversation.id}" type="button" data-action="open" data-conversation-id="${conversation.id}" aria-label="${escapeHTML(conversation.name)}，${escapeHTML(preview.text)}，${conversation.time}${unread ? `，${conversation.unread}条未读` : "，已读"}">
+                <span class="avatar" data-tone="${conversation.tone}" aria-hidden="true">${conversation.mark}</span>
+                <span class="conversation-copy">
+                  <span class="conversation-name-row">
+                    <strong class="conversation-name">${conversation.name}</strong>
+                    <span class="conversation-note">${conversation.note}</span>
+                  </span>
+                  <span class="conversation-preview${preview.failed ? " is-failed" : ""}">${escapeHTML(preview.text)}</span>
+                </span>
+                <span class="conversation-meta">
+                  <time>${conversation.time}</time>
+                  ${unread ? `<span class="unread-badge" aria-label="${conversation.unread}条未读">${conversation.unread}</span>` : '<span class="read-state">已读</span>'}
+                </span>
+              </button>
+            </li>`;
+        }).join("");
+
+        const unreadTotal = conversations.reduce((total, conversation) => total + conversation.unread, 0);
+        unreadSummary.textContent = unreadTotal > 0 ? `${unreadTotal} 封未读` : "全部已读";
+        unreadSummary.classList.toggle("is-clear", unreadTotal === 0);
+      }
+
+      function statusMarkup(message, conversation) {
+        if (message.sender !== "me") {
+          return "";
+        }
+        if (message.status === "sending") {
+          return `<span class="delivery-status is-sending" id=status-${message.id} role="status">${icons.sending}<span>发送中…</span></span>`;
+        }
+        if (message.status === "failed") {
+          return `
+            <span class="delivery-status is-failed" id=status-${message.id} role="status">${icons.failed}<span>发送失败</span></span>
+            <button class="retry-button" type="button" data-action="retry" data-message-id="${message.id}" aria-label="重试发送这条消息" ${conversation.drill.offline ? 'disabled title="请先恢复网络"' : ""}>重试</button>`;
+        }
+        return `<span class="delivery-status is-delivered" id=status-${message.id} role="status">${icons.delivered}<span>已送达</span></span>`;
+      }
+
+      function renderMessages(shouldScroll = false) {
+        const conversation = activeConversation();
+        if (!conversation) {
+          return;
+        }
+        messageList.innerHTML = `<li class="day-divider">${conversation.day}</li>` + conversation.messages.map((message) => {
+          const own = message.sender === "me";
+          return `
+            <li class="message-row${own ? " is-own" : ""}${message.status === "failed" ? " is-failed" : ""}" id=message-${message.id} data-message-id=${message.id} data-status="${message.status || "received"}" tabindex="-1">
+              ${own ? "" : `<span class="message-avatar" aria-hidden="true">${conversation.mark}</span>`}
+              <div class="message-stack">
+                <div class="message-bubble"><span class="sr-only">${own ? "我说：" : `${conversation.name}说：`}</span>${escapeHTML(message.text)}</div>
+                <div class="message-meta">
+                  <time>${message.time}</time>
+                  ${statusMarkup(message, conversation)}
+                </div>
+              </div>
+            </li>`;
+        }).join("");
+        if (shouldScroll) {
+          scrollMessages();
+        }
+      }
+
+      function renderNetwork() {
+        const conversation = activeConversation();
+        if (!conversation) {
+          return;
+        }
+        const { armed, offline } = conversation.drill;
+        networkPanel.classList.toggle("is-armed", armed);
+        networkPanel.classList.toggle("is-offline", offline);
+        chatPresence.classList.toggle("is-offline", offline);
+        networkAction.setAttribute("aria-pressed", String(armed));
+        if (offline) {
+          networkState.textContent = "演练断线中";
+          networkHint.textContent = "连接已断开，失败原文已完整保留";
+          networkActionLabel.textContent = "恢复网络";
+          chatPresence.textContent = "演练断线中 · 消息未丢失";
+        } else if (armed) {
+          networkState.textContent = "等待发送";
+          networkHint.textContent = "已待命：当前会话下一条发送将失败";
+          networkActionLabel.textContent = "取消本次演练";
+          chatPresence.textContent = "连接正常 · 演练已待命";
+        } else {
+          networkState.textContent = "连接正常";
+          networkHint.textContent = "仅影响当前会话的下一条消息";
+          networkActionLabel.textContent = "让下一条发送失败";
+          chatPresence.textContent = "此刻在线 · 话会慢慢抵达";
+        }
+      }
+
+      function setComposerFeedback(text) {
+        composerFeedback.textContent = text;
+      }
+
+      function updateComposer() {
+        const conversation = activeConversation();
+        if (!conversation) {
+          return;
+        }
+        const empty = composerInput.value.trim().length === 0;
+        sendButton.disabled = empty || conversation.drill.offline;
+        charCount.textContent = `${composerInput.value.length} / 300`;
+        composerShell.classList.toggle("is-offline", conversation.drill.offline);
+      }
+
+      function autoResizeComposer() {
+        composerInput.style.height = "auto";
+        composerInput.style.height = `${Math.min(composerInput.scrollHeight, 88)}px`;
+      }
+
+      function scrollMessages() {
+        requestAnimationFrame(() => {
+          messageScroll.scrollTop = messageScroll.scrollHeight;
+        });
+      }
+
+      function showToast(text) {
+        if (state.toastTimer !== null) {
+          clearTimeout(state.toastTimer);
+        }
+        toast.textContent = text;
+        toast.hidden = false;
+        state.toastTimer = setTimeout(() => {
+          toast.hidden = true;
+          state.toastTimer = null;
+        }, 2400);
+      }
+
+      function syncDraft() {
+        const conversation = activeConversation();
+        if (conversation) {
+          conversation.draft = composerInput.value;
+        }
+      }
+
+      function openConversation(id) {
+        const conversation = conversations.find((item) => item.id === id);
+        if (!conversation) {
+          return;
+        }
+        syncDraft();
+        state.activeId = id;
+        conversation.unread = 0;
+        chatTitle.textContent = conversation.name;
+        chatAvatar.textContent = conversation.mark;
+        chatAvatar.setAttribute("data-tone", conversation.tone);
+        composerInput.value = conversation.draft;
+        setComposerFeedback(conversation.drill.offline ? "连接已断开，草稿会留在本页。" : "空白消息不会寄出");
+        renderList();
+        renderNetwork();
+        renderMessages(true);
+        updateComposer();
+        autoResizeComposer();
+        listView.hidden = true;
+        chatView.hidden = false;
+        document.title = `${conversation.name} · 灯笺`;
+        requestAnimationFrame(() => {
+          chatTitle.focus({ preventScroll: true });
+          scrollMessages();
+        });
+      }
+
+      function goBack() {
+        const previousId = state.activeId;
+        if (!previousId) {
+          return;
+        }
+        syncDraft();
+        state.activeId = null;
+        chatView.hidden = true;
+        listView.hidden = false;
+        document.title = "灯笺 · 近讯";
+        renderList();
+        requestAnimationFrame(() => {
+          const target = document.getElementById(`conversation-${previousId}`);
+          if (target) {
+            target.focus({ preventScroll: true });
+          }
+        });
+      }
+
+      function handleNetworkAction() {
+        const conversation = activeConversation();
+        if (!conversation) {
+          return;
+        }
+        if (conversation.drill.offline) {
+          conversation.drill.offline = false;
+          conversation.drill.armed = false;
+          renderNetwork();
+          renderMessages();
+          updateComposer();
+          setComposerFeedback("网络已恢复，可重试原消息。");
+          showToast("网络已恢复，请重试保留的消息");
+          return;
+        }
+        conversation.drill.armed = !conversation.drill.armed;
+        renderNetwork();
+        if (conversation.drill.armed) {
+          setComposerFeedback("演练已待命，原文仍会先进入当前会话。");
+          showToast("已待命：仅当前会话的下一条会失败");
+        } else {
+          setComposerFeedback("演练已取消，下一条将正常发送。");
+          showToast("已取消演练，下一条将正常发送");
+        }
+      }
+
+      function currentTime() {
+        const now = new Date();
+        return `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+      }
+
+      function settleMessage(conversationId, messageId, shouldFail) {
+        const conversation = conversations.find((item) => item.id === conversationId);
+        const message = conversation && conversation.messages.find((item) => item.id === messageId);
+        if (!conversation || !message || message.status !== "sending") {
+          return;
+        }
+        message.status = shouldFail ? "failed" : "delivered";
+        if (shouldFail) {
+          conversation.drill.offline = true;
+          conversation.drill.armed = false;
+        }
+        renderList();
+        if (state.activeId === conversationId) {
+          renderNetwork();
+          renderMessages();
+          updateComposer();
+          if (shouldFail) {
+            setComposerFeedback("原文保留在气泡中，恢复网络后可重试。");
+            showToast("发送失败，原文已保留；恢复网络后可重试");
+          } else {
+            setComposerFeedback("已送达，可继续书写。");
+            showToast("消息已送达");
+          }
+        }
+      }
+
+      function sendCurrentMessage() {
+        const conversation = activeConversation();
+        if (!conversation) {
+          return;
+        }
+        const text = composerInput.value;
+        if (text.trim().length === 0) {
+          setComposerFeedback("空白消息不会寄出，请先写一句话。");
+          showToast("空白消息不会寄出");
+          updateComposer();
+          return;
+        }
+        if (conversation.drill.offline) {
+          setComposerFeedback("网络尚未恢复，草稿已保留。");
+          showToast("请先恢复网络，草稿不会丢失");
+          updateComposer();
+          return;
+        }
+
+        const shouldFail = conversation.drill.armed;
+        conversation.drill.armed = false;
+        const message = {
+          id: `out-${++state.messageSerial}`,
+          sender: "me",
+          text,
+          time: currentTime(),
+          status: "sending",
+          attempts: 1
+        };
+        conversation.messages.push(message);
+        conversation.time = message.time;
+        conversation.draft = "";
+        composerInput.value = "";
+        autoResizeComposer();
+        renderNetwork();
+        renderMessages(true);
+        renderList();
+        updateComposer();
+        setComposerFeedback(shouldFail ? "演练已消耗，等待这条消息的回执。" : "正在传递，稍候片刻。");
+        showToast(shouldFail ? "下一条失败演练已触发" : "消息发送中");
+        setTimeout(() => settleMessage(conversation.id, message.id, shouldFail), 720);
+      }
+
+      function retryMessage(messageId) {
+        const conversation = activeConversation();
+        const message = conversation && conversation.messages.find((item) => item.id === messageId);
+        if (!conversation || !message || message.sender !== "me" || message.status !== "failed") {
+          return;
+        }
+        if (conversation.drill.offline) {
+          setComposerFeedback("请先恢复网络，再重试原消息。");
+          showToast("请先恢复网络，原消息仍在原处");
+          return;
+        }
+        message.status = "sending";
+        message.attempts += 1;
+        renderMessages(true);
+        renderList();
+        setComposerFeedback("正在重试同一条消息，不会新增气泡。");
+        showToast("正在重试原消息");
+        requestAnimationFrame(() => {
+          const target = document.getElementById(`message-${message.id}`);
+          if (target) {
+            target.focus({ preventScroll: true });
+          }
+        });
+        setTimeout(() => settleMessage(conversation.id, message.id, false), 720);
+      }
+
+      document.addEventListener("click", (event) => {
+        const button = event.target.closest("[data-action]");
+        if (!button) {
+          return;
+        }
+        if (button.dataset.action === "open") {
+          openConversation(button.dataset.conversationId);
+        }
+        if (button.dataset.action === "retry") {
+          retryMessage(button.dataset.messageId);
+        }
+      });
+
+      backButton.addEventListener("click", goBack);
+      networkAction.addEventListener("click", handleNetworkAction);
+      composer.addEventListener("submit", (event) => {
+        event.preventDefault();
+        sendCurrentMessage();
+      });
+
+      composerInput.addEventListener("input", () => {
+        syncDraft();
+        autoResizeComposer();
+        updateComposer();
+        const conversation = activeConversation();
+        if (conversation && conversation.drill.offline) {
+          setComposerFeedback("连接已断开，草稿会留在本页。");
+        } else {
+          setComposerFeedback(composerInput.value.trim() ? "写好后，寄给此刻的人。" : "空白消息不会寄出");
+        }
+      });
+
+      composerInput.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" && !event.shiftKey && !event.isComposing) {
+          event.preventDefault();
+          sendCurrentMessage();
+        }
+      });
+
+      renderList();
+    })();
+  </script>
+</body>
+</html>

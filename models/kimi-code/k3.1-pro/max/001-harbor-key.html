@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>泊钥 Harbor Key｜私人港湾会员入口</title>
+  <style>
+    :root {
+      --navy: #071C26;
+      --navy-2: #0D2A36;
+      --navy-3: #123743;
+      --brass: #C9A560;
+      --brass-light: #E5CD96;
+      --paper: #F3EEE2;
+      --paper-deep: #E8E0D0;
+      --ink: #102D36;
+      --muted: #708087;
+      --error: #A63D35;
+      --success: #2F6653;
+    }
+    * { box-sizing: border-box; }
+    html { background: var(--navy); }
+    body {
+      margin: 0;
+      color: var(--paper);
+      background: var(--navy);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    button, input { font: inherit; }
+    button { cursor: pointer; }
+    button, a, input { -webkit-tap-highlight-color: transparent; }
+    button:focus-visible, input:focus-visible, [tabindex]:focus-visible {
+      outline: 3px solid var(--brass);
+      outline-offset: 3px;
+    }
+    [hidden] { display: none !important; }
+    .harbor {
+      min-height: 100vh;
+      min-height: 100svh;
+      display: grid;
+      grid-template-columns: minmax(0, 1.28fr) minmax(430px, .92fr);
+      overflow: hidden;
+    }
+    .chart-panel {
+      position: relative;
+      min-width: 0;
+      padding: 34px 48px 30px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      isolation: isolate;
+      background:
+        radial-gradient(circle at 74% 34%, rgba(31, 76, 87, .46), transparent 40%),
+        var(--navy);
+      border-right: 1px solid rgba(201, 165, 96, .35);
+    }
+    .brand-row, .hero-copy, .harbor-stats { position: relative; z-index: 2; }
+    .brand-row { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+    .brand { display: flex; align-items: center; gap: 13px; }
+    .brand-mark { width: 43px; height: 43px; color: var(--brass); flex: 0 0 auto; }
+    .brand-name { font-family: "Songti SC", "STSong", "SimSun", serif; font-size: 21px; letter-spacing: .18em; }
+    .brand-sub { margin-top: 4px; color: #91A6AA; font-size: 9px; letter-spacing: .28em; }
+    .coordinate-tag { color: #91A6AA; font: 10px/1.6 Consolas, "SFMono-Regular", monospace; letter-spacing: .12em; text-align: right; }
+    .hero-copy { margin-top: 55px; max-width: 490px; }
+    .eyebrow { display: flex; align-items: center; gap: 10px; color: var(--brass); font-size: 10px; letter-spacing: .24em; }
+    .eyebrow::before { content: ""; width: 27px; height: 1px; background: var(--brass); }
+    h1 {
+      margin: 18px 0 18px;
+      font-family: "Songti SC", "STSong", "SimSun", serif;
+      font-size: clamp(48px, 5vw, 68px);
+      line-height: 1.16;
+      font-weight: 500;
+      letter-spacing: .06em;
+    }
+    .hero-copy p { max-width: 350px; margin: 0; color: #AABABD; font-size: 13px; line-height: 1.9; }
+    .route-art {
+      position: absolute;
+      z-index: 0;
+      width: 82%;
+      height: 77%;
+      right: -3%;
+      bottom: 3%;
+      opacity: .94;
+      pointer-events: none;
+    }
+    .route-dash { animation: chart-dash 18s linear infinite; }
+    .pulse { animation: beacon 3.2s ease-out infinite; transform-origin: center; transform-box: fill-box; }
+    .pulse-late { animation-delay: 1.6s; }
+    .harbor-stats {
+      margin-top: auto;
+      padding-top: 18px;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      border-top: 1px solid rgba(201, 165, 96, .28);
+      background: linear-gradient(90deg, var(--navy) 0%, rgba(7, 28, 38, .84) 75%, transparent);
+    }
+    .stat { padding-right: 14px; }
+    .stat + .stat { padding-left: 20px; border-left: 1px solid rgba(201, 165, 96, .18); }
+    .stat-label { display: block; color: #7F989D; font-size: 9px; letter-spacing: .18em; }
+    .stat-value { display: block; margin-top: 8px; color: #D8DFDA; font: 13px/1.4 Consolas, "SFMono-Regular", monospace; }
+    .stat-value em { color: var(--brass-light); font-style: normal; }
+    .login-side {
+      position: relative;
+      min-width: 0;
+      padding: 34px 40px 25px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background:
+        linear-gradient(rgba(201, 165, 96, .035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(201, 165, 96, .035) 1px, transparent 1px),
+        var(--navy-2);
+      background-size: 44px 44px;
+    }
+    .login-meta, .login-footer { width: min(410px, 100%); }
+    .login-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; color: #91A6AA; font-size: 9px; letter-spacing: .16em; }
+    .live-status { display: inline-flex; align-items: center; gap: 7px; color: var(--brass-light); letter-spacing: .08em; }
+    .live-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--brass); box-shadow: 0 0 0 4px rgba(201, 165, 96, .1); }
+    .login-card {
+      position: relative;
+      width: min(410px, 100%);
+      padding: 31px 34px 27px;
+      color: var(--ink);
+      background: var(--paper);
+      border: 1px solid var(--brass-light);
+      border-radius: 3px;
+      box-shadow: 0 25px 70px rgba(0, 0, 0, .28), 8px 8px 0 rgba(201, 165, 96, .08);
+    }
+    .login-card::before { content: ""; position: absolute; top: -1px; left: 34px; width: 52px; height: 3px; background: var(--brass); }
+    .card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 18px; }
+    .card-kicker { color: #876C3D; font-size: 10px; font-weight: 700; letter-spacing: .17em; }
+    .member-seal { width: 44px; height: 44px; color: #876C3D; flex: 0 0 auto; }
+    .login-card h2 { margin: 12px 0 9px; font-family: "Songti SC", "STSong", "SimSun", serif; font-size: 29px; line-height: 1.35; font-weight: 600; letter-spacing: .03em; }
+    .card-intro { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.75; }
+    .access-form { margin-top: 23px; }
+    .field + .field { margin-top: 15px; }
+    .field label { display: block; margin-bottom: 7px; font-size: 12px; font-weight: 650; }
+    .input-wrap { position: relative; }
+    .input-wrap input {
+      width: 100%;
+      height: 47px;
+      padding: 0 13px;
+      color: var(--ink);
+      background: #FBF8F0;
+      border: 1px solid #C8C1B3;
+      border-radius: 2px;
+      font-size: 14px;
+      transition: border-color .18s ease, box-shadow .18s ease, background .18s ease;
+    }
+    .input-wrap input:hover { border-color: #8E887B; }
+    .input-wrap input:focus { border-color: #9B793E; box-shadow: 0 0 0 3px rgba(201, 165, 96, .18); outline: none; }
+    .input-wrap input[aria-invalid="true"] { border-color: var(--error); background: #FFF8F4; }
+    .input-wrap input::placeholder { color: #92958E; }
+    .password-input { padding-right: 49px !important; }
+    .reveal {
+      position: absolute;
+      right: 4px;
+      top: 4px;
+      width: 39px;
+      height: 39px;
+      display: grid;
+      place-items: center;
+      color: #586C72;
+      background: transparent;
+      border: 0;
+      border-radius: 2px;
+    }
+    .reveal:hover { color: var(--ink); background: var(--paper-deep); }
+    .field-note { margin: 6px 0 0; color: var(--error); font-size: 11px; line-height: 1.5; }
+    .form-options { margin: 16px 0 19px; display: flex; justify-content: space-between; align-items: center; gap: 14px; }
+    .remember { display: inline-flex; align-items: center; gap: 7px; color: #566A70; font-size: 11px; cursor: pointer; }
+    .remember input { width: 15px; height: 15px; margin: 0; accent-color: #876C3D; }
+    .text-button { padding: 2px 0; color: #6F572F; background: none; border: 0; font-size: 11px; text-decoration: underline; text-underline-offset: 4px; }
+    .text-button:hover { color: var(--ink); }
+    .form-alert { margin: 0 0 14px; padding: 10px 12px; color: var(--error); background: #F2DFD7; border-left: 3px solid var(--error); font-size: 12px; line-height: 1.6; }
+    .primary-button {
+      width: 100%;
+      min-height: 49px;
+      padding: 0 17px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      color: var(--brass-light);
+      background: var(--navy);
+      border: 1px solid var(--navy);
+      border-radius: 2px;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: .06em;
+      transition: background .18s ease, transform .18s ease, box-shadow .18s ease;
+    }
+    .primary-button:hover:not(:disabled) { background: var(--navy-3); transform: translateY(-1px); box-shadow: 0 5px 12px rgba(7, 28, 38, .16); }
+    .primary-button:active:not(:disabled) { transform: translateY(0); box-shadow: none; }
+    .primary-button:disabled { opacity: .58; cursor: wait; }
+    .secure-note { margin: 14px 0 0; display: flex; align-items: center; justify-content: center; gap: 6px; color: #748186; font-size: 10px; }
+    .login-footer { margin-top: 18px; display: flex; justify-content: space-between; gap: 16px; color: #8CA1A6; font-size: 10px; line-height: 1.6; }
+    .login-footer span:last-child { color: var(--brass-light); white-space: nowrap; }
+    .back-button { margin: 0 0 17px; padding: 0; display: inline-flex; align-items: center; gap: 7px; color: #6F572F; background: none; border: 0; font-size: 11px; }
+    .back-button:hover { color: var(--ink); }
+    .success-view { text-align: center; }
+    .success-emblem { width: 83px; height: 83px; margin: 1px auto 13px; color: var(--success); }
+    .success-view h2 { margin-top: 8px; }
+    .member-id { margin: 13px 0 0; color: #876C3D; font: 11px/1.5 Consolas, "SFMono-Regular", monospace; letter-spacing: .1em; }
+    .berth-ticket { margin: 21px 0 18px; padding: 16px; text-align: left; background: #E9E3D5; border-top: 1px solid #C8B991; border-bottom: 1px solid #C8B991; }
+    .ticket-head { display: flex; justify-content: space-between; gap: 12px; color: #627277; font-size: 10px; }
+    .ticket-head strong { color: var(--success); font-weight: 700; }
+    .ticket-route { margin: 13px 0 5px; display: flex; align-items: center; justify-content: space-between; font-family: "Songti SC", "STSong", "SimSun", serif; font-size: 21px; }
+    .ticket-route svg { width: 58px; color: #9A7A42; }
+    .ticket-meta { color: #627277; font-size: 11px; }
+    .secondary-button { width: 100%; min-height: 43px; color: var(--ink); background: transparent; border: 1px solid #AAA28F; border-radius: 2px; font-size: 12px; }
+    .secondary-button:hover { background: var(--paper-deep); border-color: #786F5E; }
+    .recovery-success { padding: 20px 0 7px; text-align: center; }
+    .recovery-success svg { width: 66px; color: var(--success); }
+    .recovery-success h3 { margin: 13px 0 8px; font-family: "Songti SC", "STSong", "SimSun", serif; font-size: 23px; }
+    .recovery-success p { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.8; }
+    .recovery-address { display: block; margin-top: 12px; color: var(--ink); font-weight: 700; overflow-wrap: anywhere; }
+    @keyframes chart-dash { to { stroke-dashoffset: -96; } }
+    @keyframes beacon { 0% { opacity: .65; transform: scale(.5); } 85%, 100% { opacity: 0; transform: scale(1.65); } }
+    @media (max-width: 1050px) {
+      .harbor { grid-template-columns: minmax(0, 1fr) minmax(400px, .9fr); }
+      .chart-panel { padding: 30px 32px 27px; }
+      .hero-copy { margin-top: 48px; }
+      .login-side { padding-inline: 28px; }
+      .coordinate-tag { display: none; }
+      .route-art { width: 98%; right: -16%; }
+    }
+    @media (max-width: 820px) {
+      .harbor { grid-template-columns: 1fr; overflow: visible; }
+      .chart-panel { min-height: 440px; border-right: 0; border-bottom: 1px solid rgba(201, 165, 96, .35); }
+      .hero-copy { margin-top: 38px; }
+      h1 { font-size: 52px; }
+      .route-art { width: 66%; height: 94%; right: -2%; bottom: -8%; }
+      .harbor-stats { max-width: 570px; }
+      .login-side { padding: 42px 24px 32px; }
+      .login-card, .login-meta, .login-footer { width: min(430px, 100%); }
+    }
+    @media (max-width: 480px) {
+      .chart-panel { min-height: 480px; padding: 25px 22px; }
+      .brand-sub { letter-spacing: .16em; }
+      .hero-copy { margin-top: 40px; }
+      h1 { font-size: 43px; }
+      .hero-copy p { max-width: 270px; }
+      .route-art { width: 100%; opacity: .6; }
+      .stat + .stat { padding-left: 10px; }
+      .stat-value { font-size: 11px; }
+      .login-side { padding-inline: 16px; }
+      .login-card { padding: 28px 23px 24px; }
+      .login-footer { align-items: flex-start; flex-direction: column; gap: 5px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
+    }
+  </style>
+</head>
+<body>
+  <main class="harbor">
+    <section class="chart-panel" aria-labelledby="harbor-title">
+      <header class="brand-row">
+        <div class="brand">
+          <svg class="brand-mark" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+            <circle cx="24" cy="24" r="21" stroke="currentColor" stroke-width="1"/>
+            <path d="M24 8v5M24 35v5M8 24h5M35 24h5" stroke="currentColor"/>
+            <path d="M24 14v20M17 20h14M14 28c2 5 6 7 10 7s8-2 10-7M19 28l-5-1M29 28l5-1" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+            <circle cx="24" cy="14" r="2.5" fill="currentColor"/>
+          </svg>
+          <div><div class="brand-name">泊钥</div><div class="brand-sub">HARBOR KEY</div></div>
+        </div>
+        <div class="coordinate-tag">N 31° 14′ 08″<br>E 121° 29′ 17″</div>
+      </header>
+
+      <div class="hero-copy">
+        <div class="eyebrow">PRIVATE HARBOR · MEMBERS ONLY</div>
+        <h1 id="harbor-title">归来，<br>自有灯火。</h1>
+        <p>一方泊位，一条只属于你的航线。核验会员身份，继续前往北堤私人港湾。</p>
+      </div>
+
+      <svg class="route-art" viewBox="0 0 720 680" fill="none" aria-hidden="true">
+        <defs>
+          <pattern id="chart-grid" width="44" height="44" patternUnits="userSpaceOnUse">
+            <path d="M44 0H0V44" stroke="#31505A" stroke-width=".65" opacity=".48"/>
+            <circle cx="0" cy="0" r="1.2" fill="#C9A560" opacity=".32"/>
+          </pattern>
+          <radialGradient id="sea-fade">
+            <stop offset="0" stop-color="#123743" stop-opacity=".58"/>
+            <stop offset="1" stop-color="#071C26" stop-opacity="0"/>
+          </radialGradient>
+        </defs>
+        <rect width="720" height="680" fill="url(#chart-grid)"/>
+        <ellipse cx="430" cy="330" rx="290" ry="280" fill="url(#sea-fade)"/>
+        <g stroke="#365762" stroke-width="1.15" opacity=".74">
+          <path d="M73 555c64-47 80-121 139-154 47-27 84-7 127-43 45-38 24-92 77-121 48-27 98 10 150-23 43-27 55-79 105-101"/>
+          <path d="M48 580c76-49 96-127 158-163 50-29 91-8 139-45 52-40 32-99 87-129 52-28 103 9 160-25 47-28 61-80 111-105"/>
+          <path d="M26 607c89-55 113-134 178-172 55-32 100-10 151-47 58-43 40-106 98-138 56-31 111 8 171-28 51-30 66-80 118-107"/>
+          <path d="M117 524c43-43 57-101 105-129 42-24 72-5 111-38 37-32 18-77 63-102 42-24 86 8 131-19 38-23 47-66 87-88"/>
+        </g>
+        <g stroke="#496670" opacity=".52">
+          <path d="M483 47v561M425 64v544M367 83v525M309 106v502M251 139v469"/>
+          <path d="M100 515h562M130 457h533M166 399h497M202 341h461M237 283h426"/>
+        </g>
+        <g fill="#749096" font-family="Consolas, monospace" font-size="10" letter-spacing="2">
+          <text x="492" y="83">121°29′E</text><text x="88" y="536">31°14′N</text>
+          <text x="538" y="430">NORTH PIER</text><text x="159" y="376">OUTER CHANNEL</text>
+        </g>
+        <path d="M117 555C169 528 159 464 224 447c64-17 80 43 137 10 58-34 20-99 74-133 52-33 77 22 122-12 28-21 20-68 48-102" stroke="#C9A560" stroke-width="2" stroke-dasharray="7 7" class="route-dash"/>
+        <g fill="#0D2A36" stroke="#C9A560" stroke-width="1.5">
+          <circle cx="117" cy="555" r="6"/><circle cx="224" cy="447" r="5"/><circle cx="361" cy="457" r="5"/><circle cx="435" cy="324" r="5"/>
+        </g>
+        <g transform="translate(570 268)">
+          <circle r="28" stroke="#C9A560" opacity=".32" class="pulse"/>
+          <circle r="28" stroke="#C9A560" opacity=".32" class="pulse pulse-late"/>
+          <circle r="12" fill="#C9A560" opacity=".14"/>
+          <circle r="4" fill="#E5CD96"/>
+          <path d="M0-19v-12M-8-31H8M-4 17l4-13 4 13" stroke="#E5CD96" stroke-width="1.4"/>
+        </g>
+        <g transform="translate(343 438) rotate(18)" stroke="#E5CD96" stroke-width="1.5" stroke-linejoin="round">
+          <path d="M-18 6h37l-7 9h-22z" fill="#0D2A36"/>
+          <path d="M0 5v-28M2-25l15 20H2" fill="#C9A560" fill-opacity=".18"/>
+          <path d="M-2-19l-11 14h11" fill="#C9A560" fill-opacity=".1"/>
+        </g>
+        <g transform="translate(581 123)" stroke="#C9A560">
+          <circle r="51" opacity=".35"/><circle r="38" opacity=".25"/>
+          <path d="M0-58V58M-58 0H58" opacity=".45"/>
+          <path d="M0-39l8 31 31 8-31 8-8 31-8-31-31-8 31-8z" fill="#C9A560" fill-opacity=".12"/>
+          <path d="M0-39v39L-8-8z" fill="#E5CD96"/>
+          <text x="-4" y="-67" fill="#E5CD96" stroke="none" font-family="Georgia, serif" font-size="13">N</text>
+        </g>
+        <g transform="translate(579 561)">
+          <rect x="-74" y="-29" width="148" height="58" fill="#071C26" fill-opacity=".78" stroke="#31505A"/>
+          <text x="-58" y="-7" fill="#7F989D" font-family="Consolas, monospace" font-size="9" letter-spacing="2">NEXT ARRIVAL</text>
+          <text x="-58" y="15" fill="#E5CD96" font-family="Consolas, monospace" font-size="15" letter-spacing="3">18:40 / A–17</text>
+        </g>
+      </svg>
+
+      <div class="harbor-stats" aria-label="今日港湾状况">
+        <div class="stat"><span class="stat-label">潮汐 / TIDE</span><span class="stat-value"><em>2.4 m</em> · 涨潮</span></div>
+        <div class="stat"><span class="stat-label">风向 / WIND</span><span class="stat-value">SE 08 <em>kn</em></span></div>
+        <div class="stat"><span class="stat-label">通航 / STATUS</span><span class="stat-value"><em>全线畅通</em></span></div>
+      </div>
+    </section>
+
+    <section class="login-side" aria-label="会员身份核验">
+      <div class="login-meta"><span>SECURE BERTH ACCESS</span><span class="live-status"><i class="live-dot"></i><span id="gate-status">值守中</span></span></div>
+      <div class="login-card">
+        <div id="login-view">
+          <div class="card-top">
+            <div><div class="card-kicker">会员通行 · NO. 017</div><h2 id="login-title" tabindex="-1">欢迎回到港湾</h2></div>
+            <svg class="member-seal" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+              <circle cx="24" cy="24" r="21" stroke="currentColor"/><circle cx="24" cy="24" r="17" stroke="currentColor" stroke-dasharray="1 3"/>
+              <path d="M24 13v20M17 19h14M15 28c2 4 5 6 9 6s7-2 9-6" stroke="currentColor" stroke-width="1.4"/>
+            </svg>
+          </div>
+          <p class="card-intro">使用会员编号或绑定邮箱，开启你的私人泊位。</p>
+          <form class="access-form" id="login-form" novalidate>
+            <p class="form-alert" id="login-alert" role="alert" hidden></p>
+            <div class="field">
+              <label for="member-account">会员编号或绑定邮箱</label>
+              <div class="input-wrap"><input id="member-account" name="account" type="text" autocomplete="username" placeholder="例如 HK-2048" aria-describedby="account-note"></div>
+              <p class="field-note" id="account-note" hidden></p>
+            </div>
+            <div class="field">
+              <label for="member-password">通行密码</label>
+              <div class="input-wrap">
+                <input class="password-input" id="member-password" name="password" type="password" autocomplete="current-password" placeholder="输入至少 6 位密码" aria-describedby="password-note">
+                <button class="reveal" id="reveal-password" type="button" aria-label="显示密码" aria-pressed="false">
+                  <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M2.5 12s3.4-6 9.5-6 9.5 6 9.5 6-3.4 6-9.5 6-9.5-6-9.5-6Z" stroke="currentColor" stroke-width="1.5"/><circle cx="12" cy="12" r="2.8" stroke="currentColor" stroke-width="1.5"/></svg>
+                </button>
+              </div>
+              <p class="field-note" id="password-note" hidden></p>
+            </div>
+            <div class="form-options">
+              <label class="remember"><input type="checkbox" name="remember" checked>在这台设备上记住我</label>
+              <button class="text-button" id="forgot-password" type="button">找不到密码？</button>
+            </div>
+            <button class="primary-button" id="login-submit" type="submit"><span id="login-button-label">核验并进入港湾</span><svg width="26" height="18" viewBox="0 0 26 18" fill="none" aria-hidden="true"><path d="M1 9h22M17 3l6 6-6 6" stroke="currentColor" stroke-width="1.4"/></svg></button>
+          </form>
+          <p class="secure-note"><svg width="12" height="14" viewBox="0 0 12 14" fill="none" aria-hidden="true"><rect x="1" y="6" width="10" height="7" stroke="currentColor"/><path d="M3 6V4a3 3 0 0 1 6 0v2" stroke="currentColor"/></svg>本次核验仅在当前设备完成，请妥善保管通行密码</p>
+        </div>
+
+        <div id="recovery-view" hidden>
+          <button class="back-button" id="recovery-back" type="button">← 返回会员登录</button>
+          <div class="card-kicker">PASSWORD RECOVERY</div>
+          <h2 id="recovery-title" tabindex="-1">重新取得泊钥</h2>
+          <p class="card-intro">输入账号绑定的邮箱，我们会寄出一份有时效的重置指引。</p>
+          <form class="access-form" id="recovery-form" novalidate>
+            <div class="field">
+              <label for="recovery-email">绑定邮箱</label>
+              <div class="input-wrap"><input id="recovery-email" name="email" type="email" autocomplete="email" placeholder="name@example.com" aria-describedby="recovery-note"></div>
+              <p class="field-note" id="recovery-note" hidden></p>
+            </div>
+            <button class="primary-button" id="recovery-submit" type="submit" style="margin-top:20px"><span id="recovery-button-label">发送重置指引</span><span aria-hidden="true">↗</span></button>
+          </form>
+          <div class="recovery-success" id="recovery-success" role="status" hidden>
+            <svg viewBox="0 0 70 70" fill="none" aria-hidden="true"><circle cx="35" cy="35" r="31" stroke="currentColor"/><path d="m21 36 9 9 20-23" stroke="currentColor" stroke-width="2"/></svg>
+            <h3>重置指引已寄出</h3>
+            <p>请在 30 分钟内查收邮件，并按指引设置新密码。</p>
+            <span class="recovery-address" id="recovery-address"></span>
+          </div>
+          <p class="secure-note">仍未收到？请检查垃圾邮件，或联系港口值守协助。</p>
+        </div>
+
+        <div class="success-view" id="success-view" hidden>
+          <svg class="success-emblem" viewBox="0 0 90 90" fill="none" aria-hidden="true">
+            <circle cx="45" cy="45" r="41" stroke="currentColor"/><circle cx="45" cy="45" r="34" stroke="currentColor" stroke-dasharray="2 4"/>
+            <path d="m28 45 11 11 24-27" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <div class="card-kicker">ACCESS GRANTED</div>
+          <h2 id="success-title" tabindex="-1">你的港湾已就绪</h2>
+          <p class="card-intro">身份核验完成，北堤航道已为你开启。</p>
+          <p class="member-id" id="success-member"></p>
+          <div class="berth-ticket">
+            <div class="ticket-head"><span>今日保留泊位</span><strong>可自由进出</strong></div>
+            <div class="ticket-route"><span>北堤</span><svg viewBox="0 0 60 20" fill="none" aria-hidden="true"><path d="M1 10h56M48 3l9 7-9 7" stroke="currentColor"/></svg><span>A–17</span></div>
+            <div class="ticket-meta">保留至今晚 23:30 · 已登记船只「白鹭号」</div>
+          </div>
+          <button class="secondary-button" id="switch-account" type="button">切换会员账号</button>
+        </div>
+      </div>
+      <footer class="login-footer"><span>港口值守 24 小时 · 400 821 0731</span><span>公平通航 · 私密停泊</span></footer>
+    </section>
+  </main>
+
+  <script>
+    (() => {
+      const loginView = document.getElementById('login-view');
+      const recoveryView = document.getElementById('recovery-view');
+      const successView = document.getElementById('success-view');
+      const loginForm = document.getElementById('login-form');
+      const account = document.getElementById('member-account');
+      const password = document.getElementById('member-password');
+      const loginButton = document.getElementById('login-submit');
+      const loginLabel = document.getElementById('login-button-label');
+      const loginAlert = document.getElementById('login-alert');
+      const reveal = document.getElementById('reveal-password');
+      const gateStatus = document.getElementById('gate-status');
+      const recoveryForm = document.getElementById('recovery-form');
+      const recoveryEmail = document.getElementById('recovery-email');
+      const recoveryButton = document.getElementById('recovery-submit');
+
+      function setError(input, note, message) {
+        input.setAttribute('aria-invalid', 'true');
+        note.textContent = message;
+        note.hidden = false;
+      }
+      function clearError(input, note) {
+        input.removeAttribute('aria-invalid');
+        note.textContent = '';
+        note.hidden = true;
+      }
+      function showOnly(view) {
+        loginView.hidden = view !== loginView;
+        recoveryView.hidden = view !== recoveryView;
+        successView.hidden = view !== successView;
+      }
+
+      reveal.addEventListener('click', () => {
+        const showing = password.type === 'text';
+        password.type = showing ? 'password' : 'text';
+        reveal.setAttribute('aria-pressed', String(!showing));
+        reveal.setAttribute('aria-label', showing ? '显示密码' : '隐藏密码');
+      });
+      account.addEventListener('input', () => { clearError(account, document.getElementById('account-note')); loginAlert.hidden = true; });
+      password.addEventListener('input', () => { clearError(password, document.getElementById('password-note')); loginAlert.hidden = true; });
+
+      loginForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+        const accountNote = document.getElementById('account-note');
+        const passwordNote = document.getElementById('password-note');
+        clearError(account, accountNote);
+        clearError(password, passwordNote);
+        loginAlert.hidden = true;
+        let firstInvalid = null;
+        if (!account.value.trim()) {
+          setError(account, accountNote, '请填写会员编号或绑定邮箱。');
+          firstInvalid = account;
+        }
+        if (!password.value) {
+          setError(password, passwordNote, '请输入通行密码。');
+          firstInvalid = firstInvalid || password;
+        } else if (password.value.length < 6) {
+          setError(password, passwordNote, '密码至少为 6 位，请核对后再试。');
+          firstInvalid = firstInvalid || password;
+        }
+        if (firstInvalid) {
+          loginAlert.textContent = '还有信息需要核对，请查看下方标记。';
+          loginAlert.hidden = false;
+          firstInvalid.focus();
+          return;
+        }
+        loginButton.disabled = true;
+        loginLabel.textContent = '正在核验身份…';
+        window.setTimeout(() => {
+          document.getElementById('success-member').textContent = `MEMBER / ${account.value.trim().toUpperCase()}`;
+          gateStatus.textContent = '通行已核准';
+          showOnly(successView);
+          document.getElementById('success-title').focus();
+          loginButton.disabled = false;
+          loginLabel.textContent = '核验并进入港湾';
+        }, 700);
+      });
+
+      document.getElementById('forgot-password').addEventListener('click', () => {
+        showOnly(recoveryView);
+        recoveryForm.hidden = false;
+        document.getElementById('recovery-success').hidden = true;
+        if (account.value.includes('@')) recoveryEmail.value = account.value.trim();
+        gateStatus.textContent = '找回通行密码';
+        document.getElementById('recovery-title').focus();
+      });
+      document.getElementById('recovery-back').addEventListener('click', () => {
+        showOnly(loginView);
+        gateStatus.textContent = '值守中';
+        document.getElementById('login-title').focus();
+      });
+      recoveryEmail.addEventListener('input', () => clearError(recoveryEmail, document.getElementById('recovery-note')));
+      recoveryForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+        const note = document.getElementById('recovery-note');
+        clearError(recoveryEmail, note);
+        if (!recoveryEmail.value.trim()) {
+          setError(recoveryEmail, note, '请填写账号绑定的邮箱。');
+          recoveryEmail.focus();
+          return;
+        }
+        if (!recoveryEmail.validity.valid) {
+          setError(recoveryEmail, note, '邮箱格式似乎不完整，请检查 @ 符号前后。');
+          recoveryEmail.focus();
+          return;
+        }
+        recoveryButton.disabled = true;
+        document.getElementById('recovery-button-label').textContent = '正在寄出…';
+        window.setTimeout(() => {
+          const value = recoveryEmail.value.trim();
+          const parts = value.split('@');
+          document.getElementById('recovery-address').textContent = `${parts[0].slice(0, 2)}***@${parts[1]}`;
+          recoveryForm.hidden = true;
+          document.getElementById('recovery-success').hidden = false;
+          recoveryButton.disabled = false;
+          document.getElementById('recovery-button-label').textContent = '发送重置指引';
+        }, 650);
+      });
+      document.getElementById('switch-account').addEventListener('click', () => {
+        loginForm.reset();
+        password.type = 'password';
+        reveal.setAttribute('aria-pressed', 'false');
+        reveal.setAttribute('aria-label', '显示密码');
+        gateStatus.textContent = '值守中';
+        showOnly(loginView);
+        account.focus();
+      });
+    })();
+  </script>
+</body>
+</html>
